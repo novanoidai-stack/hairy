@@ -1,0 +1,273 @@
+<!DOCTYPE html><html>
+<head>
+<title>8.3 Subthreshold vs. Superthreshold regime | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch8.S2.html" title="8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch8.S4.html" title="8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch8.S1.html" title="8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch8.S2.html" title="8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch8.S4.html" title="8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch8.S5.html" title="8.5 Summary â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch8.Sx1.html" title="Literature â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch8.Sx2.html" title="Exercises â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="stimulation, sub-/superthreshold">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8 </span>Noisy Input Models: Barrage of Spike Arrivals</span></a><a href="Ch8.S2.html" title="8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.2 </span>Stochastic spike arrival</span></a><a href="Ch8.S4.html" title="8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.4 </span>Diffusion limit and Fokker-Planck equation(*)</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">8.3 </span>Subthreshold vs. Superthreshold regime</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">One of the aims of noisy neuron models is to mimic the large variability of
+interspike intervals found, e.g., in vertebrate cortex. To arrive at broad
+interval distributions, it is not just sufficient to introduce noise into a
+neuron model.
+Apart from the noise level, other neuronal parameters such as the firing
+threshold or a bias current have to be tuned so as to make the neuron
+sensitive to noise. In this section
+we introduce a distinction between super- and subthreshold stimulation
+<cite class="ltx_cite">(<a href="bib.html#bib164" title="Corticonics" class="ltx_ref">7</a>; <a href="bib.html#bib177" title="Noise, neural codes and cortical organization" class="ltx_ref">470</a>; <a href="bib.html#bib181" title="Integrator or coincidence detector? The role of the cortical neuron revisited" class="ltx_ref">283</a>; <a href="bib.html#bib182" title="Physiological gain leads to high ISI variability in a simple model of a cortical regular spiking cell" class="ltx_ref">520</a>; <a href="bib.html#bib183" title="Role of temporal integration and fluctuation detection in the highly irregular firing of leaky integrator neuron model with partial reset" class="ltx_ref">82</a>)</cite>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">An arbitrary time-dependent stimulus <math id="p2.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> is called subthreshold, if it
+generates a membrane potential that stays â in the absence of noise â below
+the firing threshold. Due to noise, however, even subthreshold stimuli can
+induce action potentials. Stimuli that induce spikes even in a noise-free
+neuron are called superthreshold.
+</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">The distinction between sub- and superthreshold stimuli has important
+consequences for the firing behavior of neurons in the presence of noise. To
+see why, let us consider a leaky
+integrate-and-fire neuron with constant input
+<math id="p3.m1" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> for <math id="p3.m2" class="ltx_Math" alttext="t&gt;0" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t&gt;0</annotation></semantics></math>. Starting from <math id="p3.m3" class="ltx_Math" alttext="u(t=0)=u_{r}" display="inline"><semantics><mrow><mi>u</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>=</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">u(t=0)=u_{r}</annotation></semantics></math>, the trajectory of the
+membrane potential is</p>
+<table id="Ch8.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch8.E33.m1" class="ltx_Math" alttext="u_{0}(t)=u_{\infty}\,\left[1-e^{-t/\tau_{m}}\right]+u_{r}\,e^{-t/\tau_{m}}\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>t</mi><mo>/</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow></msup></mrow><mo>]</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>u</mi><mi>r</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>t</mi><mo>/</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow></msup></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u_{0}(t)=u_{\infty}\,\left[1-e^{-t/\tau_{m}}\right]+u_{r}\,e^{-t/\tau_{m}}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(8.33)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In the absence of a threshold, the membrane potential approaches the value
+<math id="p3.m4" class="ltx_Math" alttext="u_{\infty}=R\,I_{0}" display="inline"><semantics><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">u_{\infty}=R\,I_{0}</annotation></semantics></math> for <math id="p3.m5" class="ltx_Math" alttext="t\to\infty" display="inline"><semantics><mrow><mi>t</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">t\to\infty</annotation></semantics></math>. If we take the threshold <math id="p3.m6" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>
+into account, two cases may be distinguished. First, if <math id="p3.m7" class="ltx_Math" alttext="u_{\infty}&lt;\vartheta" display="inline"><semantics><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>&lt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u_{\infty}&lt;\vartheta</annotation></semantics></math>
+(subthreshold stimulation), the neuron does not fire at all. Second, if
+<math id="p3.m8" class="ltx_Math" alttext="u_{\infty}&gt;\vartheta" display="inline"><semantics><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>&gt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u_{\infty}&gt;\vartheta</annotation></semantics></math> (superthreshold stimulation), the neuron fires
+regularly. The interspike interval is <math id="p3.m9" class="ltx_Math" alttext="s_{0}" display="inline"><semantics><msub><mi>s</mi><mn>0</mn></msub><annotation encoding="application/x-tex">s_{0}</annotation></semantics></math> derived from <math id="p3.m10" class="ltx_Math" alttext="u_{0}(s_{0})=\vartheta" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>s</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>=</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u_{0}(s_{0})=\vartheta</annotation></semantics></math>. Thus</p>
+<table id="Ch8.E34" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch8.E34.m1" class="ltx_Math" alttext="s_{0}=\tau\,{\rm ln}{u_{\infty}-u_{r}\over u_{\infty}-\vartheta}\,." display="block"><semantics><mrow><mrow><msub><mi>s</mi><mn>0</mn></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mi>ln</mi><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>-</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>-</mo><mi>Ï</mi></mrow></mfrac></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">s_{0}=\tau\,{\rm ln}{u_{\infty}-u_{r}\over u_{\infty}-\vartheta}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(8.34)</span></td>
+</tr>
+</table>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">We now add diffusive noise. In the superthreshold regime, noise has little
+influence, except that it broadens the interspike interval distribution.
+Thus, in the superthreshold regime, the spike train in the presence of
+diffusive noise, is simply a noisy version of the regular spike train of the
+noise-free neuron.</p>
+</div>
+<div id="p5" class="ltx_para">
+<p class="ltx_p">On the other hand, in the subthreshold regime, the spike train changes
+qualitatively, if noise is switched on; see <cite class="ltx_cite">(<a href="bib.html#bib181" title="Integrator or coincidence detector? The role of the cortical neuron revisited" class="ltx_ref">283</a>)</cite> for a review.
+Stochastic background input turns the quiescent neuron into a spiking one. In
+the subthreshold regime, spikes are generated by the <span class="ltx_text ltx_font_italic">fluctuations</span> of the
+membrane potential, rather than by its mean
+<cite class="ltx_cite">(<a href="bib.html#bib164" title="Corticonics" class="ltx_ref">7</a>; <a href="bib.html#bib177" title="Noise, neural codes and cortical organization" class="ltx_ref">470</a>; <a href="bib.html#bib182" title="Physiological gain leads to high ISI variability in a simple model of a cortical regular spiking cell" class="ltx_ref">520</a>; <a href="bib.html#bib183" title="Role of temporal integration and fluctuation detection in the highly irregular firing of leaky integrator neuron model with partial reset" class="ltx_ref">82</a>; <a href="bib.html#bib184" title="Is the integrate-and-fire model good enough - a review." class="ltx_ref">148</a>)</cite>. The interspike interval
+distribution is therefore broad; see Fig.Â <a href="#Ch8.F7" title="Fig.Â 8.7 â£ 8.3 Subthreshold vs. Superthreshold regime â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.7</span></a>.</p>
+</div>
+<figure id="Ch8.F7" class="ltx_figure">
+<span class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:192.1pt;">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">A</span></p>
+<img src="x223.png" id="Ch8.F7.g1" class="ltx_graphics" width="267" height="205" alt="">
+</span>
+<span class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:192.1pt;">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">B</span></p>
+<img src="x224.png" id="Ch8.F7.g2" class="ltx_graphics" width="267" height="205" alt="">
+</span>
+<span class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:192.1pt;">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">C</span></p>
+<img src="x225.png" id="Ch8.F7.g3" class="ltx_graphics" width="267" height="205" alt="">
+</span>
+<span class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:192.1pt;">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">D</span></p>
+<img src="x226.png" id="Ch8.F7.g4" class="ltx_graphics" width="267" height="205" alt="">
+</span>
+<span class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:192.1pt;">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">E</span></p>
+<img src="x227.png" id="Ch8.F7.g5" class="ltx_graphics" width="267" height="189" alt="">
+</span>
+<span class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:192.1pt;">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">F</span></p>
+<img src="x228.png" id="Ch8.F7.g6" class="ltx_graphics" width="267" height="199" alt="">
+</span>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 8.7: </span>
+Integrate-and-fire neuron (<math id="Ch8.F7.m11" class="ltx_Math" alttext="\tau_{m}=10\," display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>=</mo><mpadded width="+1.7pt"><mn>10</mn></mpadded></mrow><annotation encoding="application/x-tex">\tau_{m}=10\,</annotation></semantics></math>ms) with superthreshold (left
+column) and subthreshold (right column) stimulation. <span class="ltx_text ltx_font_bold">A</span>. Without
+noise, a neuron with superthreshold stimulus <math id="Ch8.F7.m12" class="ltx_Math" alttext="I_{a}" display="inline"><semantics><msub><mi>I</mi><mi>a</mi></msub><annotation encoding="application/x-tex">I_{a}</annotation></semantics></math> fires regularly.
+Spikes are marked by vertical lines. The threshold is
+indicated by a horizontal line. The dashed line shows the evolution of the
+membrane potential in the absence of the threshold. <span class="ltx_text ltx_font_bold">B</span>. The same
+neuron with subthreshold stimulation <math id="Ch8.F7.m13" class="ltx_Math" alttext="I_{b}" display="inline"><semantics><msub><mi>I</mi><mi>b</mi></msub><annotation encoding="application/x-tex">I_{b}</annotation></semantics></math> does not fire. <span class="ltx_text ltx_font_bold">C</span>. If we
+add stochastic excitatory and inhibitory spike input (<math id="Ch8.F7.m14" class="ltx_Math" alttext="w_{\pm}=0.05" display="inline"><semantics><mrow><msub><mi>w</mi><mo>Â±</mo></msub><mo>=</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">w_{\pm}=0.05</annotation></semantics></math> at
+<math id="Ch8.F7.m15" class="ltx_Math" alttext="\nu_{\pm}=1.6~{}" display="inline"><semantics><mrow><msub><mi>Î½</mi><mo>Â±</mo></msub><mo>=</mo><mpadded width="+3.3pt"><mn>1.6</mn></mpadded></mrow><annotation encoding="application/x-tex">\nu_{\pm}=1.6~{}</annotation></semantics></math>kHz) to the constant input <math id="Ch8.F7.m16" class="ltx_Math" alttext="I_{a}" display="inline"><semantics><msub><mi>I</mi><mi>a</mi></msub><annotation encoding="application/x-tex">I_{a}</annotation></semantics></math>, the membrane potential
+drifts away from the noise-free reference trajectory, but firing remains
+fairly regular. <span class="ltx_text ltx_font_bold">D</span>. The same sequence of input spikes added to the
+subthreshold current <math id="Ch8.F7.m17" class="ltx_Math" alttext="I_{b}" display="inline"><semantics><msub><mi>I</mi><mi>b</mi></msub><annotation encoding="application/x-tex">I_{b}</annotation></semantics></math> generates irregular spiking. <span class="ltx_text ltx_font_bold">E</span> and <span class="ltx_text ltx_font_bold">F</span>. Histogram of interspike intervals in C and D, respectively, as an
+estimator of the interval distribution <math id="Ch8.F7.m18" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math> in the super- and
+subthreshold regime. The mean interval <math id="Ch8.F7.m19" class="ltx_Math" alttext="\langle s\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mi>s</mi><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle s\rangle</annotation></semantics></math> is 12âms (E)
+and 50âms (F); the <math id="Ch8.F7.m20" class="ltx_Math" alttext="C_{V}" display="inline"><semantics><msub><mi>C</mi><mi>V</mi></msub><annotation encoding="application/x-tex">C_{V}</annotation></semantics></math> values are 0.30 and 0.63, respectively. </figcaption>
+</figure>
+<div id="p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Interval distribution in the superthreshold regime</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">For small noise amplitude <math id="p6.m1" class="ltx_Math" alttext="0&lt;\sigma\ll u_{\infty}-\vartheta" display="inline"><semantics><mrow><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">&lt;</mo><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">âª</mo><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msub><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow></mrow><annotation encoding="application/x-tex">0&lt;\sigma\ll u_{\infty}-\vartheta</annotation></semantics></math>,
+and superthreshold stimulation, the interval
+distribution is centered at the deterministic interspike interval
+<math id="p6.m2" class="ltx_Math" alttext="s_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">s</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">s_{0}</annotation></semantics></math>. Its width can be estimated from the width
+of the fluctuations <math id="p6.m3" class="ltx_Math" alttext="{\langle\Delta u^{2}_{\infty}\rangle}" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">â¨</mo><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><msubsup><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi><mn mathsize="normal" stretchy="false">2</mn></msubsup></mrow><mo mathsize="small" stretchy="false">â©</mo></mrow><annotation encoding="application/x-tex">{\langle\Delta u^{2}_{\infty}\rangle}</annotation></semantics></math> of the free
+membrane potential; cf.Â Eq.Â (<a href="Ch8.S1.html#Ch8.E13" title="(8.13) â£ 8.1.2 Noisy versus noiseless membrane potential â£ 8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.13</span></a>).
+After the reset, the variance of the distribution
+of membrane potentials is zero and increases
+slowly thereafter. As long as the mean trajectory is far
+away from the threshold, the
+distribution of membrane potentials has a Gaussian shape.</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">As time goes on, the distribution of membrane potentials
+is pushed across the threshold.
+Since the membrane potential
+crosses the threshold with slope <math id="p6.m4" class="ltx_Math" alttext="u_{0}^{\prime}" display="inline"><semantics><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">â²</mo></msubsup><annotation encoding="application/x-tex">u_{0}^{\prime}</annotation></semantics></math>, there is a scaling factor <math id="p6.m5" class="ltx_Math" alttext="u_{0}^{\prime}={\text{d}}u_{0}(t)/{\text{d}}t" display="inline"><semantics><mrow><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">â²</mo></msubsup><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mrow><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mtext mathsize="small" stretchy="false">d</mtext></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></mrow><annotation encoding="application/x-tex">u_{0}^{\prime}={\text{d}}u_{0}(t)/{\text{d}}t</annotation></semantics></math> evaluated at <math id="p6.m6" class="ltx_Math" alttext="t=s_{0}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">s</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">t=s_{0}</annotation></semantics></math>
+between the (approximately) Gaussian distribution of
+membrane potential and the interval distribution;
+cf.Â Fig.Â <a href="#Ch8.F8" title="Fig.Â 8.8 â£ 8.3 Subthreshold vs. Superthreshold regime â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.8</span></a>. The
+interval distribution is therefore also
+approximately given by a Gaussian with mean
+<math id="p6.m7" class="ltx_Math" alttext="s_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">s</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">s_{0}</annotation></semantics></math> and width <math id="p6.m8" class="ltx_Math" alttext="\sigma/\sqrt{2}\,u_{0}^{\prime}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">/</mo><mpadded width="+1.7pt"><msqrt><mn mathsize="normal" stretchy="false">2</mn></msqrt></mpadded></mrow><mo mathsize="small" stretchy="false">â¢</mo><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">â²</mo></msubsup></mrow><annotation encoding="application/x-tex">\sigma/\sqrt{2}\,u_{0}^{\prime}</annotation></semantics></math> <cite class="ltx_cite">(<a href="bib.html#bib185" title="Introduction to theoretic neurobiology" class="ltx_ref">525</a>)</cite>, i.e.,</span>
+            </p>
+<table id="Ch8.E35" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch8.E35.m1" class="ltx_Math" alttext="P_{0}(t|0)={1\over\sqrt{\pi}}{u_{0}^{\prime}\over\sigma}\exp\left[-{(u_{0}^{%
+\prime})^{2}\,(t-s_{0})^{2}\over\sigma^{2}}\right]\,." display="block"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><msqrt><mi>Ï</mi></msqrt></mfrac><mfrac><msubsup><mi>u</mi><mn>0</mn><mo>â²</mo></msubsup><mi>Ï</mi></mfrac><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><mfrac><mrow><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><msubsup><mi>u</mi><mn>0</mn><mo>â²</mo></msubsup><mo>)</mo></mrow><mn>2</mn></msup></mpadded><mo>â¢</mo><msup><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>s</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow><mn>2</mn></msup></mrow><msup><mi>Ï</mi><mn>2</mn></msup></mfrac><mo rspace="4.2pt">]</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">P_{0}(t|0)={1\over\sqrt{\pi}}{u_{0}^{\prime}\over\sigma}\exp\left[-{(u_{0}^{%
+\prime})^{2}\,(t-s_{0})^{2}\over\sigma^{2}}\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(8.35)</span></td>
+</tr>
+</table>
+</span>
+</div>
+<figure id="Ch8.F8" class="ltx_figure">
+<p class="ltx_p ltx_align_center">
+            <img src="x229.png" id="Ch8.F8.g1" class="ltx_graphics" width="267" height="224" alt="">
+          </p>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 8.8: </span>
+Interval distribution <math id="Ch8.F8.m4" class="ltx_Math" alttext="P_{0}(t|0)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t|0)</annotation></semantics></math> for superthreshold stimuli. The
+membrane potential distribution <math id="Ch8.F8.m5" class="ltx_Math" alttext="p(u,t)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u,t)</annotation></semantics></math> is shifted across the
+threshold and generates an interval distribution <math id="Ch8.F8.m6" class="ltx_Math" alttext="P_{0}(t|0)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t|0)</annotation></semantics></math> (schematic
+figure). </figcaption>
+</figure>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch8.S2.html" title="8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.2 </span>Stochastic spike arrival</span></a><a href="Ch8.S4.html" title="8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.4 </span>Diffusion limit and Fokker-Planck equation(*)</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

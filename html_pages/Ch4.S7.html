@@ -1,0 +1,376 @@
+<!DOCTYPE html><html>
+<head>
+<title>4.7 Summary | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S2.html" title="4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S4.html" title="4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Dimensionality Reduction and Phase Plane Analysis</span></a><a href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.6 </span>Separation of time scales and reduction to one dimension</span></a><a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4.7 </span>Summary</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">The four-dimensional model of Hodgkin-Huxley can be reduced to two dimensions
+under the assumption that the <math id="p1.m1" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>-dynamics are fast as compared to <math id="p1.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>, <math id="p1.m3" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>,
+and <math id="p1.m4" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>, and that the latter two evolve on the same time scale.
+Two-dimensional models can readily be visualized and studied in the phase
+plane.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">As a first application of phase-plane analysis, we
+asked whether neuron models have a firing threshold - and found
+that the answer is something like âNo, but â¦â.
+The answer is âNoâ, because the threshold value
+depends on the stimulation paradigm.
+The voltage threshold derived with short current
+pulses is different from that found with constant current
+or slow ramps.
+In typeÂ II models the onset of repetitive firing
+at the rheobase current value
+starts with nonzero frequency.
+TypeÂ I models
+exhibit onset of repetitive firing with zero frequency.
+The transition to repetitive firing
+in typeÂ I models arises through a saddle-node-onto-limit-cycle bifurcation
+whereas several bifurcation types can give rise to a typeÂ II behavior.
+</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">The methods of phase plane analysis and dimension reduction
+are generic tools and
+will also play a role in several chapters of partsÂ II
+andÂ IV of this book.
+In particular, the separation of time scales between the fast voltage variable
+and the slow recovery variable enables a further reduction
+of neuronal dynamics to a one-dimensional nonlinear integrate-and-fire model,
+a fact which we will exploit in the next chapter.</p>
+</div>
+<figure id="Ch4.F23" class="ltx_figure"><img src="x132.png" id="Ch4.F23.g1" class="ltx_graphics ltx_centering" width="292" height="199" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.23: </span>
+Piecewise linear model with separation of time scale.
+The inset shows the trajectory (arrows) which
+follows the <math id="Ch4.F23.m6" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> nullcline at a distance of order <math id="Ch4.F23.m7" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi>Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>.
+where <math id="Ch4.F23.m8" class="ltx_Math" alttext="\epsilon\ll 1" display="inline"><semantics><mrow><mi>Ïµ</mi><mo>âª</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\epsilon\ll 1</annotation></semantics></math> is the ratio of the time scale of the <math id="Ch4.F23.m9" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-dynamics
+and that of the <math id="Ch4.F23.m10" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-dynamics in unit-free coordinates;
+see Eq. (<a href="Ch4.S6.html#Ch4.E37" title="(4.37) â£ 4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.37</span></a>).</figcaption>
+</figure>
+<section id="SSx1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">Literature</h1>
+
+<div id="SSx1.p1" class="ltx_para">
+<p class="ltx_p">An in-depth introduction to dynamical systems, stability of fixed points, and
+(un)stable manifolds can be found, for example, in the book of <cite class="ltx_cite">Hale and KoÃ§ac (<a href="bib.html#bib81" title="Dynamics and bifurcations" class="ltx_ref">204</a>)</cite>.
+The book of <cite class="ltx_cite">Strogatz (<a href="bib.html#bib83" title="Nonlinear dynamical systems and chaos" class="ltx_ref">499</a>)</cite>
+presents the theory of dynamical systems in the context of various
+problems of physics, chemistry, biology, and engineering.
+A wealth of applications of dynamical systems to
+various (mostly non-neuronal) biological systems can be found in the
+comprehensive book of <cite class="ltx_cite">Murray (<a href="bib.html#bib84" title="Mathematical biology" class="ltx_ref">355</a>)</cite> which also contains a thorough
+discussion of the FitzHugh-Nagumo model.
+Phase
+plane methods applied to neuronal dynamics are discussed in the clearly
+written review paper of <cite class="ltx_cite">Rinzel and Ermentrout (<a href="bib.html#bib75" title="Analysis of neural excitability and oscillations" class="ltx_ref">438</a>)</cite>
+and in the book of <cite class="ltx_cite">Izhikevich (<a href="bib.html#bib85" title="Dynamical systems in neuroscience : the geometry of excitability and bursting" class="ltx_ref">239</a>)</cite>.</p>
+</div>
+<div id="SSx1.p2" class="ltx_para">
+<p class="ltx_p">The classification of neuron models as type I and type
+II can be found in <cite class="ltx_cite">Rinzel and Ermentrout (<a href="bib.html#bib75" title="Analysis of neural excitability and oscillations" class="ltx_ref">438</a>)</cite> and in <cite class="ltx_cite">Ermentrout (<a href="bib.html#bib82" title="Type i membranes, phase resetting curves, and synchrony" class="ltx_ref">141</a>)</cite>,
+and systematically in <cite class="ltx_cite">Izhikevich (<a href="bib.html#bib85" title="Dynamical systems in neuroscience : the geometry of excitability and bursting" class="ltx_ref">239</a>)</cite>.
+The steps of dimensionality reduction are presented in <cite class="ltx_cite">Kepler<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib77" title="Reduction of conductance-based neuron models" class="ltx_ref">258</a>)</cite>.</p>
+</div>
+</section>
+<section id="SSx2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">Exercises</h1>
+
+<div id="SSx2.p1" class="ltx_para">
+<ol id="Ch4.I1" class="ltx_enumerate">
+<li id="Ch4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">1.</span>
+                </span> 
+<div id="Ch4.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Inhibitory rebound.
+<br class="ltx_break"></span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">a) Draw on the phase plane a schematic representation of the nullclines
+</span>
+                    
+                    <span class="ltx_text ltx_font_italic ltx_font_small">and flow for the piecewise linear FitzHugh-Nagumo (Eq. </span>
+                    <a href="Ch4.S6.html#Ch4.E36" title="(4.36) â£ 4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.36</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> and Eq. </span>
+                    <a href="Ch4.S6.html#Ch4.E37" title="(4.37) â£ 4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.37</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">)
+with parameters </span>
+                    <math id="Ch4.I1.i1.p1.m1" class="ltx_Math" alttext="a=c_{1}=-1" display="inline"><semantics><mrow><mi>a</mi><mo>=</mo><msub><mi>c</mi><mn>1</mn></msub><mo>=</mo><mrow><mo>-</mo><mn>1</mn></mrow></mrow><annotation encoding="application/x-tex">a=c_{1}=-1</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> and </span>
+                    <math id="Ch4.I1.i1.p1.m2" class="ltx_Math" alttext="b=2" display="inline"><semantics><mrow><mi>b</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">b=2</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">,
+and mark the stable fixed point. </span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">b) A hyperpolarizing current is introduced very slowly
+and increased up to a maximal value of </span>
+                    <math id="Ch4.I1.i1.p1.m3" class="ltx_Math" alttext="I=-2" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mrow><mo>-</mo><mn>2</mn></mrow></mrow><annotation encoding="application/x-tex">I=-2</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.
+Calculate the new value of the stable fixed point.
+Draw the nullclines and flow for </span>
+                    <math id="Ch4.I1.i1.p1.m4" class="ltx_Math" alttext="I=-2" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mrow><mo>-</mo><mn>2</mn></mrow></mrow><annotation encoding="application/x-tex">I=-2</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> on a different phase plane.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">c) The hyperpolarizing current is suddenly removed. Use the phase planes in a) and b) to find out
+what will happen. Draw schematically the evolution of the neurons
+state as a membrane potential time-series and
+as a trajectory in the phase plane. Use </span>
+                    <math id="Ch4.I1.i1.p1.m5" class="ltx_Math" alttext="\epsilon=0.1" display="inline"><semantics><mrow><mi>Ïµ</mi><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\epsilon=0.1</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                  </p>
+</div>
+<div id="Ch4.I1.i1.p2" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">Hint: the resting state from b is the initial value of the trajectory in c.</span>
+                  </p>
+</div>
+</li>
+<li id="Ch4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">2.</span>
+                </span> 
+<div id="Ch4.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Separation of time scales and quasi-stationary assumption.
+<br class="ltx_break"></span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">a) Consider the following differential equation:</span>
+                  </p>
+<table id="Ch4.E38" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E38.m1" class="ltx_Math" alttext="\tau\frac{dx}{dt}=-x+c," display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mfrac><mrow><mi>d</mi><mo>â¢</mo><mi>x</mi></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mi>x</mi><mo>+</mo><mi>c</mi></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\tau\frac{dx}{dt}=-x+c,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.38)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">where </span>
+                    <math id="Ch4.I1.i2.p1.m1" class="ltx_Math" alttext="c" display="inline"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> is a constant. Find the fixed point of this equation. Determine the stability of the fixed point and the solution for any initial condition.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">b) Suppose that </span>
+                    <math id="Ch4.I1.i2.p1.m2" class="ltx_Math" alttext="c" display="inline"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> is now piecewise constant:</span>
+                  </p>
+<table id="Ch4.E39" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E39.m1" class="ltx_Math" alttext="c=c(t)=\left\{\begin{split}0\;&{\rm for}\,t&lt;0\\
+c_{0}\;&{\rm for}\,0\leq t\leq 1\\
+0\;&{\rm for}\,t&gt;1\end{split}\right." display="block"><semantics><mrow><mi>c</mi><mo>=</mo><mi>c</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mrow><mo>{</mo><mpadded width="+5.6pt"><mn>0</mn></mpadded><mpadded width="+1.7pt"><mi>for</mi></mpadded><mi>t</mi><mo>&lt;</mo><mn>0</mn><mpadded width="+5.6pt"><msub><mi>c</mi><mn>0</mn></msub></mpadded><mi>for</mi><mn>â0</mn><mo>â¤</mo><mi>t</mi><mo>â¤</mo><mn>1</mn><mpadded width="+5.6pt"><mn>0</mn></mpadded><mpadded width="+1.7pt"><mi>for</mi></mpadded><mi>t</mi><mo>&gt;</mo><mn>1</mn></mrow></mrow><annotation encoding="application/x-tex">c=c(t)=\left\{\begin{split}0\;&amp;{\rm for}\,t&lt;0\\
+c_{0}\;&amp;{\rm for}\,0\leq t\leq 1\\
+0\;&amp;{\rm for}\,t&gt;1\end{split}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.39)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">Calculate the solution
+</span>
+                    <math id="Ch4.I1.i2.p1.m3" class="ltx_Math" alttext="x(t)" display="inline"><semantics><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> for the initial condition </span>
+                    <math id="Ch4.I1.i2.p1.m4" class="ltx_Math" alttext="x(t=-10)=0" display="inline"><semantics><mrow><mi>x</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>=</mo><mo>-</mo><mn>10</mn><mo stretchy="false">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x(t=-10)=0</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">c) Now consider the linear system:</span>
+                  </p>
+<table id="Ch4.E40" class="ltx_equation">
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E40.m1" class="ltx_Math" alttext="\begin{split}\frac{du}{dt}&amp;=f(u)-m\\
+\epsilon\frac{dm}{dt}&amp;-m+c(u).\\
+\end{split}" display="block"><semantics><mrow><mrow><mfrac><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>m</mi></mrow>
+</mrow>
+</mrow>
+<mo></mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{split}\frac{du}{dt}&amp;=f(u)-m,\\
+\end{split}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.40)</span></td>
+</tr>
+</table>
+
+<table id="Ch4.E41" class="ltx_equation">
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E41.m1" class="ltx_Math" alttext="\begin{split}\frac{du}{dt}&amp;=f(u)-m\\
+\epsilon\frac{dm}{dt}&amp;-m+c(u).\\
+\end{split}" display="block"><semantics><mrow><mrow><mi>Ïµ</mi><mo>â¢</mo><mfrac><mrow><mi>d</mi><mo>â¢</mo><mi>m</mi></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mo>-</mo><mi>m</mi><mo>+</mo><mrow><mi>c</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\begin{split}
+\epsilon\frac{dm}{dt}&amp;=-m+c(u).\\
+\end{split}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.41)</span></td>
+</tr>
+</table>
+
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">Exploit the fact that </span>
+                    <math id="Ch4.I1.i2.p1.m5" class="ltx_Math" alttext="\epsilon&lt;&lt;1" display="inline"><semantics><mrow><mi>Ïµ</mi><mo>âª</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\epsilon&lt;&lt;1</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> to reduce the system to one equation. Note the similarity with the equations in a) and b).</span>
+                  </p>
+</div>
+</li>
+<li id="Ch4.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">3.</span>
+                </span> 
+<div id="Ch4.I1.i3.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Separation of time scale and relaxation oscillators.
+<br class="ltx_break"></span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">a) Show that in the piecewise linear neuron
+model defined in Eqs.
+(</span>
+                    <a href="Ch4.S6.html#Ch4.E36" title="(4.36) â£ 4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.36</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">) and (</span>
+                    <a href="Ch4.S6.html#Ch4.E37" title="(4.37) â£ 4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.37</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">)
+the trajectory evolves parallel to the right branch
+of the </span>
+                    <math id="Ch4.I1.i3.p1.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">-nullcline, shifted upward by a distance of order
+</span>
+                    <math id="Ch4.I1.i3.p1.m2" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi>Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> (Fig. </span>
+                    <a href="#Ch4.F23" title="Fig.Â 4.23 â£ 4.7 Summary â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.23</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">)
+or parallel to the lifted branch
+of the </span>
+                    <math id="Ch4.I1.i3.p1.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">-nullcline, shifted downward by a distance of order
+</span>
+                    <math id="Ch4.I1.i3.p1.m4" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi>Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">).</span>
+                  </p>
+</div>
+<div id="Ch4.I1.i3.p2" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic ltx_font_small">Hint:
+If the </span><math id="Ch4.I1.i3.p2.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">-nullcline is given by the function </span><math id="Ch4.I1.i3.p2.m2" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">,
+set
+</span><math id="Ch4.I1.i3.p2.m3" class="ltx_Math" alttext="w(t)=f[u(t)]+\epsilon\,x(t)" display="inline"><semantics><mrow><mrow><mi>w</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>Ïµ</mi></mpadded><mo>â¢</mo><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">w(t)=f[u(t)]+\epsilon\,x(t)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">
+where </span><math id="Ch4.I1.i3.p2.m4" class="ltx_Math" alttext="x(t)" display="inline"><semantics><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> is the momentary distance
+and study the evolution
+of </span><math id="Ch4.I1.i3.p2.m5" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> and </span><math id="Ch4.I1.i3.p2.m6" class="ltx_Math" alttext="dw/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>w</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">dw/dt</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> according to the differential equations
+of </span><math id="Ch4.I1.i3.p2.m7" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> and </span><math id="Ch4.I1.i3.p2.m8" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">. At the same time,
+under the assumption of parallel movement
+</span><math id="Ch4.I1.i3.p2.m9" class="ltx_Math" alttext="x(t)" display="inline"><semantics><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> is a constant and the geometry of the problem
+in the two-dimensional phase space
+tells us that </span><math id="Ch4.I1.i3.p2.m10" class="ltx_Math" alttext="dw/dt=(df/du)\,(du/dt)" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>w</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>f</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">dw/dt=(df/du)\,(du/dt)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">. Show
+that this leads to a consistent solution for the distance </span><math id="Ch4.I1.i3.p2.m11" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+<br class="ltx_break"><span class="ltx_text ltx_font_italic ltx_font_small">b) What is the time course of the voltage </span><math id="Ch4.I1.i3.p2.m12" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">
+while the trajectory follows the branch?
+</span></p>
+</div>
+</li>
+</ol>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.6 </span>Separation of time scales and reduction to one dimension</span></a><a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

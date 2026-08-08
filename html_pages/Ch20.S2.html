@@ -1,0 +1,2172 @@
+<!DOCTYPE html><html>
+<head>
+<title>20.2 Oscillations: good or bad? | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch20.S1.html" title="20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch20.S3.html" title="20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch20.S1.html" title="20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch20.S3.html" title="20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch20.S4.html" title="20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+            , 
+            , 
+              , 
+              , 
+              , 
+                , 
+                , 
+                  , 
+                  , 
+                  ">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">
+          <span class="ltx_text ltx_font_small">20</span>
+         </span>
+        <span class="ltx_text ltx_font_small">Outlook: Dynamics in Plastic Networks</span></span></a><a href="Ch20.S1.html" title="20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.1 </span>Reservoir computing</span></a><a href="Ch20.S3.html" title="20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.3 </span>Helping Patients</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_font_small ltx_title_section">
+<span class="ltx_tag ltx_tag_section">20.2 </span>Oscillations: good or bad?</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Oscillations are a prevalent phenomenon in biological neural systems and
+manifest themselves experimentally in electroencephalograms (EEG), recordings
+of local field potentials (LFP), and multi-unit recordings.
+Oscillations
+are thought to stem from synchronous network activity and
+are often characterized by
+the associated frequency peak in the Fourier spectrum.
+For example,
+oscillations in the range of 30-70Hz are called
+gamma-oscillations and those
+above 100Hz âultrafastâ or âripplesâ
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib532" title="Fast oscillations" class="ltx_ref">518</a>; <a href="bib.html#bib533" title="Hippocampus" class="ltx_ref">85</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Among the slower oscillations,
+prominent examples are
+delta oscillations (1-4Hz) and
+</span>
+            
+            <span class="ltx_text ltx_font_small">spindle oscillations in the EEG during sleep (7-15Hz)
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib534" title="Thalamocortical oscillations" class="ltx_ref">42</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">
+or
+theta oscillations (4-10Hz) in hippocampus and other areas
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib533" title="Hippocampus" class="ltx_ref">85</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.</span>
+          </p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Oscillations are thought to
+play an important role in the coding of sensory information. In the olfactory
+system an ongoing oscillation of the population activity provides a temporal
+frame of reference for neurons coding information about the odorant
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib535" title="Dynamical representation of odors by oscillating and evolving neural assemblies" class="ltx_ref">292</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">. Similarly, place cells in the hippocampus
+exhibit phase-dependent firing activity relative to a background oscillation
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib160" title="Phase relationship between hippocampal place units and the hippocampal theta rhythm" class="ltx_ref">375</a>; <a href="bib.html#bib533" title="Hippocampus" class="ltx_ref">85</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Moreover, rhythmic spike patterns in the inferior olive may
+be involved in various timing tasks and motor coordination
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib536" title="Dynamic organization of motor control within the olivocerebellar system" class="ltx_ref">548</a>; <a href="bib.html#bib38" title="Modeling synaptic plasticity in conjunction with the timing of pre- and postsynaptic action potentials" class="ltx_ref">261</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Finally, synchronization of firing across groups of neurons
+has been hypothesized to provide a potential solution
+to the so-called binding problem
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib537" title="Synchronization of cortical activity and its putative role in information processing and learning" class="ltx_ref">479</a>; <a href="bib.html#bib538" title="Binding by synchrony" class="ltx_ref">480</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+The common idea across all the above
+examples is that an oscillation provides a reference
+</span>
+            
+            <span class="ltx_text ltx_font_small">signal for a âphase codeâ:
+
+
+the significance
+of a spike depends on its phase with respect
+to the global oscillatory reference;
+cf. Sect. </span>
+            
+            
+            <a href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.6</span></a>
+            <span class="ltx_text ltx_font_small"> and Fig. </span>
+            <a href="Ch7.S6.html#Ch7.F17" title="Fig.Â 7.17 â£ Phase â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.17</span></a>
+            <span class="ltx_text ltx_font_small">
+in Ch. </span>
+            <a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>
+            <span class="ltx_text ltx_font_small">.
+Thus, oscillations are potentially useful
+for intricate neural coding schemes.</span>
+          </p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">On the other hand,
+synchronous oscillatory brain activity
+is correlated with numerous
+brain diseases.
+For example,
+an
+epileptic seizure is defined as
+âa transient occurrence of signs and/or
+symptoms due to abnormal excessive or synchronous neuronal
+activity in the brainâ
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib539" title="Epileptic seizures and epilepsy: definitions proposed by the international league against epilepsy (ilae) and the international bureau for epilepsy (ibe)" class="ltx_ref">150</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Similarly, Parkinsonâs disease
+is characterized by a high level of neuronal synchrony
+in the thalamus and basal ganglia
+</span>
+            
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib540" title="Neuronal basis of the parkinsonian resting tremor: a hypothesis and its implications for treatment" class="ltx_ref">387</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small"> while
+neurons in the same areas fire asynchronously
+in the healthy brain
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib541" title="Neurons in the globus pallidus do not show correlated activity in the normal monkey, but phase-locked oscillations appear in the mptp model of parkinsonism" class="ltx_ref">366</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Moreover, local field potential oscillations at
+theta frequency in thalamic or subthalamic nuclei
+is linked to tremor in human Parkinsonian patients,
+i.e. rhythmic
+finger, hand or arm movement at 3-6Hz
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib540" title="Neuronal basis of the parkinsonian resting tremor: a hypothesis and its implications for treatment" class="ltx_ref">387</a>; <a href="bib.html#bib542" title="The causal relationship between subcortical local field potential oscillations and parkinsonian resting tremor" class="ltx_ref">504</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Therefore,
+in these and in similar situations,
+it seems to be desirable
+to suppress abnormal, highly synchronous oscillations so as
+to shift the brain back into its healthy state.</span>
+          </p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Simulations of the population activity
+in homogeneous networks typically exhibit oscillations
+when driven by a constant
+external input.
+For example, oscillations in
+networks of purely excitatory neurons arise because,
+as soon as some neurons in the network fire
+they contribute to exciting others.
+</span>
+            
+            <span class="ltx_text ltx_font_small">Once the avalanche of firing has run across
+the network, all neurons pass through a
+period of refractoriness,
+until they are ready to fire again.
+In this case the time scale of the oscillation
+is set by neuronal refractoriness (Fig. </span>
+            <a href="#Ch20.F4" title="Fig.Â 20.4 â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.4</span></a>
+            <span class="ltx_text ltx_font_small">A).
+A similar argument can be made for a homogeneous network
+of inhibitory neurons
+driven by a constant external stimulus.
+After a first burst
+by a few neurons, mutual inhibition will silence
+the population until inhibition wears off.
+Thereafter, the whole network fires again.</span>
+          </p>
+</div>
+<div id="p5" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Oscillations also arise in networks of
+coupled excitatory and inhibitory neurons.
+The excitatory connections cause
+a synchronous bursts of the network activity
+leading to a build-up of inhibition
+which, in turn, suppresses the activity of excitatory neurons.
+The oscillation period in the two latter cases is therefore set by
+the build-up and decay time of inhibitory feedback
+(Fig. </span>
+            <a href="#Ch20.F4" title="Fig.Â 20.4 â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.4</span></a>
+            <span class="ltx_text ltx_font_small">B).</span>
+          </p>
+</div>
+<div id="p6" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Even slower oscillations can be generated
+</span>
+            
+            <span class="ltx_text ltx_font_small">in âwinner-take-allâ networks
+(cf. Chapter </span>
+            <a href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16</span></a>
+            <span class="ltx_text ltx_font_small">) with dynamic synapses
+(cf. Chapter </span>
+            <a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>
+            <span class="ltx_text ltx_font_small">) or adaptation (cf.
+Chapter </span>
+            <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>
+            <span class="ltx_text ltx_font_small">).
+Suppose the networks consists of </span>
+            <math id="p6.m1" class="ltx_Math" alttext="K" display="inline"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+            <span class="ltx_text ltx_font_small"> populations of
+excitatory neurons which share a common pool of inhibitory
+neurons.
+Parameters can be set such that excitatory neurons
+within the momentarily âwinningâ population stimulate
+each other so as to overcome inhibition.
+In the presence of synaptic depression, however,
+the mutual excitation
+fades away after a short time,
+so that now a different excitatory population
+becomes the new âwinnerâ and
+switches on.
+As a result, inhibition arising from
+inhibitory neurons turns the activity of
+the previously winning group off, until inhibition
+has decayed and excitatory synapses have recovered
+from depression.
+The time scale is then set by combination
+of the time scales of inhibition and synaptic depression.
+Networks of this type have been used to explain
+the shift of attention from one point in a visual scene to the next
+</span>
+            
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib543" title="A model of saliency-based visual attention for rapid scene analysis" class="ltx_ref">236</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.</span>
+          </p>
+</div>
+<figure id="Ch20.F4" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x616.png" id="Ch20.F4.g1" class="ltx_graphics" width="293" height="219" alt="">
+                </td>
+<td class="ltx_td ltx_align_left">
+                  <img src="x617.png" id="Ch20.F4.g2" class="ltx_graphics" width="293" height="219" alt="">
+                  <span class="ltx_text ltx_font_small"></span>
+                </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.4: </span>Types of network oscillation.
+<span class="ltx_text ltx_font_bold">A</span>. In a homogeneous network of excitatory neurons,
+near-synchronous firing of all neurons is followed
+by a period of refractoriness, leading to fast oscillations
+with period <math id="Ch20.F4.m3" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>.
+Active neurons: vertical dash in spike raster and filled circle in
+network schema.
+Silent neurons: open circle in schema.
+<span class="ltx_text ltx_font_bold">B</span>. In a network of excitatory and inhibitory neurons,
+activity of the excitatory population alternates
+with activity of inhibitory one. The period <math id="Ch20.F4.m4" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> is longer
+than in A.
+
+</figcaption>
+</figure>
+<div id="p7" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">In this section,
+we briefly review mathematical theories
+of oscillatory activity
+(subsections </span>
+            <a href="#SS1" title="20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.2.1</span></a>
+            <span class="ltx_text ltx_font_small">- </span>
+            <a href="#SS3" title="20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.2.3</span></a>
+            <span class="ltx_text ltx_font_small">)
+before
+we study the interaction
+of oscillations with
+STDP (subsection </span>
+            <a href="#SS4" title="20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.2.4</span></a>
+            <span class="ltx_text ltx_font_small">)
+The results of this section
+will form the basis
+for the discussion of
+Section </span>
+            <a href="Ch20.S3.html" title="20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.3</span></a>
+            <span class="ltx_text ltx_font_small">.</span>
+          </p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_font_small ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">20.2.1 </span>Synchronous Oscillations and Locking</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Homogeneous
+networks of spiking neurons show a natural
+tendency toward oscillatory activity.
+In Sections </span>
+              <a href="Ch13.S4.html#SS2" title="13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.4.2</span></a>
+              <span class="ltx_text ltx_font_small">
+and </span>
+              <a href="Ch14.S2.html#SS3" title="14.2.3 Oscillations and stability of the stationary state (*) â£ 14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.2.3</span></a>
+              <span class="ltx_text ltx_font_small">,
+we have analyzed the stability of
+asynchronous firing.
+In the stationary state the population activity
+is characterized by a constant value
+</span>
+              <math id="SS1.p1.m1" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> of the population activity.
+An instability of the dynamics
+with respect to oscillations at period </span>
+              <math id="SS1.p1.m2" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">,
+appears as a sinusoidal
+perturbation of increasing amplitude;
+see
+Fig.Â </span>
+              <a href="#Ch20.F5" title="Fig.Â 20.5 â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.5</span></a>
+              <span class="ltx_text ltx_font_small">A
+as well as
+Fig. </span>
+              <a href="Ch14.S2.html#Ch14.F8" title="Fig.Â 14.8 â£ 14.2.3 Oscillations and stability of the stationary state (*) â£ 14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.8</span></a>
+              <span class="ltx_text ltx_font_small">
+in Ch. </span>
+              <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>
+              <span class="ltx_text ltx_font_small">.
+The analysis of the stationary
+state shows that
+a high level of noise, network heterogeneity,
+or a sufficient amount of inhibitory
+plasticity all contribute to stabilizing
+</span>
+              
+              <span class="ltx_text ltx_font_small">the stationary state.
+The linear stability analysis, however,
+is only valid in the vicinity
+of the stationary state.
+As soon as the amplitude </span>
+              <math id="SS1.p1.m3" class="ltx_Math" alttext="\Delta A" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\Delta A</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+of the oscillations is of the same
+order of magnitude as </span>
+              <math id="SS1.p1.m4" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">,
+the solution found by linear
+analysis is no longer valid since the population
+activity cannot become negative.</span>
+            </p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Oscillations can, however, also be analyzed
+from a completely different perspective.
+In a homogeneous network
+with fixed connectivity in the limit of low noise
+we expect strong
+oscillations.
+In the following,
+we focus on the synchronous oscillatory mode
+where nearly all neurons fire in âlockstepâ
+(Fig.Â </span>
+              <a href="#Ch20.F5" title="Fig.Â 20.5 â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.5</span></a>
+              <span class="ltx_text ltx_font_small">B).
+We study whether such periodic synchronous
+burst of the population activity
+can be a stable solution of network equations.
+</span>
+              
+            </p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">To keep the arguments simple,
+we consider a homogeneous population of identical SRM</span>
+              <math id="SS1.p3.m1" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> neurons
+(Ch. </span>
+              <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>
+              <span class="ltx_text ltx_font_small">
+and Sect. </span>
+              <a href="Ch9.S3.html" title="9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.3</span></a>
+              <span class="ltx_text ltx_font_small"> in Ch.
+</span>
+              <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>
+              <span class="ltx_text ltx_font_small">)
+which is nearly perfectly synchronized and fires almost regularly with period
+</span>
+              <math id="SS1.p3.m2" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. In order to analyze the existence and stability of a fully locked
+synchronous oscillation we approximate the population activity by a sequence
+of square pulses </span>
+              <math id="SS1.p3.m3" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">, </span>
+              <math id="SS1.p3.m4" class="ltx_Math" alttext="k\in\{0,\pm 1,\pm 2,\ldots\}" display="inline"><semantics><mrow><mi>k</mi><mo>â</mo><mrow><mo>{</mo><mrow><mn>0</mn><mo>,</mo><mrow><mo>Â±</mo><mn>1</mn></mrow><mo>,</mo><mrow><mo>Â±</mo><mn>2</mn></mrow><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow><mo>}</mo></mrow></mrow><annotation encoding="application/x-tex">k\in\{0,\pm 1,\pm 2,\ldots\}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">, centered around
+</span>
+              <math id="SS1.p3.m5" class="ltx_Math" alttext="t=k\,T" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>k</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow></mrow><annotation encoding="application/x-tex">t=k\,T</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. Each pulse </span>
+              <math id="SS1.p3.m6" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> has a certain half-width </span>
+              <math id="SS1.p3.m7" class="ltx_Math" alttext="\delta_{k}" display="inline"><semantics><msub><mi>Î´</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\delta_{k}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> and amplitude
+</span>
+              <math id="SS1.p3.m8" class="ltx_Math" alttext="(2\delta_{k})^{-1}" display="inline"><semantics><msup><mrow><mo>(</mo><mrow><mn>2</mn><mo>â¢</mo><msub><mi>Î´</mi><mi>k</mi></msub></mrow><mo>)</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">(2\delta_{k})^{-1}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> â since all neurons are supposed to fire once in each
+pulse; cf. Fig.Â </span>
+              <a href="#Ch20.F5" title="Fig.Â 20.5 â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.5</span></a>
+              <span class="ltx_text ltx_font_small">B.
+If we find that the amplitude of subsequent pulses
+increases while their width decreases (i.e., </span>
+              <math id="SS1.p3.m9" class="ltx_Math" alttext="\lim_{k\to\infty}\delta_{k}=0" display="inline"><semantics><mrow><mrow><msub><mo>lim</mo><mrow><mi>k</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow></msub><mo>â¡</mo><msub><mi>Î´</mi><mi>k</mi></msub></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lim_{k\to\infty}\delta_{k}=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">), we conclude that the fully locked state
+in which all neurons fire simultaneously is stable.</span>
+            </p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In the examples below,
+we will prove that the condition for stable locking of all neurons in the
+population can be stated as a condition on the </span>
+              <span class="ltx_text ltx_font_italic ltx_font_small">slope</span>
+              <span class="ltx_text ltx_font_small"> </span>
+              <math id="SS1.p4.m1" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+of the input
+potential </span>
+              <math id="SS1.p4.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> at the moment of firing. More precisely, if the last population
+pulse occurred at about </span>
+              <math id="SS1.p4.m3" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> with amplitude </span>
+              <math id="SS1.p4.m4" class="ltx_Math" alttext="A(0)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(0)</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> the amplitude of the
+population pulse at </span>
+              <math id="SS1.p4.m5" class="ltx_Math" alttext="t=T" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">t=T</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> increases, if </span>
+              <math id="SS1.p4.m6" class="ltx_Math" alttext="h^{\prime}(T)&gt;0" display="inline"><semantics><mrow><mrow><msup><mi>h</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mo>(</mo><mi>T</mi><mo>)</mo></mrow></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h^{\prime}(T)&gt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">:</span>
+            </p>
+<table id="Ch20.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E4.m1" class="ltx_Math" alttext="h^{\prime}(T)&gt;0\quad\Longleftrightarrow\quad A(T)&gt;A(0)\,." display="block"><semantics><mrow><msup><mi>h</mi><mo>â²</mo></msup><mrow><mo stretchy="false">(</mo><mi>T</mi><mo stretchy="false">)</mo></mrow><mo>&gt;</mo><mn>0</mn><mo mathvariant="italic" separator="true">â</mo><mo>âº</mo><mo mathvariant="italic" separator="true">â</mo><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>T</mi><mo stretchy="false">)</mo></mrow><mo>&gt;</mo><mi>A</mi><mrow><mo stretchy="false">(</mo><mn>0</mn><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">h^{\prime}(T)&gt;0\quad\Longleftrightarrow\quad A(T)&gt;A(0)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">If the amplitude of subsequent pulses increases, their width
+must decrease accordingly. In
+other words, we have the following </span>
+              <span class="ltx_text ltx_font_italic ltx_font_small">Locking Theorem</span>
+              <span class="ltx_text ltx_font_small">. In a
+homogeneous network of SRM</span>
+              <math id="SS1.p4.m7" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> neurons, a necessary and,
+in the limit of a large number of presynaptic neurons (</span>
+              <math id="SS1.p4.m8" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">), also
+sufficient condition for a coherent oscillation to be asymptotically stable is
+that firing occurs when the postsynaptic potential arising from all previous
+spikes in the population is increasing in time </span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib18" title="What matters in neuronal locking" class="ltx_ref">179</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+
+</span>
+              
+            </p>
+</div>
+<figure id="Ch20.F5" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x618.png" id="Ch20.F5.g1" class="ltx_graphics" width="291" height="99" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x619.png" id="Ch20.F5.g2" class="ltx_graphics" width="293" height="73" alt="">
+                    <span class="ltx_text ltx_font_small"></span>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.5: </span>
+Population activity <math id="Ch20.F5.m5" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math> during oscillations and synchrony.
+<span class="ltx_text ltx_font_bold">A</span>. An instability of
+asynchronous firing at rate <math id="Ch20.F5.m6" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">A</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math> leads to a sinusoidal oscillation
+of increasing amplitude.
+<span class="ltx_text ltx_font_bold">B</span>.
+If the fully synchronized state
+is stable, the width <math id="Ch20.F5.m7" class="ltx_Math" alttext="\delta_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Î´</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">\delta_{0}</annotation></semantics></math> of the
+rectangular population pulses decreases while their amplitude
+<math id="Ch20.F5.m8" class="ltx_Math" alttext="A(kT)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">k</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">T</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(kT)</annotation></semantics></math>
+increases with each period</figcaption>
+</figure>
+<div id="SS1.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Perfect synchrony in
+network of inhibitory neurons</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Locking in a population of spiking neurons
+can be understood by simple geometrical arguments.
+To illustrate this argument,
+we study a homogeneous network of </span>
+                <math id="SS1.p5.m1" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> identical
+SRM</span>
+                <math id="SS1.p5.m2" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> neurons
+which are mutually
+coupled with strength </span>
+                <math id="SS1.p5.m3" class="ltx_Math" alttext="w_{ij}=J_{0}/N" display="inline"><semantics><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>=</mo><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>/</mo><mi>N</mi></mrow></mrow><annotation encoding="application/x-tex">w_{ij}=J_{0}/N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+In other words, the interaction is scaled with one over
+</span>
+                <math id="SS1.p5.m4" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> so that the total input to a neuron </span>
+                <math id="SS1.p5.m5" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is of order one even if the number
+of neurons is large (</span>
+                <math id="SS1.p5.m6" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">). Since we are interested in synchrony we
+suppose that all neurons have fired simultaneously at </span>
+                <math id="SS1.p5.m7" class="ltx_Math" alttext="\hat{t}=0" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\hat{t}=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">. When
+will the neurons fire again?</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Since all neurons are identical we expect that the next firing time will also
+be synchronous. Let us calculate the period </span>
+                <math id="SS1.p5.m8" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> between one synchronous pulse
+and the next. We start from the firing condition of SRM</span>
+                <math id="SS1.p5.m9" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> neurons</span>
+              </p>
+<table id="Ch20.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E5.m1" class="ltx_Math" alttext="\vartheta=u_{i}(t)=\eta(t-\hat{t}_{i})+\sum_{j}w_{ij}\sum_{f}\epsilon(t-t_{j}^%
+{(f)})+h_{0}\,," display="block"><semantics><mrow><mrow><mi>Ï</mi><mo>=</mo><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>j</mi></munder><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>â¢</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><msub><mi>h</mi><mn>0</mn></msub></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\vartheta=u_{i}(t)=\eta(t-\hat{t}_{i})+\sum_{j}w_{ij}\sum_{f}\epsilon(t-t_{j}^%
+{(f)})+h_{0}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where </span>
+                <math id="SS1.p5.m10" class="ltx_Math" alttext="\epsilon(t)" display="inline"><semantics><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\epsilon(t)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is the postsynaptic potential. The
+</span>
+                
+                <span class="ltx_text ltx_font_small">axonal transmission delay </span>
+                <math id="SS1.p5.m11" class="ltx_Math" alttext="\Delta^{\rm ax}" display="inline"><semantics><msup><mi mathvariant="normal">Î</mi><mi>ax</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm ax}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is included in the definition of
+</span>
+                <math id="SS1.p5.m12" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi>Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">, i.e., </span>
+                <math id="SS1.p5.m13" class="ltx_Math" alttext="\epsilon(t)=0" display="inline"><semantics><mrow><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon(t)=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> for </span>
+                <math id="SS1.p5.m14" class="ltx_Math" alttext="t&lt;\Delta^{\rm ax}" display="inline"><semantics><mrow><mi>t</mi><mo>&lt;</mo><msup><mi mathvariant="normal">Î</mi><mi>ax</mi></msup></mrow><annotation encoding="application/x-tex">t&lt;\Delta^{\rm ax}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">. Since all neurons have
+fired synchronously at </span>
+                <math id="SS1.p5.m15" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">, we set </span>
+                <math id="SS1.p5.m16" class="ltx_Math" alttext="\hat{t}_{i}=t_{j}^{(f)}=0" display="inline"><semantics><mrow><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo>=</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\hat{t}_{i}=t_{j}^{(f)}=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">. The result is a
+condition of the form</span>
+              </p>
+<table id="Ch20.E6" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E6.m1" class="ltx_Math" alttext="\vartheta-\eta(t)=J_{0}\,\epsilon(t)+h_{0}\,," display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>-</mo><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>J</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><msub><mi>h</mi><mn>0</mn></msub></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\vartheta-\eta(t)=J_{0}\,\epsilon(t)+h_{0}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.6)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">since </span>
+                <math id="SS1.p5.m17" class="ltx_Math" alttext="w_{ij}=J_{0}/N" display="inline"><semantics><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>=</mo><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>/</mo><mi>N</mi></mrow></mrow><annotation encoding="application/x-tex">w_{ij}=J_{0}/N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> for </span>
+                <math id="SS1.p5.m18" class="ltx_Math" alttext="j=1,\dots,N" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><mi>N</mi></mrow></mrow><annotation encoding="application/x-tex">j=1,\dots,N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+Note that we have neglected the postsynaptic potentials
+that may have been caused by earlier spikes
+</span>
+                <math id="SS1.p5.m19" class="ltx_Math" alttext="t_{j}^{(f)}&lt;0" display="inline"><semantics><mrow><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t_{j}^{(f)}&lt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> back in the past.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The graphical solution
+of Eq.Â (</span>
+                <a href="#Ch20.E6" title="(20.6) â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.6</span></a>
+                <span class="ltx_text ltx_font_small">)
+for the case of inhibitory neurons
+(i.e., </span>
+                <math id="SS1.p5.m20" class="ltx_Math" alttext="J_{0}&lt;0" display="inline"><semantics><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">J_{0}&lt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">)
+is presented in Fig. </span>
+                <a href="#Ch20.F6" title="Fig.Â 20.6 â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.6</span></a>
+                <span class="ltx_text ltx_font_small">.
+The first crossing
+point of the
+effective dynamic threshold </span>
+                <math id="SS1.p5.m21" class="ltx_Math" alttext="\vartheta-\eta(t)" display="inline"><semantics><mrow><mi>Ï</mi><mo>-</mo><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\vartheta-\eta(t)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+and </span>
+                <math id="SS1.p5.m22" class="ltx_Math" alttext="J_{0}\,\epsilon(t)+h_{0}" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><msub><mi>J</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">J_{0}\,\epsilon(t)+h_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> defines the time </span>
+                <math id="SS1.p5.m23" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+of the next synchronous pulse.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">What happens if synchrony at </span>
+                <math id="SS1.p5.m24" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> was not perfect? Let us assume that one of
+the neurons is slightly late compared to the others
+(Fig. </span>
+                <a href="#Ch20.F6" title="Fig.Â 20.6 â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.6</span></a>
+                <span class="ltx_text ltx_font_small">B).
+It
+will receive the input </span>
+                <math id="SS1.p5.m25" class="ltx_Math" alttext="J_{0}\,\epsilon(t)" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>J</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">J_{0}\,\epsilon(t)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> from the others, thus the
+right-hand side of
+Eq. (</span>
+                <a href="#Ch20.E6" title="(20.6) â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.6</span></a>
+                <span class="ltx_text ltx_font_small">) is the same. The left-hand side, however, is
+different since the last firing was at </span>
+                <math id="SS1.p5.m26" class="ltx_Math" alttext="\delta_{0}" display="inline"><semantics><msub><mi>Î´</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\delta_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> instead of zero. The next
+firing time is at </span>
+                <math id="SS1.p5.m27" class="ltx_Math" alttext="t=T+\delta_{1}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mi>T</mi><mo>+</mo><msub><mi>Î´</mi><mn>1</mn></msub></mrow></mrow><annotation encoding="application/x-tex">t=T+\delta_{1}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> where </span>
+                <math id="SS1.p5.m28" class="ltx_Math" alttext="\delta_{1}" display="inline"><semantics><msub><mi>Î´</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\delta_{1}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is found from</span>
+              </p>
+<table id="Ch20.E7" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E7.m1" class="ltx_Math" alttext="\vartheta-\eta(T+\delta_{1}-\delta_{0})=h_{0}+J_{0}\,\epsilon(T+\delta_{1})\,." display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>-</mo><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>T</mi><mo>+</mo><msub><mi>Î´</mi><mn>1</mn></msub><mo>-</mo><msub><mi>Î´</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow><mo>=</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>J</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mi>Ïµ</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>T</mi><mo>+</mo><msub><mi>Î´</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\vartheta-\eta(T+\delta_{1}-\delta_{0})=h_{0}+J_{0}\,\epsilon(T+\delta_{1})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.7)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Linearization with respect to </span>
+                <math id="SS1.p5.m29" class="ltx_Math" alttext="\delta_{0}" display="inline"><semantics><msub><mi>Î´</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\delta_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> and </span>
+                <math id="SS1.p5.m30" class="ltx_Math" alttext="\delta_{1}" display="inline"><semantics><msub><mi>Î´</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\delta_{1}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> yields then:</span>
+              </p>
+<table id="Ch20.E8" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E8.m1" class="ltx_Math" alttext="\delta_{1}&lt;\delta_{0}\quad\Longleftrightarrow\quad J_{0}\epsilon^{\prime}(T)&gt;0\,," display="block"><semantics><mrow><msub><mi>Î´</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>Î´</mi><mn>0</mn></msub><mo mathvariant="italic" separator="true">â</mo><mo>âº</mo><mo mathvariant="italic" separator="true">â</mo><msub><mi>J</mi><mn>0</mn></msub><msup><mi>Ïµ</mi><mo>â²</mo></msup><mrow><mo stretchy="false">(</mo><mi>T</mi><mo stretchy="false">)</mo></mrow><mo>&gt;</mo><mpadded width="+1.7pt"><mn>0</mn></mpadded><mo>,</mo></mrow><annotation encoding="application/x-tex">\delta_{1}&lt;\delta_{0}\quad\Longleftrightarrow\quad J_{0}\epsilon^{\prime}(T)&gt;0\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.8)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where we have exploited that
+neurons with ânormalâ refractoriness and adaptation properties
+have </span>
+                <math id="SS1.p5.m31" class="ltx_Math" alttext="\eta^{\prime}&gt;0" display="inline"><semantics><mrow><msup><mi>Î·</mi><mo>â²</mo></msup><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\eta^{\prime}&gt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+From Eq. (</span>
+                <a href="#Ch20.E8" title="(20.8) â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.8</span></a>
+                <span class="ltx_text ltx_font_small">) we conclude
+that the neuron which has been late is âpulled backâ into the synchronized
+</span>
+                
+                <span class="ltx_text ltx_font_small">pulse of the others, if the postsynaptic potential </span>
+                <math id="SS1.p5.m32" class="ltx_Math" alttext="J_{0}\epsilon" display="inline"><semantics><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>â¢</mo><mi>Ïµ</mi></mrow><annotation encoding="application/x-tex">J_{0}\epsilon</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is rising at the
+moment of firing at </span>
+                <math id="SS1.p5.m33" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">. Equation (</span>
+                <a href="#Ch20.E8" title="(20.8) â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.8</span></a>
+                <span class="ltx_text ltx_font_small">) is a
+special case of the Locking Theorem.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch20.F6" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x620.png" id="Ch20.F6.g1" class="ltx_graphics" width="293" height="218" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x621.png" id="Ch20.F6.g2" class="ltx_graphics" width="292" height="247" alt="">
+                    <span class="ltx_text ltx_font_small"></span>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.6: </span>
+Synchronous firing in a network with inhibitory
+coupling. <span class="ltx_text ltx_font_bold">A</span>.
+Bottom: Spike raster - all neurons have fired synchronously at <math id="Ch20.F6.m9" class="ltx_Math" alttext="\hat{t}=0" display="inline"><semantics><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\hat{t}=0</annotation></semantics></math>.
+Top: The next spike occurs when the
+total input potential
+<math id="Ch20.F6.m10" class="ltx_Math" alttext="h_{0}+J_{0}\,\epsilon(t)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">+</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">J</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">Ïµ</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">h_{0}+J_{0}\,\epsilon(t)</annotation></semantics></math> (solid line; the offset corresponds
+to a constant background input <math id="Ch20.F6.m11" class="ltx_Math" alttext="h_{0}&gt;0" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">h_{0}&gt;0</annotation></semantics></math>)
+has increased sufficiently so as to
+cross the dynamic threshold <math id="Ch20.F6.m12" class="ltx_Math" alttext="\vartheta-\eta(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">-</mo><mrow><mi mathsize="normal" stretchy="false">Î·</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\vartheta-\eta(t)</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">B</span>. Stability of perfect synchrony. The last neuron is
+out of tune. The firing time difference at <math id="Ch20.F6.m13" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math> is <math id="Ch20.F6.m14" class="ltx_Math" alttext="\delta_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Î´</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">\delta_{0}</annotation></semantics></math>. One
+period later the firing time difference is reduced (<math id="Ch20.F6.m15" class="ltx_Math" alttext="\delta_{1}&lt;\delta_{0}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Î´</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="normal" stretchy="false">&lt;</mo><msub><mi mathsize="normal" stretchy="false">Î´</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">\delta_{1}&lt;\delta_{0}</annotation></semantics></math>), since the threshold is reached at a point where <math id="Ch20.F6.m16" class="ltx_Math" alttext="J_{0}\,\epsilon(t)" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">J</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">Ïµ</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">J_{0}\,\epsilon(t)</annotation></semantics></math> is rising.
+Therefore this neuron is eventually pulled back into the synchronous group. </figcaption>
+</figure>
+<div id="SS1.p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Proof of locking theorem (*)</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In order to check whether the fully synchronized state is a stable
+</span>
+                
+                <span class="ltx_text ltx_font_small">solution of the network dynamics, we exploit the population integral equation
+(</span>
+                <a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>
+                <span class="ltx_text ltx_font_small">) of Ch. </span>
+                <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>
+                <span class="ltx_text ltx_font_small">
+and assume that the
+population has already fired a couple of narrow pulses for </span>
+                <math id="SS1.p6.m1" class="ltx_Math" alttext="t&lt;0" display="inline"><semantics><mrow><mi>t</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t&lt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> with widths
+</span>
+                <math id="SS1.p6.m2" class="ltx_Math" alttext="\delta_{k}\ll T" display="inline"><semantics><mrow><msub><mi>Î´</mi><mi>k</mi></msub><mo>âª</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">\delta_{k}\ll T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">, </span>
+                <math id="SS1.p6.m3" class="ltx_Math" alttext="k\leq 0" display="inline"><semantics><mrow><mi>k</mi><mo>â¤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">k\leq 0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">, and calculate the amplitude and width of
+subsequent pulses.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In order to translate the above idea into
+a step-by-step demonstration, we use</span>
+              </p>
+<table id="Ch20.E9" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E9.m1" class="ltx_Math" alttext="A(t)=\sum_{k=-\infty}^{\infty}{1\over 2\delta_{k}}{\mathcal{H}}[t-(k\,T-\delta%
+_{k})]\,{\mathcal{H}}[(k\,T+\delta_{k})-t]" display="block"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>k</mi><mo>=</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow><mi mathvariant="normal">â</mi></munderover><mrow><mfrac><mn>1</mn><mrow><mn>2</mn><mo>â¢</mo><msub><mi>Î´</mi><mi>k</mi></msub></mrow></mfrac><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mi>t</mi><mo>-</mo><mrow><mo>(</mo><mrow><mrow><mpadded width="+1.7pt"><mi>k</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow><mo>-</mo><msub><mi>Î´</mi><mi>k</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mo>(</mo><mrow><mrow><mpadded width="+1.7pt"><mi>k</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow><mo>+</mo><msub><mi>Î´</mi><mi>k</mi></msub></mrow><mo>)</mo></mrow><mo>-</mo><mi>t</mi></mrow><mo>]</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=\sum_{k=-\infty}^{\infty}{1\over 2\delta_{k}}{\mathcal{H}}[t-(k\,T-\delta%
+_{k})]\,{\mathcal{H}}[(k\,T+\delta_{k})-t]</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.9)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">as a parameterization of the population activity;
+cf. Fig.Â </span>
+                <a href="#Ch20.F5" title="Fig.Â 20.5 â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.5</span></a>
+                <span class="ltx_text ltx_font_small">B.
+Here, </span>
+                <math id="SS1.p6.m4" class="ltx_Math" alttext="{\mathcal{H}}(.)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mrow><mo stretchy="false">(</mo><mo>.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{H}}(.)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> denotes the
+Heaviside step function with </span>
+                <math id="SS1.p6.m5" class="ltx_Math" alttext="{\mathcal{H}}(s)=1" display="inline"><semantics><mrow><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">{\mathcal{H}}(s)=1</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> for </span>
+                <math id="SS1.p6.m6" class="ltx_Math" alttext="s&gt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&gt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> and </span>
+                <math id="SS1.p6.m7" class="ltx_Math" alttext="{\mathcal{H}}(s)=0" display="inline"><semantics><mrow><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">{\mathcal{H}}(s)=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> for </span>
+                <math id="SS1.p6.m8" class="ltx_Math" alttext="s\leq 0" display="inline"><semantics><mrow><mi>s</mi><mo>â¤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s\leq 0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">. For stability, we need to show that the amplitude </span>
+                <math id="SS1.p6.m9" class="ltx_Math" alttext="A(0),A(T),A(2T),\dots" display="inline"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>T</mi><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>2</mn><mo>â¢</mo><mi>T</mi></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow><annotation encoding="application/x-tex">A(0),A(T),A(2T),\dots</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> of the rectangular pulses increases while the width </span>
+                <math id="SS1.p6.m10" class="ltx_Math" alttext="\delta_{k}" display="inline"><semantics><msub><mi>Î´</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\delta_{k}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> of
+subsequent pulses decreases.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">To prove the theorem,
+we assume that all neurons in the network have
+(i) identical
+</span>
+                
+                <span class="ltx_text ltx_font_small">refractoriness </span>
+                <math id="SS1.p6.m11" class="ltx_Math" alttext="\eta(s)" display="inline"><semantics><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta(s)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> with </span>
+                <math id="SS1.p6.m12" class="ltx_Math" alttext="{\text{d}}\eta/{\text{d}}s&gt;0" display="inline"><semantics><mrow><mrow><mrow><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>Î·</mi></mrow><mo>/</mo><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow></mrow><mo>â¢</mo><mi>s</mi></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">{\text{d}}\eta/{\text{d}}s&gt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> for all </span>
+                <math id="SS1.p6.m13" class="ltx_Math" alttext="s&gt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&gt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">;
+(ii) identical
+shape </span>
+                <math id="SS1.p6.m14" class="ltx_Math" alttext="\epsilon(s)" display="inline"><semantics><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\epsilon(s)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> of the postsynaptic potential;
+(iii) all couplings are identical, </span>
+                <math id="SS1.p6.m15" class="ltx_Math" alttext="w_{ij}=w_{0}=J_{0}/N" display="inline"><semantics><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mn>0</mn></msub><mo>=</mo><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>/</mo><mi>N</mi></mrow></mrow><annotation encoding="application/x-tex">w_{ij}=w_{0}=J_{0}/N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">;
+and (iv) all neurons receive the same constant external drive </span>
+                <math id="SS1.p6.m16" class="ltx_Math" alttext="h_{0}" display="inline"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+The sequence of rectangular activity pulses
+in the past gives therefore rise to an input potential</span>
+              </p>
+<table id="Ch20.E10" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E10.m1" class="ltx_Math" alttext="h(t)=h_{0}+J_{0}\int_{0}^{\infty}\epsilon(s)A(t-s){\text{d}}s=h_{0}+\sum_{k=0}%
+^{\infty}J_{0}\,\epsilon(t+k\,T)\,+\,{\mathcal{O}}\left[(\delta_{k})^{2}\right%
+]\,," display="block"><semantics><mrow><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>+</mo><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                              Â </mtext></mrow><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow></mrow><mo>=</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>+</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi mathvariant="normal">â</mi></munderover><mrow><mpadded width="+1.7pt"><msub><mi>J</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mi>Ïµ</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>k</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>+</mo><mrow><mi class="ltx_font_mathcaligraphic">ðª</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><msup><mrow><mo>(</mo><msub><mi>Î´</mi><mi>k</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mo>]</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">h(t)=h_{0}+J_{0}\int_{0}^{\infty}\epsilon(s)A(t-s){\text{d}}s=h_{0}+\sum_{k=0}%
+^{\infty}J_{0}\,\epsilon(t+k\,T)\,+\,{\mathcal{O}}\left[(\delta_{k})^{2}\right%
+]\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.10)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">which is identical for all neurons.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In order to determine the period </span>
+                <math id="SS1.p6.m17" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">, we consider a
+neuron in the </span>
+                <span class="ltx_text ltx_font_italic ltx_font_small">center</span>
+                <span class="ltx_text ltx_font_small"> of the square pulse which has fired its last spike
+at </span>
+                <math id="SS1.p6.m18" class="ltx_Math" alttext="\hat{t}=0" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\hat{t}=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+The next spike of this neuron must occur at </span>
+                <math id="SS1.p6.m19" class="ltx_Math" alttext="t=T" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">t=T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">, viz. in
+the center of the next square pulse. We use </span>
+                <math id="SS1.p6.m20" class="ltx_Math" alttext="\hat{t}=0" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\hat{t}=0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> in the threshold
+condition for spike firing which yields</span>
+              </p>
+<table id="Ch20.E11" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E11.m1" class="ltx_Math" alttext="T={\rm min}\left\{t\,|\,\eta(t)+h_{0}+J_{0}\sum_{k=0}^{\infty}\epsilon(t+k\,T)%
+=\vartheta\right\}\,." display="block"><semantics><mrow><mrow><mi>T</mi><mo>=</mo><mrow><mi>min</mi><mo>â¢</mo><mrow><mo>{</mo><mrow><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo separator="true">|â</mo><mrow><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><msub><mi>h</mi><mn>0</mn></msub><mo>+</mo><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>â¢</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi mathvariant="normal">â</mi></munderover><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>k</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><mo>=</mo><mi>Ï</mi></mrow></mrow><mo>}</mo></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">T={\rm min}\left\{t\,|\,\eta(t)+h_{0}+J_{0}\sum_{k=0}^{\infty}\epsilon(t+k\,T)%
+=\vartheta\right\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.11)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">If a synchronized solution exists, (</span>
+                <a href="#Ch20.E11" title="(20.11) â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.11</span></a>
+                <span class="ltx_text ltx_font_small">) defines its period.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We now use the population equation
+of renewal theory, Eq. (</span>
+                <a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>
+                <span class="ltx_text ltx_font_small">) in Ch. </span>
+                <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>
+                <span class="ltx_text ltx_font_small">.
+In the limit of low noise, the interval distribution
+</span>
+                <math id="SS1.p6.m21" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+becomes a </span>
+                <math id="SS1.p6.m22" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">-function: neurons that have fired
+fired at time </span>
+                <math id="SS1.p6.m23" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> fire again at time </span>
+                <math id="SS1.p6.m24" class="ltx_Math" alttext="t=\hat{t}+T(\hat{t})" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>+</mo><mrow><mi>T</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">t=\hat{t}+T(\hat{t})</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+Using the rules for calculation with </span>
+                <math id="SS1.p6.m25" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">-functions
+and the threshold condition (Eq. (</span>
+                <a href="#Ch20.E11" title="(20.11) â£ 20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.11</span></a>
+                <span class="ltx_text ltx_font_small">)) for firing,
+we find</span>
+              </p>
+<table id="Ch20.E12" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E12.m1" class="ltx_Math" alttext="A(t)=[1+{h^{\prime}\over\eta^{\prime}}]A(t-T_{b})" display="block"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mfrac><msup><mi>h</mi><mo>â²</mo></msup><msup><mi>Î·</mi><mo>â²</mo></msup></mfrac></mrow><mo>]</mo></mrow><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>T</mi><mi>b</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=[1+{h^{\prime}\over\eta^{\prime}}]A(t-T_{b})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.12)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where the prime denotes the temporal derivative.
+</span>
+                <math id="SS1.p6.m26" class="ltx_Math" alttext="T_{b}" display="inline"><semantics><msub><mi>T</mi><mi>b</mi></msub><annotation encoding="application/x-tex">T_{b}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is the âbackward intervalâ: neurons that fire
+at time </span>
+                <math id="SS1.p6.m27" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> have fired their previous spike at time </span>
+                <math id="SS1.p6.m28" class="ltx_Math" alttext="t-T_{b}" display="inline"><semantics><mrow><mi>t</mi><mo>-</mo><msub><mi>T</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">t-T_{b}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+According to our assumption </span>
+                <math id="SS1.p6.m29" class="ltx_Math" alttext="\eta^{\prime}&gt;0" display="inline"><semantics><mrow><msup><mi>Î·</mi><mo>â²</mo></msup><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\eta^{\prime}&gt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+A
+necessary condition for an increase of the activity from
+one cycle to the next
+is therefore that the derivative </span>
+                <math id="SS1.p6.m30" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is positive
+</span>
+                
+                <span class="ltx_text ltx_font_small">â which is the essence of the Locking Theorem.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The Locking Theorem is applicable in a large population
+of SRM neurons </span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib18" title="What matters in neuronal locking" class="ltx_ref">179</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">.
+As discussed in Chapter
+</span>
+                <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>
+                <span class="ltx_text ltx_font_small">, the framework of SRM
+encompasses many neuron models, in particular
+the leaky integrate-and-fire model.
+Note that the above locking argument is
+a âlocalâ stability argument and requires
+that network firing is already close to the
+fully synchronized state.
+A related but </span>
+                <span class="ltx_text ltx_font_italic ltx_font_small">global</span>
+                <span class="ltx_text ltx_font_small"> locking
+argument has been presented by </span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib544" title="Synchronization of pulse coupled biological oscillators" class="ltx_ref">348</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_font_small ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">20.2.2 </span>Oscillations with irregular firing</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In the previous subsection, we have studied
+fully connected homogeneous network models which
+exhibit oscillations of the neuronal activity.
+In the locked state, all neurons fire regularly and in near-perfect synchrony.
+Experiments, however,
+</span>
+              
+              <span class="ltx_text ltx_font_small">show that though oscillations are a common phenomenon, spike trains of
+individual neurons are often highly irregular.</span>
+            </p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Periodic large-amplitude oscillation
+of the population activity
+are compatible with
+irregular spike trains if individual neurons fire
+at an average frequency that is significantly lower than the frequency of
+the population activity (Fig.Â </span>
+              <a href="#Ch20.F7" title="Fig.Â 20.7 â£ 20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.7</span></a>
+              <span class="ltx_text ltx_font_small">).
+If the subgroup of neurons that is
+active during each activity burst
+changes from cycle to cycle,
+then the distribution of
+inter-spike intervals can be broad, despite
+a prominent oscillation.
+For example, in the inferior
+olivary nucleus, individual neurons have a low firing rate of one spike per
+second
+while the population activity oscillates at about 10Â Hz.
+</span>
+              
+              <span class="ltx_text ltx_font_small">Strong oscillations with irregular spike trains have
+interesting implications for short-term memory and timing tasks
+</span>
+              
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib545" title="Dynamical working memory and timed responses: the role of reverberating loops in the olivo-cerebellar system" class="ltx_ref">259</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.</span>
+            </p>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_font_small ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">20.2.3 </span>Phase Models</h1>
+
+<figure id="Ch20.F7" class="ltx_figure"><img src="x498.png" id="Ch20.F7.g1" class="ltx_graphics ltx_centering" width="443" height="228" alt="">
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.7: </span>Synchronous oscillation with irregular spike trains. Neurons tend
+to fire synchronously but with an average rate that is significantly
+lower than the oscillation frequency of
+the population activity (bottom). Each neuron is thus firing only in one
+out of approximately four
+cycles, giving rise to highly irregular spike trains.
+Short vertical lines indicate the spikes of a set of 6 neurons
+(schematic figure).</figcaption>
+</figure>
+<figure id="Ch20.F8" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x622.png" id="Ch20.F8.g1" class="ltx_graphics" width="293" height="219" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x623.png" id="Ch20.F8.g2" class="ltx_graphics" width="293" height="219" alt="">
+                    <span class="ltx_text ltx_font_small"></span>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.8: </span>Phase Models.
+<span class="ltx_text ltx_font_bold">A</span>. For a neuron firing with period <math id="Ch20.F8.m9" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> (top), we can
+introduce a phase variable <math id="Ch20.F8.m10" class="ltx_Math" alttext="\phi=(t/T)_{\rm mod1}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">=</mo><msub><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">T</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mi mathsize="normal" stretchy="false">mod1</mi></msub></mrow><annotation encoding="application/x-tex">\phi=(t/T)_{\rm mod1}</annotation></semantics></math> (bottom).
+<span class="ltx_text ltx_font_bold">B</span>. If a weak input pulse
+of amplitude <math id="Ch20.F8.m11" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math> is given at a phase
+<math id="Ch20.F8.m12" class="ltx_Math" alttext="\phi_{\rm stim}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">stim</mi></msub><annotation encoding="application/x-tex">\phi_{\rm stim}</annotation></semantics></math>, the interspike interval <math id="Ch20.F8.m13" class="ltx_Math" alttext="T^{\prime}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><annotation encoding="application/x-tex">T^{\prime}</annotation></semantics></math> is shorter.
+The phase response curve <math id="Ch20.F8.m14" class="ltx_Math" alttext="\tilde{F}(\phi_{\rm stim})" display="inline"><semantics><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">F</mi><mo mathsize="normal" stretchy="false">~</mo></mover><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">stim</mi></msub><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{F}(\phi_{\rm stim})</annotation></semantics></math> measures
+the phase advance
+<math id="Ch20.F8.m15" class="ltx_Math" alttext="\Delta\phi=(T-T^{\prime})/T" display="inline"><semantics><mrow><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="normal" stretchy="false">-</mo><msup><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="normal" stretchy="false">â²</mo></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">T</mi></mrow></mrow><annotation encoding="application/x-tex">\Delta\phi=(T-T^{\prime})/T</annotation></semantics></math> as a function of
+the stimulation phase <math id="Ch20.F8.m16" class="ltx_Math" alttext="\phi_{\rm stim}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">stim</mi></msub><annotation encoding="application/x-tex">\phi_{\rm stim}</annotation></semantics></math>.
+
+</figcaption>
+</figure>
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">For
+weak coupling, synchronization and locking
+of periodically firing neurons can be systematically analyzed in
+the framework of phase models </span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib546" title="Chemical oscillations, waves, and turbulence." class="ltx_ref">282</a>; <a href="bib.html#bib547" title="Frequency plateaus in a chain of weakly coupled oscillators" class="ltx_ref">139</a>; <a href="bib.html#bib548" title="Symmetry and phase locking in chains of weakly coupled oscillators" class="ltx_ref">275</a>; <a href="bib.html#bib549" title="Synchronization" class="ltx_ref">397</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+</span>
+              
+            </p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Suppose a neuron driven by a constant input fires regularly with period </span>
+              <math id="SS3.p2.m1" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">, i.e.,
+it evolves on a periodic limit cycle.
+We have already seen in Ch. </span>
+              <a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>
+              <span class="ltx_text ltx_font_small">
+that the position on the limit cycle can
+be represented by a phase </span>
+              <math id="SS3.p2.m2" class="ltx_Math" alttext="\phi" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">.
+In contrast to Ch. </span>
+              <a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>
+              <span class="ltx_text ltx_font_small">,
+we adopt here the conventions that (i)
+spikes occur at phase </span>
+              <math id="SS3.p2.m3" class="ltx_Math" alttext="\phi=0" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\phi=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+(Fig. </span>
+              <a href="#Ch20.F8" title="Fig.Â 20.8 â£ 20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.8</span></a>
+              <span class="ltx_text ltx_font_small">)
+and (ii)
+between spikes the phase increases
+from zero to one at a constant speed
+</span>
+              <math id="SS3.p2.m4" class="ltx_Math" alttext="f_{0}=1" display="inline"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f_{0}=1</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">, where </span>
+              <math id="SS3.p2.m5" class="ltx_Math" alttext="f_{0}=1/T" display="inline"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mo>=</mo><mrow><mn>1</mn><mo>/</mo><mi>T</mi></mrow></mrow><annotation encoding="application/x-tex">f_{0}=1/T</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+is the frequency of the periodic firing.
+In more formal terms, the phase of an uncoupled neural âoscillatorâ
+evolves according to the differential equation</span>
+            </p>
+<table id="Ch20.E13" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E13.m1" class="ltx_Math" alttext="{{\text{d}}\over{\text{d}}t}\phi=f_{0}\," display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                        Â </mtext></mrow><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>Ï</mi></mrow><mo>=</mo><mpadded width="+1.7pt"><msub><mi>f</mi><mn>0</mn></msub></mpadded></mrow><annotation encoding="application/x-tex">{{\text{d}}\over{\text{d}}t}\phi=f_{0}\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.13)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">and we identify the value 1 with zero.
+Integration yields </span>
+              <math id="SS3.p2.m6" class="ltx_Math" alttext="\phi(t)=(t/T)_{{\rm mod}_{1}}" display="inline"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><msub><mrow><mo>(</mo><mrow><mi>t</mi><mo>/</mo><mi>T</mi></mrow><mo>)</mo></mrow><msub><mi>mod</mi><mn>1</mn></msub></msub></mrow><annotation encoding="application/x-tex">\phi(t)=(t/T)_{{\rm mod}_{1}}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+where âmod</span>
+              <math id="SS3.p2.m7" class="ltx_Math" alttext="{}_{1}" display="inline"><semantics><msub><mi></mi><mn>1</mn></msub><annotation encoding="application/x-tex">{}_{1}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">â means âmodulo 1â.
+The phase </span>
+              <math id="SS3.p2.m8" class="ltx_Math" alttext="\phi" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> represents the position on the limit cycle
+</span>
+              
+              <span class="ltx_text ltx_font_small">(Fig. </span>
+              <a href="#Ch20.F8" title="Fig.Â 20.8 â£ 20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.8</span></a>
+              <span class="ltx_text ltx_font_small">A).</span>
+            </p>
+</div>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Phase models for networks of </span>
+              <math id="SS3.p3.m1" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+interacting neurons are characterized
+by the intrinsic frequencies
+</span>
+              <math id="SS3.p3.m2" class="ltx_Math" alttext="f_{j}" display="inline"><semantics><msub><mi>f</mi><mi>j</mi></msub><annotation encoding="application/x-tex">f_{j}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+of the neurons (</span>
+              <math id="SS3.p3.m3" class="ltx_Math" alttext="1\leq j\leq N" display="inline"><semantics><mrow><mn>1</mn><mo>â¤</mo><mi>j</mi><mo>â¤</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">1\leq j\leq N</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">)
+as well as the mutual coupling.
+For weak coupling, the interaction
+can be directly formulated
+for the phase variables </span>
+              <math id="SS3.p3.m4" class="ltx_Math" alttext="\phi_{j}" display="inline"><semantics><msub><mi>Ï</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\phi_{j}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"></span>
+            </p>
+<table id="Ch20.E14" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E14.m1" class="ltx_Math" alttext="{{\text{d}}\over{\text{d}}t}\phi_{i}=f_{i}+\epsilon\sum_{j}w_{ij}P(\phi_{i},%
+\phi_{j})" display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                        Â </mtext></mrow><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><msub><mi>Ï</mi><mi>i</mi></msub></mrow><mo>=</mo><mrow><msub><mi>f</mi><mi>i</mi></msub><mo>+</mo><mrow><mi>Ïµ</mi><mo>â¢</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>j</mi></munder><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>â¢</mo><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Ï</mi><mi>j</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{{\text{d}}\over{\text{d}}t}\phi_{i}=f_{i}+\epsilon\sum_{j}w_{ij}P(\phi_{i},%
+\phi_{j})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.14)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">where </span>
+              <math id="SS3.p3.m5" class="ltx_Math" alttext="\epsilon\ll 1" display="inline"><semantics><mrow><mi>Ïµ</mi><mo>âª</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\epsilon\ll 1</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> is the overall coupling strength,
+</span>
+              <math id="SS3.p3.m6" class="ltx_Math" alttext="w_{ij}" display="inline"><semantics><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">w_{ij}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> are the relative pairwise coupling,
+and </span>
+              <math id="SS3.p3.m7" class="ltx_Math" alttext="P" display="inline"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> the phase coupling
+function.
+For pulse-coupled oscillators, an interaction
+from neuron </span>
+              <math id="SS3.p3.m8" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> to neuron </span>
+              <math id="SS3.p3.m9" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> happens
+only at the moment when the presynaptic neuron </span>
+              <math id="SS3.p3.m10" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+emits a spike.
+Hence the phase coupling function </span>
+              <math id="SS3.p3.m11" class="ltx_Math" alttext="P(\phi_{i},\phi_{j})" display="inline"><semantics><mrow><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Ï</mi><mi>j</mi></msub></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P(\phi_{i},\phi_{j})</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+</span>
+              
+              <span class="ltx_text ltx_font_small">is replaced by</span>
+            </p>
+<table id="Ch20.E15" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E15.m1" class="ltx_Math" alttext="P(\phi_{i},\phi_{j})\longrightarrow F(\phi_{i})\sum_{f}\delta(t-t_{j}^{(f)})\,," display="block"><semantics><mrow><mrow><mrow><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Ï</mi><mi>j</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>â¶</mo><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>Ï</mi><mi>i</mi></msub><mo>)</mo></mrow><mo>â¢</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">P(\phi_{i},\phi_{j})\longrightarrow F(\phi_{i})\sum_{f}\delta(t-t_{j}^{(f)})\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.15)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">where </span>
+              <math id="SS3.p3.m12" class="ltx_Math" alttext="\{t_{j}^{(1)},t_{j}^{(2)},t_{j}^{(3)},\dots\}" display="inline"><semantics><mrow><mo>{</mo><mrow><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mn>2</mn><mo>)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mn>3</mn><mo>)</mo></mrow></msubsup><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow><mo>}</mo></mrow><annotation encoding="application/x-tex">\{t_{j}^{(1)},t_{j}^{(2)},t_{j}^{(3)},\dots\}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+are the spike times of the presynaptic neuron,
+defined by the zero-crossings of </span>
+              <math id="SS3.p3.m13" class="ltx_Math" alttext="\phi_{j}" display="inline"><semantics><msub><mi>Ï</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\phi_{j}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">, i.e.,
+</span>
+              <math id="SS3.p3.m14" class="ltx_Math" alttext="\{t\,|\,\phi_{j}(t)=0\}" display="inline"><semantics><mrow><mo>{</mo><mrow><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo separator="true">|â</mo><mrow><mrow><msub><mi>Ï</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow></mrow><mo>}</mo></mrow><annotation encoding="application/x-tex">\{t\,|\,\phi_{j}(t)=0\}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">.
+The function </span>
+              <math id="SS3.p3.m15" class="ltx_Math" alttext="F" display="inline"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> is the âphase response
+curveâ:
+the effect of an input pulse depends
+on the momentary state (i.e. the phase </span>
+              <math id="SS3.p3.m16" class="ltx_Math" alttext="\phi_{i}" display="inline"><semantics><msub><mi>Ï</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\phi_{i}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">) of the receiving
+neuron (see the following example).</span>
+            </p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">For neurons with synaptic currents of finite duration,
+phase coupling is not restricted to the moment
+of spike firing (</span>
+              <math id="SS3.p4.m1" class="ltx_Math" alttext="\phi_{j}=0" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>j</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\phi_{j}=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">) of the presynaptic neuron, but
+extends also to phase values </span>
+              <math id="SS3.p4.m2" class="ltx_Math" alttext="\phi_{j}&gt;0" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>j</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\phi_{j}&gt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">.
+The phase coupling can be positive
+or negative.
+Positive values of </span>
+              <math id="SS3.p4.m3" class="ltx_Math" alttext="P" display="inline"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> lead to a phase advance
+of the postsynaptic neuron.
+Phase models are widely used to study
+synchronization phenomena
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib549" title="Synchronization" class="ltx_ref">397</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">. </span>
+              
+            </p>
+</div>
+<div id="SS3.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Phase response curve</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The idea of a phase response curve is illustrated in
+Fig. </span>
+                <a href="#Ch20.F8" title="Fig.Â 20.8 â£ 20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.8</span></a>
+                <span class="ltx_text ltx_font_small">B.
+A short positive stimulating input pulse of amplitude </span>
+                <math id="SS3.p5.m1" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi>Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+perturbs the period of an oscillator from its reference
+value </span>
+                <math id="SS3.p5.m2" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> to a new value </span>
+                <math id="SS3.p5.m3" class="ltx_Math" alttext="T^{\prime}" display="inline"><semantics><msup><mi>T</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">T^{\prime}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> which might
+be shorter or longer than </span>
+                <math id="SS3.p5.m4" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> </span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib550" title="Phase response curve" class="ltx_ref">87</a>; <a href="bib.html#bib551" title="The geometry of biological time" class="ltx_ref">555</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">.
+The phase response curve </span>
+                <math id="SS3.p5.m5" class="ltx_Math" alttext="\tilde{F}(\phi_{\rm stim})" display="inline"><semantics><mrow><mover accent="true"><mi>F</mi><mo stretchy="false">~</mo></mover><mo>â¢</mo><mrow><mo>(</mo><msub><mi>Ï</mi><mi>stim</mi></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{F}(\phi_{\rm stim})</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+measures
+the phase advance
+</span>
+                <math id="SS3.p5.m6" class="ltx_Math" alttext="\Delta\phi=(T-T^{\prime})/T" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>Ï</mi></mrow><mo>=</mo><mrow><mrow><mo>(</mo><mrow><mi>T</mi><mo>-</mo><msup><mi>T</mi><mo>â²</mo></msup></mrow><mo>)</mo></mrow><mo>/</mo><mi>T</mi></mrow></mrow><annotation encoding="application/x-tex">\Delta\phi=(T-T^{\prime})/T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+as a function of
+the phase </span>
+                <math id="SS3.p5.m7" class="ltx_Math" alttext="\phi_{\rm stim}" display="inline"><semantics><msub><mi>Ï</mi><mi>stim</mi></msub><annotation encoding="application/x-tex">\phi_{\rm stim}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> at which
+the stimulus was given.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Knowledge of the stimulation phase is, however,
+not sufficient to characterize the
+effect on the period, because
+a stimulus of amplitude </span>
+                <math id="SS3.p5.m8" class="ltx_Math" alttext="2\epsilon" display="inline"><semantics><mrow><mn>2</mn><mo>â¢</mo><mi>Ïµ</mi></mrow><annotation encoding="application/x-tex">2\epsilon</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+is expected to cause a larger phase shift
+</span>
+                
+                <span class="ltx_text ltx_font_small">than a stimulus of amplitude </span>
+                <math id="SS3.p5.m9" class="ltx_Math" alttext="1\epsilon" display="inline"><semantics><mrow><mn>1</mn><mo>â¢</mo><mi>Ïµ</mi></mrow><annotation encoding="application/x-tex">1\epsilon</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+The mathematically relevant notion
+is therefore the phase advance,
+divided by the (small) amplitude </span>
+                <math id="SS3.p5.m10" class="ltx_Math" alttext="\epsilon" display="inline"><semantics><mi>Ïµ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> of the stimulus.
+More precisely, the infinitesimal phase response curve
+is defined as</span>
+              </p>
+<table id="Ch20.E16" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E16.m1" class="ltx_Math" alttext="F(\phi_{\rm stim})=\lim_{\epsilon\to 0}{T-T^{\prime}(\phi_{\rm stim})\over%
+\epsilon\,T}\,." display="block"><semantics><mrow><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>Ï</mi><mi>stim</mi></msub><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munder><mo movablelimits="false">lim</mo><mrow><mi>Ïµ</mi><mo>â</mo><mn>0</mn></mrow></munder><mo>â¡</mo><mpadded width="+1.7pt"><mfrac><mrow><mi>T</mi><mo>-</mo><mrow><msup><mi>T</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mo>(</mo><msub><mi>Ï</mi><mi>stim</mi></msub><mo>)</mo></mrow></mrow></mrow><mrow><mpadded width="+1.7pt"><mi>Ïµ</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow></mfrac></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">F(\phi_{\rm stim})=\lim_{\epsilon\to 0}{T-T^{\prime}(\phi_{\rm stim})\over%
+\epsilon\,T}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.16)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The infinitesimal phase response curve
+can be extracted from experimental data </span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib552" title="Phase-response curves give the responses of neurons to transient inputs" class="ltx_ref">201</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">
+and plays an important role in the theory
+of weakly coupled oscillators.</span>
+              </p>
+</span>
+</div>
+<div id="SS3.p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Kuramoto model</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The Kuramoto model
+</span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib546" title="Chemical oscillations, waves, and turbulence." class="ltx_ref">282</a>; <a href="bib.html#bib553" title="The kuramoto model: a simple paradigm for synchronization phenomena" class="ltx_ref">8</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">
+describes a network
+of </span>
+                <math id="SS3.p6.m1" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> phase oscillators with homogeneous all-to-all connections
+</span>
+                <math id="SS3.p6.m2" class="ltx_Math" alttext="w_{ij}=J_{0}/N" display="inline"><semantics><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>=</mo><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>/</mo><mi>N</mi></mrow></mrow><annotation encoding="application/x-tex">w_{ij}=J_{0}/N</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> and a sinusoidal phase coupling function</span>
+              </p>
+<table id="Ch20.E17" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch20.E17.m1" class="ltx_Math" alttext="{{\text{d}}\over{\text{d}}t}\phi_{i}=f_{i}+{J_{0}\over N}\sum_{j=1}^{N}\sin(2%
+\pi(\phi_{j}-\phi_{i}))" display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><msub><mi>Ï</mi><mi>i</mi></msub></mrow><mo>=</mo><mrow><msub><mi>f</mi><mi>i</mi></msub><mo>+</mo><mrow><mfrac><msub><mi>J</mi><mn>0</mn></msub><mi>N</mi></mfrac><mo>â¢</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mrow><mi>sin</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mn>2</mn><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>Ï</mi><mi>j</mi></msub><mo>-</mo><msub><mi>Ï</mi><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{{\text{d}}\over{\text{d}}t}\phi_{i}=f_{i}+{J_{0}\over N}\sum_{j=1}^{N}\sin(2%
+\pi(\phi_{j}-\phi_{i}))</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.17)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where </span>
+                <math id="SS3.p6.m3" class="ltx_Math" alttext="f_{i}" display="inline"><semantics><msub><mi>f</mi><mi>i</mi></msub><annotation encoding="application/x-tex">f_{i}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is the intrinsic frequency
+of oscillator </span>
+                <math id="SS3.p6.m4" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+For the analysis of the system, it is usually
+assumed that both
+the coupling strength </span>
+                <math id="SS3.p6.m5" class="ltx_Math" alttext="J_{0}" display="inline"><semantics><msub><mi>J</mi><mn>0</mn></msub><annotation encoding="application/x-tex">J_{0}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> and the frequency spread
+</span>
+                <math id="SS3.p6.m6" class="ltx_Math" alttext="(f_{i}-\overline{f})/\overline{f}" display="inline"><semantics><mrow><mrow><mo>(</mo><mrow><msub><mi>f</mi><mi>i</mi></msub><mo>-</mo><mover accent="true"><mi>f</mi><mo>Â¯</mo></mover></mrow><mo>)</mo></mrow><mo>/</mo><mover accent="true"><mi>f</mi><mo>Â¯</mo></mover></mrow><annotation encoding="application/x-tex">(f_{i}-\overline{f})/\overline{f}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+are small. Here </span>
+                <math id="SS3.p6.m7" class="ltx_Math" alttext="\overline{f}" display="inline"><semantics><mover accent="true"><mi>f</mi><mo>Â¯</mo></mover><annotation encoding="application/x-tex">\overline{f}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> denotes the mean frequency.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">If the spread of intrinsic frequencies is zero,
+then an arbitrary small coupling </span>
+                <math id="SS3.p6.m8" class="ltx_Math" alttext="J_{0}&gt;0" display="inline"><semantics><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">J_{0}&gt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> synchronizes
+all units at the same phase </span>
+                <math id="SS3.p6.m9" class="ltx_Math" alttext="\phi_{i}(t)=\phi(t)=\overline{f}\,t" display="inline"><semantics><mrow><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mover accent="true"><mi>f</mi><mo>Â¯</mo></mover></mpadded><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">\phi_{i}(t)=\phi(t)=\overline{f}\,t</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+This is easy to see. First,
+synchronous dynamics </span>
+                <math id="SS3.p6.m10" class="ltx_Math" alttext="\phi_{i}(t)=\phi_{j}(t)=\phi(t)" display="inline"><semantics><mrow><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>Ï</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\phi_{i}(t)=\phi_{j}(t)=\phi(t)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+for all </span>
+                <math id="SS3.p6.m11" class="ltx_Math" alttext="i,j" display="inline"><semantics><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i,j</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> are a solution
+of Eq. (</span>
+                <a href="#Ch20.E17" title="(20.17) â£ 20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.17</span></a>
+                <span class="ltx_text ltx_font_small">).
+Second, if one of the oscillators is late by a small amount,
+say oscillator </span>
+                <math id="SS3.p6.m12" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> has a phase </span>
+                <math id="SS3.p6.m13" class="ltx_Math" alttext="\phi_{n}(t)&lt;\phi(t)" display="inline"><semantics><mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>&lt;</mo><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\phi_{n}(t)&lt;\phi(t)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">,
+then the interaction with the others makes it speed up
+(if the phase difference is smaller than </span>
+                <math id="SS3.p6.m14" class="ltx_Math" alttext="0.5" display="inline"><semantics><mn>0.5</mn><annotation encoding="application/x-tex">0.5</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">)
+or slow down (if the phase difference is larger than </span>
+                <math id="SS3.p6.m15" class="ltx_Math" alttext="0.5" display="inline"><semantics><mn>0.5</mn><annotation encoding="application/x-tex">0.5</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">,
+until it is synchronized with the group of other neurons.
+More generally, for a fixed (small) spread of intrinsic frequencies,
+there is a minimal coupling strength </span>
+                <math id="SS3.p6.m16" class="ltx_Math" alttext="J_{c}" display="inline"><semantics><msub><mi>J</mi><mi>c</mi></msub><annotation encoding="application/x-tex">J_{c}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+</span>
+                
+                <span class="ltx_text ltx_font_small">above which global synchronization sets in.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We note that, in contrast to pulse-coupled models,
+units in the Kuramoto model
+can interact at arbitrary phases.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS4" class="ltx_subsection">
+<h1 class="ltx_title ltx_font_small ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">20.2.4 </span>Synaptic plasticity and oscillations</h1>
+
+<figure id="Ch20.F9" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">C</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x624.png" id="Ch20.F9.g1" class="ltx_graphics" width="200" height="208" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x625.png" id="Ch20.F9.g2" class="ltx_graphics" width="199" height="204" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x626.png" id="Ch20.F9.g3" class="ltx_graphics" width="199" height="204" alt="">
+                    <span class="ltx_text ltx_font_small"></span>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.9: </span>Network oscillations and STDP.
+<span class="ltx_text ltx_font_bold">A</span> Top. During a near-synchronous oscillations,
+presynaptic spike timings <math id="Ch20.F9.m5" class="ltx_Math" alttext="t^{f}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">t</mi><mi mathsize="normal" stretchy="false">f</mi></msup><annotation encoding="application/x-tex">t^{f}</annotation></semantics></math> have a jitter <math id="Ch20.F9.m6" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+with respect to the spike of a given postsynaptic neuron.
+Bottom: Because of axonal transmission delay,
+the spike <span class="ltx_text ltx_font_italic">arrival</span> time <math id="Ch20.F9.m7" class="ltx_Math" alttext="t^{\rm pre}=t^{f}+\Delta^{\rm ax}" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">t</mi><mi mathsize="normal" stretchy="false">pre</mi></msup><mo mathsize="normal" stretchy="false">=</mo><mrow><msup><mi mathsize="normal" stretchy="false">t</mi><mi mathsize="normal" stretchy="false">f</mi></msup><mo mathsize="normal" stretchy="false">+</mo><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">ax</mi></msup></mrow></mrow><annotation encoding="application/x-tex">t^{\rm pre}=t^{f}+\Delta^{\rm ax}</annotation></semantics></math>
+of presynaptic spikes at the synapse,
+is slightly shifted (light shaded area) to the regime
+âpost-before-preâ.
+Therefore, for an antisymmetric STDP window,
+synaptic depression dominates; compare the dark shaded
+areas for potentiation and depression.
+<span class="ltx_text ltx_font_bold">B</span>. Same as in A, except
+that the amplitude of potentiation
+for near-synchronous firing is larger.
+As before, the total area under the STDP curve
+is balanced between potentiation and depression
+(integral over the STDP curve vanishes).
+<span class="ltx_text ltx_font_bold">C</span>. Same as in B, except
+that the integral over the STDP curve is now positive,
+as is likely to be the case at high
+firing rates. For large jitter <math id="Ch20.F9.m8" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+potentiation
+dominates
+over depression (compare the dark-shaded areas).
+
+</figcaption>
+</figure>
+<div id="SS4.p1" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">During an oscillation
+a large fraction of
+excitatory neurons fires near-synchronously
+(Fig. </span>
+              <a href="#Ch20.F4" title="Fig.Â 20.4 â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.4</span></a>
+              <span class="ltx_text ltx_font_small">).
+What happens
+to the oscillation if the synaptic efficacies
+between excitatory neurons are not
+fixed but subject to spike-timing dependent plasticity (STDP)?
+In this subsection we sketch some of the theoretical
+arguments </span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib554" title="Decoupling through synchrony in neuronal circuits with propagation delays" class="ltx_ref">309</a>; <a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small"> </span>
+              
+            </p>
+</div>
+<div id="SS4.p2" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In Fig. </span>
+              <a href="#Ch20.F9" title="Fig.Â 20.9 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.9</span></a>
+              <span class="ltx_text ltx_font_small">
+near synchronous spikes in a pair
+of pre- and postsynaptic neurons
+are shown together with
+a schematic STDP window;
+</span>
+              
+              <span class="ltx_text ltx_font_small">cf. Sect. </span>
+              <a href="Ch19.S1.html#SS2" title="19.1.2 Spike-timing-dependent plasticity â£ 19.1 Hebb rule and experiments â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19.1.2</span></a>
+              <span class="ltx_text ltx_font_small"> in Ch. </span>
+              <a href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19</span></a>
+              <span class="ltx_text ltx_font_small">.
+Note that the horizontal axis of the STDP window
+is the difference between
+the spike </span>
+              <span class="ltx_text ltx_font_italic ltx_font_small">arrival</span>
+              <span class="ltx_text ltx_font_small"> time </span>
+              <math id="SS4.p2.m1" class="ltx_Math" alttext="t^{\rm pre}" display="inline"><semantics><msup><mi>t</mi><mi>pre</mi></msup><annotation encoding="application/x-tex">t^{\rm pre}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> at the presynaptic terminal
+and the spike firing time </span>
+              <math id="SS4.p2.m2" class="ltx_Math" alttext="t_{i}^{(f)}=t^{\rm post}" display="inline"><semantics><mrow><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><mo>=</mo><msup><mi>t</mi><mi>post</mi></msup></mrow><annotation encoding="application/x-tex">t_{i}^{(f)}=t^{\rm post}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> of the postsynaptic neuron.
+This choice
+(where the presynaptic
+spike arrival time is identified with the onset of the EPSP)
+corresponds to one option,
+but other
+choices </span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib452" title="Regulation of synaptic efficacy by coincidence of postysnaptic AP and EPSP" class="ltx_ref">328</a>; <a href="bib.html#bib457" title="Rate, timing, and cooperativity jointly determine cortical synaptic plasticity" class="ltx_ref">483</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small"> are equally common.
+With our convention,
+the jump from potentiation to depression occurs
+if postsynaptic firing coincides with presynaptic spike
+arrival. However, because of axonal transmission
+delays synchronous firing leads
+to spike arrival that is </span>
+              <span class="ltx_text ltx_font_italic ltx_font_small">delayed</span>
+              <span class="ltx_text ltx_font_small"> with respect
+to the postsynaptic spike.
+Therefore, consistent with experiments
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib457" title="Rate, timing, and cooperativity jointly determine cortical synaptic plasticity" class="ltx_ref">483</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">, synchronous
+spike firing with small jitter leads, at low repetition frequency,
+to a depression of synapses
+(Fig. </span>
+              <a href="#Ch20.F9" title="Fig.Â 20.9 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.9</span></a>
+              <span class="ltx_text ltx_font_small">A).
+Lateral connections
+within the population
+</span>
+              
+              <span class="ltx_text ltx_font_small">of excitatory neurons are therefore weakened
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib554" title="Decoupling through synchrony in neuronal circuits with propagation delays" class="ltx_ref">309</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.</span>
+            </p>
+</div>
+<div id="SS4.p3" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">However, the shape of the STDP window is frequency
+dependent with a marked dominance
+of potentiation at high repetition frequencies
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib457" title="Rate, timing, and cooperativity jointly determine cortical synaptic plasticity" class="ltx_ref">483</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+Therefore, near-synchronous firing
+with a large jitter </span>
+              <math id="SS4.p3.m1" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+leads to a strengthening
+of excitatory connections
+(Fig. </span>
+              <a href="#Ch20.F9" title="Fig.Â 20.9 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.9</span></a>
+              <span class="ltx_text ltx_font_small">C)
+in the synchronously firing group
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+In summary, synchronous firing and STDP
+tightly interact.</span>
+            </p>
+</div>
+<div id="SS4.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Bistability of plastic networks</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Since we are interested in the interaction
+of STDP with oscillations,
+</span>
+                
+                <span class="ltx_text ltx_font_small">we focus on a recurrent network driven
+by periodically modulated spike input
+(Fig. </span>
+                <a href="#Ch20.F10" title="Fig.Â 20.10 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.10</span></a>
+                <span class="ltx_text ltx_font_small">A).
+</span>
+                
+                <span class="ltx_text ltx_font_small">The lateral connection weights </span>
+                <math id="SS4.p4.m1" class="ltx_Math" alttext="w_{ij}" display="inline"><semantics><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">w_{ij}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+from a presynaptic neuron </span>
+                <math id="SS4.p4.m2" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> to a postsynaptic neuron
+</span>
+                <math id="SS4.p4.m3" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> are changed
+according to
+Eq. (</span>
+                <a href="Ch19.S2.html#Ch19.Ex3" title="19.2.2 Pair-based Models of STDP â£ 19.2 Models of Hebbian learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19.2.2</span></a>
+                <span class="ltx_text ltx_font_small">) of Chapter </span>
+                <a href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19</span></a>
+                <span class="ltx_text ltx_font_small">,
+which we repeat here for convenience</span>
+              </p>
+<table id="Ch20.S4.EGx93" class="ltx_equationgroup ltx_eqn_align">
+
+<tr id="Ch20.Ex1" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch20.Ex1.m1" class="ltx_Math" alttext="\displaystyle\frac{{\text{d}}}{{\text{d}}t}w_{ij}(t)=" display="inline"><semantics><mrow><mrow><mstyle displaystyle="true"><mfrac><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mrow><mrow><mtext>Â                                      Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                    Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle><mo>â¢</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mi></mi></mrow><annotation encoding="application/x-tex">\displaystyle\frac{{\text{d}}}{{\text{d}}t}w_{ij}(t)=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch20.Ex1.m2" class="ltx_Math" alttext="\displaystyle S_{j}(t)\,\left[a_{1}^{\text{pre}}+\int_{0}^{\infty}A_{-}(w_{ij}%
+)W_{-}(s)\,S_{i}(t-s)\;{\text{d}}s\right]" display="inline"><semantics><mrow><msub><mi>S</mi><mi>j</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">pre</mtext><mtext>Â                                  Â </mtext></mrow></msubsup><mo>+</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><msub><mi>A</mi><mo>-</mo></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>)</mo></mrow><mo>â¢</mo><msub><mi>W</mi><mo>-</mo></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mpadded width="+2.8pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mtext>Â                                      Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                    Â </mtext></mrow><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle S_{j}(t)\,\left[a_{1}^{\text{pre}}+\int_{0}^{\infty}A_{-}(w_{ij}%
+)W_{-}(s)\,S_{i}(t-s)\;{\text{d}}s\right]</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr id="Ch20.E18" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch20.E18.m2" class="ltx_Math" alttext="\displaystyle+S_{i}(t)\,\left[a_{1}^{\text{post}}+\int_{0}^{\infty}A_{+}(w_{ij%
+})W_{+}(s)\,S_{j}(t-s)\;{\text{d}}s\right]\,," display="inline"><semantics><mrow><mrow><mo>+</mo><mrow><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                                      Â </mtext><mtext mathsize="small" stretchy="false">post</mtext><mtext>Â                                    Â </mtext></mrow></msubsup><mo>+</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><msub><mi>A</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>)</mo></mrow><mo>â¢</mo><msub><mi>W</mi><mo>+</mo></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mi>j</mi></msub><mo>â¢</mo><mpadded width="+2.8pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mtext>Â                                        Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                      Â </mtext></mrow><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle+S_{i}(t)\,\left[a_{1}^{\text{post}}+\int_{0}^{\infty}A_{+}(w_{ij%
+})W_{+}(s)\,S_{j}(t-s)\;{\text{d}}s\right]\,,</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.18)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where
+</span>
+                <math id="SS4.p4.m4" class="ltx_Math" alttext="S_{j}=\sum_{f}\delta(t-t_{j}^{(f)})" display="inline"><semantics><mrow><msub><mi>S</mi><mi>j</mi></msub><mo>=</mo><mrow><msub><mo largeop="true" symmetric="true">â</mo><mi>f</mi></msub><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S_{j}=\sum_{f}\delta(t-t_{j}^{(f)})</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+</span>
+                
+                <span class="ltx_text ltx_font_small">and </span>
+                <math id="SS4.p4.m5" class="ltx_Math" alttext="S_{i}=\sum_{f}\delta(t-t_{i}^{(f)})" display="inline"><semantics><mrow><msub><mi>S</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mo largeop="true" symmetric="true">â</mo><mi>f</mi></msub><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S_{i}=\sum_{f}\delta(t-t_{i}^{(f)})</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+denote the spike trains of pre- and postsynaptic neurons,
+respectively.
+The time course of the STDP window
+is given by
+</span>
+                <math id="SS4.p4.m6" class="ltx_Math" alttext="W_{\pm}=\exp(-s/\tau_{\pm})" display="inline"><semantics><mrow><msub><mi>W</mi><mo>Â±</mo></msub><mo>=</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mrow><mi>s</mi><mo>/</mo><msub><mi>Ï</mi><mo>Â±</mo></msub></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">W_{\pm}=\exp(-s/\tau_{\pm})</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+and
+</span>
+                <math id="SS4.p4.m7" class="ltx_Math" alttext="a_{1}^{\text{pre}}" display="inline"><semantics><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                        Â </mtext><mtext mathsize="small" stretchy="false">pre</mtext><mtext>Â                      Â </mtext></mrow></msubsup><annotation encoding="application/x-tex">a_{1}^{\text{pre}}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> and </span>
+                <math id="SS4.p4.m8" class="ltx_Math" alttext="a_{1}^{\text{post}}" display="inline"><semantics><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                        Â </mtext><mtext mathsize="small" stretchy="false">post</mtext><mtext>Â                      Â </mtext></mrow></msubsup><annotation encoding="application/x-tex">a_{1}^{\text{post}}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+are non-Hebbian contributions,
+i.e., an isolated presynaptic or postsynaptic
+spike causes a small weight change,
+even if it is not paired with activity
+of the partner neuron.
+Non-Hebbian terms </span>
+                <math id="SS4.p4.m9" class="ltx_Math" alttext="a_{1}^{\text{pre}}+a_{1}^{\text{post}}&lt;0" display="inline"><semantics><mrow><mrow><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">pre</mtext><mtext>Â                          Â </mtext></mrow></msubsup><mo>+</mo><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">post</mtext><mtext>Â                          Â </mtext></mrow></msubsup></mrow><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">a_{1}^{\text{pre}}+a_{1}^{\text{post}}&lt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+are
+linked to âhomeostaticâ or âheterosynapticâ plasticity
+and are useful to balance
+weight growth caused by Hebbian terms
+(Ch. </span>
+                <a href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19</span></a>
+                <span class="ltx_text ltx_font_small">).
+The amplitude factors </span>
+                <math id="SS4.p4.m10" class="ltx_Math" alttext="A_{\pm}" display="inline"><semantics><msub><mi>A</mi><mo>Â±</mo></msub><annotation encoding="application/x-tex">A_{\pm}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> are given by soft-bounds
+analogous to Eq. </span>
+                <a href="Ch19.S2.html#Ch19.E4" title="(19.4) â£ 19.2.1 A Mathematical Formulation of Hebbâs Rule â£ 19.2 Models of Hebbian learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19.4</span></a>
+                <span class="ltx_text ltx_font_small">:</span>
+              </p>
+<table id="Ch20.S4.EGx94" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch20.E19" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch20.E19.m1" class="ltx_Math" alttext="\displaystyle A_{+}(w_{ij})" display="inline"><semantics><mrow><msub><mi>A</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle A_{+}(w_{ij})</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch20.E19.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch20.E19.m3" class="ltx_Math" alttext="\displaystyle A_{+}^{0}\,(w^{\rm max}-w_{ij})^{\beta}\,\quad{\rm for~{}}0&lt;w&lt;w^%
+{\rm max}" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><msubsup><mi>A</mi><mo>+</mo><mn>0</mn></msubsup></mpadded><mo>â¢</mo><mpadded width="+3.4pt"><msup><mrow><mo>(</mo><mrow><msup><mi>w</mi><mi>max</mi></msup><mo>-</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub></mrow><mo>)</mo></mrow><mi>Î²</mi></msup></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mn>0</mn></mrow><mo>&lt;</mo><mi>w</mi><mo>&lt;</mo><msup><mi>w</mi><mi>max</mi></msup></mrow><annotation encoding="application/x-tex">\displaystyle A_{+}^{0}\,(w^{\rm max}-w_{ij})^{\beta}\,\quad{\rm for~{}}0&lt;w&lt;w^%
+{\rm max}</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.19)</span></td>
+</tr>
+<tr id="Ch20.E20" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch20.E20.m1" class="ltx_Math" alttext="\displaystyle A_{-}(w_{ij})" display="inline"><semantics><mrow><msub><mi>A</mi><mo>-</mo></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle A_{-}(w_{ij})</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch20.E20.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch20.E20.m3" class="ltx_Math" alttext="\displaystyle A_{-}^{0}\,(w_{ij})^{\beta}\,\qquad\qquad{\rm for~{}}0&lt;w&lt;w^{\rm
+max}" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><msubsup><mi>A</mi><mo>-</mo><mn>0</mn></msubsup></mpadded><mo>â¢</mo><mpadded width="+5.1pt"><msup><mrow><mo>(</mo><msub><mi>w</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>)</mo></mrow><mi>Î²</mi></msup></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mn>0</mn></mrow><mo>&lt;</mo><mi>w</mi><mo>&lt;</mo><msup><mi>w</mi><mi>max</mi></msup></mrow><annotation encoding="application/x-tex">\displaystyle A_{-}^{0}\,(w_{ij})^{\beta}\,\qquad\qquad{\rm for~{}}0&lt;w&lt;w^{\rm
+max}</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(20.20)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with </span>
+                <math id="SS4.p4.m11" class="ltx_Math" alttext="\beta=0.05" display="inline"><semantics><mrow><mi>Î²</mi><mo>=</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">\beta=0.05</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">. An exponent </span>
+                <math id="SS4.p4.m12" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi>Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> close to zero
+implies that there is hardly any weight dependence
+except close to the bounds at zero and </span>
+                <math id="SS4.p4.m13" class="ltx_Math" alttext="w^{\rm max}" display="inline"><semantics><msup><mi>w</mi><mi>max</mi></msup><annotation encoding="application/x-tex">w^{\rm max}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The analysis of the network dynamics in the presence
+of STDP </span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>; <a href="bib.html#bib556" title="Emergence of network structure due to spike-timing-dependent plasticity in recurrent neuronal networks iv: structuring synaptic pathways among recurrent connections" class="ltx_ref">187</a>; <a href="bib.html#bib471" title="Hebbian learning and spiking neurons" class="ltx_ref">256</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small"> shows that the most relevant
+quantities are
+(i) the integral over the STDP window
+</span>
+                <math id="SS4.p4.m14" class="ltx_Math" alttext="A_{+}(w)\tau_{+}+A_{-}(w)\tau_{-}" display="inline"><semantics><mrow><mrow><msub><mi>A</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>w</mi><mo>)</mo></mrow><mo>â¢</mo><msub><mi>Ï</mi><mo>+</mo></msub></mrow><mo>+</mo><mrow><msub><mi>A</mi><mo>-</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>w</mi><mo>)</mo></mrow><mo>â¢</mo><msub><mi>Ï</mi><mo>-</mo></msub></mrow></mrow><annotation encoding="application/x-tex">A_{+}(w)\tau_{+}+A_{-}(w)\tau_{-}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+evaluated at a value </span>
+                <math id="SS4.p4.m15" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> far away from the bounds;
+(ii) the Fourier transform of the STDP
+window at the frequency </span>
+                <math id="SS4.p4.m16" class="ltx_Math" alttext="1/T" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">1/T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> where </span>
+                <math id="SS4.p4.m17" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is the period
+of the oscillatory drive;
+(iii) the sum of the non-Hebbian terms
+</span>
+                <math id="SS4.p4.m18" class="ltx_Math" alttext="a_{1}^{\text{pre}}+a_{1}^{\text{post}}" display="inline"><semantics><mrow><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">pre</mtext><mtext>Â                        Â </mtext></mrow></msubsup><mo>+</mo><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">post</mtext><mtext>Â                        Â </mtext></mrow></msubsup></mrow><annotation encoding="application/x-tex">a_{1}^{\text{pre}}+a_{1}^{\text{post}}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Oscillations of brain activity
+in the </span>
+                <math id="SS4.p4.m19" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> or </span>
+                <math id="SS4.p4.m20" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> frequency band
+are relatively slow compared to the time scale of STDP.
+If we restrict the analysis to oscillations with
+</span>
+                
+                <span class="ltx_text ltx_font_small">a period </span>
+                <math id="SS4.p4.m21" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> that is long compared to
+the time scale </span>
+                <math id="SS4.p4.m22" class="ltx_Math" alttext="\tau_{+/-}" display="inline"><semantics><msub><mi>Ï</mi><mrow><mo>+</mo><mo>â£</mo><mo>/</mo><mo>â£</mo><mo>-</mo></mrow></msub><annotation encoding="application/x-tex">\tau_{+/-}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> of the learning window,
+the Fourier transform of the STDP window
+mentioned in (ii) can be approximated by the integral
+mentioned in (i).
+Note that
+slow sinusoidal oscillations
+correspond to a large jitter </span>
+                <math id="SS4.p4.m23" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+of spike times (Fig. </span>
+                <a href="#Ch20.F9" title="Fig.Â 20.9 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.9</span></a>
+                <span class="ltx_text ltx_font_small">C).</span>
+              </p>
+<p class="ltx_p">
+                <cite class="ltx_cite">
+                  Pfister and Tass 
+                      <span class="ltx_text ltx_font_small">(</span>
+                    <a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>
+                      <span class="ltx_text ltx_font_small">)</span>
+                    
+                </cite>
+                <span class="ltx_text ltx_font_small">
+found that the network dynamics
+is bistable
+if the integral over the learning window
+is positive (which causes an
+increase of weights for uncorrelated
+Poisson firing), but
+weight increase is counterbalanced
+by weight decrease caused by
+homeostatic terms in the range
+</span>
+                <math id="SS4.p4.m24" class="ltx_Math" alttext="C&lt;a_{1}^{\text{pre}}+a_{1}^{\text{post}}&lt;c&lt;0" display="inline"><semantics><mrow><mi>C</mi><mo>&lt;</mo><mrow><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">pre</mtext><mtext>Â                          Â </mtext></mrow></msubsup><mo>+</mo><msubsup><mi>a</mi><mn>1</mn><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">post</mtext><mtext>Â                          Â </mtext></mrow></msubsup></mrow><mo>&lt;</mo><mi>c</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">C&lt;a_{1}^{\text{pre}}+a_{1}^{\text{post}}&lt;c&lt;0</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">
+with suitable negative constants </span>
+                <math id="SS4.p4.m25" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> and </span>
+                <math id="SS4.p4.m26" class="ltx_Math" alttext="c" display="inline"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small">.
+Therefore, for the same periodic stimulation
+stimulation paradigm, the network
+can be in either a stable state
+</span>
+                
+                <span class="ltx_text ltx_font_small">where the average weight is close to zero,
+or in a different stable state where the average weight
+is significantly positive
+(Fig. </span>
+                <a href="#Ch20.F10" title="Fig.Â 20.10 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.10</span></a>
+                <span class="ltx_text ltx_font_small">B).
+In the latter case, the oscillation amplitude
+in the network is enhanced
+(Fig. </span>
+                <a href="#Ch20.F10" title="Fig.Â 20.10 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.10</span></a>
+                <span class="ltx_text ltx_font_small">C).</span>
+              </p>
+</span>
+</div>
+<figure id="Ch20.F10" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">C</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x627.png" id="Ch20.F10.g1" class="ltx_graphics" width="172" height="198" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left" colspan="2">
+                    <img src="x628.png" id="Ch20.F10.g2" class="ltx_graphics" width="485" height="200" alt="">
+                    <span class="ltx_text ltx_font_small"></span>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.10: </span>Bistability of plastic networks.
+<span class="ltx_text ltx_font_bold">A</span>. A model network of spiking neurons receives
+spike input at a periodically modulated rate <math id="Ch20.F10.m12" class="ltx_Math" alttext="\nu^{\rm in}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">Î½</mi><mi mathsize="normal" stretchy="false">in</mi></msup><annotation encoding="application/x-tex">\nu^{\rm in}</annotation></semantics></math>,
+causing a modulation of the firing rate
+<math id="Ch20.F10.m13" class="ltx_Math" alttext="\nu_{i}^{\rm out}" display="inline"><semantics><msubsup><mi mathsize="normal" stretchy="false">Î½</mi><mi mathsize="normal" stretchy="false">i</mi><mi mathsize="normal" stretchy="false">out</mi></msubsup><annotation encoding="application/x-tex">\nu_{i}^{\rm out}</annotation></semantics></math>
+of network neurons <math id="Ch20.F10.m14" class="ltx_Math" alttext="1\leq i\leq N" display="inline"><semantics><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">â¤</mo><mi mathsize="normal" stretchy="false">i</mi><mo mathsize="normal" stretchy="false">â¤</mo><mi mathsize="normal" stretchy="false">N</mi></mrow><annotation encoding="application/x-tex">1\leq i\leq N</annotation></semantics></math>.
+Lateral weights <math id="Ch20.F10.m15" class="ltx_Math" alttext="w_{ij}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mrow><mi mathsize="normal" stretchy="false">i</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">j</mi></mrow></msub><annotation encoding="application/x-tex">w_{ij}</annotation></semantics></math> are subject to STDP.
+<span class="ltx_text ltx_font_bold">B</span>.
+Change <math id="Ch20.F10.m16" class="ltx_Math" alttext="dw_{\rm av}/dt" display="inline"><semantics><mrow><mrow><mrow><mi mathsize="normal" stretchy="false">d</mi><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">w</mi><mi mathsize="normal" stretchy="false">av</mi></msub></mrow><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">d</mi></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><annotation encoding="application/x-tex">dw_{\rm av}/dt</annotation></semantics></math> of the average weight
+as a function of <math id="Ch20.F10.m17" class="ltx_Math" alttext="w_{\rm av}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mi mathsize="normal" stretchy="false">av</mi></msub><annotation encoding="application/x-tex">w_{\rm av}</annotation></semantics></math>.
+For an STDP window with positive integral
+the average network weight
+<math id="Ch20.F10.m18" class="ltx_Math" alttext="w_{av}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">v</mi></mrow></msub><annotation encoding="application/x-tex">w_{av}</annotation></semantics></math> exhibits bistability (arrows indicate direction of change) in
+the presence of the periodic input drive.
+The maximum weight is <math id="Ch20.F10.m19" class="ltx_Math" alttext="w^{\rm max}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">w</mi><mi mathsize="normal" stretchy="false">max</mi></msup><annotation encoding="application/x-tex">w^{\rm max}</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">C</span>. Bistability of the
+average network output rate <math id="Ch20.F10.m20" class="ltx_Math" alttext="\nu_{av}=(1/N)\sum_{i=1}^{N}\nu_{i}^{\rm out}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Î½</mi><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">v</mi></mrow></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">N</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â</mo><mrow><mi mathsize="normal" stretchy="false">i</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><mi mathsize="normal" stretchy="false">N</mi></msubsup><msubsup><mi mathsize="normal" stretchy="false">Î½</mi><mi mathsize="normal" stretchy="false">i</mi><mi mathsize="normal" stretchy="false">out</mi></msubsup></mrow></mrow></mrow><annotation encoding="application/x-tex">\nu_{av}=(1/N)\sum_{i=1}^{N}\nu_{i}^{\rm out}</annotation></semantics></math>
+in the presence of a periodic drive.
+The weights <math id="Ch20.F10.m21" class="ltx_Math" alttext="w_{ij}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mrow><mi mathsize="normal" stretchy="false">i</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">j</mi></mrow></msub><annotation encoding="application/x-tex">w_{ij}</annotation></semantics></math> in the two simulations
+have an average value <math id="Ch20.F10.m22" class="ltx_Math" alttext="w_{av}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">v</mi></mrow></msub><annotation encoding="application/x-tex">w_{av}</annotation></semantics></math>
+given by the two fixed points in B.
+Adapted from <cite class="ltx_cite">(<a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>)</cite>.
+
+</figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch20.S1.html" title="20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.1 </span>Reservoir computing</span></a><a href="Ch20.S3.html" title="20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.3 </span>Helping Patients</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html><html>
+<head>
+<title>6.1 Adaptive Exponential Integrate-and-Fire | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S3.html" title="6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S4.html" title="6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S5.html" title="6.5 Summary â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="adaptation, adaptive integrate-and-fire, firing pattern, spike-triggered, subthreshold">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6 </span>Adaptation and Firing Patterns</span></a><a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6 </span>Adaptation and Firing Patterns</span></a><a href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2 </span>Firing Patterns</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6.1 </span>Adaptive Exponential Integrate-and-Fire</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">In the previous chapter we have explored nonlinear integrate-and-fire
+neurons where the dynamics of the membrane voltage is characterized
+by a function <math id="p1.m1" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math>.
+A single equation is, however, not sufficient to describe
+the variety of firing patterns that
+neurons exhibit in response to a step current.
+We therefore couple the voltage equation to
+abstract current variables <math id="p1.m2" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math>, each
+described by a linear differential equation.
+The set of equations is</p>
+<table id="Ch20.S4.EGx21" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch6.E1" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                      <math id="Ch6.E1.m1" class="ltx_Math" alttext="\displaystyle\tau_{m}\,\frac{{\text{d}}u}{{\text{d}}t}" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{m}\,\frac{{\text{d}}u}{{\text{d}}t}</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_center">
+                      <math id="Ch6.E1.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <math id="Ch6.E1.m3" class="ltx_Math" alttext="\displaystyle f(u)-R\,\sum_{k}w_{k}+R\,I(t)" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder></mstyle><msub><mi>w</mi><mi>k</mi></msub></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle f(u)-R\,\sum_{k}w_{k}+R\,I(t)</annotation></semantics></math>
+                    </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.1)</span></td>
+</tr>
+<tr id="Ch6.E2" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                      <math id="Ch6.E2.m1" class="ltx_Math" alttext="\displaystyle\tau_{k}\,\frac{{\text{d}}w_{k}}{{\text{d}}t}" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>k</mi></msub></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>w</mi><mi>k</mi></msub></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{k}\,\frac{{\text{d}}w_{k}}{{\text{d}}t}</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_center">
+                      <math id="Ch6.E2.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <math id="Ch6.E2.m3" class="ltx_Math" alttext="\displaystyle a_{k}\,(u-u_{\rm rest})-w_{k}+{b_{k}\tau_{k}}\sum_{t^{(f)}}%
+\delta(t-t^{(f)})." display="inline"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>a</mi><mi>k</mi></msub></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>w</mi><mi>k</mi></msub><mo>+</mo><mrow><msub><mi>b</mi><mi>k</mi></msub><mo>â¢</mo><msub><mi>Ï</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></munder></mstyle><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle a_{k}\,(u-u_{\rm rest})-w_{k}+{b_{k}\tau_{k}}\sum_{t^{(f)}}%
+\delta(t-t^{(f)}).</annotation></semantics></math>
+                    </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.2)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The coupling of voltage to the adaptation current <math id="p1.m3" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math>
+is implemented by the parameter <math id="p1.m4" class="ltx_Math" alttext="a_{k}" display="inline"><semantics><msub><mi>a</mi><mi>k</mi></msub><annotation encoding="application/x-tex">a_{k}</annotation></semantics></math> and evolves with time constant <math id="p1.m5" class="ltx_Math" alttext="\tau_{k}" display="inline"><semantics><msub><mi>Ï</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\tau_{k}</annotation></semantics></math>. The adaptation current is fed back
+to the voltage equation with resistance <math id="p1.m6" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>.
+Just as in other integrate-and-fire models,
+the voltage variable <math id="p1.m7" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is reset
+if the membrane potential reaches the numerical threshold
+<math id="p1.m8" class="ltx_Math" alttext="\Theta_{\rm reset}" display="inline"><semantics><msub><mi mathvariant="normal">Î</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\Theta_{\rm reset}</annotation></semantics></math>.
+The moment <math id="p1.m9" class="ltx_Math" alttext="u(t)=\Theta_{\rm reset}" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><msub><mi mathvariant="normal">Î</mi><mi>reset</mi></msub></mrow><annotation encoding="application/x-tex">u(t)=\Theta_{\rm reset}</annotation></semantics></math>
+defines the firing time <math id="p1.m10" class="ltx_Math" alttext="t^{(f)}=t" display="inline"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>=</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t^{(f)}=t</annotation></semantics></math>.
+After firing, integration of the voltage restarts
+at <math id="p1.m11" class="ltx_Math" alttext="u=u_{r}" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">u=u_{r}</annotation></semantics></math>.
+The <math id="p1.m12" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function in the <math id="p1.m13" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math> equations indicates
+that, during firing, the adaptation currents <math id="p1.m14" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math> are increased
+by an amount <math id="p1.m15" class="ltx_Math" alttext="b_{k}" display="inline"><semantics><msub><mi>b</mi><mi>k</mi></msub><annotation encoding="application/x-tex">b_{k}</annotation></semantics></math>. For example,
+a value <math id="p1.m16" class="ltx_Math" alttext="b_{k}=10" display="inline"><semantics><mrow><msub><mi>b</mi><mi>k</mi></msub><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">b_{k}=10</annotation></semantics></math>pA means that
+the adaptation current <math id="p1.m17" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math>
+is 10pA stronger after a spike than it was just before the spike. The parameters <math id="p1.m18" class="ltx_Math" alttext="b_{k}" display="inline"><semantics><msub><mi>b</mi><mi>k</mi></msub><annotation encoding="application/x-tex">b_{k}</annotation></semantics></math> are the âjumpâ of the spike-triggered adaptation.
+One possible biophysical interpretation of the increase is
+that during the action potential calcium enters into
+the cell so that the amplitude of a calcium-dependent
+potassium current is increased.
+The biophysical origins of adaptation currents
+will be discussed in SectionÂ <a href="Ch6.S3.html" title="6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.3</span></a>. Here we are interested
+in the dynamics and neuronal firing patterns generated
+by such adaptation currents.</p>
+</div>
+<figure id="Ch6.F1" class="ltx_figure"><img src="x150.png" id="Ch6.F1.g1" class="ltx_graphics ltx_centering" width="589" height="798" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 6.1: </span>
+Multiple firing patterns in cortical neurons.
+For each type, the neuron is stimulated with a step current with low or high amplitude.
+Modified from <cite class="ltx_cite">Markram<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib6" title="Interneurons of the neocortical inhibitory system" class="ltx_ref">329</a>)</cite>.</figcaption>
+</figure>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">Various choices are possible for the nonlinearity <math id="p2.m1" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math>
+in the voltage equation.
+We have seen in the previous chapter (Section <a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+that the experimental
+data suggests a nonlinearity consisting of a linear
+leak combined with an exponential activation term,
+<math id="p2.m2" class="ltx_Math" alttext="f(u)=-(u-u_{\rm rest})+\Delta_{T}\,\exp\left({u-\vartheta_{rh}\over\Delta_{T}}\right)" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mfrac><mrow><mi>u</mi><mo>-</mo><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub></mrow><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub></mfrac><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">f(u)=-(u-u_{\rm rest})+\Delta_{T}\,\exp\left({u-\vartheta_{rh}\over\Delta_{T}}\right)</annotation></semantics></math>â.
+The Adaptive Exponential Integrate-and-Fire model (AdEx)
+consists of such an exponential nonlinearity in the voltage equation
+coupled to a single adaptation variable <math id="p2.m3" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math></p>
+<table id="Ch20.S4.EGx22" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch6.E3" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                      <math id="Ch6.E3.m1" class="ltx_Math" alttext="\displaystyle\tau_{m}\frac{{\text{d}}u}{{\text{d}}t}" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{m}\frac{{\text{d}}u}{{\text{d}}t}</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_center">
+                      <math id="Ch6.E3.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <math id="Ch6.E3.m3" class="ltx_Math" alttext="\displaystyle-(u-u_{\rm rest})+{\Delta_{T}}\,\exp\left({u-\vartheta_{rh}\over%
+\Delta_{T}}\right)-R\,w+R\,I(t)" display="inline"><semantics><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mstyle displaystyle="true"><mfrac><mrow><mi>u</mi><mo>-</mo><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub></mrow><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub></mfrac></mstyle><mo>)</mo></mrow></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>w</mi></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle-(u-u_{\rm rest})+{\Delta_{T}}\,\exp\left({u-\vartheta_{rh}\over%
+\Delta_{T}}\right)-R\,w+R\,I(t)</annotation></semantics></math>
+                    </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.3)</span></td>
+</tr>
+<tr id="Ch6.E4" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                      <math id="Ch6.E4.m1" class="ltx_Math" alttext="\displaystyle\tau_{w}\frac{{\text{d}}w}{{\text{d}}t}" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>w</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>w</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{w}\frac{{\text{d}}w}{{\text{d}}t}</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_center">
+                      <math id="Ch6.E4.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <math id="Ch6.E4.m3" class="ltx_Math" alttext="\displaystyle a\,(u-u_{\rm rest})-w+b\tau_{w}\,\sum_{t^{(f)}}\delta(t-t^{(f)})\,." display="inline"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mi>w</mi><mo>+</mo><mrow><mi>b</mi><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>w</mi></msub></mpadded><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></munder></mstyle><mrow><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle a\,(u-u_{\rm rest})-w+b\tau_{w}\,\sum_{t^{(f)}}\delta(t-t^{(f)})\,.</annotation></semantics></math>
+                    </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">At each threshold crossing the voltage is reset
+to <math id="p2.m4" class="ltx_Math" alttext="u=u_{r}" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">u=u_{r}</annotation></semantics></math> and the adaptation variable <math id="p2.m5" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is increased by an amount <math id="p2.m6" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>.
+Adaptation is characterized by
+two parameters: <math id="p2.m7" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> couples adaptation to
+the voltage and is the source of subthreshold adaptation.
+Spike-triggered adaptation is controlled by a combination of <math id="p2.m8" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> and <math id="p2.m9" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>.
+The choice of <math id="p2.m10" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> and <math id="p2.m11" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math> largely determines the firing patterns of the neuron
+(SectionÂ <a href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.2</span></a>)
+and can be related to the dynamics of ion channels
+(SectionÂ <a href="Ch6.S3.html" title="6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.3</span></a>).
+Before exploring the AdEx model further,
+we discuss two other examples
+of adaptive integrate-and-fire models.</p>
+</div>
+<div id="p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Izhikevich model</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">While the AdEx model exhibits
+the nonlinearity of the exponential integrate-and-fire model,
+the Izhikevich model uses the quadratic integrate-and-fire model for the first equation</span>
+            </p>
+<table id="Ch20.S4.EGx23" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch6.E5" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E5.m1" class="ltx_Math" alttext="\displaystyle\tau_{m}\,\frac{{\text{d}}u}{{\text{d}}t}" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>u</mi></mrow><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{m}\,\frac{{\text{d}}u}{{\text{d}}t}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E5.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E5.m3" class="ltx_Math" alttext="\displaystyle(u-u_{\rm rest})(u-\vartheta)-R\,w+R\,I(t)" display="inline"><semantics><mrow><mrow><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>w</mi></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle(u-u_{\rm rest})(u-\vartheta)-R\,w+R\,I(t)</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.5)</span></td>
+</tr>
+<tr id="Ch6.E6" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E6.m1" class="ltx_Math" alttext="\displaystyle\tau_{w}\frac{{\text{d}}w}{{\text{d}}t}" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>w</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>w</mi></mrow><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{w}\frac{{\text{d}}w}{{\text{d}}t}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E6.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E6.m3" class="ltx_Math" alttext="\displaystyle a\,(u-u_{\rm rest})-w+b\tau_{w}\,\sum_{t^{(f)}}\delta(t-t^{(f)})" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mi>w</mi><mo>+</mo><mrow><mi>b</mi><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>w</mi></msub></mpadded><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></munder></mstyle><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle a\,(u-u_{\rm rest})-w+b\tau_{w}\,\sum_{t^{(f)}}\delta(t-t^{(f)})</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.6)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">If <math id="p3.m1" class="ltx_Math" alttext="u=\theta_{\rm reset}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">Î¸</mi><mi mathsize="normal" stretchy="false">reset</mi></msub></mrow><annotation encoding="application/x-tex">u=\theta_{\rm reset}</annotation></semantics></math>,
+the voltage is reset
+to <math id="p3.m2" class="ltx_Math" alttext="u=u_{r}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">r</mi></msub></mrow><annotation encoding="application/x-tex">u=u_{r}</annotation></semantics></math> and the adaptation variable <math id="p3.m3" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is increased by an amount <math id="p3.m4" class="ltx_Math" alttext="b" display="inline"><semantics><mi mathsize="normal" stretchy="false">b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>.
+Normally <math id="p3.m5" class="ltx_Math" alttext="b" display="inline"><semantics><mi mathsize="normal" stretchy="false">b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math> is positive, but <math id="p3.m6" class="ltx_Math" alttext="b&lt;0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">b</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">b&lt;0</annotation></semantics></math> is also possible.</span>
+            </p>
+</span>
+</div>
+<figure id="Ch6.F2" class="ltx_figure"><img src="x151.png" id="Ch6.F2.g1" class="ltx_graphics ltx_centering" width="589" height="688" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 6.2: </span>
+Multiple firing patterns in the AdEx neuron model.
+For each set of parameters, the model is stimulated with a step current with low or high amplitude.
+The spiking response can be classified by the steady-state
+firing behavior (vertical axis: tonic, adapting, bursting)
+and by its transient initiation pattern as shown
+along the
+horizontal axis: tonic (i.e. no special transient behavior),
+initial burst, or delayed spike initiation.</figcaption>
+</figure>
+<div id="p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Leaky model with adaptation</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Adaptation variables <math id="p4.m1" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mi mathsize="normal" stretchy="false">k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math> can also be combined
+with a standard leaky integrate-and-fire model</span>
+            </p>
+<table id="Ch20.S4.EGx24" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch6.E7" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E7.m1" class="ltx_Math" alttext="\displaystyle\tau_{m}\frac{{\text{d}}u}{{\text{d}}t}" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>u</mi></mrow><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{m}\frac{{\text{d}}u}{{\text{d}}t}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E7.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E7.m3" class="ltx_Math" alttext="\displaystyle-(u-u_{\rm rest})-R\,\sum_{k}w_{k}+R\,I(t)" display="inline"><semantics><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder></mstyle><msub><mi>w</mi><mi>k</mi></msub></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle-(u-u_{\rm rest})-R\,\sum_{k}w_{k}+R\,I(t)</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.7)</span></td>
+</tr>
+<tr id="Ch6.E8" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E8.m1" class="ltx_Math" alttext="\displaystyle\tau_{k}\frac{{\text{d}}w_{k}}{{\text{d}}t}" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>k</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><msub><mi>w</mi><mi>k</mi></msub></mrow><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{k}\frac{{\text{d}}w_{k}}{{\text{d}}t}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E8.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E8.m3" class="ltx_Math" alttext="\displaystyle a\,(u-u_{\rm rest})-w_{k}+b_{k}\tau_{k}\,\sum_{t^{(f)}}\delta(t-%
+t^{(f)})" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>w</mi><mi>k</mi></msub><mo>+</mo><mrow><msub><mi>b</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>k</mi></msub></mpadded><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></munder></mstyle><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle a\,(u-u_{\rm rest})-w_{k}+b_{k}\tau_{k}\,\sum_{t^{(f)}}\delta(t-%
+t^{(f)})</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.8)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">At the moment of firing, defined by the threshold condition
+<math id="p4.m2" class="ltx_Math" alttext="u(t^{(f)})=\theta_{\rm reset}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><msup><mi mathsize="normal" stretchy="false">t</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></msup><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">Î¸</mi><mi mathsize="normal" stretchy="false">reset</mi></msub></mrow><annotation encoding="application/x-tex">u(t^{(f)})=\theta_{\rm reset}</annotation></semantics></math>,
+the voltage is reset
+to <math id="p4.m3" class="ltx_Math" alttext="u=u_{r}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">r</mi></msub></mrow><annotation encoding="application/x-tex">u=u_{r}</annotation></semantics></math> and the adaptation variables <math id="p4.m4" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">w</mi><mi mathsize="normal" stretchy="false">k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math> are increased by an amount <math id="p4.m5" class="ltx_Math" alttext="b_{k}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">b</mi><mi mathsize="normal" stretchy="false">k</mi></msub><annotation encoding="application/x-tex">b_{k}</annotation></semantics></math>.
+Note that in the leaky integrate-and-fire model
+the numerical threshold
+<math id="p4.m6" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Î¸</mi><mi mathsize="normal" stretchy="false">reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math> coincides with the
+voltage threshold <math id="p4.m7" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> that one would find
+with short input current pulses.</span>
+            </p>
+</span>
+</div>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6 </span>Adaptation and Firing Patterns</span></a><a href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2 </span>Firing Patterns</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

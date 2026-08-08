@@ -1,0 +1,399 @@
+<!DOCTYPE html><html>
+<head>
+<title>14.6 Heterogeneity and Finite Size | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S4.html" title="14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.Sx1.html" title="Literature â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="finite size, finite-size effects, integral equation">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14 </span>The Integral-equation Approach</span></a><a href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5 </span>Adaptation in Population Equations</span></a><a href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.7 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">14.6 </span>Heterogeneity and Finite Size</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Neuronal populations in biology are neither
+completely homogeneous nor infinitely large.
+In order to treat heterogeneity in local neuronal
+parameters, the variability of a parameter between one neuron and the next is
+often replaced by slow noise in the parameters.
+For example, a population of
+integrate-and-fire neurons where the reset value <math id="p1.m1" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math> is different for each
+neuron is replaced by a population where the reset values are randomly chosen
+after each firing (and not only once at the beginning).
+Such a model of slow noise in the parameters has
+been discussed
+in the example of Section <a href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.3</span></a>.
+The replacement of heterogeneity
+by slow noise neglects, however, correlations that would be present in a truly
+heterogeneous model. To replace a heterogeneous model by a noisy version of a
+homogeneous model is somewhat <span class="ltx_text ltx_font_italic">ad hoc</span>, but common practice in the
+literature.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">The second question is whether
+we relax the condition of a <span class="ltx_text ltx_font_italic">large network</span>. For <math id="p2.m1" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math>
+the population activity shows no fluctuations and this fact has been used for
+the derivation of the population equation. For systems of finite size
+fluctuations are important since they limit the amount of information that can
+be transmitted by the population activity. For a population without internal
+coupling (<math id="p2.m2" class="ltx_Math" alttext="J_{0}=0" display="inline"><semantics><mrow><msub><mi>J</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">J_{0}=0</annotation></semantics></math>), fluctuations can be calculated directly from the interval
+distribution <math id="p2.m3" class="ltx_Math" alttext="P_{I}(t\,|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t\,|\hat{t})</annotation></semantics></math>
+if the population consists
+of neurons that can be described by renewal theory;
+cf. ChapterÂ <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>. For networks
+with recurrent connections,
+several attempts toward a description of the
+fluctuations have been made <cite class="ltx_cite">(<a href="bib.html#bib361" title="Frequency spectrum of coupled stochastic neurons with refractoriness" class="ltx_ref">491</a>; <a href="bib.html#bib362" title="Temporal correlations in stochastic networks of spiking neurons" class="ltx_ref">341</a>; <a href="bib.html#bib363" title="Theory of oscillatory firing induced by spatially correlated noise and delayed inhibitory feedback" class="ltx_ref">299</a>)</cite>.
+Here we present a different approach.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">If we consider a network
+with a finite number <math id="p3.m1" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> of neurons, the integral equation
+(<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>)
+which describes the evolution
+of the population activity <math id="p3.m2" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+in terms of the input-dependent interval distribution
+<math id="p3.m3" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> should be written more carefully
+with expectations signs,</p>
+<table id="Ch14.E97" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E97.m1" class="ltx_Math" alttext="\langle A(t)\rangle=\int_{-\infty}^{t}P_{I}(t|\hat{t})A(\hat{t}){\text{d}}\hat%
+{t}\,." display="block"><semantics><mrow><mrow><mo stretchy="false">â¨</mo><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">â©</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">\langle A(t)\rangle=\int_{-\infty}^{t}P_{I}(t|\hat{t})A(\hat{t}){\text{d}}\hat%
+{t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.97)</span></td>
+</tr>
+</table>
+<p class="ltx_p">so as to emphasize that the left-hand side
+is the <span class="ltx_text ltx_font_italic">expected</span> population activity
+at time <math id="p3.m4" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, given the observed population activity at earlier times
+<math id="p3.m5" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>.
+In other words
+<math id="p3.m6" class="ltx_Math" alttext="N\,\langle A(t)\rangle\,\Delta t=N\langle m_{0}(t)\rangle" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>â¨</mo><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mi>N</mi><mo>â¢</mo><mrow><mo>â¨</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">N\,\langle A(t)\rangle\,\Delta t=N\langle m_{0}(t)\rangle</annotation></semantics></math>
+is the expected number of spikes to occur
+in a a short interval <math id="p3.m7" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>.
+Here we have defined <math id="p3.m8" class="ltx_Math" alttext="m_{0}(t)" display="inline"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(t)</annotation></semantics></math> as the fraction
+of neurons that fire in a time step <math id="p3.m9" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>,
+just as in the previous section.
+Given the past input for <math id="p3.m10" class="ltx_Math" alttext="t^{\prime}&lt;t" display="inline"><semantics><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>&lt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t^{\prime}&lt;t</annotation></semantics></math> (which is the same
+for all the <math id="p3.m11" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> neurons
+in the group),
+the firing of the neurons is independent
+in the next time step
+(âconditional independenceâ).
+Therefore in the limit of <math id="p3.m12" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math>
+the observed variable <math id="p3.m13" class="ltx_Math" alttext="m_{0}(t)" display="inline"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(t)</annotation></semantics></math> approaches <math id="p3.m14" class="ltx_Math" alttext="\langle m_{0}(t)\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle m_{0}(t)\rangle</annotation></semantics></math>
+and we can drop the expectation signs.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">For finite <math id="p4.m1" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>,
+the variable <math id="p4.m2" class="ltx_Math" alttext="m_{0}(t)" display="inline"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(t)</annotation></semantics></math>
+fluctuates around <math id="p4.m3" class="ltx_Math" alttext="\langle m_{0}(t)\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle m_{0}(t)\rangle</annotation></semantics></math>.
+In order to determine these fluctuations,
+we assume that <math id="p4.m4" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> is large, but finite.
+For finite <math id="p4.m5" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+the population activity <math id="p4.m6" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+can be written in the form of a ânoisyâ integral equation</p>
+<table id="Ch14.E98" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E98.m1" class="ltx_Math" alttext="A(t)=\langle A(t)\rangle+\sigma(t)\xi(t)=\int_{-\infty}^{t}\rho^{\rm noise}(t|%
+\hat{t})\,S_{I}^{\rm noise}(t|\hat{t})\,A(\hat{t}){\text{d}}\hat{t}" display="block"><semantics><mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mrow><mo stretchy="false">â¨</mo><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">â©</mo></mrow><mo>+</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mi>Î¾</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msup><mi>Ï</mi><mi>noise</mi></msup><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><msubsup><mi>S</mi><mi>I</mi><mi>noise</mi></msubsup><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">A(t)=\langle A(t)\rangle+\sigma(t)\xi(t)=\int_{-\infty}^{t}\rho^{\rm noise}(t|%
+\hat{t})\,S_{I}^{\rm noise}(t|\hat{t})\,A(\hat{t}){\text{d}}\hat{t}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.98)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where
+<math id="p4.m7" class="ltx_Math" alttext="\xi(t)" display="inline"><semantics><mrow><mi>Î¾</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\xi(t)</annotation></semantics></math> is a Gaussian white noise,
+<math id="p4.m8" class="ltx_Math" alttext="A(\hat{t})" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(\hat{t})</annotation></semantics></math> is the observed activity in the past,
+<math id="p4.m9" class="ltx_Math" alttext="S_{I}^{\rm noise}(t|\hat{t})" display="inline"><semantics><mrow><msubsup><mi>S</mi><mi>I</mi><mi>noise</mi></msubsup><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{I}^{\rm noise}(t|\hat{t})</annotation></semantics></math>
+is the fraction of neurons that have
+survived up to time <math id="p4.m10" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+after a last spike at time <math id="p4.m11" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>,
+and <math id="p4.m12" class="ltx_Math" alttext="\rho(t|\hat{t})^{\rm noise}" display="inline"><semantics><mrow><mi>Ï</mi><msup><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mi>noise</mi></msup></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})^{\rm noise}</annotation></semantics></math> is the stochastic intensity
+of that group of neurons.
+Starting from discrete time steps,
+and then taking the continuum limit,
+it is possible to
+determine the amplitude
+of the fluctuations as <math id="p4.m13" class="ltx_Math" alttext="\sigma(t)=\sqrt{\langle A(t)\rangle/N}" display="inline"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><msqrt><mrow><mrow><mo>â¨</mo><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow><mo>/</mo><mi>N</mi></mrow></msqrt></mrow><annotation encoding="application/x-tex">\sigma(t)=\sqrt{\langle A(t)\rangle/N}</annotation></semantics></math>.
+Eq. <a href="#Ch14.E98" title="(14.98) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.98</span></a>
+can be used to evaluate the
+correlations <math id="p4.m14" class="ltx_Math" alttext="\langle A(t)\,A(t^{\prime})\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mrow><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mrow><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle A(t)\,A(t^{\prime})\rangle</annotation></semantics></math>,
+in coupled networks of finite size
+<cite class="ltx_cite">(<a href="bib.html#bib364" title="Dynamics of neuronal populations of finite size" class="ltx_ref">122</a>)</cite>.
+
+
+</p>
+</div>
+<section id="SSx1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">Finite number of neurons (*)</h1>
+
+<div id="SSx1.p1" class="ltx_para">
+<p class="ltx_p">For the development of the arguments,
+it is convenient to work
+in discrete time.
+We use the formalism developed in Section
+<a href="Ch14.S1.html#SS5" title="14.1.5 Numerical methods for integral equations (*) â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1.5</span></a>.
+We introduce the variable
+<math id="SSx1.p1.m1" class="ltx_Math" alttext="m_{k}^{N}(t)=N\,m_{k}^{(t)}" display="inline"><semantics><mrow><mrow><msubsup><mi>m</mi><mi>k</mi><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><msubsup><mi>m</mi><mi>k</mi><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></msubsup></mrow></mrow><annotation encoding="application/x-tex">m_{k}^{N}(t)=N\,m_{k}^{(t)}</annotation></semantics></math>
+to denote
+the number of neurons that
+have fired in the interval <math id="SSx1.p1.m2" class="ltx_Math" alttext="[t-k\,\Delta t,t-(k-1)\,\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><mrow><mi>t</mi><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>k</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>,</mo><mrow><mi>t</mi><mo>-</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t-k\,\Delta t,t-(k-1)\,\Delta t]</annotation></semantics></math>
+and have âsurvivedâ up to time <math id="SSx1.p1.m3" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> without
+firing again.
+With this definition,
+<math id="SSx1.p1.m4" class="ltx_Math" alttext="m_{0}^{N}(t)=N\,A(t)\,\Delta t" display="inline"><semantics><mrow><mrow><msubsup><mi>m</mi><mn>0</mn><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">m_{0}^{N}(t)=N\,A(t)\,\Delta t</annotation></semantics></math>
+denotes
+the number of neurons that fire in the time step from <math id="SSx1.p1.m5" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> to
+<math id="SSx1.p1.m6" class="ltx_Math" alttext="t+\Delta t" display="inline"><semantics><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">t+\Delta t</annotation></semantics></math>.</p>
+</div>
+<div id="SSx1.p2" class="ltx_para">
+<p class="ltx_p">We start with
+the normalization condition
+in the quasi-renewal equivalent of Eq. (<a href="Ch14.S1.html#Ch14.E8" title="(14.8) â£ 14.1.3 Normalization and derivation of the integral equation â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.8</span></a>)
+and multiply both sides with the number of neurons
+</p>
+<table id="Ch14.E99" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E99.m1" class="ltx_Math" alttext="N=\int_{-\infty}^{t}S_{I,A}(t|\hat{t})\,N\,A(\hat{t}){\text{d}}\hat{t}." display="block"><semantics><mrow><mi>N</mi><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msub><mi>S</mi><mrow><mi>I</mi><mo>,</mo><mi>A</mi></mrow></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>.</mo></mrow><annotation encoding="application/x-tex">N=\int_{-\infty}^{t}S_{I,A}(t|\hat{t})\,N\,A(\hat{t}){\text{d}}\hat{t}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.99)</span></td>
+</tr>
+</table>
+<p class="ltx_p">This normalization must hold at any moment in time,
+therefore</p>
+<table id="Ch14.E100" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E100.m1" class="ltx_Math" alttext="m_{0}^{N}(t)=N-\sum_{k=1}^{K}m_{k}^{N}(t)\,," display="block"><semantics><mrow><mrow><mrow><msubsup><mi>m</mi><mn>0</mn><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>N</mi><mo>-</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><mrow><msubsup><mi>m</mi><mi>k</mi><mi>N</mi></msubsup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">m_{0}^{N}(t)=N-\sum_{k=1}^{K}m_{k}^{N}(t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.100)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SSx1.p2.m1" class="ltx_Math" alttext="K" display="inline"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> is chosen big enough so that all neurons
+have fired at least once in the last <math id="SSx1.p2.m2" class="ltx_Math" alttext="K" display="inline"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> time bins.</p>
+</div>
+<div id="SSx1.p3" class="ltx_para">
+<p class="ltx_p">In order to determine
+the value of <math id="SSx1.p3.m1" class="ltx_Math" alttext="m_{k}^{N}(t)" display="inline"><semantics><mrow><msubsup><mi>m</mi><mi>k</mi><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{k}^{N}(t)</annotation></semantics></math>
+for <math id="SSx1.p3.m2" class="ltx_Math" alttext="k\geq 2" display="inline"><semantics><mrow><mi>k</mi><mo>â¥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">k\geq 2</annotation></semantics></math>, we focus
+on the group of neurons that has fired
+at time <math id="SSx1.p3.m3" class="ltx_Math" alttext="\hat{t}\approx t-(k-1)\,\Delta t" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>â</mo><mrow><mi>t</mi><mo>-</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\hat{t}\approx t-(k-1)\,\Delta t</annotation></semantics></math>.
+The number of neurons that have âsurvivedâ
+up to time <math id="SSx1.p3.m4" class="ltx_Math" alttext="t-\Delta t" display="inline"><semantics><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">t-\Delta t</annotation></semantics></math>
+without emitting a further spike
+is <math id="SSx1.p3.m5" class="ltx_Math" alttext="m^{N}_{k-1}(t-\Delta t)" display="inline"><semantics><mrow><msubsup><mi>m</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m^{N}_{k-1}(t-\Delta t)</annotation></semantics></math>.
+In the time step starting at time <math id="SSx1.p3.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+all of these neurons have
+the same
+stochastic intensity <math id="SSx1.p3.m7" class="ltx_Math" alttext="\rho(t|\hat{t})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})</annotation></semantics></math>
+and fire independently with
+probability <math id="SSx1.p3.m8" class="ltx_Math" alttext="p_{F}(t|\hat{t})=1-\exp[-\rho(t|\hat{t})\,\Delta t]" display="inline"><semantics><mrow><msub><mi>p</mi><mi>F</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mn>1</mn><mo>-</mo><mi>exp</mi><mrow><mo stretchy="false">[</mo><mo>-</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi mathvariant="normal">Î</mi><mi>t</mi><mo stretchy="false">]</mo></mrow></mrow><annotation encoding="application/x-tex">p_{F}(t|\hat{t})=1-\exp[-\rho(t|\hat{t})\,\Delta t]</annotation></semantics></math>.
+In a finite-<math id="SSx1.p3.m9" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+discrete-time update
+scheme,
+the actual number of neurons
+<math id="SSx1.p3.m10" class="ltx_Math" alttext="n_{k}(t)" display="inline"><semantics><mrow><msub><mi>n</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">n_{k}(t)</annotation></semantics></math> of neurons that fire
+in time step <math id="SSx1.p3.m11" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is therefore drawn from
+the binomial distribution</p>
+<table id="Ch14.E101" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E101.m1" class="ltx_Math" alttext="P(n_{k})=\left({[m_{k-1}^{N}(t-\Delta t)]!\over[n_{k}]!\,[m_{k-1}^{N}(t-\Delta
+t%
+)-n_{k}]!}\right)[p_{F}(t|\hat{t})]^{n_{k}}\,[1-p_{F}(t|\hat{t})]^{m^{N}_{k-1}%
+(t-\Delta t)-n_{k}}" display="block"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><msub><mi>n</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo>=</mo><mrow><mo>(</mo><mfrac><mrow><mrow><mo>[</mo><mrow><msubsup><mi>m</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow><mi mathvariant="normal">!</mi></mrow><mrow><mrow><mrow><mo>[</mo><msub><mi>n</mi><mi>k</mi></msub><mo>]</mo></mrow><mpadded width="+1.7pt"><mi mathvariant="normal">!</mi></mpadded></mrow><mo>â¢</mo><mrow><mrow><mo>[</mo><mrow><mrow><msubsup><mi>m</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>n</mi><mi>k</mi></msub></mrow><mo>]</mo></mrow><mi mathvariant="normal">!</mi></mrow></mrow></mfrac><mo>)</mo></mrow><mpadded width="+1.7pt"><msup><mrow><mo stretchy="false">[</mo><msub><mi>p</mi><mi>F</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo stretchy="false">]</mo></mrow><msub><mi>n</mi><mi>k</mi></msub></msup></mpadded><msup><mrow><mo stretchy="false">[</mo><mn>1</mn><mo>-</mo><msub><mi>p</mi><mi>F</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo stretchy="false">]</mo></mrow><mrow><mrow><msubsup><mi>m</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>n</mi><mi>k</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">P(n_{k})=\left({[m_{k-1}^{N}(t-\Delta t)]!\over[n_{k}]!\,[m_{k-1}^{N}(t-\Delta
+t%
+)-n_{k}]!}\right)[p_{F}(t|\hat{t})]^{n_{k}}\,[1-p_{F}(t|\hat{t})]^{m^{N}_{k-1}%
+(t-\Delta t)-n_{k}}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.101)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In the time step
+starting at time <math id="SSx1.p3.m12" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+the number of neurons that
+have last fired at <math id="SSx1.p3.m13" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> is
+therefore (for <math id="SSx1.p3.m14" class="ltx_Math" alttext="k\geq 2" display="inline"><semantics><mrow><mi>k</mi><mo>â¥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">k\geq 2</annotation></semantics></math>)
+</p>
+<table id="Ch14.E102" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E102.m1" class="ltx_Math" alttext="m_{k}^{N}(t)=m_{k-1}^{N}(t-\Delta t)-n_{k}(t)\,." display="block"><semantics><mrow><mrow><mrow><msubsup><mi>m</mi><mi>k</mi><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mi>m</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>n</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">m_{k}^{N}(t)=m_{k-1}^{N}(t-\Delta t)-n_{k}(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.102)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Because of the shifting time frame
+used for the index <math id="SSx1.p3.m15" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>,
+neurons that are at time <math id="SSx1.p3.m16" class="ltx_Math" alttext="t-\Delta t" display="inline"><semantics><mrow><mi>t</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">t-\Delta t</annotation></semantics></math> in group <math id="SSx1.p3.m17" class="ltx_Math" alttext="(k-1)" display="inline"><semantics><mrow><mo>(</mo><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(k-1)</annotation></semantics></math>
+will be at time <math id="SSx1.p3.m18" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> in group <math id="SSx1.p3.m19" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>, except those who fired
+in the previous time step - and this expressed
+Eq. (<a href="#Ch14.E102" title="(14.102) â£ Finite number of neurons (*) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.102</span></a>).
+Note that <math id="SSx1.p3.m20" class="ltx_Math" alttext="m_{k}^{N}(t)" display="inline"><semantics><mrow><msubsup><mi>m</mi><mi>k</mi><mi>N</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{k}^{N}(t)</annotation></semantics></math> is the
+<span class="ltx_text ltx_font_italic">actual</span> number of neurons remaining
+in the group of neurons that fired
+the last spike at <math id="SSx1.p3.m21" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>.
+Its <span class="ltx_text ltx_font_italic">expected</span> value is</p>
+<table id="Ch14.E103" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E103.m1" class="ltx_Math" alttext="\langle m_{k}^{N}(t)\rangle=m_{k-1}^{N}(t-\Delta t)\,\exp\left[-\rho(t|t-k\,%
+\Delta t)\,\Delta t\right]\qquad{\rm for}~{}k&gt;1." display="block"><semantics><mrow><mrow><mo stretchy="false">â¨</mo><msubsup><mi>m</mi><mi>k</mi><mi>N</mi></msubsup><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">â©</mo></mrow><mo>=</mo><msubsup><mi>m</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mi>N</mi></msubsup><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>-</mo><mi mathvariant="normal">Î</mi><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mi>t</mi><mo>-</mo><mpadded width="+1.7pt"><mi>k</mi></mpadded><mi mathvariant="normal">Î</mi><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi mathvariant="normal">Î</mi><mi>t</mi><mo>]</mo></mrow><mo mathvariant="italic" separator="true">ââ</mo><mpadded width="+3.3pt"><mi>for</mi></mpadded><mi>k</mi><mo>&gt;</mo><mn>1.</mn></mrow><annotation encoding="application/x-tex">\langle m_{k}^{N}(t)\rangle=m_{k-1}^{N}(t-\Delta t)\,\exp\left[-\rho(t|t-k\,%
+\Delta t)\,\Delta t\right]\qquad{\rm for}~{}k&gt;1.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.103)</span></td>
+</tr>
+</table>
+<p class="ltx_p">as already discussed in Eq. (<a href="Ch14.S1.html#Ch14.E16" title="(14.16) â£ 14.1.5 Numerical methods for integral equations (*) â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.16</span></a>).
+In the <math id="SSx1.p3.m22" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math> limit,
+the actual value will approach the expectation value,
+but for finite <math id="SSx1.p3.m23" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> the actual value fluctuates.
+The finite-<math id="SSx1.p3.m24" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> update scheme in discrete time is given by
+the iteration of Eqs. (<a href="#Ch14.E102" title="(14.102) â£ Finite number of neurons (*) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.102</span></a>)
+and (<a href="#Ch14.E100" title="(14.100) â£ Finite number of neurons (*) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.100</span></a>).</p>
+</div>
+<div id="SSx1.p4" class="ltx_para">
+<p class="ltx_p">In order to arrive at an equation in continuous time,
+two further steps are needed.
+First, the binomial
+distribution in Eq. (<a href="#Ch14.E101" title="(14.101) â£ Finite number of neurons (*) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.101</span></a>)
+is approximated by a Gaussian distribution
+with the same mean and variance.
+Second, we take the limit of <math id="SSx1.p4.m1" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math> to zero
+and keep
+track of
+terms to order <math id="SSx1.p4.m2" class="ltx_Math" alttext="1/N" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">1/N</annotation></semantics></math> but not <math id="SSx1.p4.m3" class="ltx_Math" alttext="1/N^{2},1/N^{3}\dots" display="inline"><semantics><mrow><mrow><mn>1</mn><mo>/</mo><msup><mi>N</mi><mn>2</mn></msup></mrow><mo>,</mo><mrow><mrow><mn>1</mn><mo>/</mo><msup><mi>N</mi><mn>3</mn></msup></mrow><mo>â¢</mo><mi mathvariant="normal">â¦</mi></mrow></mrow><annotation encoding="application/x-tex">1/N^{2},1/N^{3}\dots</annotation></semantics></math>.
+The result is
+Eq. (<a href="#Ch14.E98" title="(14.98) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.98</span></a>).
+Note that for an uncoupled network of <math id="SSx1.p4.m4" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> neurons in the stationary
+case, fluctuations can also be directly
+calculated from the interval distribution
+as discussed in Chapter
+<a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>. The advantage
+of the approach presented here
+is that it works also for
+coupled networks.
+</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5 </span>Adaptation in Population Equations</span></a><a href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.7 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1928,6 +1928,16 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
               ))}
             </div>
           </div>
+          <div>
+            <div style={labelStyle}>Reseñas del Profesional</div>
+            <div style={{ background: 'rgba(148,163,184,0.06)', border: `1px dashed ${TOKENS.borderHi}`, borderRadius: 10, padding: 14, fontSize: 13, color: TOKENS.textSec, lineHeight: 1.5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Icon name="star" size={16} color="#fbbf24" />
+                <span style={{ fontWeight: 600, color: TOKENS.text }}>Próximamente</span>
+              </div>
+              Las reseñas de los clientes actualmente se gestionan a nivel de salón (pestaña central <strong>Reseñas</strong>). Aquí aparecerá la puntuación específica y el feedback vinculado a <strong>{prof.nombre}</strong> cuando se active la separación por estilista.
+            </div>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>

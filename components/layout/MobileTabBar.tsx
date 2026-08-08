@@ -33,6 +33,7 @@ const PRIMARY: NavItem[] = [
 // Destinos SECUNDARIOS (viven en la hoja "Mas").
 const MORE: NavItem[] = [
   { name: 'mi-jornada', label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle', route: '/(tabs)/mi-jornada' },
+  { name: 'ayuda', label: 'Ayuda', labelKey: 'nav_ayuda', icon: 'help-buoy', route: '/(tabs)/ayuda' },
   { name: 'presupuestos', label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text', route: '/(tabs)/presupuestos' },
   { name: 'bandeja', label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail', route: '/(tabs)/bandeja' },
   { name: 'resenas', label: 'Reseñas', labelKey: 'nav_resenas', icon: 'star', route: '/(tabs)/resenas' },

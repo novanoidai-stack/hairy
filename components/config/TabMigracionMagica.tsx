@@ -4,6 +4,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { Section, Btn } from '@/components/ui/SettingsAtoms';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { extractDocumentContent } from '@/lib/documentExtractor';
+import { CATEGORY_COLOR_TOKENS } from '@/lib/categoryColors';
 
 const T = DESIGN_TOKENS;
 
@@ -149,17 +150,23 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
           else creadas++;
         }
       } else if (intencion === 'catalogo') {
+        let colorIdx = 0;
         for (const s of data.servicios || []) {
           if (!s.nombre) continue;
-          
+
           let catId = null;
           if (s.categoria) {
             const { data: cats } = await supabase.from('categorias_servicio').select('id').eq('negocio_id', negocioId).ilike('nombre', s.categoria).limit(1);
             if (cats && cats[0]) {
               catId = cats[0].id;
             } else {
-              const { data: newCat } = await supabase.from('categorias_servicio').insert({ negocio_id: negocioId, nombre: s.categoria, orden: 0, color: '#e5e7eb', icono: 'general' }).select().single();
-              if (newCat) catId = newCat.id;
+              // Token semantico, no hex: categorias_servicio_color_check solo acepta
+              // 'primary'/'success'/... y rechazaba '#e5e7eb', tumbando la creacion
+              // de categorias nuevas en cada importacion (ver lib/importadorIA.ts).
+              const color = CATEGORY_COLOR_TOKENS[colorIdx % CATEGORY_COLOR_TOKENS.length];
+              const { data: newCat, error: catErr } = await supabase.from('categorias_servicio').insert({ negocio_id: negocioId, nombre: s.categoria, orden: 0, color, icono: 'general' }).select().single();
+              if (newCat) { catId = newCat.id; colorIdx++; }
+              if (catErr) errores.push(`Categoría "${s.categoria}": ${catErr.message}`);
             }
           }
 

@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
 
 export interface ExtractedDocument {
   type: 'text' | 'image';
@@ -12,19 +13,14 @@ export interface ExtractedDocument {
  */
 async function extractTextFromDocx(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(arrayBuffer);
 
-  // Intentar decodificar word/document.xml buscando las marcas ZIP
-  const decoder = new TextDecoder('utf-8');
-  const rawContent = decoder.decode(bytes);
-
-  let xmlString = '';
-  const docXmlIndex = rawContent.indexOf('word/document.xml');
-  if (docXmlIndex !== -1) {
-    xmlString = rawContent.substring(docXmlIndex);
-  } else {
-    xmlString = rawContent;
-  }
+  // Un .docx es un ZIP con word/document.xml comprimido (DEFLATE) dentro: hay que
+  // inflarlo de verdad. Buscar el string "word/document.xml" en los bytes crudos
+  // (como hacia la version anterior) solo encuentra el nombre del fichero en la
+  // cabecera del ZIP; lo que sigue es el binario comprimido, no XML.
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const documentXmlFile = zip.file('word/document.xml');
+  const xmlString = documentXmlFile ? await documentXmlFile.async('string') : '';
 
   // Eliminar cualquier etiqueta XML (<w:p ...>, </w:p>, <w:t>, etc.)
   // Reemplazar párrafos <w:p> por salto de línea y celdas <w:tc> por tabulaciones

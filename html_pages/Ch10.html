@@ -1,0 +1,254 @@
+<!DOCTYPE html><html>
+<head>
+<title>ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models
+ | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch9.Sx2.html" title="Exercises â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S2.html" title="10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S4.html" title="10.4 Closed-loop stimulus design â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S5.html" title="10.5 Summary â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a><a href="Ch9.Sx2.html" title="Exercises â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title">Exercises</span></a><a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1 </span>Parameter optimization in linear and nonlinear models</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_chapter ltx_authors_1line">
+<h1 class="ltx_title ltx_title_chapter">
+<span class="ltx_tag ltx_tag_chapter">ChapterÂ 10 </span>Estimating Parameters of Probabilistic 
+<br class="ltx_break">Neuron Models
+</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">It is helpful to break neural data analysis into two basic problems.
+The âencodingâ problem concerns how information is encoded in neural
+spike trains: can we predict the spike trains of a neuron (or
+population of neurons), given an arbitrary synaptic input, current
+injection, or sensory stimulus? Conversely, the âdecodingâ problem
+concerns how much we can learn from the observation
+of a sequence of spikes: in particular, how
+well can we estimate the stimulus that gave rise to the spike train?</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">The problems of encoding and decoding are difficult both because neural
+responses are stochastic and because we want to identify these
+response properties given any possible stimulus in some very large set
+(e.g., all images that might occur in the world), and there are
+typically too many such stimuli than we can hope to sample by brute
+force. Thus the neural coding problem is fundamentally
+<em class="ltx_emph">statistical</em>: given a finite number of samples of noisy
+physiological data, how do we estimate, in a global sense, the neural
+codebook?</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">This basic question has taken on a new urgency as neurophysiological
+recordings allow us to peer into the brain with ever greater facility:
+with the development of fast computers, inexpensive memory, and large-scale
+multineuronal recording and high-resolution imaging techniques, it has
+become feasible to directly observe and analyze neural activity at a
+level of detail that was impossible in the 20th century.
+Experimentalists now routinely record from hundreds of neurons
+simultaneously, providing great challenges for
+data analysis by
+computational neuroscientists and statisticians. Indeed, it has
+become clear that sophisticated statistical techniques are necessary to understand the
+neural code: many of the key questions
+cannot be answered
+without powerful statistical tools.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">This chapter describes statistical model-based techniques that
+provide a unified approach to both encoding and decoding.
+These
+<span class="ltx_text ltx_font_italic">statistical</span> models can capture stimulus dependencies as well as spike history and
+inter-neuronal interaction effects in population of spike trains, and are
+intimately related to the generalized integrate-and-fire models
+discussed in the previous chapters. </p>
+</div>
+<div id="p5" class="ltx_para">
+<p class="ltx_p">In Section <a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.1</span></a>,
+we establish
+the notation that enables
+us to identify relevant model parameters
+and introduce the concept of
+parameter optimization in a linear model.
+We then leave the realm of linear models
+and turn to
+the models that we have discussed in preceding
+chapters (e.g. the Spike Response Model
+with escape noise in Ch. <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>)
+where spike generation is stochastic and nonlinear.</p>
+</div>
+<div id="p6" class="ltx_para">
+<p class="ltx_p">In Section
+<a href="Ch10.S2.html" title="10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.2</span></a>,
+we describe
+the same neuron models of spike trains
+in the slightly more abstract
+language of statistics.
+The likelihood of a spike train given the stimulus plays a
+central role in statistical models of encoding.
+As we have seen in Chapter <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>,
+the stochasticity introduced by âescape noiseâ in
+the Spike Response Model (SRM) or other generalized
+integrate-and-fire models
+enables us to write down the likelihood that
+an observed spike train could have been generated
+by the neuron model.
+Likelihood-based optimization methods for fitting these
+neuron models to data allow us to predict neuronal spike timing
+for future, unknown stimuli.
+Thus, the SRM and other generalized integrate-and-fire models
+can be viewed as
+<span class="ltx_text ltx_font_italic">encoding</span> models.
+In Chapter <a href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a> we will see
+that the same models can also
+be used to perform optimal
+decoding.</p>
+</div>
+<div id="p7" class="ltx_para">
+<p class="ltx_p">The emphasis of this chapter is on
+likelihood-based methods for model optimization.
+The likelihood-based optimization methods are
+computationally tractable, due to a key concavity
+property of the model likelihood
+<cite class="ltx_cite">(<a href="bib.html#bib218" title="Maximum likelihood estimation of cascade point-process neural encoding models" class="ltx_ref">383</a>)</cite>.
+However, likelihood is just one
+of several quantities that can be chosen
+to compare spike trains,
+and other measures to quantify
+the performance of models
+can also be used.
+In Section <a href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.3</span></a>
+we review different performance measures
+for the âgoodness of fitâ of a model.
+In particular, we present the
+notion of âspike train similarityâ
+and the
+âtime rescaling theoremâ <cite class="ltx_cite">(<a href="bib.html#bib206" title="The time-rescaling theorem and its application to neural spike train data analysis" class="ltx_ref">73</a>)</cite>.</p>
+</div>
+<div id="p8" class="ltx_para">
+<p class="ltx_p">Finally, in Section <a href="Ch10.S4.html" title="10.4 Closed-loop stimulus design â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.4</span></a>
+we apply the ideas developed in this chapter
+to adaptively choose the optimal stimuli for
+characterizing the response function.
+</p>
+</div>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1 </span>Parameter optimization in linear and nonlinear models</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch10.S2.html" title="10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.2 </span>Statistical Formulation of Encoding Models</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3 </span>Evaluating Goodness-of-fit</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch10.S4.html" title="10.4 Closed-loop stimulus design â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.4 </span>Closed-loop stimulus design</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch10.S5.html" title="10.5 Summary â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.5 </span>Summary</span></a></li>
+</ul>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch9.Sx2.html" title="Exercises â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title">Exercises</span></a><a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1 </span>Parameter optimization in linear and nonlinear models</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1,0 +1,1143 @@
+<!DOCTYPE html><html>
+<head>
+<title>2.3 The Zoo of Ion Channels | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch2.S2.html" title="2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch2.S4.html" title="2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch2.S1.html" title="2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch2.S2.html" title="2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch2.S4.html" title="2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content=",
+              ,
+              ,
+              ,
+              ,
+              ,
+              , A-current, M-current, adaptation, biophysical neuron model, calcium spike, calcium-dependent potassium current, h-current, ion channel, low-threshold calcium current, persistent sodium current, rebound, inhibitory, slow sodium current">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2 </span>The Hodgkin-Huxley Model</span></a><a href="Ch2.S2.html" title="2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2 </span>Hodgkin-Huxley Model</span></a><a href="Ch2.S4.html" title="2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.4 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2.3 </span>The Zoo of Ion Channels</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Hodgkin and Huxley used their equations
+to describe the electro-physiological properties of the giant axon of the squid.
+These equations capture the essence of spike generation by sodium and
+potassium ion channels. The basic mechanism of generating action potentials
+is a short influx of sodium ions that is followed by an efflux of potassium ions.
+This mechanism of spike generation
+is essentially preserved in higher organisms, so that with the choice
+of parameters give in Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>, we have already a first
+approximate model of neurons in vertebrates.
+With a further change
+of parameters we could adapt the model equations
+to different temperatures so as to account for the fact that neurons
+at 37 degree Celsius behave differently than neurons in a lab
+preparation held at a room temperature of 21 degree Celsius.</p>
+</div>
+<figure id="Ch2.F10" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x40.png" id="Ch2.F10.g1" class="ltx_graphics" width="590" height="303" alt="">
+                </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"><img src="x41.png" id="Ch2.F10.g2" class="ltx_graphics" width="590" height="174" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.10: </span>
+Damped oscillations and a transient spike.
+Top. The voltage response to
+a step current shows a damped oscillation (arrow), a single rebound spike (asterisk)
+or repetitive firing.
+Bottom. Time course of the stimulating current.</figcaption>
+</figure>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">However, in order to account for the rich biophysics observed
+in the neurons of the vertebrate nervous system, two types of ion channel are not enough.
+Neurons come in different types and exhibit
+different electrical properties which in turn
+correspond to a
+large variety of different ion channels.
+Today, about 200 ion channels are known and many of these
+have been identified genetically
+<cite class="ltx_cite">(<a href="bib.html#bib28" title="Channelpedia: an integrative and interactive database for ion channels" class="ltx_ref">419</a>)</cite>.
+In experimental laboratories where the biophysics and functional role
+of ion channels is investigated, specific ion channel types can be blocked
+through pharmacological manipulations. In order to make predictions of blocking results, it is important to develop models that incorporate multiple ion channels. As we will see below (Section <a href="#SS1" title="2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3.1</span></a>),
+the mathematical framework of the Hodgkin-Huxley model is
+well suited for such an endeavor.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">For other scientific questions, we may only be interested
+in the firing pattern of neurons and not in the biophysical mechanisms
+that give rise to it.
+Later in Part II of this book, we will show that
+generalized integrate-and-fire models can account for
+a large variety of neuronal firing patterns (Chapter <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>)
+and predict spike timings of real neurons with
+high precision (Chapter <a href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a>).
+Therefore, in Part III and IV of the book, where we focus
+on large networks of neurons, we mainly
+work with generalized integrate-and-fire rather than biophysical models.
+Nevertheless, biophysical models, i.e.,
+Hodgkin-Huxley equations with multiple ion channels,
+serve as an important reference.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3.1 </span>Framework for biophysical neuron models</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">The formalism of the Hodgkin-Huxley equation is extremely powerful,
+because it enables researchers to incorporate known ion channel
+types into a given neuron model.
+Just as before, the electrical properties of a patch of neuronal membrane are described
+by the conservation of current</p>
+<table id="Ch2.E10" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E10.m1" class="ltx_Math" alttext="C{{\text{d}}u\over{\text{d}}t}=-\sum_{k}I_{k}(t)+I(t)\,," display="block"><semantics><mrow><mrow><mrow><mi>C</mi><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>+</mo><mrow><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">C{{\text{d}}u\over{\text{d}}t}=-\sum_{k}I_{k}(t)+I(t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.10)</span></td>
+</tr>
+</table>
+<p class="ltx_p">but in contrast to the simple Hodgkin-Huxley model
+discussed in the previous section, the right-hand side
+now contains all types of ion current
+found in a given neuron.
+For each ion channel type <math id="SS1.p1.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>, we introduce
+activation and inactivation variables</p>
+<table id="Ch2.E11" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E11.m1" class="ltx_Math" alttext="I_{k}(t)=g_{k}([Ca^{++}],...)m^{p_{k}}\,h^{q_{k}}\,(u-E_{k})," display="block"><semantics><mrow><mrow><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>g</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><msup><mi>a</mi><mrow><mo>+</mo><mo>â£</mo><mo>+</mo></mrow></msup></mrow><mo>]</mo></mrow><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>m</mi><msub><mi>p</mi><mi>k</mi></msub></msup></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>h</mi><msub><mi>q</mi><mi>k</mi></msub></msup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>k</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">I_{k}(t)=g_{k}([Ca^{++}],...)m^{p_{k}}\,h^{q_{k}}\,(u-E_{k}),</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.11)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS1.p1.m2" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> and <math id="SS1.p1.m3" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> describe activation and inactivation of the channel
+with equations analogous to Eq. (<a href="Ch2.S2.html#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>),
+<math id="SS1.p1.m4" class="ltx_Math" alttext="p_{k}" display="inline"><semantics><msub><mi>p</mi><mi>k</mi></msub><annotation encoding="application/x-tex">p_{k}</annotation></semantics></math> and <math id="SS1.p1.m5" class="ltx_Math" alttext="q_{k}" display="inline"><semantics><msub><mi>q</mi><mi>k</mi></msub><annotation encoding="application/x-tex">q_{k}</annotation></semantics></math> are empirical parameters, <math id="SS1.p1.m6" class="ltx_Math" alttext="E_{k}" display="inline"><semantics><msub><mi>E</mi><mi>k</mi></msub><annotation encoding="application/x-tex">E_{k}</annotation></semantics></math> is the reversal potential,
+and <math id="SS1.p1.m7" class="ltx_Math" alttext="g_{k}" display="inline"><semantics><msub><mi>g</mi><mi>k</mi></msub><annotation encoding="application/x-tex">g_{k}</annotation></semantics></math> is the maximum conductance which may depend
+on secondary variables such as the concentration of calcium,
+magnesium, dopamine or other substances.
+In principle, if the dynamics of each channel
+type (i.e. all parameters that go into Eqs. (<a href="#Ch2.E11" title="(2.11) â£ 2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.11</span></a>) and (<a href="Ch2.S2.html#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>)
+are available,
+then one needs only to know which channels are present
+in a given neuron
+in order to build
+a biophysical neuron model.
+Studying the composition of messenger RNA in a drop of liquid
+extracted from a neuron, gives a strong indication
+of which ion channel are present in a neuron, and which are not
+<cite class="ltx_cite">(<a href="bib.html#bib2" title="Correlation maps allow neuronal electrical properties to be predicted from single-cell gene expression profiles in rat neocortex" class="ltx_ref">514</a>)</cite>.
+The relative importance of ion channels is not fixed,
+but depends on the age of neuron as well as other factors.
+Indeed, a neuron can tune its spiking dynamics
+by regulating its ion channel composition
+via a modification of the gene expression profile.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">Ion channels are complex transmembrane proteins which exist in many different forms.
+It is possible to classify an ion channel using
+(i) its genetic sequence;
+(ii) the ion type (sodium, potassium, calcium â¦) that can pass through the open channel;
+(iii) its voltage dependence;
+(iv) its sensitivity to second-messengers such as intra-cellular calcium;
+(v) its presumed functional role;
+(vi) its response to pharmacological drugs or to
+neuromodulators such as acetylcholine and dopamine.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Using a notation that mixes the classification schemes (i)-(iii),
+geneticists have distinguished multiple families of voltage-gated ion channels on the basis of similarities in the amino acid sequences. The channels
+are labeled with the chemical symbol of the ion of their selectivity, one or two letters denoting a distinct characteristic and a number to determine the sub-family.
+For instance âKv5â is the fifth sub-family of the voltage sensitive potassium channel family âKvâ. An additional number may be inserted to indicate the channel isoforms, for instance âNav1.1â is the first isoform that was found within the first subfamily of voltage-dependent sodium channels.
+Sometimes a lower-case letter is used to point to the splice variants (<span class="ltx_text ltx_font_italic">e.g.</span> âNav1.1aâ).
+Strictly speaking, these names apply to a single cloned gene which corresponds to a channel subunit,
+whereas the full ion channel
+is composed of several subunits usually from a given family but possibly from different sub-families.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">Traditionally, electrophysiologists
+have identified channels with subscripts
+that reflect a combination of the classification schemes (ii)-(vi).
+The index of the potassium âM-currentâ <math id="SS1.p4.m1" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi>I</mi><mi>M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> points to its response
+to pharmacological stimulation of Muscarinic (M) acetylcholine receptors.
+Another potassium current, <math id="SS1.p4.m2" class="ltx_Math" alttext="I_{\rm AHP}" display="inline"><semantics><msub><mi>I</mi><mi>AHP</mi></msub><annotation encoding="application/x-tex">I_{\rm AHP}</annotation></semantics></math>, shapes the after-hyperpolarization (AHP)
+of the membrane potential after a spike.
+Thus the subscript corresponds to the presumed functional role of the channel.
+Sometimes the functionally characterized current can be related to the genetic classification; for instance <math id="SS1.p4.m3" class="ltx_Math" alttext="I_{\rm AHP}" display="inline"><semantics><msub><mi>I</mi><mi>AHP</mi></msub><annotation encoding="application/x-tex">I_{\rm AHP}</annotation></semantics></math> is a calcium-dependent potassium channel associated with the small-conductance âSKâ family, but in other cases the link between an electrophysiologically characterized channel and its composition in terms of genetically identified subunits is still uncertain.
+Linking genetic expression with a functionally characterized ion currents is a fast-expanding field of study <cite class="ltx_cite">(<a href="bib.html#bib28" title="Channelpedia: an integrative and interactive database for ion channels" class="ltx_ref">419</a>)</cite>.</p>
+</div>
+<figure id="Ch2.F11" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x42.png" id="Ch2.F11.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x43.png" id="Ch2.F11.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.11: </span>
+A modification of sodium channel kinetics leads to different neuronal dynamics.
+<span class="ltx_text ltx_font_bold">A</span>. Response of a model with modified sodium channel to current steps of different amplitudes.
+<span class="ltx_text ltx_font_bold">B</span>.
+Delayed spike initiation. A short current pulse of 2 ms duration is
+applied at <math id="Ch2.F11.m4" class="ltx_Math" alttext="t=8" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">t=8</annotation></semantics></math>âms. The action potential that is elicited in response
+to the current pulse is shown for decreasing pulse amplitudes (<math id="Ch2.F11.m5" class="ltx_Math" alttext="I=6.25;5.90;5.88\mu A" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mrow><mn>6.25</mn><mo>;</mo><mn>5.90</mn><mo>;</mo><mrow><mn>5.88</mn><mo>â¢</mo><mi>Î¼</mi><mo>â¢</mo><mi>A</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">I=6.25;5.90;5.88\mu A</annotation></semantics></math>/cm<math id="Ch2.F11.m6" class="ltx_Math" alttext="{}^{2}" display="inline"><semantics><msup><mi></mi><mn>2</mn></msup><annotation encoding="application/x-tex">{}^{2}</annotation></semantics></math>). Note that the action potential can occur more than 10 ms <span class="ltx_text ltx_font_italic">after</span> the end of the current pulse.
+</figcaption>
+</figure>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">In this section we select a few examples from the zoo of ion channels and
+illustrate how ion channels can modify the spiking dynamics.
+The aim is not to quantitatively specify parameters of each ionic current as this depends heavily on the genetic expression of the subunits, cell-type, temperature and neurotransmitters.
+Rather, we would like to explore qualitatively the influence of ion channel kinetics
+on neuronal properties.
+In other words, let us bring the zoo of ion channels to the circus and explore the stunning acts that can be achieved.</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3.2 </span>Sodium Ion Channels and the Type-I Regime</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">The parameters of the Hodgkin-Huxley model in Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>
+relate
+to only one type of sodium and potassium ion channel.
+There are more than 10 different types of sodium channels, each with
+a slightly different activation and inactivation profile.
+However, as we will see, even a small
+change in the ion channel kinetics can
+profoundly affect the spiking characteristics of a neuron.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">Let us consider a sodium ion channel which has its inactivation curve <math id="SS2.p2.m1" class="ltx_Math" alttext="h_{0}(u)" display="inline"><semantics><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h_{0}(u)</annotation></semantics></math>
+(Fig. <a href="Ch2.S2.html#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>A) shifted to depolarized voltages by 20 mV compared to the parameters
+in Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>.
+With maximal conductances <math id="SS2.p2.m2" class="ltx_Math" alttext="g_{\rm Na}=25" display="inline"><semantics><mrow><msub><mi>g</mi><mi>Na</mi></msub><mo>=</mo><mn>25</mn></mrow><annotation encoding="application/x-tex">g_{\rm Na}=25</annotation></semantics></math> nS/cm<math id="SS2.p2.m3" class="ltx_Math" alttext="{}^{2}" display="inline"><semantics><msup><mi></mi><mn>2</mn></msup><annotation encoding="application/x-tex">{}^{2}</annotation></semantics></math> and <math id="SS2.p2.m4" class="ltx_Math" alttext="g_{\rm K}=40" display="inline"><semantics><mrow><msub><mi>g</mi><mi mathvariant="normal">K</mi></msub><mo>=</mo><mn>40</mn></mrow><annotation encoding="application/x-tex">g_{\rm K}=40</annotation></semantics></math> nS/cm<math id="SS2.p2.m5" class="ltx_Math" alttext="{}^{2}" display="inline"><semantics><msup><mi></mi><mn>2</mn></msup><annotation encoding="application/x-tex">{}^{2}</annotation></semantics></math>,
+the dynamics of a neuron with this modified sodium channel
+(Fig. <a href="#Ch2.F11" title="Fig.Â 2.11 â£ 2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.11</span></a>)
+is qualitatively different from a neuron with the parameters as in Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>
+(Figs. <a href="Ch2.S2.html#Ch2.F7" title="Fig.Â 2.7 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.7</span></a> and <a href="#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>).</p>
+</div>
+<figure id="Ch2.F12" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left" colspan="2">
+                    <img src="x44.png" id="Ch2.F12.g1" class="ltx_graphics" width="590" height="253" alt="">
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.12: </span>Type-I regime with a modified sodium current.
+<span class="ltx_text ltx_font_bold">A</span>. Regular spiking response to constant input.
+<span class="ltx_text ltx_font_bold">B</span>. Firing frequency as a function of the constant current.</figcaption>
+</figure>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">First, the neuron with the modified sodium dynamics shows no damped oscillations
+in response to a step input (Fig. <a href="#Ch2.F11" title="Fig.Â 2.11 â£ 2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.11</span></a>A).
+Second, the neuron responds to a short current pulse which is just slightly above
+the firing threshold with a delayed action potential (Fig. <a href="#Ch2.F11" title="Fig.Â 2.11 â£ 2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.11</span></a>B).
+Third, during regular spiking
+the shape of the action potential is slightly different
+in the model with the modified sodium channel
+(Fig. <a href="#Ch2.F12" title="Fig.Â 2.12 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.12</span></a>A). In particular, the membrane potential between the spikes exhibits
+an inflection point, unlike the spike train with the original set of parameters
+(Fig. <a href="Ch2.S2.html#Ch2.F7" title="Fig.Â 2.7 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.7</span></a>A). Finally, the gain function (frequency-current plot)
+has no gap so that the neuron model can fire at arbitrarily small frequencies (Fig. <a href="#Ch2.F12" title="Fig.Â 2.12 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.12</span></a>B).
+If we compare this f-I plot with the gain function of the neuron with parameters from
+Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>,
+we can distinguish two types of excitability:
+Type I has a continuous input-output function (Fig.
+<a href="#Ch2.F12" title="Fig.Â 2.12 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.12</span></a>B), while type II has a discontinuity (Fig. <a href="Ch2.S2.html#Ch2.F7" title="Fig.Â 2.7 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.7</span></a>B).</p>
+</div>
+<figure id="Ch2.F13" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x45.png" id="Ch2.F13.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x46.png" id="Ch2.F13.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x47.png" id="Ch2.F13.g3" class="ltx_graphics" width="590" height="214" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x48.png" id="Ch2.F13.g4" class="ltx_graphics" width="590" height="95" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">E</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_right" colspan="2"><img src="x49.png" id="Ch2.F13.g5" class="ltx_graphics" width="590" height="143" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.13: </span>Spike-frequency adaptation with <math id="Ch2.F13.m7" class="ltx_Math" alttext="I_{\rm M}" display="inline"><semantics><msub><mi>I</mi><mi mathvariant="normal">M</mi></msub><annotation encoding="application/x-tex">I_{\rm M}</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">A</span>. Voltage dependence of the stationary value of the activation variable <math id="Ch2.F13.m8" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+and <span class="ltx_text ltx_font_bold">B</span> its time constants
+for the muscarinic potassium current <math id="Ch2.F13.m9" class="ltx_Math" alttext="I_{\rm M}=g_{M}\,m\,(u-E_{k})" display="inline"><semantics><mrow><msub><mi>I</mi><mi mathvariant="normal">M</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>M</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>m</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>k</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm M}=g_{M}\,m\,(u-E_{k})</annotation></semantics></math>
+extracted from experimental observations <cite class="ltx_cite">(<a href="bib.html#bib29" title="Multiple channels and calcium dynamics" class="ltx_ref">562</a>)</cite>.
+<span class="ltx_text ltx_font_bold">C</span>. Voltage response
+to the current shown in <span class="ltx_text ltx_font_bold">D</span>
+of the original Hodgkin-Huxley model with parameters
+from
+Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a> (dashed line) and a model which also contains the <math id="Ch2.F13.m10" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi>I</mi><mi>M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> channel.
+The model with <math id="Ch2.F13.m11" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi>I</mi><mi>M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> exhibits adaptation.
+<span class="ltx_text ltx_font_bold">E</span>. Progressive activation of the potassium current <math id="Ch2.F13.m12" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi>I</mi><mi>M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> during the
+repetitive spiking period shown in <span class="ltx_text ltx_font_bold">C</span>.</figcaption>
+</figure>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3.3 </span>Adaptation and Refractoriness</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">We have seen in Sect. <a href="Ch2.S2.html" title="2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2</span></a> that the combination of sodium
+and potassium channels generates spikes followed by a relative refractory period. The
+refractoriness is caused by the slow return of the sodium inactivation variable <math id="SS3.p1.m1" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+and the potassium activation variable <math id="SS3.p1.m2" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> to their equilibrium values.
+The time scale of recovery in the Hodgkin-Huxley model with
+parameters as in Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>,
+is 4Â ms for the potassium channel activation and 20Â ms for the sodium channel inactivation.
+Other ion channel types, not present in the original Hodgkin-Huxley model,
+can affect the recovery process on much longer time scales and
+lead to spike-frequency adaptation: after stimulation with a step
+current, interspike intervals get successively longer.
+The basic mechanism of adaptation is the same as that of refractoriness:
+either a hyperpolarizing current
+is activated during a spike (and slowly de-activates thereafter)
+or a depolarizing current is inactivated during a spike and
+de-inactivates on a much slower time scale.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Slow Inactivation of a Hyperpolarizing Current</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Let us start with the muscarinic potassium channel <math id="SS3.p2.m1" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math>,
+often called M-current. Genetically, the channel is composed of subunits of the Kv7 family.
+Figure <a href="#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>A-B shows the activation function as well as the
+voltage dependence of the time constant as characterized by Yamada <span class="ltx_text ltx_font_italic">et al.</span> [1989]<cite class="ltx_cite"></cite>.
+The activation function (Figure <a href="#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>A) tells us that this channel tends to be activated at voltages above -40Â mV and is de-activated below -40Â mV with a very sharp transition between
+the two regimes.
+Since -40mV is well above the threshold of spike initiation,
+the membrane potential is never found above -40Â mV except during the 1-2Â ms of a spike.
+Therefore the channel partially activates during a spike and,
+after the end of the action potential, de-activates with a time-constant of 40- 60Â ms
+(Figure <a href="#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>B).
+The slow deactivation of this potassium channel
+affects the time course of the membrane potential after a spike.
+Compared to the original Hodgkin-Huxley model which has only the two currents specified in
+Table <a href="Ch2.S2.html#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>,
+a model with an additional
+<math id="SS3.p2.m2" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> current exhibits a prolonged hyperpolarizing spike afterpotential and
+therefore a longer relative refractory period
+(Figure <a href="#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>C-E).</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In the regular firing regime, it is possible that the M-current caused by a previous spike
+is still partially activated
+when the next spike is emitted.
+The partial activation can therefore accumulate over successive spikes.
+By cumulating over spikes, the activation of <math id="SS3.p2.m3" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> gradually forces the membrane potential away from the threshold, increasing the interspike interval. This results in a spiking response that appears to
+âadaptâ to a step input, hence the name âspike-frequency adaptationâ or simply âadaptationâ
+(Figure <a href="#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>C-E).</span>
+              </p>
+</span>
+</div>
+<figure id="Ch2.F14" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x50.png" id="Ch2.F14.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x51.png" id="Ch2.F14.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x52.png" id="Ch2.F14.g3" class="ltx_graphics" width="590" height="190" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x53.png" id="Ch2.F14.g4" class="ltx_graphics" width="590" height="95" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">E</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_right" colspan="2"><img src="x54.png" id="Ch2.F14.g5" class="ltx_graphics" width="590" height="143" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.14: </span><math id="Ch2.F14.m6" class="ltx_Math" alttext="I_{\rm A}" display="inline"><semantics><msub><mi>I</mi><mi mathvariant="normal">A</mi></msub><annotation encoding="application/x-tex">I_{\rm A}</annotation></semantics></math> and the refractory period. <span class="ltx_text ltx_font_bold">A</span>. Voltage dependence of
+the stationary values and (<span class="ltx_text ltx_font_bold">B</span>) time constants
+of the activation variable <math id="Ch2.F14.m7" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> and inactivation variable <math id="Ch2.F14.m8" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> for the A-type potassium current
+<math id="Ch2.F14.m9" class="ltx_Math" alttext="I_{\rm A}=g_{A}\,m\,h\,(u-E_{K})" display="inline"><semantics><mrow><msub><mi>I</mi><mi mathvariant="normal">A</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>A</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>m</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>h</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm A}=g_{A}\,m\,h\,(u-E_{K})</annotation></semantics></math> extracted from experimental observations in pyramidal neurons of the cortex <cite class="ltx_cite">(<a href="bib.html#bib30" title="Voltage-gated k+ channels in layer 5 neocortical pyramidal neurones from young rats: subtypes and gradients" class="ltx_ref">276</a>)</cite>. <span class="ltx_text ltx_font_bold">C</span>. Voltage response to the current shown in <span class="ltx_text ltx_font_bold">D</span>, consisting of a single pulse and a step. <span class="ltx_text ltx_font_bold">E</span>. Progressive activation (solid line) and
+inactivation (dashed line) of the potassium current <math id="Ch2.F14.m10" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi>I</mi><mi>A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math> during the stimulation
+shown in C and D. </figcaption>
+</figure>
+<div id="SS3.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: A-current</span>
+              </p>
+<p class="ltx_p">
+                <math id="SS3.p3.m1" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi>I</mi><mi>A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is another potassium ion channel with kinetics
+similar to <math id="SS3.p3.m2" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math>, but qualitatively different effects: <math id="SS3.p3.m3" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math> makes the relative refractory period longer and stronger without causing much adaptation. To see the distinction between <math id="SS3.p3.m4" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math> and <math id="SS3.p3.m5" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math>, we compare the activation kinetics of both channels
+(Figure <a href="#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>B and <a href="#Ch2.F14" title="Fig.Â 2.14 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.14</span></a>B).
+The time constant
+<math id="SS3.p3.m6" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math>
+of activation is much faster for <math id="SS3.p3.m7" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math> than for <math id="SS3.p3.m8" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math>. This implies that the A-current increases
+rapidly during the short time of the spike and decays quickly afterward.
+In other words, the effect of <math id="SS3.p3.m9" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math> is short and strong whereas the effect of <math id="SS3.p3.m10" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math> is long and small.
+Because the effect of <math id="SS3.p3.m11" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math> does not last as long, it contributes to refractoriness, but only
+very little to spike frequency adaptation
+(<a href="#Ch2.F14" title="Fig.Â 2.14 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.14</span></a> C-E).
+Even though an inactivation process, with variable <math id="SS3.p3.m12" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>, was reported for <math id="SS3.p3.m13" class="ltx_Math" alttext="I_{A}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">I_{A}</annotation></semantics></math>,
+its time constant <math id="SS3.p3.m14" class="ltx_Math" alttext="\tau_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">\tau_{h}</annotation></semantics></math> is so long (<math id="SS3.p3.m15" class="ltx_Math" alttext="&gt;" display="inline"><semantics><mo mathsize="normal" stretchy="false">&gt;</mo><annotation encoding="application/x-tex">&gt;</annotation></semantics></math>150ms) that it does not play a role
+for the above arguments.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch2.F15" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x55.png" id="Ch2.F15.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x56.png" id="Ch2.F15.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x57.png" id="Ch2.F15.g3" class="ltx_graphics" width="590" height="190" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x58.png" id="Ch2.F15.g4" class="ltx_graphics" width="590" height="95" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">E</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_right" colspan="2"><img src="x59.png" id="Ch2.F15.g5" class="ltx_graphics" width="590" height="143" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.15: </span>Calcium-based spike-frequency adaptation with <math id="Ch2.F15.m8" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">K</mi><mo>â¢</mo><mrow><mo>[</mo><mi>Ca</mi><mo>]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>
+and <math id="Ch2.F15.m9" class="ltx_Math" alttext="I_{L}" display="inline"><semantics><msub><mi>I</mi><mi>L</mi></msub><annotation encoding="application/x-tex">I_{L}</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">A</span>. Voltage dependence of the
+stationary values and <span class="ltx_text ltx_font_bold">B</span> time constants
+of the activation variable <math id="Ch2.F15.m10" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> and inactivation variable <math id="Ch2.F15.m11" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> of the high-threshold calcium current
+<math id="Ch2.F15.m12" class="ltx_Math" alttext="I_{\rm HVA}=g_{L}\,h\,m\,(u-E_{Ca})" display="inline"><semantics><mrow><msub><mi>I</mi><mi>HVA</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>h</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>m</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm HVA}=g_{L}\,h\,m\,(u-E_{Ca})</annotation></semantics></math> extracted from experiments <cite class="ltx_cite">(<a href="bib.html#bib31" title="Stepwise repolarization from ca2+ plateaus in neocortical pyramidal cells: evidence for nonhomogeneous distribution of hva ca2+ channels in dendrites" class="ltx_ref">428</a>)</cite>.
+<span class="ltx_text ltx_font_bold">C</span>. Voltage response
+of a Hodgkin-Huxley model
+with the calcium current <math id="Ch2.F15.m13" class="ltx_Math" alttext="I_{\rm HVA}" display="inline"><semantics><msub><mi>I</mi><mi>HVA</mi></msub><annotation encoding="application/x-tex">I_{\rm HVA}</annotation></semantics></math> (dashed line)
+and a model that also contains a calcium dependent potassium current
+<math id="Ch2.F15.m14" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">K</mi><mo>â¢</mo><mrow><mo>[</mo><mi>Ca</mi><mo>]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">D</span>. External current used for the simulation in C and E.
+<span class="ltx_text ltx_font_bold">E</span>. Progressive accumulation of intracellular calcium
+in the two models.
+</figcaption>
+</figure>
+<div id="SS3.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Slow Extrusion of Calcium</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Multiple ion channel families contribute to spike-frequency adaptation.
+In contrast to the direct action of <math id="SS3.p4.m1" class="ltx_Math" alttext="I_{M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{M}</annotation></semantics></math>, the
+calcium dependent potassium channel <math id="SS3.p4.m2" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>
+generates adaptation indirectly via its dependence on the intracellular calcium concentration.
+During each spike, calcium
+enters through the high threshold calcium channel <math id="SS3.p4.m3" class="ltx_Math" alttext="I_{\rm HVA}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">HVA</mi></msub><annotation encoding="application/x-tex">I_{\rm HVA}</annotation></semantics></math>.
+As calcium accumulates inside the cell, the
+calcium dependent potassium channel <math id="SS3.p4.m4" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>
+gradually opens, lowers the membrane potential, and makes
+further spike generation more difficult.
+Thus,
+the level of adaptation can be read out from the intra-cellular calcium concentration.
+
+
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In order to understand the accumulation of calcium, we need to discuss the
+high-threshold calcium channel <math id="SS3.p4.m6" class="ltx_Math" alttext="I_{\rm HVA}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">HVA</mi></msub><annotation encoding="application/x-tex">I_{\rm HVA}</annotation></semantics></math>. Since it activates
+above -40Â mV to -30Â mV, the channel opens during a spike.
+Its dynamics is therefore similar to that of the sodium current, but
+the direct effect of <math id="SS3.p4.m7" class="ltx_Math" alttext="I_{\rm HVA}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">HVA</mi></msub><annotation encoding="application/x-tex">I_{\rm HVA}</annotation></semantics></math> on the shape of the spike is small.
+Its main role is to deliver a pulse of calcium ions into the neuron.
+The calcium ions have an important role as second-messengers; they can trigger various cascades of biophysical processes.
+Intracellular calcium is taken up by internal buffers, or slowly pumped out of the cell,
+leading to an intricate dynamics dependent on the properties
+of calcium buffers and calcium pumps.
+For small calcium transients, however,
+or when the calcium pump has high calcium affinity and slow extrusion rate,
+the intracellular calcium dynamics follow <cite class="ltx_cite">(<a href="bib.html#bib32" title="Imaging in neuroscience: a laboratory manual" class="ltx_ref">211</a>)</cite></span>
+              </p>
+<table id="Ch2.E12" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E12.m1" class="ltx_Math" alttext="{{\text{d}}[Ca]\over{\text{d}}t}=\phi_{\rm Ca}I_{\rm Ca}+\tau_{\rm Ca}^{-1}%
+\left([Ca]-[Ca]_{0}\right)," display="block"><semantics><mrow><mrow><mfrac><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo>]</mo></mrow></mrow><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mrow><msub><mi>Ï</mi><mi>Ca</mi></msub><mo>â¢</mo><msub><mi>I</mi><mi>Ca</mi></msub></mrow><mo>+</mo><mrow><msubsup><mi>Ï</mi><mi>Ca</mi><mrow><mo>-</mo><mn>1</mn></mrow></msubsup><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo>]</mo></mrow><mo>-</mo><msub><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo>]</mo></mrow><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}[Ca]\over{\text{d}}t}=\phi_{\rm Ca}I_{\rm Ca}+\tau_{\rm Ca}^{-1}%
+\left([Ca]-[Ca]_{0}\right),</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.12)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS3.p4.m8" class="ltx_Math" alttext="[Ca]" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mi mathsize="normal" stretchy="false">C</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">a</mi></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[Ca]</annotation></semantics></math> denotes the intracellular calcium concentration,
+<math id="SS3.p4.m9" class="ltx_Math" alttext="I_{\rm Ca}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Ca</mi></msub><annotation encoding="application/x-tex">I_{\rm Ca}</annotation></semantics></math> is the sum of currents coming from all calcium ion channels,
+<math id="SS3.p4.m10" class="ltx_Math" alttext="\phi_{Ca}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mrow><mi mathsize="normal" stretchy="false">C</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">a</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{Ca}</annotation></semantics></math> is a constant that scales the ionic current to changes in ionic concentration,
+<math id="SS3.p4.m11" class="ltx_Math" alttext="[Ca]_{0}" display="inline"><semantics><msub><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mi mathsize="normal" stretchy="false">C</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">a</mi></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">[Ca]_{0}</annotation></semantics></math> is a baseline intracellular calcium concentration and
+<math id="SS3.p4.m12" class="ltx_Math" alttext="\tau_{\rm Ca}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">Ca</mi></msub><annotation encoding="application/x-tex">\tau_{\rm Ca}</annotation></semantics></math> is the effective time constant of calcium extrusion.
+In our simple example the sole source of incoming calcium ions is the high-threshold calcium channel hence <math id="SS3.p4.m13" class="ltx_Math" alttext="I_{\rm Ca}=I_{\rm HVA}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Ca</mi></msub><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">HVA</mi></msub></mrow><annotation encoding="application/x-tex">I_{\rm Ca}=I_{\rm HVA}</annotation></semantics></math>.
+Because of the short duration of the spike,
+each spike adds
+a fixed amount of intracellular calcium which afterward decays
+exponentially (Figure <a href="#Ch2.F15" title="Fig.Â 2.15 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.16</span></a>E), as observed in many cell types <cite class="ltx_cite">(<a href="bib.html#bib32" title="Imaging in neuroscience: a laboratory manual" class="ltx_ref">211</a>)</cite>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The calcium-dependent potassium channel
+<math id="SS3.p4.m14" class="ltx_Math" alttext="I_{\rm K[Ca]}=g_{\rm K[Ca]}\,n\,(u-E_{K})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">n</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" stretchy="false">K</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm K[Ca]}=g_{\rm K[Ca]}\,n\,(u-E_{K})</annotation></semantics></math>
+is weakly sensitive to the membrane potential but highly sensitive to intra-cellular calcium concentration. The dynamics of activation can be modeled with
+a calcium dependent time constant <cite class="ltx_cite">(<a href="bib.html#bib33" title="A model of spindle rhythmicity in the isolated thalamic reticular nucleus" class="ltx_ref">124</a>)</cite>
+of the activation variable <math id="SS3.p4.m15" class="ltx_Math" alttext="n" display="inline"><semantics><mi mathsize="normal" stretchy="false">n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math></span>
+              </p>
+<table id="Ch2.E13" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E13.m1" class="ltx_Math" alttext="\tau_{n}([Ca])=\frac{k_{3}}{1+k_{2}e^{k_{1}[Ca]}}" display="block"><semantics><mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo fence="true">([</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo fence="true">])</mo></mrow></mrow><mo>=</mo><mfrac><msub><mi>k</mi><mn>3</mn></msub><mrow><mn>1</mn><mo>+</mo><mrow><msub><mi>k</mi><mn>2</mn></msub><mo>â¢</mo><msup><mi>e</mi><mrow><msub><mi>k</mi><mn>1</mn></msub><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo>]</mo></mrow></mrow></msup></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tau_{n}([Ca])=\frac{k_{3}}{1+k_{2}e^{k_{1}[Ca]}}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.13)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">and a stationary value <cite class="ltx_cite">(<a href="bib.html#bib33" title="A model of spindle rhythmicity in the isolated thalamic reticular nucleus" class="ltx_ref">124</a>)</cite></span>
+              </p>
+<table id="Ch2.E14" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E14.m1" class="ltx_Math" alttext="n_{0}=\frac{k_{2}e^{k_{1}[Ca]}}{1+k_{2}e^{k_{1}[Ca]}}" display="block"><semantics><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>=</mo><mfrac><mrow><msub><mi>k</mi><mn>2</mn></msub><mo>â¢</mo><msup><mi>e</mi><mrow><msub><mi>k</mi><mn>1</mn></msub><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo>]</mo></mrow></mrow></msup></mrow><mrow><mn>1</mn><mo>+</mo><mrow><msub><mi>k</mi><mn>2</mn></msub><mo>â¢</mo><msup><mi>e</mi><mrow><msub><mi>k</mi><mn>1</mn></msub><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>C</mi><mo>â¢</mo><mi>a</mi></mrow><mo>]</mo></mrow></mrow></msup></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">n_{0}=\frac{k_{2}e^{k_{1}[Ca]}}{1+k_{2}e^{k_{1}[Ca]}}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.14)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS3.p4.m16" class="ltx_Math" alttext="k_{1}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">k</mi><mn mathsize="normal" stretchy="false">1</mn></msub><annotation encoding="application/x-tex">k_{1}</annotation></semantics></math>,<math id="SS3.p4.m17" class="ltx_Math" alttext="k_{2}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">k</mi><mn mathsize="normal" stretchy="false">2</mn></msub><annotation encoding="application/x-tex">k_{2}</annotation></semantics></math>,<math id="SS3.p4.m18" class="ltx_Math" alttext="k_{3}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">k</mi><mn mathsize="normal" stretchy="false">3</mn></msub><annotation encoding="application/x-tex">k_{3}</annotation></semantics></math>
+and <math id="SS3.p4.m19" class="ltx_Math" alttext="g_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">g</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">g_{\rm K[Ca]}</annotation></semantics></math> are constants.
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Figure <a href="#Ch2.F16" title="Fig.Â 2.16 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.16</span></a> shows the effect of the
+combined action of calcium channel and <math id="SS3.p4.m20" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>.
+A single spike generates a transient increase in intracellular calcium which in turn causes a transient increase in <math id="SS3.p4.m21" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math> activation which results in a hyperpolarization
+of the membrane potential compared to a model without
+<math id="SS3.p4.m22" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>.
+During sustained stimulation,
+calcium accumulates over several spikes,
+so that the effect of <math id="SS3.p4.m23" class="ltx_Math" alttext="I_{\rm K[Ca]}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">Ca</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow></msub><annotation encoding="application/x-tex">I_{\rm K[Ca]}</annotation></semantics></math>
+becomes successively larger and interspike intervals increase.
+The time constant associated with adaptation
+is a combination of the calcium extrusion time constant
+and the potassium activation and de-activation time constant.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch2.F17" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x60.png" id="Ch2.F17.g1" class="ltx_graphics" width="293" height="223" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x61.png" id="Ch2.F17.g2" class="ltx_graphics" width="293" height="223" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.16: </span>
+The persistent sodium channel <math id="Ch2.F17.m5" class="ltx_Math" alttext="I_{\rm NaP}" display="inline"><semantics><msub><mi>I</mi><mi>NaP</mi></msub><annotation encoding="application/x-tex">I_{\rm NaP}</annotation></semantics></math> increases the firing threshold.
+<span class="ltx_text ltx_font_bold">A</span>. Activation and inactivation profiles for <math id="Ch2.F17.m6" class="ltx_Math" alttext="I_{\rm NaP}=g_{\rm NaP}\,m\,h\,(u-E_{\rm Na})" display="inline"><semantics><mrow><msub><mi>I</mi><mi>NaP</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>NaP</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>m</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>h</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>Na</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm NaP}=g_{\rm NaP}\,m\,h\,(u-E_{\rm Na})</annotation></semantics></math>.
+Activation is fast (a few ms) whereas inactivation is of the order of a
+second as measured in pyramidal neurons of the cortex <cite class="ltx_cite">(<a href="bib.html#bib34" title="Layer-specific properties of the persistent sodium current in sensorimotor cortex" class="ltx_ref">28</a>)</cite>.
+<span class="ltx_text ltx_font_bold">B</span>. Slow inactivation affects the effective threshold. In a Hodgkin-Huxley model with persistent sodium current,
+subthreshold current pulses are injected
+at different moments (arrows). Only at <math id="Ch2.F17.m7" class="ltx_Math" alttext="t=" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mi></mi></mrow><annotation encoding="application/x-tex">t=</annotation></semantics></math> <math id="Ch2.F17.m8" class="ltx_Math" alttext="50ms" display="inline"><semantics><mrow><mn>50</mn><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">50ms</annotation></semantics></math> (asterisk), a suprathreshold stimulation
+was applied.
+Tuning the strength of the other current pulse so that they are just below spike initiation reveals an effective voltage threshold (dashed line) that is higher immediately after the first spike.
+
+</figcaption>
+</figure>
+<div id="SS3.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Slow De-inactivation of a Persistent Sodium Channel</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The stationary values of activation and inactivation of the
+persistent sodium channel <math id="SS3.p5.m1" class="ltx_Math" alttext="I_{\rm NaP}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">NaP</mi></msub><annotation encoding="application/x-tex">I_{\rm NaP}</annotation></semantics></math> (Figure <a href="#Ch2.F17" title="Fig.Â 2.16 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.16</span></a>A)
+are very similar to that of the normal sodium channel
+of the Hodgkin-Huxley model.
+The main difference lies in the time constant.
+While activation of the channel is quick,
+it inactivates on a much slower time scale. Hence the name: the current âpersistsâ.
+The time constant of the inactivation variable <math id="SS3.p5.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> is of the order of a second.
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">During sustained stimulation,
+each spike contributes to the inactivation of the sodium channel
+and therefore reduces the excitability of the neuron. This special type of refractoriness is not visible in the spike after-potential, but can be illustrated as a relative increase in the effective spiking threshold (Figure <a href="#Ch2.F17" title="Fig.Â 2.16 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.16</span></a>B). Since, after a first spike,
+the sodium channel is partially inactivated,
+it becomes more difficult to make the neuron fire
+a second time.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS4" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3.4 </span>Subthreshold Effects</h1>
+
+<div id="SS4.p1" class="ltx_para">
+<p class="ltx_p">Some ion channels have an activation profile
+<math id="SS4.p1.m1" class="ltx_Math" alttext="m_{0}(u)" display="inline"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(u)</annotation></semantics></math> which has a significant slope
+well below the spike initiation threshold.
+During subthreshold activation of the cell
+by background activity in vivo, or during injection
+of a fluctuating current,
+these currents partially activate and inactivate,
+following the time course of membrane potential fluctuations
+and shaping them in turn.</p>
+</div>
+<div id="SS4.p2" class="ltx_para">
+<p class="ltx_p">We describe two examples of subthreshold ion channel dynamics.
+The first one illustrates adaptation to a depolarized membrane potential
+by inactivation of a depolarizing current,
+which results in a subsequent reduction of the membrane potential.
+The second example illustrates the opposite behavior:
+in response to a depolarized membrane potential, a depolarizing current is triggered
+which increases the membrane potential even further.
+The two examples therefore correspond to
+subthreshold adaptation and subthreshold facilitation, respectively.</p>
+</div>
+<div id="SS4.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Subthreshold Adaptation by <math id="SS4.p3.m1" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math></span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Subthreshold adaptation through a hyperpolarization-activated current <math id="SS4.p3.m2" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> is
+present in many cell classes.
+As the name implies, the current is activated only at hyperpolarized voltages
+as can be seen in Fig. <a href="#Ch2.F18" title="Fig.Â 2.17 â£ 2.3.4 Subthreshold Effects â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.17</span></a>A.
+Thus, the voltage dependence of the activation variable
+is inverted compared to the normal case and has
+<span class="ltx_text ltx_font_italic">negative</span> slope. Therefore, the activation variable
+looks more like an inactivation variable and this is why
+we choose <math id="SS4.p3.m3" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> as the name of the variable.
+The channel is essentially closed
+for prolonged membrane potential fluctuations above -30 mV.
+The <math id="SS4.p3.m4" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> current is a nonspecific cation current, meaning that sodium, potassium and calcium
+can pass through the <math id="SS4.p3.m5" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> channel when it is open.
+The reversal potential of this ion channel is usually around -45 mV
+so that the h-current <math id="SS4.p3.m6" class="ltx_Math" alttext="I_{h}=g_{h}\,h\,(u-E_{h})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" stretchy="false">h</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">h</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" stretchy="false">h</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{h}=g_{h}\,h\,(u-E_{h})</annotation></semantics></math> is depolarizing at resting
+potential and over most of the subthreshold regime.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The presence of <math id="SS4.p3.m7" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> causes the response to step changes in input current to
+exhibit damped oscillations.
+The interaction works as follows: suppose an external driving current depolarizes the cell.
+In the absence of ion channels this would lead to an exponential relaxation to a
+new value of the membrane potential of, say, -50 mV.
+Since <math id="SS4.p3.m8" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> was mildly activated at rest, the membrane potential increase causes the channel to de-activate. The gradual closure of <math id="SS4.p3.m9" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> removes the effective
+depolarizing drive and the membrane potential decreases, leading to a damped oscillation (as in Fig. <a href="#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>). This principle can also lead to a rebound spike as seen in Fig. <a href="#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>. Subthreshold adaptation and damped oscillations will be treated in more detail in Chapter <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch2.F18" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x62.png" id="Ch2.F18.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x63.png" id="Ch2.F18.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.17: </span> Subthreshold adaptation with <math id="Ch2.F18.m4" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi>I</mi><mi>h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">A</span>.
+Stationary values and <span class="ltx_text ltx_font_bold">B</span>. time constants
+of the variable <math id="Ch2.F18.m5" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> controlling the
+hyperpolarization-activated mixed current <math id="Ch2.F18.m6" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi>I</mi><mi>h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math> as measured in pyramidal neurons of the hippocampus <cite class="ltx_cite">(<a href="bib.html#bib35" title="Dendritic hyperpolarization-activated currents modify the integrative properties of hippocampal ca1 pyramidal neurons" class="ltx_ref">322</a>)</cite>.</figcaption>
+</figure>
+<div id="SS4.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Subthreshold Facilitation by <math id="SS4.p4.m1" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math></span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The sodium ion channel <math id="SS4.p4.m2" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math>
+is slow to activate. Let us consider again stimulation with a step current
+using a model which contains both the fast sodium current of the Hodgkin-Huxley
+model and the slow sodium current <math id="SS4.p4.m3" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math>.
+If the strength of the current step is such that it does not activate the fast sodium channel
+but strong enough to activate <math id="SS4.p4.m4" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math>,
+then the slow activation of this sodium current increases membrane potential gradually
+with the time constant of activation
+of the slow sodium current (Fig. <a href="#Ch2.F19" title="Fig.Â 2.18 â£ 2.3.4 Subthreshold Effects â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.18</span></a>B).
+The slow depolarization continues until the fast sodium current activates
+and an action potential is generated (Figure <a href="#Ch2.F19" title="Fig.Â 2.18 â£ 2.3.4 Subthreshold Effects â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.18</span></a>C).
+Such delayed spike initiation has been observed in various types of interneurons of the cortex.
+If the amplitude of the step current is sufficient to immediately
+activate the fast sodium channels,
+the gradual activation of <math id="SS4.p4.m5" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math> increases the firing frequency
+leading to spike-frequency facilitation.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch2.F19" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x64.png" id="Ch2.F19.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x65.png" id="Ch2.F19.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x66.png" id="Ch2.F19.g3" class="ltx_graphics" width="590" height="178" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center" colspan="2">
+                    <img src="x67.png" id="Ch2.F19.g4" class="ltx_graphics" width="590" height="95" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">E</span>
+                  </td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_right" colspan="2"><img src="x68.png" id="Ch2.F19.g5" class="ltx_graphics" width="590" height="143" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.18: </span> Subthreshold facilitation with <math id="Ch2.F19.m4" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi>I</mi><mi>NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">A</span>. Stationary values and <span class="ltx_text ltx_font_bold">B</span> time constants
+of the activation variable <math id="Ch2.F19.m5" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> for the slow sodium current <math id="Ch2.F19.m6" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi>I</mi><mi>NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math> similar to measurements done in pyramidal neurons of the hippocampus <cite class="ltx_cite">(<a href="bib.html#bib36" title="A novel tetrodotoxin-insensitive, slow sodium current in striatal and hippocampal beurons" class="ltx_ref">224</a>)</cite>. <span class="ltx_text ltx_font_bold">C</span>. Voltage response. <span class="ltx_text ltx_font_bold">D</span>. External Current. <span class="ltx_text ltx_font_bold">E</span>. Slow sodium current activation, leading to delayed spike initiation and firing frequency facilitation.</figcaption>
+</figure>
+</section>
+<section id="SS5" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3.5 </span>Calcium spikes and postinhibitory rebound</h1>
+
+<div id="SS5.p1" class="ltx_para">
+<p class="ltx_p">Postinhibitory rebound means that a hyperpolarizing current, which is
+suddenly switched off, results in an overshoot of the membrane
+potential or even in the triggering of one or more action
+potentials. Through this mechanism, action potentials can be triggered
+by <span class="ltx_text ltx_font_italic">inhibitory</span> input. These action potentials, however, occur
+with a certain delay after the arrival of the inhibitory input, viz.,
+after the end of the IPSP
+<cite class="ltx_cite">(<a href="bib.html#bib37" title="Regulation of the rebound depolarization and spontaneous firing patterns of deep nuclear neurons in slices of rat cerebellum" class="ltx_ref">13</a>)</cite>.</p>
+</div>
+<div id="SS5.p2" class="ltx_para">
+<p class="ltx_p">Inactivating currents with a voltage threshold
+below the resting potential, such as the low-threshold calcium current,
+can give rise to a much stronger effect of inhibitory rebound
+than the one seen in the standard Hodgkin-Huxley model.
+Compared to the sodium current, the low-threshold calcium current
+<math id="SS5.p2.m1" class="ltx_Math" alttext="I_{\text{T}}" display="inline"><semantics><msub><mi>I</mi><mtext>T</mtext></msub><annotation encoding="application/x-tex">I_{\text{T}}</annotation></semantics></math> has activation and
+inactivation curves that are shifted significantly toward a hyperpolarized
+membrane potential so that the channel is completely <span class="ltx_text ltx_font_italic">inactivated</span> (<math id="SS5.p2.m2" class="ltx_Math" alttext="h\approx 0" display="inline"><semantics><mrow><mi>h</mi><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h\approx 0</annotation></semantics></math>) at the resting potential; see Fig. <a href="#Ch2.F20" title="Fig.Â 2.19 â£ 2.3.5 Calcium spikes and postinhibitory rebound â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.19</span></a>A and B.
+In order to open the low-threshold calcium channels it is first
+of all necessary to remove its inactivation by <span class="ltx_text ltx_font_italic">hyperpolarizing</span>
+the membrane. The time constant of the inactivation variable <math id="SS5.p2.m3" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> is
+rather high
+and it thus takes a while until <math id="SS5.p2.m4" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> has reached a value sufficiently
+above zero; Fig. <a href="#Ch2.F20" title="Fig.Â 2.19 â£ 2.3.5 Calcium spikes and postinhibitory rebound â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.19</span></a>B and D.
+But even if the channels have been successfully
+âde-inactivatedâ they remain in a closed state, because the activation
+variable <math id="SS5.p2.m5" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> is zero as long as the membrane is hyperpolarized.
+However, the channels will be
+transiently opened if the membrane potential is rapidly relaxed from the
+hyperpolarized level to the resting potential, because activation is
+faster than inactivation and, thus, there is a short period when both
+<math id="SS5.p2.m6" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> and <math id="SS5.p2.m7" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> are non-zero. The current that passes through the channels
+is terminated (âinactivatedâ) as soon as the inactivation variable <math id="SS5.p2.m8" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+has dropped to zero again, but this takes a while because of the relatively slow
+time scale of <math id="SS5.p2.m9" class="ltx_Math" alttext="\tau_{h}" display="inline"><semantics><msub><mi>Ï</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\tau_{h}</annotation></semantics></math>. The resulting current pulse is called a
+<span class="ltx_text ltx_font_italic">low-threshold calcium spike</span> and is much broader than a sodium spike.</p>
+</div>
+<div id="SS5.p3" class="ltx_para">
+<p class="ltx_p">The increase in the membrane potential caused by the low-threshold calcium
+spike may be sufficient to trigger ordinary sodium action potentials.
+These are the rebound spikes that may occur after a prolonged inhibitory input.
+Figure <a href="#Ch2.F20" title="Fig.Â 2.19 â£ 2.3.5 Calcium spikes and postinhibitory rebound â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.19</span></a>C
+shows an example of (sodium) rebound spikes that
+ride on the broad depolarization wave of the calcium spike; note that
+the whole sequence is
+triggered at the end of an inhibitory current pulse.
+Thus release from inhibition causes here a spike-doublet.</p>
+</div>
+<figure id="Ch2.F20" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x69.png" id="Ch2.F20.g1" class="ltx_graphics" width="293" height="199" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x70.png" id="Ch2.F20.g2" class="ltx_graphics" width="293" height="195" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x71.png" id="Ch2.F20.g3" class="ltx_graphics" width="293" height="182" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x72.png" id="Ch2.F20.g4" class="ltx_graphics" width="293" height="182" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.19: </span>Post-inhibitory rebound through de-inactivation.
+<span class="ltx_text ltx_font_bold">A</span>. Activation <math id="Ch2.F20.m13" class="ltx_Math" alttext="m_{0}(u)" display="inline"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(u)</annotation></semantics></math> and inactivation <math id="Ch2.F20.m14" class="ltx_Math" alttext="h_{0}(u)" display="inline"><semantics><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h_{0}(u)</annotation></semantics></math> at equilibrium
+of the low-threshold calcium current
+<math id="Ch2.F20.m15" class="ltx_Math" alttext="I_{\text{T}}" display="inline"><semantics><msub><mi>I</mi><mtext>T</mtext></msub><annotation encoding="application/x-tex">I_{\text{T}}</annotation></semantics></math>. Small circles indicate the equilibrium values of <math id="Ch2.F20.m16" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+and <math id="Ch2.F20.m17" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> at the resting potential. To de-inactivate the current, the membrane potential must be below rest.
+<span class="ltx_text ltx_font_bold">B</span>. The time constants of activation and inactivation.
+Note that
+different vertical scales have been used for <math id="Ch2.F20.m18" class="ltx_Math" alttext="\tau_{\text{m}}" display="inline"><semantics><msub><mi>Ï</mi><mtext>m</mtext></msub><annotation encoding="application/x-tex">\tau_{\text{m}}</annotation></semantics></math> and
+<math id="Ch2.F20.m19" class="ltx_Math" alttext="\tau_{\text{h}}" display="inline"><semantics><msub><mi>Ï</mi><mtext>h</mtext></msub><annotation encoding="application/x-tex">\tau_{\text{h}}</annotation></semantics></math> since the dynamics of the inactivation variable <math id="Ch2.F20.m20" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> is
+slower by a factor 10-100 than that of the activation variable <math id="Ch2.F20.m21" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>.
+Numerical values of parameters correspond to a model of neurons in the
+deep cerebellar nuclei <cite class="ltx_cite">(<a href="bib.html#bib38" title="Modeling synaptic plasticity in conjunction with the timing of pre- and postsynaptic action potentials" class="ltx_ref">261</a>)</cite>.
+<span class="ltx_text ltx_font_bold">C</span>. Membrane
+potential as a function of time. Injection of a hyperpolarizing
+current pulse (100Â pA during 200Â ms from <math id="Ch2.F20.m22" class="ltx_Math" alttext="t=100" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">t=100</annotation></semantics></math>Â ms to <math id="Ch2.F20.m23" class="ltx_Math" alttext="t=300" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>300</mn></mrow><annotation encoding="application/x-tex">t=300</annotation></semantics></math>Â ms)
+results, at the end of current injection,
+in a low-threshold calcium spike that in turn triggers two sodium action
+potentials. <span class="ltx_text ltx_font_bold">D</span>. Time course of activation (solid line, left
+scale) and inactivation (dashed line, right scale) variables of
+the <math id="Ch2.F20.m24" class="ltx_Math" alttext="I_{\text{T}}" display="inline"><semantics><msub><mi>I</mi><mtext>T</mtext></msub><annotation encoding="application/x-tex">I_{\text{T}}</annotation></semantics></math> current that is responsible for this
+phenomenon.</figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch2.S2.html" title="2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2 </span>Hodgkin-Huxley Model</span></a><a href="Ch2.S4.html" title="2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.4 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

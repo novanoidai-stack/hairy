@@ -1,0 +1,634 @@
+<!DOCTYPE html><html>
+<head>
+<title>18.3 Bump attractors and spontaneous pattern formation | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch18.S2.html" title="18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch18.S4.html" title="18.4 Summary â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch18.S1.html" title="18.1 Spatial continuum model â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch18.S2.html" title="18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch18.S4.html" title="18.4 Summary â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+            , 
+              , 
+              , 
+              , 
+              , 
+              , 
+                  ">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">
+          <span class="ltx_text ltx_font_small">18</span>
+         </span>
+        <span class="ltx_text ltx_font_small">Cortical Field Models for Perception</span></span></a><a href="Ch18.S2.html" title="18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2 </span>Input-driven regime and sensory cortex models</span></a><a href="Ch18.S4.html" title="18.4 Summary â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.4 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_font_small ltx_title_section">
+<span class="ltx_tag ltx_tag_section">18.3 </span>Bump attractors and spontaneous pattern formation</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">In this section we study a continuum model
+</span>
+            
+            <span class="ltx_text ltx_font_small">with strong recurrent connections
+such that a spatial activity profile
+emerges even in cases when the
+input is homogeneous.</span>
+          </p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_font_small ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">18.3.1 </span>âBlobsâ of activity: inhomogeneous states</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">From a computational point of view bistable systems are of particular interest
+because they can be used as âmemory unitsâ. For example a homogeneous
+population of neurons with all-to-all connections can exhibit a bistable
+behavior where either all neurons are quiescent or all neurons are firing
+at their maximum rate. By switching between the inactive and the active
+state, the neuronal population is able to represent, store, or retrieve
+one bit of information. The exciting question that arises now is whether a
+neuronal net with distance-dependent coupling </span>
+              <math id="SS1.p1.m1" class="ltx_Math" alttext="w(|x-y|)" display="inline"><semantics><mrow><mi>w</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><mi>y</mi></mrow><mo fence="true">|</mo></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">w(|x-y|)</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> can store more
+than just a single bit of information, but </span>
+              <span class="ltx_text ltx_font_italic ltx_font_small">spatial patterns</span>
+              <span class="ltx_text ltx_font_small"> of
+activity. Sensory input, e.g., visual stimulation, could switch part of the
+network to its excited state whereas the unstimulated part would remain in its
+resting state. Due to bistability this pattern of activity could be preserved
+even if the stimulation is turned off again and thus provide a neuronal
+correlate of working memory.
+</span>
+              
+              
+              <span class="ltx_text ltx_font_small"></span>
+            </p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Let us suppose we prepare the network in a state where neurons in one spatial
+domain are active and all remaining neurons are quiescent. Will the network
+stay in that configuration? In other words, we are looking for an
+âinterestingâ stationary solution </span>
+              <math id="SS1.p2.m1" class="ltx_Math" alttext="h(x)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> of the field equation (</span>
+              <a href="Ch18.S1.html#Ch18.E4" title="(18.4) â£ 18.1 Spatial continuum model â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.4</span></a>
+              <span class="ltx_text ltx_font_small">). The borderline where quiescent and active domains of the network
+meet is obviously most critical to the function of the network as a memory
+device. To start with the simplest case with a single borderline, we
+consider a one-dimensional spatial pattern where the activity changes at </span>
+              <math id="SS1.p2.m2" class="ltx_Math" alttext="x=0" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+from the low-activity to the high-activity state. This pattern could be the
+result of inhomogeneous stimulation in the past, but since we are interested
+in a memory state we now assume that the external input is simply constant,
+i.e., </span>
+              <math id="SS1.p2.m3" class="ltx_Math" alttext="I^{\text{ext}}(x,t)=I^{\text{ext}}" display="inline"><semantics><mrow><mrow><msup><mi>I</mi><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                        Â </mtext></mrow></msup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><msup><mi>I</mi><mrow><mtext>Â                        Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                      Â </mtext></mrow></msup></mrow><annotation encoding="application/x-tex">I^{\text{ext}}(x,t)=I^{\text{ext}}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. Substitution of
+</span>
+              <math id="SS1.p2.m4" class="ltx_Math" alttext="h(x,t)=h(x)" display="inline"><semantics><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">h(x,t)=h(x)</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> into the field equation yields</span>
+            </p>
+<table id="Ch18.E29" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch18.E29.m1" class="ltx_Math" alttext="h(x)-I^{\text{ext}}=\int\!\!{\text{d}}y\;w(|x-y|)\,F[h(y)]\,." display="block"><semantics><mrow><mrow><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>-</mo><msup><mi>I</mi><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                        Â </mtext></mrow></msup></mrow><mo>=</mo><mrow><mo largeop="true" rspace="0pt" symmetric="true">â«</mo><mrow><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                        Â </mtext></mrow><mo>â¢</mo><mpadded width="+2.8pt"><mi>y</mi></mpadded><mo>â¢</mo><mi>w</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><mi>y</mi></mrow><mo fence="true">|</mo></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>F</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>y</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">h(x)-I^{\text{ext}}=\int\!\!{\text{d}}y\;w(|x-y|)\,F[h(y)]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(18.29)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">This is a nonlinear integral equation for the unknown function
+</span>
+              <math id="SS1.p2.m5" class="ltx_Math" alttext="h(x)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">.</span>
+            </p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">We can find a particular solution of Eq.Â (</span>
+              <a href="#Ch18.E29" title="(18.29) â£ 18.3.1 âBlobsâ of activity: inhomogeneous states â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.29</span></a>
+              <span class="ltx_text ltx_font_small">) if we replace the
+output function by a simple step function, e.g.,
+</span>
+              
+            </p>
+<table id="Ch18.E30" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch18.E30.m1" class="ltx_Math" alttext="F(h)=\begin{cases}0\,,&amp;h&lt;\vartheta\\
+1\,,&amp;h\geq\vartheta\,.\end{cases}" display="block"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mi>h</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="left"><mpadded width="+1.7pt"><mrow><mn>0</mn><mo>,</mo></mrow></mpadded></mtd><mtd columnalign="left"><mrow><mi>h</mi><mo>&lt;</mo><mi>Ï</mi></mrow></mtd></mtr><mtr><mtd columnalign="left"><mpadded width="+1.7pt"><mrow><mn>1</mn><mo>,</mo></mrow></mpadded></mtd><mtd columnalign="left"><mrow><mrow><mi>h</mi><mo>â¥</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded></mrow><mo>.</mo></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">F(h)=\begin{cases}0\,,&amp;h&lt;\vartheta\\
+1\,,&amp;h\geq\vartheta\,.\end{cases}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(18.30)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In this case </span>
+              <math id="SS1.p3.m1" class="ltx_Math" alttext="F[h(x)]" display="inline"><semantics><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">F[h(x)]</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> is either zero or one and we can exploit
+translation invariance to define </span>
+              <math id="SS1.p3.m2" class="ltx_Math" alttext="F[h(x)]=1" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">F[h(x)]=1</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> for </span>
+              <math id="SS1.p3.m3" class="ltx_Math" alttext="x&gt;0" display="inline"><semantics><mrow><mi>x</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x&gt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> and </span>
+              <math id="SS1.p3.m4" class="ltx_Math" alttext="F[h(x)]=0" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F[h(x)]=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+for </span>
+              <math id="SS1.p3.m5" class="ltx_Math" alttext="x&lt;0" display="inline"><semantics><mrow><mi>x</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x&lt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> without loss of generality. The right-hand side of
+Eq.Â (</span>
+              <a href="#Ch18.E29" title="(18.29) â£ 18.3.1 âBlobsâ of activity: inhomogeneous states â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.29</span></a>
+              <span class="ltx_text ltx_font_small">) does now no longer depend on </span>
+              <math id="SS1.p3.m6" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> and we find</span>
+            </p>
+<table id="Ch18.E31" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch18.E31.m1" class="ltx_Math" alttext="h(x)=I^{\text{ext}}+\int_{-\infty}^{x}\!\!{\text{d}}z\;w(|z|)\,," display="block"><semantics><mrow><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msup><mi>I</mi><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                        Â </mtext></mrow></msup><mo>+</mo><mrow><mpadded width="-3.4pt"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>x</mi></msubsup></mpadded><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mpadded width="+2.8pt"><mi>z</mi></mpadded><mo>â¢</mo><mi>w</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mo fence="true">|</mo><mi>z</mi><mo fence="true">|</mo></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">h(x)=I^{\text{ext}}+\int_{-\infty}^{x}\!\!{\text{d}}z\;w(|z|)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(18.31)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">and in particular</span>
+            </p>
+<table id="Ch18.E32" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch18.E32.m1" class="ltx_Math" alttext="h(0)=I^{\text{ext}}+\frac{1}{2}\,\bar{w}\,." display="block"><semantics><mrow><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msup><mi>I</mi><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                        Â </mtext></mrow></msup><mo>+</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><mn>2</mn></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mover accent="true"><mi>w</mi><mo stretchy="false">Â¯</mo></mover></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">h(0)=I^{\text{ext}}+\frac{1}{2}\,\bar{w}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(18.32)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">with </span>
+              <math id="SS1.p3.m7" class="ltx_Math" alttext="\bar{w}=\int{\text{d}}y\;w(|y|)" display="inline"><semantics><mrow><mover accent="true"><mi>w</mi><mo stretchy="false">Â¯</mo></mover><mo>=</mo><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                        Â </mtext></mrow><mo>â¢</mo><mpadded width="+2.8pt"><mi>y</mi></mpadded><mo>â¢</mo><mi>w</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mo fence="true">|</mo><mi>y</mi><mo fence="true">|</mo></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\bar{w}=\int{\text{d}}y\;w(|y|)</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. We have calculated this
+solution under the assumption that </span>
+              <math id="SS1.p3.m8" class="ltx_Math" alttext="F[h(x)]=1" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">F[h(x)]=1</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> for </span>
+              <math id="SS1.p3.m9" class="ltx_Math" alttext="x&gt;0" display="inline"><semantics><mrow><mi>x</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x&gt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> and </span>
+              <math id="SS1.p3.m10" class="ltx_Math" alttext="F[h(x)]=0" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F[h(x)]=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+for </span>
+              <math id="SS1.p3.m11" class="ltx_Math" alttext="x&lt;0" display="inline"><semantics><mrow><mi>x</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x&lt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. This assumption imposes a self-consistency condition on the
+solution, namely that the membrane potential reaches the threshold </span>
+              <math id="SS1.p3.m12" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+</span>
+              
+              <span class="ltx_text ltx_font_small">at </span>
+              <math id="SS1.p3.m13" class="ltx_Math" alttext="x=0" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. A solution in form of a stationary border between quiescent and
+active neurons can therefore only be found if</span>
+            </p>
+<table id="Ch18.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch18.E33.m1" class="ltx_Math" alttext="I^{\text{ext}}=\vartheta-\frac{1}{2}\,\bar{w}\,." display="block"><semantics><mrow><mrow><msup><mi>I</mi><mrow><mtext>Â                        Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                      Â </mtext></mrow></msup><mo>=</mo><mrow><mi>Ï</mi><mo>-</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><mn>2</mn></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mover accent="true"><mi>w</mi><mo stretchy="false">Â¯</mo></mover></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I^{\text{ext}}=\vartheta-\frac{1}{2}\,\bar{w}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(18.33)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">If the external stimulation is either smaller or greater than this
+critical value, then the border will propagate to the right or to the
+left.</span>
+            </p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Following the same line of reasoning, we can also look for a localized âblobâ
+of activity. Assuming that </span>
+              <math id="SS1.p4.m1" class="ltx_Math" alttext="F[h(x)]=1" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">F[h(x)]=1</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> for </span>
+              <math id="SS1.p4.m2" class="ltx_Math" alttext="x\in[x_{1},x_{2}]" display="inline"><semantics><mrow><mi>x</mi><mo>â</mo><mrow><mo>[</mo><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">x\in[x_{1},x_{2}]</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> and </span>
+              <math id="SS1.p4.m3" class="ltx_Math" alttext="F[h(x)]=0" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F[h(x)]=0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">
+outside this interval leads to a self-consistency condition of the form</span>
+            </p>
+<table id="Ch18.E34" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch18.E34.m1" class="ltx_Math" alttext="I^{\text{ext}}=\vartheta-\int_{0}^{\Delta}{\text{d}}x\;w(x)\,," display="block"><semantics><mrow><mrow><msup><mi>I</mi><mrow><mtext>Â                        Â </mtext><mtext mathsize="small" stretchy="false">ext</mtext><mtext>Â                      Â </mtext></mrow></msup><mo>=</mo><mrow><mi>Ï</mi><mo>-</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">Î</mi></msubsup><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mpadded width="+2.8pt"><mi>x</mi></mpadded><mo>â¢</mo><mi>w</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">I^{\text{ext}}=\vartheta-\int_{0}^{\Delta}{\text{d}}x\;w(x)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(18.34)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">with </span>
+              <math id="SS1.p4.m4" class="ltx_Math" alttext="\Delta=x_{2}-x_{1}" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>=</mo><mrow><msub><mi>x</mi><mn>2</mn></msub><mo>-</mo><msub><mi>x</mi><mn>1</mn></msub></mrow></mrow><annotation encoding="application/x-tex">\Delta=x_{2}-x_{1}</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small">. The mathematical arguments are qualitatively the same,
+if we replace the step function by a more realistic smooth gain function.</span>
+            </p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Figure </span>
+              <a href="#Ch18.F14" title="Fig.Â 18.14 â£ 18.3.1 âBlobsâ of activity: inhomogeneous states â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.14</span></a>
+              <span class="ltx_text ltx_font_small"> shows that solutions in the form of sharply localized
+excitations exist for a broad range of external stimulations. A simple
+argument also shows that the width </span>
+              <math id="SS1.p5.m1" class="ltx_Math" alttext="\Delta" display="inline"><semantics><mi mathvariant="normal">Î</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> of the blob is stable if
+</span>
+              <math id="SS1.p5.m2" class="ltx_Math" alttext="w(\Delta)&lt;0" display="inline"><semantics><mrow><mrow><mi>w</mi><mo>â¢</mo><mrow><mo>(</mo><mi mathvariant="normal">Î</mi><mo>)</mo></mrow></mrow><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">w(\Delta)&lt;0</annotation></semantics></math>
+              <span class="ltx_text ltx_font_small"> </span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib328" title="A mathematical foundation of statistical neurodynamics" class="ltx_ref">17</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">. In this case blobs of activity can be
+induced without the need of fine tuning the parameters in order to fulfill the
+</span>
+              
+              <span class="ltx_text ltx_font_small">self-consistency condition, because the width of the blob will adjust itself
+until stationarity is reached and Eq.Â (</span>
+              <a href="#Ch18.E34" title="(18.34) â£ 18.3.1 âBlobsâ of activity: inhomogeneous states â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.34</span></a>
+              <span class="ltx_text ltx_font_small">) holds; cf.Â Fig.Â </span>
+              <a href="#Ch18.F14" title="Fig.Â 18.14 â£ 18.3.1 âBlobsâ of activity: inhomogeneous states â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.14</span></a>
+              <span class="ltx_text ltx_font_small">A.</span>
+            </p>
+</div>
+<figure id="Ch18.F14" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x584.png" id="Ch18.F14.g1" class="ltx_graphics" width="293" height="237" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x585.png" id="Ch18.F14.g2" class="ltx_graphics" width="293" height="182" alt="">
+                    <span class="ltx_text ltx_font_small"></span>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 18.14: </span>Localized âblobsâ of activity. <span class="ltx_text ltx_font_bold">A</span>. A small initial
+perturbation develops into a stable blob of activity. <span class="ltx_text ltx_font_bold">B</span>. Stationary
+profile of a localized excitation for various amounts of external
+stimulation (<math id="Ch18.F14.m2" class="ltx_Math" alttext="I^{\text{ext}}=0,0.5,\ldots,0.3" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">I</mi><mtext mathsize="small" stretchy="false">ext</mtext></msup><mo mathsize="normal" stretchy="false">=</mo><mrow><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="small" stretchy="false">,</mo><mn mathsize="normal" stretchy="false">0.5</mn><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â¦</mi><mo mathsize="small" stretchy="false">,</mo><mn mathsize="normal" stretchy="false">0.3</mn></mrow></mrow><annotation encoding="application/x-tex">I^{\text{ext}}=0,0.5,\ldots,0.3</annotation></semantics></math> in order of increasing
+width). Note that for strong stimuli neurons in the center of the
+activity blob are less active than those close to the edge of the blob. </figcaption>
+</figure>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_font_small ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">18.3.2 </span>Sense of Orientation and Head Direction Cells</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Head direction cells in the rodent entorhinal cortex
+are thought to be a neural correlate of the
+internal compass of rodents.
+A head direction cell responds maximally if the
+head of the animal points in the direction
+preferred by this cell </span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib441" title="Comparisons of head direction cell activity in the postsubiculum and anterior thalamus of freely moving rats" class="ltx_ref">508</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+Different head direction cells have different receptive fields.
+The preferred direction of head direction
+cells depends not on absolute north and south,
+but rather on visual cues.
+In a laboratory setting, one specific head direction
+cell will for example always fire when a salient cue card
+</span>
+              
+              <span class="ltx_text ltx_font_small">is 60 degree to the left of the body axis,
+another one when it is 40 degrees to the right
+(Fig. </span>
+              <a href="#Ch18.F15" title="Fig.Â 18.15 â£ 18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.15</span></a>
+              <span class="ltx_text ltx_font_small">A).</span>
+            </p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In an experiment during recordings from entorhinal cortex
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib442" title="Rapid spatial reorientation and head direction cells" class="ltx_ref">568</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">, a rat was trained to sit still while eating
+food with its head pointing in the preferred
+direction of one of the cells in entorhinal cortex.
+Recordings from this cell show high activity
+(Fig. </span>
+              <a href="#Ch18.F15" title="Fig.Â 18.15 â£ 18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.15</span></a>
+              <span class="ltx_text ltx_font_small">B).
+The cell remains active after the light has been
+switched off indicating that
+the rat has memorized its momentary orientation.
+We emphasize that the orientation of the head
+can be described by a continuous variable.
+It is therefore this continuous value which needs to be kept in memory!</span>
+            </p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">During the second phase of the experiment,
+while lights are switched off, the cues are rotated.
+Finally, in the last phase of the experiment,
+lights are switched on again.
+After a few milliseconds, the internal
+</span>
+              
+              <span class="ltx_text ltx_font_small">compass aligns with the new position
+of the cues.
+The activity of the recorded cell drops
+(Fig. </span>
+              <a href="#Ch18.F15" title="Fig.Â 18.15 â£ 18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.15</span></a>
+              <span class="ltx_text ltx_font_small">B), because,
+in the new frame of reference,
+the head direction is now outside
+its receptive field
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib442" title="Rapid spatial reorientation and head direction cells" class="ltx_ref">568</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+Two aspects are important from a modeling perspective.
+First, memory content depends on the external input.
+Second, the memory must be capable of storing a continuous variable -
+in contrast to the memory models of Chapter
+</span>
+              <a href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17</span></a>
+              <span class="ltx_text ltx_font_small"> where discrete memory items are stored.</span>
+            </p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In order to represent the continuous
+head direction variable,
+ring models have been used
+</span>
+              <cite class="ltx_cite">
+                <span class="ltx_text ltx_font_small">(</span>
+                <a href="bib.html#bib443" title="A coupled attractor model of the rodent head direction system" class="ltx_ref">424</a>; <a href="bib.html#bib444" title="Representaton of spatial orientation by the intrinsic dynamics of the head-direction ensemble: a theory" class="ltx_ref">566</a>
+                <span class="ltx_text ltx_font_small">)</span>
+              </cite>
+              <span class="ltx_text ltx_font_small">.
+The location of
+a neuron on the ring represents
+its preferred head direction
+(Fig. </span>
+              <a href="#Ch18.F16" title="Fig.Â 18.16 â£ 18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.16</span></a>
+              <span class="ltx_text ltx_font_small">).
+Cells with similar preferred
+head direction excite
+each other whereas
+</span>
+              
+              <span class="ltx_text ltx_font_small">cells with opposite preferred head direction
+inhibit each other.
+Thus, the ring model
+has a Mexican-hat connectivity.
+Parameters are chosen
+such that the model is
+in the regime of bump-attractors,
+so that the present
+value of presumed head direction
+is kept in memory, even
+if stimulation stops.</span>
+            </p>
+</div>
+<figure id="Ch18.F15" class="ltx_figure"><img src="x586.png" id="Ch18.F15.g1" class="ltx_graphics ltx_centering" width="588" height="371" alt="">
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 18.15: </span>
+Head direction cells.
+<span class="ltx_text ltx_font_bold">A</span>. The head direction <math id="Ch18.F15.m5" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math> is defined
+with respect to salient cues in the environment.
+<span class="ltx_text ltx_font_bold">B</span>. Firing rate as a function of <math id="Ch18.F15.m6" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
+The cell responds maximally
+when the head points in the cellâs preferred direction.
+<span class="ltx_text ltx_font_bold">C</span>. The cell remains active, even if the lights are switched
+off. Spike raster shows action potentials
+of a single head-direction cell.
+For <math id="Ch18.F15.m7" class="ltx_Math" alttext="t&lt;0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t&lt;0</annotation></semantics></math> the room is dark. During the lights-off phase,
+the cue is manually rotated.
+At <math id="Ch18.F15.m8" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math> the light is switched on again,
+with the cue in the new position.
+<span class="ltx_text ltx_font_bold">D</span>. Compared to the new cue position,
+the head of the rat no longer points in the cells preferred direction and,
+after a few milliseconds, the cell becomes silent;
+adapted from <cite class="ltx_cite">(<a href="bib.html#bib442" title="Rapid spatial reorientation and head direction cells" class="ltx_ref">568</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS2.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Activation of Head Direction Cells</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Head direction cells rely on visual cues,
+but also on information arising
+from the acceleration sensors
+in the inner ears.
+One of the intriguing open questions
+is how the sensory information
+</span>
+                
+                <span class="ltx_text ltx_font_small">from the inner ear is transformed
+into updates of the head direction system
+</span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib443" title="A coupled attractor model of the rodent head direction system" class="ltx_ref">424</a>; <a href="bib.html#bib444" title="Representaton of spatial orientation by the intrinsic dynamics of the head-direction ensemble: a theory" class="ltx_ref">566</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">.
+A second question is how
+head direction information can be maintained
+in the absence of further visual
+or acceleration input. Here we focus
+on this second question.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Since the activity of head direction
+cells does not stop when the light
+is turned off,
+interactions in a ring model
+of head direction must
+be chosen such that
+activity bumps are stable
+in the absence of input.
+Initially, a strong visual cue
+fixates the bump of activity
+at one specific location
+on the ring.
+If the visual input is switched off,
+the bump remains at its location
+so that the past head direction is memorized.
+When a new input
+</span>
+                
+                <span class="ltx_text ltx_font_small">with rotated cues is switched on
+the activity bump could
+either rotate towards the new location
+or disappear at the old and reappear
+at the new location (Fig. </span>
+                <a href="#Ch18.F16" title="Fig.Â 18.16 â£ 18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.16</span></a>
+                <span class="ltx_text ltx_font_small">).
+For large jumps in the
+input, the latter seems
+to be more likely in view
+of the existing experimental data
+</span>
+                <cite class="ltx_cite">
+                  <span class="ltx_text ltx_font_small">(</span>
+                  <a href="bib.html#bib442" title="Rapid spatial reorientation and head direction cells" class="ltx_ref">568</a>
+                  <span class="ltx_text ltx_font_small">)</span>
+                </cite>
+                <span class="ltx_text ltx_font_small">.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch18.F16" class="ltx_figure"><img src="x587.png" id="Ch18.F16.g1" class="ltx_graphics ltx_centering" width="588" height="237" alt="">
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 18.16: </span>
+Ring model of head direction cells.
+<span class="ltx_text ltx_font_bold">A</span>. Different neurons code for different head directions,
+visualized by their position on a ring.
+Neighboring neurons excited each other while
+neurons at larger distances along the ring
+inhibit each other.
+<span class="ltx_text ltx_font_bold">B</span>. If the input is switched to a new location
+the activity bump could slowly rotate
+to the new location, in particular
+if old and new inputs are close to each other.
+<span class="ltx_text ltx_font_bold">C</span>. Alternatively, a switch in the input
+could cause the bump to reappear at the new location;
+cf. the experimental data from
+Fig. <a href="#Ch18.F16" title="Fig.Â 18.16 â£ 18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18.16</span></a>;
+taken from <cite class="ltx_cite">(<a href="bib.html#bib442" title="Rapid spatial reorientation and head direction cells" class="ltx_ref">568</a>)</cite>.
+</figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch18.S2.html" title="18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2 </span>Input-driven regime and sensory cortex models</span></a><a href="Ch18.S4.html" title="18.4 Summary â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.4 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

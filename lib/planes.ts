@@ -43,14 +43,10 @@ export const PLAN_LABEL: Record<Plan, string> = {
 // suma aqui. Mismo aviso que arriba: si cambia, cambia tambien en la seccion
 // #precios de web/index.html y en el prompt de chispa-landing.
 //
-// *** DESINCRONIZADO desde la reestructura del 7 ago 2026 (ver mas abajo):
-// esto sigue reflejando el modelo VIEJO (esencial 39/estudio 59, IA solo en
-// estudio) porque asi es como cobra hoy crear-checkout-suscripcion. El resto
-// de este archivo (SOFTWARE_COMPLETO, IaNivel, ia_nivel) ya implementa el
-// modelo NUEVO (software 39 llano + addon de IA aparte 19/29/39), pero el
-// checkout de Stripe todavia NO sabe vender el addon por separado. Pendiente
-// de reconciliar con quien mantiene crear-checkout-suscripcion antes de que
-// esto deje de ser una fuente de verdad partida en dos. ***
+// Esencial y Estudio dan el mismo software (ver SOFTWARE_COMPLETO): la diferencia
+// de precio no gatea funciones, es solo el tier que el salon elige contratar.
+// El addon de IA (ia_nivel) es ortogonal y se cobra aparte de cualquiera de los
+// dos: whatsapp 19, voz 29, completa 39 (ver IA_NIVEL_LABEL / la seccion #precios).
 export const PLAN_PRECIO_EUR: Record<Plan, number> = {
   free: 0,
   esencial: 39,

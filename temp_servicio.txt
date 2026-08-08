@@ -1,0 +1,168 @@
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => {
+                setDropServicioOpen(!dropServicioOpen);
+                setDropEstadoOpen(false);
+              }}
+              onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                background:
+                  filterServicio !== "todos"
+                    ? "rgba(244,80,30,0.10)"
+                    : TOKENS.bgCard,
+                border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                color:
+                  filterServicio !== "todos"
+                    ? TOKENS.primaryHi
+                    : TOKENS.textSec,
+                transition: "all 0.2s ease",
+                minWidth: 120,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+              }}
+              onMouseLeave={(e) => {
+                if (!dropServicioOpen)
+                  e.currentTarget.style.borderColor =
+                    filterServicio !== "todos"
+                      ? "rgba(244,80,30,0.30)"
+                      : TOKENS.border;
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+              <span
+                style={{
+                  flex: 1,
+                  textAlign: "left",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {filterServicio === "todos"
+                  ? "Servicio"
+                  : servicios.find((s) => s.id === filterServicio)?.nombre ||
+                    "Servicio"}
+              </span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{
+                  transform: dropServicioOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {dropServicioOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  marginTop: 4,
+                  minWidth: 200,
+                  maxHeight: 260,
+                  overflowY: "auto",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 12,
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                  zIndex: 200,
+                  padding: 4,
+                  animation: "fadeIn 0.15s ease",
+                }}
+              >
+                <div
+                  onMouseDown={() => {
+                    setFilterServicio("todos");
+                    setDropServicioOpen(false);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: filterServicio === "todos" ? 700 : 500,
+                    color:
+                      filterServicio === "todos"
+                        ? TOKENS.primaryHi
+                        : TOKENS.textSec,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  Todos los servicios
+                </div>
+                {servicios.map((s) => (
+                  <div
+                    key={s.id}
+                    onMouseDown={() => {
+                      setFilterServicio(s.id);
+                      setDropServicioOpen(false);
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: filterServicio === s.id ? 700 : 500,
+                      color:
+                        filterServicio === s.id
+                          ? TOKENS.primaryHi
+                          : TOKENS.text,
+                      transition: "background 0.1s",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <span>{s.nombre}</span>
+                    {s.precio != null && (
+                      <span style={{ fontSize: 10, color: TOKENS.textTer }}>
+                        {s.precio}EUR
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+

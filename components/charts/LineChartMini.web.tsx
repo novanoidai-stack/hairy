@@ -20,7 +20,6 @@ function ejeLabel(n: number): string {
   return String(Math.round(n));
 }
 
-// Algoritmo de Bézier Cúbico Suave (Spline) para convertir puntos en trazos curvos continuos
 function smoothPath(pts: { x: number; y: number }[]): string {
   if (pts.length === 0) return '';
   if (pts.length === 1) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
@@ -28,17 +27,10 @@ function smoothPath(pts: { x: number; y: number }[]): string {
 
   let path = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
   for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i === 0 ? i : i - 1];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
-
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-    path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    const curr = pts[i];
+    const next = pts[i + 1];
+    const cpX = (curr.x + next.x) / 2;
+    path += ` C ${cpX.toFixed(1)} ${curr.y.toFixed(1)}, ${cpX.toFixed(1)} ${next.y.toFixed(1)}, ${next.x.toFixed(1)} ${next.y.toFixed(1)}`;
   }
   return path;
 }
@@ -219,10 +211,11 @@ export function LineChartMini({ serie, color, fmt, labelExplicativo }: LineChart
                 d={linePath}
                 fill="none"
                 stroke={color}
-                strokeWidth={2.5}
+                strokeWidth={3}
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 strokeLinecap="round"
+                style={{ filter: `drop-shadow(0px 4px 6px ${color}50)` }}
               />
             )}
             

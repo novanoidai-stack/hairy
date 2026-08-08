@@ -112,19 +112,24 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
     libera el hueco si no se paga en 15 min, workflow n8n "Mecha — Expirar señales").
   - **Página de autogestión del cliente `/app/cita/[id]`** (ver/cambiar/cancelar). Rutas `cita` y `pago`
     exentas de los guards de auth en `app/_layout.tsx` (como `r`/`resena`).
-- **Precios PÚBLICOS (3 ago 2026):** Esencial **39 €/mes**, Estudio **59 €/mes** (+IVA), 1 mes gratis
-  sin tarjeta, sin permanencia, 0% comisiones, profesionales ilimitados. Viven en TRES sitios que hay
-  que cambiar a la vez: la sección `#precios` de `web/index.html` (incluidos los datos estructurados
-  y el FAQ), y el `SYSTEM_PROMPT` de `supabase/functions/chispa-landing/index.ts` (el asistente los
-  recita de memoria).
-- **PLANES que limitan de verdad (3 ago 2026).** `profiles.plan` ∈ `free | esencial | estudio`
-  (`full` = valor histórico, se lee como `estudio`; ninguna cuenta antigua pierde nada).
-  **Fuente única de qué incluye cada plan: `lib/planes.ts`** — debe cuadrar con la sección de precios.
-  - Solo Estudio: Chispa IA, agente de voz (contesta el teléfono), señales Stripe, campañas,
-    lista de espera y VeriFactu. Lo demás es Esencial.
-  - Se aplica en: menú lateral (esconde lo que no entra), pantallas (`withPlanGate`) y **servidor**
-    (la edge `agenda-asistente` devuelve 402 sin plan Estudio: gasta tokens, esconder el botón no
-    es un control de acceso).
+- **Precios PÚBLICOS (reestructura del 7 ago 2026):** Esencial **39 €/mes**, Estudio **59 €/mes**
+  (+IVA) — mismo software completo en los dos, la diferencia de precio no gatea nada. Aparte y
+  opcional sobre cualquiera de los dos: addon **Recepcionistas** (IA), por WhatsApp +19 €/mes, por
+  voz +29 €/mes, o completo (WhatsApp+voz) +39 €/mes. 1 mes gratis sin tarjeta, sin permanencia, 0%
+  comisiones, profesionales ilimitados. Viven en TRES sitios que hay que cambiar a la vez: la sección
+  `#precios` de `web/index.html` (incluidos los datos estructurados y el FAQ), el `SYSTEM_PROMPT` de
+  `supabase/functions/chispa-landing/index.ts` (el asistente los recita de memoria) y `lib/planes.ts`.
+- **PLANES que limitan de verdad (3 ago 2026, IA separada en addon el 7 ago 2026).** `profiles.plan`
+  ∈ `free | esencial | estudio` (`full` = valor histórico, se lee como `estudio`; ninguna cuenta
+  antigua pierde nada). **Fuente única de qué incluye cada plan: `lib/planes.ts`** — debe cuadrar
+  con la sección de precios.
+  - Esencial y Estudio dan el mismo software (agenda, fichas, portal, recordatorios, caja, informes,
+    equipo, presupuestos, inventario, reseñas, señales, campañas, lista de espera, VeriFactu).
+  - La IA (Chispa por WhatsApp y el agente de voz) ya NO depende del plan: es el addon
+    `profiles.ia_nivel` (`ninguna | whatsapp | voz | completa`), ortogonal a Esencial/Estudio.
+  - Se aplica en: menú lateral (esconde lo que no entra), pantallas (`withPlanGate`/`ia_nivel`) y
+    **servidor** (la edge `agenda-asistente` devuelve 402 sin el nivel de IA correspondiente: gasta
+    tokens, esconder el botón no es un control de acceso).
   - El plan lo contrata el **SALÓN, no la cuenta**: la fuente es el `owner` y el resto del equipo
     lo hereda (`plan_del_negocio` / `sincronizar_plan_negocio`). `staff_set_plan` y
     `staff_grant_full_access` propagan a todo el negocio. `demo_salon_001` queda fuera.

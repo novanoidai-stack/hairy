@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { Btn, IconBtn } from '@/components/ui/SettingsAtoms';
 import {
@@ -8,6 +8,17 @@ import {
 } from '@/lib/importadorIA';
 
 const T = DESIGN_TOKENS;
+
+/** Simple viewport width tracker for responsive inline styles */
+function useViewportWidth() {
+  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    const handler = () => setW(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return w;
+}
 
 interface ModalImportarTarifasIAProps {
   negocioId: string;
@@ -22,6 +33,8 @@ export function ModalImportarTarifasIA({
   onClose,
   onImportComplete,
 }: ModalImportarTarifasIAProps) {
+  const vw = useViewportWidth();
+  const isMobile = vw < 600;
   const [paso, setPaso] = useState<'subir' | 'procesando' | 'preview' | 'resultado'>('subir');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -32,6 +45,7 @@ export function ModalImportarTarifasIA({
   const [crearCatsAuto, setCrearCatsAuto] = useState(true);
   const [resultadoImport, setResultadoImport] = useState<{
     creadas: number;
+    actualizadas: number;
     categoriasCreadas: number;
     errores: string[];
   } | null>(null);
@@ -110,6 +124,7 @@ export function ModalImportarTarifasIA({
     if (res.ok) {
       setResultadoImport({
         creadas: res.creadas,
+        actualizadas: res.actualizadas,
         categoriasCreadas: res.categoriasCreadas,
         errores: res.errores,
       });
@@ -146,7 +161,7 @@ export function ModalImportarTarifasIA({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
+        padding: isMobile ? 8 : 16,
       }}
       onClick={e => {
         if (e.target === e.currentTarget && paso !== 'procesando') onClose();
@@ -157,19 +172,19 @@ export function ModalImportarTarifasIA({
           width: '100%',
           maxWidth: paso === 'preview' ? 840 : 540,
           backgroundColor: '#ffffff',
-          borderRadius: 20,
+          borderRadius: isMobile ? 12 : 20,
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: '90vh',
+          maxHeight: isMobile ? '100vh' : '90vh',
           transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* Cabecera Modal */}
         <div
           style={{
-            padding: '20px 24px',
+            padding: isMobile ? '14px 16px' : '20px 24px',
             borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
             display: 'flex',
             alignItems: 'center',
@@ -240,7 +255,7 @@ export function ModalImportarTarifasIA({
         )}
 
         {/* Cuerpo del Modal */}
-        <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: isMobile ? 14 : 24, overflowY: 'auto', flex: 1 }}>
           {/* PASO 1: SUBIR ARCHIVO */}
           {paso === 'subir' && (
             <div>
@@ -370,7 +385,7 @@ export function ModalImportarTarifasIA({
                 </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#44403c' }}>
                   {servicios.length} servicios detectados ({seleccionadosCount} seleccionados)
                 </div>
@@ -405,9 +420,10 @@ export function ModalImportarTarifasIA({
                     key={s.idTemp}
                     style={{
                       display: 'flex',
+                      flexWrap: 'wrap',
                       alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 14px',
+                      gap: isMobile ? 6 : 8,
+                      padding: isMobile ? '8px 10px' : '10px 14px',
                       borderBottom: i === servicios.length - 1 ? 'none' : '1px solid #f5f5f4',
                       backgroundColor: s.seleccionado ? '#ffffff' : 'rgba(250, 250, 249, 0.6)',
                       opacity: s.seleccionado ? 1 : 0.6,
@@ -417,15 +433,49 @@ export function ModalImportarTarifasIA({
                       type="checkbox"
                       checked={s.seleccionado}
                       onChange={e => updateServicio(s.idTemp, { seleccionado: e.target.checked })}
-                      style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#f4501e' }}
+                      style={{ cursor: 'pointer', width: 16, height: 16, flexShrink: 0, accentColor: '#f4501e' }}
                     />
+                    <input
+                      type="text"
+                      value={s.nombre}
+                      onChange={e => updateServicio(s.idTemp, { nombre: e.target.value })}
+                      placeholder="Nombre del servicio"
+                      style={{
+                        flex: '3 1 150px',
+                        minWidth: 120,
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: '1px solid #e7e5e4',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: '#1c1917',
+                      }}
+                    />
+                    {s.yaExiste && (
+                      <span
+                        title="Ya existe un servicio con este nombre: se actualizará su precio/duración en vez de crear uno nuevo"
+                        style={{
+                          flexShrink: 0,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: '#0369a1',
+                          backgroundColor: '#e0f2fe',
+                          border: '1px solid #bae6fd',
+                          borderRadius: 20,
+                          padding: '3px 8px',
+                        }}
+                      >
+                        🔄 Actualiza existente
+                      </span>
+                    )}
                     <input
                       type="text"
                       value={s.categoria}
                       onChange={e => updateServicio(s.idTemp, { categoria: e.target.value })}
                       placeholder="Categoría"
                       style={{
-                        width: 130,
+                        flex: '1 1 100px',
+                        minWidth: 90,
                         padding: '6px 10px',
                         borderRadius: 6,
                         border: '1px solid #e7e5e4',
@@ -435,22 +485,7 @@ export function ModalImportarTarifasIA({
                         backgroundColor: '#faf5ff',
                       }}
                     />
-                    <input
-                      type="text"
-                      value={s.nombre}
-                      onChange={e => updateServicio(s.idTemp, { nombre: e.target.value })}
-                      placeholder="Nombre del servicio"
-                      style={{
-                        flex: 1,
-                        padding: '6px 10px',
-                        borderRadius: 6,
-                        border: '1px solid #e7e5e4',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#1c1917',
-                      }}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: 85 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '0 1 80px', minWidth: 66 }}>
                       <input
                         type="number"
                         value={s.precio}
@@ -468,7 +503,7 @@ export function ModalImportarTarifasIA({
                       />
                       <span style={{ fontSize: 12, color: '#78716c' }}>€</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: 80 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: '0 1 76px', minWidth: 62 }}>
                       <input
                         type="number"
                         value={s.duracion_min}
@@ -494,6 +529,7 @@ export function ModalImportarTarifasIA({
                         cursor: 'pointer',
                         padding: 4,
                         fontSize: 14,
+                        flexShrink: 0,
                       }}
                       title="Eliminar"
                     >
@@ -503,7 +539,7 @@ export function ModalImportarTarifasIA({
                 ))}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 14 }}>
                 <button
                   onClick={addManualServicio}
                   style={{
@@ -542,11 +578,17 @@ export function ModalImportarTarifasIA({
                 Se han añadido correctamente las tarifas a la configuración de tu salón.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 20 }}>
                 <div style={{ padding: 16, backgroundColor: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d0' }}>
                   <div style={{ fontSize: 26, fontWeight: 800, color: '#15803d' }}>{resultadoImport.creadas}</div>
-                  <div style={{ fontSize: 12, color: '#166534' }}>Servicios Importados</div>
+                  <div style={{ fontSize: 12, color: '#166534' }}>Servicios Nuevos</div>
                 </div>
+                {resultadoImport.actualizadas > 0 && (
+                  <div style={{ padding: 16, backgroundColor: '#eff6ff', borderRadius: 12, border: '1px solid #bfdbfe' }}>
+                    <div style={{ fontSize: 26, fontWeight: 800, color: '#1d4ed8' }}>{resultadoImport.actualizadas}</div>
+                    <div style={{ fontSize: 12, color: '#1e40af' }}>Servicios Actualizados</div>
+                  </div>
+                )}
                 <div style={{ padding: 16, backgroundColor: '#faf5ff', borderRadius: 12, border: '1px solid #f3e8ff' }}>
                   <div style={{ fontSize: 26, fontWeight: 800, color: '#7e22ce' }}>{resultadoImport.categoriasCreadas}</div>
                   <div style={{ fontSize: 12, color: '#6b21a8' }}>Categorías Creadas</div>
@@ -570,12 +612,14 @@ export function ModalImportarTarifasIA({
         {/* Footer Acciones */}
         <div
           style={{
-            padding: '16px 24px',
+            padding: isMobile ? '12px 16px' : '16px 24px',
             borderTop: '1px solid #e7e5e4',
             backgroundColor: '#fafaf9',
             display: 'flex',
+            flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: 12,
           }}
         >
           {paso === 'preview' ? (

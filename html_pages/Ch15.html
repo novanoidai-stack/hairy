@@ -1,0 +1,328 @@
+<!DOCTYPE html><html>
+<head>
+<title>ChapterÂ 15 Fast Transients and Rate Models | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S4.html" title="15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">III </span>Networks of Neurons and Population Activity</span></a><a href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title">Exercises</span></a><a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.1 </span>How fast are population responses?</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_chapter ltx_authors_1line">
+<h1 class="ltx_title ltx_title_chapter">
+<span class="ltx_tag ltx_tag_chapter">ChapterÂ 15 </span>Fast Transients and Rate Models</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">The mathematical formalism necessary
+for a correct description of the population activity <math id="p1.m1" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+in homogeneous networks of neurons
+is relatively involved
+- as we have seen Chapters <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a> and <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>.
+However,
+the population activity <math id="p1.m2" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math> in
+a <span class="ltx_text ltx_font_italic">stationary</span> state of asynchronous firing
+can simply be predicted by the
+neuronal gain function <math id="p1.m3" class="ltx_Math" alttext="g_{\sigma}(I)" display="inline"><semantics><mrow><msub><mi>g</mi><mi>Ï</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>I</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\sigma}(I)</annotation></semantics></math>
+of isolated neurons; cf. Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>.
+It is therefore tempting
+to extend the results
+that are valid in the stationary state
+to the case of time-dependent input.
+Let us write
+</p>
+<table id="E1" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="E1.m1" class="ltx_Math" alttext="A(t)=F(h(t))" display="block"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=F(h(t))</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.1)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="p1.m4" class="ltx_Math" alttext="F" display="inline"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math> is the gain function
+expressed with the input <span class="ltx_text ltx_font_italic">potential</span> <math id="p1.m5" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math>
+as an argument, as opposed to input <span class="ltx_text ltx_font_italic">current</span>.
+We choose a different symbol, because the units
+of the argument are different, but the relation
+of <math id="p1.m6" class="ltx_Math" alttext="F(h)" display="inline"><semantics><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mi>h</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">F(h)</annotation></semantics></math> to the normal frequency-current
+curve is simply <math id="p1.m7" class="ltx_Math" alttext="F(h)=g_{\sigma}(h/R)" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mi>h</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>g</mi><mi>Ï</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>h</mi><mo>/</mo><mi>R</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">F(h)=g_{\sigma}(h/R)</annotation></semantics></math>
+where <math id="p1.m8" class="ltx_Math" alttext="g_{\sigma}(I_{0})" display="inline"><semantics><mrow><msub><mi>g</mi><mi>Ï</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>I</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\sigma}(I_{0})</annotation></semantics></math> is the single-neuron gain function
+for constant input <math id="p1.m9" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> at some noise level <math id="p1.m10" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">The input potential <math id="p2.m1" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> in
+the argument on the right-hand side of Eq. (<a href="#E1" title="(15.1) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>) is the
+contribution to the membrane potential that is caused
+by the input</p>
+<table id="E2" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="E2.m1" class="ltx_Math" alttext="h(t)={R\over\tau_{m}}\int_{0}^{\infty}e^{-{s\over\tau_{m}}}\,I(t-s)\,{\text{d}}s" display="block"><semantics><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mfrac><mi>R</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mfrac><mi>s</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow></msup></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">h(t)={R\over\tau_{m}}\int_{0}^{\infty}e^{-{s\over\tau_{m}}}\,I(t-s)\,{\text{d}}s</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.2)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="p2.m2" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi>Ï</mi><mi>m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math> is the membrane time constant.
+Eq. (<a href="#E2" title="(15.2) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>)
+can also be written in the form of a differential equation</p>
+<table id="E3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="E3.m1" class="ltx_Math" alttext="\tau_{m}\,{{\text{d}}h(t)\over{\text{d}}t}=-h+R\,I(t)\,." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mi>h</mi><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{m}\,{{\text{d}}h(t)\over{\text{d}}t}=-h+R\,I(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.3)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Integration of Eq. (<a href="#E3" title="(15.3) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>)
+with initial conditions <math id="p2.m3" class="ltx_Math" alttext="h(-\infty)=0" display="inline"><semantics><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h(-\infty)=0</annotation></semantics></math> in the far past
+leads back
+to Eq. (<a href="#E2" title="(15.2) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>) so that the two formulations
+are equivalent.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">By construction, Eqs. (<a href="#E1" title="(15.1) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>) and (<a href="#E2" title="(15.2) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>)
+predict the correct population activity for
+a <span class="ltx_text ltx_font_italic">constant</span> mean input <math id="p3.m1" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>. From Eq. (<a href="#E2" title="(15.2) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>)
+we have <math id="p3.m2" class="ltx_Math" alttext="h_{0}=R\,I_{0}" display="inline"><semantics><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">h_{0}=R\,I_{0}</annotation></semantics></math> so that Eq. (<a href="#E1" title="(15.1) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>) yields
+the stationary activity
+<math id="p3.m3" class="ltx_Math" alttext="A_{0}=F(h_{0})=g_{\sigma}(I_{0})" display="inline"><semantics><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>=</mo><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>g</mi><mi>Ï</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>I</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">A_{0}=F(h_{0})=g_{\sigma}(I_{0})</annotation></semantics></math>, as it should.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">The question arises whether
+the rate-model defined by Eqs.
+(<a href="#E1" title="(15.1) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>) and (<a href="#E2" title="(15.2) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>)
+(or, equivalently, by Eqs. (<a href="#E1" title="(15.1) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>) and (<a href="#E3" title="(15.3) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>))
+is also a valid description
+for <span class="ltx_text ltx_font_italic">time-dependent</span> stimuli.
+In other words, we ask whether the stationary
+solution of the population activity
+can be extended to a âquasi-stationaryâ rate model
+of the population activity.
+To answer this question
+we focus in this chapter on the special
+case of step stimuli.
+Strong step stimuli cause a transient
+response, which can be abrupt in
+networks of spiking neurons
+(Fig. <a href="#F1" title="Fig.Â 15.1 â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>A),
+but is systematically smooth and slow
+in the rate model defined above
+(Fig. <a href="#F1" title="Fig.Â 15.1 â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>B).</p>
+</div>
+<figure id="F1" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                <span class="ltx_text ltx_font_bold">A</span>
+              </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                <img src="x361.png" id="F1.g1" class="ltx_graphics" width="590" height="143" alt="">
+              </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                <span class="ltx_text ltx_font_bold">B</span>
+              </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"><img src="x362.png" id="F1.g2" class="ltx_graphics" width="590" height="190" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.1: </span>
+Transients and rate models.
+All neurons receive the same step current stimulus
+at time <math id="F1.m8" class="ltx_Math" alttext="t_{\rm ON}=100" display="inline"><semantics><mrow><msub><mi>t</mi><mi>ON</mi></msub><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">t_{\rm ON}=100</annotation></semantics></math>ms.
+A randomly connected network of 8000 excitatory and 2000 inhibitory
+neurons exhibits an abrupt response to the
+change in the input. <span class="ltx_text ltx_font_bold">A</span>. The spike train of 1000 excitatory neurons are shown. Vertical bands of greater spike density are short periods of high activity as shown in the population activity <math id="F1.m9" class="ltx_Math" alttext="A" display="inline"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math> to the right. Scale bars are 200ms and 10Hz.
+<span class="ltx_text ltx_font_bold">B</span>.The population activity <math id="F1.m10" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math> exhibits fast transients (full line).
+In a standard rate model with population activity
+<math id="F1.m11" class="ltx_Math" alttext="A(t)=F(h(t))" display="inline"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=F(h(t))</annotation></semantics></math>, the new stationary
+state is approached on the time scale defined by the membrane time
+constant <math id="F1.m12" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi>Ï</mi><mi>m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math> (here <math id="F1.m13" class="ltx_Math" alttext="\tau_{m}=4ms" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>=</mo><mrow><mn>4</mn><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}=4ms</annotation></semantics></math>, dotted line).
+The response to the input switch at <math id="F1.m14" class="ltx_Math" alttext="t_{0}=200" display="inline"><semantics><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>=</mo><mn>200</mn></mrow><annotation encoding="application/x-tex">t_{0}=200</annotation></semantics></math>âms
+is therefore comparatively slow.
+</figcaption>
+</figure>
+<div id="p5" class="ltx_para">
+<p class="ltx_p">Therefore the question arises whether
+the ânormalâ case for
+neurons in vivo is that of an abrupt and <span class="ltx_text ltx_font_italic">fast</span>
+response
+(which would be absent in the rate model),
+or that of a smooth and <span class="ltx_text ltx_font_italic">slow</span> response
+as predicted by the rate model.
+In order to answer this question,
+we start
+in Section <a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>
+by taking a closer look at experimental data.</p>
+</div>
+<div id="p6" class="ltx_para">
+<p class="ltx_p">In Section <a href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a> we
+use modeling approaches to give an
+answer to the question of whether
+the response to a step stimulus is
+fast or slow.
+As we will see, the response of generalized
+integrate-and-fire models to a
+step input can be rapid, if the step is either strong
+and the noise level is low
+or if the noise is slow, i.e., not white.
+However, if the noise is white and
+the noise level is high,
+the response to the step input is slow. In this case
+the rate model defined above
+in Eqs. (<a href="#E1" title="(15.1) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>) and (<a href="#E2" title="(15.2) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>)
+provides an excellent approximation
+to the population dynamics.</p>
+</div>
+<div id="p7" class="ltx_para">
+<p class="ltx_p">Finally, in Section <a href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>,
+we discuss several variants of rate models.
+We emphasize that all of the rate models discussed in this section
+are intended to describe the response of a
+<span class="ltx_text ltx_font_italic">population</span> of neurons to a changing input - as opposed
+to rate models for single neurons.
+However, it is also possible to reinterpret
+a population model as a rate model of a single
+stochastically firing neuron.
+Indeed, the single-neuron PSTH
+accumulated over 200 repetitions
+of the same time-dependent stimulus
+is identical to the population activity
+of 200 neurons in a single trial.</p>
+</div>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.1 </span>How fast are population responses?</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2 </span>Fast transients vs. slow transients in models</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3 </span>Rate models</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch15.S4.html" title="15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.4 </span>Summary</span></a></li>
+</ul>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title">Exercises</span></a><a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.1 </span>How fast are population responses?</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -3541,10 +3541,47 @@ function FichaPreguntaIA({
   onCancelarAccion: () => void;
 }) {
   const cargando = estado.tipo === 'cargando';
+  const [expanded, setExpanded] = useState(estado.tipo !== 'idle');
+
+  if (!expanded && estado.tipo === 'idle') {
+    return (
+      <div style={{ marginBottom: 14 }}>
+        <button
+          onClick={() => setExpanded(true)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.2))',
+            border: `1px solid rgba(34, 197, 94, 0.3)`,
+            padding: '10px 16px',
+            borderRadius: 12,
+            cursor: 'pointer',
+            color: TOKENS.success,
+            fontWeight: 700,
+            fontSize: 13,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Icon name="sparkle" size={16} color={TOKENS.success} />
+          Preguntarle a Chispa sobre {nombreCliente.split(' ')[0]}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.primary}40`, borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
       <style>{'@keyframes fpia-spin { to { transform: rotate(360deg) } }'}</style>
-      <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 8 }}>Pregúntale a Chispa sobre {nombreCliente}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: TOKENS.text }}>
+          <Icon name="sparkle" size={16} color={TOKENS.primary} />
+          Preguntale a Chispa sobre {nombreCliente.split(' ')[0]}
+        </div>
+        <button onClick={() => setExpanded(false)} style={{ background: 'transparent', border: 'none', color: TOKENS.textSec, cursor: 'pointer', padding: 4 }}>
+          <Icon name="x" size={16} color={TOKENS.textSec} />
+        </button>
+      </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <input
           value={pregunta}

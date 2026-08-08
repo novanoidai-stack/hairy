@@ -58,7 +58,7 @@
   "offers": [
     {
       "@type": "Offer",
-      "name": "Software Mecha",
+      "name": "Esencial",
       "price": "39.00",
       "priceCurrency": "EUR",
       "category": "SaaS",
@@ -74,11 +74,27 @@
     },
     {
       "@type": "Offer",
-      "name": "Addon de IA completa (WhatsApp + voz)",
+      "name": "Estudio",
+      "price": "59.00",
+      "priceCurrency": "EUR",
+      "category": "SaaS",
+      "description": "El mismo software completo que Esencial. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+      "url": "https://www.mechaa.es/#precios",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "59.00",
+        "priceCurrency": "EUR",
+        "unitCode": "MON",
+        "valueAddedTaxIncluded": false
+      }
+    },
+    {
+      "@type": "Offer",
+      "name": "Recepcionistas: Addon de IA completa (WhatsApp + voz)",
       "price": "39.00",
       "priceCurrency": "EUR",
       "category": "SaaS addon",
-      "description": "Opcional y aparte del software: Chispa IA por WhatsApp 24/7 que reserva y cobra señales sola, más la IA que contesta el teléfono y da cita hablando. Se activa o desactiva cuando quieras, sin permanencia. También disponible por separado: WhatsApp 19 €/mes o voz 29 €/mes.",
+      "description": "Opcional y aparte del software, sobre cualquiera de los dos planes: Chispa IA por WhatsApp 24/7 que reserva y cobra señales sola, más la IA que contesta el teléfono y da cita hablando. Se activa o desactiva cuando quieras, sin permanencia. También disponible por separado: WhatsApp 19 €/mes o voz 29 €/mes.",
       "url": "https://www.mechaa.es/#precios",
       "priceSpecification": {
         "@type": "UnitPriceSpecification",
@@ -120,12 +136,12 @@
     "@type": "AggregateOffer",
     "priceCurrency": "EUR",
     "lowPrice": "39",
-    "highPrice": "39",
-    "offerCount": "2",
+    "highPrice": "59",
+    "offerCount": "3",
     "offers": [
       {
         "@type": "Offer",
-        "name": "Software Mecha",
+        "name": "Esencial",
         "price": "39",
         "priceCurrency": "EUR",
         "description": "Agenda inteligente, fichas de cliente, reserva online, recordatorios, señales con Stripe, campañas, lista de espera y VeriFactu. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
@@ -133,10 +149,18 @@
       },
       {
         "@type": "Offer",
-        "name": "Addon de IA (opcional, aparte)",
+        "name": "Estudio",
+        "price": "59",
+        "priceCurrency": "EUR",
+        "description": "El mismo software completo que Esencial. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+        "url": "https://www.mechaa.es/#precios"
+      },
+      {
+        "@type": "Offer",
+        "name": "Recepcionistas: addon de IA (opcional, aparte)",
         "price": "39",
         "priceCurrency": "EUR",
-        "description": "IA por WhatsApp 24/7 y/o por voz que reserva y cobra señales sola. Opcional, aparte del software: desde 19 €/mes, o 39 €/mes la IA completa.",
+        "description": "IA por WhatsApp 24/7 y/o por voz que reserva y cobra señales sola. Opcional, aparte del software y sobre cualquiera de los dos planes: desde 19 €/mes, o 39 €/mes la IA completa.",
         "url": "https://www.mechaa.es/#precios"
       }
     ]
@@ -942,17 +966,10 @@
     .pc-list .ck svg{width:10px;height:10px}
     .pc-list b{color:var(--text)}
     .pc-plus{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-hi);margin:2px 0 -2px}
-    /* --- Software base (tarjeta unica) + addon de IA (aparte, opcional) --- */
-    .price-single{max-width:480px;margin:38px auto 0}
-    .ia-addon-head{max-width:640px;margin:52px auto 0;text-align:center}
-    .ia-addon-head .eyebrow{display:block;margin-bottom:8px}
-    .ia-addon-head h3{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.8vw,26px);letter-spacing:-.02em;margin:0 0 8px}
-    .ia-addon-head p{font-size:14px;color:var(--text-sec);margin:0}
-    .ia-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:920px;margin:26px auto 0;align-items:stretch}
-    @media(max-width:820px){.ia-grid{grid-template-columns:1fr;max-width:420px}}
-    .ia-grid .price-card{padding:24px 22px 22px}
-    .ia-grid .pc-price{font-size:32px}
-    .ia-plus-tag{display:inline-flex;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--text-ter);text-transform:uppercase;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:3px 10px;margin-top:-2px}
+    /* --- Addon de IA (Recepcionistas), aparte y opcional sobre cualquier plan --- */
+    .pc-addon{font-size:13px;font-weight:600;color:var(--accent-hi);background:var(--accent-soft);border-radius:10px;padding:9px 12px;margin:0}
+    .pc-addon b{color:var(--text)}
+    .ia-solo-note{max-width:640px;margin:18px auto 0;text-align:center;font-size:13px;color:var(--text-ter)}
     /* --- Tres vias de contacto --- */
     .vias{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:860px;margin:30px auto 0}
     @media(max-width:820px){.vias{grid-template-columns:1fr}}
@@ -1006,12 +1023,12 @@
       <div class="sec-head center reveal">
         <span class="eyebrow center">Precio simple, sin letra pequeña</span>
         <h2 class="sec-title">Un precio que se paga <span class="display" style="font-style:italic">solo</span></h2>
-        <p class="sec-sub">Un único software completo, y la IA aparte y opcional si la quieres. Sin permanencia y con el primer mes gratis para probarlo con tu salón real.</p>
+        <p class="sec-sub">Dos planes, y la IA aparte y opcional si la quieres. Sin permanencia y con el primer mes gratis para probarlo con tu salón real.</p>
       </div>
 
-      <div class="price-grid reveal" style="grid-template-columns:1fr">
-        <div class="price-card price-single">
-          <div class="pc-name">Software Mecha</div>
+      <div class="price-grid reveal">
+        <div class="price-card">
+          <div class="pc-name">Esencial</div>
           <p class="pc-tag">Todo el software, sin recortes</p>
           <div class="pc-price">39 €<span> /mes + IVA</span></div>
           <ul class="pc-list">
@@ -1023,47 +1040,30 @@
             <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Señales por Stripe</b>, campañas y lista de espera inteligente</span></li>
             <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Facturación <b>VeriFactu</b> y fichaje de jornada legal</span></li>
           </ul>
+          <p class="pc-addon">+ 39 €/mes si quieres <b>Recepcionistas</b> (IA por WhatsApp y voz)</p>
           <button type="button" class="btn btn-primary" id="btnEmpezarGratis" style="justify-content:center; width:100%; cursor:pointer;">Empezar con 1 mes gratis</button>
         </div>
-      </div>
 
-      <div class="ia-addon-head reveal">
-        <span class="eyebrow center">Aparte, opcional, cuando quieras</span>
-        <h3>Súmale la IA si la quieres</h3>
-        <p>No va incluida ni obligada: es un addon que activas o desactivas desde Configuración, con su propio precio y sin permanencia.</p>
-      </div>
-
-      <div class="ia-grid reveal">
-        <div class="price-card">
-          <div class="pc-name">IA por WhatsApp</div>
-          <p class="pc-tag">Chispa atiende, reserva y cobra sola</p>
-          <div class="pc-price">+19 €<span> /mes + IVA</span></div>
-          <ul class="pc-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Responde por <b>WhatsApp 24/7</b>, también de madrugada</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reserva la cita y <b>cobra la señal</b> por Stripe sola</span></li>
-          </ul>
-        </div>
-        <div class="price-card">
-          <div class="pc-name">IA por voz</div>
-          <p class="pc-tag">Contesta el teléfono por ti</p>
-          <div class="pc-price">+29 €<span> /mes + IVA</span></div>
-          <ul class="pc-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>La IA <b>coge el teléfono</b> y da cita hablando</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tú decides si la activas o sigues cogiéndolo tú</span></li>
-          </ul>
-        </div>
         <div class="price-card featured">
-          <span class="pc-badge">Ahorra 9 €</span>
-          <div class="pc-name">IA completa</div>
-          <p class="pc-tag">WhatsApp + voz, junto y más barato</p>
-          <div class="pc-price">39 €<span> /mes + IVA</span></div>
+          <span class="pc-badge">Recomendado</span>
+          <div class="pc-name">Estudio</div>
+          <p class="pc-tag">El mismo software completo</p>
+          <div class="pc-price">59 €<span> /mes + IVA</span></div>
           <ul class="pc-list">
-            <li><span class="ia-plus-tag">En vez de 48 € sueltos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Todo lo de WhatsApp y voz <b>juntos</b></span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Retrasos absorbidos con un clic y organización del día con IA</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Agenda con <b>tiempos de reposo</b> y servicios encadenados</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fichas de cliente: <b>fórmulas de color</b>, fotos y alergias</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Portal de reserva online</b> propio, sin comisiones</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Recordatorios automáticos por WhatsApp</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Caja, informes y equipo — <b>profesionales ilimitados</b></span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Señales por Stripe</b>, campañas y lista de espera inteligente</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Facturación <b>VeriFactu</b> y fichaje de jornada legal</span></li>
           </ul>
+          <p class="pc-addon">+ 39 €/mes si quieres <b>Recepcionistas</b> (IA por WhatsApp y voz)</p>
+          <button type="button" class="btn btn-primary" id="btnEmpezarGratisEstudio" style="justify-content:center; width:100%; cursor:pointer;">Empezar con 1 mes gratis</button>
         </div>
       </div>
+
+      <p class="ia-solo-note reveal">¿Solo quieres una parte de Recepcionistas? También se puede activar solo la IA por voz (+29 €/mes) o solo por WhatsApp (+19 €/mes) al darte de alta.</p>
 
       <!-- Tres formas de dar el paso: cada uno elige cómo prefiere hablar.
            El id="contacto" es el destino del enlace "Contacto" del nav y del
@@ -1699,6 +1699,7 @@ window.MECHA_CHAT = [
   var bQ=document.getElementById('viaQuiero');
   var bLlamada=document.getElementById('viaLlamada');
   var bEmpezarGratis=document.getElementById('btnEmpezarGratis');
+  var bEmpezarGratisEstudio=document.getElementById('btnEmpezarGratisEstudio');
   var accModal=document.getElementById('opcionesAccesoModal');
   var bDirecto=document.getElementById('btnOpcionQuieroDirecto');
   var bContactar=document.getElementById('btnOpcionContactar');
@@ -1716,6 +1717,7 @@ window.MECHA_CHAT = [
   if(bQ) bQ.addEventListener('click',abrirAcceso);
   if(bLlamada) bLlamada.addEventListener('click',abrirAcceso);
   if(bEmpezarGratis) bEmpezarGratis.addEventListener('click',abrirAcceso);
+  if(bEmpezarGratisEstudio) bEmpezarGratisEstudio.addEventListener('click',abrirAcceso);
   if(bAccesoHero) bAccesoHero.addEventListener('click',abrirAcceso);
   if(bAccesoCta) bAccesoCta.addEventListener('click',abrirAcceso);
   if(accCerrar) accCerrar.addEventListener('click',cerrarAcceso);

@@ -1,0 +1,837 @@
+<!DOCTYPE html><html>
+<head>
+<title>4.2 Reduction to two dimensions | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S4.html" title="4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S7.html" title="4.7 Summary â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                  , 
+                  , Hodgkin-Huxley model, quasi steady state, reduction to two dimensions, separation of time scales">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Dimensionality Reduction and Phase Plane Analysis</span></a><a href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.1 </span>Threshold effects</span></a><a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3 </span>Phase plane analysis</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4.2 </span>Reduction to two dimensions</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">A system of four differential equations, such as the Hodgkin-Huxley model,
+is difficult to analyze, so that normally we are limited to numerical
+simulations. A mathematical analysis is, however,
+possible for a system of two differential equations.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">In this section we perform a systematic reduction of the four-dimensional
+Hodgkin-Huxley model to two dimensions. To do so, we have to eliminate two of
+the four variables. The essential ideas of the reduction can also be applied
+to detailed neuron models that may contain many different ion channels. In
+these cases, more than two variables would have to be eliminated, but the
+procedure would be completely analogous <cite class="ltx_cite">(<a href="bib.html#bib77" title="Reduction of conductance-based neuron models" class="ltx_ref">258</a>)</cite>.</p>
+</div>
+<figure id="Ch4.F3" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x88.png" id="Ch4.F3.g1" class="ltx_graphics" width="293" height="235" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x89.png" id="Ch4.F3.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.3: </span>
+Phase plane <math id="Ch4.F3.m8" class="ltx_Math" alttext="u,w" display="inline"><semantics><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">u,w</annotation></semantics></math> of a Hodgkin-Huxley model reduced to two dimensions.
+<span class="ltx_text ltx_font_bold">A</span>. The reduction of the Hodgkin-Huxley model leads to
+a system of two equations,
+<math id="Ch4.F3.m9" class="ltx_Math" alttext="\tau du/dt=F(u,w)+R\,I" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\tau du/dt=F(u,w)+R\,I</annotation></semantics></math>
+and
+<math id="Ch4.F3.m10" class="ltx_Math" alttext="\tau_{w}dw/dt=G(u,w)" display="inline"><semantics><mrow><mrow><mrow><mrow><msub><mi>Ï</mi><mi>w</mi></msub><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>w</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\tau_{w}dw/dt=G(u,w)</annotation></semantics></math>.
+The ensemble of points with <math id="Ch4.F3.m11" class="ltx_Math" alttext="F(u,w)=0" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(u,w)=0</annotation></semantics></math> and <math id="Ch4.F3.m12" class="ltx_Math" alttext="G(u,w)=0" display="inline"><semantics><mrow><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">G(u,w)=0</annotation></semantics></math>
+is shown as a function of voltage <math id="Ch4.F3.m13" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> and
+recovery variable <math id="Ch4.F3.m14" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>, based on Eqs. <a href="#Ch4.E3" title="(4.3) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>, <a href="#Ch4.E20" title="(4.20) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.20</span></a> and <a href="#Ch4.E21" title="(4.21) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.21</span></a>.
+<span class="ltx_text ltx_font_bold">B</span>. As in A, but for the Morris-Lecar model (see text for details).
+</figcaption>
+</figure>
+<figure id="Ch4.F4" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x90.png" id="Ch4.F4.g1" class="ltx_graphics" width="293" height="235" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x91.png" id="Ch4.F4.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.4: </span>
+Close-up of Fig. <a href="#Ch4.F3" title="Fig.Â 4.3 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>A and B.
+Solid lines: The sets of points with <math id="Ch4.F4.m11" class="ltx_Math" alttext="F(u,w)=0" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(u,w)=0</annotation></semantics></math> and <math id="Ch4.F4.m12" class="ltx_Math" alttext="G(u,w)=0" display="inline"><semantics><mrow><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">G(u,w)=0</annotation></semantics></math>
+are determined in the absence of stimulation (<math id="Ch4.F4.m13" class="ltx_Math" alttext="I=0" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I=0</annotation></semantics></math>).
+Dashed line: In the presence of a constant current <math id="Ch4.F4.m14" class="ltx_Math" alttext="I=I_{0}&gt;0" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><msub><mi>I</mi><mn>0</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I=I_{0}&gt;0</annotation></semantics></math>, the set of points with <math id="Ch4.F4.m15" class="ltx_Math" alttext="du/dt=0" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">du/dt=0</annotation></semantics></math> is given <math id="Ch4.F4.m16" class="ltx_Math" alttext="F(u,w)=-RI_{0}" display="inline"><semantics><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mi>R</mi><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow></mrow></mrow><annotation encoding="application/x-tex">F(u,w)=-RI_{0}</annotation></semantics></math>. The curve
+<math id="Ch4.F4.m17" class="ltx_Math" alttext="G(u,w)=0" display="inline"><semantics><mrow><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">G(u,w)=0</annotation></semantics></math>
+characterizing the points with
+<math id="Ch4.F4.m18" class="ltx_Math" alttext="dw/dt=0" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>w</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">dw/dt=0</annotation></semantics></math>
+starts (for <math id="Ch4.F4.m19" class="ltx_Math" alttext="u\to-\infty" display="inline"><semantics><mrow><mi>u</mi><mo>â</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow><annotation encoding="application/x-tex">u\to-\infty</annotation></semantics></math> nearly horizontally at <math id="Ch4.F4.m20" class="ltx_Math" alttext="w=0" display="inline"><semantics><mrow><mi>w</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">w=0</annotation></semantics></math>
+and does not change under stimulation.
+</figcaption>
+</figure>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2.1 </span>General approach</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">We focus on the Hodgkin-Huxley model
+ discussed in
+ChapterÂ <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> and start with two qualitative observations. First, we
+see from Fig. <a href="Ch2.S2.html#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>B that the time scale of the dynamics of the
+gating variable <math id="SS1.p1.m1" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> is much faster than that of the variables <math id="SS1.p1.m2" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="SS1.p1.m3" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>.
+Moreover, the time scale of <math id="SS1.p1.m4" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> is fast compared to the membrane
+time constant <math id="SS1.p1.m5" class="ltx_Math" alttext="\tau=C/g_{L}" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mrow><mi>C</mi><mo>/</mo><msub><mi>g</mi><mi>L</mi></msub></mrow></mrow><annotation encoding="application/x-tex">\tau=C/g_{L}</annotation></semantics></math> of a passive membrane, which characterizes
+the evolution of the voltage
+<math id="SS1.p1.m6" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> when all channels are closed.
+The relatively rapid
+time scale of <math id="SS1.p1.m7" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> suggests that we may treat <math id="SS1.p1.m8" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> as an instantaneous variable.
+The variable <math id="SS1.p1.m9" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> in
+the ion current equation (<a href="Ch2.S2.html#Ch2.E5" title="(2.5) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.5</span></a>)
+of the Hodgkin-Huxley model can therefore be
+replaced by its steady-state value,
+<math id="SS1.p1.m10" class="ltx_Math" alttext="m(t)\to m_{0}[u(t)]" display="inline"><semantics><mrow><mrow><mi>m</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">m(t)\to m_{0}[u(t)]</annotation></semantics></math>. This is what we call a <span class="ltx_text ltx_font_italic">quasi steady state
+approximation</span>
+which is possible because of
+the âseparation of time scalesâ
+between fast and slow variables. 
+
+</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">Second, we see from Fig. <a href="Ch2.S2.html#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>B that the time constants <math id="SS1.p2.m1" class="ltx_Math" alttext="\tau_{n}(u)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{n}(u)</annotation></semantics></math>
+and <math id="SS1.p2.m2" class="ltx_Math" alttext="\tau_{h}(u)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>h</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{h}(u)</annotation></semantics></math> have similar dynamics over the voltage <math id="SS1.p2.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>. Moreover, the
+graphs of <math id="SS1.p2.m4" class="ltx_Math" alttext="n_{0}(u)" display="inline"><semantics><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">n_{0}(u)</annotation></semantics></math> and <math id="SS1.p2.m5" class="ltx_Math" alttext="1-h_{0}(u)" display="inline"><semantics><mrow><mn>1</mn><mo>-</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">1-h_{0}(u)</annotation></semantics></math> in Fig. <a href="Ch2.S2.html#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>A are also similar.
+This suggests that we may approximate the two variables <math id="SS1.p2.m6" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="SS1.p2.m7" class="ltx_Math" alttext="(1-h)" display="inline"><semantics><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>h</mi></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(1-h)</annotation></semantics></math> by a
+single effective variable <math id="SS1.p2.m8" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>. To keep the formalism slightly more general we
+use a linear approximation <math id="SS1.p2.m9" class="ltx_Math" alttext="(b-h)\approx a\,n" display="inline"><semantics><mrow><mrow><mo>(</mo><mrow><mi>b</mi><mo>-</mo><mi>h</mi></mrow><mo>)</mo></mrow><mo>â</mo><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mi>n</mi></mrow></mrow><annotation encoding="application/x-tex">(b-h)\approx a\,n</annotation></semantics></math> with some constants <math id="SS1.p2.m10" class="ltx_Math" alttext="a,b" display="inline"><semantics><mrow><mi>a</mi><mo>,</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a,b</annotation></semantics></math> and
+set <math id="SS1.p2.m11" class="ltx_Math" alttext="w=b-h=a\,n" display="inline"><semantics><mrow><mi>w</mi><mo>=</mo><mrow><mi>b</mi><mo>-</mo><mi>h</mi></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mi>n</mi></mrow></mrow><annotation encoding="application/x-tex">w=b-h=a\,n</annotation></semantics></math>. With <math id="SS1.p2.m12" class="ltx_Math" alttext="h=b-w" display="inline"><semantics><mrow><mi>h</mi><mo>=</mo><mrow><mi>b</mi><mo>-</mo><mi>w</mi></mrow></mrow><annotation encoding="application/x-tex">h=b-w</annotation></semantics></math>, <math id="SS1.p2.m13" class="ltx_Math" alttext="n=w/a" display="inline"><semantics><mrow><mi>n</mi><mo>=</mo><mrow><mi>w</mi><mo>/</mo><mi>a</mi></mrow></mrow><annotation encoding="application/x-tex">n=w/a</annotation></semantics></math>, and <math id="SS1.p2.m14" class="ltx_Math" alttext="m=m_{0}(u)" display="inline"><semantics><mrow><mi>m</mi><mo>=</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">m=m_{0}(u)</annotation></semantics></math>, equations
+(<a href="Ch2.S2.html#Ch2.E4" title="(2.4) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.4</span></a>) - (<a href="Ch2.S2.html#Ch2.E5" title="(2.5) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.5</span></a>) become</p>
+<table id="Ch4.E3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E3.m1" class="ltx_Math" alttext="C{{\text{d}}u\over{\text{d}}t}=-g_{\rm Na}[m_{0}(u)]^{3}\,(b-w)\,(u-E_{\rm Na}%
+)-g_{\rm K}\,\left({w\over a}\right)^{4}\,(u-E_{\rm K})-g_{L}\,(u-E_{L})+I\,," display="block"><semantics><mrow><mrow><mrow><mi>C</mi><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><msub><mi>g</mi><mi>Na</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>[</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow><mn>3</mn></msup></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>b</mi><mo>-</mo><mi>w</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>Na</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi mathvariant="normal">K</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><mfrac><mi>w</mi><mi>a</mi></mfrac><mo>)</mo></mrow><mn>4</mn></msup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi mathvariant="normal">K</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>L</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">C{{\text{d}}u\over{\text{d}}t}=-g_{\rm Na}[m_{0}(u)]^{3}\,(b-w)\,(u-E_{\rm Na}%
+)-g_{\rm K}\,\left({w\over a}\right)^{4}\,(u-E_{\rm K})-g_{L}\,(u-E_{L})+I\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.3)</span></td>
+</tr>
+</table>
+<p class="ltx_p">or</p>
+<table id="Ch4.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E4.m1" class="ltx_Math" alttext="{{\text{d}}u\over{\text{d}}t}={1\over\tau}\left[F(u,w)+R\,I\right]\,," display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mfrac><mn>1</mn><mi>Ï</mi></mfrac><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}u\over{\text{d}}t}={1\over\tau}\left[F(u,w)+R\,I\right]\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with <math id="SS1.p2.m15" class="ltx_Math" alttext="R=g_{L}^{-1}" display="inline"><semantics><mrow><mi>R</mi><mo>=</mo><msubsup><mi>g</mi><mi>L</mi><mrow><mo>-</mo><mn>1</mn></mrow></msubsup></mrow><annotation encoding="application/x-tex">R=g_{L}^{-1}</annotation></semantics></math>, <math id="SS1.p2.m16" class="ltx_Math" alttext="\tau=R\,C" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>C</mi></mrow></mrow><annotation encoding="application/x-tex">\tau=R\,C</annotation></semantics></math> and some function <math id="SS1.p2.m17" class="ltx_Math" alttext="F" display="inline"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>. We now turn to the
+three equations (<a href="Ch2.S2.html#Ch2.Ex2" title="2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2.2</span></a>). The <math id="SS1.p2.m18" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> equation has disappeared since <math id="SS1.p2.m19" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> is
+treated as instantaneous. Instead of the two equations (<a href="Ch2.S2.html#Ch2.Ex2" title="2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2.2</span></a>) for <math id="SS1.p2.m20" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+and <math id="SS1.p2.m21" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>, we are left with a single effective equation</p>
+<table id="Ch4.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E5.m1" class="ltx_Math" alttext="{{\text{d}}w\over{\text{d}}t}={1\over\tau_{w}}G(u,w)\,," display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>w</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mfrac><mn>1</mn><msub><mi>Ï</mi><mi>w</mi></msub></mfrac><mo>â¢</mo><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}w\over{\text{d}}t}={1\over\tau_{w}}G(u,w)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS1.p2.m22" class="ltx_Math" alttext="\tau_{w}" display="inline"><semantics><msub><mi>Ï</mi><mi>w</mi></msub><annotation encoding="application/x-tex">\tau_{w}</annotation></semantics></math> is a parameter and <math id="SS1.p2.m23" class="ltx_Math" alttext="G" display="inline"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math> a function that interpolates between <math id="SS1.p2.m24" class="ltx_Math" alttext="dn/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>n</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">dn/dt</annotation></semantics></math> and <math id="SS1.p2.m25" class="ltx_Math" alttext="dh/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>h</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">dh/dt</annotation></semantics></math> (see Section <a href="#SS2" title="4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.2.2</span></a>).
+Eqs.Â (<a href="#Ch4.E4" title="(4.4) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4</span></a>) and (<a href="#Ch4.E5" title="(4.5) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>) define a general two-dimensional
+neuron model.
+If we start with the Hodgkin-Huxley model
+and implement the above reduction steps
+we arrive at functions <math id="SS1.p2.m26" class="ltx_Math" alttext="F(u,w)" display="inline"><semantics><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">F(u,w)</annotation></semantics></math> and <math id="SS1.p2.m27" class="ltx_Math" alttext="G(u,w)" display="inline"><semantics><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">G(u,w)</annotation></semantics></math>
+which are illustrated in Figs. <a href="#Ch4.F3" title="Fig.Â 4.3 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>A
+and <a href="#Ch4.F4" title="Fig.Â 4.4 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4</span></a>A.
+The mathematical details of the reduction of the
+four-dimensional Hodgkin-Huxley model to the two equations (<a href="#Ch4.E4" title="(4.4) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4</span></a>) and
+(<a href="#Ch4.E5" title="(4.5) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>) are given below.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Before we go through the mathematical steps,
+we present two examples of two-dimensional neuron dynamics
+which are not directly derived from the Hodgkin-Huxley model,
+but are attractive because of their mathematical simplicity. We will
+return to these examples repeatedly throughout this chapter.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Morris-Lecar model</span>
+              </p>
+<p class="ltx_p">
+                <cite class="ltx_cite">
+                  Morris and Lecar 
+                      <span class="ltx_text ltx_font_small">(</span>
+                    <a href="bib.html#bib78" title="Voltage oscillations in the barnacle giant muscle fiber" class="ltx_ref">352</a>
+                      <span class="ltx_text ltx_font_small">)</span>
+                    
+                </cite>
+                <span class="ltx_text ltx_font_small"> proposed a simplified two-dimensional description of neuronal spike
+dynamics. A first equation describes the evolution of the membrane potential
+<math id="SS1.p4.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>, the second equation the evolution of a slow ârecoveryâ variable
+<math id="SS1.p4.m2" class="ltx_Math" alttext="\hat{w}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">w</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{w}</annotation></semantics></math>. The Morris-Lecar equations read</span>
+              </p>
+<table id="Ch20.S4.EGx8" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch4.E6" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch4.E6.m1" class="ltx_Math" alttext="\displaystyle C\,{{\text{d}}u\over{\text{d}}t}" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>C</mi></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mrow><mtext>Â                                      Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                    Â </mtext></mrow><mo>â¢</mo><mi>u</mi></mrow><mrow><mrow><mtext>Â                                      Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                    Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle C\,{{\text{d}}u\over{\text{d}}t}</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch4.E6.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch4.E6.m3" class="ltx_Math" alttext="\displaystyle-g_{1}\,\hat{m}_{0}(u)\,(u-V_{1})-g_{2}\,\hat{w}\,(u-V_{2})-g_{L}%
+\,(u-V_{L})+I\,," display="inline"><semantics><mrow><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><msub><mover accent="true"><mi>m</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>V</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mn>2</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mover accent="true"><mi>w</mi><mo stretchy="false">^</mo></mover></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>V</mi><mn>2</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>V</mi><mi>L</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle-g_{1}\,\hat{m}_{0}(u)\,(u-V_{1})-g_{2}\,\hat{w}\,(u-V_{2})-g_{L}%
+\,(u-V_{L})+I\,,</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.6)</span></td>
+</tr>
+<tr id="Ch4.E7" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch4.E7.m1" class="ltx_Math" alttext="\displaystyle{{\text{d}}\hat{w}\over{\text{d}}t}" display="inline"><semantics><mstyle displaystyle="true"><mfrac><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mover accent="true"><mi>w</mi><mo stretchy="false">^</mo></mover></mrow><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle><annotation encoding="application/x-tex">\displaystyle{{\text{d}}\hat{w}\over{\text{d}}t}</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch4.E7.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch4.E7.m3" class="ltx_Math" alttext="\displaystyle-{1\over\tau(u)}\left[\hat{w}-w_{0}(u)\right]\,." display="inline"><semantics><mrow><mrow><mo>-</mo><mrow><mstyle displaystyle="true"><mfrac><mn>1</mn><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac></mstyle><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mover accent="true"><mi>w</mi><mo stretchy="false">^</mo></mover><mo>-</mo><mrow><msub><mi>w</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle-{1\over\tau(u)}\left[\hat{w}-w_{0}(u)\right]\,.</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.7)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">If we compare Eq.Â (<a href="#Ch4.E6" title="(4.6) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>)
+with Eq.Â (<a href="#Ch4.E3" title="(4.3) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>), we note that the first current term
+on the right-hand side of Eq.Â (<a href="#Ch4.E3" title="(4.3) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>)
+has a factor <math id="SS1.p4.m3" class="ltx_Math" alttext="(b-w)" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">b</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">w</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(b-w)</annotation></semantics></math> which closes the channel for high voltage
+and which is absent in (<a href="#Ch4.E6" title="(4.6) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>). Another difference is that neither
+<math id="SS1.p4.m4" class="ltx_Math" alttext="\hat{m}_{0}" display="inline"><semantics><msub><mover accent="true"><mi mathsize="normal" stretchy="false">m</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">\hat{m}_{0}</annotation></semantics></math> nor <math id="SS1.p4.m5" class="ltx_Math" alttext="\hat{w}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">w</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{w}</annotation></semantics></math> in Eq.Â (<a href="#Ch4.E6" title="(4.6) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>) have exponents. To clarify
+the relation between the two models, we could set <math id="SS1.p4.m6" class="ltx_Math" alttext="\hat{m}_{0}(u)=[m_{0}(u)]^{3}" display="inline"><semantics><mrow><mrow><msub><mover accent="true"><mi mathsize="normal" stretchy="false">m</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><msup><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><msub><mi mathsize="normal" stretchy="false">m</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><mn mathsize="normal" stretchy="false">3</mn></msup></mrow><annotation encoding="application/x-tex">\hat{m}_{0}(u)=[m_{0}(u)]^{3}</annotation></semantics></math>
+and <math id="SS1.p4.m7" class="ltx_Math" alttext="\hat{w}=(w/a)^{4}" display="inline"><semantics><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">w</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">=</mo><msup><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">w</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">a</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mn mathsize="normal" stretchy="false">4</mn></msup></mrow><annotation encoding="application/x-tex">\hat{w}=(w/a)^{4}</annotation></semantics></math>. In the following we consider Eqs.Â (<a href="#Ch4.E6" title="(4.6) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>)
+and (<a href="#Ch4.E7" title="(4.7) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.7</span></a>) as a model in its own right and drop the hats over
+<math id="SS1.p4.m8" class="ltx_Math" alttext="m_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">m</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">m_{0}</annotation></semantics></math> and <math id="SS1.p4.m9" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The equilibrium functions shown in Fig.Â <a href="Ch2.S2.html#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>A typically have a
+sigmoidal shape. It is reasonable to approximate the voltage dependence by</span>
+              </p>
+<table id="Ch20.S4.EGx9" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch4.E8" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch4.E8.m1" class="ltx_Math" alttext="\displaystyle m_{0}(u)" display="inline"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle m_{0}(u)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch4.E8.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch4.E8.m3" class="ltx_Math" alttext="\displaystyle{1\over 2}\,\left[1+{\rm tanh}\left({u-u_{1}\over u_{2}}\right)\right]" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mi>tanh</mi><mo>â¢</mo><mrow><mo>(</mo><mstyle displaystyle="true"><mfrac><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mn>1</mn></msub></mrow><msub><mi>u</mi><mn>2</mn></msub></mfrac></mstyle><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle{1\over 2}\,\left[1+{\rm tanh}\left({u-u_{1}\over u_{2}}\right)\right]</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.8)</span></td>
+</tr>
+<tr id="Ch4.E9" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch4.E9.m1" class="ltx_Math" alttext="\displaystyle w_{0}(u)" display="inline"><semantics><mrow><msub><mi>w</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle w_{0}(u)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch4.E9.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch4.E9.m3" class="ltx_Math" alttext="\displaystyle{1\over 2}\,\left[1+{\rm tanh}\left({u-u_{3}\over u_{4}}\right)\right]" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mi>tanh</mi><mo>â¢</mo><mrow><mo>(</mo><mstyle displaystyle="true"><mfrac><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mn>3</mn></msub></mrow><msub><mi>u</mi><mn>4</mn></msub></mfrac></mstyle><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle{1\over 2}\,\left[1+{\rm tanh}\left({u-u_{3}\over u_{4}}\right)\right]</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.9)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with parameters <math id="SS1.p4.m10" class="ltx_Math" alttext="u_{1},\dots,u_{4}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â¦</mi><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">4</mn></msub></mrow><annotation encoding="application/x-tex">u_{1},\dots,u_{4}</annotation></semantics></math>, and to approximate the time constant by</span>
+              </p>
+<table id="Ch4.E10" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E10.m1" class="ltx_Math" alttext="\tau(u)={\tau_{w}\over{\rm cosh}\left({u-u_{3}\over 2u_{4}}\right)}" display="block"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mfrac><msub><mi>Ï</mi><mi>w</mi></msub><mrow><mi>cosh</mi><mo>â¢</mo><mrow><mo>(</mo><mfrac><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mn>3</mn></msub></mrow><mrow><mn>2</mn><mo>â¢</mo><msub><mi>u</mi><mn>4</mn></msub></mrow></mfrac><mo>)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tau(u)={\tau_{w}\over{\rm cosh}\left({u-u_{3}\over 2u_{4}}\right)}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.10)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with a further parameter <math id="SS1.p4.m11" class="ltx_Math" alttext="\tau_{w}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">w</mi></msub><annotation encoding="application/x-tex">\tau_{w}</annotation></semantics></math>.
+With the above assumptions, the zero-crossings of
+functions <math id="SS1.p4.m12" class="ltx_Math" alttext="F(u,w)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">F</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">w</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(u,w)</annotation></semantics></math> and <math id="SS1.p4.m13" class="ltx_Math" alttext="G(u,w)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">G</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">w</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">G(u,w)</annotation></semantics></math> of the Morris-Lecar model
+have the shape illustrated in Fig. <a href="#Ch4.F3" title="Fig.Â 4.3 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>B.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The Morris-Lecar model (<a href="#Ch4.E6" title="(4.6) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>)â(<a href="#Ch4.E10" title="(4.10) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a>) gives a
+phenomenological description of action potentials.
+We will see later on that the mathematical conditions for the
+firing of action potentials in the Morris-Lecar model can be discussed by phase plane
+analysis.</span>
+              </p>
+</span>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: FitzHugh-Nagumo model</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">FitzHugh and Nagumo were probably the first to propose that, for a discussion
+of action potential generation, the four equations of Hodgkin and Huxley can
+be replaced by two, i.e., Eqs.Â (<a href="#Ch4.E4" title="(4.4) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4</span></a>)
+and (<a href="#Ch4.E5" title="(4.5) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>). They obtained
+sharp pulse-like oscillations reminiscent of trains of action potentials by
+defining the functions <math id="SS1.p5.m1" class="ltx_Math" alttext="F(u,w)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">F</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">w</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(u,w)</annotation></semantics></math> and <math id="SS1.p5.m2" class="ltx_Math" alttext="G(u,w)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">G</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">w</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">G(u,w)</annotation></semantics></math> as</span>
+              </p>
+<table id="Ch20.S4.EGx10" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch4.Ex1" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch4.Ex1.m1" class="ltx_Math" alttext="\displaystyle F(u,w)" display="inline"><semantics><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle F(u,w)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch4.Ex1.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch4.Ex1.m3" class="ltx_Math" alttext="\displaystyle u-{1\over 3}u^{3}-w" display="inline"><semantics><mrow><mi>u</mi><mo>-</mo><mrow><mstyle displaystyle="true"><mfrac><mn>1</mn><mn>3</mn></mfrac></mstyle><mo>â¢</mo><msup><mi>u</mi><mn>3</mn></msup></mrow><mo>-</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">\displaystyle u-{1\over 3}u^{3}-w</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr id="Ch4.E11" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch4.E11.m1" class="ltx_Math" alttext="\displaystyle G(u,w)" display="inline"><semantics><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle G(u,w)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch4.E11.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch4.E11.m3" class="ltx_Math" alttext="\displaystyle b_{0}+b_{1}\,u-w\,," display="inline"><semantics><mrow><mrow><msub><mi>b</mi><mn>0</mn></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>b</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mi>u</mi></mrow><mo>-</mo><mpadded width="+1.7pt"><mi>w</mi></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle b_{0}+b_{1}\,u-w\,,</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.11)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS1.p5.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is the membrane voltage and <math id="SS1.p5.m4" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is a recovery variable
+<cite class="ltx_cite">(<a href="bib.html#bib56" title="Impulses and physiological states in models of nerve membrane" class="ltx_ref">152</a>; <a href="bib.html#bib57" title="An active pulse transmission line simulating nerve axon" class="ltx_ref">356</a>)</cite>. Note that both <math id="SS1.p5.m5" class="ltx_Math" alttext="F" display="inline"><semantics><mi mathsize="normal" stretchy="false">F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math> and <math id="SS1.p5.m6" class="ltx_Math" alttext="G" display="inline"><semantics><mi mathsize="normal" stretchy="false">G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math> are linear in <math id="SS1.p5.m7" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>;
+the sole non-linearity is the cubic term in <math id="SS1.p5.m8" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>. The FitzHugh-Nagumo model is
+one of the simplest model with non-trivial behavior lending itself to a phase
+plane analysis, which will be discussed below in SectionsÂ <a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a> â <a href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2.2 </span>Mathematical steps (*)</h1>
+
+<figure id="Ch4.F5" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x92.png" id="Ch4.F5.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x93.png" id="Ch4.F5.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.5: </span>Similarity of gating variables <math id="Ch4.F5.m11" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> and <math id="Ch4.F5.m12" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">A</span>. After stimulation of the Hodgkin-Huxley model by a short current pulse,
+the membrane potential (solid line) exhibits an action potential.
+The time course of the variables <math id="Ch4.F5.m13" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> (dashed line) mirrors that of the variable <math id="Ch4.F5.m14" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> (dot-dashed).
+<span class="ltx_text ltx_font_bold">B</span>. During and after the action potential, the
+trajectory of the variables <math id="Ch4.F5.m15" class="ltx_Math" alttext="n(t)" display="inline"><semantics><mrow><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">n(t)</annotation></semantics></math> and <math id="Ch4.F5.m16" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math> (solid line) stays
+very close to the straight line <math id="Ch4.F5.m17" class="ltx_Math" alttext="h=b-an" display="inline"><semantics><mrow><mi>h</mi><mo>=</mo><mrow><mi>b</mi><mo>-</mo><mrow><mi>a</mi><mo>â¢</mo><mi>n</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">h=b-an</annotation></semantics></math> (dashed) with slope <math id="Ch4.F5.m18" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> and offset <math id="Ch4.F5.m19" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>. The point <math id="Ch4.F5.m20" class="ltx_Math" alttext="(n_{0}(u_{rest}),h_{0}(u_{rest}))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mrow><mi>r</mi><mo>â¢</mo><mi>e</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mi>t</mi></mrow></msub><mo>)</mo></mrow></mrow><mo>,</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mrow><mi>r</mi><mo>â¢</mo><mi>e</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mi>t</mi></mrow></msub><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n_{0}(u_{rest}),h_{0}(u_{rest}))</annotation></semantics></math> is indicated with a circle.</figcaption>
+</figure>
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">The reduction of the Hodgkin-Huxley model to Eqs. (<a href="#Ch4.E4" title="(4.4) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4</span></a>) and
+(<a href="#Ch4.E5" title="(4.5) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>) presented in this paragraph is inspired by the geometrical
+treatment of <cite class="ltx_cite">Rinzel (<a href="bib.html#bib79" title="Excitation dynamics: insights from simplified membrane models" class="ltx_ref">439</a>)</cite>; see also the slightly more general method
+of <cite class="ltx_cite">Abbott and Kepler (<a href="bib.html#bib80" title="Model neurons: from Hodgkin-Huxley to Hopfield" class="ltx_ref">2</a>)</cite> and <cite class="ltx_cite">Kepler<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib77" title="Reduction of conductance-based neuron models" class="ltx_ref">258</a>)</cite>.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">The overall aim of the approach is to replace the variables <math id="SS2.p2.m1" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="SS2.p2.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> in the
+Hodgkin-Huxley model by a single effective variable <math id="SS2.p2.m3" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>. At each moment of
+time, the values <math id="SS2.p2.m4" class="ltx_Math" alttext="(n(t),h(t))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n(t),h(t))</annotation></semantics></math> can be visualized as points in the
+two-dimensional plane spanned by <math id="SS2.p2.m5" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="SS2.p2.m6" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>; cf. Fig.Â <a href="#Ch4.F5" title="Fig.Â 4.5 â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>B.
+We have argued above that the time course of the scaled variable
+<math id="SS2.p2.m7" class="ltx_Math" alttext="a\,n" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">a\,n</annotation></semantics></math> is expected to
+be similar to that of <math id="SS2.p2.m8" class="ltx_Math" alttext="b-h" display="inline"><semantics><mrow><mi>b</mi><mo>-</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">b-h</annotation></semantics></math>. If, at each time, <math id="SS2.p2.m9" class="ltx_Math" alttext="a\,n(t)" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">a\,n(t)</annotation></semantics></math> were equal to <math id="SS2.p2.m10" class="ltx_Math" alttext="b-h(t)" display="inline"><semantics><mrow><mi>b</mi><mo>-</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">b-h(t)</annotation></semantics></math>, then
+all possible points <math id="SS2.p2.m11" class="ltx_Math" alttext="(n,h)" display="inline"><semantics><mrow><mo>(</mo><mrow><mi>n</mi><mo>,</mo><mi>h</mi></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n,h)</annotation></semantics></math> would lie on the straight line <math id="SS2.p2.m12" class="ltx_Math" alttext="h=b-a\,n" display="inline"><semantics><mrow><mi>h</mi><mo>=</mo><mrow><mi>b</mi><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mi>n</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">h=b-a\,n</annotation></semantics></math> which
+changes through <math id="SS2.p2.m13" class="ltx_Math" alttext="(0,b)" display="inline"><semantics><mrow><mo>(</mo><mrow><mn>0</mn><mo>,</mo><mi>b</mi></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(0,b)</annotation></semantics></math> and <math id="SS2.p2.m14" class="ltx_Math" alttext="(1,b-a)" display="inline"><semantics><mrow><mo>(</mo><mrow><mn>1</mn><mo>,</mo><mrow><mi>b</mi><mo>-</mo><mi>a</mi></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(1,b-a)</annotation></semantics></math>. It would be unreasonable to expect that
+all points <math id="SS2.p2.m15" class="ltx_Math" alttext="(n(t),h(t))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n(t),h(t))</annotation></semantics></math> that occur during the temporal evolution of the
+Hodgkin-Huxley model fall exactly on that line.
+Indeed, during an action potential (Fig.Â <a href="#Ch4.F5" title="Fig.Â 4.5 â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>A),
+the variables <math id="SS2.p2.m16" class="ltx_Math" alttext="n(t)" display="inline"><semantics><mrow><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">n(t)</annotation></semantics></math> and <math id="SS2.p2.m17" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math> stay close
+to a straight line, but are not perfectly on it
+(Fig.Â <a href="#Ch4.F5" title="Fig.Â 4.5 â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>B).
+The reduction of the number
+of variables is achieved by a projection of those points onto the line. The
+position along the line <math id="SS2.p2.m18" class="ltx_Math" alttext="h=b-a\,n" display="inline"><semantics><mrow><mi>h</mi><mo>=</mo><mrow><mi>b</mi><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mi>n</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">h=b-a\,n</annotation></semantics></math> gives the new variable <math id="SS2.p2.m19" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>; cf.
+Fig.Â <a href="#Ch4.F6" title="Fig.Â 4.6 â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>. The projection is the essential approximation
+during the reduction.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">To perform the projection, we will proceed in three steps. A minimal
+condition for the projection is that the approximation introduces no error
+while the neuron is at rest. As a first step, we therefore shift the origin
+of the coordinate system to the rest state and introduce new variables</p>
+<table id="Ch20.S4.EGx11" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch4.E12" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch4.E12.m1" class="ltx_Math" alttext="\displaystyle x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">\displaystyle x</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch4.E12.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch4.E12.m3" class="ltx_Math" alttext="\displaystyle n-n_{0}(u_{\rm rest})" display="inline"><semantics><mrow><mi>n</mi><mo>-</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle n-n_{0}(u_{\rm rest})</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.12)</span></td>
+</tr>
+<tr id="Ch4.E13" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch4.E13.m1" class="ltx_Math" alttext="\displaystyle y" display="inline"><semantics><mi>y</mi><annotation encoding="application/x-tex">\displaystyle y</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch4.E13.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch4.E13.m3" class="ltx_Math" alttext="\displaystyle h-h_{0}(u_{\rm rest})\,." display="inline"><semantics><mrow><mrow><mi>h</mi><mo>-</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle h-h_{0}(u_{\rm rest})\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.13)</span></td>
+</tr>
+</table>
+<p class="ltx_p">At rest, we have <math id="SS2.p3.m1" class="ltx_Math" alttext="x=y=0" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x=y=0</annotation></semantics></math>.</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">Second, we turn the coordinate system by an angle <math id="SS2.p4.m1" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi>Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> which is determined
+as follows. For a given constant voltage <math id="SS2.p4.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>, the dynamics of the gating
+variables <math id="SS2.p4.m3" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="SS2.p4.m4" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> approaches the equilibrium values <math id="SS2.p4.m5" class="ltx_Math" alttext="(n_{0}(u),h_{0}(u))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>,</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n_{0}(u),h_{0}(u))</annotation></semantics></math>.
+The points <math id="SS2.p4.m6" class="ltx_Math" alttext="(n_{0}(u),h_{0}(u))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>,</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n_{0}(u),h_{0}(u))</annotation></semantics></math> as a function of <math id="SS2.p4.m7" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> define a curve in the
+two-dimensional plane. The slope of the curve at <math id="SS2.p4.m8" class="ltx_Math" alttext="u=u_{\rm rest}" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u=u_{\rm rest}</annotation></semantics></math> yields the
+rotation angle <math id="SS2.p4.m9" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi>Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> via</p>
+<table id="Ch4.E14" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E14.m1" class="ltx_Math" alttext="\tan\alpha={{{\text{d}}h_{0}\over{\text{d}}u}|_{u_{\rm rest}}\over{{\text{d}}n%
+_{0}\over{\text{d}}u}|_{u_{\rm{rest}}}}\,." display="block"><semantics><mrow><mrow><mrow><mi>tan</mi><mo>â¡</mo><mi>Î±</mi></mrow><mo>=</mo><mpadded width="+1.7pt"><mfrac><msub><mrow><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow></mfrac></mstyle><mo fence="true">|</mo></mrow><msub><mi>u</mi><mi>rest</mi></msub></msub><msub><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow></mfrac><mo fence="true">|</mo></mrow><msub><mi>u</mi><mi>rest</mi></msub></msub></mfrac></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tan\alpha={{{\text{d}}h_{0}\over{\text{d}}u}|_{u_{\rm rest}}\over{{\text{d}}n%
+_{0}\over{\text{d}}u}|_{u_{\rm{rest}}}}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.14)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Rotating the coordinate system by <math id="SS2.p4.m10" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi>Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> turns the abscissa <math id="SS2.p4.m11" class="ltx_Math" alttext="\mbox{\boldmath\(e\)}_{1}" display="inline"><semantics><msub><mi>ð</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(e\)}_{1}</annotation></semantics></math> of
+the new coordinate system in a direction tangential to the curve. The
+coordinates <math id="SS2.p4.m12" class="ltx_Math" alttext="(z_{1},z_{2})" display="inline"><semantics><mrow><mo>(</mo><mrow><msub><mi>z</mi><mn>1</mn></msub><mo>,</mo><msub><mi>z</mi><mn>2</mn></msub></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(z_{1},z_{2})</annotation></semantics></math> in the new system are</p>
+<table id="Ch4.E15" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E15.m1" class="ltx_Math" alttext="\left(\begin{array}[]{c}z_{1}\\
+z_{2}\end{array}\right)=\left(\begin{array}[]{cc}\cos\alpha&amp;\sin\alpha\\
+-\sin\alpha&amp;\cos\alpha\end{array}\right)\,\left(\begin{array}[]{c}x\\
+y\end{array}\right)\,." display="block"><semantics><mrow><mrow><mrow><mo>(</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><msub><mi>z</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center"><msub><mi>z</mi><mn>2</mn></msub></mtd></mtr></mtable><mo>)</mo></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mrow><mi>cos</mi><mo>â¡</mo><mi>Î±</mi></mrow></mtd><mtd columnalign="center"><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mo>-</mo><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow></mtd><mtd columnalign="center"><mrow><mi>cos</mi><mo>â¡</mo><mi>Î±</mi></mrow></mtd></mtr></mtable><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mi>x</mi></mtd></mtr><mtr><mtd columnalign="center"><mi>y</mi></mtd></mtr></mtable><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\left(\begin{array}[]{c}z_{1}\\
+z_{2}\end{array}\right)=\left(\begin{array}[]{cc}\cos\alpha&amp;\sin\alpha\\
+-\sin\alpha&amp;\cos\alpha\end{array}\right)\,\left(\begin{array}[]{c}x\\
+y\end{array}\right)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.15)</span></td>
+</tr>
+</table>
+</div>
+<figure id="Ch4.F6" class="ltx_figure"><img src="x94.png" id="Ch4.F6.g1" class="ltx_graphics ltx_centering" width="292" height="243" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.6: </span> Mathematical reduction:
+Arbitrary points <math id="Ch4.F6.m5" class="ltx_Math" alttext="(n,h)" display="inline"><semantics><mrow><mo>(</mo><mrow><mi>n</mi><mo>,</mo><mi>h</mi></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n,h)</annotation></semantics></math> are projected onto the line in direction of
+<math id="Ch4.F6.m6" class="ltx_Math" alttext="\mbox{\boldmath\(e\)}_{1}" display="inline"><semantics><msub><mi>ð</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(e\)}_{1}</annotation></semantics></math> and passing through the point <math id="Ch4.F6.m7" class="ltx_Math" alttext="(n_{0}(u_{\rm rest}),h_{0}(u_{\rm rest}))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>,</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n_{0}(u_{\rm rest}),h_{0}(u_{\rm rest}))</annotation></semantics></math>. The dotted line gives the curve <math id="Ch4.F6.m8" class="ltx_Math" alttext="(n_{0}(u),h_{0}(u))" display="inline"><semantics><mrow><mo>(</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>,</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(n_{0}(u),h_{0}(u))</annotation></semantics></math>. </figcaption>
+</figure>
+<div id="SS2.p5" class="ltx_para">
+<p class="ltx_p">Third, we set <math id="SS2.p5.m1" class="ltx_Math" alttext="z_{2}=0" display="inline"><semantics><mrow><msub><mi>z</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z_{2}=0</annotation></semantics></math> and retain only the coordinate <math id="SS2.p5.m2" class="ltx_Math" alttext="z_{1}" display="inline"><semantics><msub><mi>z</mi><mn>1</mn></msub><annotation encoding="application/x-tex">z_{1}</annotation></semantics></math> along <math id="SS2.p5.m3" class="ltx_Math" alttext="\mbox{\boldmath\(e\)}_{1}" display="inline"><semantics><msub><mi>ð</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(e\)}_{1}</annotation></semantics></math>.
+The inverse transform,</p>
+<table id="Ch4.E16" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E16.m1" class="ltx_Math" alttext="\left(\begin{array}[]{c}x\\
+y\end{array}\right)=\left(\begin{array}[]{cc}\cos\alpha&amp;-\sin\alpha\\
+\sin\alpha&amp;\cos\alpha\end{array}\right)\,\left(\begin{array}[]{c}z_{1}\\
+z_{2}\end{array}\right)\,," display="block"><semantics><mrow><mrow><mrow><mo>(</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mi>x</mi></mtd></mtr><mtr><mtd columnalign="center"><mi>y</mi></mtd></mtr></mtable><mo>)</mo></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mrow><mi>cos</mi><mo>â¡</mo><mi>Î±</mi></mrow></mtd><mtd columnalign="center"><mrow><mo>-</mo><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mtd><mtd columnalign="center"><mrow><mi>cos</mi><mo>â¡</mo><mi>Î±</mi></mrow></mtd></mtr></mtable><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><msub><mi>z</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="center"><msub><mi>z</mi><mn>2</mn></msub></mtd></mtr></mtable><mo>)</mo></mrow></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\left(\begin{array}[]{c}x\\
+y\end{array}\right)=\left(\begin{array}[]{cc}\cos\alpha&amp;-\sin\alpha\\
+\sin\alpha&amp;\cos\alpha\end{array}\right)\,\left(\begin{array}[]{c}z_{1}\\
+z_{2}\end{array}\right)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.16)</span></td>
+</tr>
+</table>
+<p class="ltx_p">yields <math id="SS2.p5.m4" class="ltx_Math" alttext="x=z_{1}\,\cos\alpha" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>cos</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">x=z_{1}\,\cos\alpha</annotation></semantics></math> and <math id="SS2.p5.m5" class="ltx_Math" alttext="y=z_{1}\,\sin\alpha" display="inline"><semantics><mrow><mi>y</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">y=z_{1}\,\sin\alpha</annotation></semantics></math> since <math id="SS2.p5.m6" class="ltx_Math" alttext="z_{2}=0" display="inline"><semantics><mrow><msub><mi>z</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z_{2}=0</annotation></semantics></math>.
+Hence, after the projection, the new values of the variables <math id="SS2.p5.m7" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="SS2.p5.m8" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> are</p>
+<table id="Ch20.S4.EGx12" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch4.E17" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch4.E17.m1" class="ltx_Math" alttext="\displaystyle n^{\prime}" display="inline"><semantics><msup><mi>n</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">\displaystyle n^{\prime}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch4.E17.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch4.E17.m3" class="ltx_Math" alttext="\displaystyle n_{0}(u_{\rm rest})+z_{1}\,\cos\alpha\,," display="inline"><semantics><mrow><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>cos</mi><mo>â¡</mo><mpadded width="+1.7pt"><mi>Î±</mi></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle n_{0}(u_{\rm rest})+z_{1}\,\cos\alpha\,,</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.17)</span></td>
+</tr>
+<tr id="Ch4.E18" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch4.E18.m1" class="ltx_Math" alttext="\displaystyle h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">\displaystyle h^{\prime}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch4.E18.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch4.E18.m3" class="ltx_Math" alttext="\displaystyle h_{0}(u_{\rm rest})+z_{1}\,\sin\alpha\,." display="inline"><semantics><mrow><mrow><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mpadded width="+1.7pt"><mi>Î±</mi></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle h_{0}(u_{\rm rest})+z_{1}\,\sin\alpha\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.18)</span></td>
+</tr>
+</table>
+</div>
+<div id="SS2.p6" class="ltx_para">
+<p class="ltx_p">In principle, <math id="SS2.p6.m1" class="ltx_Math" alttext="z_{1}" display="inline"><semantics><msub><mi>z</mi><mn>1</mn></msub><annotation encoding="application/x-tex">z_{1}</annotation></semantics></math> can directly be used as the new effective variable. From
+(<a href="#Ch4.E15" title="(4.15) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.15</span></a>) we find the differential equation
+</p>
+<table id="Ch4.E19" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E19.m1" class="ltx_Math" alttext="{{\text{d}}z_{1}\over{\text{d}}t}=\cos\alpha{{\text{d}}n\over{\text{d}}t}+\sin%
+\alpha{{\text{d}}h\over{\text{d}}t}\,." display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>z</mi><mn>1</mn></msub></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mrow><mi>cos</mi><mo>â¡</mo><mrow><mi>Î±</mi><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>n</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow></mrow><mo>+</mo><mrow><mi>sin</mi><mo>â¡</mo><mrow><mi>Î±</mi><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>h</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mpadded></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}z_{1}\over{\text{d}}t}=\cos\alpha{{\text{d}}n\over{\text{d}}t}+\sin%
+\alpha{{\text{d}}h\over{\text{d}}t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.19)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We use Eq.Â (<a href="Ch2.S2.html#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>)
+and replace, on the right-hand side, <math id="SS2.p6.m2" class="ltx_Math" alttext="n(t)" display="inline"><semantics><mrow><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">n(t)</annotation></semantics></math> and <math id="SS2.p6.m3" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math> by
+(<a href="#Ch4.E17" title="(4.17) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.17</span></a>) and (<a href="#Ch4.E18" title="(4.18) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.18</span></a>). The result is</p>
+<table id="Ch4.E20" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E20.m1" class="ltx_Math" alttext="{{\text{d}}z_{1}\over{\text{d}}t}=-\cos\alpha\,{z_{1}\,\cos\alpha+n_{0}(u_{\rm
+rest%
+})-n_{0}(u)\over\tau_{n}(u)}-\sin\alpha{z_{1}\,\sin\alpha+h_{0}(u_{\rm rest})-%
+h_{0}(u)\over\tau_{h}(u)}\,," display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>z</mi><mn>1</mn></msub></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mrow><mi>cos</mi><mo>â¡</mo><mrow><mpadded width="+1.7pt"><mi>Î±</mi></mpadded><mo>â¢</mo><mfrac><mrow><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>cos</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow><mo>+</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac></mrow></mrow><mo>-</mo><mrow><mi>sin</mi><mo>â¡</mo><mrow><mi>Î±</mi><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mrow><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow><mo>+</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mrow><msub><mi>Ï</mi><mi>h</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac></mpadded></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}z_{1}\over{\text{d}}t}=-\cos\alpha\,{z_{1}\,\cos\alpha+n_{0}(u_{\rm
+rest%
+})-n_{0}(u)\over\tau_{n}(u)}-\sin\alpha{z_{1}\,\sin\alpha+h_{0}(u_{\rm rest})-%
+h_{0}(u)\over\tau_{h}(u)}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.20)</span></td>
+</tr>
+</table>
+<p class="ltx_p">which is of the form <math id="SS2.p6.m4" class="ltx_Math" alttext="{\text{d}}z_{1}/{\text{d}}t=G(u,z_{1})" display="inline"><semantics><mrow><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>z</mi><mn>1</mn></msub></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><msub><mi>z</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">{\text{d}}z_{1}/{\text{d}}t=G(u,z_{1})</annotation></semantics></math>, as desired.</p>
+</div>
+<div id="SS2.p7" class="ltx_para">
+<p class="ltx_p">To see the relation to Eqs.Â (<a href="#Ch4.E3" title="(4.3) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>) andÂ (<a href="#Ch4.E5" title="(4.5) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>), it is
+convenient to rescale <math id="SS2.p7.m1" class="ltx_Math" alttext="z_{1}" display="inline"><semantics><msub><mi>z</mi><mn>1</mn></msub><annotation encoding="application/x-tex">z_{1}</annotation></semantics></math> and define</p>
+<table id="Ch4.E21" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E21.m1" class="ltx_Math" alttext="w=-\tan\alpha\,n_{0}(u_{\rm rest})-z_{1}\,\sin\alpha\,." display="block"><semantics><mrow><mrow><mi>w</mi><mo>=</mo><mrow><mo>-</mo><mrow><mrow><mi>tan</mi><mo>â¡</mo><mrow><mpadded width="+1.7pt"><mi>Î±</mi></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>z</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mpadded width="+1.7pt"><mi>Î±</mi></mpadded></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">w=-\tan\alpha\,n_{0}(u_{\rm rest})-z_{1}\,\sin\alpha\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.21)</span></td>
+</tr>
+</table>
+<p class="ltx_p">If we introduce <math id="SS2.p7.m2" class="ltx_Math" alttext="a=-\tan\alpha" display="inline"><semantics><mrow><mi>a</mi><mo>=</mo><mrow><mo>-</mo><mrow><mi>tan</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">a=-\tan\alpha</annotation></semantics></math> and
+<math id="SS2.p7.m3" class="ltx_Math" alttext="b=a\,n_{0}(u_{\rm rest})+h_{0}(u_{\rm rest})" display="inline"><semantics><mrow><mi>b</mi><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">b=a\,n_{0}(u_{\rm rest})+h_{0}(u_{\rm rest})</annotation></semantics></math>,
+we find from
+Eq.Â (<a href="#Ch4.E17" title="(4.17) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.17</span></a>) the variable
+<math id="SS2.p7.m4" class="ltx_Math" alttext="n^{\prime}=w/a" display="inline"><semantics><mrow><msup><mi>n</mi><mo>â²</mo></msup><mo>=</mo><mrow><mi>w</mi><mo>/</mo><mi>a</mi></mrow></mrow><annotation encoding="application/x-tex">n^{\prime}=w/a</annotation></semantics></math> and from Eq.Â (<a href="#Ch4.E18" title="(4.18) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.18</span></a>) <math id="SS2.p7.m5" class="ltx_Math" alttext="h^{\prime}=b-w" display="inline"><semantics><mrow><msup><mi>h</mi><mo>â²</mo></msup><mo>=</mo><mrow><mi>b</mi><mo>-</mo><mi>w</mi></mrow></mrow><annotation encoding="application/x-tex">h^{\prime}=b-w</annotation></semantics></math>,
+which are exactly the approximations
+that we have used in (<a href="#Ch4.E3" title="(4.3) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>). The differential equation for the
+variable <math id="SS2.p7.m6" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is of the desired form <math id="SS2.p7.m7" class="ltx_Math" alttext="{\text{d}}w/{\text{d}}t=G(u,w)" display="inline"><semantics><mrow><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>w</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">{\text{d}}w/{\text{d}}t=G(u,w)</annotation></semantics></math> and can be found
+from Eq.Â (<a href="#Ch4.E20" title="(4.20) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.20</span></a>) and (<a href="#Ch4.E21" title="(4.21) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.21</span></a>). The resulting
+function <math id="SS2.p7.m8" class="ltx_Math" alttext="G(u,w)" display="inline"><semantics><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>w</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">G(u,w)</annotation></semantics></math> of the two-dimensional model
+is illustrated in Fig. <a href="#Ch4.F3" title="Fig.Â 4.3 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>A.</p>
+</div>
+<div id="SS2.p8" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Further simplification</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We may further approximate the time constants <math id="SS2.p8.m1" class="ltx_Math" alttext="\tau_{n}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub><annotation encoding="application/x-tex">\tau_{n}</annotation></semantics></math>
+and <math id="SS2.p8.m2" class="ltx_Math" alttext="\tau_{h}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">h</mi></msub><annotation encoding="application/x-tex">\tau_{h}</annotation></semantics></math> by a common function <math id="SS2.p8.m3" class="ltx_Math" alttext="\tau(u)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau(u)</annotation></semantics></math> so that the dynamics of <math id="SS2.p8.m4" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is</span>
+              </p>
+<table id="Ch4.E22" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E22.m1" class="ltx_Math" alttext="{{\text{d}}w\over{\text{d}}t}=-{1\over\tau(u)}\left[{w}-w_{0}(u)\right]\,." display="block"><semantics><mrow><mrow><mfrac><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>w</mi></mrow><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mrow><mfrac><mn>1</mn><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mi>w</mi><mo>-</mo><mrow><msub><mi>w</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}w\over{\text{d}}t}=-{1\over\tau(u)}\left[{w}-w_{0}(u)\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.22)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with a new equilibrium function <math id="SS2.p8.m5" class="ltx_Math" alttext="w_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">w</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">w_{0}(u)</annotation></semantics></math> that is a linear combination of the
+functions <math id="SS2.p8.m6" class="ltx_Math" alttext="h_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">h_{0}</annotation></semantics></math> and <math id="SS2.p8.m7" class="ltx_Math" alttext="n_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">n</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">n_{0}</annotation></semantics></math>. From Eqs.Â (<a href="#Ch4.E20" title="(4.20) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.20</span></a>) and
+(<a href="#Ch4.E21" title="(4.21) â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.21</span></a>) we find</span>
+              </p>
+<table id="Ch4.E23" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E23.m1" class="ltx_Math" alttext="w_{0}(u)=-\sin\alpha\,[\cos\alpha\,n_{0}(u)+\sin\alpha\,h_{0}(u)-b\sin\alpha]" display="block"><semantics><mrow><mrow><msub><mi>w</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mrow><mi>sin</mi><mo>â¡</mo><mpadded width="+1.7pt"><mi>Î±</mi></mpadded></mrow><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mrow><mi>cos</mi><mo>â¡</mo><mrow><mpadded width="+1.7pt"><mi>Î±</mi></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mrow><mi>sin</mi><mo>â¡</mo><mrow><mpadded width="+1.7pt"><mi>Î±</mi></mpadded><mo>â¢</mo><msub><mi>h</mi><mn>0</mn></msub></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>b</mi><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mi>Î±</mi></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">w_{0}(u)=-\sin\alpha\,[\cos\alpha\,n_{0}(u)+\sin\alpha\,h_{0}(u)-b\sin\alpha]</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.23)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In practice,
+<math id="SS2.p8.m8" class="ltx_Math" alttext="w_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">w</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">w_{0}(u)</annotation></semantics></math> and <math id="SS2.p8.m9" class="ltx_Math" alttext="\tau(u)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau(u)</annotation></semantics></math> can be fitted by the expressions (<a href="#Ch4.E9" title="(4.9) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.9</span></a>)
+and (<a href="#Ch4.E10" title="(4.10) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a>), respectively.
+</span>
+              </p>
+</span>
+</div>
+<figure id="Ch4.F7" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x95.png" id="Ch4.F7.g1" class="ltx_graphics" width="293" height="182" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x96.png" id="Ch4.F7.g2" class="ltx_graphics" width="293" height="183" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.7: </span>
+<span class="ltx_text ltx_font_bold">A</span>. Phase portrait of the FitzHugh-Nagumo model. The <math id="Ch4.F7.m6" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline
+(curved line) and the <math id="Ch4.F7.m7" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline (straight line) intersect at the three
+fixed points. The direction of the arrows indicates the flow
+<math id="Ch4.F7.m8" class="ltx_Math" alttext="(\dot{u},\dot{w})^{T}" display="inline"><semantics><msup><mrow><mo>(</mo><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>,</mo><mover accent="true"><mi>w</mi><mo>Ë</mo></mover></mrow><mo>)</mo></mrow><mi>T</mi></msup><annotation encoding="application/x-tex">(\dot{u},\dot{w})^{T}</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">B</span>. Arrows on the <math id="Ch4.F7.m9" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline point
+vertically upward or downward, while on the <math id="Ch4.F7.m10" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> nullcline arrows are horizontal.
+In the neighborhood of the fixed points arrows have a short length
+indicating slow movement. At the fixed point, the direction of the arrows
+change. </figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.1 </span>Threshold effects</span></a><a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3 </span>Phase plane analysis</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

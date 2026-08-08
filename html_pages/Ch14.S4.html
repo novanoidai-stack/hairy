@@ -1,0 +1,666 @@
+<!DOCTYPE html><html>
+<head>
+<title>14.4 Density equations vs. integral equations | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S6.html" title="14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.Sx1.html" title="Literature â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="density equation, escape model, flux, for population, for refractory variable, integral equation, refractory, refractory density, relation with density equations, relation with integral equations">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14 </span>The Integral-equation Approach</span></a><a href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.3 </span>Linear response to time-dependent input</span></a><a href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5 </span>Adaptation in Population Equations</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">14.4 </span>Density equations vs. integral equations</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">In this section we relate the integral equation
+(<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>) to the membrane potential density approach for integrate-and-fire neurons that we have discussed in Chapter <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>.
+The two approaches are closely related. For noise-free neurons driven by a constant supra-threshold stimulus, the two mathematical formulations are, in fact, equivalent and related by a simple change of variables. Even for noisy neurons with subthreshold stimulation, the two approaches are comparable. Both methods are linear in the densities and amenable to efficient numerical implementations. The formal mathematical relation between the two approaches is shown in Section <a href="#SS3" title="14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.4.3</span></a>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">We use Section <a href="#SS1" title="14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.4.1</span></a> to introduce a
+ârefractory densityâ which is analogous
+to the membrane potential density that we have seen
+in Chapter <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>.
+In particular,
+the dynamics of refractory density variables follow
+a continuity equation.
+The solution of the continuity equation
+(<a href="#SS2" title="14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.4.2</span></a>)
+transforms the partial differential equation
+into the integral equations
+that we have seen in Section
+<a href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1</span></a>.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">14.4.1 </span>Refractory densities</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">In this section we develop a density formalism for spike response neurons, similar to the membrane potential density approach for integrate-and-fire neurons that we have discussed in
+Chapter <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>.
+The main difference is that we replace the membrane potential density <math id="SS1.p1.m1" class="ltx_Math" alttext="p(u,t)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u,t)</annotation></semantics></math> by a refractory density <math id="SS1.p1.m2" class="ltx_Math" alttext="q(r,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(r,t)</annotation></semantics></math>, to be introduced below.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">We study a homogeneous population of neurons with escape noise.
+The neuron model should be consistent with
+time-dependent renewal theory.
+In this case, we can write
+the membrane potential of a neuron <math id="SS1.p2.m1" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+in general form as</p>
+<table id="Ch14.E61" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E61.m1" class="ltx_Math" alttext="u_{i}(t,\hat{t})=\eta(t-\hat{t}_{i})+h(t,\hat{t}_{i})\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u_{i}(t,\hat{t})=\eta(t-\hat{t}_{i})+h(t,\hat{t}_{i})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.61)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For example, a nonlinear integrate-and-fire
+model which has fired that last time at <math id="SS1.p2.m2" class="ltx_Math" alttext="\hat{t}_{i}" display="inline"><semantics><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\hat{t}_{i}</annotation></semantics></math>
+and follows a differential equation
+<math id="SS1.p2.m3" class="ltx_Math" alttext="\dot{u}(t^{\prime})=[f(u)+R\,I(t^{\prime})]" display="inline"><semantics><mrow><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>[</mo><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\dot{u}(t^{\prime})=[f(u)+R\,I(t^{\prime})]</annotation></semantics></math>
+has for <math id="SS1.p2.m4" class="ltx_Math" alttext="t&gt;\hat{t}_{i}" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">t&gt;\hat{t}_{i}</annotation></semantics></math> a potential
+<math id="SS1.p2.m5" class="ltx_Math" alttext="u_{i}(t,\hat{t}_{i})=h(t,\hat{t}_{i})=u_{r}+\int_{\hat{t}_{i}}^{t}\dot{u}(t^{%
+\prime}){\text{d}}t^{\prime}" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mi>t</mi></msubsup><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">u_{i}(t,\hat{t}_{i})=h(t,\hat{t}_{i})=u_{r}+\int_{\hat{t}_{i}}^{t}\dot{u}(t^{%
+\prime}){\text{d}}t^{\prime}</annotation></semantics></math>
+and <math id="SS1.p2.m6" class="ltx_Math" alttext="\eta=0" display="inline"><semantics><mrow><mi>Î·</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\eta=0</annotation></semantics></math>.
+A SRM<math id="SS1.p2.m7" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neuron has
+a potential <math id="SS1.p2.m8" class="ltx_Math" alttext="u_{i}(t,\hat{t})=\eta(t-\hat{t}_{i})+h(t)" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">u_{i}(t,\hat{t})=\eta(t-\hat{t}_{i})+h(t)</annotation></semantics></math>
+with an arbitrary spike-afterpotential <math id="SS1.p2.m9" class="ltx_Math" alttext="\eta(t-\hat{t}_{i})" display="inline"><semantics><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta(t-\hat{t}_{i})</annotation></semantics></math>
+and an input potential <math id="SS1.p2.m10" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">The notation in Eq. (<a href="#Ch14.E61" title="(14.61) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.61</span></a>) emphasizes
+the importance of the last firing time <math id="SS1.p3.m1" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>.
+We denote the refractory state of a neuron by the variable</p>
+<table id="Ch14.E62" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E62.m1" class="ltx_Math" alttext="r=t-\hat{t}\geq 0\,," display="block"><semantics><mrow><mrow><mi>r</mi><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>â¥</mo><mpadded width="+1.7pt"><mn>0</mn></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">r=t-\hat{t}\geq 0\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.62)</span></td>
+</tr>
+</table>
+<p class="ltx_p">i.e., by the time that has passed since the last spike. If we know <math id="SS1.p3.m2" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> and the
+total input current in the past, we can calculate the membrane potential,
+<math id="SS1.p3.m3" class="ltx_Math" alttext="u(t)=\eta(r)+h(t,t-r)" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mrow><mi>t</mi><mo>-</mo><mi>r</mi></mrow></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t)=\eta(r)+h(t,t-r)</annotation></semantics></math>.
+Given the importance of the refractory variable <math id="SS1.p3.m4" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>, we may wonder how many
+neurons in the population have a refractory state between <math id="SS1.p3.m5" class="ltx_Math" alttext="r_{0}" display="inline"><semantics><msub><mi>r</mi><mn>0</mn></msub><annotation encoding="application/x-tex">r_{0}</annotation></semantics></math> and <math id="SS1.p3.m6" class="ltx_Math" alttext="r_{0}+\Delta r" display="inline"><semantics><mrow><msub><mi>r</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>r</mi></mrow></mrow><annotation encoding="application/x-tex">r_{0}+\Delta r</annotation></semantics></math>.
+For a large population (<math id="SS1.p3.m7" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math>) the
+fraction of neurons with a momentary value of <math id="SS1.p3.m8" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> in the interval
+<math id="SS1.p3.m9" class="ltx_Math" alttext="[r_{0},r_{0}+\Delta r]" display="inline"><semantics><mrow><mo>[</mo><mrow><msub><mi>r</mi><mn>0</mn></msub><mo>,</mo><mrow><msub><mi>r</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>r</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[r_{0},r_{0}+\Delta r]</annotation></semantics></math> is given by</p>
+<table id="Ch14.E63" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E63.m1" class="ltx_Math" alttext="\lim_{N\to\infty}\left\{{\text{neurons with }r_{0}&lt;r(t)\leq r_{0}+\Delta r%
+\over N}\right\}=\int_{r_{0}}^{r_{0}+\Delta r}q(r,t)\,{\text{d}}r\,," display="block"><semantics><mrow><mrow><mrow><munder><mo movablelimits="false">lim</mo><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow></munder><mo>â¡</mo><mrow><mo>{</mo><mfrac><mrow><mrow><mtext>neurons withÂ </mtext><mo>â¢</mo><msub><mi>r</mi><mn>0</mn></msub></mrow><mo>&lt;</mo><mrow><mi>r</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â¤</mo><mrow><msub><mi>r</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>r</mi></mrow></mrow></mrow><mi>N</mi></mfrac><mo>}</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><msub><mi>r</mi><mn>0</mn></msub><mrow><msub><mi>r</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>r</mi></mrow></mrow></msubsup><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>r</mi></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\lim_{N\to\infty}\left\{{\text{neurons with }r_{0}&lt;r(t)\leq r_{0}+\Delta r%
+\over N}\right\}=\int_{r_{0}}^{r_{0}+\Delta r}q(r,t)\,{\text{d}}r\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.63)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS1.p3.m10" class="ltx_Math" alttext="q(r,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(r,t)</annotation></semantics></math> is the <span class="ltx_text ltx_font_italic">refractory density</span>.
+The aim of this section is to describe the dynamics
+of a population of SRM neurons by
+the evolution of <math id="SS1.p3.m11" class="ltx_Math" alttext="q(r,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(r,t)</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">We start from the continuity equation (cf. Ch. <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>),</p>
+<table id="Ch14.E64" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E64.m1" class="ltx_Math" alttext="{\partial\over\partial t}q(r,t)=-{\partial\over\partial r}J_{\rm refr}(r,t)\,," display="block"><semantics><mrow><mrow><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>r</mi></mrow></mfrac><mo>â¢</mo><msub><mi>J</mi><mi>refr</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{\partial\over\partial t}q(r,t)=-{\partial\over\partial r}J_{\rm refr}(r,t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.64)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where we have introduced the flux <math id="SS1.p4.m1" class="ltx_Math" alttext="J_{\rm refr}" display="inline"><semantics><msub><mi>J</mi><mi>refr</mi></msub><annotation encoding="application/x-tex">J_{\rm refr}</annotation></semantics></math> along the axis of the
+refractory variable <math id="SS1.p4.m2" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>.
+
+As long as the neuron does not fire, the variable
+<math id="SS1.p4.m3" class="ltx_Math" alttext="r=t-\hat{t}" display="inline"><semantics><mrow><mi>r</mi><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow><annotation encoding="application/x-tex">r=t-\hat{t}</annotation></semantics></math> increases at a speed of <math id="SS1.p4.m4" class="ltx_Math" alttext="{\text{d}}r/{\text{d}}t=1" display="inline"><semantics><mrow><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>r</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">{\text{d}}r/{\text{d}}t=1</annotation></semantics></math>. The flux is the
+density <math id="SS1.p4.m5" class="ltx_Math" alttext="q" display="inline"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math> times the velocity, hence</p>
+<table id="Ch14.E65" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E65.m1" class="ltx_Math" alttext="J_{\rm refr}(r,t)=q(r,t)\,{{\text{d}}r\over{\text{d}}t}=q(r,t)\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>J</mi><mi>refr</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>r</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">J_{\rm refr}(r,t)=q(r,t)\,{{\text{d}}r\over{\text{d}}t}=q(r,t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.65)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The continuity equation (<a href="#Ch14.E64" title="(14.64) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.64</span></a>) expresses the fact that, as
+long as a neuron does not fire, its trajectories <math id="SS1.p4.m6" class="ltx_Math" alttext="r(t)" display="inline"><semantics><mrow><mi>r</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">r(t)</annotation></semantics></math> can neither start nor
+end. On the other hand, if a neuron fires, the trajectory stops at the
+current value of <math id="SS1.p4.m7" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> and âreappearsâ at <math id="SS1.p4.m8" class="ltx_Math" alttext="r=0" display="inline"><semantics><mrow><mi>r</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r=0</annotation></semantics></math>. In the escape rate formalism,
+the instantaneous firing rate of a neuron with refractory variable <math id="SS1.p4.m9" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> is
+given by the hazard</p>
+<table id="Ch14.E66" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E66.m1" class="ltx_Math" alttext="\rho(t|t-r)=f[\eta(r)+h(t|t-r)]\,." display="block"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mi>t</mi><mo>-</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>f</mi><mrow><mo stretchy="false">[</mo><mi>Î·</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><mo>+</mo><mi>h</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mi>t</mi><mo>-</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><mo rspace="4.2pt" stretchy="false">]</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\rho(t|t-r)=f[\eta(r)+h(t|t-r)]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.66)</span></td>
+</tr>
+</table>
+<p class="ltx_p">If we multiply the hazard (<a href="#Ch14.E66" title="(14.66) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.66</span></a>) with the density <math id="SS1.p4.m10" class="ltx_Math" alttext="q(r,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(r,t)</annotation></semantics></math>, we get the
+loss per unit of time,</p>
+<table id="Ch14.E67" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E67.m1" class="ltx_Math" alttext="J_{\rm loss}=-\rho(t|t-r)\,q(r,t)\,." display="block"><semantics><mrow><msub><mi>J</mi><mi>loss</mi></msub><mo>=</mo><mo>-</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mi>t</mi><mo>-</mo><mi>r</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">J_{\rm loss}=-\rho(t|t-r)\,q(r,t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.67)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The total number of trajectories that disappear at time <math id="SS1.p4.m11" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> due to firing
+is equal to the population activity, i.e.,</p>
+<table id="Ch14.E68" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E68.m1" class="ltx_Math" alttext="A(t)=\int_{0}^{\infty}\rho(t|t-r)\,q(r,t){\text{d}}r\,." display="block"><semantics><mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mi>t</mi><mo>-</mo><mi>r</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mi>r</mi></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">A(t)=\int_{0}^{\infty}\rho(t|t-r)\,q(r,t){\text{d}}r\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.68)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The loss (<a href="#Ch14.E67" title="(14.67) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.67</span></a>) has to be added as a âsinkâ term on the right-hand
+side of the continuity equation, while the activity <math id="SS1.p4.m12" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math> acts as a source at
+<math id="SS1.p4.m13" class="ltx_Math" alttext="r=0" display="inline"><semantics><mrow><mi>r</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r=0</annotation></semantics></math>. The full dynamics is
+
+</p>
+<table id="Ch14.E69" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E69.m1" class="ltx_Math" alttext="{\partial\over\partial t}q(r,t)=-\left[{\partial\over\partial r}q(r,t)\right]-%
+\rho(t|t-r)\,q(r,t)+\delta(r)\,A(t)\,." display="block"><semantics><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mo>-</mo><mrow><mo>[</mo><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>r</mi></mrow></mfrac><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>]</mo></mrow><mo>-</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mi>t</mi><mo>-</mo><mi>r</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>q</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>+</mo><mi>Î´</mi><mrow><mo stretchy="false">(</mo><mi>r</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\partial\over\partial t}q(r,t)=-\left[{\partial\over\partial r}q(r,t)\right]-%
+\rho(t|t-r)\,q(r,t)+\delta(r)\,A(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.69)</span></td>
+</tr>
+</table>
+<p class="ltx_p">This partial differential equation is the analog of the Fokker-Planck equation
+(<a href="Ch13.S3.html#Ch13.Ex4" title="(13.16) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.16</span></a>) for the membrane potential density of
+integrate-and-fire neurons. The relation between the two equations will be
+discussed in SectionÂ <a href="#SS3" title="14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.4.3</span></a>.</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">EquationÂ (<a href="#Ch14.E69" title="(14.69) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.69</span></a>) can be
+integrated analytically and rewritten in the form of an integral equation
+for the population activity. The mathematical details of the integration will
+be presented below. The final result is</p>
+<table id="Ch14.E70" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E70.m1" class="ltx_Math" alttext="A(t)=\int_{-\infty}^{t}P_{I}(t|\hat{t})\,A(\hat{t})\,{\text{d}}\hat{t}\,," display="block"><semantics><mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>,</mo></mrow><annotation encoding="application/x-tex">A(t)=\int_{-\infty}^{t}P_{I}(t|\hat{t})\,A(\hat{t})\,{\text{d}}\hat{t}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.70)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where</p>
+<table id="Ch14.E71" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E71.m1" class="ltx_Math" alttext="P_{I}(t|\hat{t})=\rho(t|\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}%
+|\hat{t})\,{\text{d}}t^{\prime}\right]" display="block"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})=\rho(t|\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}%
+|\hat{t})\,{\text{d}}t^{\prime}\right]</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.71)</span></td>
+</tr>
+</table>
+<p class="ltx_p">is the interval distribution of neurons with escape noise;
+cf. Eq.Â (<a href="Ch7.S5.html#Ch7.E28" title="(7.28) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.28</span></a>). Thus, neurons that have fired their last spike at
+time <math id="SS1.p5.m1" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> contribute with weight <math id="SS1.p5.m2" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> to the activity at time
+<math id="SS1.p5.m3" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>. Integral equations of the form (<a href="#Ch14.E70" title="(14.70) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.70</span></a>) are the starting
+point for the formal theory of population activity
+presented in Section <a href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1</span></a>.</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">14.4.2 </span>From refractory densities to the integral equation (*)</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">All neurons that have fired together at time <math id="SS2.p1.m1" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> form a group that moves
+along the <math id="SS2.p1.m2" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>-axis at constant speed. To solve Eq.Â (<a href="#Ch14.E69" title="(14.69) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.69</span></a>) we turn
+to a frame of reference that moves along with the group.
+We replace the
+variable <math id="SS2.p1.m3" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> by <math id="SS2.p1.m4" class="ltx_Math" alttext="t-r\equiv\hat{t}" display="inline"><semantics><mrow><mrow><mi>t</mi><mo>-</mo><mi>r</mi></mrow><mo>â¡</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">t-r\equiv\hat{t}</annotation></semantics></math> and define a new density</p>
+<table id="Ch14.E72" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E72.m1" class="ltx_Math" alttext="Q(\hat{t},t)=q(t-\hat{t},t)\,," display="block"><semantics><mrow><mrow><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)=q(t-\hat{t},t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.72)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with <math id="SS2.p1.m5" class="ltx_Math" alttext="\hat{t}\leq t" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>â¤</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\hat{t}\leq t</annotation></semantics></math>. The total derivative of <math id="SS2.p1.m6" class="ltx_Math" alttext="Q" display="inline"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math> with respect to <math id="SS2.p1.m7" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is</p>
+<table id="Ch14.E73" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E73.m1" class="ltx_Math" alttext="{{\text{d}}\over{\text{d}}t}Q(\hat{t},t)={\partial\over\partial r}\left.q(r,t)%
+\right|_{r=t-\hat{t}}\,{{\text{d}}r\over{\text{d}}t}+{\partial\over\partial t}%
+\left.q(r,t)\right|_{r=t-\hat{t}}\," display="block"><semantics><mrow><mrow><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mrow><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>r</mi></mrow></mfrac><mo>â¢</mo><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow><mrow><mi>r</mi><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow></msub><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>r</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>+</mo><msub><mrow><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow><mrow><mi>r</mi><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow></msub></mrow></mrow><annotation encoding="application/x-tex">{{\text{d}}\over{\text{d}}t}Q(\hat{t},t)={\partial\over\partial r}\left.q(r,t)%
+\right|_{r=t-\hat{t}}\,{{\text{d}}r\over{\text{d}}t}+{\partial\over\partial t}%
+\left.q(r,t)\right|_{r=t-\hat{t}}\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.73)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with <math id="SS2.p1.m8" class="ltx_Math" alttext="{\text{d}}r/{\text{d}}t=1" display="inline"><semantics><mrow><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>r</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">{\text{d}}r/{\text{d}}t=1</annotation></semantics></math>. We insert Eq.Â (<a href="#Ch14.E69" title="(14.69) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.69</span></a>) on the right-hand side
+of (<a href="#Ch14.E73" title="(14.73) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.73</span></a>) and obtain for <math id="SS2.p1.m9" class="ltx_Math" alttext="t&gt;\hat{t}" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">t&gt;\hat{t}</annotation></semantics></math></p>
+<table id="Ch14.E74" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E74.m1" class="ltx_Math" alttext="{{\text{d}}\over{\text{d}}t}Q(\hat{t},t)=-\rho(t|\hat{t})\,Q(\hat{t},t)\,." display="block"><semantics><mrow><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mo>-</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}\over{\text{d}}t}Q(\hat{t},t)=-\rho(t|\hat{t})\,Q(\hat{t},t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.74)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The partial differential equation (<a href="#Ch14.E69" title="(14.69) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.69</span></a>) has thus been transformed
+into an ordinary differential equation that is solved by</p>
+<table id="Ch14.E75" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E75.m1" class="ltx_Math" alttext="Q(\hat{t},t)=Q(\hat{t},t_{0})\,\exp\left[-\int_{t_{0}}^{t}\rho(t^{\prime}|\hat%
+{t})\,{\text{d}}t^{\prime}\right]\,," display="block"><semantics><mrow><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><msub><mi>t</mi><mn>0</mn></msub><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo rspace="4.2pt">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)=Q(\hat{t},t_{0})\,\exp\left[-\int_{t_{0}}^{t}\rho(t^{\prime}|\hat%
+{t})\,{\text{d}}t^{\prime}\right]\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.75)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.p1.m10" class="ltx_Math" alttext="Q(\hat{t},t_{0})" display="inline"><semantics><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">Q(\hat{t},t_{0})</annotation></semantics></math> is the initial condition, which is still to be fixed.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">From the definition of the refractory density <math id="SS2.p2.m1" class="ltx_Math" alttext="q(r,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(r,t)</annotation></semantics></math> we conclude
+that <math id="SS2.p2.m2" class="ltx_Math" alttext="q(0,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>0</mn><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(0,t)</annotation></semantics></math> is the proportion of neurons at time <math id="SS2.p2.m3" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> that have just fired,
+i.e., <math id="SS2.p2.m4" class="ltx_Math" alttext="q(0,t)=A(t)" display="inline"><semantics><mrow><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>0</mn><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">q(0,t)=A(t)</annotation></semantics></math> or, in terms of the new refractory density,
+<math id="SS2.p2.m5" class="ltx_Math" alttext="Q(t,t)=A(t)" display="inline"><semantics><mrow><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">Q(t,t)=A(t)</annotation></semantics></math>. We can thus fix the initial condition in Eq.Â (<a href="#Ch14.E75" title="(14.75) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.75</span></a>) at
+<math id="SS2.p2.m6" class="ltx_Math" alttext="t_{0}=\hat{t}" display="inline"><semantics><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>=</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">t_{0}=\hat{t}</annotation></semantics></math> and find</p>
+<table id="Ch14.E76" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E76.m1" class="ltx_Math" alttext="Q(\hat{t},t)=A(\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|\hat{t})%
+\,{\text{d}}t^{\prime}\right]\,." display="block"><semantics><mrow><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo rspace="4.2pt">]</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)=A(\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|\hat{t})%
+\,{\text{d}}t^{\prime}\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.76)</span></td>
+</tr>
+</table>
+<p class="ltx_p">On the other hand, from (<a href="#Ch14.E68" title="(14.68) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.68</span></a>) we have</p>
+<table id="Ch14.E77" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E77.m1" class="ltx_Math" alttext="A(t)=\int_{-\infty}^{t}\rho(t|\hat{t})\,Q(\hat{t},t)\,{\text{d}}\hat{t}\,." display="block"><semantics><mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">A(t)=\int_{-\infty}^{t}\rho(t|\hat{t})\,Q(\hat{t},t)\,{\text{d}}\hat{t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.77)</span></td>
+</tr>
+</table>
+<p class="ltx_p">If we insert (<a href="#Ch14.E76" title="(14.76) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.76</span></a>) into (<a href="#Ch14.E77" title="(14.77) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.77</span></a>), we find</p>
+<table id="Ch14.E78" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E78.m1" class="ltx_Math" alttext="A(t)=\int_{-\infty}^{t}\rho(t|\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{%
+\prime}|\hat{t})\,{\text{d}}t^{\prime}\right]\,A(\hat{t})\,{\text{d}}\hat{t}" display="block"><semantics><mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo rspace="4.2pt">]</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">A(t)=\int_{-\infty}^{t}\rho(t|\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{%
+\prime}|\hat{t})\,{\text{d}}t^{\prime}\right]\,A(\hat{t})\,{\text{d}}\hat{t}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.78)</span></td>
+</tr>
+</table>
+<p class="ltx_p">which is the population equation (<a href="#Ch14.E70" title="(14.70) â£ 14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.70</span></a>) mentioned above.
+It has been derived from refractory densities in
+<cite class="ltx_cite">Gerstner and van Hemmen (<a href="bib.html#bib200" title="Associative memory in a network of âspikingâ neurons." class="ltx_ref">180</a>)</cite> and similarly in the appendix of the
+papers by <cite class="ltx_cite">Wilson and Cowan (<a href="bib.html#bib301" title="Excitatory and inhibitory interactions in localized populations of model neurons." class="ltx_ref">552</a>)</cite>. If we insert Eq.Â (<a href="#Ch14.E76" title="(14.76) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.76</span></a>)
+into the normalization condition <math id="SS2.p2.m7" class="ltx_Math" alttext="1=\int_{-\infty}^{t}Q(\hat{t},t)\,{\text{d}}\hat{t}" display="inline"><semantics><mrow><mn>1</mn><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow></mrow><annotation encoding="application/x-tex">1=\int_{-\infty}^{t}Q(\hat{t},t)\,{\text{d}}\hat{t}</annotation></semantics></math>
+we arrive at</p>
+<table id="Ch14.E79" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E79.m1" class="ltx_Math" alttext="1=\int_{-\infty}^{t}\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|\hat{t})\,{%
+\text{d}}t^{\prime}\right]\,\,A(\hat{t})\,{\text{d}}\hat{t}\,." display="block"><semantics><mrow><mn>1</mn><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo rspace="5.9pt">]</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">1=\int_{-\infty}^{t}\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|\hat{t})\,{%
+\text{d}}t^{\prime}\right]\,\,A(\hat{t})\,{\text{d}}\hat{t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.79)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Both the population equation (<a href="#Ch14.E78" title="(14.78) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.78</span></a>) and
+the normalization condition (<a href="#Ch14.E79" title="(14.79) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.79</span></a>)
+play an important role
+in the general theory outlined in
+Section <a href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1</span></a>.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">For a numerical implementation of population
+dynamics, it is more convenient to
+take a step back from the integral equations
+to the
+iterative updates that describe
+the survival <math id="SS2.p3.m1" class="ltx_Math" alttext="Q(\hat{t},t)" display="inline"><semantics><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)</annotation></semantics></math>
+of the group of neurons that has fired
+the last time at time <math id="SS2.p3.m2" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>.
+In other words, efficient numerical implementation
+schemes work directly on the level of the density
+equations (<a href="#Ch14.E74" title="(14.74) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.74</span></a>).
+A simple discretization scheme for numerical
+implementations has been discussed above in
+Section <a href="Ch14.S1.html#SS5" title="14.1.5 Numerical methods for integral equations (*) â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1.5</span></a>.</p>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">14.4.3 </span>From refractory densities to membrane potential densities (*)</h1>
+
+<figure id="Ch14.F11" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x358.png" id="Ch14.F11.g1" class="ltx_graphics" width="293" height="226" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x359.png" id="Ch14.F11.g2" class="ltx_graphics" width="293" height="219" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 14.11: </span>
+<span class="ltx_text ltx_font_bold">A</span>. In a noise-free (nonlinear)
+integrate-and-fire neuron
+we define a refractory variable <math id="Ch14.F11.m9" class="ltx_Math" alttext="r=t-\hat{t}" display="inline"><semantics><mrow><mi>r</mi><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow><annotation encoding="application/x-tex">r=t-\hat{t}</annotation></semantics></math> and
+write the trajectory as <math id="Ch14.F11.m10" class="ltx_Math" alttext="u(t,\hat{t})" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t,\hat{t})</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">B</span>. The membrane potential density <math id="Ch14.F11.m11" class="ltx_Math" alttext="p(u,t)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u,t)</annotation></semantics></math> at time <math id="Ch14.F11.m12" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is
+plotted to the left as a function of the membrane potential <math id="Ch14.F11.m13" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> (vertical axis).
+The fraction of neurons <math id="Ch14.F11.m14" class="ltx_Math" alttext="p(u,t)\,\Delta u" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">p(u,t)\,\Delta u</annotation></semantics></math>
+with membrane potentials around <math id="Ch14.F11.m15" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> (gray shaded area)
+is proportional to the refractory density <math id="Ch14.F11.m16" class="ltx_Math" alttext="Q(t,\hat{t})\Delta\hat{t}" display="inline"><semantics><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">Q(t,\hat{t})\Delta\hat{t}</annotation></semantics></math>
+(shaded area at the bottom).
+</figcaption>
+</figure>
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">In this section we want to show the formal relation between the dynamics of
+<math id="SS3.p1.m1" class="ltx_Math" alttext="p(u,t)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u,t)</annotation></semantics></math> and the evolution of the refractory densities <math id="SS3.p1.m2" class="ltx_Math" alttext="q(r,t)" display="inline"><semantics><mrow><mi>q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">q(r,t)</annotation></semantics></math>. We focus on
+a population of
+nonlinear or leaky integrate-and-fire neurons with escape noise.
+For a known time-dependent input
+we can calculate the membrane potential <math id="SS3.p1.m3" class="ltx_Math" alttext="u(t,\hat{t})" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t,\hat{t})</annotation></semantics></math>
+where the notation with <math id="SS3.p1.m4" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> highlights that, in addition to external input,
+we also need to know the last firing time (and the reset value <math id="SS3.p1.m5" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math>)
+in order to predict the voltage at time <math id="SS3.p1.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.
+We require that the input is constant or only weakly modulated
+so that the trajectory is increasing monotonously (<math id="SS3.p1.m7" class="ltx_Math" alttext="\partial u/\partial t&gt;0" display="inline"><semantics><mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow><mo>/</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\partial u/\partial t&gt;0</annotation></semantics></math>).</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">To stay concrete, we focus on leaky integrate-and-fire neuron
+for which the membrane potential is</p>
+<table id="Ch14.E80" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E80.m1" class="ltx_Math" alttext="u(t,\hat{t})=u_{r}\,\exp\left(-{t-\hat{t}\over\tau_{m}}\right)+{R\over\tau_{m}%
+}\int_{\hat{t}}^{t}\exp\left(-{t-t^{\prime}\over\tau_{m}}\right)\,I(t^{\prime}%
+)\,{\text{d}}t^{\prime}" display="block"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>u</mi><mi>r</mi></msub></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow><mo>+</mo><mrow><mfrac><mi>R</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mrow><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t,\hat{t})=u_{r}\,\exp\left(-{t-\hat{t}\over\tau_{m}}\right)+{R\over\tau_{m}%
+}\int_{\hat{t}}^{t}\exp\left(-{t-t^{\prime}\over\tau_{m}}\right)\,I(t^{\prime}%
+)\,{\text{d}}t^{\prime}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.80)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Knowledge of <math id="SS3.p2.m1" class="ltx_Math" alttext="u(t,\hat{t})" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t,\hat{t})</annotation></semantics></math>
+can be used to define a transformation from voltage to refractory variables: <math id="SS3.p2.m2" class="ltx_Math" alttext="u\longleftrightarrow r=t-\hat{t}" display="inline"><semantics><mrow><mi>u</mi><mo>â·</mo><mrow><mi>r</mi><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow></mrow><annotation encoding="application/x-tex">u\longleftrightarrow r=t-\hat{t}</annotation></semantics></math>;
+cf. Fig. <a href="#Ch14.F11" title="Fig.Â 14.11 â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.11</span></a>A.
+It turns out that the final equations are
+even simpler if we take <math id="SS3.p2.m3" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> instead of <math id="SS3.p2.m4" class="ltx_Math" alttext="r" display="inline"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> as our new variable. We
+therefore consider the transformation <math id="SS3.p2.m5" class="ltx_Math" alttext="u\longrightarrow\hat{t}" display="inline"><semantics><mrow><mi>u</mi><mo>â¶</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">u\longrightarrow\hat{t}</annotation></semantics></math>.</p>
+</div>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">Before we start, we calculate the derivatives of Eq.Â (<a href="#Ch14.E80" title="(14.80) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.80</span></a>).
+The derivative with respect to <math id="SS3.p3.m1" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> yields <math id="SS3.p3.m2" class="ltx_Math" alttext="{\partial u/\partial t}=[-u+R\,I(t)]/\tau_{m}" display="inline"><semantics><mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow><mo>/</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mrow><mo>=</mo><mrow><mrow><mo>[</mo><mrow><mo>-</mo><mi>u</mi><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow><mo>/</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow><annotation encoding="application/x-tex">{\partial u/\partial t}=[-u+R\,I(t)]/\tau_{m}</annotation></semantics></math> as expected for integrate-and-fire neurons.
+According to our assumption, <math id="SS3.p3.m3" class="ltx_Math" alttext="{\partial u/\partial t}&gt;0" display="inline"><semantics><mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow><mo>/</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">{\partial u/\partial t}&gt;0</annotation></semantics></math>
+or <math id="SS3.p3.m4" class="ltx_Math" alttext="RI(t)&gt;u" display="inline"><semantics><mrow><mrow><mi>R</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>&gt;</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">RI(t)&gt;u</annotation></semantics></math> (for all neurons in the population).
+The
+derivative with respect to <math id="SS3.p3.m5" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> is</p>
+<table id="Ch14.E81" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E81.m1" class="ltx_Math" alttext="-{\partial u\over\partial\hat{t}}={R\,I(t)-u_{r}\over\tau_{m}}\,\exp\left(-{t-%
+\hat{t}\over\tau_{m}}\right)=F(t,\hat{t})&gt;0\,," display="block"><semantics><mrow><mrow><mrow><mo>-</mo><mfrac><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow><mrow><mo>â</mo><mo>â¡</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mfrac></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><mrow><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow><mo>=</mo><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>&gt;</mo><mpadded width="+1.7pt"><mn>0</mn></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">-{\partial u\over\partial\hat{t}}={R\,I(t)-u_{r}\over\tau_{m}}\,\exp\left(-{t-%
+\hat{t}\over\tau_{m}}\right)=F(t,\hat{t})&gt;0\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.81)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where the function <math id="SS3.p3.m6" class="ltx_Math" alttext="F" display="inline"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math> is defined by Eq.Â (<a href="#Ch14.E81" title="(14.81) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.81</span></a>).</p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<p class="ltx_p">The densities in the variable <math id="SS3.p4.m1" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> are denoted as <math id="SS3.p4.m2" class="ltx_Math" alttext="Q(\hat{t},t)" display="inline"><semantics><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)</annotation></semantics></math>. From
+<math id="SS3.p4.m3" class="ltx_Math" alttext="Q(\hat{t},t)\,{\text{d}}\hat{t}=p(u,t)\,{\text{d}}u" display="inline"><semantics><mrow><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>=</mo><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)\,{\text{d}}\hat{t}=p(u,t)\,{\text{d}}u</annotation></semantics></math> we have</p>
+<table id="Ch14.E82" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E82.m1" class="ltx_Math" alttext="Q(\hat{t},t)=p[u(t,\hat{t}),t]\,F(t,\hat{t})\,." display="block"><semantics><mrow><mrow><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mi>t</mi></mrow><mo>]</mo></mrow><mo>â¢</mo><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)=p[u(t,\hat{t}),t]\,F(t,\hat{t})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.82)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We now want to show that the differential equation for the density
+<math id="SS3.p4.m4" class="ltx_Math" alttext="Q(\hat{t},t)" display="inline"><semantics><mrow><mi>Q</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">Q(\hat{t},t)</annotation></semantics></math> that we derived in (<a href="#Ch14.E74" title="(14.74) â£ 14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.74</span></a>),</p>
+<table id="Ch14.E83" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E83.m1" class="ltx_Math" alttext="{\partial\over\partial t}Q(\hat{t},t)=-\rho(t|\hat{t})\,Q(\hat{t},t)\,\,,\quad%
+{\rm for~{}}\hat{t}&lt;t\,," display="block"><semantics><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mo>-</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>Q</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi><mo rspace="5.9pt" stretchy="false">)</mo></mrow><mo rspace="12.5pt">,</mo><mpadded width="+3.3pt"><mi>for</mi></mpadded><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>&lt;</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo>,</mo></mrow><annotation encoding="application/x-tex">{\partial\over\partial t}Q(\hat{t},t)=-\rho(t|\hat{t})\,Q(\hat{t},t)\,\,,\quad%
+{\rm for~{}}\hat{t}&lt;t\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.83)</span></td>
+</tr>
+</table>
+<p class="ltx_p">is equivalent to the partial differential equation for the membrane potential
+densities. If we insert Eq.Â (<a href="#Ch14.E82" title="(14.82) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.82</span></a>) into Eq.Â (<a href="#Ch14.E83" title="(14.83) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.83</span></a>) we
+find</p>
+<table id="Ch14.E84" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E84.m1" class="ltx_Math" alttext="{\partial p\over\partial u}\,{\partial u\over\partial t}\,F+{\partial p\over%
+\partial t}\,F+p\,{\partial F\over\partial t}=-\rho\,p\,F\,." display="block"><semantics><mrow><mrow><mrow><mrow><mpadded width="+1.7pt"><mfrac><mrow><mo>â</mo><mo>â¡</mo><mi>p</mi></mrow><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mpadded><mo>â¢</mo><mi>F</mi></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mfrac><mrow><mo>â</mo><mo>â¡</mo><mi>p</mi></mrow><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mpadded><mo>â¢</mo><mi>F</mi></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>p</mi></mpadded><mo>â¢</mo><mfrac><mrow><mo>â</mo><mo>â¡</mo><mi>F</mi></mrow><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>p</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>F</mi></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\partial p\over\partial u}\,{\partial u\over\partial t}\,F+{\partial p\over%
+\partial t}\,F+p\,{\partial F\over\partial t}=-\rho\,p\,F\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.84)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For the linear integrate-and-fire neuron we have <math id="SS3.p4.m5" class="ltx_Math" alttext="\partial F/\partial t=-F/\tau_{m}" display="inline"><semantics><mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mi>F</mi></mrow><mo>/</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mi>F</mi><mo>/</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow></mrow><annotation encoding="application/x-tex">\partial F/\partial t=-F/\tau_{m}</annotation></semantics></math>. Furthermore,
+according to our assumption of monotonously increasing
+trajectories, we have <math id="SS3.p4.m6" class="ltx_Math" alttext="F\neq 0" display="inline"><semantics><mrow><mi>F</mi><mo>â </mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F\neq 0</annotation></semantics></math>. Thus we
+can divide (<a href="#Ch14.E84" title="(14.84) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.84</span></a>) by <math id="SS3.p4.m7" class="ltx_Math" alttext="F" display="inline"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math> and rewrite Eq.Â (<a href="#Ch14.E84" title="(14.84) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.84</span></a>) in the form</p>
+<table id="Ch14.E85" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E85.m1" class="ltx_Math" alttext="{\partial p(u,t)\over\partial t}=-{\partial\over\partial u}\left[{-u+R\,I(t)%
+\over\tau_{m}}\,p(u,t)\right]-f(u-\vartheta)\,p(u,t)\,,\quad{\rm for~{}}u_{r}&lt;%
+u&lt;\vartheta\,," display="block"><semantics><mrow><mrow><mrow><mfrac><mrow><mrow><mo>â</mo><mo>â¡</mo><mi>p</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mrow><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow></mfrac><mo>â¢</mo><mrow><mo>[</mo><mrow><mpadded width="+1.7pt"><mfrac><mrow><mo>-</mo><mi>u</mi><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mpadded><mo>â¢</mo><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow><mo>-</mo><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo separator="true">,â</mo><mrow><mrow><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><mo>&lt;</mo><mi>u</mi><mo>&lt;</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{\partial p(u,t)\over\partial t}=-{\partial\over\partial u}\left[{-u+R\,I(t)%
+\over\tau_{m}}\,p(u,t)\right]-f(u-\vartheta)\,p(u,t)\,,\quad{\rm for~{}}u_{r}&lt;%
+u&lt;\vartheta\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.85)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where we have used the definition of the hazard via the escape function
+<math id="SS3.p4.m8" class="ltx_Math" alttext="\rho(t|\hat{t})=f[u(t,\hat{t})-\vartheta]" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>f</mi><mrow><mo stretchy="false">[</mo><mi>u</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>-</mo><mi>Ï</mi><mo stretchy="false">]</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})=f[u(t,\hat{t})-\vartheta]</annotation></semantics></math> and the definition of the reset
+potential <math id="SS3.p4.m9" class="ltx_Math" alttext="u_{r}=\eta_{0}" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>=</mo><msub><mi>Î·</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">u_{r}=\eta_{0}</annotation></semantics></math>. If we compare Eq.Â (<a href="#Ch14.E85" title="(14.85) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.85</span></a>) with the
+Fokker-Planck equation (<a href="Ch13.S3.html#Ch13.Ex4" title="(13.16) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.16</span></a>), we see that the main
+difference is the treatment of the noise. For noise-free integrate-and-fire
+neurons (i.e., <math id="SS3.p4.m10" class="ltx_Math" alttext="\rho(t|\hat{t})=0" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})=0</annotation></semantics></math> for <math id="SS3.p4.m11" class="ltx_Math" alttext="u\neq\vartheta" display="inline"><semantics><mrow><mi>u</mi><mo>â </mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u\neq\vartheta</annotation></semantics></math>) the equation
+(<a href="Ch13.S3.html#Ch13.Ex4" title="(13.16) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.16</span></a>) for the membrane potential densities is
+therefore equivalent to the density equation <math id="SS3.p4.m12" class="ltx_Math" alttext="\partial Q(\hat{t},t)/\partial t=0" display="inline"><semantics><mrow><mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mi>Q</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>/</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\partial Q(\hat{t},t)/\partial t=0</annotation></semantics></math>; cf. Eq.Â (<a href="#Ch14.E83" title="(14.83) â£ 14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.83</span></a>).</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.3 </span>Linear response to time-dependent input</span></a><a href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5 </span>Adaptation in Population Equations</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

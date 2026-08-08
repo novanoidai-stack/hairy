@@ -1,0 +1,719 @@
+<!DOCTYPE html><html>
+<head>
+<title>13.4 Networks of leaky integrate-and-fire neurons | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch13.S3.html" title="13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch13.S5.html" title="13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.S1.html" title="13.1 Continuity equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.S2.html" title="13.2 Stochastic spike arrival â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.S3.html" title="13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.S5.html" title="13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.S6.html" title="13.6 Neuronal adaptation and synaptic conductance â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.S7.html" title="13.7 Summary â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch13.Sx1.html" title="Literature â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="Brunel network, asynchronous irregular, dominating, firing regime, inhibition, multiple, oscillation, population, synchronous regular">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13 </span>Continuity Equation and the Fokker-Planck Approach</span></a><a href="Ch13.S3.html" title="13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.3 </span>Fokker-Planck equation</span></a><a href="Ch13.S5.html" title="13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.5 </span>Networks of Nonlinear Integrate-and-Fire Neurons</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">13.4 </span>Networks of leaky integrate-and-fire neurons</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">In the previous section, the formalism
+of membrane potential densities has been
+applied to a single population driven
+by spikes arriving at some rate <math id="p1.m1" class="ltx_Math" alttext="\nu_{k}" display="inline"><semantics><msub><mi>Î½</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\nu_{k}</annotation></semantics></math>
+at the synapse of type <math id="p1.m2" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>, where <math id="p1.m3" class="ltx_Math" alttext="k=1,\dots,K" display="inline"><semantics><mrow><mi>k</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><mi>K</mi></mrow></mrow><annotation encoding="application/x-tex">k=1,\dots,K</annotation></semantics></math>.
+In a population that is coupled
+to itself, the spikes that
+drive a given neuron are, at least
+partially, generated within the same
+population. For a homogeneous population
+with self-coupling the feedback is
+then proportional to the population
+activity <math id="p1.m4" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>; cf. Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">We now formulate the interaction
+between several coupled populations
+using the Fokker-Planck equation
+for the membrane potential density
+(Section <a href="#SS1" title="13.4.1 Multiple populations â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.4.1</span></a>)
+and apply it subsequently
+to the special cases of
+a population of excitatory
+integrate-and-fire neurons
+interacting with a
+population of inhibitory ones
+(Section <a href="#SS2" title="13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.4.2</span></a>).</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">13.4.1 </span>Multiple populations</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">We consider multiple populations
+<math id="SS1.p1.m1" class="ltx_Math" alttext="k=1,\dots,K" display="inline"><semantics><mrow><mi>k</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><mi>K</mi></mrow></mrow><annotation encoding="application/x-tex">k=1,\dots,K</annotation></semantics></math>. The population with index <math id="SS1.p1.m2" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+contains <math id="SS1.p1.m3" class="ltx_Math" alttext="N_{k}" display="inline"><semantics><msub><mi>N</mi><mi>k</mi></msub><annotation encoding="application/x-tex">N_{k}</annotation></semantics></math> neurons and its
+activity
+is denoted by <math id="SS1.p1.m4" class="ltx_Math" alttext="A_{k}" display="inline"><semantics><msub><mi>A</mi><mi>k</mi></msub><annotation encoding="application/x-tex">A_{k}</annotation></semantics></math>.
+We recall that <math id="SS1.p1.m5" class="ltx_Math" alttext="N_{k}\,A_{k}(t)\,\Delta t" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>N</mi><mi>k</mi></msub></mpadded><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N_{k}\,A_{k}(t)\,\Delta t</annotation></semantics></math> is
+the total number of spikes
+emitted by population <math id="SS1.p1.m6" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> in a short interval <math id="SS1.p1.m7" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">Let us suppose that population <math id="SS1.p2.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> sends
+its spikes to another population <math id="SS1.p2.m2" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>.
+If each neuron in population <math id="SS1.p2.m3" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+receives input from <span class="ltx_text ltx_font_italic">all</span>
+neurons in <math id="SS1.p2.m4" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> the total spike
+arrival rate from population <math id="SS1.p2.m5" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+is therefore <math id="SS1.p2.m6" class="ltx_Math" alttext="\nu_{k}(t)=N_{k}\,A_{k}(t)" display="inline"><semantics><mrow><mrow><msub><mi>Î½</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>N</mi><mi>k</mi></msub></mpadded><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\nu_{k}(t)=N_{k}\,A_{k}(t)</annotation></semantics></math>
+(âfull connectivityâ).
+If each neuron in population <math id="SS1.p2.m7" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+receives connections only from
+a subset of
+<math id="SS1.p2.m8" class="ltx_Math" alttext="C_{nk}" display="inline"><semantics><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">C_{nk}</annotation></semantics></math> randomly chosen neurons of population <math id="SS1.p2.m9" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>,
+then the total spike arrival rate
+is <math id="SS1.p2.m10" class="ltx_Math" alttext="\nu_{k}(t)=C_{nk}\,A_{k}(t)" display="inline"><semantics><mrow><mrow><msub><mi>Î½</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub></mpadded><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\nu_{k}(t)=C_{nk}\,A_{k}(t)</annotation></semantics></math>
+(ârandom connectivityâ with a
+connection probability
+<math id="SS1.p2.m11" class="ltx_Math" alttext="p_{nk}=C_{nk}/N_{k}" display="inline"><semantics><mrow><msub><mi>p</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><mo>=</mo><mrow><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><mo>/</mo><msub><mi>N</mi><mi>k</mi></msub></mrow></mrow><annotation encoding="application/x-tex">p_{nk}=C_{nk}/N_{k}</annotation></semantics></math> from population <math id="SS1.p2.m12" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> to population <math id="SS1.p2.m13" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>).
+We assume that all
+connections from <math id="SS1.p2.m14" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> to <math id="SS1.p2.m15" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> have
+the same weight <math id="SS1.p2.m16" class="ltx_Math" alttext="w_{nk}" display="inline"><semantics><msub><mi>w</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">w_{nk}</annotation></semantics></math>.
+</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">For each population <math id="SS1.p3.m1" class="ltx_Math" alttext="n=1,\dots,K" display="inline"><semantics><mrow><mi>n</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><mi>K</mi></mrow></mrow><annotation encoding="application/x-tex">n=1,\dots,K</annotation></semantics></math>
+we write down a Fokker-Planck equation
+analogous to Eq. (<a href="Ch13.S3.html#Ch13.Ex4" title="(13.16) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.16</span></a>).
+Neurons are leaky integrate-and-fire neurons.
+Within a population <math id="SS1.p3.m2" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>, all neurons have
+the same parameters <math id="SS1.p3.m3" class="ltx_Math" alttext="\tau_{n}" display="inline"><semantics><msub><mi>Ï</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\tau_{n}</annotation></semantics></math>, <math id="SS1.p3.m4" class="ltx_Math" alttext="R_{n}" display="inline"><semantics><msub><mi>R</mi><mi>n</mi></msub><annotation encoding="application/x-tex">R_{n}</annotation></semantics></math>,
+<math id="SS1.p3.m5" class="ltx_Math" alttext="u_{r}^{n}" display="inline"><semantics><msubsup><mi>u</mi><mi>r</mi><mi>n</mi></msubsup><annotation encoding="application/x-tex">u_{r}^{n}</annotation></semantics></math>, and in particular the same
+firing threshold <math id="SS1.p3.m6" class="ltx_Math" alttext="\vartheta_{n}" display="inline"><semantics><msub><mi>Ï</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\vartheta_{n}</annotation></semantics></math>.
+For population <math id="SS1.p3.m7" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> the
+Fokker-Planck equation
+for the evolution of membrane potential
+densities is then</p>
+<table id="Ch20.S4.EGx67" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch13.Ex6" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch13.Ex5.m1" class="ltx_Math" alttext="\displaystyle\tau_{n}{\partial\over\partial t}p_{n}(u,t)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mstyle><mo>â¢</mo><msub><mi>p</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{n}{\partial\over\partial t}p_{n}(u,t)</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch13.Ex5.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch13.Ex5.m3" class="ltx_Math" alttext="\displaystyle-{\partial\over\partial u}\left\{\left[-u+R_{n}\,I_{n}^{\rm ext}(%
+t)+\tau_{n}\sum_{k}C_{nk}A_{k}(t)\,w_{nk}\right]\,p_{n}(u,t)\right\}" display="inline"><semantics><mrow><mo>-</mo><mrow><mstyle displaystyle="true"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow></mfrac></mstyle><mo>â¢</mo><mrow><mo>{</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mo>-</mo><mi>u</mi><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi>n</mi></msub></mpadded><mo>â¢</mo><msubsup><mi>I</mi><mi>n</mi><mi>ext</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder></mstyle><mrow><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>w</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub></mrow></mrow></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msub><mi>p</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>}</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle-{\partial\over\partial u}\left\{\left[-u+R_{n}\,I_{n}^{\rm ext}(%
+t)+\tau_{n}\sum_{k}C_{nk}A_{k}(t)\,w_{nk}\right]\,p_{n}(u,t)\right\}</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="3" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(13.31)</span></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center"></td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch13.E31.m3" class="ltx_Math" alttext="\displaystyle+{1\over 2}\,\left[\tau_{n}\sum_{k}C_{nk}A_{k}(t)\,w_{nk}^{2}%
+\right]\,{\partial^{2}\over\partial u^{2}}p_{n}(u,t)" display="inline"><semantics><mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder></mstyle><mrow><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msubsup><mi>w</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow><mn>2</mn></msubsup></mrow></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><msup><mo>â</mo><mn>2</mn></msup><mrow><mo>â</mo><mo>â¡</mo><msup><mi>u</mi><mn>2</mn></msup></mrow></mfrac></mstyle><mo>â¢</mo><msub><mi>p</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle+{1\over 2}\,\left[\tau_{n}\sum_{k}C_{nk}A_{k}(t)\,w_{nk}^{2}%
+\right]\,{\partial^{2}\over\partial u^{2}}p_{n}(u,t)</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center"></td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch13.Ex6.m3" class="ltx_Math" alttext="\displaystyle+\tau_{n}\,A_{n}(t)\,\delta(u-u_{r}^{n})-\tau_{n}\,A_{n}(t)\,%
+\delta(u-\vartheta_{n})\,." display="inline"><semantics><mrow><mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>n</mi></msub></mpadded><mo>â¢</mo><msub><mi>A</mi><mi>n</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msubsup><mi>u</mi><mi>r</mi><mi>n</mi></msubsup></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>n</mi></msub></mpadded><mo>â¢</mo><msub><mi>A</mi><mi>n</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>Ï</mi><mi>n</mi></msub></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle+\tau_{n}\,A_{n}(t)\,\delta(u-u_{r}^{n})-\tau_{n}\,A_{n}(t)\,%
+\delta(u-\vartheta_{n})\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">The population activity <math id="SS1.p3.m8" class="ltx_Math" alttext="A_{n}" display="inline"><semantics><msub><mi>A</mi><mi>n</mi></msub><annotation encoding="application/x-tex">A_{n}</annotation></semantics></math> is the flux through the threshold
+(cf. Eq. (<a href="Ch13.S3.html#Ch13.E20" title="(13.20) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.20</span></a>)),
+which gives in our case</p>
+<table id="Ch13.E32" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch13.E32.m1" class="ltx_Math" alttext="A_{n}(t)=-{1\over 2}\,\left[\sum_{k}C_{nk}A_{k}(t)\,w_{nk}^{2}\right]\,\left({%
+\partial p_{n}(u,t)\over\partial u}\right)_{u=\vartheta_{n}}\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>A</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><mn>2</mn></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder><mrow><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msubsup><mi>w</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow><mn>2</mn></msubsup></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mrow><mo>(</mo><mfrac><mrow><mrow><mo>â</mo><mo>â¡</mo><msub><mi>p</mi><mi>n</mi></msub></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow></mfrac><mo>)</mo></mrow><mrow><mi>u</mi><mo>=</mo><msub><mi>Ï</mi><mi>n</mi></msub></mrow></msub></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">A_{n}(t)=-{1\over 2}\,\left[\sum_{k}C_{nk}A_{k}(t)\,w_{nk}^{2}\right]\,\left({%
+\partial p_{n}(u,t)\over\partial u}\right)_{u=\vartheta_{n}}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(13.32)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Thus populations interact with each other via
+the variable <math id="SS1.p3.m9" class="ltx_Math" alttext="A_{k}(t)" display="inline"><semantics><mrow><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A_{k}(t)</annotation></semantics></math>; cf. Fig. <a href="#Ch13.F6" title="Fig.Â 13.6 â£ 13.4.1 Multiple populations â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.6</span></a>.</p>
+</div>
+<figure id="Ch13.F6" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x332.png" id="Ch13.F6.g1" class="ltx_graphics" width="293" height="219" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x333.png" id="Ch13.F6.g2" class="ltx_graphics" width="293" height="219" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 13.6: </span>
+Interacting Populations.
+<span class="ltx_text ltx_font_bold">A</span>.
+Five populations interact via
+their population activities <math id="Ch13.F6.m6" class="ltx_Math" alttext="A_{k}" display="inline"><semantics><msub><mi>A</mi><mi>k</mi></msub><annotation encoding="application/x-tex">A_{k}</annotation></semantics></math>.
+The parameter <math id="Ch13.F6.m7" class="ltx_Math" alttext="w_{nk}" display="inline"><semantics><msub><mi>w</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">w_{nk}</annotation></semantics></math> gives the synaptic
+weight of a connection from a presynaptic neuron
+in population <math id="Ch13.F6.m8" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> to a postsynaptic neuron in population <math id="Ch13.F6.m9" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>.
+Not all populations are coupled with each other.
+<span class="ltx_text ltx_font_bold">B</span>. Brunel network:
+An excitatory population of leaky integrate-and-fire neurons
+is coupled to itself
+and to an inhibitory population. Neurons in both
+populations receive also external input from
+a third population with population activity <math id="Ch13.F6.m10" class="ltx_Math" alttext="A_{\rm ext}=\nu^{\rm ext}" display="inline"><semantics><mrow><msub><mi>A</mi><mi>ext</mi></msub><mo>=</mo><msup><mi>Î½</mi><mi>ext</mi></msup></mrow><annotation encoding="application/x-tex">A_{\rm ext}=\nu^{\rm ext}</annotation></semantics></math>
+described as a homogeneous Poisson process.c
+</figcaption>
+</figure>
+<div id="SS1.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Background input</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Sometimes it is useful
+to focus on a single population, coupled to itself,
+and replace the input arising from
+other populations by background input.
+For example, we may focus on population <math id="SS1.p4.m1" class="ltx_Math" alttext="n=1" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">n</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">n=1</annotation></semantics></math>
+which is modeled by Eq. (<a href="#Ch13.Ex6" title="(13.31) â£ 13.4.1 Multiple populations â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.31</span></a>),
+but use as the inputs <math id="SS1.p4.m2" class="ltx_Math" alttext="A_{k}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">A</mi><mi mathsize="normal" stretchy="false">k</mi></msub><annotation encoding="application/x-tex">A_{k}</annotation></semantics></math>
+spikes generated by a homogeneous or inhomogeneous
+Poisson process with rate <math id="SS1.p4.m3" class="ltx_Math" alttext="A_{k}=\nu_{k}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">A</mi><mi mathsize="normal" stretchy="false">k</mi></msub><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">Î½</mi><mi mathsize="normal" stretchy="false">k</mi></msub></mrow><annotation encoding="application/x-tex">A_{k}=\nu_{k}</annotation></semantics></math>.</span>
+              </p>
+</span>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Full coupling and random coupling</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Full coupling can be retrieved by setting
+<math id="SS1.p5.m1" class="ltx_Math" alttext="C_{nk}=N_{k}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">C</mi><mrow><mi mathsize="normal" stretchy="false">n</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">k</mi></mrow></msub><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">N</mi><mi mathsize="normal" stretchy="false">k</mi></msub></mrow><annotation encoding="application/x-tex">C_{nk}=N_{k}</annotation></semantics></math> and <math id="SS1.p5.m2" class="ltx_Math" alttext="w_{nk}=J_{nk}/N_{k}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">w</mi><mrow><mi mathsize="normal" stretchy="false">n</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">k</mi></mrow></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mi mathsize="normal" stretchy="false">J</mi><mrow><mi mathsize="normal" stretchy="false">n</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">k</mi></mrow></msub><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">N</mi><mi mathsize="normal" stretchy="false">k</mi></msub></mrow></mrow><annotation encoding="application/x-tex">w_{nk}=J_{nk}/N_{k}</annotation></semantics></math>.
+In this case the amount of diffusive noise
+in population <math id="SS1.p5.m3" class="ltx_Math" alttext="n" display="inline"><semantics><mi mathsize="normal" stretchy="false">n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math></span>
+              </p>
+<table id="Ch13.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch13.E33.m1" class="ltx_Math" alttext="\sigma_{n}^{2}(t)=\tau_{n}\,\left[\sum_{k}C_{nk}A_{k}(t)\,w_{nk}^{2}\right]\," display="block"><semantics><mrow><mrow><msubsup><mi>Ï</mi><mi>n</mi><mn>2</mn></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>n</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder><mrow><msub><mi>C</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow></msub><mo>â¢</mo><msub><mi>A</mi><mi>k</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msubsup><mi>w</mi><mrow><mi>n</mi><mo>â¢</mo><mi>k</mi></mrow><mn>2</mn></msubsup></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><annotation encoding="application/x-tex">\sigma_{n}^{2}(t)=\tau_{n}\,\left[\sum_{k}C_{nk}A_{k}(t)\,w_{nk}^{2}\right]\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(13.33)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">decreases with increasing population size
+<math id="SS1.p5.m4" class="ltx_Math" alttext="\sigma^{2}_{n}\propto 1/N_{k}" display="inline"><semantics><mrow><msubsup><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi><mn mathsize="normal" stretchy="false">2</mn></msubsup><mo mathsize="normal" stretchy="false">â</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">N</mi><mi mathsize="normal" stretchy="false">k</mi></msub></mrow></mrow><annotation encoding="application/x-tex">\sigma^{2}_{n}\propto 1/N_{k}</annotation></semantics></math>.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">13.4.2 </span>Synchrony, oscillations, and irregularity</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">In Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>
+we have already discussed
+the stationary state of the population
+activity in a population coupled to itself.
+With the methods discussed in Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>
+we were, however, unable to study the stability
+of the stationary state; nor were we
+able to make any prediction about
+potential time-dependent solutions.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">We now give a more complete characterization
+of a network of leaky integrate-and-fire neurons
+consisting of two populations:
+a population of <math id="SS2.p2.m1" class="ltx_Math" alttext="N_{E}" display="inline"><semantics><msub><mi>N</mi><mi>E</mi></msub><annotation encoding="application/x-tex">N_{E}</annotation></semantics></math> excitatory neurons
+coupled to a population with <math id="SS2.p2.m2" class="ltx_Math" alttext="N_{I}=N_{E}/4" display="inline"><semantics><mrow><msub><mi>N</mi><mi>I</mi></msub><mo>=</mo><mrow><msub><mi>N</mi><mi>E</mi></msub><mo>/</mo><mn>4</mn></mrow></mrow><annotation encoding="application/x-tex">N_{I}=N_{E}/4</annotation></semantics></math>
+inhibitory neurons <cite class="ltx_cite">(<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>.
+
+The structure of the network is shown
+in Fig. <a href="#Ch13.F6" title="Fig.Â 13.6 â£ 13.4.1 Multiple populations â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.6</span></a>B.
+Each neuron (be it excitatory or inhibitory)
+receives <math id="SS2.p2.m3" class="ltx_Math" alttext="C_{E}" display="inline"><semantics><msub><mi>C</mi><mi>E</mi></msub><annotation encoding="application/x-tex">C_{E}</annotation></semantics></math> connections from the excitatory
+population each one with weight <math id="SS2.p2.m4" class="ltx_Math" alttext="w_{EE}=w_{IE}=w_{0}" display="inline"><semantics><mrow><msub><mi>w</mi><mrow><mi>E</mi><mo>â¢</mo><mi>E</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>I</mi><mo>â¢</mo><mi>E</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">w_{EE}=w_{IE}=w_{0}</annotation></semantics></math>;
+it also receives <math id="SS2.p2.m5" class="ltx_Math" alttext="C_{I}=C_{E}/4" display="inline"><semantics><mrow><msub><mi>C</mi><mi>I</mi></msub><mo>=</mo><mrow><msub><mi>C</mi><mi>E</mi></msub><mo>/</mo><mn>4</mn></mrow></mrow><annotation encoding="application/x-tex">C_{I}=C_{E}/4</annotation></semantics></math> connections from the inhibitory population
+(<math id="SS2.p2.m6" class="ltx_Math" alttext="w_{EI}=w_{II}=-g\,w_{0}" display="inline"><semantics><mrow><msub><mi>w</mi><mrow><mi>E</mi><mo>â¢</mo><mi>I</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>I</mi><mo>â¢</mo><mi>I</mi></mrow></msub><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>g</mi></mpadded><mo>â¢</mo><msub><mi>w</mi><mn>0</mn></msub></mrow></mrow></mrow><annotation encoding="application/x-tex">w_{EI}=w_{II}=-g\,w_{0}</annotation></semantics></math>)
+and furthermore
+<math id="SS2.p2.m7" class="ltx_Math" alttext="C_{E}" display="inline"><semantics><msub><mi>C</mi><mi>E</mi></msub><annotation encoding="application/x-tex">C_{E}</annotation></semantics></math> connections from an external population (weight <math id="SS2.p2.m8" class="ltx_Math" alttext="w_{EE}" display="inline"><semantics><msub><mi>w</mi><mrow><mi>E</mi><mo>â¢</mo><mi>E</mi></mrow></msub><annotation encoding="application/x-tex">w_{EE}</annotation></semantics></math>)
+with neurons that fire at a fixed rate <math id="SS2.p2.m9" class="ltx_Math" alttext="\nu^{\rm ext}" display="inline"><semantics><msup><mi>Î½</mi><mi>ext</mi></msup><annotation encoding="application/x-tex">\nu^{\rm ext}</annotation></semantics></math>.
+Each spike causes, after a delay of <math id="SS2.p2.m10" class="ltx_Math" alttext="\Delta=1.5ms" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>=</mo><mrow><mn>1.5</mn><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">\Delta=1.5ms</annotation></semantics></math> a voltage jump
+of <math id="SS2.p2.m11" class="ltx_Math" alttext="w_{0}=0.1" display="inline"><semantics><mrow><msub><mi>w</mi><mn>0</mn></msub><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">w_{0}=0.1</annotation></semantics></math>mV
+and the threshold is 20mV above resting potential.
+Note that each neuron receives four times as many excitatory
+than inhibitory inputs so
+that the total amount of inhibition balances
+excitation if inhibition is four times stronger
+(<math id="SS2.p2.m12" class="ltx_Math" alttext="g=4" display="inline"><semantics><mrow><mi>g</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">g=4</annotation></semantics></math>), but the relative strength <math id="SS2.p2.m13" class="ltx_Math" alttext="g" display="inline"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> is kept as a free parameter.
+Also note that, in contrast to Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>,
+the weight here has units of voltage
+and directly gives the amplitude of the voltage jump: <math id="SS2.p2.m14" class="ltx_Math" alttext="w_{0}=\Delta u_{E}" display="inline"><semantics><mrow><msub><mi>w</mi><mn>0</mn></msub><mo>=</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msub><mi>u</mi><mi>E</mi></msub></mrow></mrow><annotation encoding="application/x-tex">w_{0}=\Delta u_{E}</annotation></semantics></math>.</p>
+</div>
+<figure id="Ch13.F7" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x334.png" id="Ch13.F7.g1" class="ltx_graphics" width="292" height="267" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x335.png" id="Ch13.F7.g2" class="ltx_graphics" width="292" height="229" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 13.7: </span>
+Population of pulse-coupled leaky integrate-and-fire neurons (Brunel network).
+<span class="ltx_text ltx_font_bold">A</span>. Phase diagram of the Brunel network.
+The population activity can be in a state
+of asynchronous irregular (AI),
+synchronous regular (SR) or synchronous irregular (SI) activity.
+The horizontal axis indicates the relative importance
+of inhibition (<math id="Ch13.F7.m12" class="ltx_Math" alttext="g=4" display="inline"><semantics><mrow><mi>g</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">g=4</annotation></semantics></math> corresponds to balance between excitation
+and inhibition).
+The vertical axis is the amount of external input
+each neuron receives.
+Input <math id="Ch13.F7.m13" class="ltx_Math" alttext="I=1" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">I=1</annotation></semantics></math> corresponds to a mean input
+just sufficient to reach the neuronal firing threshold
+(in the absence of recurrent input from the network).
+Stability of the asynchronous irregular firing state
+(AI) breaks down at the dashed or solid lines
+and can lead to synchronous regular (SR),
+or synchronous irregular (SI, either fast or slow) activity,
+or to a near-quiescent state (Q);
+redrawn after <cite class="ltx_cite">Brunel (<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>.
+<span class="ltx_text ltx_font_bold">B</span>. Typical time course of the population activity <math id="Ch13.F7.m14" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+(bottom part of each subgraph, units in kHz)
+and associated spike patterns (50 randomly chosen neurons are plotted
+along
+the vertical axis in the top part of each subgraph, each dot indicates a spike)
+in different firing regimes.
+âSI fastâ refers to fast and regular oscillations,
+but individual neurons fire irregularly with intervals at random
+multiples of the oscillation period. Horizontal black bar: 50ms.
+Simulation of 10Â 000 excitatory and 2Â 500 inhibitory neurons with connection probability <math id="Ch13.F7.m15" class="ltx_Math" alttext="p=0.1" display="inline"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">p=0.1</annotation></semantics></math>.
+Each spike causes, after a delay of <math id="Ch13.F7.m16" class="ltx_Math" alttext="\Delta=1.5" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>=</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">\Delta=1.5</annotation></semantics></math>ms
+a voltage jump of <math id="Ch13.F7.m17" class="ltx_Math" alttext="0.1" display="inline"><semantics><mn>0.1</mn><annotation encoding="application/x-tex">0.1</annotation></semantics></math>mV; distance from
+equilibrium potential to threshold is 20mV;
+absolute refractory period 2ms; membrane
+time constant <math id="Ch13.F7.m18" class="ltx_Math" alttext="20" display="inline"><semantics><mn>20</mn><annotation encoding="application/x-tex">20</annotation></semantics></math>ms.
+Parameters are top left: <math id="Ch13.F7.m19" class="ltx_Math" alttext="g=3" display="inline"><semantics><mrow><mi>g</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">g=3</annotation></semantics></math>, input =2 (SR);
+top right: <math id="Ch13.F7.m20" class="ltx_Math" alttext="g=6" display="inline"><semantics><mrow><mi>g</mi><mo>=</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">g=6</annotation></semantics></math>, input =4 (SI fast);
+bottom left: <math id="Ch13.F7.m21" class="ltx_Math" alttext="g=5" display="inline"><semantics><mrow><mi>g</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">g=5</annotation></semantics></math>, input =2 (AI)
+bottom right <math id="Ch13.F7.m22" class="ltx_Math" alttext="g=4.5" display="inline"><semantics><mrow><mi>g</mi><mo>=</mo><mn>4.5</mn></mrow><annotation encoding="application/x-tex">g=4.5</annotation></semantics></math>, input =0.9 (SI slow).
+Adapted from <cite class="ltx_cite">Brunel (<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>.</figcaption>
+</figure>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">The population can be in a state
+of asynchronous irregular activity (AI),
+where neurons in the population fire at different times
+(âasynchronousâ firing)
+and the distribution of interspike intervals
+is fairly broad (âirregularâ firing of individual neurons);
+cf. Fig. <a href="#Ch13.F7" title="Fig.Â 13.7 â£ 13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.7</span></a>B.
+
+
+This is the state that corresponds
+to the considerations of stationary
+activity in Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>.
+However, with a slight change of parameters,
+the same network can also be in
+a state of fast synchronous regular (SR) oscillations.
+
+
+It is characterized by periodic oscillations of the population
+activity
+<span class="ltx_text ltx_font_italic">and</span> a sharply peaked interval distribution of
+individual neurons. The network can also
+be in the state of synchronous irregular firing (SI)
+either with fast (SI fast) or with slow
+(SI slow) oscillations of the population activity.
+
+The oscillatory temporal structure emerges
+despite the fact that the input
+has a constant spike arrival rate.
+It can be traced back to an instability
+of the asynchronous firing regime toward
+oscillatory activity.
+</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">With the mathematical approach of the Fokker-Planck
+equations, it is possible to determine the instabilities
+analytically.
+The mathematical approach will be presented
+in SectionÂ <a href="Ch13.S5.html#SS2" title="13.5.2 Response to modulated input (*) â£ 13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.5.2</span></a>,
+but Fig. <a href="#Ch13.F7" title="Fig.Â 13.7 â£ 13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.7</span></a>A
+already shows the result.
+Stability of a stationary state
+of asynchronous firing is most
+easily achieved in the regime
+where inhibition dominates excitation.
+Since each neuron receives four times
+as many excitatory as inhibitory inputs,
+inhibition must be at least four
+times as strong (<math id="SS2.p4.m1" class="ltx_Math" alttext="g&gt;4" display="inline"><semantics><mrow><mi>g</mi><mo>&gt;</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">g&gt;4</annotation></semantics></math>) as excitation.
+In order to get non-zero activity despite
+the strong inhibition, the external
+input alone must be sufficient to
+make the neurons fire.
+âInput=1â corresponds to an average external input
+just sufficient to reach the firing threshold,
+without additional input from the network.</p>
+</div>
+<div id="SS2.p5" class="ltx_para">
+<p class="ltx_p">Consider now the regime of strong inhibition
+(<math id="SS2.p5.m1" class="ltx_Math" alttext="g&gt;4" display="inline"><semantics><mrow><mi>g</mi><mo>&gt;</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">g&gt;4</annotation></semantics></math>) and strong input, say spikes
+from the external source arrive
+at a rate leading to a mean input
+of amplitude 4.
+To understand how the network can run into an instability,
+let us consider the following
+intuitive argument.
+Suppose
+a momentary fluctuation
+leads to an increase in the total amount
+of activity in the excitatory population. This causes, after a transmission
+delay <math id="SS2.p5.m2" class="ltx_Math" alttext="\Delta" display="inline"><semantics><mi mathvariant="normal">Î</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math> an increase in inhibition
+and, after a further delay <math id="SS2.p5.m3" class="ltx_Math" alttext="\Delta" display="inline"><semantics><mi mathvariant="normal">Î</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math> a suppression
+of excitation. If this feedback loop is strong
+enough, an oscillation with period <math id="SS2.p5.m4" class="ltx_Math" alttext="4\Delta" display="inline"><semantics><mrow><mn>4</mn><mo>â¢</mo><mi mathvariant="normal">Î</mi></mrow><annotation encoding="application/x-tex">4\Delta</annotation></semantics></math> may appear,
+leading to fast-frequency (âSI fastâ) oscillations
+<cite class="ltx_cite">(<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>.</p>
+</div>
+<div id="SS2.p6" class="ltx_para">
+<p class="ltx_p">If the external input
+is, on its own, not sufficient to keep the network going
+(âinput <math id="SS2.p6.m1" class="ltx_Math" alttext="&lt;1" display="inline"><semantics><mrow><mi></mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&lt;1</annotation></semantics></math>â), then a similar small fluctuation may eventually
+turn the network from a self-activated state into
+a quiescent state where the only activity is that
+caused by external input. It then needs
+another fluctuation (caused by variations of spike arrivals from the
+external source) to kick it back into
+a short burst of activity <cite class="ltx_cite">(<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>.
+This leads to slow irregular, but synchronous bursts of firing (âSI slowâ).</p>
+</div>
+<div id="SS2.p7" class="ltx_para">
+<p class="ltx_p">Finally, if inhibition is globally weak compared to excitation (<math id="SS2.p7.m1" class="ltx_Math" alttext="g&lt;4" display="inline"><semantics><mrow><mi>g</mi><mo>&lt;</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">g&lt;4</annotation></semantics></math>),
+then the population is in a state of high activity
+where each neuron fires close to its maximal rate
+(set by the inverse of an absolute refractory period).
+This high-activity state is
+unstable compared to fast, but regular oscillations (âSRâ).
+Typically, the population can split up into
+two or more subgroups, the number of which
+depends on the transmission delay
+<cite class="ltx_cite">(<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>; <a href="bib.html#bib341" title="Coherence and incoherence in a globally coupled ensemble of pulse emitting units" class="ltx_ref">181</a>)</cite>.</p>
+</div>
+<div id="SS2.p8" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Analysis of the Brunel network</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">All neurons have the same parameters,
+so that we can assume that they all fire at the same
+time-dependent firing rate <math id="SS2.p8.m1" class="ltx_Math" alttext="\nu(t)=A(t)" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">Î½</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\nu(t)=A(t)</annotation></semantics></math>.
+We assume that the network is large <math id="SS2.p8.m2" class="ltx_Math" alttext="N\gg C_{E}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">N</mi><mo mathsize="normal" stretchy="false">â«</mo><msub><mi mathsize="normal" stretchy="false">C</mi><mi mathsize="normal" stretchy="false">E</mi></msub></mrow><annotation encoding="application/x-tex">N\gg C_{E}</annotation></semantics></math>,
+so that it is unlikely that neurons
+share a large fraction of presynaptic neurons;
+therefore inputs can be considered as uncorrelated,
+except for the trivial correlations
+induced by their common modulation of
+the firing rate
+<math id="SS2.p8.m3" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The mean input at time <math id="SS2.p8.m4" class="ltx_Math" alttext="t" display="inline"><semantics><mi mathsize="normal" stretchy="false">t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+to a neuron in
+either the excitatory or the inhibitory population
+is (in voltage units)</span>
+              </p>
+<table id="Ch13.E34" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch13.E34.m1" class="ltx_Math" alttext="\mu(t)=\tau_{m}\,w_{0}\,C_{E}\,[1-g/4]\,A(t-\Delta)\,+\tau_{m}\,w_{0}\,C_{E}\,%
+\nu^{\rm ext}," display="block"><semantics><mrow><mrow><mrow><mi>Î¼</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>w</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>C</mi><mi>E</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><mrow><mi>g</mi><mo>/</mo><mn>4</mn></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi mathvariant="normal">Î</mi></mrow><mo>)</mo></mrow></mpadded></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>w</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>C</mi><mi>E</mi></msub></mpadded><mo>â¢</mo><msup><mi>Î½</mi><mi>ext</mi></msup></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\mu(t)=\tau_{m}\,w_{0}\,C_{E}\,[1-g/4]\,A(t-\Delta)\,+\tau_{m}\,w_{0}\,C_{E}\,%
+\nu^{\rm ext},</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(13.34)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">and the input also generates diffusive noise
+(in voltage units) of strength</span>
+              </p>
+<table id="Ch13.E35" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch13.E35.m1" class="ltx_Math" alttext="\sigma^{2}(t)=\tau_{m}\,{w_{0}^{2}\,C_{E}}[(1+g^{2}/4)A(t-\Delta)+\nu_{\rm ext%
+}]\,." display="block"><semantics><mrow><mrow><mrow><msup><mi>Ï</mi><mn>2</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msubsup><mi>w</mi><mn>0</mn><mn>2</mn></msubsup></mpadded><mo>â¢</mo><msub><mi>C</mi><mi>E</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mrow><mrow><mo>(</mo><mrow><mn>1</mn><mo>+</mo><mrow><msup><mi>g</mi><mn>2</mn></msup><mo>/</mo><mn>4</mn></mrow></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi mathvariant="normal">Î</mi></mrow><mo>)</mo></mrow></mrow><mo>+</mo><msub><mi>Î½</mi><mi>ext</mi></msub></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\sigma^{2}(t)=\tau_{m}\,{w_{0}^{2}\,C_{E}}[(1+g^{2}/4)A(t-\Delta)+\nu_{\rm ext%
+}]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(13.35)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The mean and <math id="SS2.p8.m5" class="ltx_Math" alttext="\sigma^{2}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">Ï</mi><mn mathsize="normal" stretchy="false">2</mn></msup><annotation encoding="application/x-tex">\sigma^{2}</annotation></semantics></math> are inserted in the Fokker-Planck equation
+(cf. Eq. <a href="#Ch13.Ex6" title="(13.31) â£ 13.4.1 Multiple populations â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.31</span></a>)</span>
+              </p>
+<table id="Ch20.S4.EGx68" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch13.Ex8" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch13.Ex7.m1" class="ltx_Math" alttext="\displaystyle\tau_{m}{\partial\over\partial t}p(u,t)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mstyle><mo>â¢</mo><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{m}{\partial\over\partial t}p(u,t)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch13.Ex7.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch13.Ex7.m3" class="ltx_Math" alttext="\displaystyle-{\partial\over\partial u}\left\{\left[-u+\mu(t)\right]\,p(u,t)\right\}" display="inline"><semantics><mrow><mo>-</mo><mrow><mstyle displaystyle="true"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>u</mi></mrow></mfrac></mstyle><mo>â¢</mo><mrow><mo>{</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mo>-</mo><mi>u</mi><mo>+</mo><mrow><mi>Î¼</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>}</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle-{\partial\over\partial u}\left\{\left[-u+\mu(t)\right]\,p(u,t)\right\}</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="3" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(13.36)</span></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center"></td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch13.E36.m3" class="ltx_Math" alttext="\displaystyle+{1\over 2}\,\sigma^{2}(t)\,{\partial^{2}\over\partial u^{2}}p(u,t)" display="inline"><semantics><mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle></mpadded><mo>â¢</mo><msup><mi>Ï</mi><mn>2</mn></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><msup><mo>â</mo><mn>2</mn></msup><mrow><mo>â</mo><mo>â¡</mo><msup><mi>u</mi><mn>2</mn></msup></mrow></mfrac></mstyle><mo>â¢</mo><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle+{1\over 2}\,\sigma^{2}(t)\,{\partial^{2}\over\partial u^{2}}p(u,t)</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center"></td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch13.Ex8.m3" class="ltx_Math" alttext="\displaystyle+\tau_{m}\,A(t)\,\delta(u-u_{r})-\tau_{m}\,A(t)\,\delta(u-%
+\vartheta)+{\mathcal{O}}(\omega_{k}^{3})\,." display="inline"><semantics><mrow><mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi class="ltx_font_mathcaligraphic">ðª</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msubsup><mi>Ï</mi><mi>k</mi><mn>3</mn></msubsup><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle+\tau_{m}\,A(t)\,\delta(u-u_{r})-\tau_{m}\,A(t)\,\delta(u-%
+\vartheta)+{\mathcal{O}}(\omega_{k}^{3})\,.</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The main difference
+to the stationary solution considered
+in
+Section <a href="Ch13.S3.html#SS1" title="13.3.1 Stationary solution for leaky integrate-and-fire neurons(*) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.3.1</span></a>
+and
+Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a> is that mean input
+and noise amplitude are kept time-dependent.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We first solve to find
+the stationary solution
+of the Fokker-Planck equation, denoted as
+<math id="SS2.p8.m6" class="ltx_Math" alttext="p_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">p</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">p_{0}(u)</annotation></semantics></math> and activity <math id="SS2.p8.m7" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">A</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>.
+This step is completely analogous
+to the calculation in
+Section <a href="Ch13.S3.html#SS1" title="13.3.1 Stationary solution for leaky integrate-and-fire neurons(*) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.3.1</span></a>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In order to analyze the stability
+of the stationary solution, we
+search for solutions of the form
+<math id="SS2.p8.m8" class="ltx_Math" alttext="A(t)=A_{0}+A_{1}\,e^{\lambda t}\,\cos(\omega\,t)" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mi mathsize="normal" stretchy="false">A</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">+</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">A</mi><mn mathsize="normal" stretchy="false">1</mn></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><msup><mi mathsize="normal" stretchy="false">e</mi><mrow><mi mathsize="normal" stretchy="false">Î»</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></msup></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mi mathsize="normal" stretchy="false">cos</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">Ï</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=A_{0}+A_{1}\,e^{\lambda t}\,\cos(\omega\,t)</annotation></semantics></math>
+(for details, see Section <a href="Ch13.S5.html#SS2" title="13.5.2 Response to modulated input (*) â£ 13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.5.2</span></a>).
+Parameter combinations
+that lead to a value <math id="SS2.p8.m9" class="ltx_Math" alttext="\lambda&gt;0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î»</mi><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\lambda&gt;0</annotation></semantics></math> indicate
+an instability of the
+stationary state of asynchronous firing
+for a network with this set of parameters.
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Figure <a href="#Ch13.F7" title="Fig.Â 13.7 â£ 13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.7</span></a>A
+indicates that there is a broad regime
+of <span class="ltx_text ltx_font_italic">stability</span> of the asynchronous irregular firing state (AI).
+This holds true
+even if the network is completely deterministic
+<cite class="ltx_cite">(<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>
+and driven by a constant input <math id="SS2.p8.m10" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>
+(i.e.,
+we set <math id="SS2.p8.m11" class="ltx_Math" alttext="\nu^{\rm ext}=0" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">Î½</mi><mi mathsize="normal" stretchy="false">ext</mi></msup><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\nu^{\rm ext}=0</annotation></semantics></math> in the noise term, Eq. (<a href="#Ch13.E35" title="(13.35) â£ 13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.35</span></a>),
+and replace spike arrivals by
+a constant current <math id="SS2.p8.m12" class="ltx_Math" alttext="RI_{0}^{\rm ext}=w_{0}C_{E}\,\nu^{\rm ext}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><msubsup><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" stretchy="false">ext</mi></msubsup></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mi mathsize="normal" stretchy="false">w</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">C</mi><mi mathsize="normal" stretchy="false">E</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" stretchy="false">Î½</mi><mi mathsize="normal" stretchy="false">ext</mi></msup></mrow></mrow><annotation encoding="application/x-tex">RI_{0}^{\rm ext}=w_{0}C_{E}\,\nu^{\rm ext}</annotation></semantics></math>
+in Eq. (<a href="#Ch13.E34" title="(13.34) â£ 13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13.34</span></a>).</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Stability of the stationary state
+of asynchronous irregular activity
+is most easily achieved
+if the network is in the regime where inhibition
+slightly dominates excitation
+and external input is sufficient to drive
+neurons to threshold. This is called
+the âinhibition dominatingâ regime.
+
+The range of parameters
+where asynchronous firing is stable
+can, however, be increased into
+the range of dominant excitation,
+if delays
+are not fixed at <math id="SS2.p8.m13" class="ltx_Math" alttext="D=1.5" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">D</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1.5</mn></mrow><annotation encoding="application/x-tex">D=1.5</annotation></semantics></math>ms,
+but drawn from range <math id="SS2.p8.m14" class="ltx_Math" alttext="0&lt;D&lt;3" display="inline"><semantics><mrow><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">&lt;</mo><mi mathsize="normal" stretchy="false">D</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mn mathsize="normal" stretchy="false">3</mn></mrow><annotation encoding="application/x-tex">0&lt;D&lt;3</annotation></semantics></math>ms.
+Finite size effects can also be
+taken into account
+<cite class="ltx_cite">(<a href="bib.html#bib308" title="Dynamics of sparsely connected networls of excitatory and inhibitory neurons" class="ltx_ref">79</a>)</cite>.</span>
+              </p>
+</span>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch13.S3.html" title="13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.3 </span>Fokker-Planck equation</span></a><a href="Ch13.S5.html" title="13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.5 </span>Networks of Nonlinear Integrate-and-Fire Neurons</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

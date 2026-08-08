@@ -2,6 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mecha — Chispa · Motion v3 (3D oner)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2c4 5 3 9 0 12 3 2 5 5 5 9a5 5 0 0 1-10 0c0-3 2-5 4-7-2-4 0-10 1-14z' fill='%23F4501E'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -19,6 +20,37 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Inter,system-u
   opacity:0;transition:opacity .5s;text-shadow:0 6px 40px rgba(0,0,0,.8)}
 #caption.show{opacity:1}
 #caption .mk{color:var(--fuego)}
+/* Overlays hero (S2 / S6 / S7) */
+.hero{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .65s ease;pointer-events:none;text-align:center;padding:20px}
+.hero.show{opacity:1}
+.hero .lift{transform:translateY(22px);transition:transform .8s cubic-bezier(.2,.75,.2,1)}
+.hero.show .lift{transform:none}
+.hero-kick{font-family:'Space Grotesk';font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--fuego);font-size:clamp(12px,1vw,16px);margin-bottom:14px}
+.hero-wm{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(40px,7vw,108px);line-height:.95;letter-spacing:-.03em;text-shadow:0 8px 50px rgba(0,0,0,.85)}
+.hero-sub{color:#cbd5e1;margin-top:16px;font-size:clamp(15px,1.3vw,22px);font-weight:500}
+/* comparativa S6 */
+.cmp-card{width:min(900px,92vw);padding:28px 32px;border-radius:22px;background:linear-gradient(180deg,rgba(18,24,40,.88),rgba(9,13,23,.9));
+  border:1px solid rgba(255,255,255,.10);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.cmp-grid{display:grid;grid-template-columns:1fr auto auto;column-gap:26px;row-gap:0;align-items:center}
+.cmp-grid .gh{font-family:'Space Grotesk';font-weight:700;font-size:clamp(12px,1vw,16px);text-transform:uppercase;letter-spacing:.08em;padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:4px}
+.cmp-grid .gh.f{color:#94a3b8}
+.cmp-grid .gh.m{color:var(--fuego);text-align:center}
+.cmp-grid .gh.g{color:#64748b;text-align:center}
+.cmp-grid .fl{font-size:clamp(14px,1.15vw,19px);color:#e2e8f0;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+.cmp-grid .mk{width:28px;height:28px;display:inline-grid;place-items:center;border-radius:50%;font-style:normal;font-size:15px;font-weight:700;margin:13px 0}
+.cmp-grid .mk.y{background:rgba(16,185,129,.18);color:#34d399}
+.cmp-grid .mk.y::before{content:'\2713'}
+.cmp-grid .mk.n{background:rgba(148,163,184,.14);color:#64748b}
+.cmp-grid .mk.n::before{content:'\2013'}
+.price{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:24px}
+.price .big{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(42px,5.4vw,76px);color:#fff;line-height:1}
+.price .big .desde{font-size:.3em;font-weight:600;color:#cbd5e1;display:block;line-height:1.2;margin-bottom:2px}
+.price .big small{font-size:.4em;font-weight:600;color:#cbd5e1;margin-left:4px}
+.price .price-sub{color:#cbd5e1;font-size:clamp(13px,1vw,17px);margin-top:8px}
+/* CTA S7 */
+.wm-mecha{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(68px,13vw,196px);line-height:.88;letter-spacing:-.045em;text-shadow:0 12px 70px rgba(0,0,0,.85)}
+.cta-url{font-family:'Space Grotesk';font-weight:700;font-size:clamp(20px,2.4vw,40px);color:#fff;margin-top:8px;letter-spacing:.01em}
+.cta-pill{margin-top:28px;display:inline-flex;align-items:center;gap:10px;background:var(--fuego);color:#fff;font-weight:700;padding:15px 32px;border-radius:40px;font-size:clamp(15px,1.3vw,21px);box-shadow:0 14px 40px rgba(244,80,30,.4)}
 /* HUD */
 #hud{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;align-items:center;gap:14px;padding:10px 18px;
   background:linear-gradient(0deg,rgba(0,0,0,.7),rgba(0,0,0,0));pointer-events:none}
@@ -54,6 +86,31 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Inter,system-u
 <div id="overlay">
   <div id="caption"></div>
   <div id="cc" class="off"></div>
+  <!-- S2: hero Chispa -->
+  <div id="s2" class="hero"><div class="lift">
+    <div class="hero-kick">La IA de Mecha</div>
+    <div class="hero-wm">Hola, soy <span class="mk">Chispa</span></div>
+    <div class="hero-sub">Inteligencia artificial para tu peluquería</div>
+  </div></div>
+  <!-- S6: comparativa + precio -->
+  <div id="compare" class="hero"><div class="lift"><div class="cmp-card">
+    <div class="cmp-grid">
+      <div class="gh f">Mecha vs. agendas genéricas</div><div class="gh m">Mecha</div><div class="gh g">Genéricas</div>
+      <div class="fl">Ficha de color del cliente</div><i class="mk y"></i><i class="mk n"></i>
+      <div class="fl">Fases de tinte (activa / reposo)</div><i class="mk y"></i><i class="mk n"></i>
+      <div class="fl">IA incluida (WhatsApp + voz)</div><i class="mk y"></i><i class="mk n"></i>
+    </div>
+    <div class="price">
+      <div class="big"><span class="desde">desde</span>39 €<small>/mes</small></div>
+      <div class="price-sub">sin comisiones · 1 mes gratis · sin permanencia</div>
+    </div>
+  </div></div></div>
+  <!-- S7: CTA -->
+  <div id="cta" class="hero"><div class="lift">
+    <div class="wm-mecha">Me<span class="mk">cha</span></div>
+    <div class="cta-url">mechaa.es</div>
+    <div class="cta-pill">Pruébalo gratis</div>
+  </div></div>
 </div>
 <div id="hud">
   <button id="btnPlay" title="Play/Pausa">▶</button>
@@ -62,6 +119,7 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Inter,system-u
   <div class="tg on" id="tgVoz">Voz</div>
   <div class="tg on" id="tgSfx">SFX</div>
   <div class="tg on" id="tgCc">CC</div>
+  <div class="tg on" id="tgMus">Música</div>
 </div>
 <div id="cover"><div class="cor">
   <div class="kick">Mecha · Motion</div>
@@ -177,6 +235,19 @@ function makeKeyboardTexture(){
 }
 
 // portatil reutilizable (pantalla con textura)
+function rr(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+// wallpaper sutil para pantallas de movil sin captura real: que el movil se lea "encendido"
+function makePhoneWallpaper(){
+  const c=document.createElement('canvas'); c.width=420; c.height=910; const g=c.getContext('2d');
+  const grd=g.createLinearGradient(0,0,0,910); grd.addColorStop(0,'#16243d'); grd.addColorStop(1,'#070b14');
+  g.fillStyle=grd; g.fillRect(0,0,420,910);
+  g.fillStyle='rgba(203,213,225,.9)'; g.font='600 24px Inter,system-ui,sans-serif'; g.textAlign='left'; g.textBaseline='top'; g.fillText('11:40',24,18);
+  g.fillStyle='rgba(203,213,225,.55)'; for(let i=0;i<4;i++){ g.beginPath(); g.arc(354+i*15,32,4,0,7); g.fill(); }
+  g.fillStyle='rgba(255,255,255,.05)'; rr(g,16,62,388,48,14); g.fill();
+  g.fillStyle='#F4501E'; g.beginPath(); g.arc(46,86,13,0,7); g.fill();
+  g.fillStyle='rgba(226,232,240,.7)'; rr(g,68,79,150,14,6); g.fill();
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
 function makeLaptop(texUrl){
   const g = new THREE.Group();
   const bodyMat = new THREE.MeshStandardMaterial({color:0x2a3550, metalness:.6, roughness:.36});
@@ -217,7 +288,7 @@ function makePhone(texUrl){
   const g = new THREE.Group();
   const bodyMat = new THREE.MeshStandardMaterial({color:0x232a3d, metalness:.6, roughness:.4});
   const body = new THREE.Mesh(new RoundedBoxGeometry(2.3, 4.8, 0.32, 4, 0.16), bodyMat);
-  const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 4.45), new THREE.MeshBasicMaterial({color:0x05070d, side:THREE.DoubleSide, toneMapped:false}));
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 4.45), new THREE.MeshBasicMaterial({color: texUrl?0xffffff:0x05070d, side:THREE.DoubleSide, toneMapped:false}));
   screen.position.z = 0.17;
   if(texUrl){ loadTex(texUrl, t=>{ screen.material.map = t; screen.material.needsUpdate = true; }); }
   const camDot = new THREE.Mesh(new THREE.CircleGeometry(.05,16), new THREE.MeshStandardMaterial({color:0x05070d, metalness:.8, roughness:.2}));
@@ -246,19 +317,34 @@ const embers=new THREE.Points(eg, new THREE.PointsMaterial({color:0xFF9B3D, size
 scene.add(embers);
 
 // -------------------- GRUPOS DE ESCENA --------------------
+// posiciones de contenido por escena: los dispositivos van ADELANTE en el path
+// (~65% del segmento de camara) para que esta los aborde y no los rebese al inicio.
+const CONTENT_POS = [
+  new THREE.Vector3( 3.8,  0.6,  -29),    // S1 movil (lateral +x del path)
+  new THREE.Vector3(   0,  0,   -45),     // S2 overlay DOM (orbe leads)
+  new THREE.Vector3( -10,  3,   -88),     // S3 portatil (en anchor2)
+  new THREE.Vector3( 7.0, -1.2,-160.6),   // S4 movil (lateral +x del path)
+  new THREE.Vector3(-1.7,  2.3,-204.6),   // S5 movil (lateral +x del path)
+  new THREE.Vector3(  -8,  6,  -220),     // S6 overlay DOM
+  new THREE.Vector3(   0,  2,  -264),     // S7 CTA
+];
 const sceneGroups = SCENES.map(()=>new THREE.Group());
-sceneGroups.forEach((g,i)=>{ g.position.copy(ANCHORS[i]); scene.add(g); });
+sceneGroups.forEach((g,i)=>{ g.position.copy(CONTENT_POS[i]); scene.add(g); });
 // inicios absolutos de cada escena (para animaciones locales en el loop)
 const startTimes = []; { let a=0; SCENES.forEach(s=>{ startTimes.push(a); a+=s.d; }); }
 const sceneFx = {}; // referencias para animar por escena
 
 // S1 (dolor, idx0): movil sonando + 3 notificaciones apiladas
-const phoneS1 = makePhone(); phoneS1.rotation.y = -0.35; phoneS1.position.set(0,-0.3,0);
+const phoneS1 = makePhone(); phoneS1.scale.setScalar(1.5);
+phoneS1.rotation.set(-0.10, -0.13, 0);   // frente (+z) hacia la camara que aborda desde -x
+phoneS1.userData.screen.material.map = makePhoneWallpaper();
+phoneS1.userData.screen.material.color.set(0xffffff);
+phoneS1.userData.screen.material.needsUpdate = true;
 const notiColor = [0xFF9B3D, 0xF4501E, 0x38bdf8];
 const notis = [];
-for(let i=0;i<3;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(2.0,0.62),
+for(let i=0;i<3;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(1.3,0.46),
   new THREE.MeshBasicMaterial({color:notiColor[i], transparent:true, opacity:.92, side:THREE.DoubleSide, toneMapped:false}));
-  b.position.set(0.25, 0.7+i*0.78, 0.26); b.rotation.y=-0.35; phoneS1.add(b); notis.push(b); }
+  b.position.set(0, 0.9-i*0.62, 0.27); phoneS1.add(b); notis.push(b); }
 sceneFx.shakePhone = phoneS1;
 sceneGroups[0].add(phoneS1);
 
@@ -268,11 +354,15 @@ laptopS3.scale.setScalar(1.1); laptopS3.rotation.y = 0.4; laptopS3.position.y -=
 sceneGroups[2].add(laptopS3);
 
 // S4 (24/7, idx3): movil con chat animado + moneda señal
-const phoneS4 = makePhone(); phoneS4.rotation.y = 0.35;
+const phoneS4 = makePhone(); phoneS4.scale.setScalar(1.5);
+phoneS4.rotation.set(0.05, -0.05, 0);    // frente hacia la camara que aborda desde anchor3
+phoneS4.userData.screen.material.map = makePhoneWallpaper();
+phoneS4.userData.screen.material.color.set(0xffffff);
+phoneS4.userData.screen.material.needsUpdate = true;
 const chat = [];
-for(let i=0;i<3;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(1.55,0.55),
+for(let i=0;i<3;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(1.25,0.5),
   new THREE.MeshBasicMaterial({color: i===2?0x10B981:0x25D366, transparent:true, opacity:0, side:THREE.DoubleSide, toneMapped:false}));
-  b.position.set(-0.12, -1.0+i*0.75, 0.26); b.rotation.y=0.35; phoneS4.add(b); chat.push(b); }
+  b.position.set(0.15, 0.9-i*0.7, 0.27); phoneS4.add(b); chat.push(b); }
 const coin = new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.08,28),
   new THREE.MeshStandardMaterial({color:0xFFC46B, metalness:.9, roughness:.25, emissive:0xFF9B3D, emissiveIntensity:.35}));
 coin.position.set(2.4, 4, 1.2); coin.rotation.x = Math.PI/2; coin.visible=false;
@@ -280,10 +370,11 @@ sceneFx.chat = chat; sceneFx.coin = coin;
 sceneGroups[3].add(phoneS4, coin);
 
 // S5 (portal+señal, idx4): movil portal + chip "Señal pagada"
-const phoneS5 = makePhone(); phoneS5.rotation.y = -0.25;
-const okChip = new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.65),
+const phoneS5 = makePhone('capturas_recortadas/portal_mobile_clean.png?v=20260806a'); phoneS5.scale.setScalar(1.5);
+phoneS5.rotation.set(-0.12, -0.08, 0);   // frente hacia la camara que aborda desde anchor4
+const okChip = new THREE.Mesh(new THREE.PlaneGeometry(1.3,0.6),
   new THREE.MeshBasicMaterial({color:0x10B981, transparent:true, opacity:.95, side:THREE.DoubleSide, toneMapped:false}));
-okChip.position.set(0, 1.8, 0.28); phoneS5.add(okChip);
+okChip.position.set(0, 0.5, 0.27); phoneS5.add(okChip);
 sceneGroups[4].add(phoneS5);
 // S2, S6, S7 usan overlays DOM (orb + captions + tablas/CTA)
 
@@ -308,10 +399,43 @@ const SFX={
 function nn(i){ return (i<9?'0':'')+(i+1); }
 const vozCache = SCENES.map((s,i)=>{ const a=new Audio('voz/chispa_'+nn(i)+'.wav'); a.preload='auto'; a.volume=0.95; return a; });
 function stopVoz(){ vozCache.forEach(a=>{ try{ a.pause(); a.currentTime=0; }catch(e){} }); }
-function say(i){ if(!flags.voz) return; stopVoz(); const a=vozCache[i]; if(a){ try{ a.currentTime=0; a.play().catch(()=>{}); }catch(e){} } }
+function say(i){ if(!flags.voz) return; stopVoz(); const a=vozCache[i]; if(a){ try{ a.currentTime=0; a.play().catch(()=>{}); }catch(e){} } if(music){ music.duck(); if(a) a.onended = ()=>{ if(music) music.unduck(); }; } }
+
+// -------------------- MUSIC BED (drone minimalista, procedural WebAudio) --------------------
+let music = null;
+function startMusic(){
+  if(music || !actx) return;
+  const out = actx.createGain(); out.gain.value = 0; out.connect(master);
+  // reverb por impulso sintetizado (cola ~2.6s)
+  const conv = actx.createConvolver(); const len = actx.sampleRate*2.6; const imp = actx.createBuffer(1,len,actx.sampleRate); const dd = imp.getChannelData(0);
+  for(let i=0;i<len;i++){ dd[i] = (Math.random()*2-1)*Math.pow(1-i/len, 2.2); } conv.buffer = imp;
+  const wet = actx.createGain(); wet.gain.value=0.55; conv.connect(wet); wet.connect(out);
+  // drone: raiz A2 + quinta E3 + shimmer A3
+  const lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=380; lp.Q.value=0.7;
+  const dry = actx.createGain(); dry.gain.value=0.9; lp.connect(dry); dry.connect(out); lp.connect(conv);
+  const o1=actx.createOscillator(); o1.type='sine'; o1.frequency.value=110;       // A2
+  const o2=actx.createOscillator(); o2.type='sine'; o2.frequency.value=164.81;    // E3
+  const o3=actx.createOscillator(); o3.type='triangle'; o3.frequency.value=220;   // A3 shimmer
+  const g1=actx.createGain(); g1.gain.value=0.50; o1.connect(g1).connect(lp);
+  const g2=actx.createGain(); g2.gain.value=0.30; o2.connect(g2).connect(lp);
+  const g3=actx.createGain(); g3.gain.value=0.0; o3.connect(g3); g3.connect(conv);
+  // LFO lento: "respira" el corte del lowpass
+  const lfo=actx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.06; const lfoG=actx.createGain(); lfoG.gain.value=120; lfo.connect(lfoG).connect(lp.frequency);
+  o1.start(); o2.start(); o3.start(); lfo.start();
+  const BASE=0.13, DUCK=0.06;
+  if(flags.muse) out.gain.setTargetAtTime(BASE, actx.currentTime, 1.4);
+  music = {
+    out, g3,
+    setEnabled(v){ out.gain.setTargetAtTime(v?BASE:0.0001, actx.currentTime, 0.4); },
+    duck(){ if(flags.muse) out.gain.setTargetAtTime(DUCK, actx.currentTime, 0.35); },
+    unduck(){ if(flags.muse) out.gain.setTargetAtTime(BASE, actx.currentTime, 0.5); },
+    swell(level,dur){ if(!flags.muse)return; out.gain.setTargetAtTime(level, actx.currentTime, 0.4); setTimeout(()=>{ if(flags.muse) out.gain.setTargetAtTime(BASE, actx.currentTime, 0.7); }, dur*1000); },
+    shimmer(v,dur){ g3.gain.setTargetAtTime(v, actx.currentTime, Math.max(0.2,dur*0.4)); setTimeout(()=>g3.gain.setTargetAtTime(0.0001, actx.currentTime, Math.max(0.3,dur*0.6)), dur*1000); }
+  };
+}
 
 // -------------------- TIMING ENGINE --------------------
-const flags = { voz:true, sfx:true, cc:true };
+const flags = { voz:true, sfx:true, cc:true, muse:true };
 let playing=false, elapsed=0, cur=-1, last=0, pendingSfx=[];
 const cc=document.getElementById('cc'), captionEl=document.getElementById('caption');
 const fill=document.getElementById('fill'), tc=document.getElementById('tc'), btnPlay=document.getElementById('btnPlay');
@@ -329,16 +453,24 @@ function enterScene(i){
   sceneGroups.forEach((g,k)=> g.visible = (k===i));   // optimiza render
   cc.textContent = SCENES[i].vo; cc.classList.toggle('off', !flags.cc);
   say(i);
+  // overlays hero (S2=1, S6=5, S7=6): el overlay lleva el peso; se suprime el caption cinetico
+  const HERO={1:'s2',5:'compare',6:'cta'};
+  const hid=HERO[i]||null;
+  ['s2','compare','cta'].forEach(id=>document.getElementById(id).classList.toggle('show', id===hid));
+  const isHero=!!hid;
   // programar SFX locales
   pendingSfx.forEach(t=>clearTimeout(t)); pendingSfx=[];
   SCENES[i].sfx.forEach(b=>{ pendingSfx.push(setTimeout(()=>{ if(cur===i&&playing) SFX[b[1]]&&SFX[b[1]](); }, b[0]*1000)); });
-  // programar captions cineticas
-  SCENES[i].cap.forEach((c,j)=>{ const prev=SCENES[i].cap[j-1]; const startMs=(prev?prev[1]:0)*1000; const delay=(c[1])*1000 - elapsed*1000 + (SCENES[i].vo?0:0);
-    // se actualiza en upd en su momento; simplificado: timeout relativo a la entrada
-  });
-  // captions: usamos el array cap con offsets relativos al inicio de escena
-  let capIdx=0;
+  // cama musical: swells en los beats emocionales (orbe S2, precio S6, CTA S7)
+  if(music){
+    if(i===1||i===6){ music.swell(0.22,2.4); music.shimmer(0.12,2.2); }
+    else if(i===5){ music.swell(0.20,2.0); music.shimmer(0.09,1.8); }
+    else if(i===2){ music.shimmer(0.06,1.6); }
+  }
+  // captions cineticas (solo en escenas no-hero)
   SCENES[i]._capTimer && clearTimeout(SCENES[i]._capTimer);
+  if(isHero){ setCaption(null); return; }
+  let capIdx=0;
   const advanceCap=()=>{ if(cur!==i) return; if(capIdx<SCENES[i].cap.length){ setCaption(SCENES[i].cap[capIdx][0]); const dur = (capIdx+1<SCENES[i].cap.length? SCENES[i].cap[capIdx+1][1] : SCENES[i].d) - SCENES[i].cap[capIdx][1]; capIdx++; SCENES[i]._capTimer=setTimeout(advanceCap, dur*1000); } else { SCENES[i]._capTimer=setTimeout(()=>{ if(cur===i) setCaption(null); }, 1200); } };
   const firstOff = SCENES[i].cap.length? SCENES[i].cap[0][1]*1000 : 400;
   SCENES[i]._capTimer=setTimeout(advanceCap, firstOff);
@@ -349,12 +481,13 @@ const composer=new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene,camera));
 composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), 0.7, 0.55, 1.1));
 
+const _look = new THREE.Vector3();   // lookAt suavizado (persiste entre frames)
 function loop(t){
   requestAnimationFrame(loop);
   const dt = last ? (t-last)/1000 : 0; last = t;
   if(playing){
     elapsed += dt;
-    if(elapsed >= TOTAL){ elapsed = TOTAL; playing=false; btnPlay.textContent='▶'; setCaption(null); }
+    if(elapsed >= TOTAL){ elapsed = TOTAL; playing=false; btnPlay.textContent='▶'; setCaption(null); if(music) music.out.gain.setTargetAtTime(0.0001, actx.currentTime, 1.5); }
     const si = sceneIndexFor(elapsed);
     if(si !== cur) enterScene(si);
     // HUD
@@ -364,12 +497,35 @@ function loop(t){
   const pr = progressFor(elapsed);
   const camPos = curve.getPointAt(Math.min(pr,1));
   camera.position.copy(camPos);
-  camera.lookAt(curve.getPointAt(Math.min(pr+0.02,1)));
-  // orbe viaja un paso por delante de la camara (hilo conductor)
-  orb.position.copy(curve.getPointAt(Math.min(pr+0.015,1)));
+  // la camara mira al contenido de la escena actual (suavizado) -> dispositivos siempre encuadrados
+  const tgt = (cur>=0 && CONTENT_POS[cur]) ? CONTENT_POS[cur] : curve.getPointAt(Math.min(pr+0.02,1));
+  _look.lerp(tgt, 0.06);
+  camera.lookAt(_look);
+  // orbe: lidera por delante y deriva hacia el contenido para guiar la mirada (co-visible)
+  const ahead = curve.getPointAt(Math.min(pr+0.05,1));
+  orb.position.set(ahead.x*0.5+tgt.x*0.5, ahead.y*0.5+tgt.y*0.5, ahead.z*0.5+tgt.z*0.5);
   orb.userData.core.rotation.y = t*0.0006; orb.userData.core.scale.setScalar(1+Math.sin(t*0.003)*0.05);
   orb.userData.halos.forEach((h,idx)=>{ h.rotation.z=t*0.0008*(idx+1); h.lookAt(camera.position); });
   embers.rotation.y = t*0.00002; embers.position.y = (t*0.0008)%4;
+
+  // ---- animaciones locales por escena (elapsed absoluto -> local de escena) ----
+  const local = elapsed - startTimes[cur];
+  // S1 (idx0): movil sonando -> temblor tipo vibracion continua
+  if(cur===0 && sceneFx.shakePhone){
+    sceneFx.shakePhone.rotation.z = Math.sin(t*0.04)*0.05;
+    sceneFx.shakePhone.position.x = Math.sin(t*0.05)*0.08;
+  }
+  // S4 (idx3): chat entra por beats + moneda de la señal cae
+  if(cur===3 && sceneFx.chat){
+    const th=[0.6,2.5,4.0];
+    sceneFx.chat.forEach((b,i)=>{ b.material.opacity = local>=th[i] ? Math.min(0.92,(local-th[i])*4) : 0; });
+    if(local>=4.0 && sceneFx.coin){
+      sceneFx.coin.visible=true;
+      sceneFx.coin.position.y = Math.max(0.4, 4-(local-4.0)*3);
+      sceneFx.coin.rotation.z = (local-4.0)*6;
+    }
+  }
+
   composer.render();
 }
 requestAnimationFrame(loop);
@@ -377,7 +533,7 @@ requestAnimationFrame(loop);
 addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight); });
 
 // -------------------- CONTROLES / HUD --------------------
-function play(){ ensureAudio(); playing=true; last=performance.now(); btnPlay.textContent='❚❚'; if(cur<0) enterScene(sceneIndexFor(elapsed)); requestAnimationFrame(loop); }
+function play(){ ensureAudio(); startMusic(); playing=true; last=performance.now(); btnPlay.textContent='❚❚'; if(cur<0) enterScene(sceneIndexFor(elapsed)); requestAnimationFrame(loop); }
 function pause(){ playing=false; btnPlay.textContent='▶'; stopVoz(); }
 btnPlay.addEventListener('click', ()=> playing?pause():play());
 document.getElementById('bar').addEventListener('click', e=>{
@@ -386,13 +542,22 @@ document.getElementById('bar').addEventListener('click', e=>{
   // forzar re-entrada de escena
   playing=true; last=performance.now(); enterScene(sceneIndexFor(elapsed));
 });
-function bindToggle(id,key){ const el=document.getElementById(id); el.addEventListener('click', ()=>{ flags[key]=!flags[key]; el.classList.toggle('on',flags[key]); if(key==='cc'){ cc.classList.toggle('off',!flags.cc); if(!flags.cc) captionEl.classList.remove('show'); } if(key==='voz'&&!flags.voz) stopVoz(); }); }
-bindToggle('tgVoz','voz'); bindToggle('tgSfx','sfx'); bindToggle('tgCc','cc');
+function bindToggle(id,key){ const el=document.getElementById(id); el.addEventListener('click', ()=>{ flags[key]=!flags[key]; el.classList.toggle('on',flags[key]); if(key==='cc'){ cc.classList.toggle('off',!flags.cc); if(!flags.cc) captionEl.classList.remove('show'); } if(key==='voz'&&!flags.voz) stopVoz(); if(key==='muse'&&music) music.setEnabled(flags.muse); }); }
+bindToggle('tgVoz','voz'); bindToggle('tgSfx','sfx'); bindToggle('tgCc','cc'); bindToggle('tgMus','muse');
 
 document.getElementById('cover').addEventListener('click', ()=>{
   document.getElementById('cover').style.display='none';
   play();
 });
+
+// hooks de QA / debug (no afectan al render en produccion)
+window.__mecha = {
+  hideFx:(v)=>{ try{ orb.visible=!v; embers.visible=!v; }catch(e){} },
+  cam:()=> camera.position.toArray(),
+  cur:()=> cur,
+  groups:()=> sceneGroups.map((g,i)=>({i, pos:g.position.toArray(), visible:g.visible })),
+  seek:(e)=>{ elapsed=Math.max(0,Math.min(TOTAL,e)); cur=-1; playing=true; last=performance.now(); enterScene(sceneIndexFor(elapsed)); }
+};
 
 window.__qa_ok = true;
 } catch(e){

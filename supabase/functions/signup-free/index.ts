@@ -114,12 +114,17 @@ Deno.serve(async (req: Request) => {
   const nombre = (payload.nombre || '').trim();
   const salon = (payload.salon || '').trim();
   const telefono = (payload.telefono || '').trim();
+  // Opcionales: el registro nativo los envia, el web no (los tiene en su propio
+  // formulario). Viajan en user_metadata para que handle_new_user los lea.
+  const apellido = (payload.apellido || '').trim();
+  const codigoPostal = (payload.codigo_postal || '').trim();
 
   // Validacion whitelist: formato + longitudes maximas (el cliente no es autoridad)
   if (!email || !EMAIL_RE.test(email) || email.length > 120) return json({ error: 'invalid_email' }, 400, req);
   if (!password || password.length < 8 || password.length > 200) return json({ error: 'weak_password' }, 400, req);
   if (!nombre || !salon) return json({ error: 'missing_fields' }, 400, req);
   if (nombre.length > 80 || salon.length > 80 || telefono.length > 20) return json({ error: 'missing_fields' }, 400, req);
+  if (apellido.length > 80 || codigoPostal.length > 10) return json({ error: 'missing_fields' }, 400, req);
 
   // Contrasena aparecida en filtraciones publicas: se rechaza antes de crear
   // nada (sustituye a la opcion "Leaked password protection" de Supabase Pro).
@@ -171,11 +176,17 @@ Deno.serve(async (req: Request) => {
   }
 
   // 1) Crear usuario YA confirmado (no se envia correo).
+  // Metadata completa: el trigger handle_new_user lee apellido y codigo_postal
+  // de aqui (antes se intentaba un UPDATE post-alta que fallaba sin sesion).
+  const metadata: Record<string, string> = { nombre, salon, telefono };
+  if (apellido) metadata.apellido = apellido;
+  if (codigoPostal) metadata.codigo_postal = codigoPostal;
+
   const { data: created, error: cErr } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-    user_metadata: { nombre, salon, telefono },
+    user_metadata: metadata,
   });
 
   if (cErr) {

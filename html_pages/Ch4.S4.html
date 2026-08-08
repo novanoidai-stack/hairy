@@ -1,0 +1,704 @@
+<!DOCTYPE html><html>
+<head>
+<title>4.4 Type I and Type II neuron models | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S2.html" title="4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch4.S7.html" title="4.7 Summary â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                  , 
+                  , Hopf, Hopf bifurcation, bifurcation, bifurcations, current, fixed point, gain function, ghost, ghost of fixed point, onset of oscillations, rheobase, rheobase current, ruins of fixed point, saddle-node, subcritical, supercritical, type I, type I/II model, type II">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Dimensionality Reduction and Phase Plane Analysis</span></a><a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3 </span>Phase plane analysis</span></a><a href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.5 </span>Threshold and excitability</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4.4 </span>Type I and Type II neuron models</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<figure id="Ch4.F11" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x106.png" id="Ch4.F11.g1" class="ltx_graphics" width="293" height="214" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x107.png" id="Ch4.F11.g2" class="ltx_graphics" width="293" height="214" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.11: </span><span class="ltx_text ltx_font_bold">A</span>. Gain function for models of typeÂ I.
+The frequency <math id="Ch4.F11.m3" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi>Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math> during a limit cycle oscillation is a continuous
+function of the applied current <math id="Ch4.F11.m4" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">B</span>. The gain function of
+typeÂ II models has a discontinuity.
+
+
+
+</figcaption>
+</figure>
+<div id="p1" class="ltx_para">
+<p class="ltx_p">We have already seen in Chapter <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>
+that neuron models fall in two classes: those
+with a continuous frequency-current curve are
+called Type I whereas those with a discontinuous
+frequency-current curve are called Type II.
+The characteristic curves for both model
+types are illustrated in Fig. <a href="#Ch4.F11" title="Fig.Â 4.11 â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.11</span></a>.
+The onset of repetitive firing under constant current
+injection is characterized by
+a minimal current <math id="p1.m1" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi>I</mi><mi>Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math>,
+also called the rheobase current.
+
+</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">For two-dimensional neuron models, the firing behavior of both neuron types
+can be understood by phase plane analysis.
+To do so we need to observe the changes
+in structure and stability
+of fixed points when
+the current passes from
+a value below <math id="p2.m1" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi>I</mi><mi>Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math> to
+a value just above <math id="p2.m2" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi>I</mi><mi>Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math>,
+where <math id="p2.m3" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi>I</mi><mi>Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math> determines the onset of repetitive firing.
+Mathematically speaking, the point <math id="p2.m4" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi>I</mi><mi>Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math> where the transition
+in the number or stability of fixed points occurs
+is called a bifurcation point
+and <math id="p2.m5" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is the bifurcation parameter.</p>
+</div>
+<div id="p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Number of fixed points changes at bifurcation</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Let us recall that the fixed points of the system
+lie at the intersection of the <math id="p3.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline with
+the <math id="p3.m2" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline.
+Fig. <a href="Ch4.S2.html#Ch4.F3" title="Fig.Â 4.3 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>
+shows examples of two-dimensional neuron
+models where the <math id="p3.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline crosses
+the <math id="p3.m4" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullclines three times so
+that the models exhibit three fixed points.
+If the external driving current <math id="p3.m5" class="ltx_Math" alttext="I" display="inline"><semantics><mi mathsize="normal" stretchy="false">I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is slowly increased,
+the <math id="p3.m6" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline shifts vertically upward.<span class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">6</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">6</sup>It may also undergo some changes in shape, but these are not relevant for the following discussion.</span></span></span>
+If the driving current <math id="p3.m7" class="ltx_Math" alttext="I" display="inline"><semantics><mi mathsize="normal" stretchy="false">I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> becomes strong enough,
+the two left-most fixed points merge and disappear; see
+Fig. <a href="Ch4.S2.html#Ch4.F4" title="Fig.Â 4.4 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4</span></a>.
+The moment when the two fixed points disappear is the bifurcation point.
+At this point a qualitative change in the dynamics
+of the neuron model is observed, e.g., the transition
+from the resting state to periodic firing.
+These changes are discussed in the following subsections.</span>
+            </p>
+</span>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4.1 </span>TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">Neuron models with a continuous gain function are called typeÂ I. Mathematically,
+a
+saddle-node-onto-limit-cycle bifurcation generically gives rise to a typeÂ I behavior,
+as we will explain now.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">For zero input and weakly positive input, we suppose that
+our neuron model has
+three fixed points in a configuration such as
+in Fig. <a href="#Ch4.F13" title="Fig.Â 4.13 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.13</span></a>.
+A stable fixed point (node) to the left, a saddle point
+in the middle, and an unstable fixed point to the right. If <math id="SS1.p2.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is
+increased, the <math id="SS1.p2.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline moves upward and the stable fixed point merges
+with the saddle and disappears
+(Fig. <a href="#Ch4.F12" title="Fig.Â 4.12 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.12</span></a>). We are left with the unstable fixed point
+around which there must be a limit cycle provided the flux is bounded.
+If the limit cycle passes through the region where the saddle and node disappeared,
+the scenario is called a
+saddle-node-onto-limit-cycle bifurcation.
+
+</p>
+</div>
+<figure id="Ch4.F12" class="ltx_figure"><img src="x108.png" id="Ch4.F12.g1" class="ltx_graphics ltx_centering" width="590" height="208" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.12: </span>Saddle-Node Bifurcation. The <math id="Ch4.F12.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline is represented as a parabola that moves upward as the current is increased (from left to right). The saddle point is shown as an open circle and the node as a filled circle. When the current is increased, the two fixed points,
+which are initially far apart (left,)
+move closer together (middle) and finally annihilate (right).
+
+</figcaption>
+</figure>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Can we say anything about the frequency
+of the limit cycle?
+Just before the transition point where the two fixed points merge,
+the system exhibits a stable fixed point which (locally) attracts
+trajectories. As a trajectory gets close to the stable fixed
+point, its velocity decreases until it finally stops at the fixed point.
+Let us now consider the situation where the driving current
+is a bit larger so that <math id="SS1.p3.m1" class="ltx_Math" alttext="I=I_{\theta}" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><msub><mi>I</mi><mi>Î¸</mi></msub></mrow><annotation encoding="application/x-tex">I=I_{\theta}</annotation></semantics></math>.
+This is the transition point, where the two fixed points merge
+and a new limit cycle appears.
+At the
+transition point the limit cycle has zero frequency because it passes through
+the two merging fixed points where the velocity of the trajectory is zero. If
+<math id="SS1.p3.m2" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is increased a little, the limit cycle still âfeelsâ the âghostâ of the disappeared
+fixed points in the sense that the velocity of the trajectory in that region
+is very low.
+While the fixed points have disappeared,
+the âruinsâ of the fixed points are still present
+in the phase plane.
+Thus the onset of oscillation is continuous and occurs with zero
+frequency. Models which fall into this class are therefore of typeÂ I; cf.
+Fig.Â <a href="#Ch4.F11" title="Fig.Â 4.11 â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.11</span></a>.
+
+
+</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">From the above discussion it should be clear that, if we increase <math id="SS1.p4.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>, we
+encounter a transition point where two fixed points disappear,
+viz., the saddle and the stable fixed point (node).
+At the same time a limit cycle appears.
+If we come from the other side,
+we have first a limit cycle which disappears at the moment
+when the saddle-node pair shows up.
+The transition is therefore called a
+saddle-node bifurcation on a limit cycle.</p>
+</div>
+<figure id="Ch4.F13" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x109.png" id="Ch4.F13.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x110.png" id="Ch4.F13.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x111.png" id="Ch4.F13.g3" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x112.png" id="Ch4.F13.g4" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.13: </span>
+<span class="ltx_text ltx_font_bold">A</span>. The nullclines of the Morris-Lecar model for zero input. The <math id="Ch4.F13.m7" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline is flat at low <math id="Ch4.F13.m8" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> but increases monotonically above <math id="Ch4.F13.m9" class="ltx_Math" alttext="u=-20" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><mrow><mo>-</mo><mn>20</mn></mrow></mrow><annotation encoding="application/x-tex">u=-20</annotation></semantics></math>, the <math id="Ch4.F13.m10" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline is the nonlinear curve crossing the <math id="Ch4.F13.m11" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline in three points. A trajectory starting at (-65,-.15) (open square) converges to the stable fixed point at (-59,0) (filled circle). <span class="ltx_text ltx_font_bold">B</span>. Time course of the membrane potential of the trajectory shown in A. <span class="ltx_text ltx_font_bold">C</span>. Same as in A but with positive input <math id="Ch4.F13.m12" class="ltx_Math" alttext="I=45" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mn>45</mn></mrow><annotation encoding="application/x-tex">I=45</annotation></semantics></math>. The stable fixed point in A has merged with the saddle (open circle in A) and disappeared leaving a limit cycle around the third, unstable, fixed point. <span class="ltx_text ltx_font_bold">D</span>. Voltage time course of the trajectory shown in C. Trajectories are the results of numerical integration of Eqs. (<a href="Ch4.S2.html#Ch4.E6" title="(4.6) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.6</span></a>)-(<a href="Ch4.S2.html#Ch4.E10" title="(4.10) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a>)</figcaption>
+</figure>
+<div id="SS1.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Morris-Lecar model</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Depending on the choice of parameters, the Morris-Lecar model is of either
+typeÂ I or typeÂ II.
+We consider a parameter set where
+the Morris-Lecar model
+has three fixed points located such that two of them lie in the unstable region
+where the <math id="SS1.p5.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline has large positive slope as indicated schematically in
+Fig.Â <a href="#Ch4.F13" title="Fig.Â 4.13 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.13</span></a>. Comparison of the phase portrait of
+Fig.Â <a href="#Ch4.F13" title="Fig.Â 4.13 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.13</span></a> with that of Fig.Â <a href="Ch4.S3.html#Ch4.F8" title="Fig.Â 4.8 â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.8</span></a>
+shows that the left
+fixed point is stable as in Fig.Â <a href="Ch4.S3.html#Ch4.F8" title="Fig.Â 4.8 â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.8</span></a>A, the middle one is a
+saddle point as in Fig.Â <a href="Ch4.S3.html#Ch4.F8" title="Fig.Â 4.8 â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.8</span></a>C, and the right one is unstable as
+in Fig.Â <a href="Ch4.S3.html#Ch4.F8" title="Fig.Â 4.8 â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.8</span></a>B provided that the slope of the <math id="SS1.p5.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline is
+sufficiently positive. Thus we have the sequence of three fixed points
+necessary for a saddle-node-onto-limit-cycle bifurcation.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch4.F14" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x113.png" id="Ch4.F14.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x114.png" id="Ch4.F14.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x115.png" id="Ch4.F14.g3" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x116.png" id="Ch4.F14.g4" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.14: </span>
+Reduced Hodgkin-Huxley model with
+nullclines and dynamics of a typeÂ I model.
+<span class="ltx_text ltx_font_bold">A</span>. For weakly positive input, the <math id="Ch4.F14.m5" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline
+has three intersections with the <math id="Ch4.F14.m6" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline.
+<span class="ltx_text ltx_font_bold">B</span>. Zoom on the two left-most fixed points.
+A trajectory (thick solid line) is attracted toward the left fixed point.
+<span class="ltx_text ltx_font_bold">C</span>. For input
+<math id="Ch4.F14.m7" class="ltx_Math" alttext="I&gt;I_{\theta}" display="inline"><semantics><mrow><mi>I</mi><mo>&gt;</mo><msub><mi>I</mi><mi>Î¸</mi></msub></mrow><annotation encoding="application/x-tex">I&gt;I_{\theta}</annotation></semantics></math>, the <math id="Ch4.F14.m8" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline is shifted vertically and only one fixed point remains which is unstable.
+The trajectory starting from the same initial condition as in A turns into a limit cycle.
+<span class="ltx_text ltx_font_bold">D</span>. Zoom onto the same region as in B.
+The limit cycle passes through the region
+where the two fixed points have been before, but
+these fixed points have now disappeared. The nearly vanishing length
+of the arrows indicates that movement of the trajectory in this region is very slow giving rise to a near-zero firing frequency. </figcaption>
+</figure>
+<div id="SS1.p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Hodgkin-Huxley Model Reduced to Two Dimensions</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The reduced Hodgkin-Huxley model of
+Fig.Â <a href="Ch4.S2.html#Ch4.F3" title="Fig.Â 4.3 â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>A
+has three fixed points. Stability analysis of the fixed
+points or comparison of the phase portrait of this model
+in Fig.<a href="#Ch4.F14" title="Fig.Â 4.14 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.14</span></a>A
+with the standard cases in
+Fig.Â <a href="Ch4.S3.html#Ch4.F8" title="Fig.Â 4.8 â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.8</span></a>
+shows that the left fixed point is stable,
+the middle one is a saddle, and the right one is unstable.
+If a step current <math id="SS1.p6.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi mathsize="normal" stretchy="false">I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is applied, the <math id="SS1.p6.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> nullcline
+undergoes some minor changes in shape, but mainly
+shifts upward.
+If the step is big enough, two of the fixed points disappear.
+The resulting limit cycle passes through the ruins of the fixed point;
+Fig.<a href="#Ch4.F14" title="Fig.Â 4.14 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.14</span></a>C and D.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4.2 </span>TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">There is no fundamental reason why a limit
+cycle should appear at a saddle-node bifurcation.
+Indeed, in one-dimensional differential equations,
+saddle-node bifurcations are possible, but never lead
+to a limit cycle. Moreover,
+if a limit cycle exists in a two-dimensional system,
+there is no reason why it should appear directly
+at the bifurcation point - it can also exist
+before the bifurcation point is reached.
+In this case, the limit cycle does not pass
+through the ruins of the fixed point and
+therefore has finite frequency. This gives rise
+to a typeÂ II neuron model.
+The corresponding bifurcation can be classified
+as Saddle-Node-off-Limit-Cycle.</p>
+</div>
+<figure id="Ch4.F15" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x117.png" id="Ch4.F15.g1" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x118.png" id="Ch4.F15.g2" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">D</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x119.png" id="Ch4.F15.g3" class="ltx_graphics" width="293" height="235" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x120.png" id="Ch4.F15.g4" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.15: </span>
+Reduced Hodgkin-Huxley model with
+nullclines and dynamics of a typeÂ II model.
+<span class="ltx_text ltx_font_bold">A</span>. For weakly positive input, the <math id="Ch4.F15.m4" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline (solid
+line) has three intersections with the <math id="Ch4.F15.m5" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline (dashed line).
+<span class="ltx_text ltx_font_bold">B</span>. Zoom on the two left-most fixed points.
+A trajectory (thick solid line) is attracted toward the left fixed point.
+<span class="ltx_text ltx_font_bold">C</span>. For input
+<math id="Ch4.F15.m6" class="ltx_Math" alttext="I&gt;I_{\theta}" display="inline"><semantics><mrow><mi>I</mi><mo>&gt;</mo><msub><mi>I</mi><mi>Î¸</mi></msub></mrow><annotation encoding="application/x-tex">I&gt;I_{\theta}</annotation></semantics></math>,
+only one fixed point remains which is unstable.
+The trajectory starting from the same initial condition as in A turns into a limit cycle.
+<span class="ltx_text ltx_font_bold">D</span>. Zoom onto the same region as in B.
+The limit cycle passes to the right
+of the region
+where the two fixed points have been in B.
+Arrows along the limit cycle indicate finite speed of the
+trajectory, so that the limit cycle has a
+non-zero firing frequency. </figcaption>
+</figure>
+<div id="SS2.p2" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Hodgkin-Huxley Model Reduced to Two Dimensions</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Fig. <a href="#Ch4.F15" title="Fig.Â 4.15 â£ 4.4.2 TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.15</span></a>
+shows the same neuron model
+as Fig. <a href="#Ch4.F14" title="Fig.Â 4.14 â£ 4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.14</span></a> except for one single change
+in parameter: the time scale
+<math id="SS2.p2.m1" class="ltx_Math" alttext="\tau_{w}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">w</mi></msub><annotation encoding="application/x-tex">\tau_{w}</annotation></semantics></math> in Eq. (<a href="Ch4.S2.html#Ch4.E5" title="(4.5) â£ 4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.5</span></a>) for the <math id="SS2.p2.m2" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-dynamics
+is slightly faster. While the position and shape of the nullclines
+is unchanged, the dynamics are different.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">To understand the difference we focus on
+Fig. <a href="#Ch4.F15" title="Fig.Â 4.15 â£ 4.4.2 TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.15</span></a>D.
+The limit cycle triggered by a current step
+does not touch the region where the ruins
+of the fixed points lie, but passes further
+to the right. Thus the bifurcation
+is of the type saddle-node-off-limit-cycle,
+the limit cycle has finite frequency,
+and the neuron model is of typeÂ II.</span>
+              </p>
+</span>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Saddle-node without limit cycle</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Not all saddle-node bifurcations lead to a limit cycle.
+If the slope
+of the <math id="SS2.p3.m1" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline
+of the FitzHugh-Nagumo model defined in Eqs. (<a href="Ch4.S3.html#Ch4.E29" title="(4.29) â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.29</span></a>)
+and (<a href="Ch4.S3.html#Ch4.E30" title="(4.30) â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.30</span></a>)
+is smaller than one, it is possible to have three fixed
+points, one of them unstable and the other two stable; cf. Fig.Â <a href="Ch4.S2.html#Ch4.F7" title="Fig.Â 4.7 â£ 4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.7</span></a>.
+The system is therefore bistable.
+If a positive current <math id="SS2.p3.m2" class="ltx_Math" alttext="I&gt;0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">I&gt;0</annotation></semantics></math> is applied
+the <math id="SS2.p3.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline moves upward. Eventually
+the left stable fixed point and the saddle merge
+and disappear via a (simple) saddle-node bifurcation. Since the right fixed point
+remains stable, no oscillation occurs.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch4.F16" class="ltx_figure"><img src="x121.png" id="Ch4.F16.g1" class="ltx_graphics ltx_centering" width="589" height="419" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 4.16: </span>
+Hopf bifurcation.
+Top: Complex plane of Eigenvalues.
+When the bifurcation parameter increases,
+the real part of the complex eigenvalues
+<math id="Ch4.F16.m6" class="ltx_Math" alttext="\lambda_{+/-}=\gamma\pm i\,\omega" display="inline"><semantics><mrow><msub><mi>Î»</mi><mrow><mo>+</mo><mo>â£</mo><mo>/</mo><mo>â£</mo><mo>-</mo></mrow></msub><mo>=</mo><mrow><mi>Î³</mi><mo>Â±</mo><mrow><mpadded width="+1.7pt"><mi>i</mi></mpadded><mo>â¢</mo><mi>Ï</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\lambda_{+/-}=\gamma\pm i\,\omega</annotation></semantics></math>
+passes at the bifurcation point from
+a negative value (<math id="Ch4.F16.m7" class="ltx_Math" alttext="\gamma&lt;0" display="inline"><semantics><mrow><mi>Î³</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\gamma&lt;0</annotation></semantics></math>) to a positive one. Associated stable and unstable oscillatory solutions are shown in left and right insets, respectively.
+Bottom: Amplitude <math id="Ch4.F16.m8" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> of oscillatory solutions
+as a function of <math id="Ch4.F16.m9" class="ltx_Math" alttext="\gamma" display="inline"><semantics><mi>Î³</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>.
+For <math id="Ch4.F16.m10" class="ltx_Math" alttext="\gamma&lt;0" display="inline"><semantics><mrow><mi>Î³</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\gamma&lt;0</annotation></semantics></math> the fixed point (constant solution) is stable
+corresponding to an oscillation of zero amplitude.
+At the bifurcation point, the constant solution loses its
+stability (dashed line) and a novel oscillatory solution appears.
+The amplitude of the oscillatory solution increases
+continuously. For a supercritical Hopf-bifurcation
+the oscillatory solution is stable (solid line)
+whereas for a subcritical Hopf-bifurcation,
+it is unstable close to the bifurcation point.
+The linear bifurcation analysis is valid
+only in the direct neighborhood of the bifurcation
+point (dashed box)
+and cannot predict the stable limit cycle (solid line)
+of the subcritical Hopf-bifurcation.
+</figcaption>
+</figure>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4.3 </span>Type II Models and Hopf Bifurcation</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">The typical jump
+from zero to a finite firing frequency,
+observed in the frequency-current curve of type II
+models can arise by different bifurcation types.
+One important example is a Hopf bifurcation.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">Let us recall that the fixed points of the system
+lie at the intersection of the <math id="SS3.p2.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>-nullcline with
+the <math id="SS3.p2.m2" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline.
+In the FitzHugh-Nagumo model, with parameters
+as in Fig. <a href="Ch4.S3.html#Ch4.F10" title="Fig.Â 4.10 â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a>,
+there is always a single fixed point whatever
+the (constant) driving current <math id="SS3.p2.m3" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>.
+Nevertheless, while <math id="SS3.p2.m4" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is slowly increased, the
+behavior of the system changes qualitatively from a stable fixed point to a
+limit cycle; cf. Fig. <a href="Ch4.S3.html#Ch4.F10" title="Fig.Â 4.10 â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a>.
+The transition occurs when
+the fixed point loses its stability.
+</p>
+</div>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">From the
+solution of the stability problem in Eq.Â (<a href="Ch4.S3.html#Ch4.E25" title="(4.25) â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.25</span></a>) we
+know that the Eigenvalues <math id="SS3.p3.m1" class="ltx_Math" alttext="\lambda_{+/-}" display="inline"><semantics><msub><mi>Î»</mi><mrow><mo>+</mo><mo>â£</mo><mo>/</mo><mo>â£</mo><mo>-</mo></mrow></msub><annotation encoding="application/x-tex">\lambda_{+/-}</annotation></semantics></math>
+form a complex conjugate pair
+with a real part
+<math id="SS3.p3.m2" class="ltx_Math" alttext="\gamma" display="inline"><semantics><mi>Î³</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math> and a imaginary part <math id="SS3.p3.m3" class="ltx_Math" alttext="+/-\omega" display="inline"><semantics><mrow><mo>+</mo><mo>/</mo><mo>-</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">+/-\omega</annotation></semantics></math>
+(Fig. <a href="#Ch4.F16" title="Fig.Â 4.16 â£ 4.4.2 TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.16</span></a>).
+The fixed point is stable if <math id="SS3.p3.m4" class="ltx_Math" alttext="\gamma&lt;0" display="inline"><semantics><mrow><mi>Î³</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\gamma&lt;0</annotation></semantics></math>.
+At the transition point,
+the real part vanishes
+and the eigenvalues are</p>
+<table id="Ch4.E31" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch4.E31.m1" class="ltx_Math" alttext="\lambda_{\pm}=\pm i\sqrt{F_{u}G_{w}-G_{u}F_{w}}\,." display="block"><semantics><mrow><mrow><msub><mi>Î»</mi><mo>Â±</mo></msub><mo>=</mo><mrow><mo>Â±</mo><mrow><mi>i</mi><mo>â¢</mo><mpadded width="+1.7pt"><msqrt><mrow><mrow><msub><mi>F</mi><mi>u</mi></msub><mo>â¢</mo><msub><mi>G</mi><mi>w</mi></msub></mrow><mo>-</mo><mrow><msub><mi>G</mi><mi>u</mi></msub><mo>â¢</mo><msub><mi>F</mi><mi>w</mi></msub></mrow></mrow></msqrt></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\lambda_{\pm}=\pm i\sqrt{F_{u}G_{w}-G_{u}F_{w}}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(4.31)</span></td>
+</tr>
+</table>
+<p class="ltx_p">These eigenvalues correspond to an oscillatory solution (of the linearized
+equation) with a frequency given by <math id="SS3.p3.m5" class="ltx_Math" alttext="\omega=\sqrt{F_{u}G_{w}-G_{u}F_{w}}" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><msqrt><mrow><mrow><msub><mi>F</mi><mi>u</mi></msub><mo>â¢</mo><msub><mi>G</mi><mi>w</mi></msub></mrow><mo>-</mo><mrow><msub><mi>G</mi><mi>u</mi></msub><mo>â¢</mo><msub><mi>F</mi><mi>w</mi></msub></mrow></mrow></msqrt></mrow><annotation encoding="application/x-tex">\omega=\sqrt{F_{u}G_{w}-G_{u}F_{w}}</annotation></semantics></math>. The above
+scenario of stability loss in combination with an emerging oscillation
+is called a Hopf-bifurcation.</p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<p class="ltx_p">Unfortunately, the discussion so far does not tell us anything
+about the stability of the oscillatory solution.
+If the new oscillatory solution, which appears at
+the Hopf
+bifurcation, is itself unstable (which is more difficult to show),
+the scenario is called a subcritical
+Hopf-bifurcation (Fig. <a href="#Ch4.F16" title="Fig.Â 4.16 â£ 4.4.2 TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.16</span></a>).
+This is the case in the FitzHugh-Nagumo model where,
+due to the instability of the oscillatory solution in the neighborhood of
+the Hopf bifurcation,
+the system blows up and approaches
+another limit cycle of large amplitude; cf.
+Fig.Â <a href="Ch4.S3.html#Ch4.F10" title="Fig.Â 4.10 â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a>.
+The stable large-amplitude limit cycle solution exists, in fact,
+slightly before <math id="SS3.p4.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> reaches the
+critical value of the Hopf bifurcation.
+Thus there is a small
+regime of bistability between the fixed point and the limit cycle.
+
+</p>
+</div>
+<div id="SS3.p5" class="ltx_para">
+<p class="ltx_p">In a supercritical Hopf bifurcation, on the other hand, the new periodic
+solution is stable. In this case, the limit cycle would have a small amplitude
+if <math id="SS3.p5.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> is just above the bifurcation point. The amplitude of the oscillation
+grows with the stimulation <math id="SS3.p5.m2" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+(Fig. <a href="#Ch4.F16" title="Fig.Â 4.16 â£ 4.4.2 TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.16</span></a>).
+Such periodic oscillations of small amplitude are not linked to neuronal firing,
+but must rather be interpreted as spontaneous subthreshold oscillations.
+</p>
+</div>
+<div id="SS3.p6" class="ltx_para">
+<p class="ltx_p">Whenever we have a Hopf bifurcation, be it subcritical or supercritical, the
+limit cycle starts with finite frequency. Thus if we plot the frequency of
+the oscillation in the limit cycle as a function of the (constant) input
+<math id="SS3.p6.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>, we find a discontinuity at the bifurcation point.
+However, only models with a subcritical Hopf-bifurcation give rise
+to large-amplitude oscillations close to the bifurcation point.
+We conclude that models where the
+onset of oscillations occurs
+via a subcritical Hopf bifurcation exhibit a gain function of type II.
+
+</p>
+</div>
+<div id="SS3.p7" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: FitzHugh-Nagumo model</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The appearance of oscillations
+in the FitzHugh-Nagumo Model
+discussed above in
+Fig.Â <a href="Ch4.S3.html#Ch4.F10" title="Fig.Â 4.10 â£ 4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.10</span></a> is of typeÂ II. If the slope of the <math id="SS3.p7.m1" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>-nullcline is
+larger than one, there is only one fixed point, whatever <math id="SS3.p7.m2" class="ltx_Math" alttext="I" display="inline"><semantics><mi mathsize="normal" stretchy="false">I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>.
+With increasing current <math id="SS3.p7.m3" class="ltx_Math" alttext="I" display="inline"><semantics><mi mathsize="normal" stretchy="false">I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>, the fixed point moves to the right.
+Eventually it
+loses stability via a Hopf bifurcation.</span>
+              </p>
+</span>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3 </span>Phase plane analysis</span></a><a href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.5 </span>Threshold and excitability</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

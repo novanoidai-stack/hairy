@@ -1,5 +1,6 @@
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { extractDocumentContent } from '@/lib/documentExtractor';
+import { CATEGORY_COLOR_TOKENS } from '@/lib/categoryColors';
 
 export interface ExtractedServicio {
   idTemp: string;
@@ -8,6 +9,7 @@ export interface ExtractedServicio {
   duracion_min: number;
   categoria: string;
   seleccionado: boolean;
+  yaExiste?: boolean;
 }
 
 export interface ExtractedCatalogResult {
@@ -53,47 +55,71 @@ export function parseDurationToMinutes(durStr: string | number): number {
  * como la Carta de Florent Suárez u otros documentos sin requerir API activa.
  */
 function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; direccion?: string; servicios: ExtractedServicio[] } {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  // 1. Pre-procesar: quitar el prefijo '> ' que deja la extracción DOCX de tablas
+  const rawLines = text.split('\n')
+    .map(l => l.replace(/^>\s*/, '').trim())
+    .filter(Boolean);
+
   let currentCategory = 'General';
   let nombreNegocio = '';
   let direccion = '';
   const servicios: ExtractedServicio[] = [];
 
-  // Buscar posible cabecera del negocio en las primeras 5 líneas
-  if (lines.length > 0 && !lines[0].toLowerCase().includes('servicio') && !lines[0].toLowerCase().includes('precio')) {
-    nombreNegocio = lines[0];
+  // Palabras reservadas de encabezado de tabla que no son nombres de servicio ni categorías
+  const headerWords = new Set(['servicio', 'precio', 'duración', 'duracion', 'nombre', 'tarifa']);
+
+  // 2. Buscar posible cabecera del negocio en las primeras 5 líneas
+  if (rawLines.length > 0 && !headerWords.has(rawLines[0].toLowerCase())) {
+    nombreNegocio = rawLines[0];
   }
-  for (let i = 1; i < Math.min(5, lines.length); i++) {
-    if (lines[i].toLowerCase().includes('avenida') || lines[i].toLowerCase().includes('calle') || lines[i].toLowerCase().includes('plaza')) {
-      direccion = lines[i];
+  for (let i = 1; i < Math.min(5, rawLines.length); i++) {
+    const lo = rawLines[i].toLowerCase();
+    if (lo.includes('avenida') || lo.includes('calle') || lo.includes('plaza') || lo.includes('paseo')) {
+      direccion = rawLines[i];
     }
   }
 
-  // Iterar sobre las líneas buscando encabezados de categoría y entradas de precio/duración
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  // Regex para detectar una línea que es solo un precio (ej: "30,00 €" o "30,00")
+  const priceSoloRegex = /^(\d+[\.,]\d{2})\s*€?\s*$/;
+  // Regex para detectar una línea que es solo duración (ej: "30 min", "1 h 15 min", "1 h")
+  const durationSoloRegex = /^(\d+\s*h(?:\s*\d+\s*min)?|\d+\s*min)\s*$/i;
+  // Regex original para línea combinada: "Corte 30,00 € 30 min"
+  const priceInlineRegex = /(\d+[\.,]\d{2})\s*€?\s*(\d+\s*h(?:\s*\d+\s*min)?|\d+\s*min)?/i;
 
-    // Ignorar encabezados de tabla genéricos
-    if (line.match(/^servicio\s+precio\s+duraci[oó]n/i)) continue;
+  // 3. Iterar reconociendo dos formatos:
+  //   A) Formato tabla (DOCX): nombre / precio / duración en líneas separadas
+  //   B) Formato inline: "Nombre 30,00 € 30 min" todo en una línea
+  let i = 0;
+  while (i < rawLines.length) {
+    const line = rawLines[i];
 
-    // Detectar patrones de línea con precio (ej: "Corte 30,00 € 30 min" o "30,00 € 30 min")
-    const priceMatch = line.match(/(\d+[\.,]\d{2})\s*€?\s*(\d+\s*h(?:\s*\d+\s*min)?|\d+\s*min)?/i);
+    // Ignorar encabezados de tabla sueltos
+    if (headerWords.has(line.toLowerCase()) || line.match(/^servicio\s+precio\s+duraci[oó]n/i)) {
+      i++;
+      continue;
+    }
+    // Ignorar título "Carta de servicios…"
+    if (line.toLowerCase().startsWith('carta de servicio')) { i++; continue; }
 
-    if (priceMatch) {
-      // Es una línea de servicio
-      const priceVal = parseFloat(priceMatch[1].replace(',', '.'));
-      const durVal = priceMatch[2] ? parseDurationToMinutes(priceMatch[2]) : 30;
+    // --- Formato A: la siguiente línea es un precio aislado ---
+    if (i + 1 < rawLines.length && priceSoloRegex.test(rawLines[i + 1])) {
+      const serviceName = line;
+      const priceStr = rawLines[i + 1].match(priceSoloRegex)![1];
+      const priceVal = parseFloat(priceStr.replace(',', '.'));
+      let durVal = 30;
 
-      // Extraer el nombre del servicio eliminando el precio y duración
-      let serviceName = line.replace(priceMatch[0], '').trim();
-      // Si el nombre quedó vacío o muy corto, revisar si estaba en la posición previa
-      if (!serviceName && i > 0 && !lines[i - 1].includes('€')) {
-        serviceName = lines[i - 1];
+      // ¿La línea i+2 es una duración?
+      if (i + 2 < rawLines.length && durationSoloRegex.test(rawLines[i + 2])) {
+        durVal = parseDurationToMinutes(rawLines[i + 2]);
+        i += 3; // Consumimos nombre + precio + duración
+      } else {
+        i += 2; // Consumimos nombre + precio
       }
 
-      if (serviceName && serviceName.length > 1) {
+      // Descartar si el "nombre" es en realidad un encabezado
+      if (serviceName.length > 1 && !headerWords.has(serviceName.toLowerCase())) {
         servicios.push({
-          idTemp: `srv_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          idTemp: `srv_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${servicios.length}`,
           nombre: serviceName,
           precio: priceVal,
           duracion_min: durVal,
@@ -101,17 +127,46 @@ function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; dir
           seleccionado: true,
         });
       }
-    } else {
-      // Si no contiene precio pero es un texto de cabecera corto, puede ser una categoría
-      if (line.length < 50 && !line.includes('€') && !line.includes('http') && !line.includes('Avenida')) {
-        // Evitar cambiar categoría si la línea es un título de servicio previa al precio
-        if (i < lines.length - 1 && lines[i + 1].includes('€')) {
-          // Es el nombre del servicio de la siguiente línea, no cambiar categoría
-        } else {
-          currentCategory = line;
-        }
+      continue;
+    }
+
+    // --- Formato B: precio inline en la misma línea ---
+    const inlineMatch = line.match(priceInlineRegex);
+    if (inlineMatch && line.includes('€')) {
+      const priceVal = parseFloat(inlineMatch[1].replace(',', '.'));
+      const durVal = inlineMatch[2] ? parseDurationToMinutes(inlineMatch[2]) : 30;
+      let serviceName = line.replace(inlineMatch[0], '').replace('€', '').trim();
+      if (!serviceName && i > 0 && !rawLines[i - 1].includes('€')) {
+        serviceName = rawLines[i - 1];
+      }
+      if (serviceName && serviceName.length > 1 && !headerWords.has(serviceName.toLowerCase())) {
+        servicios.push({
+          idTemp: `srv_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${servicios.length}`,
+          nombre: serviceName,
+          precio: priceVal,
+          duracion_min: durVal,
+          categoria: currentCategory,
+          seleccionado: true,
+        });
+      }
+      i++;
+      continue;
+    }
+
+    // --- No es servicio: posible categoría ---
+    if (line.length < 60 && !line.includes('€') && !line.includes('http') && !line.includes('Avenida')) {
+      // Es categoría solo si la línea NO es nombre de servicio previo al precio
+      if (i + 1 < rawLines.length && priceSoloRegex.test(rawLines[i + 1])) {
+        // Es nombre de servicio (se procesará en la siguiente iteración como Formato A)
+        i++;
+        continue;
+      }
+      if (line !== nombreNegocio && line !== direccion && !headerWords.has(line.toLowerCase())) {
+        currentCategory = line;
       }
     }
+
+    i++;
   }
 
   return { nombreNegocio, direccion, servicios };
@@ -120,6 +175,18 @@ function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; dir
 /**
  * Procesa cualquier documento (DOCX, XLSX, PDF, TXT, Imágenes) y extrae sus tarifas con IA
  */
+async function marcarExistentes(servicios: ExtractedServicio[], negocioId: string): Promise<ExtractedServicio[]> {
+  const { data: existentes } = await supabase
+    .from('servicios')
+    .select('nombre')
+    .eq('negocio_id', negocioId);
+
+  if (!existentes || existentes.length === 0) return servicios;
+
+  const nombresExistentes = new Set(existentes.map(s => s.nombre.trim().toLowerCase()));
+  return servicios.map(s => ({ ...s, yaExiste: nombresExistentes.has(s.nombre.trim().toLowerCase()) }));
+}
+
 export async function parseTarifasDocumento(file: File, negocioId: string): Promise<ExtractedCatalogResult> {
   try {
     const doc = await extractDocumentContent(file);
@@ -136,7 +203,7 @@ export async function parseTarifasDocumento(file: File, negocioId: string): Prom
 
     if (!funcError && data && data.ok && data.data && Array.isArray(data.data.servicios) && data.data.servicios.length > 0) {
       const rawServicios = data.data.servicios;
-      const servicios: ExtractedServicio[] = rawServicios.map((s: any, idx: number) => ({
+      let servicios: ExtractedServicio[] = rawServicios.map((s: any, idx: number) => ({
         idTemp: `srv_ai_${idx}_${Date.now()}`,
         nombre: s.nombre || `Servicio ${idx + 1}`,
         precio: typeof s.precio === 'number' ? s.precio : parseFloat(String(s.precio || 0).replace(',', '.')) || 0,
@@ -144,6 +211,7 @@ export async function parseTarifasDocumento(file: File, negocioId: string): Prom
         categoria: s.categoria || 'General',
         seleccionado: true,
       }));
+      servicios = await marcarExistentes(servicios, negocioId);
 
       return {
         ok: true,
@@ -157,11 +225,12 @@ export async function parseTarifasDocumento(file: File, negocioId: string): Prom
     if (doc.type === 'text') {
       const fallbackResult = fallbackLocalCatalogParser(doc.content);
       if (fallbackResult.servicios.length > 0) {
+        const servicios = await marcarExistentes(fallbackResult.servicios, negocioId);
         return {
           ok: true,
           nombreNegocio: fallbackResult.nombreNegocio,
           direccion: fallbackResult.direccion,
-          servicios: fallbackResult.servicios,
+          servicios,
         };
       }
     }
@@ -187,14 +256,15 @@ export async function ejecutarImportacionTarifas(
   negocioId: string,
   serviciosAImportar: ExtractedServicio[],
   crearCategoriasAuto: boolean = true
-): Promise<{ ok: boolean; creadas: number; categoriasCreadas: number; errores: string[] }> {
+): Promise<{ ok: boolean; creadas: number; actualizadas: number; categoriasCreadas: number; errores: string[] }> {
   let creadas = 0;
+  let actualizadas = 0;
   let categoriasCreadas = 0;
   const errores: string[] = [];
 
   const elegidos = serviciosAImportar.filter(s => s.seleccionado && s.nombre.trim());
   if (elegidos.length === 0) {
-    return { ok: false, creadas: 0, categoriasCreadas: 0, errores: ['No se ha seleccionado ningún servicio para importar.'] };
+    return { ok: false, creadas: 0, actualizadas: 0, categoriasCreadas: 0, errores: ['No se ha seleccionado ningún servicio para importar.'] };
   }
 
   try {
@@ -213,17 +283,23 @@ export async function ejecutarImportacionTarifas(
     const categoriasUnicas = Array.from(new Set(elegidos.map(s => (s.categoria || 'General').trim())));
 
     if (crearCategoriasAuto) {
+      let colorIdx = existingCats?.length || 0;
       for (const catNombre of categoriasUnicas) {
         const key = catNombre.toLowerCase();
         if (!catMap.has(key)) {
+          // El color es un token semantico ('primary', 'success', ...), no un hex:
+          // categorias_servicio_color_check lo exige asi y rechaza cualquier otro
+          // valor (incl. hex como '#e5e7eb'), lo que antes tumbaba SIEMPRE la
+          // creacion de categorias nuevas durante la importacion con IA.
+          const color = CATEGORY_COLOR_TOKENS[colorIdx % CATEGORY_COLOR_TOKENS.length];
           const { data: newCat, error: catErr } = await supabase
             .from('categorias_servicio')
             .insert({
               negocio_id: negocioId,
               nombre: catNombre,
               orden: catMap.size + 1,
-              color: '#e5e7eb',
-              icono: 'scissors',
+              color,
+              icono: 'general',
             })
             .select('id')
             .single();
@@ -233,35 +309,42 @@ export async function ejecutarImportacionTarifas(
           } else if (newCat) {
             catMap.set(key, newCat.id);
             categoriasCreadas++;
+            colorIdx++;
           }
         }
       }
     }
 
-    // 3. Insertar los servicios
+    // 3. Insertar/actualizar los servicios. Upsert por (negocio_id, nombre): si el
+    // salon ya tenia un servicio con ese nombre (alta manual previa o reimportacion
+    // de la misma carta con precios corregidos), se actualiza en vez de fallar en
+    // silencio contra el indice unico servicios_negocio_nombre_uq.
     for (const s of elegidos) {
       const catKey = (s.categoria || 'General').trim().toLowerCase();
       const categoriaId = catMap.get(catKey) || null;
 
-      const { error: srvErr } = await supabase.from('servicios').insert({
+      const { error: srvErr } = await supabase.from('servicios').upsert({
         negocio_id: negocioId,
         nombre: s.nombre.trim(),
         precio: Number(s.precio) || 0,
         duracion_activa_min: Number(s.duracion_min) || 30,
         categoria_id: categoriaId,
         activo: true,
-      });
+      }, { onConflict: 'negocio_id,nombre' });
 
       if (srvErr) {
         errores.push(`Servicio "${s.nombre}": ${srvErr.message}`);
+      } else if (s.yaExiste) {
+        actualizadas++;
       } else {
         creadas++;
       }
     }
 
     return {
-      ok: creadas > 0,
+      ok: creadas + actualizadas > 0,
       creadas,
+      actualizadas,
       categoriasCreadas,
       errores,
     };
@@ -269,6 +352,7 @@ export async function ejecutarImportacionTarifas(
     return {
       ok: false,
       creadas: 0,
+      actualizadas: 0,
       categoriasCreadas: 0,
       errores: [e?.message || 'Error inesperado durante la importación.'],
     };

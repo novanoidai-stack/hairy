@@ -1,0 +1,651 @@
+<!DOCTYPE html><html>
+<head>
+<title>3.1 Synapses | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S3.html" title="3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S5.html" title="3.5 Summary â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                  , 
+                  , 
+                  , AMPA, AMPA receptor, NMDA, NMDA receptor, STP, depression, depression of synapses, excitatory, facilitation, facilitation of synapses, inhibitory, plasticity, short-term plasticity, synapse, synaptic depression, synaptic short-term">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Dendrites and Synapses</span></a><a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Dendrites and Synapses</span></a><a href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2 </span>Spatial Structure: The Dendritic Tree</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3.1 </span>Synapses</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">In the previous chapter, we have encountered two classes of ion channels, namely <span class="ltx_text ltx_font_italic">voltage</span>-activated and <span class="ltx_text ltx_font_italic">calcium</span>-activated ion channels. The third
+type of ion channel we have to deal with are the <span class="ltx_text ltx_font_italic">transmitter</span>-activated ion channels involved in synaptic
+transmission (see Fig. <a href="#Ch3.F1" title="Fig.Â 3.1 â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.1</span></a>) and generally activated from outside the cell. Activation of a presynaptic neuron results in a release
+of neurotransmitters into the synaptic cleft. The transmitter
+molecules diffuse to the other side of the cleft and activate
+receptors that are located in the postsynaptic membrane. So-called
+<span class="ltx_text ltx_font_italic">ionotropic receptors</span> have a direct influence on the state of
+an associated ion channel. <span class="ltx_text ltx_font_italic">Metabotropic receptors</span>
+control the state of an ion channel by means of a biochemical cascade
+of G proteins and second-messengers. In both cases, the activation of the
+receptor results in the opening of certain ion channels and, thus, in
+an excitatory or inhibitory postsynaptic transmembrane current (EPSC or IPSC).</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">Instead of developing a mathematical model of the transmitter
+concentration in the synaptic cleft, we keep things simple and
+describe transmitter-activated ion channels as an explicitly
+time-dependent conductivity <math id="p2.m1" class="ltx_Math" alttext="g_{\text{syn}}(t)" display="inline"><semantics><mrow><msub><mi>g</mi><mtext>syn</mtext></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)</annotation></semantics></math> that will open
+whenever a presynaptic spike arrives. The current that passes through
+a synaptic channel depends, as before, on the difference between its reversal
+potential <math id="p2.m2" class="ltx_Math" alttext="E_{\text{syn}}" display="inline"><semantics><msub><mi>E</mi><mtext>syn</mtext></msub><annotation encoding="application/x-tex">E_{\text{syn}}</annotation></semantics></math> and the actual value of the membrane
+potential,</p>
+<table id="Ch3.E1" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E1.m1" class="ltx_Math" alttext="I_{\text{syn}}(t)=g_{\text{syn}}(t)\,(u(t)-E_{\text{syn}})\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>I</mi><mtext>syn</mtext></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>g</mi><mtext>syn</mtext></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>E</mi><mtext>syn</mtext></msub></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I_{\text{syn}}(t)=g_{\text{syn}}(t)\,(u(t)-E_{\text{syn}})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.1)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The parameter <math id="p2.m3" class="ltx_Math" alttext="E_{\text{syn}}" display="inline"><semantics><msub><mi>E</mi><mtext>syn</mtext></msub><annotation encoding="application/x-tex">E_{\text{syn}}</annotation></semantics></math> and the function <math id="p2.m4" class="ltx_Math" alttext="g_{\text{syn}}(t)" display="inline"><semantics><mrow><msub><mi>g</mi><mtext>syn</mtext></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)</annotation></semantics></math>
+can be used to describe different types of synapses.
+For
+inhibitory synapses <math id="p2.m5" class="ltx_Math" alttext="E_{\text{syn}}" display="inline"><semantics><msub><mi>E</mi><mtext>syn</mtext></msub><annotation encoding="application/x-tex">E_{\text{syn}}</annotation></semantics></math> is usually set to
+<math id="p2.m6" class="ltx_Math" alttext="-75" display="inline"><semantics><mrow><mo>-</mo><mn>75</mn></mrow><annotation encoding="application/x-tex">-75</annotation></semantics></math>Â mV, whereas for excitatory synapses
+<math id="p2.m7" class="ltx_Math" alttext="E_{\text{syn}}\approx 0" display="inline"><semantics><mrow><msub><mi>E</mi><mtext>syn</mtext></msub><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">E_{\text{syn}}\approx 0</annotation></semantics></math>.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">Typically, a
+superposition of exponentials is used for <math id="p3.m1" class="ltx_Math" alttext="g_{\text{syn}}(t)" display="inline"><semantics><mrow><msub><mi>g</mi><mtext>syn</mtext></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)</annotation></semantics></math>.
+A simple choice for the time course
+of the synaptic conductance
+in Eq. <a href="#Ch3.E1" title="(3.1) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.1</span></a> is an exponential decay</p>
+<table id="Ch3.E2" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E2.m1" class="ltx_Math" alttext="g_{\text{syn}}(t)=\sum_{f}\bar{g}_{\text{syn}}\,{\text{e}}^{-(t-t^{(f)})/\tau}%
+\,\Theta(t-t^{(f)})\,," display="block"><semantics><mrow><mrow><mrow><msub><mi>g</mi><mtext>syn</mtext></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mpadded width="+1.7pt"><msub><mover accent="true"><mi>g</mi><mo stretchy="false">Â¯</mo></mover><mtext>syn</mtext></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mtext>e</mtext><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)=\sum_{f}\bar{g}_{\text{syn}}\,{\text{e}}^{-(t-t^{(f)})/\tau}%
+\,\Theta(t-t^{(f)})\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.2)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with a
+time constant of, e.g., <math id="p3.m2" class="ltx_Math" alttext="\tau=5" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">\tau=5</annotation></semantics></math>Â ms and an amplitude of <math id="p3.m3" class="ltx_Math" alttext="\bar{g}_{\text{syn}}=40" display="inline"><semantics><mrow><msub><mover accent="true"><mi>g</mi><mo stretchy="false">Â¯</mo></mover><mtext>syn</mtext></msub><mo>=</mo><mn>40</mn></mrow><annotation encoding="application/x-tex">\bar{g}_{\text{syn}}=40</annotation></semantics></math>Â pS.
+Here, <math id="p3.m4" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> denotes the arrival time of a presynaptic action
+potential
+and <math id="p3.m5" class="ltx_Math" alttext="\Theta(x)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Theta(x)</annotation></semantics></math> is the Heaviside step function.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">For some synapse types, a single exponential decay is not sufficient.
+Rather,
+the postsynaptic current
+is made up of two different components, a fast one
+with a decay time constant of a few milliseconds, and a second one
+that is often ten times slower.
+If we also take into account the smooth rise
+of the synaptic response, the postsynaptic
+conductance is of the form</p>
+<table id="Ch3.E3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E3.m1" class="ltx_Math" alttext="g_{\text{syn}}(t)=\sum_{f}\bar{g}_{\rm syn}\,[1-{\text{e}}^{-(t-t^{(f)})/\tau_%
+{\text{rise}}}]\,\left[a\,{\text{e}}^{-(t-t^{(f)})/\tau_{\text{fast}}}+(1-a)\,%
+{\text{e}}^{-(t-t^{(f)})/\tau_{\text{slow}}}\right]\Theta(t-t^{(f)})\,," display="block"><semantics><mrow><mrow><mrow><msub><mi>g</mi><mtext>syn</mtext></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mpadded width="+1.7pt"><msub><mover accent="true"><mi>g</mi><mo stretchy="false">Â¯</mo></mover><mi>syn</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mtext>e</mtext><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow><mo>/</mo><msub><mi>Ï</mi><mtext>rise</mtext></msub></mrow></mrow></msup></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><msup><mtext>e</mtext><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow><mo>/</mo><msub><mi>Ï</mi><mtext>fast</mtext></msub></mrow></mrow></msup></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>a</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mtext>e</mtext><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow><mo>/</mo><msub><mi>Ï</mi><mtext>slow</mtext></msub></mrow></mrow></msup></mrow></mrow><mo>]</mo></mrow><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)=\sum_{f}\bar{g}_{\rm syn}\,[1-{\text{e}}^{-(t-t^{(f)})/\tau_%
+{\text{rise}}}]\,\left[a\,{\text{e}}^{-(t-t^{(f)})/\tau_{\text{fast}}}+(1-a)\,%
+{\text{e}}^{-(t-t^{(f)})/\tau_{\text{slow}}}\right]\Theta(t-t^{(f)})\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.3)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="p4.m1" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> is the relative weight of the fast component.
+The time constant <math id="p4.m2" class="ltx_Math" alttext="\tau_{\text{rise}}" display="inline"><semantics><msub><mi>Ï</mi><mtext>rise</mtext></msub><annotation encoding="application/x-tex">\tau_{\text{rise}}</annotation></semantics></math>
+characterizes the rise time of the synaptic conductance.</p>
+</div>
+<div id="p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: A more detailed synapse model</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Instead of considering a synapse
+with a fixed time course
+<math id="p5.m1" class="ltx_Math" alttext="g_{\text{syn}}(t)\," display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">g</mi><mtext mathsize="small" stretchy="false">syn</mtext></msub><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mpadded></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)\,</annotation></semantics></math>,
+we can also make a model which has the flavor
+of a Hodgkin-Huxley channel.
+We describe the synaptic conductance
+<math id="p5.m2" class="ltx_Math" alttext="g_{\text{syn}}(t)=g_{\rm max}\,R(t)" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">g</mi><mtext mathsize="small" stretchy="false">syn</mtext></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" stretchy="false">max</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">g_{\text{syn}}(t)=g_{\rm max}\,R(t)</annotation></semantics></math>,
+by its maximal conductance <math id="p5.m3" class="ltx_Math" alttext="g_{\rm max}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" stretchy="false">max</mi></msub><annotation encoding="application/x-tex">g_{\rm max}</annotation></semantics></math> and a gating variable
+<math id="p5.m4" class="ltx_Math" alttext="R" display="inline"><semantics><mi mathsize="normal" stretchy="false">R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>,
+where <math id="p5.m5" class="ltx_Math" alttext="R(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(t)</annotation></semantics></math> is the fraction of open synaptic channels.
+Channels open when neurotransmitter <math id="p5.m6" class="ltx_Math" alttext="N" display="inline"><semantics><mi mathsize="normal" stretchy="false">N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> binds
+to the synapse</span>
+            </p>
+<table id="Ch3.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E4.m1" class="ltx_Math" alttext="{dR\over dt}=\alpha\,N\,(1-R)-\beta\,R," display="block"><semantics><mrow><mrow><mfrac><mrow><mi>d</mi><mo>â¢</mo><mi>R</mi></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>Î±</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>R</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Î²</mi></mpadded><mo>â¢</mo><mi>R</mi></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{dR\over dt}=\alpha\,N\,(1-R)-\beta\,R,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">where <math id="p5.m7" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> is the binding constant,
+<math id="p5.m8" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math> the unbinding constant
+and <math id="p5.m9" class="ltx_Math" alttext="(1-R)" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">R</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(1-R)</annotation></semantics></math> the fraction of closed channels where
+binding of neurotransmitter can occur.
+Neurotransmitter <math id="p5.m10" class="ltx_Math" alttext="N" display="inline"><semantics><mi mathsize="normal" stretchy="false">N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> is released with
+each presynaptic spike so that the total
+amount of neurotransmitter at synapse <math id="p5.m11" class="ltx_Math" alttext="j" display="inline"><semantics><mi mathsize="normal" stretchy="false">j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> is</span>
+            </p>
+<table id="Ch3.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E5.m1" class="ltx_Math" alttext="N(t)=\int_{0}^{\infty}\gamma(s)\,S_{j}(t-s)\,ds," display="block"><semantics><mrow><mrow><mrow><mi>N</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Î³</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mi>j</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">N(t)=\int_{0}^{\infty}\gamma(s)\,S_{j}(t-s)\,ds,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">where <math id="p5.m12" class="ltx_Math" alttext="S_{j}=\sum_{f}\delta(t-t_{j}^{(f)})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">S</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â</mo><mi mathsize="normal" stretchy="false">f</mi></msub><mrow><mi mathsize="normal" stretchy="false">Î´</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><msubsup><mi mathsize="normal" stretchy="false">t</mi><mi mathsize="normal" stretchy="false">j</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></msubsup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S_{j}=\sum_{f}\delta(t-t_{j}^{(f)})</annotation></semantics></math> is the presynaptic spike train
+(a sequence of <math id="p5.m13" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-functions, see Chapter <a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>)
+and <math id="p5.m14" class="ltx_Math" alttext="\gamma(s)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î³</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\gamma(s)</annotation></semantics></math> is the time course
+of the neurotransmitter density as measured
+at the site of the postsynaptic receptor.
+More advanced synaptic signaling schemes
+can be designed along the same line of argument
+<cite class="ltx_cite">(<a href="bib.html#bib41" title="Synthesis of models for excitable membranes, synaptic transmission and neuromodulation using a common kinetic formalism" class="ltx_ref">125</a>)</cite></span>
+            </p>
+</span>
+</div>
+<figure id="Ch3.F1" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left" colspan="2"><img src="x73.png" id="Ch3.F1.g1" class="ltx_graphics" width="589" height="230" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 3.1: </span><span class="ltx_text ltx_font_bold">A</span>. Schema of synaptic transmission.
+Upon arrival of a presynaptic spike, neurotransmitter
+spills into the synaptic cleft and is captured
+by postsynaptic receptors.
+<span class="ltx_text ltx_font_bold">B</span>.
+Schema of a postsynaptic AMPA receptor
+of an excitatory synapse. When glutamate is bound to the receptor, sodium and potassium ions can flow through the membrane.
+</figcaption>
+</figure>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1.1 </span>Inhibitory Synapses</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">The effect of fast inhibitory neurons in the central nervous system of higher
+vertebrates is almost exclusively conveyed by a neurotransmitter called
+<math id="SS1.p1.m1" class="ltx_Math" alttext="\gamma" display="inline"><semantics><mi>Î³</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>-aminobutyric acid, or GABA for short.
+A characteristic feature of inhibitory synapses
+is that the reversal potential
+<math id="SS1.p1.m2" class="ltx_Math" alttext="E_{\text{syn}}" display="inline"><semantics><msub><mi>E</mi><mtext>syn</mtext></msub><annotation encoding="application/x-tex">E_{\text{syn}}</annotation></semantics></math> is in the range of -70 to -75Â mV.
+Thus, if the neuronal membrane
+potential is above the reversal potential,
+presynaptic spike arrival leads to a hyperpolarization
+of the neuron, making action poential generation less likely.
+However, the same presynaptic spike would lead
+to a depolarization of the membrane if the neuron has its
+membrane potential at
+-80Â mV or below.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">There are many different types of inhibitory interneurons
+<cite class="ltx_cite">(<a href="bib.html#bib6" title="Interneurons of the neocortical inhibitory system" class="ltx_ref">329</a>; <a href="bib.html#bib42" title="Neuronal diversity and temporal dynamics: the unity of hippocampal circuit operations" class="ltx_ref">263</a>)</cite>.
+Biologists distinguish between two major types
+of inhibitory synapse, called GABA<math id="SS1.p2.m1" class="ltx_Math" alttext="{}_{\rm A}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">A</mi></msub><annotation encoding="application/x-tex">{}_{\rm A}</annotation></semantics></math>
+and GABA<math id="SS1.p2.m2" class="ltx_Math" alttext="{}_{\rm B}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">B</mi></msub><annotation encoding="application/x-tex">{}_{\rm B}</annotation></semantics></math>. Both synapse types use GABA as the neurotransmitter.
+GABA<math id="SS1.p2.m3" class="ltx_Math" alttext="{}_{\rm A}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">A</mi></msub><annotation encoding="application/x-tex">{}_{\rm A}</annotation></semantics></math> channels are ionotropic and open exclusively for chloride ions,
+whereas
+GABA<math id="SS1.p2.m4" class="ltx_Math" alttext="{}_{\rm B}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">B</mi></msub><annotation encoding="application/x-tex">{}_{\rm B}</annotation></semantics></math> synapses have metabotropic receptors
+that trigger a comparatively slow signaling chain
+ultimately leading to the opening
+of <math id="SS1.p2.m5" class="ltx_Math" alttext="K^{+}" display="inline"><semantics><msup><mi>K</mi><mo>+</mo></msup><annotation encoding="application/x-tex">K^{+}</annotation></semantics></math> channels. Consequently the value of the synaptic
+reversal potential
+<math id="SS1.p2.m6" class="ltx_Math" alttext="E_{\text{syn}}" display="inline"><semantics><msub><mi>E</mi><mtext>syn</mtext></msub><annotation encoding="application/x-tex">E_{\text{syn}}</annotation></semantics></math> depends
+for GABA<math id="SS1.p2.m7" class="ltx_Math" alttext="{}_{\rm A}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">A</mi></msub><annotation encoding="application/x-tex">{}_{\rm A}</annotation></semantics></math> synapses on the concentration
+of chloride ions inside and outside the cell,
+while that of GABA<math id="SS1.p2.m8" class="ltx_Math" alttext="{}_{B}" display="inline"><semantics><msub><mi></mi><mi>B</mi></msub><annotation encoding="application/x-tex">{}_{B}</annotation></semantics></math> synapses
+depends on the potassium concentrations.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: GABA<math id="SS1.p3.m1" class="ltx_Math" alttext="{}_{\rm A}" display="inline"><semantics><msub><mi></mi><mi mathsize="normal" mathvariant="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">{}_{\rm A}</annotation></semantics></math> synapse model</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">GABA<math id="SS1.p3.m3" class="ltx_Math" alttext="{}_{\rm A}" display="inline"><semantics><msub><mi></mi><mi mathsize="normal" mathvariant="normal" stretchy="false">A</mi></msub><annotation encoding="application/x-tex">{}_{\rm A}</annotation></semantics></math> synapses have a fast time course that can be approximated
+by a single term in
+Eq.Â (<a href="#Ch3.E3" title="(3.3) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.3</span></a>)
+with <math id="SS1.p3.m4" class="ltx_Math" alttext="a=1" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">a=1</annotation></semantics></math>, <math id="SS1.p3.m5" class="ltx_Math" alttext="\tau_{\rm rise}\approx" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">rise</mi></msub><mo mathsize="normal" stretchy="false">â</mo><mi></mi></mrow><annotation encoding="application/x-tex">\tau_{\rm rise}\approx</annotation></semantics></math>1Â ms,
+and a time constant <math id="SS1.p3.m6" class="ltx_Math" alttext="\tau_{\rm fast}\approx" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">fast</mi></msub><mo mathsize="normal" stretchy="false">â</mo><mi></mi></mrow><annotation encoding="application/x-tex">\tau_{\rm fast}\approx</annotation></semantics></math>Â 6Â ms (<cite class="ltx_cite">Destexhe and Pare (<a href="bib.html#bib43" title="Impact of network activity on the integrative properties of neocortical pyramidal neurons in vivo." class="ltx_ref">127</a>)</cite>; Fig. <a href="#Ch3.F2" title="Fig.Â 3.2 â£ 3.1.2 Excitatory Synapses â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2</span></a>) which has also been deemed 3 times larger.
+More complex
+models are sometimes used <cite class="ltx_cite">(<a href="bib.html#bib41" title="Synthesis of models for excitable membranes, synaptic transmission and neuromodulation using a common kinetic formalism" class="ltx_ref">125</a>)</cite>.
+</span>
+              </p>
+</span>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: GABA<math id="SS1.p4.m1" class="ltx_Math" alttext="{}_{\rm B}" display="inline"><semantics><msub><mi></mi><mi mathsize="normal" mathvariant="normal" stretchy="false">B</mi></msub><annotation encoding="application/x-tex">{}_{\rm B}</annotation></semantics></math> synapse model</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">This is a slow inhibitory synapse working
+via a second-messanger chain.
+Common models use
+Eq. (<a href="#Ch3.E3" title="(3.3) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.3</span></a>)
+with a rise time of about 25-50ms,
+a fast decay time in the range of 100-300ms
+and a slow decay time of 500-1000ms.
+The fast component accounts for about
+80 percent of the amplitude of conductance
+(<math id="SS1.p4.m3" class="ltx_Math" alttext="a=0.8" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0.8</mn></mrow><annotation encoding="application/x-tex">a=0.8</annotation></semantics></math>)
+<cite class="ltx_cite">(<a href="bib.html#bib41" title="Synthesis of models for excitable membranes, synaptic transmission and neuromodulation using a common kinetic formalism" class="ltx_ref">125</a>; <a href="bib.html#bib44" title="Neurotransmitter control of neocortical neuronal activity and excitability." class="ltx_ref">334</a>)</cite>, illustrated in Fig. <a href="#Ch3.F2" title="Fig.Â 3.2 â£ 3.1.2 Excitatory Synapses â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2</span></a>.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1.2 </span>Excitatory Synapses</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Most excitatory synapses in the vertebrate central
+nervous system rely on glutamate as their neurotransmitter. The
+postsynaptic receptors, however, can have very different
+pharmacological properties and different types of glutamate
+receptor units can be present in a single synapse. These receptors are
+classified using artificial drugs such as NMDA or AMPA
+that act as selective
+agonists.
+NMDA (N-methyl-D-aspartate) binds to
+channels with NMDA receptors, but not to other glutamate receptors.
+The most prominent among those glutamate receptors
+that do not respond to NMDA
+are the AMPA-receptors<span class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">3</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">3</sup>AMPA is short for
+<math id="SS2.p1.m1" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi>Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>-amino-3-hydroxy-5-methyl-4-isoxalone propionic acid.</span></span></span>.
+AMPA is an artificial glutamate. Channels with
+AMPA-sensitive receptors are
+called âAMPA channelsâ because
+these channels react to AMPA, whereas
+channels with NMDA-sensitive receptors do not open
+upon application of AMPA.
+However, both NMDA and AMPA channels react
+to the natural form of glutamate that the nervous system
+uses as neurotransmitter.
+
+
+
+
+</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">AMPA receptors consist of four subunits, each with a glutamate binding
+site. Most AMPA receptors contain the subunit called GluR2.
+If an AMPA-receptor channel containing GluR2 is open,
+sodium and potassium ions can pass,
+but calcium ions can not.
+Synaptic channels with AMPA-receptors are characterized by a fast
+response to presynaptic spikes and a quickly decaying postsynaptic
+current.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">NMDA-receptor controlled channels are significantly
+slower and have additional interesting properties that are due to a
+voltage-dependent block by magnesium ions <cite class="ltx_cite">(<a href="bib.html#bib45" title="Ionic channels of excitable membranes" class="ltx_ref">220</a>)</cite>.
+In addition to sodium and potassium ions, also
+calcium ions can pass through open
+NMDA-channels.</p>
+</div>
+<figure id="Ch3.F2" class="ltx_figure"><img src="x74.png" id="Ch3.F2.g1" class="ltx_graphics ltx_centering" width="444" height="323" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 3.2: </span>
+Dynamics of post-synaptic current (<a href="#Ch3.E1" title="(3.1) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.1</span></a>) after a single pre-synaptic spike at <math id="Ch3.F2.m5" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>. GABA<math id="Ch3.F2.m6" class="ltx_Math" alttext="{}_{\rm A}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">A</mi></msub><annotation encoding="application/x-tex">{}_{\rm A}</annotation></semantics></math>, GABA<math id="Ch3.F2.m7" class="ltx_Math" alttext="{}_{\rm B}" display="inline"><semantics><msub><mi></mi><mi mathvariant="normal">B</mi></msub><annotation encoding="application/x-tex">{}_{\rm B}</annotation></semantics></math>, AMPA, and NMDA without magnesium block are shown for a post-synaptic neuron at rest (<math id="Ch3.F2.m8" class="ltx_Math" alttext="u=-65" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><mrow><mo>-</mo><mn>65</mn></mrow></mrow><annotation encoding="application/x-tex">u=-65</annotation></semantics></math>). </figcaption>
+</figure>
+<div id="SS2.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Conductance of glutamate channels with AMPA-receptors</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The time course of the postsynaptic conductivity
+caused by an activation of AMPA-receptors at time <math id="SS2.p4.m1" class="ltx_Math" alttext="t=t^{(f)}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">=</mo><msup><mi mathsize="normal" stretchy="false">t</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">t=t^{(f)}</annotation></semantics></math> is sometimes
+described by
+Eq. (<a href="#Ch3.E2" title="(3.2) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2</span></a>)
+with a decay time of about 2-5ms
+<cite class="ltx_cite">(<a href="bib.html#bib46" title="Synaptic integration in a model of cerebellar granule cells" class="ltx_ref">166</a>; <a href="bib.html#bib41" title="Synthesis of models for excitable membranes, synaptic transmission and neuromodulation using a common kinetic formalism" class="ltx_ref">125</a>)</cite>.</span>
+              </p>
+</span>
+</div>
+<div id="SS2.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Conductance of glutamate channels with NMDA-receptors</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">NMDA-receptor controlled channels exhibit a rich
+repertoire of dynamic behavior because their state is not only
+controlled by the presence or absence of glutamate, but also by
+the membrane potential. At resting potential,
+the NMDA channel is 
+<span class="ltx_text ltx_font_italic">blocked</span> by a common extracellular ion,
+Mg<math id="SS2.p5.m1" class="ltx_Math" alttext="{}^{2+}" display="inline"><semantics><msup><mi></mi><mrow><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">+</mo></mrow></msup><annotation encoding="application/x-tex">{}^{2+}</annotation></semantics></math> <cite class="ltx_cite">(<a href="bib.html#bib45" title="Ionic channels of excitable membranes" class="ltx_ref">220</a>)</cite>,
+even if glutamate is present.
+If the membrane is depolarized
+beyond <math id="SS2.p5.m2" class="ltx_Math" alttext="-50" display="inline"><semantics><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">50</mn></mrow><annotation encoding="application/x-tex">-50</annotation></semantics></math>Â mV, the Mg<math id="SS2.p5.m3" class="ltx_Math" alttext="{}^{2+}" display="inline"><semantics><msup><mi></mi><mrow><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">+</mo></mrow></msup><annotation encoding="application/x-tex">{}^{2+}</annotation></semantics></math>-block is removed, the channel
+opens when glutamate binds to the receptor and, thereafter, stays open for
+10 â 100 milliseconds. A simple model of the
+voltage dependence of NMDA-receptor controlled channels
+is</span>
+              </p>
+<table id="Ch3.E6" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E6.m1" class="ltx_Math" alttext="g_{\text{NMDA}}(t)=\bar{g}_{\text{NMDA}}\cdot\left[1-{\text{e}}^{-(t-t^{(f)})/%
+\tau_{\text{rise}}}\right]\,{\text{e}}^{-(t-t^{(f)})/\tau_{\text{decay}}}\,g_{%
+\infty}(u,[\text{Mg}^{2+}]_{\text{o}})\,\Theta(t-t^{(f)})\,,\inner@par\text{%
+with }g_{\infty}(u,[\text{Mg}^{2+}]_{\text{o}})=\left(1+\beta\,{\text{e}}^{%
+-\alpha\,u}\,[\text{Mg}^{2+}]_{\text{o}}\right)^{-1}\,," display="block"><semantics><mrow><mrow><mrow><mrow><msub><mi>g</mi><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">NMDA</mtext><mtext>Â                            Â </mtext></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mover accent="true"><mi>g</mi><mo stretchy="false">Â¯</mo></mover><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">NMDA</mtext><mtext>Â                              Â </mtext></mrow></msub><mo>â</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mrow><mtext>Â                                  Â </mtext><mtext mathsize="small" stretchy="false">e</mtext><mtext>Â                                Â </mtext></mrow><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow><mo>/</mo><msub><mi>Ï</mi><mrow><mtext>Â                                        Â </mtext><mtext mathsize="small" stretchy="false">rise</mtext><mtext>Â                                      Â </mtext></mrow></msub></mrow></mrow></msup></mrow><mo>]</mo></mrow></mpadded></mrow><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">e</mtext><mtext>Â                            Â </mtext></mrow><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow><mo>/</mo><msub><mi>Ï</mi><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">decay</mtext><mtext>Â                                  Â </mtext></mrow></msub></mrow></mrow></msup></mpadded><mo>â¢</mo><msub><mi>g</mi><mi mathvariant="normal">â</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><msub><mrow><mo>[</mo><msup><mrow><mtext>Â                                  Â </mtext><mtext mathsize="small" stretchy="false">Mg</mtext><mtext>Â                                Â </mtext></mrow><mrow><mn>2</mn><mo>+</mo></mrow></msup><mo>]</mo></mrow><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">o</mtext><mtext>Â                              Â </mtext></mrow></msub></mrow><mo>)</mo></mrow><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>,</mo><mrow><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">
+
+		  withÂ </mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><msub><mi>g</mi><mi mathvariant="normal">â</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><msub><mrow><mo>[</mo><msup><mrow><mtext>Â                                  Â </mtext><mtext mathsize="small" stretchy="false">Mg</mtext><mtext>Â                                Â </mtext></mrow><mrow><mn>2</mn><mo>+</mo></mrow></msup><mo>]</mo></mrow><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">o</mtext><mtext>Â                              Â </mtext></mrow></msub></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>Î²</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mtext>Â                                  Â </mtext><mtext mathsize="small" stretchy="false">e</mtext><mtext>Â                                Â </mtext></mrow><mrow><mpadded width="+1.7pt"><mi>-Î±</mi></mpadded><mo>â¢</mo><mi>u</mi></mrow></msup></mpadded><mo>â¢</mo><msub><mrow><mo>[</mo><msup><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">Mg</mtext><mtext>Â                                  Â </mtext></mrow><mrow><mn>2</mn><mo>+</mo></mrow></msup><mo>]</mo></mrow><mrow><mtext>Â                                  Â </mtext><mtext mathsize="small" stretchy="false">o</mtext><mtext>Â                                Â </mtext></mrow></msub></mrow></mrow><mo>)</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">g_{\text{NMDA}}(t)=\bar{g}_{\text{NMDA}}\cdot\left[1-{\text{e}}^{-(t-t^{(f)})/%
+\tau_{\text{rise}}}\right]\,{\text{e}}^{-(t-t^{(f)})/\tau_{\text{decay}}}\,g_{%
+\infty}(u,[\text{Mg}^{2+}]_{\text{o}})\,\Theta(t-t^{(f)})\,,\inner@par\text{%
+with }g_{\infty}(u,[\text{Mg}^{2+}]_{\text{o}})=\left(1+\beta\,{\text{e}}^{%
+-\alpha\,u}\,[\text{Mg}^{2+}]_{\text{o}}\right)^{-1}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.6)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with
+<math id="SS2.p5.m4" class="ltx_Math" alttext="\tau_{\text{rise}}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mtext mathsize="small" stretchy="false">rise</mtext></msub><annotation encoding="application/x-tex">\tau_{\text{rise}}</annotation></semantics></math> in the range of 3Â ms to 15Â ms,
+<math id="SS2.p5.m5" class="ltx_Math" alttext="\tau_{\text{decay}}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mtext mathsize="small" stretchy="false">decay</mtext></msub><annotation encoding="application/x-tex">\tau_{\text{decay}}</annotation></semantics></math> in the range of 40Â ms to 100Â ms, <math id="SS2.p5.m6" class="ltx_Math" alttext="\bar{g}_{\text{NMDA}}=1.5" display="inline"><semantics><mrow><msub><mover accent="true"><mi mathsize="normal" stretchy="false">g</mi><mo mathsize="normal" stretchy="false">Â¯</mo></mover><mtext mathsize="small" stretchy="false">NMDA</mtext></msub><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1.5</mn></mrow><annotation encoding="application/x-tex">\bar{g}_{\text{NMDA}}=1.5</annotation></semantics></math>Â nS,
+<math id="SS2.p5.m7" class="ltx_Math" alttext="\alpha=0.062\,\text{mV}^{-1}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î±</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><mn mathsize="normal" stretchy="false">0.062</mn></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mtext mathsize="small" stretchy="false">mV</mtext><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">\alpha=0.062\,\text{mV}^{-1}</annotation></semantics></math>,
+<math id="SS2.p5.m8" class="ltx_Math" alttext="\beta=1/(3.57~{}{\rm mM})" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î²</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mpadded width="+3.3pt"><mn mathsize="normal" stretchy="false">3.57</mn></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">mM</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\beta=1/(3.57~{}{\rm mM})</annotation></semantics></math>, and an extracellular
+magnesium concentration <math id="SS2.p5.m9" class="ltx_Math" alttext="[\text{Mg}^{2+}]_{\text{o}}=1.2" display="inline"><semantics><mrow><msub><mrow><mo mathsize="small" stretchy="false">[</mo><msup><mtext mathsize="small" stretchy="false">Mg</mtext><mrow><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">+</mo></mrow></msup><mo mathsize="small" stretchy="false">]</mo></mrow><mtext mathsize="small" stretchy="false">o</mtext></msub><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1.2</mn></mrow><annotation encoding="application/x-tex">[\text{Mg}^{2+}]_{\text{o}}=1.2</annotation></semantics></math>Â mM
+<cite class="ltx_cite">(<a href="bib.html#bib44" title="Neurotransmitter control of neocortical neuronal activity and excitability." class="ltx_ref">334</a>; <a href="bib.html#bib46" title="Synaptic integration in a model of cerebellar granule cells" class="ltx_ref">166</a>)</cite>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">What is the potential functional role of NMDA receptors?
+First, their comparatively long time constant
+keeps a trace of presynaptic events and acts as a low-pass filter.
+Second, even though
+NMDA-receptor controlled ion channels are permeable to sodium and
+potassium ions, their permeability to Ca<math id="SS2.p5.m10" class="ltx_Math" alttext="{}^{2+}" display="inline"><semantics><msup><mi></mi><mrow><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">+</mo></mrow></msup><annotation encoding="application/x-tex">{}^{2+}</annotation></semantics></math> is five or ten
+times larger. Calcium ions are known to play an important role in
+intracellular signalling and are probably involved in long-term
+modifications of synaptic efficacy.
+Calcium influx through
+NMDA-controlled ion channels can occur
+if presynaptic spike arrival (leading to
+glutamate release from presynaptic sites)
+coincides with a depolarization of the postsynaptic membrane
+(leading to removal of the Mg<math id="SS2.p5.m11" class="ltx_Math" alttext="{}^{2+}" display="inline"><semantics><msup><mi></mi><mrow><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">+</mo></mrow></msup><annotation encoding="application/x-tex">{}^{2+}</annotation></semantics></math>-block). Hence, NMDA-receptors
+operate as molecular coincidence detectors
+between pre- and postsynaptic events.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1.3 </span>Rapid synaptic dynamics</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">Parameters of a synaptic contact point
+are not fixed, but can change as a function
+of the stimulation history.
+Some of these changes are long-lasting and
+are thought to represent the neuronal correlate
+of learning and memory formation.
+The description of these learning-related changes
+will be treated in Chapter <a href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19</span></a>.
+Here we concentrate on dynamic
+changes of the synapse that do not persist but decay
+back to their normal values within hundreds of milliseconds
+or a few seconds. These changes
+are called short-term synaptic plasticity.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">Short-term synaptic plasticity can be measured
+if a presynaptic neuron is
+stimulated so as to generate a sequence
+of spikes.
+Synaptic facilitation means that the apparent amplitude
+of a postsynaptic current in response to the second spike
+is larger than that to the first spike.
+Synaptic depression is the opposite effect
+(Figure <a href="#Ch3.F3" title="Fig.Â 3.3 â£ 3.1.3 Rapid synaptic dynamics â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.3</span></a>).</p>
+</div>
+<figure id="Ch3.F3" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x75.png" id="Ch3.F3.g1" class="ltx_graphics" width="293" height="295" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x76.png" id="Ch3.F3.g2" class="ltx_graphics" width="293" height="296" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 3.3: </span>
+Short-term plasticity. A synapse is activated by
+4 presynaptic spikes and a fifth spike
+400 ms later.
+<span class="ltx_text ltx_font_bold">A</span>. At a facilitating synapse, the effect of the second and third
+spike is larger than that of the first spike.
+The effect of a spike after a pause of 400 millisecond
+is approximately that of the first spike
+(time constant <math id="Ch3.F3.m4" class="ltx_Math" alttext="\tau_{P}=200ms" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>P</mi></msub><mo>=</mo><mrow><mn>200</mn><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{P}=200ms</annotation></semantics></math>).
+<span class="ltx_text ltx_font_bold">B</span>. At a depressing synapse, successive spikes in a periodic
+spike train have less and less effect.
+<math id="Ch3.F3.m5" class="ltx_Math" alttext="400" display="inline"><semantics><mn>400</mn><annotation encoding="application/x-tex">400</annotation></semantics></math>ms later, the synapse has
+partially recovered, but is still significantly depressed (<math id="Ch3.F3.m6" class="ltx_Math" alttext="\tau_{P}=500ms" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>P</mi></msub><mo>=</mo><mrow><mn>500</mn><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{P}=500ms</annotation></semantics></math>).
+</figcaption>
+</figure>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">As a simple model of synaptic facilitation and depression
+<cite class="ltx_cite">(<a href="bib.html#bib47" title="Theoretical neuroscience" class="ltx_ref">112</a>)</cite>, we assume
+that the maximal synaptic conductance
+<math id="SS3.p3.m1" class="ltx_Math" alttext="\bar{g}_{\rm syn}" display="inline"><semantics><msub><mover accent="true"><mi>g</mi><mo stretchy="false">Â¯</mo></mover><mi>syn</mi></msub><annotation encoding="application/x-tex">\bar{g}_{\rm syn}</annotation></semantics></math> in
+Eq. (<a href="#Ch3.E2" title="(3.2) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2</span></a>) or (<a href="#Ch3.E3" title="(3.3) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.3</span></a>)
+depends
+on the fraction <math id="SS3.p3.m2" class="ltx_Math" alttext="P_{\rm rel}" display="inline"><semantics><msub><mi>P</mi><mi>rel</mi></msub><annotation encoding="application/x-tex">P_{\rm rel}</annotation></semantics></math>
+of presynaptic sites releasing neurotransmitter.
+Facilitation and depression can both be modeled
+as presynaptic processes that modify <math id="SS3.p3.m3" class="ltx_Math" alttext="P_{\rm rel}" display="inline"><semantics><msub><mi>P</mi><mi>rel</mi></msub><annotation encoding="application/x-tex">P_{\rm rel}</annotation></semantics></math>.
+With each presynaptic spike,
+the number of available presynaptic release sites
+changes. Between spikes
+the value of <math id="SS3.p3.m4" class="ltx_Math" alttext="P_{\rm rel}" display="inline"><semantics><msub><mi>P</mi><mi>rel</mi></msub><annotation encoding="application/x-tex">P_{\rm rel}</annotation></semantics></math> returns
+exponentially to its resting value <math id="SS3.p3.m5" class="ltx_Math" alttext="P_{0}" display="inline"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_{0}</annotation></semantics></math>.
+Thus,
+</p>
+<table id="Ch3.E7" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E7.m1" class="ltx_Math" alttext="{dP_{\rm rel}\over dt}=-{{P_{\rm rel}-P_{0}}\over\tau_{P}}+f_{F}\,(1-P_{\rm rel%
+})\,\sum_{f}\delta(t-t^{f})" display="block"><semantics><mrow><mfrac><mrow><mi>d</mi><mo>â¢</mo><msub><mi>P</mi><mi>rel</mi></msub></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mfrac><mrow><msub><mi>P</mi><mi>rel</mi></msub><mo>-</mo><msub><mi>P</mi><mn>0</mn></msub></mrow><msub><mi>Ï</mi><mi>P</mi></msub></mfrac><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>f</mi><mi>F</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><msub><mi>P</mi><mi>rel</mi></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mi>f</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{dP_{\rm rel}\over dt}=-{{P_{\rm rel}-P_{0}}\over\tau_{P}}+f_{F}\,(1-P_{\rm rel%
+})\,\sum_{f}\delta(t-t^{f})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.7)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where
+<math id="SS3.p3.m6" class="ltx_Math" alttext="\tau_{P}" display="inline"><semantics><msub><mi>Ï</mi><mi>P</mi></msub><annotation encoding="application/x-tex">\tau_{P}</annotation></semantics></math> is a time constant,
+<math id="SS3.p3.m7" class="ltx_Math" alttext="f_{F}" display="inline"><semantics><msub><mi>f</mi><mi>F</mi></msub><annotation encoding="application/x-tex">f_{F}</annotation></semantics></math> controls the degree of facilitation,
+and <math id="SS3.p3.m8" class="ltx_Math" alttext="t^{f}" display="inline"><semantics><msup><mi>t</mi><mi>f</mi></msup><annotation encoding="application/x-tex">t^{f}</annotation></semantics></math> denotes the times of presynaptic spike arrivals.
+
+</p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<p class="ltx_p">The model of a depressing synapse
+is completely analogous.
+The amount of neurotransmitter available for release
+develops according to the differential equation</p>
+<table id="Ch3.E8" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E8.m1" class="ltx_Math" alttext="{dP_{\rm rel}\over dt}=-{{P_{\rm rel}-P_{0}}\over\tau_{P}}-f_{D}\,P_{\rm rel}%
+\,\sum_{f}\delta(t-t^{f})" display="block"><semantics><mrow><mfrac><mrow><mi>d</mi><mo>â¢</mo><msub><mi>P</mi><mi>rel</mi></msub></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mfrac><mrow><msub><mi>P</mi><mi>rel</mi></msub><mo>-</mo><msub><mi>P</mi><mn>0</mn></msub></mrow><msub><mi>Ï</mi><mi>P</mi></msub></mfrac><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>f</mi><mi>D</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>P</mi><mi>rel</mi></msub></mpadded><mo>â¢</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mi>f</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{dP_{\rm rel}\over dt}=-{{P_{\rm rel}-P_{0}}\over\tau_{P}}-f_{D}\,P_{\rm rel}%
+\,\sum_{f}\delta(t-t^{f})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.8)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where
+<math id="SS3.p4.m1" class="ltx_Math" alttext="\tau_{P}" display="inline"><semantics><msub><mi>Ï</mi><mi>P</mi></msub><annotation encoding="application/x-tex">\tau_{P}</annotation></semantics></math> is a time constant and the parameter
+<math id="SS3.p4.m2" class="ltx_Math" alttext="f_{D}" display="inline"><semantics><msub><mi>f</mi><mi>D</mi></msub><annotation encoding="application/x-tex">f_{D}</annotation></semantics></math> with <math id="SS3.p4.m3" class="ltx_Math" alttext="0&lt;f_{D}&lt;1" display="inline"><semantics><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>f</mi><mi>D</mi></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt;f_{D}&lt;1</annotation></semantics></math> controls the amount of depression
+per spike.</p>
+</div>
+<div id="SS3.p5" class="ltx_para">
+<p class="ltx_p">The total effect of presynaptic spikes
+depends on the available neurotransmitter
+as well as the value <math id="SS3.p5.m1" class="ltx_Math" alttext="g_{0}" display="inline"><semantics><msub><mi>g</mi><mn>0</mn></msub><annotation encoding="application/x-tex">g_{0}</annotation></semantics></math> of postsynaptic
+conductance if all synaptic ion channels are open,
+so that, for depressing or facilitating synapses,
+we can use
+Eq. (<a href="#Ch3.E2" title="(3.2) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2</span></a>)
+with a value
+<math id="SS3.p5.m2" class="ltx_Math" alttext="\bar{g}_{\rm syn}=P_{\rm rel}\,g_{0}" display="inline"><semantics><mrow><msub><mover accent="true"><mi>g</mi><mo stretchy="false">Â¯</mo></mover><mi>syn</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>P</mi><mi>rel</mi></msub></mpadded><mo>â¢</mo><msub><mi>g</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">\bar{g}_{\rm syn}=P_{\rm rel}\,g_{0}</annotation></semantics></math>.
+This procedure has been used to generate
+Fig. <a href="#Ch3.F3" title="Fig.Â 3.3 â£ 3.1.3 Rapid synaptic dynamics â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.3</span></a>.</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Dendrites and Synapses</span></a><a href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2 </span>Spatial Structure: The Dendritic Tree</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

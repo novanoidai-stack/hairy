@@ -1,0 +1,1143 @@
+<!DOCTYPE html><html>
+<head>
+<title>1.3 Integrate-And-Fire Models | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch1.S2.html" title="1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch1.S4.html" title="1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S2.html" title="1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S4.html" title="1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S6.html" title="1.6 Summary â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="Fourier transform, Leaky Integrate-and-Fire Model, SRM, integrate-and-fire model, spiking neuron model">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1 </span>Introduction</span></a><a href="Ch1.S2.html" title="1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.2 </span>Elements of Neuronal Dynamics</span></a><a href="Ch1.S4.html" title="1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4 </span>Limitations of the Leaky Integrate-and-Fire Model</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1.3 </span>Integrate-And-Fire Models</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">We have seen in the previous section that, to a first and rough approximation,
+neuronal dynamics can be conceived as a summation process
+(sometimes also called âintegrationâ process) combined
+with a mechanism that triggers action potentials
+above some critical voltage.
+Indeed in
+experiments firing times are often defined
+as the moment when the membrane potential reaches some
+threshold value from below.
+In order to build a phenomenological model
+of neuronal dynamics, we describe the critical voltage
+for spike initiation by a formal threshold <math id="p1.m1" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>.
+If the voltage <math id="p1.m2" class="ltx_Math" alttext="u_{i}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{i}(t)</annotation></semantics></math> (that contains the summed effect of all inputs) reaches
+<math id="p1.m3" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> from below, we say that neuron <math id="p1.m4" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> fires a spike. The moment of
+threshold crossing defines the firing time <math id="p1.m5" class="ltx_Math" alttext="t_{i}^{(f)}" display="inline"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{i}^{(f)}</annotation></semantics></math>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">The model makes use of the fact that neuronal action potentials
+of a given neuron always have roughly the same form.
+If the shape of an action potential is always the same,
+then the shape cannot be used to transmit information:
+rather information is contained in the
+presence or absence of a spike.
+Therefore action potentials are reduced to âeventsâ that happen at a precise
+moment in time.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">Neuron models where action potentials
+are described as events are called
+âIntegrate-and-Fireâ models. No attempt is made
+to describe the shape of an action potential.
+Integrate-and-fire models have two
+separate components that are both necessary to define
+their dynamics: first, an equation that describes
+the evolution of the membrane potential <math id="p3.m1" class="ltx_Math" alttext="u_{i}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{i}(t)</annotation></semantics></math>;
+and second, a mechanism to generate spikes.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">In the following we introduce the simplest model in the class
+of integrate-and-fire models
+using the following two ingredients:
+(i) a <span class="ltx_text ltx_font_italic">linear</span> differential equation
+to describe the evolution of the membrane potential;
+(ii) a threshold for spike firing.
+This model is called the
+âLeaky Integrate-and-Fireâ Model.
+
+Generalized integrate-and-fire models
+that will be discussed in Part
+<a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">II</span></a>
+of the book can be seen as variations of this basic model.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.3.1 </span>Integration of Inputs</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">The variable <math id="SS1.p1.m1" class="ltx_Math" alttext="u_{i}" display="inline"><semantics><msub><mi>u</mi><mi>i</mi></msub><annotation encoding="application/x-tex">u_{i}</annotation></semantics></math> describes the momentary value of the membrane
+potential of neuron <math id="SS1.p1.m2" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>. In the
+absence of any input, the potential is
+at its resting value <math id="SS1.p1.m3" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>.
+If an experimentalist injects a current <math id="SS1.p1.m4" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> into the neuron,
+or if the neuron receives synaptic input from other neurons,
+the potential <math id="SS1.p1.m5" class="ltx_Math" alttext="u_{i}" display="inline"><semantics><msub><mi>u</mi><mi>i</mi></msub><annotation encoding="application/x-tex">u_{i}</annotation></semantics></math> will be deflected from its resting value.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">In order to arrive at an equation that links the momentary
+voltage <math id="SS1.p2.m1" class="ltx_Math" alttext="u_{i}(t)-u_{\rm rest}" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{i}(t)-u_{\rm rest}</annotation></semantics></math> to the input current <math id="SS1.p2.m2" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>,
+we use elementary laws from the theory of electricity.
+A neuron is surrounded by a cell membrane, which
+is a rather good insulator. If a short current pulse
+<math id="SS1.p2.m3" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> is injected
+into the neuron,
+the additional electrical charge <math id="SS1.p2.m4" class="ltx_Math" alttext="q=\int I(t^{\prime})dt^{\prime}" display="inline"><semantics><mrow><mi>q</mi><mo>=</mo><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow></mrow></mrow><annotation encoding="application/x-tex">q=\int I(t^{\prime})dt^{\prime}</annotation></semantics></math>
+has to go somewhere:
+it will charge the cell membrane (Fig. <a href="#Ch1.F6" title="Fig.Â 1.6 â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>A).
+The cell membrane
+therefore acts like a capacitor of capacity <math id="SS1.p2.m5" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>.
+Because the insulator is not perfect, the charge will, over time,
+slowly leak through the cell membrane. The cell membrane
+can therefore be characterized by a finite leak resistance <math id="SS1.p2.m6" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">The basic electrical circuit representing a leaky
+integrate-and-fire model consists of a capacitor <math id="SS1.p3.m1" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+in parallel with a resistor <math id="SS1.p3.m2" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math> driven by a current <math id="SS1.p3.m3" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>; see Fig.
+<a href="#Ch1.F6" title="Fig.Â 1.6 â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>.</p>
+</div>
+<figure id="Ch1.F6" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td"></th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"></td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x12.png" id="Ch1.F6.g1" class="ltx_graphics" width="197" height="293" alt="">
+                  </td>
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><img src="x13.png" id="Ch1.F6.g2" class="ltx_graphics" width="193" height="293" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.6: </span>
+Electrical properties of neurons: the passive membrane.
+<span class="ltx_text ltx_font_bold">A</span>. A neuron, which is enclosed by the cell membrane (big circle), receives
+a (positive) input current <math id="Ch1.F6.m3" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> which increases the electrical charge
+inside the cell. The cell membrane acts like a capacitor in parallel with a resistor which is in line with a battery of potential <math id="Ch1.F6.m4" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math> (zoomed inset).
+<span class="ltx_text ltx_font_bold">B</span>. The cell membrane reacts to a step current (top) with a smooth voltage trace (bottom).
+</figcaption>
+</figure>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">If the driving current <math id="SS1.p4.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> vanishes, the voltage across
+the capacitor is given by the battery voltage
+<math id="SS1.p4.m2" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>. For a biological explanation of the battery
+we refer the reader to the next chapter. Here we
+have simply inserted the battery âby handâ
+into the circuit so as to account
+for the resting potential of the cell
+(Fig. <a href="#Ch1.F6" title="Fig.Â 1.6 â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>A).</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">In order to analyze the circuit,
+we use the law of current conservation and split
+the driving current into two
+components,</p>
+<table id="Ch1.E3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E3.m1" class="ltx_Math" alttext="I(t)=I_{R}+I_{C}" display="block"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>I</mi><mi>R</mi></msub><mo>+</mo><msub><mi>I</mi><mi>C</mi></msub></mrow></mrow><annotation encoding="application/x-tex">I(t)=I_{R}+I_{C}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.3)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The first component is the resistive
+current <math id="SS1.p5.m1" class="ltx_Math" alttext="I_{R}" display="inline"><semantics><msub><mi>I</mi><mi>R</mi></msub><annotation encoding="application/x-tex">I_{R}</annotation></semantics></math> which passes through the linear resistor <math id="SS1.p5.m2" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>. It can be
+calculated from Ohmâs law as <math id="SS1.p5.m3" class="ltx_Math" alttext="I_{R}=u_{R}/R" display="inline"><semantics><mrow><msub><mi>I</mi><mi>R</mi></msub><mo>=</mo><mrow><msub><mi>u</mi><mi>R</mi></msub><mo>/</mo><mi>R</mi></mrow></mrow><annotation encoding="application/x-tex">I_{R}=u_{R}/R</annotation></semantics></math> where <math id="SS1.p5.m4" class="ltx_Math" alttext="u_{R}=u-u_{\rm rest}" display="inline"><semantics><mrow><msub><mi>u</mi><mi>R</mi></msub><mo>=</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow></mrow><annotation encoding="application/x-tex">u_{R}=u-u_{\rm rest}</annotation></semantics></math>
+is the voltage across
+the resistor. The second component <math id="SS1.p5.m5" class="ltx_Math" alttext="I_{C}" display="inline"><semantics><msub><mi>I</mi><mi>C</mi></msub><annotation encoding="application/x-tex">I_{C}</annotation></semantics></math> charges the capacitor <math id="SS1.p5.m6" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>. From
+the definition of the capacity as <math id="SS1.p5.m7" class="ltx_Math" alttext="C=q/u" display="inline"><semantics><mrow><mi>C</mi><mo>=</mo><mrow><mi>q</mi><mo>/</mo><mi>u</mi></mrow></mrow><annotation encoding="application/x-tex">C=q/u</annotation></semantics></math> (where <math id="SS1.p5.m8" class="ltx_Math" alttext="q" display="inline"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math> is the charge and <math id="SS1.p5.m9" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+the voltage), we find a capacitive current <math id="SS1.p5.m10" class="ltx_Math" alttext="I_{C}={\text{d}}q/{\text{d}}t=C\,{\text{d}}u/{\text{d}}t" display="inline"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>=</mo><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>q</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mrow><mrow><mpadded width="+1.7pt"><mi>C</mi></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">I_{C}={\text{d}}q/{\text{d}}t=C\,{\text{d}}u/{\text{d}}t</annotation></semantics></math>. Thus</p>
+<table id="Ch1.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E4.m1" class="ltx_Math" alttext="I(t)={u(t)-u_{\rm rest}\over R}+C\,{{\text{d}}u\over{\text{d}}t}\,." display="block"><semantics><mrow><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mfrac><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mi>R</mi></mfrac><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>C</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I(t)={u(t)-u_{\rm rest}\over R}+C\,{{\text{d}}u\over{\text{d}}t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We multiply Eq. (<a href="#Ch1.E4" title="(1.4) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.4</span></a>) by <math id="SS1.p5.m11" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math> and introduce the time constant <math id="SS1.p5.m12" class="ltx_Math" alttext="\tau_{m}=R\,C" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>C</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}=R\,C</annotation></semantics></math> of the âleaky integratorâ. This yields the standard form</p>
+<table id="Ch1.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E5.m1" class="ltx_Math" alttext="\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,I(t)\,." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>[</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>]</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,I(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We refer to <math id="SS1.p5.m13" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> as the membrane potential and to <math id="SS1.p5.m14" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi>Ï</mi><mi>m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math> as the membrane time
+constant of the neuron.
+</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">From the mathematical point of view, Eq. (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>) is a linear differential equation.
+From the point of view of an electrical engineer, it is the equation of a
+leaky integrator or <math id="SS1.p6.m1" class="ltx_Math" alttext="RC" display="inline"><semantics><mrow><mi>R</mi><mo>â¢</mo><mi>C</mi></mrow><annotation encoding="application/x-tex">RC</annotation></semantics></math>-circuit
+where resistor <math id="SS1.p6.m2" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math> and capacitor <math id="SS1.p6.m3" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math> are arranged in parallel. From
+the point of view of the neuroscientist, Eq. (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>)
+is called
+the equation of a passive membrane.</p>
+</div>
+<div id="SS1.p7" class="ltx_para">
+<p class="ltx_p">What is the solution of Eq. (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>)?
+We suppose that, for whatever reason, at time <math id="SS1.p7.m1" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math> the membrane potential
+takes a value <math id="SS1.p7.m2" class="ltx_Math" alttext="u_{\rm rest}+\Delta u" display="inline"><semantics><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow></mrow><annotation encoding="application/x-tex">u_{\rm rest}+\Delta u</annotation></semantics></math>.
+For <math id="SS1.p7.m3" class="ltx_Math" alttext="t&gt;0" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t&gt;0</annotation></semantics></math> the input vanishes <math id="SS1.p7.m4" class="ltx_Math" alttext="I(t)=0" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I(t)=0</annotation></semantics></math>.
+Intuitively we expect that, if we wait long enough, the membrane potential
+relaxes to its resting value <math id="SS1.p7.m5" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>. Indeed,
+the solution of the differential equation with initial condition
+<math id="SS1.p7.m6" class="ltx_Math" alttext="u(t_{0})=u_{\rm rest}+\Delta u" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t_{0})=u_{\rm rest}+\Delta u</annotation></semantics></math> is</p>
+<table id="Ch1.E6" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E6.m1" class="ltx_Math" alttext="u(t)-u_{\rm rest}=\Delta u\,\exp\left(-{t-t_{0}\over\tau_{m}}\right)\quad{\rm
+for%
+~{}}t&gt;t_{0}\,." display="block"><semantics><mrow><mrow><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>=</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>u</mi></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo separator="true">â</mo><mrow><mrow><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mi>t</mi></mrow><mo>&gt;</mo><mpadded width="+1.7pt"><msub><mi>t</mi><mn>0</mn></msub></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u(t)-u_{\rm rest}=\Delta u\,\exp\left(-{t-t_{0}\over\tau_{m}}\right)\quad{\rm
+for%
+~{}}t&gt;t_{0}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.6)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Thus, in the absence of input,
+the membrane potential decays exponentially to its resting value.
+The membrane time constant <math id="SS1.p7.m7" class="ltx_Math" alttext="\tau_{m}=RC" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>=</mo><mrow><mi>R</mi><mo>â¢</mo><mi>C</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}=RC</annotation></semantics></math> is the characteristic time of the decay.
+For a typical neuron it is in the range of 10ms, and hence rather long
+compared to the duration of a spike which is on the order of 1ms.</p>
+</div>
+<div id="SS1.p8" class="ltx_para">
+<p class="ltx_p">The validity of the solution (<a href="#Ch1.E6" title="(1.6) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>) can be checked
+by taking the derivative on both sides of the equation.
+Since it is the solution in the absence of input, it is sometimes
+called the âfreeâ solution.</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.3.2 </span>Pulse Input</h1>
+
+<figure id="Ch1.F7" class="ltx_figure"><img src="x14.png" id="Ch1.F7.g1" class="ltx_graphics ltx_centering" width="590" height="313" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.7: </span>
+Short pulses and total charged delivered on the passive membrane.
+The amplitude of the voltage response (bottom) of
+a leaky integrator driven by a short current pulse <math id="Ch1.F7.m3" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> (top)
+depends only on the total charge <math id="Ch1.F7.m4" class="ltx_Math" alttext="q=\int I(t)dt" display="inline"><semantics><mrow><mi>q</mi><mo>=</mo><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">q=\int I(t)dt</annotation></semantics></math>,
+but not on the height of the current pulse.
+</figcaption>
+</figure>
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Before we continue with the definition of the integrate-and-fire model and
+its variants, let us study the dynamics of the passive membrane
+defined by Eq. (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>)
+in a simple example. Suppose that
+the passive membrane is stimulated
+by a constant input current <math id="SS2.p1.m1" class="ltx_Math" alttext="I(t)=I_{0}" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><msub><mi>I</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">I(t)=I_{0}</annotation></semantics></math>
+which starts at <math id="SS2.p1.m2" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math> and ends at time <math id="SS2.p1.m3" class="ltx_Math" alttext="t=\Delta" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mi mathvariant="normal">Î</mi></mrow><annotation encoding="application/x-tex">t=\Delta</annotation></semantics></math>.
+For the sake of simplicity we assume that the membrane
+potential at time <math id="SS2.p1.m4" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math> is at its resting
+value <math id="SS2.p1.m5" class="ltx_Math" alttext="u(0)=u_{\rm rest}" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></mrow><mo>=</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u(0)=u_{\rm rest}</annotation></semantics></math>.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">As a first step, let us calculate the time course of the membrane potential.
+The trajectory of
+the membrane potential can be found by integrating (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>) with the
+initial condition <math id="SS2.p2.m1" class="ltx_Math" alttext="u(0)=u_{\rm rest}" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></mrow><mo>=</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u(0)=u_{\rm rest}</annotation></semantics></math>. The solution for <math id="SS2.p2.m2" class="ltx_Math" alttext="0&lt;t&lt;\Delta" display="inline"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>t</mi><mo>&lt;</mo><mi mathvariant="normal">Î</mi></mrow><annotation encoding="application/x-tex">0&lt;t&lt;\Delta</annotation></semantics></math> is</p>
+<table id="Ch1.E7" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E7.m1" class="ltx_Math" alttext="u(t)=u_{\rm rest}+R\,I_{0}\left[1-\exp\left(-{t\over\tau_{m}}\right)\right]\,." display="block"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mi>t</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u(t)=u_{\rm rest}+R\,I_{0}\left[1-\exp\left(-{t\over\tau_{m}}\right)\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.7)</span></td>
+</tr>
+</table>
+<p class="ltx_p">If the input current never stopped,
+the membrane potential (<a href="#Ch1.E7" title="(1.7) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.7</span></a>) would approach for <math id="SS2.p2.m3" class="ltx_Math" alttext="t\to\infty" display="inline"><semantics><mrow><mi>t</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">t\to\infty</annotation></semantics></math> the
+asymptotic value <math id="SS2.p2.m4" class="ltx_Math" alttext="u(\infty)=u_{\rm rest}+R\,I_{0}" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi mathvariant="normal">â</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow></mrow></mrow><annotation encoding="application/x-tex">u(\infty)=u_{\rm rest}+R\,I_{0}</annotation></semantics></math>.
+We can understand this result by looking at the
+electrical diagram of the <math id="SS2.p2.m5" class="ltx_Math" alttext="RC" display="inline"><semantics><mrow><mi>R</mi><mo>â¢</mo><mi>C</mi></mrow><annotation encoding="application/x-tex">RC</annotation></semantics></math>-circuit
+in Fig. <a href="#Ch1.F6" title="Fig.Â 1.6 â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>.
+Once a steady state is reached, the charge on the capacitor no longer
+changes. All input current must then flow through the resistor.
+The steady-state voltage at the resistor is therefore <math id="SS2.p2.m6" class="ltx_Math" alttext="RI_{0}" display="inline"><semantics><mrow><mi>R</mi><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">RI_{0}</annotation></semantics></math>
+so that the total membrane voltage is <math id="SS2.p2.m7" class="ltx_Math" alttext="u_{\rm rest}+RI_{0}" display="inline"><semantics><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mi>R</mi><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">u_{\rm rest}+RI_{0}</annotation></semantics></math>.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Short pulses and the Dirac <math id="SS2.p3.m1" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> function</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">For short pulses the steady state value is never reached.
+At the end of the pulse, the value of the membrane potential is given
+according to Eq. (<a href="#Ch1.E7" title="(1.7) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.7</span></a>) by
+<math id="SS2.p3.m2" class="ltx_Math" alttext="u(\Delta)=u_{\rm rest}+R\,I_{0}\left[1-\exp\left(-{\Delta\over\tau_{m}}\right)%
+\right]\,." display="inline"><semantics><mrow><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">rest</mi></msub><mo mathsize="normal" stretchy="false">+</mo><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">R</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">-</mo><mrow><mi mathsize="normal" stretchy="false">exp</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mfrac><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub></mfrac></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">]</mo></mrow></mpadded></mrow></mrow></mrow><mo mathsize="small" stretchy="false">.</mo></mrow><annotation encoding="application/x-tex">u(\Delta)=u_{\rm rest}+R\,I_{0}\left[1-\exp\left(-{\Delta\over\tau_{m}}\right)%
+\right]\,.</annotation></semantics></math>
+For pulse durations <math id="SS2.p3.m3" class="ltx_Math" alttext="\Delta\ll\tau_{m}" display="inline"><semantics><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="normal" stretchy="false">âª</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub></mrow><annotation encoding="application/x-tex">\Delta\ll\tau_{m}</annotation></semantics></math> (where <math id="SS2.p3.m4" class="ltx_Math" alttext="\ll" display="inline"><semantics><mo mathsize="normal" stretchy="false">âª</mo><annotation encoding="application/x-tex">\ll</annotation></semantics></math> means much smaller than)
+we can expand the
+exponential term into a Taylor series: <math id="SS2.p3.m5" class="ltx_Math" alttext="\exp(x)=1+x+x^{2}/2...\," display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">exp</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">+</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">+</mo><mrow><msup><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">2</mn></msup><mo mathsize="normal" stretchy="false">/</mo><mpadded width="+1.7pt"><mn mathsize="normal" stretchy="false">2...</mn></mpadded></mrow></mrow></mrow><annotation encoding="application/x-tex">\exp(x)=1+x+x^{2}/2...\,</annotation></semantics></math>.
+To first order in <math id="SS2.p3.m6" class="ltx_Math" alttext="x=-{\Delta\over\tau_{m}}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mfrac><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub></mfrac></mrow></mrow><annotation encoding="application/x-tex">x=-{\Delta\over\tau_{m}}</annotation></semantics></math> we find</span>
+              </p>
+<table id="Ch1.E8" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E8.m1" class="ltx_Math" alttext="u(\Delta)=u_{\rm rest}+R\,I_{0}{\Delta\over\tau_{m}}\quad{\rm for~{}}\Delta\ll%
+\tau_{m}." display="block"><semantics><mrow><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi mathvariant="normal">Î</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub><mo>â¢</mo><mfrac><mi mathvariant="normal">Î</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow></mrow></mrow><mo separator="true">â</mo><mrow><mrow><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi></mrow><mo>âª</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u(\Delta)=u_{\rm rest}+R\,I_{0}{\Delta\over\tau_{m}}\quad{\rm for~{}}\Delta\ll%
+\tau_{m}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.8)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Thus, the voltage deflection depends linearly on the amplitude and the duration
+of the pulse (Fig. <a href="#Ch1.F7" title="Fig.Â 1.7 â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.7</span></a>).</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We now make the duration <math id="SS2.p3.m7" class="ltx_Math" alttext="\Delta" display="inline"><semantics><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math> of the pulse shorter and shorter
+while increasing the amplitude of the current pulse
+to a value <math id="SS2.p3.m8" class="ltx_Math" alttext="I_{0}=q/\Delta" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">q</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi></mrow></mrow><annotation encoding="application/x-tex">I_{0}=q/\Delta</annotation></semantics></math>, so that the integral
+<math id="SS2.p3.m9" class="ltx_Math" alttext="\int I(t){\text{d}}t=q" display="inline"><semantics><mrow><mrow><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">q</mi></mrow><annotation encoding="application/x-tex">\int I(t){\text{d}}t=q</annotation></semantics></math> remains constant.
+In other words, the total charge <math id="SS2.p3.m10" class="ltx_Math" alttext="q" display="inline"><semantics><mi mathsize="normal" stretchy="false">q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math> delivered by the current
+pulse is always the same.
+Interestingly, the voltage deflection at the end of the pulse
+calculated from Eq. (<a href="#Ch1.E8" title="(1.8) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.8</span></a>)
+remains unaltered, however short we make the pulse.
+Indeed, from Eq. (<a href="#Ch1.E8" title="(1.8) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.8</span></a>) we find
+<math id="SS2.p3.m11" class="ltx_Math" alttext="u(\Delta)-u_{\rm rest}=q\,R/\tau_{m}=q/C" display="inline"><semantics><mrow><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">rest</mi></msub></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">q</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">R</mi></mrow><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">q</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">C</mi></mrow></mrow><annotation encoding="application/x-tex">u(\Delta)-u_{\rm rest}=q\,R/\tau_{m}=q/C</annotation></semantics></math>
+where we have used <math id="SS2.p3.m12" class="ltx_Math" alttext="\tau_{m}=RC" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">C</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}=RC</annotation></semantics></math>.
+Thus we can consider the limit of an infinitely short
+pulse</span>
+              </p>
+<table id="Ch1.E9" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E9.m1" class="ltx_Math" alttext="I(t)=q\,\delta(t)=\lim_{\Delta\to 0}{q\over\Delta}\quad{\rm for~{}}{0&lt;t&lt;\Delta%
+}\quad{\rm and~{}}0{\rm~{}otherwise}." display="block"><semantics><mrow><mrow><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>q</mi></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munder><mo movablelimits="false">lim</mo><mrow><mi mathvariant="normal">Î</mi><mo>â</mo><mn>0</mn></mrow></munder><mo>â¡</mo><mfrac><mi>q</mi><mi mathvariant="normal">Î</mi></mfrac></mrow></mrow><mo separator="true">â</mo><mrow><mrow><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mn>0</mn></mrow><mo>&lt;</mo><mi>t</mi><mo>&lt;</mo><mi mathvariant="normal">Î</mi></mrow><mo separator="true">â</mo><mrow><mpadded width="+3.3pt"><mi>and</mi></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mn>0</mn></mpadded><mo>â¢</mo><mi>otherwise</mi></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I(t)=q\,\delta(t)=\lim_{\Delta\to 0}{q\over\Delta}\quad{\rm for~{}}{0&lt;t&lt;\Delta%
+}\quad{\rm and~{}}0{\rm~{}otherwise}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.9)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <math id="SS2.p3.m13" class="ltx_Math" alttext="\delta(t)" display="inline"><semantics><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\delta(t)</annotation></semantics></math>
+                <span class="ltx_text ltx_font_small"> is called the Dirac <math id="SS2.p3.m14" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function.
+It is defined by
+<math id="SS2.p3.m15" class="ltx_Math" alttext="\delta(x)=0" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">Î´</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\delta(x)=0</annotation></semantics></math> for <math id="SS2.p3.m16" class="ltx_Math" alttext="x\neq 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">â </mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">x\neq 0</annotation></semantics></math> and <math id="SS2.p3.m17" class="ltx_Math" alttext="\int_{-\infty}^{\infty}\delta(x){\text{d}}x=1" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msubsup><mrow><mi mathsize="normal" stretchy="false">Î´</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">x</mi></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">\int_{-\infty}^{\infty}\delta(x){\text{d}}x=1</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Obviously, the Dirac <math id="SS2.p3.m18" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function is a mathematical
+abstraction since it is practically impossible to inject
+a current with an infinitely short and infinitely strong current pulse
+into a neuron.
+Whenever we encounter a <math id="SS2.p3.m19" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function, we should remember that,
+as a stand-alone object, it looks strange, but becomes
+meaningful as soon as we integrate over it.
+Indeed the input current defined in Eq. (<a href="#Ch1.E9" title="(1.9) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.9</span></a>)
+needs to be inserted into the differential equation (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>)
+and integrated.
+The mathematical abstraction of the Dirac <math id="SS2.p3.m20" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> function
+suddenly makes a lot of sense,
+because the voltage change induced by a short current pulse
+is always the same, whenever the duration of the pulse
+<math id="SS2.p3.m21" class="ltx_Math" alttext="\Delta" display="inline"><semantics><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math> is much shorter than the time constant <math id="SS2.p3.m22" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math>.
+Thus, the exact duration of the pulse is irrelevant,
+as long as it is short enough.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">With the help of the <math id="SS2.p3.m23" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function, we no longer
+have to worry about the time course of the membrane potential
+<span class="ltx_text ltx_font_italic">during</span> the application of the current pulse: the membrane potential simply
+jumps at time <math id="SS2.p3.m24" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+by an amount <math id="SS2.p3.m25" class="ltx_Math" alttext="q/C" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">q</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">C</mi></mrow><annotation encoding="application/x-tex">q/C</annotation></semantics></math>.
+Thus, it is as if we added instantaneously a charge <math id="SS2.p3.m26" class="ltx_Math" alttext="q" display="inline"><semantics><mi mathsize="normal" stretchy="false">q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math> onto the
+capacitor of the <math id="SS2.p3.m27" class="ltx_Math" alttext="RC" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">C</mi></mrow><annotation encoding="application/x-tex">RC</annotation></semantics></math> circuit.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">What happens for times <math id="SS2.p3.m28" class="ltx_Math" alttext="t&gt;\Delta" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">&gt;</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi></mrow><annotation encoding="application/x-tex">t&gt;\Delta</annotation></semantics></math>?
+The membrane potential evolves from its
+new initial value <math id="SS2.p3.m29" class="ltx_Math" alttext="u_{\rm rest}+q/C" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">rest</mi></msub><mo mathsize="normal" stretchy="false">+</mo><mrow><mi mathsize="normal" stretchy="false">q</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">C</mi></mrow></mrow><annotation encoding="application/x-tex">u_{\rm rest}+q/C</annotation></semantics></math> in the absence of any further input.
+Thus we can use the âfreeâ solution
+from Eq. (<a href="#Ch1.E6" title="(1.6) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>) with
+<math id="SS2.p3.m30" class="ltx_Math" alttext="t_{0}=\Delta" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi></mrow><annotation encoding="application/x-tex">t_{0}=\Delta</annotation></semantics></math> and <math id="SS2.p3.m31" class="ltx_Math" alttext="\Delta u=q/C" display="inline"><semantics><mrow><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">u</mi></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">q</mi><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">C</mi></mrow></mrow><annotation encoding="application/x-tex">\Delta u=q/C</annotation></semantics></math>.
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We can summarize the considerations of this subsection by
+the following statement.
+The solution of the linear differential equation
+with pulse input</span>
+              </p>
+<table id="Ch1.E10" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E10.m1" class="ltx_Math" alttext="\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,q\,\delta(t)\,." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mfrac><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>u</mi></mrow><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>[</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>]</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>q</mi></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,q\,\delta(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.10)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">is <math id="SS2.p3.m32" class="ltx_Math" alttext="u(t)=u_{\rm rest}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">rest</mi></msub></mrow><annotation encoding="application/x-tex">u(t)=u_{\rm rest}</annotation></semantics></math> for <math id="SS2.p3.m33" class="ltx_Math" alttext="t\leq 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">â¤</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t\leq 0</annotation></semantics></math> and given by</span>
+              </p>
+<table id="Ch1.E11" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E11.m1" class="ltx_Math" alttext="u(t)-u_{\rm rest}=q\,{R\over\tau_{m}}\,\exp\left(-{t\over\tau_{m}}\right)\quad%
+{\rm for~{}}t&gt;0" display="block"><semantics><mrow><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>q</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mi>R</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mi>t</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo separator="true">â</mo><mrow><mrow><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mi>t</mi></mrow><mo>&gt;</mo><mn>0</mn></mrow></mrow><annotation encoding="application/x-tex">u(t)-u_{\rm rest}=q\,{R\over\tau_{m}}\,\exp\left(-{t\over\tau_{m}}\right)\quad%
+{\rm for~{}}t&gt;0</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.11)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The right-hand side of the equation is called the impulse-response function
+or Greenâs function of the linear differential equation.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch1.F8" class="ltx_figure"><img src="x635.png" id="Ch1.F8.g1" class="ltx_graphics ltx_centering" width="293" height="241" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.8: </span> 
+In formal models of spiking neurons the shape of an action potential
+(dashed line) is usually replaced by a <math id="Ch1.F8.m4" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> pulse (vertical line). The
+negative overshoot (spike-afterpotential) after the pulse is
+replaced by a âresetâ of the membrane potential to the value <math id="Ch1.F8.m5" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math>.
+The pulse is triggered by the threshold crossing at
+<math id="Ch1.F8.m6" class="ltx_Math" alttext="t_{i}^{(1)}" display="inline"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{i}^{(1)}</annotation></semantics></math>.</figcaption>
+</figure>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.3.3 </span>The Threshold for Spike Firing</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">Throughout this book, the term âfiring timeâ refers
+to the moment when a given neuron emits an
+action potential <math id="SS3.p1.m1" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math>.
+The firing time <math id="SS3.p1.m2" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math>
+in the leaky integrate-and-fire model is defined by a threshold criterion</p>
+<table id="Ch1.E12" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E12.m1" class="ltx_Math" alttext="t^{(f)}:\quad u(t^{(f)})=\vartheta\,." display="block"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>:</mo><mo mathvariant="italic" separator="true">â</mo><mi>u</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo stretchy="false">)</mo></mrow><mo>=</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">t^{(f)}:\quad u(t^{(f)})=\vartheta\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.12)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The form of the spike is not described explicitly.
+Rather, the firing time is noted and
+immediately after <math id="SS3.p1.m3" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> the potential is reset to a new value <math id="SS3.p1.m4" class="ltx_Math" alttext="u_{r}&lt;\vartheta" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>&lt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u_{r}&lt;\vartheta</annotation></semantics></math>,</p>
+<table id="Ch1.E13" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E13.m1" class="ltx_Math" alttext="\lim_{\delta\to 0;\delta&gt;0}u(t^{(f)}+\delta)=u_{r}\,." display="block"><semantics><mrow><mrow><mrow><munder><mo movablelimits="false">lim</mo><mrow><mrow><mi>Î´</mi><mo>â</mo><mn>0</mn></mrow><mo>;</mo><mrow><mi>Î´</mi><mo>&gt;</mo><mn>0</mn></mrow></mrow></munder><mo>â¡</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>+</mo><mi>Î´</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><msub><mi>u</mi><mi>r</mi></msub></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\lim_{\delta\to 0;\delta&gt;0}u(t^{(f)}+\delta)=u_{r}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.13)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For <math id="SS3.p1.m5" class="ltx_Math" alttext="t&gt;t^{(f)}" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">t&gt;t^{(f)}</annotation></semantics></math> the dynamics is again given by (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>) until the next
+threshold crossing occurs. The combination of leaky integration (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>)
+and reset (<a href="#Ch1.E13" title="(1.13) â£ 1.3.3 The Threshold for Spike Firing â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.13</span></a>) defines the leaky integrate-and-fire model
+<cite class="ltx_cite">(<a href="bib.html#bib4" title="Some models of neuronal variability" class="ltx_ref">495</a>)</cite>.
+The voltage trajectory of a leaky integrate-and-fire model
+driven by a constant current <math id="SS3.p1.m6" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> is shown in
+Fig. <a href="#Ch1.F9" title="Fig.Â 1.9 â£ 1.3.3 The Threshold for Spike Firing â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.9</span></a>.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">For the firing times of neuron
+<math id="SS3.p2.m1" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> we write <math id="SS3.p2.m2" class="ltx_Math" alttext="t_{i}^{(f)}" display="inline"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{i}^{(f)}</annotation></semantics></math> where <math id="SS3.p2.m3" class="ltx_Math" alttext="f=1,2,\dots" display="inline"><semantics><mrow><mi>f</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow></mrow><annotation encoding="application/x-tex">f=1,2,\dots</annotation></semantics></math> is the label of the spike. Formally, we
+may denote the spike train of a neuron <math id="SS3.p2.m4" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> as the sequence of firing times</p>
+<table id="Ch1.E14" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E14.m1" class="ltx_Math" alttext="S_{i}(t)=\sum_{f}\delta(t-t_{i}^{(f)})" display="block"><semantics><mrow><mrow><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S_{i}(t)=\sum_{f}\delta(t-t_{i}^{(f)})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.14)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS3.p2.m5" class="ltx_Math" alttext="\delta(x)" display="inline"><semantics><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\delta(x)</annotation></semantics></math> is the Dirac <math id="SS3.p2.m6" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> function introduced before,
+with <math id="SS3.p2.m7" class="ltx_Math" alttext="\delta(x)=0" display="inline"><semantics><mrow><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta(x)=0</annotation></semantics></math> for <math id="SS3.p2.m8" class="ltx_Math" alttext="x\neq 0" display="inline"><semantics><mrow><mi>x</mi><mo>â </mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x\neq 0</annotation></semantics></math> and <math id="SS3.p2.m9" class="ltx_Math" alttext="\int_{-\infty}^{\infty}\delta(x){\text{d}}x=1" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>x</mi></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\int_{-\infty}^{\infty}\delta(x){\text{d}}x=1</annotation></semantics></math>.
+Spikes are thus reduced
+to points in time (Fig. <a href="#Ch1.F8" title="Fig.Â 1.8 â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.8</span></a>).
+We remind the reader that the
+<math id="SS3.p2.m10" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function is a mathematical object that
+needs to be inserted into an integral in order
+to give meaningful results.</p>
+</div>
+<figure id="Ch1.F9" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x16.png" id="Ch1.F9.g1" class="ltx_graphics" width="293" height="217" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x17.png" id="Ch1.F9.g2" class="ltx_graphics" width="293" height="217" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.9: </span>
+Integrate-and-fire model.
+<span class="ltx_text ltx_font_bold">A</span>. Time course of the membrane potential of an integrate-and-fire
+neuron driven by constant input current <math id="Ch1.F9.m7" class="ltx_Math" alttext="I_{0}=1.5" display="inline"><semantics><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>=</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">I_{0}=1.5</annotation></semantics></math>.
+The voltage <math id="Ch1.F9.m8" class="ltx_Math" alttext="\Delta u(t)=u-u_{\rm rest}" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow></mrow><annotation encoding="application/x-tex">\Delta u(t)=u-u_{\rm rest}</annotation></semantics></math> is
+normalized by the value of the threshold <math id="Ch1.F9.m9" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>.
+Units of input current are chosen
+so that <math id="Ch1.F9.m10" class="ltx_Math" alttext="I_{0}=1" display="inline"><semantics><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">I_{0}=1</annotation></semantics></math> corresponds to a trajectory that reaches the threshold
+for <math id="Ch1.F9.m11" class="ltx_Math" alttext="t\to\infty" display="inline"><semantics><mrow><mi>t</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">t\to\infty</annotation></semantics></math>. After a spike, the potential is reset to <math id="Ch1.F9.m12" class="ltx_Math" alttext="u_{r}=u_{\rm rest}" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>=</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{r}=u_{\rm rest}</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">B</span>. Voltage response to a time-dependent input current.
+</figcaption>
+</figure>
+</section>
+<section id="SS4" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.3.4 </span>Time-dependent Input (*)<span class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup>Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book.</span></span></span>
+</h1>
+
+<div id="SS4.p1" class="ltx_para">
+<p class="ltx_p">We study a leaky integrate-and-fire model
+which is driven by an arbitrary time-dependent input current <math id="SS4.p1.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>; cf.
+Fig. <a href="#Ch1.F9" title="Fig.Â 1.9 â£ 1.3.3 The Threshold for Spike Firing â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.9</span></a>B.
+The firing threshold has a value <math id="SS4.p1.m2" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> and after firing
+the potential is reset to a value
+<math id="SS4.p1.m3" class="ltx_Math" alttext="u_{r}&lt;\vartheta" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>&lt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u_{r}&lt;\vartheta</annotation></semantics></math>.</p>
+</div>
+<div id="SS4.p2" class="ltx_para">
+<p class="ltx_p">In the absence of a threshold, the linear differential
+equation (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>)
+has a solution</p>
+<table id="Ch1.E15" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E15.m1" class="ltx_Math" alttext="u(t)=u_{\rm rest}+{R\over\tau_{m}}\int_{0}^{\infty}\exp\left(-{s\over\tau_{m}}%
+\right)\,I(t-s)\,{\text{d}}s\,." display="block"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mfrac><mi>R</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mi>s</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u(t)=u_{\rm rest}+{R\over\tau_{m}}\int_{0}^{\infty}\exp\left(-{s\over\tau_{m}}%
+\right)\,I(t-s)\,{\text{d}}s\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.15)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS4.p2.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> is an arbitrary input current
+and <math id="SS4.p2.m2" class="ltx_Math" alttext="\tau_{m}=RC" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>=</mo><mrow><mi>R</mi><mo>â¢</mo><mi>C</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}=RC</annotation></semantics></math> is the membrane time constant.
+We assume here that the input current is defined
+for a long time back into the past: <math id="SS4.p2.m3" class="ltx_Math" alttext="t\to-\infty" display="inline"><semantics><mrow><mi>t</mi><mo>â</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow><annotation encoding="application/x-tex">t\to-\infty</annotation></semantics></math>
+so that we do not have to worry about the initial condition.
+A sinusoidal current <math id="SS4.p2.m4" class="ltx_Math" alttext="I(t)=I_{0}\sin(\omega\,t)" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)=I_{0}\sin(\omega\,t)</annotation></semantics></math>
+or a
+step current pulse,
+<math id="SS4.p2.m5" class="ltx_Math" alttext="I(t)=I_{0}\Theta(t)" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)=I_{0}\Theta(t)</annotation></semantics></math>
+where <math id="SS4.p2.m6" class="ltx_Math" alttext="\Theta" display="inline"><semantics><mi mathvariant="normal">Î</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math> denotes the Heaviside step
+function with <math id="SS4.p2.m7" class="ltx_Math" alttext="\Theta(t)=0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Theta(t)=0</annotation></semantics></math> for <math id="SS4.p2.m8" class="ltx_Math" alttext="t\leq 0" display="inline"><semantics><mrow><mi>t</mi><mo>â¤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t\leq 0</annotation></semantics></math> and
+<math id="SS4.p2.m9" class="ltx_Math" alttext="\Theta(t)=1" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\Theta(t)=1</annotation></semantics></math> for <math id="SS4.p2.m10" class="ltx_Math" alttext="t&gt;0" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t&gt;0</annotation></semantics></math>, are two examples
+of a time-dependent current, but
+the solution, Eq. (<a href="#Ch1.E15" title="(1.15) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.15</span></a>),
+is also valid for every other time-dependent input current.</p>
+</div>
+<div id="SS4.p3" class="ltx_para">
+<p class="ltx_p">So far our leaky integrator does not have a threshold.
+What happens to the solution Eq. (<a href="#Ch1.E15" title="(1.15) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.15</span></a>),
+if we add a threshold <math id="SS4.p3.m1" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>?
+Each time the membrane potential hits the threshold,
+the variable <math id="SS4.p3.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is reset from <math id="SS4.p3.m3" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> to <math id="SS4.p3.m4" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math>.
+In the electrical circuit diagram,
+the reset of the potential corresponds
+to removing a charge
+<math id="SS4.p3.m5" class="ltx_Math" alttext="q_{r}=C\,(\vartheta-u_{r})" display="inline"><semantics><mrow><msub><mi>q</mi><mi>r</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>C</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>-</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">q_{r}=C\,(\vartheta-u_{r})</annotation></semantics></math>
+from the capacitor
+(Fig. <a href="#Ch1.F6" title="Fig.Â 1.6 â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.6</span></a>)
+or, equivalently, adding a negative charge <math id="SS4.p3.m6" class="ltx_Math" alttext="-q_{r}" display="inline"><semantics><mrow><mo>-</mo><msub><mi>q</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">-q_{r}</annotation></semantics></math> onto the capacitor.
+Therefore, the reset corresponds
+to a short current pulse
+<math id="SS4.p3.m7" class="ltx_Math" alttext="I_{r}=-q_{r}\,\delta(t-t^{(f)})" display="inline"><semantics><mrow><msub><mi>I</mi><mi>r</mi></msub><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>q</mi><mi>r</mi></msub></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{r}=-q_{r}\,\delta(t-t^{(f)})</annotation></semantics></math>
+at the moment of the firing <math id="SS4.p3.m8" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math>.
+Indeed, it is not unusual to say that
+a neuron âdischargesâ
+instead of âfiresâ.
+Since the reset happens each time the neuron fires,
+the reset current
+is
+</p>
+<table id="Ch1.E16" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E16.m1" class="ltx_Math" alttext="I_{r}=-q_{r}\,\sum_{f}\delta(t-t^{(f)})=-C\,(\vartheta-u_{r})S(t)\,," display="block"><semantics><mrow><mrow><msub><mi>I</mi><mi>r</mi></msub><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>q</mi><mi>r</mi></msub></mpadded><mo>â¢</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>C</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>-</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>S</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">I_{r}=-q_{r}\,\sum_{f}\delta(t-t^{(f)})=-C\,(\vartheta-u_{r})S(t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.16)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS4.p3.m9" class="ltx_Math" alttext="S(t)" display="inline"><semantics><mrow><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t)</annotation></semantics></math> denotes the spike train,
+defined in Eq. (<a href="#Ch1.E14" title="(1.14) â£ 1.3.3 The Threshold for Spike Firing â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.14</span></a>).</p>
+</div>
+<div id="SS4.p4" class="ltx_para">
+<p class="ltx_p">The short current pulse corresponding to
+the âdischargingâ is treated mathematically
+just
+like any other time-dependent input current.
+The total current
+<math id="SS4.p4.m1" class="ltx_Math" alttext="I(t)+I_{r}(t)" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>I</mi><mi>r</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)+I_{r}(t)</annotation></semantics></math>,
+consisting of the stimulating current and the reset current,
+is inserted into
+the solution (<a href="#Ch1.E15" title="(1.15) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.15</span></a>)
+to give the final results</p>
+<table id="Ch1.E17" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E17.m1" class="ltx_Math" alttext="u(t)=u_{\rm rest}+\sum_{(f)}(u_{r}-\vartheta)\,\exp\left(-{t-t^{(f)}\over\tau_{m%
+}}\right)  \Theta\left(t-t^{f}\right) 
++{R\over\tau_{m}}\int_{0}^{\infty}\exp\left(-{s\over\tau_{m}}\right)%
+\,I(t-s)\,{\text{d}}s\,," display="block"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>+</mo><mrow><mfrac><mi>R</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mi>s</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded></mrow></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">u(t)=u_{\rm rest}+\sum_{f}(u_{r}-\vartheta)\,\exp\left(-{t-t^{(f)}\over\tau_{m%
+}}\right)  \Theta\left(t-t^{(f)}\right) +{R\over\tau_{m}}\int_{0}^{\infty}\exp\left(-{s\over\tau_{m}}\right)%
+\,I(t-s)\,{\text{d}}s\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.17)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where the firing times <math id="SS4.p4.m2" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> are defined by the threshold condition
+</p>
+<table id="Ch1.E18" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E18.m1" class="ltx_Math" alttext="t^{(f)}=\left\{t|u(t)=\vartheta\right\}\,." display="block"><semantics><mrow><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>=</mo><mrow><mo>{</mo><mrow><mi>t</mi><mo separator="true">|</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mi>Ï</mi></mrow></mrow><mo>}</mo></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">t^{(f)}=\left\{t|u(t)=\vartheta\right\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.18)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Note that with our definition of the
+Dirac <math id="SS4.p4.m3" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function in Eq. (<a href="#Ch1.E9" title="(1.9) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.9</span></a>),
+the discharging reset
+follows immediately after the threshold crossing,
+so that the natural sequence of events â
+first firing, then reset â is respected.</p>
+</div>
+<div id="SS4.p5" class="ltx_para">
+<p class="ltx_p">Eq. (<a href="#Ch1.E17" title="(1.17) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.17</span></a>)
+looks rather complicated. It has, however,
+a simple explanation.
+In Sect. <a href="#SS2" title="1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.3.2</span></a>
+we have seen that a short input pulse at time <math id="SS4.p5.m1" class="ltx_Math" alttext="t^{\prime}" display="inline"><semantics><msup><mi>t</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">t^{\prime}</annotation></semantics></math>
+causes at time <math id="SS4.p5.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+a response of the membrane proportional to
+<math id="SS4.p5.m3" class="ltx_Math" alttext="\exp\left(-{t-t^{\prime}\over\tau_{m}}\right)" display="inline"><semantics><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\exp\left(-{t-t^{\prime}\over\tau_{m}}\right)</annotation></semantics></math>,
+sometimes called the impulse response function
+or Greenâs function; cf. Eq. (<a href="#Ch1.E11" title="(1.11) â£ 1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.11</span></a>).
+The second term on the right-hand side
+of Eq. (<a href="#Ch1.E17" title="(1.17) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.17</span></a>)
+is the effect of the discharging current pulses
+at the moment of the reset.</p>
+</div>
+<div id="SS4.p6" class="ltx_para">
+<p class="ltx_p">In order to interpret the last term on the right-hand side,
+we
+think of a stimulating current <math id="SS4.p6.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> as consisting of
+a rapid sequence of discrete and short current pulses.
+In discrete time, there would be a different current pulse
+in each time step.
+Because of the linearity of the differential equation,
+the effect of all these short current pulses
+can be added. When we return from discrete time to continuous time,
+the sum of the impulse
+response functions turns into the integral
+on the right-hand side of Eq. (<a href="#Ch1.E17" title="(1.17) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.17</span></a>).</p>
+</div>
+</section>
+<section id="SS5" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.3.5 </span>Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*)</h1>
+
+<div id="SS5.p1" class="ltx_para">
+<p class="ltx_p">The leaky integrate-and-fire model is defined
+by the differential equation (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>), i.e.,</p>
+<table id="Ch1.E19" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E19.m1" class="ltx_Math" alttext="\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,I(t)\,," display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>[</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>]</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,I(t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.19)</span></td>
+</tr>
+</table>
+<p class="ltx_p">combined with the reset condition</p>
+<table id="Ch1.E20" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E20.m1" class="ltx_Math" alttext="\lim_{\delta\to 0;\delta&gt;0}u(t^{(f)}+\delta)=u_{r}\,," display="block"><semantics><mrow><mrow><mrow><munder><mo movablelimits="false">lim</mo><mrow><mrow><mi>Î´</mi><mo>â</mo><mn>0</mn></mrow><mo>;</mo><mrow><mi>Î´</mi><mo>&gt;</mo><mn>0</mn></mrow></mrow></munder><mo>â¡</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>+</mo><mi>Î´</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><msub><mi>u</mi><mi>r</mi></msub></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\lim_{\delta\to 0;\delta&gt;0}u(t^{(f)}+\delta)=u_{r}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.20)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS5.p1.m1" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> are the firing times</p>
+<table id="Ch1.E21" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E21.m1" class="ltx_Math" alttext="t^{(f)}=\left\{t|u(t)=\vartheta\right\}\,." display="block"><semantics><mrow><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>=</mo><mrow><mo>{</mo><mrow><mi>t</mi><mo separator="true">|</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mi>Ï</mi></mrow></mrow><mo>}</mo></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">t^{(f)}=\left\{t|u(t)=\vartheta\right\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.21)</span></td>
+</tr>
+</table>
+</div>
+<div id="SS5.p2" class="ltx_para">
+<p class="ltx_p">As we have seen in the previous subsection, the linear
+equation can be integrated and yields the solution
+(<a href="#Ch1.E17" title="(1.17) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.17</span></a>). It is convenient to rewrite
+the solution in the form</p>
+<table id="Ch1.E22" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E22.m1" class="ltx_Math" alttext="u(t)=\int_{0}^{\infty}\eta(s)S(t-s)ds+\int_{0}^{\infty}\kappa(s)I(t-s)\,{\text%
+									     {d}}s\,." display="block"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded></mrow></mrow></mrow> <mo>+</mo> <msub><mi>u</mi><mi>rest</mi></msub>
+	</mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u(t)=\int_{0}^{\infty}\eta(s)S(t-s)ds+\int_{0}^{\infty}\kappa(s)I(t-s)\,{\text%
+{d}}s\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.22)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where we have introduced filters
+<math id="SS5.p2.m1" class="ltx_Math" alttext="\eta(s)=(u_{r}-\vartheta)\,\exp\left(-{s\over\tau_{m}}\right)" display="inline"><semantics><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mi>s</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\eta(s)=(u_{r}-\vartheta)\,\exp\left(-{s\over\tau_{m}}\right)</annotation></semantics></math>
+and
+<math id="SS5.p2.m2" class="ltx_Math" alttext="\kappa(s)={1\over C}\exp\left(-{s\over\tau_{m}}\right)\," display="inline"><semantics><mrow><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mfrac><mn>1</mn><mi>C</mi></mfrac><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mi>s</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\kappa(s)={1\over C}\exp\left(-{s\over\tau_{m}}\right)\,</annotation></semantics></math>.
+Interestingly,
+Eq. (<a href="#Ch1.E22" title="(1.22) â£ 1.3.5 Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.22</span></a>)
+is much more general than the leaky integrate-and-fire model,
+because the filters do not need to be exponentials
+but could have any arbitrary shape.
+The filter <math id="SS5.p2.m3" class="ltx_Math" alttext="\eta" display="inline"><semantics><mi>Î·</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math> describes the reset of the membrane
+potential and, more generally,
+accounts for neuronal refractoriness.
+The filter <math id="SS5.p2.m4" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math> summarizes the linear electrical properties
+of the membrane.
+Eq. (<a href="#Ch1.E22" title="(1.22) â£ 1.3.5 Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.22</span></a>) in combination
+with the threshold condition
+(<a href="#Ch1.E21" title="(1.21) â£ 1.3.5 Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.21</span></a>) is
+the basis of the Spike Response Model
+and Generalized Linear Models,
+which will be discussed in
+Part <a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">II</span></a>.</p>
+</div>
+</section>
+<section id="SS6" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.3.6 </span>Periodic drive and Fourier transform (*)</h1>
+
+<div id="SS6.p1" class="ltx_para">
+<p class="ltx_p">Formally, the complex Fourier transform of a real-valued function
+<math id="SS6.p1.m1" class="ltx_Math" alttext="f(t)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(t)</annotation></semantics></math> with argument <math id="SS6.p1.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> on the real line
+is</p>
+<table id="Ch1.E23" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E23.m1" class="ltx_Math" alttext="\hat{f}(\omega)=\int_{-\infty}^{\infty}f(t)\,e^{-i\omega t}{\text{d}}t=|\hat{f%
+}(\omega)|\,e^{i\phi_{f}(\omega)}" display="block"><semantics><mrow><mrow><mover accent="true"><mi>f</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></msup><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>=</mo><mrow><mrow><mo fence="true">|</mo><mrow><mover accent="true"><mi>f</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow><mo>â¢</mo><msup><mi>e</mi><mrow><mi>i</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>f</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">\hat{f}(\omega)=\int_{-\infty}^{\infty}f(t)\,e^{-i\omega t}{\text{d}}t=|\hat{f%
+}(\omega)|\,e^{i\phi_{f}(\omega)}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.23)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS6.p1.m3" class="ltx_Math" alttext="|\hat{f}(\omega)|" display="inline"><semantics><mrow><mo fence="true">|</mo><mrow><mover accent="true"><mi>f</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow><annotation encoding="application/x-tex">|\hat{f}(\omega)|</annotation></semantics></math> and <math id="SS6.p1.m4" class="ltx_Math" alttext="\phi_{f}(\omega)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>f</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi_{f}(\omega)</annotation></semantics></math>
+are called amplitude and phase of the Fourier transform
+at frequency <math id="SS6.p1.m5" class="ltx_Math" alttext="\omega" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math>.
+The mathematical condition for a well-defined Fourier transform
+is that
+the function <math id="SS6.p1.m6" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> be Lebesgue integrable
+with integral <math id="SS6.p1.m7" class="ltx_Math" alttext="\int_{-\infty}^{\infty}|f(t)|{\text{d}}t&lt;\infty" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mrow><mo fence="true">|</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>&lt;</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">\int_{-\infty}^{\infty}|f(t)|{\text{d}}t&lt;\infty</annotation></semantics></math>.
+If <math id="SS6.p1.m8" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> is a function of time, then <math id="SS6.p1.m9" class="ltx_Math" alttext="\hat{f}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>f</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{f}(\omega)</annotation></semantics></math> is
+a function of frequency. An inverse Fourier transform
+leads back from frequency-space to the original space, i.e.,
+time.</p>
+</div>
+<div id="SS6.p2" class="ltx_para">
+<p class="ltx_p">For a linear system, the above definition gives rise to several
+convenient rules for Fourier-transformed equations.
+For example, let us consider the system</p>
+<table id="Ch1.E24" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E24.m1" class="ltx_Math" alttext="u(t)=\int_{-\infty}^{\infty}\kappa(s)\,I(t-s)\,{\text{d}}s\,," display="block"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">u(t)=\int_{-\infty}^{\infty}\kappa(s)\,I(t-s)\,{\text{d}}s\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.24)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS6.p2.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> is a real-valued input (e.g., a current),
+<math id="SS6.p2.m2" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math> the real-valued system output (e.g., a voltage)
+and <math id="SS6.p2.m3" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math> a linear response filter, or kernel,
+with <math id="SS6.p2.m4" class="ltx_Math" alttext="\kappa(s)=0" display="inline"><semantics><mrow><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa(s)=0</annotation></semantics></math> for <math id="SS6.p2.m5" class="ltx_Math" alttext="s&lt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&lt;0</annotation></semantics></math> because of causality.
+The convolution on
+the right-hand side of Eq. (<a href="#Ch1.E24" title="(1.24) â£ 1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.24</span></a>)
+turns after Fourier transformation into a simple multiplication,
+as shown by the following steps of calculation:</p>
+<table id="Ch20.S4.EGx1" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch1.E25" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch1.Ex1.m1" class="ltx_Math" alttext="\displaystyle\hat{u}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>u</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\hat{u}(\omega)</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch1.Ex1.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch1.Ex1.m3" class="ltx_Math" alttext="\displaystyle\int_{-\infty}^{\infty}\left[\int_{-\infty}^{\infty}\kappa(s)\,I(%
+t-s)\,{\text{d}}s\right]\,\,e^{-i\omega t}{\text{d}}t" display="inline"><semantics><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mpadded width="+3.4pt"><mrow><mo>[</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></msup><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\int_{-\infty}^{\infty}\left[\int_{-\infty}^{\infty}\kappa(s)\,I(%
+t-s)\,{\text{d}}s\right]\,\,e^{-i\omega t}{\text{d}}t</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="3" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.25)</span></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch1.Ex2.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch1.Ex2.m3" class="ltx_Math" alttext="\displaystyle\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}\kappa(s)e^{-i%
+\omega s}\,I(t-s)\,e^{-i\omega(t-s)}{\text{d}}s{\text{d}}t" display="inline"><semantics><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>s</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow></mrow></msup><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}\kappa(s)e^{-i%
+\omega s}\,I(t-s)\,e^{-i\omega(t-s)}{\text{d}}s{\text{d}}t</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch1.E25.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch1.E25.m3" class="ltx_Math" alttext="\displaystyle\hat{\kappa}(\omega)\,\hat{I}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>Îº</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mover accent="true"><mi>I</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\hat{\kappa}(\omega)\,\hat{I}(\omega)</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">where we introduced in the last step the variable <math id="SS6.p2.m6" class="ltx_Math" alttext="t^{\prime}=t-s" display="inline"><semantics><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">t^{\prime}=t-s</annotation></semantics></math>
+and used the definition (<a href="#Ch1.E23" title="(1.23) â£ 1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.23</span></a>)
+of the Fourier transform.</p>
+</div>
+<div id="SS6.p3" class="ltx_para">
+<p class="ltx_p">Similarly, the derivative <math id="SS6.p3.m1" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math>
+of a function <math id="SS6.p3.m2" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math> can be Fourier-transformed
+using the product rule of integration.
+The Fourier transform of the derivative of <math id="SS6.p3.m3" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math>
+is <math id="SS6.p3.m4" class="ltx_Math" alttext="i\omega\hat{u}(\omega)" display="inline"><semantics><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mover accent="true"><mi>u</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">i\omega\hat{u}(\omega)</annotation></semantics></math>.</p>
+</div>
+<div id="SS6.p4" class="ltx_para">
+<p class="ltx_p">While introduced here as a purely mathematical operation,
+it is often convenient to visualize the Fourier transform
+in the context of a physical system driven by a periodic input.
+Consider the linear system of Eq. (<a href="#Ch1.E24" title="(1.24) â£ 1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.24</span></a>)
+with an input</p>
+<table id="Ch1.E26" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E26.m1" class="ltx_Math" alttext="I(t)=I_{0}\,e^{i\omega t}\,." display="block"><semantics><mrow><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>I</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>t</mi></mrow></msup></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I(t)=I_{0}\,e^{i\omega t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.26)</span></td>
+</tr>
+</table>
+<p class="ltx_p">A short comment on the notation.
+If the input is a current, it should be real-valued,
+as opposed to a complex number.
+We therefore take <math id="SS6.p4.m1" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> as a real and positive number
+and focus on the <span class="ltx_text ltx_font_italic">real part</span> of the complex equation
+(<a href="#Ch1.E26" title="(1.26) â£ 1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.26</span></a>) as our physical input.
+When we perform a calculation with complex numbers,
+we therefore implicitly assume that, at the very
+end, we only take the real part of solution. However, the calculation
+with complex numbers turns out to be convenient for the steps in between.</p>
+</div>
+<div id="SS6.p5" class="ltx_para">
+<p class="ltx_p">Inserting the periodic drive, Eq. (<a href="#Ch1.E26" title="(1.26) â£ 1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.26</span></a>),
+into Eq. (<a href="#Ch1.E24" title="(1.24) â£ 1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.24</span></a>) yields</p>
+<table id="Ch20.S4.EGx2" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch1.E27" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch1.E27.m1" class="ltx_Math" alttext="\displaystyle u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle u(t)</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch1.E27.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch1.E27.m3" class="ltx_Math" alttext="\displaystyle\int_{-\infty}^{\infty}\kappa(s)\,I_{0}e^{i\omega(t-s)}\,{\text{d%
+}}s=\left[\int_{-\infty}^{\infty}\kappa(s)\,e^{-i\omega s}\,{\text{d}}s\right]%
+\,I_{0}e^{i\omega t}\,." display="inline"><semantics><mrow><mrow><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow></msup></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>s</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>t</mi></mrow></msup></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle\int_{-\infty}^{\infty}\kappa(s)\,I_{0}e^{i\omega(t-s)}\,{\text{d%
+}}s=\left[\int_{-\infty}^{\infty}\kappa(s)\,e^{-i\omega s}\,{\text{d}}s\right]%
+\,I_{0}e^{i\omega t}\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.27)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Hence, if the input is periodic at frequency <math id="SS6.p5.m1" class="ltx_Math" alttext="\omega" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math> the output is so, too.
+The term in square brackets is the Fourier transform of the linear filter.
+We write <math id="SS6.p5.m2" class="ltx_Math" alttext="u(t)=u_{0}\,e^{i\phi_{\kappa}(\omega)}\,e^{i\omega t}" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>u</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mi>i</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>Îº</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></msup></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>t</mi></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">u(t)=u_{0}\,e^{i\phi_{\kappa}(\omega)}\,e^{i\omega t}</annotation></semantics></math>.
+The ratio between the amplitude of the output and that of the input
+is</p>
+<table id="Ch1.E28" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E28.m1" class="ltx_Math" alttext="{u_{0}\over I_{0}}=|\hat{\kappa}(\omega)|\,." display="block"><semantics><mrow><mrow><mfrac><msub><mi>u</mi><mn>0</mn></msub><msub><mi>I</mi><mn>0</mn></msub></mfrac><mo>=</mo><mrow><mo fence="true">|</mo><mrow><mover accent="true"><mi>Îº</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{u_{0}\over I_{0}}=|\hat{\kappa}(\omega)|\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.28)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The phase <math id="SS6.p5.m3" class="ltx_Math" alttext="\phi_{\kappa}(\omega)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>Îº</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi_{\kappa}(\omega)</annotation></semantics></math>
+of the
+Fourier-transformed linear filter <math id="SS6.p5.m4" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+corresponds to phase shift between input and output
+or, to say it differently, a delay
+<math id="SS6.p5.m5" class="ltx_Math" alttext="\Delta=\phi_{\kappa}/\omega=\phi_{\kappa}\,T/2\pi" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>=</mo><mrow><msub><mi>Ï</mi><mi>Îº</mi></msub><mo>/</mo><mi>Ï</mi></mrow><mo>=</mo><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>Îº</mi></msub></mpadded><mo>â¢</mo><mi>T</mi></mrow><mo>/</mo><mn>2</mn></mrow><mo>â¢</mo><mi>Ï</mi></mrow></mrow><annotation encoding="application/x-tex">\Delta=\phi_{\kappa}/\omega=\phi_{\kappa}\,T/2\pi</annotation></semantics></math>
+where <math id="SS6.p5.m6" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> is the period of the oscillation.
+Fourier transforms will play a role
+in the discussion of signal processing properties
+of connected networks of neurons in Part III of the book.</p>
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Periodic drive of a passive membrane</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We consider the differential equation of the passive membrane
+defined in Eq. (<a href="#Ch1.E5" title="(1.5) â£ 1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>) and choose
+voltage units such that <math id="SS6.p5.m7" class="ltx_Math" alttext="u_{\rm rest}=0" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">rest</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">u_{\rm rest}=0</annotation></semantics></math>, i.e.,</span>
+              </p>
+<table id="Ch1.E29" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E29.m1" class="ltx_Math" alttext="\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-u(t)+R\,I(t)\,." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mfrac><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>u</mi></mrow><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-u(t)+R\,I(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.29)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The solution, given by Eq. (<a href="#Ch1.E15" title="(1.15) â£ 1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.15</span></a>),
+corresponds to the convolution of the input
+<math id="SS6.p5.m8" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> with a causal linear filter
+<math id="SS6.p5.m9" class="ltx_Math" alttext="\kappa(s)=(1/C)\,e^{(-s/\tau_{m})}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">C</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" stretchy="false">e</mi><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mrow><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">\kappa(s)=(1/C)\,e^{(-s/\tau_{m})}</annotation></semantics></math> for <math id="SS6.p5.m10" class="ltx_Math" alttext="s&gt;0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">s&gt;0</annotation></semantics></math>.
+In order to determine the response amplitude
+<math id="SS6.p5.m11" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math> to a periodic drive <math id="SS6.p5.m12" class="ltx_Math" alttext="I(t)=I_{0}\,e^{i\omega t}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" stretchy="false">e</mi><mrow><mi mathsize="normal" stretchy="false">i</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">I(t)=I_{0}\,e^{i\omega t}</annotation></semantics></math>
+we need to calculate the Fourier transform of <math id="SS6.p5.m13" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi mathsize="normal" stretchy="false">Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>:</span>
+              </p>
+<table id="Ch20.S4.EGx3" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch1.E30" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch1.E30.m1" class="ltx_Math" alttext="\displaystyle|\hat{\kappa}(\omega)|" display="inline"><semantics><mrow><mo fence="true">|</mo><mrow><mover accent="true"><mi>Îº</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo fence="true">|</mo></mrow><annotation encoding="application/x-tex">\displaystyle|\hat{\kappa}(\omega)|</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch1.E30.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch1.E30.m3" class="ltx_Math" alttext="\displaystyle\left|{1\over C}\int_{0}^{\infty}e^{-t\over\tau_{m}}\,e^{-i\omega
+t%
+}\,{\text{d}}t\right|={1\over C}\left|{\tau_{m}\over 1+i\omega\tau_{m}}\right|\,." display="inline"><semantics><mrow><mrow><mrow><mo fence="true">|</mo><mrow><mstyle displaystyle="true"><mfrac><mn>1</mn><mi>C</mi></mfrac></mstyle><mo>â¢</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mpadded width="+1.7pt"><msup><mi>e</mi><mfrac><mrow><mo>-</mo><mi>t</mi></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></msup></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><mrow><mtext>Â                                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                        Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo fence="true">|</mo></mrow><mo>=</mo><mrow><mstyle displaystyle="true"><mfrac><mn>1</mn><mi>C</mi></mfrac></mstyle><mo>â¢</mo><mrow><mo fence="true">|</mo><mstyle displaystyle="true"><mfrac><msub><mi>Ï</mi><mi>m</mi></msub><mrow><mn>1</mn><mo>+</mo><mrow><mi>i</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow></mfrac></mstyle><mo fence="true">|</mo></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle\left|{1\over C}\int_{0}^{\infty}e^{-t\over\tau_{m}}\,e^{-i\omega
+t%
+}\,{\text{d}}t\right|={1\over C}\left|{\tau_{m}\over 1+i\omega\tau_{m}}\right|\,.</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.30)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">For <math id="SS6.p5.m14" class="ltx_Math" alttext="\omega\tau_{m}\gg 1" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub></mrow><mo mathsize="normal" stretchy="false">â«</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">\omega\tau_{m}\gg 1</annotation></semantics></math> the right-hand side is proportional
+to <math id="SS6.p5.m15" class="ltx_Math" alttext="\omega^{-1}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">Ï</mi><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup><annotation encoding="application/x-tex">\omega^{-1}</annotation></semantics></math>. Therefore the amplitude of the response
+to a periodic input
+decreases at high frequencies.</span>
+              </p>
+</span>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch1.S2.html" title="1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.2 </span>Elements of Neuronal Dynamics</span></a><a href="Ch1.S4.html" title="1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4 </span>Limitations of the Leaky Integrate-and-Fire Model</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

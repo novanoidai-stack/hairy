@@ -2290,6 +2290,17 @@ function TabSoporte({ account }: { account: AccountInfo | null }) {
 
   return (
     <>
+      <div style={{ marginBottom: 16, padding: '14px 18px', background: 'rgba(244,80,30,0.06)', border: '1px solid rgba(244,80,30,0.22)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 2 }}>📚 Centro de Ayuda y Manuales de Mecha</div>
+          <div style={{ fontSize: 12.5, color: T.textSec }}>Consulta guías paso a paso de cada módulo, preguntas frecuentes o pregunta directamente a Chispa por voz o chat.</div>
+        </div>
+        <a href="/ayuda" style={{ padding: '8px 14px', borderRadius: 10, background: T.primary, color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span>Ir a Ayuda & Manuales</span>
+          <span>→</span>
+        </a>
+      </div>
+
       {/* Hero de soporte */}
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 16,

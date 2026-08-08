@@ -1,0 +1,603 @@
+<!DOCTYPE html><html>
+<head>
+<title>9.4 From noisy inputs to escape noise | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch9.S3.html" title="9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch9.S5.html" title="9.5 Summary â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch9.S1.html" title="9.1 Escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch9.S2.html" title="9.2 Likelihood of a spike train â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch9.S3.html" title="9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch9.S5.html" title="9.5 Summary â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch9.Sx1.html" title="Literature â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch9.Sx2.html" title="Exercises â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="Arrhenius &amp; Current model, Arrhenius formula, Poisson process, inhomogeneous, resonance, signal-to-noise ratio, stochastic">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9 </span>Noisy Output: Escape Rate and Soft Threshold</span></a><a href="Ch9.S3.html" title="9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.3 </span>Renewal Approximation of the Spike Response Model</span></a><a href="Ch9.S5.html" title="9.5 Summary â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.5 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">9.4 </span>From noisy inputs to escape noise</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">The total input current <math id="p1.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> which drives a neuron
+can often be separated into a
+deterministic component <math id="p1.m2" class="ltx_Math" alttext="I^{\rm det}" display="inline"><semantics><msup><mi>I</mi><mi>det</mi></msup><annotation encoding="application/x-tex">I^{\rm det}</annotation></semantics></math>, which is known and
+repeats between one trial and the next;
+and a stochastic component <math id="p1.m3" class="ltx_Math" alttext="\xi" display="inline"><semantics><mi>Î¾</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math> which
+is unknown and potentially changes
+between trials:</p>
+<table id="Ch9.E25" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E25.m1" class="ltx_Math" alttext="I(t)=I^{\rm det}(t)+\xi(t)\,." display="block"><semantics><mrow><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msup><mi>I</mi><mi>det</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>Î¾</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I(t)=I^{\rm det}(t)+\xi(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.25)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In this section we show that the
+noisy, unknown part in the input
+can be approximated to a high degree
+of accuracy by an appropriately chosen escape function.</p>
+</div>
+<div id="p2" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Adaptive exponential integrate-and-fire model with noisy input</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Suppose that the AdEx model which we have encountered
+in ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> (see
+Eqs. (<a href="Ch6.S1.html#Ch6.E3" title="(6.3) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.3</span></a>) and (<a href="Ch6.S1.html#Ch6.E4" title="(6.4) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.4</span></a>)
+in Section <a href="Ch6.S1.html" title="6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.1</span></a>)
+is driven by
+an input as in Eq. (<a href="#Ch9.E25" title="(9.25) â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.25</span></a>)
+containing a rapidly moving
+deterministic signal <math id="p2.m1" class="ltx_Math" alttext="I^{\rm det}(t)" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">det</mi></msup><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">I^{\rm det}(t)</annotation></semantics></math>
+as well as a white noise component <math id="p2.m2" class="ltx_Math" alttext="\xi(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î¾</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\xi(t)</annotation></semantics></math>.
+This model generates spikes with
+a millisecond precision and
+a high degree of reliability from one
+trial to the next
+(Fig.Â <a href="#Ch9.F9" title="Fig.Â 9.9 â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.9</span></a>).
+We now approximate the voltage
+of the AdEx model
+by a linear model</span>
+            </p>
+<table id="Ch20.S4.EGx56" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch9.E26" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                      <math id="Ch9.E26.m1" class="ltx_Math" alttext="\displaystyle u(t)=\sum_{f}\eta(t-t_{i}^{(f)})+\int_{0}^{\infty}\kappa(s)\,I^{%
+\rm det}(t-s)\,{\text{d}}s+u_{\rm rest}\,." display="inline"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder></mstyle><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow></mrow><mo>+</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>I</mi><mi>det</mi></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><msub><mi>u</mi><mi>rest</mi></msub></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle u(t)=\sum_{f}\eta(t-t_{i}^{(f)})+\int_{0}^{\infty}\kappa(s)\,I^{%
+\rm det}(t-s)\,{\text{d}}s+u_{\rm rest}\,.</annotation></semantics></math>
+                    </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.26)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">In the subthreshold regime
+<math id="p2.m3" class="ltx_Math" alttext="u&lt;\vartheta-\Delta_{T}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">T</mi></msub></mrow></mrow><annotation encoding="application/x-tex">u&lt;\vartheta-\Delta_{T}</annotation></semantics></math>, the
+filters <math id="p2.m4" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi mathsize="normal" stretchy="false">Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math> and <math id="p2.m5" class="ltx_Math" alttext="\eta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î·</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math> can be calculated analytically
+using the methods discussed in ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.
+The voltage equation (<a href="#Ch9.E26" title="(9.26) â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.26</span></a>)
+is then combined with the exponential escape rate</span>
+            </p>
+<table id="Ch9.E27" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E27.m1" class="ltx_Math" alttext="f(u-\vartheta)={1\over\tau_{0}}\,\exp[\beta\,(u-\vartheta)]\,." display="block"><semantics><mrow><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><msub><mi>Ï</mi><mn>0</mn></msub></mfrac></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mrow><mpadded width="+1.7pt"><mi>Î²</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">f(u-\vartheta)={1\over\tau_{0}}\,\exp[\beta\,(u-\vartheta)]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.27)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">The resulting SRM with escape noise
+(i.e., a linear model with exponential soft-threshold noise in the output)
+describes the activity
+of the AdEx with noisy input
+(i.e., an exponential neuron model with additive white noise
+in the input) surprisingly well
+(Fig.Â <a href="#Ch9.F9" title="Fig.Â 9.9 â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.9</span></a>).
+In other words, in the presence of
+an input noise <math id="p2.m6" class="ltx_Math" alttext="\xi(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î¾</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\xi(t)</annotation></semantics></math> the exponential term in the voltage
+equation of the AdEx model can be replaced
+by an exponential escape rate
+<cite class="ltx_cite">(<a href="bib.html#bib207" title="From stochastic nonlinear integrate-and-fire to generalized linear models" class="ltx_ref">339</a>)</cite>.</span>
+            </p>
+</span>
+</div>
+<figure id="Ch9.F9" class="ltx_figure">
+<p class="ltx_p ltx_align_center">
+            <img src="x650.png" id="Ch9.F9.g1" class="ltx_graphics" width="589" height="335" alt="">
+          </p>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 9.9: </span>
+From input noise to output noise.
+<span class="ltx_text ltx_font_bold">A</span>. An AdEx model neuron is driven by a fluctuating current
+containing a deterministic part which is the same during each trial
+and a stochastic white-noise part.
+<span class="ltx_text ltx_font_bold">B</span>.
+Voltage trace of the AdEx model (black)
+and the SRM with exponential escape rate (gray)
+during a single trial. The SRM is driven by the determinstic part of the input
+current.
+<span class="ltx_text ltx_font_bold">C</span>. Spike times during 20 trials
+with the same determinstic current for the AdEx model (black) and
+SRM with exponential escape noise (gray).
+For the AdEx the stochasticity arises from white noise in the input
+whereas for the SRM it arises from escape noise in the output.
+<span class="ltx_text ltx_font_bold">D</span>.
+Comparison of the PSTH of the AdEx model (black)
+with that of the SRM (gray).
+Adapted from Mensi et al. (2011). <cite class="ltx_cite"></cite>
+</figcaption>
+</figure>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">9.4.1 </span>Leaky integrate-and-fire model with noisy input</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">In the subthreshold regime, the leaky
+integrate-and-fire model with stochastic input
+(white noise) can be mapped approximately onto an escape noise model with
+a certain escape rate <math id="SS1.p1.m1" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> <cite class="ltx_cite">(<a href="bib.html#bib196" title="Noise in integrate-and-fire models: from stochastic input to escape rates." class="ltx_ref">403</a>)</cite>. In this section, we
+motivate the mapping and the choice of <math id="SS1.p1.m2" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">In the absence of a threshold, the membrane potential of an integrate-and-fire
+model has a Gaussian probability distribution around the noise-free reference
+trajectory <math id="SS1.p2.m1" class="ltx_Math" alttext="u_{0}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{0}(t)</annotation></semantics></math>. If we take the threshold into account, the probability
+density at <math id="SS1.p2.m2" class="ltx_Math" alttext="u=\vartheta" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u=\vartheta</annotation></semantics></math> of the exact solution vanishes, since the threshold
+acts as an absorbing boundary; see Eq.Â (<a href="Ch8.S4.html#Ch8.E44" title="(8.44) â£ 8.4.1 Threshold and firing â£ 8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.44</span></a>). Nevertheless, in
+a phenomenological model, we can approximate the probability density near
+<math id="SS1.p2.m3" class="ltx_Math" alttext="u=\vartheta" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u=\vartheta</annotation></semantics></math> by the âfreeâ distribution
+(i.e., without the threshold)</p>
+<table id="Ch9.E28" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E28.m1" class="ltx_Math" alttext="{\rm Prob}\big\{u~{}{\rm reaches~{}}\vartheta~{}{\rm in}~{}[t,t+\Delta t]\big%
+\}\propto\Delta t\,\exp\left\{-{[u_{0}(t)-\vartheta]^{2}\over 2\langle\Delta u%
+^{2}(t)\rangle}\right\}\,," display="block"><semantics><mrow><mrow><mrow><mi>Prob</mi><mo>â¢</mo><mrow><mo>{</mo><mrow><mpadded width="+3.3pt"><mi>u</mi></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>reaches</mi></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>in</mi></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>t</mi><mo>,</mo><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow></mrow><mo>}</mo></mrow></mrow><mo>â</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>{</mo><mrow><mo>-</mo><mfrac><msup><mrow><mo>[</mo><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>Ï</mi></mrow><mo>]</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><mo>â¢</mo><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow></mrow></mfrac></mrow><mo>}</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">{\rm Prob}\big\{u~{}{\rm reaches~{}}\vartheta~{}{\rm in}~{}[t,t+\Delta t]\big%
+\}\propto\Delta t\,\exp\left\{-{[u_{0}(t)-\vartheta]^{2}\over 2\langle\Delta u%
+^{2}(t)\rangle}\right\}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.28)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS1.p2.m4" class="ltx_Math" alttext="u_{0}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{0}(t)</annotation></semantics></math> is the noise-free reference trajectory. The idea is
+illustrated in Fig.Â <a href="#Ch9.F10" title="Fig.Â 9.10 â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.10</span></a>.
+We note that in a leaky integrate-and-fire model
+with colored noise in the input (as opposed to white noise)
+the density at threshold is <span class="ltx_text ltx_font_italic">not</span> zero.</p>
+</div>
+<figure id="Ch9.F10" class="ltx_figure">
+<p class="ltx_p ltx_align_center"><img src="x651.png" id="Ch9.F10.g1" class="ltx_graphics" width="442" height="347" alt=""></p>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 9.10: </span>
+The distribution of the membrane potential around the noise free reference
+trajectory <math id="Ch9.F10.m5" class="ltx_Math" alttext="u_{0}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{0}(t)</annotation></semantics></math> is given by <math id="Ch9.F10.m6" class="ltx_Math" alttext="p(u,t)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u,t)</annotation></semantics></math>. At <math id="Ch9.F10.m7" class="ltx_Math" alttext="t=t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t=t_{0}</annotation></semantics></math>, where the
+reference trajectory has a discontinuity, the
+distribution of the membrane potential is shifted instantaneously
+across the threshold. The probability of firing at <math id="Ch9.F10.m8" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> is given by the
+shaded surface under the distribution.</figcaption>
+</figure>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">We have seen in Eq.Â (<a href="Ch8.S1.html#Ch8.E13" title="(8.13) â£ 8.1.2 Noisy versus noiseless membrane potential â£ 8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.13</span></a>) that the variance <math id="SS1.p3.m1" class="ltx_Math" alttext="\langle\Delta u^{2}(t)\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle\Delta u^{2}(t)\rangle</annotation></semantics></math> of the free distribution rapidly approaches a constant value
+<math id="SS1.p3.m2" class="ltx_Math" alttext="\sigma^{2}/2" display="inline"><semantics><mrow><msup><mi>Ï</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\sigma^{2}/2</annotation></semantics></math>
+where <math id="SS1.p3.m3" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math> scales the strength of the diffusive input.
+We therefore replace the time dependent variance <math id="SS1.p3.m4" class="ltx_Math" alttext="2\langle\Delta u(t)^{2}\rangle" display="inline"><semantics><mrow><mn>2</mn><mo>â¢</mo><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi><mo>â¢</mo><msup><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow><mn>2</mn></msup></mrow><mo>â©</mo></mrow></mrow><annotation encoding="application/x-tex">2\langle\Delta u(t)^{2}\rangle</annotation></semantics></math> by its stationary value <math id="SS1.p3.m5" class="ltx_Math" alttext="\sigma^{2}" display="inline"><semantics><msup><mi>Ï</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^{2}</annotation></semantics></math>. The right-hand side
+of
+Eq.Â (<a href="#Ch9.E28" title="(9.28) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.28</span></a>) is then a function of the noise-free reference
+trajectory only. In order to transform the left-hand side of
+Eq.Â (<a href="#Ch9.E28" title="(9.28) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.28</span></a>) into an escape rate, we divide both sides by <math id="SS1.p3.m6" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>. The firing intensity is thus</p>
+<table id="Ch9.E29" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E29.m1" class="ltx_Math" alttext="f(u_{0}-\vartheta)={c_{1}\over\tau_{m}}\,\exp\left\{-{[u_{0}(t)-\vartheta]^{2}%
+\over\sigma^{2}}\right\}\,." display="block"><semantics><mrow><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><msub><mi>c</mi><mn>1</mn></msub><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>{</mo><mrow><mo>-</mo><mfrac><msup><mrow><mo>[</mo><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>Ï</mi></mrow><mo>]</mo></mrow><mn>2</mn></msup><msup><mi>Ï</mi><mn>2</mn></msup></mfrac></mrow><mo>}</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">f(u_{0}-\vartheta)={c_{1}\over\tau_{m}}\,\exp\left\{-{[u_{0}(t)-\vartheta]^{2}%
+\over\sigma^{2}}\right\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.29)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The factor in front of the exponential has been split into a constant
+parameter <math id="SS1.p3.m7" class="ltx_Math" alttext="c_{1}&gt;0" display="inline"><semantics><mrow><msub><mi>c</mi><mn>1</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c_{1}&gt;0</annotation></semantics></math> and the time constant <math id="SS1.p3.m8" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi>Ï</mi><mi>m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math> of the neuron in order to
+show that the escape rate has units of one over time.
+EquationÂ (<a href="#Ch9.E29" title="(9.29) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.29</span></a>) is the well-known
+Arrhenius formula
+ for escape across a barrier of height
+<math id="SS1.p3.m9" class="ltx_Math" alttext="(\vartheta-u_{0})^{2}" display="inline"><semantics><msup><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>-</mo><msub><mi>u</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow><mn>2</mn></msup><annotation encoding="application/x-tex">(\vartheta-u_{0})^{2}</annotation></semantics></math> in the presence of thermal energy <math id="SS1.p3.m10" class="ltx_Math" alttext="\sigma^{2}" display="inline"><semantics><msup><mi>Ï</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^{2}</annotation></semantics></math>
+<cite class="ltx_cite">(<a href="bib.html#bib180" title="Stochastic processes in physics and chemistry" class="ltx_ref">529</a>)</cite>.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">Let us now suppose that the neuron receives, at <math id="SS1.p4.m1" class="ltx_Math" alttext="t=t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t=t_{0}</annotation></semantics></math>, an input current
+pulse which causes a jump of the membrane trajectory by an amount <math id="SS1.p4.m2" class="ltx_Math" alttext="\Delta u&gt;0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta u&gt;0</annotation></semantics></math>; see Fig.Â (<a href="#Ch9.F10" title="Fig.Â 9.10 â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.10</span></a>). In this case the Gaussian distribution of
+membrane potentials is shifted <span class="ltx_text ltx_font_italic">instantaneously</span> across the threshold so
+that there is a nonzero probability that the neuron fires exactly at <math id="SS1.p4.m3" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>.
+To say it differently, the firing intensity <math id="SS1.p4.m4" class="ltx_Math" alttext="\rho(t)=f[u_{0}(t)-\vartheta]" display="inline"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>Ï</mi></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho(t)=f[u_{0}(t)-\vartheta]</annotation></semantics></math>
+has a <math id="SS1.p4.m5" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> peak at <math id="SS1.p4.m6" class="ltx_Math" alttext="t=t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t=t_{0}</annotation></semantics></math>. The escape rate of Eq.Â (<a href="#Ch9.E29" title="(9.29) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.29</span></a>),
+however, cannot reproduce this <math id="SS1.p4.m7" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> peak. More generally, whenever the
+noise free reference trajectory increases with slope <math id="SS1.p4.m8" class="ltx_Math" alttext="\dot{u}_{0}&gt;0" display="inline"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mn>0</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{u}_{0}&gt;0</annotation></semantics></math>, we expect
+an increase of the instantaneous rate proportional to <math id="SS1.p4.m9" class="ltx_Math" alttext="\dot{u}_{0}" display="inline"><semantics><msub><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mn>0</mn></msub><annotation encoding="application/x-tex">\dot{u}_{0}</annotation></semantics></math>, because the
+tail of the Gaussian distribution drifts across the threshold; cf.
+Eq.Â (<a href="Ch8.S3.html#Ch8.E35" title="(8.35) â£ 8.3 Subthreshold vs. Superthreshold regime â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.35</span></a>). In order to take the drift into account, we
+generalize Eq.Â (<a href="#Ch9.E29" title="(9.29) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.29</span></a>) and study</p>
+<table id="Ch9.E30" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E30.m1" class="ltx_Math" alttext="f(u_{0},\dot{u}_{0})=\left({c_{1}\over\tau_{m}}+{c_{2}\over\sigma}[\dot{u}_{0}%
+]_{+}\right)\,\exp\left\{-{[u_{0}(t)-\vartheta]^{2}\over\sigma^{2}}\right\}\,," display="block"><semantics><mrow><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>,</mo><msub><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mfrac><msub><mi>c</mi><mn>1</mn></msub><msub><mi>Ï</mi><mi>m</mi></msub></mfrac><mo>+</mo><mrow><mfrac><msub><mi>c</mi><mn>2</mn></msub><mi>Ï</mi></mfrac><mo>â¢</mo><msub><mrow><mo>[</mo><msub><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mn>0</mn></msub><mo>]</mo></mrow><mo>+</mo></msub></mrow></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>{</mo><mrow><mo>-</mo><mfrac><msup><mrow><mo>[</mo><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>Ï</mi></mrow><mo>]</mo></mrow><mn>2</mn></msup><msup><mi>Ï</mi><mn>2</mn></msup></mfrac></mrow><mo>}</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">f(u_{0},\dot{u}_{0})=\left({c_{1}\over\tau_{m}}+{c_{2}\over\sigma}[\dot{u}_{0}%
+]_{+}\right)\,\exp\left\{-{[u_{0}(t)-\vartheta]^{2}\over\sigma^{2}}\right\}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.30)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS1.p4.m10" class="ltx_Math" alttext="\dot{u}_{0}={\text{d}}u_{0}/{\text{d}}t" display="inline"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mn>0</mn></msub><mo>=</mo><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>u</mi><mn>0</mn></msub></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">\dot{u}_{0}={\text{d}}u_{0}/{\text{d}}t</annotation></semantics></math> and <math id="SS1.p4.m11" class="ltx_Math" alttext="[x]_{+}=x" display="inline"><semantics><mrow><msub><mrow><mo>[</mo><mi>x</mi><mo>]</mo></mrow><mo>+</mo></msub><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">[x]_{+}=x</annotation></semantics></math> for <math id="SS1.p4.m12" class="ltx_Math" alttext="x&gt;0" display="inline"><semantics><mrow><mi>x</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x&gt;0</annotation></semantics></math> and zero
+otherwise. We call Eq.Â (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>) the Arrhenius&amp;Current model
+ <cite class="ltx_cite">(<a href="bib.html#bib196" title="Noise in integrate-and-fire models: from stochastic input to escape rates." class="ltx_ref">403</a>)</cite>.</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">We emphasize that the right-hand side of Eq.Â (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>) depends only on the
+dimensionless variable</p>
+<table id="Ch9.E31" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E31.m1" class="ltx_Math" alttext="x(t)={u_{0}(t)-\vartheta\over\sigma}\,," display="block"><semantics><mrow><mrow><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><mfrac><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>Ï</mi></mrow><mi>Ï</mi></mfrac></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">x(t)={u_{0}(t)-\vartheta\over\sigma}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.31)</span></td>
+</tr>
+</table>
+<p class="ltx_p">and its derivative <math id="SS1.p5.m1" class="ltx_Math" alttext="\dot{x}" display="inline"><semantics><mover accent="true"><mi>x</mi><mo>Ë</mo></mover><annotation encoding="application/x-tex">\dot{x}</annotation></semantics></math>. Thus the amplitude of the fluctuations <math id="SS1.p5.m2" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+define a ânaturalâ voltage scale. The only relevant variable is the momentary
+distance of the noise-free trajectory from the threshold in units of the noise
+amplitude <math id="SS1.p5.m3" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>. A value of <math id="SS1.p5.m4" class="ltx_Math" alttext="x=-1" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo>-</mo><mn>1</mn></mrow></mrow><annotation encoding="application/x-tex">x=-1</annotation></semantics></math> implies that the membrane potential is
+one <math id="SS1.p5.m5" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math> below threshold. A distance of <math id="SS1.p5.m6" class="ltx_Math" alttext="u-\vartheta=-10" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>=</mo><mrow><mo>-</mo><mn>10</mn></mrow></mrow><annotation encoding="application/x-tex">u-\vartheta=-10</annotation></semantics></math>âmV at high
+noise (e.g., <math id="SS1.p5.m7" class="ltx_Math" alttext="\sigma=10" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">\sigma=10</annotation></semantics></math>âmV) is as effective in firing a cell as a distance
+of 1Â mV at low noise (<math id="SS1.p5.m8" class="ltx_Math" alttext="\sigma=1" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\sigma=1</annotation></semantics></math>âmV).</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Comparison of diffusion model
+and Arrhenius&amp;Current escape rate</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">To check the validity of the arguments that led to Eq.Â (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>), let us
+compare the interval distribution generated by the diffusion model with that
+generated by the Arrhenius&amp;Current escape model. We use the same input
+potential <math id="SS1.p6.m1" class="ltx_Math" alttext="u_{0}(t)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{0}(t)</annotation></semantics></math> as in Fig.Â <a href="Ch8.S4.html#Ch8.F10" title="Fig.Â 8.10 â£ 8.4.2 Interval distribution for the diffusive noise model â£ 8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.10</span></a>. We find that the interval
+distribution for the diffusive white noise model (derived from
+stochastic spike arrival; see ChapterÂ <a href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a>)
+and that for the Arrhenius&amp;Current escape model are nearly identical; cf.
+Fig.Â (<a href="#Ch9.F11" title="Fig.Â 9.11 â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.11</span></a>). Thus the Arrhenius&amp;Current escape model yields
+an excellent approximation to the diffusive noise model.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Even though the Arrhenius&amp;Current model has been designed for
+subthreshold stimuli, it also works remarkably well for superthreshold
+stimuli. An obvious shortcoming of the
+escape rate (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>) is that the instantaneous rate decreases with <math id="SS1.p6.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> for
+<math id="SS1.p6.m3" class="ltx_Math" alttext="u&gt;\vartheta" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">&gt;</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow><annotation encoding="application/x-tex">u&gt;\vartheta</annotation></semantics></math>. The superthreshold behavior can be corrected if we replace the
+Gaussian <math id="SS1.p6.m4" class="ltx_Math" alttext="\exp(-x^{2})" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">exp</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><msup><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">2</mn></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\exp(-x^{2})</annotation></semantics></math> by <math id="SS1.p6.m5" class="ltx_Math" alttext="2\,\exp(-x^{2})/[1+{\rm erf}(-x)]" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mn mathsize="normal" stretchy="false">2</mn></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mi mathsize="normal" stretchy="false">exp</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><msup><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">2</mn></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">+</mo><mrow><mi mathsize="normal" stretchy="false">erf</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">x</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">]</mo></mrow></mrow><annotation encoding="application/x-tex">2\,\exp(-x^{2})/[1+{\rm erf}(-x)]</annotation></semantics></math> <cite class="ltx_cite">(<a href="bib.html#bib208" title="Noise and the PSTH response to current transients: I. General theory and application to the integrate-and-fire neuron" class="ltx_ref">214</a>)</cite>.
+The subthreshold behavior remains unchanged compared to Eq.Â (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>) but
+the superthreshold behavior of the escape rate <math id="SS1.p6.m6" class="ltx_Math" alttext="f" display="inline"><semantics><mi mathsize="normal" stretchy="false">f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> becomes linear.
+</span>
+              </p>
+</span>
+</div>
+<figure id="Ch9.F11" class="ltx_figure">
+<p class="ltx_p ltx_align_center"><img src="x652.png" id="Ch9.F11.g1" class="ltx_graphics" width="589" height="239" alt=""></p>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 9.11: </span>
+The interval distributions <math id="Ch9.F11.m2" class="ltx_Math" alttext="P_{I}(t|0)" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|0)</annotation></semantics></math> for diffusive noise (solid line) and
+Arrhenius&amp;Current escape noise (dashed line) are nearly identical. The
+input potential is the same as in Fig.Â <a href="Ch8.S4.html#Ch8.F10" title="Fig.Â 8.10 â£ 8.4.2 Interval distribution for the diffusive noise model â£ 8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8.10</span></a>. Taken from
+<cite class="ltx_cite">(<a href="bib.html#bib196" title="Noise in integrate-and-fire models: from stochastic input to escape rates." class="ltx_ref">403</a>)</cite>. </figcaption>
+</figure>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">9.4.2 </span>Stochastic resonance</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Noise can â under certain circumstances â improve the signal transmission
+properties of neuronal systems. In most cases there is an optimum for the
+noise amplitude which has motivated the name <span class="ltx_text ltx_font_italic">stochastic resonance</span> for
+this rather counterintuitive phenomenon. In this section we discuss stochastic
+resonance in the context of noisy spiking neurons.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">We study the relation between an input <math id="SS2.p2.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> to a neuron and the corresponding output
+spike train <math id="SS2.p2.m2" class="ltx_Math" alttext="S(t)=\sum_{f}\delta(t-t^{(f)})" display="inline"><semantics><mrow><mrow><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mo largeop="true" symmetric="true">â</mo><mi>f</mi></msub><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S(t)=\sum_{f}\delta(t-t^{(f)})</annotation></semantics></math>. In the absence of noise, a
+subthreshold stimulus <math id="SS2.p2.m3" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> does not generate action potentials so that no
+information on the temporal structure of the stimulus can be transmitted. In
+the presence of noise, however, spikes do occur. As we have seen in
+Eq.Â (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>), spike firing is most likely at moments when the normalized
+distance <math id="SS2.p2.m4" class="ltx_Math" alttext="|x|=|(u-\vartheta)/\sigma|" display="inline"><semantics><mrow><mrow><mo fence="true">|</mo><mi>x</mi><mo fence="true">|</mo></mrow><mo>=</mo><mrow><mo fence="true">|</mo><mrow><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow><mo>/</mo><mi>Ï</mi></mrow><mo fence="true">|</mo></mrow></mrow><annotation encoding="application/x-tex">|x|=|(u-\vartheta)/\sigma|</annotation></semantics></math> between the membrane potential and the
+threshold is small. Since the escape rate in Eq.Â (<a href="#Ch9.E30" title="(9.30) â£ 9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.30</span></a>) depends
+exponentially on <math id="SS2.p2.m5" class="ltx_Math" alttext="x^{2}" display="inline"><semantics><msup><mi>x</mi><mn>2</mn></msup><annotation encoding="application/x-tex">x^{2}</annotation></semantics></math>, any variation in the membrane potential <math id="SS2.p2.m6" class="ltx_Math" alttext="u_{0}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{0}(t)</annotation></semantics></math> that
+is generated by the temporal structure of the input is enhanced; cf.Â Fig.Â (<a href="Ch9.S3.html#Ch9.F8" title="Fig.Â 9.8 â£ 9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.8</span></a>). On the other hand, for very large noise (<math id="SS2.p2.m7" class="ltx_Math" alttext="\sigma\to\infty" display="inline"><semantics><mrow><mi>Ï</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">\sigma\to\infty</annotation></semantics></math>), we have <math id="SS2.p2.m8" class="ltx_Math" alttext="x^{2}\to 0" display="inline"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x^{2}\to 0</annotation></semantics></math>, and spike firing occurs at a constant rate,
+irrespective of the temporal structure of the input. We conclude that there
+is some intermediate noise level where signal transmission is optimal.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">The optimal noise level can be found by plotting the signal-to-noise ratio as
+a function of noise.
+Even though stochastic resonance does
+not require periodicity (see, e.g., <cite class="ltx_cite">Collins<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib209" title="Aperiodic stochastic resonance" class="ltx_ref">101</a>)</cite>), it is typically studied
+with a periodic input signal such as</p>
+<table id="Ch9.E32" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E32.m1" class="ltx_Math" alttext="I^{\rm det}(t)=I_{0}+I_{1}\cos(\Omega\,t)\,." display="block"><semantics><mrow><mrow><mrow><msup><mi>I</mi><mi>det</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>+</mo><mrow><msub><mi>I</mi><mn>1</mn></msub><mo>â¢</mo><mrow><mi>cos</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi mathvariant="normal">Î©</mi></mpadded><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">I^{\rm det}(t)=I_{0}+I_{1}\cos(\Omega\,t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.32)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For <math id="SS2.p3.m1" class="ltx_Math" alttext="t-\hat{t}\gg\tau_{m}" display="inline"><semantics><mrow><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>â«</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">t-\hat{t}\gg\tau_{m}</annotation></semantics></math>, the membrane potential of the noise-free reference
+trajectory has the form</p>
+<table id="Ch9.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E33.m1" class="ltx_Math" alttext="u_{0}(t)=u_{\infty}+u_{1}\cos(\Omega\,t+\varphi_{1})\,," display="block"><semantics><mrow><mrow><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>+</mo><mrow><msub><mi>u</mi><mn>1</mn></msub><mo>â¢</mo><mrow><mi>cos</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mrow><mpadded width="+1.7pt"><mi mathvariant="normal">Î©</mi></mpadded><mo>â¢</mo><mi>t</mi></mrow><mo>+</mo><msub><mi>Ï</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">u_{0}(t)=u_{\infty}+u_{1}\cos(\Omega\,t+\varphi_{1})\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.33)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.p3.m2" class="ltx_Math" alttext="u_{1}" display="inline"><semantics><msub><mi>u</mi><mn>1</mn></msub><annotation encoding="application/x-tex">u_{1}</annotation></semantics></math> and <math id="SS2.p3.m3" class="ltx_Math" alttext="\varphi_{1}" display="inline"><semantics><msub><mi>Ï</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\varphi_{1}</annotation></semantics></math> are amplitude and phase of its periodic component.
+To quantify the signal transmission properties, a long spike train is studied
+and the signal-to-noise ratio (SNR) is computed. The signal <math id="SS2.p3.m4" class="ltx_Math" alttext="\mathcal{S}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">ð®</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math> is
+measured as the amplitude of the power spectral density of the spike train
+evaluated at frequency <math id="SS2.p3.m5" class="ltx_Math" alttext="\Omega" display="inline"><semantics><mi mathvariant="normal">Î©</mi><annotation encoding="application/x-tex">\Omega</annotation></semantics></math>, i.e., <math id="SS2.p3.m6" class="ltx_Math" alttext="\mathcal{S}={{\mathcal{P}}(\Omega)}" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">ð®</mi><mo>=</mo><mrow><mi class="ltx_font_mathcaligraphic">ð«</mi><mo>â¢</mo><mrow><mo>(</mo><mi mathvariant="normal">Î©</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\mathcal{S}={{\mathcal{P}}(\Omega)}</annotation></semantics></math>. The
+noise level <math id="SS2.p3.m7" class="ltx_Math" alttext="\mathcal{N}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">ð©</mi><annotation encoding="application/x-tex">\mathcal{N}</annotation></semantics></math> is usually estimated from the noise power <math id="SS2.p3.m8" class="ltx_Math" alttext="{\mathcal{P}}_{\rm Poisson}" display="inline"><semantics><msub><mi class="ltx_font_mathcaligraphic">ð«</mi><mi>Poisson</mi></msub><annotation encoding="application/x-tex">{\mathcal{P}}_{\rm Poisson}</annotation></semantics></math> of a Poisson process with the same number of spikes as the
+measured spike train, i.e., <math id="SS2.p3.m9" class="ltx_Math" alttext="\mathcal{N}={\mathcal{P}}_{\rm Poisson}" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">ð©</mi><mo>=</mo><msub><mi class="ltx_font_mathcaligraphic">ð«</mi><mi>Poisson</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal{N}={\mathcal{P}}_{\rm Poisson}</annotation></semantics></math>.
+FigureÂ <a href="#Ch9.F12" title="Fig.Â 9.12 â£ 9.4.2 Stochastic resonance â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.12</span></a> shows the signal-to-noise ratio <math id="SS2.p3.m10" class="ltx_Math" alttext="\mathcal{S}/\mathcal{N}" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">ð®</mi><mo>/</mo><mi class="ltx_font_mathcaligraphic">ð©</mi></mrow><annotation encoding="application/x-tex">\mathcal{S}/\mathcal{N}</annotation></semantics></math> of a periodically stimulated integrate-and-fire neuron as a
+function of the noise level <math id="SS2.p3.m11" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>. Two models are shown, viz., diffusive
+noise (solid line) and escape noise with the Arrhenius&amp;Current escape rate
+(dashed line). The two curves are rather similar and exhibit a peak at</p>
+<table id="Ch9.E34" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E34.m1" class="ltx_Math" alttext="{\sigma^{\rm opt}}\approx{2\over 3}\,(\vartheta-u_{\infty})\,." display="block"><semantics><mrow><mrow><msup><mi>Ï</mi><mi>opt</mi></msup><mo>â</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>2</mn><mn>3</mn></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>-</mo><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\sigma^{\rm opt}}\approx{2\over 3}\,(\vartheta-u_{\infty})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.34)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Since <math id="SS2.p3.m12" class="ltx_Math" alttext="\sigma^{2}=2\langle\Delta u^{2}\rangle" display="inline"><semantics><mrow><msup><mi>Ï</mi><mn>2</mn></msup><mo>=</mo><mrow><mn>2</mn><mo>â¢</mo><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup></mrow><mo>â©</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\sigma^{2}=2\langle\Delta u^{2}\rangle</annotation></semantics></math>, signal transmission is
+optimal if the stochastic fluctuations of the membrane potential have an
+amplitude</p>
+<table id="Ch9.E35" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E35.m1" class="ltx_Math" alttext="2\sqrt{\langle\Delta u^{2}\rangle}\approx\vartheta-u_{\infty}\,." display="block"><semantics><mrow><mrow><mrow><mn>2</mn><mo>â¢</mo><msqrt><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup></mrow><mo>â©</mo></mrow></msqrt></mrow><mo>â</mo><mrow><mi>Ï</mi><mo>-</mo><mpadded width="+1.7pt"><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">2\sqrt{\langle\Delta u^{2}\rangle}\approx\vartheta-u_{\infty}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.35)</span></td>
+</tr>
+</table>
+<p class="ltx_p">An optimality condition similar to (<a href="#Ch9.E34" title="(9.34) â£ 9.4.2 Stochastic resonance â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.34</span></a>) holds
+over a wide variety of stimulation parameters <cite class="ltx_cite">(<a href="bib.html#bib191" title="Aspects of signal processing in noisy neurons" class="ltx_ref">406</a>)</cite>.
+We will come back to the signal transmission
+properties of noisy spiking neurons
+in ChapterÂ <a href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15</span></a>.</p>
+</div>
+<figure id="Ch9.F12" class="ltx_figure">
+<p class="ltx_p ltx_align_center"><img src="x653.png" id="Ch9.F12.g1" class="ltx_graphics" width="443" height="287" alt=""></p>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 9.12: </span>
+Signal-to-noise ratio (SNR) for the transmission of a periodic signal as a
+function of the noise level <math id="Ch9.F12.m2" class="ltx_Math" alttext="\sigma/(\vartheta-u_{0})" display="inline"><semantics><mrow><mi>Ï</mi><mo>/</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>-</mo><msub><mi>u</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma/(\vartheta-u_{0})</annotation></semantics></math>. Solid line:
+Diffusion model. Dashed line: Arrhenius&amp;Current escape model. Taken from
+<cite class="ltx_cite">(<a href="bib.html#bib196" title="Noise in integrate-and-fire models: from stochastic input to escape rates." class="ltx_ref">403</a>)</cite>. </figcaption>
+</figure>
+<div id="SS2.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Extracting oscillations</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The optimality condition (<a href="#Ch9.E34" title="(9.34) â£ 9.4.2 Stochastic resonance â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.34</span></a>) can be fulfilled by adapting either
+the
+left-hand side or the right-hand side of the equation. Even though it cannot
+be
+excluded that a neuron changes its noise level so as to optimize the
+left-hand side of Eq.Â (<a href="#Ch9.E34" title="(9.34) â£ 9.4.2 Stochastic resonance â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.34</span></a>) this does not seem very likely. On
+the other hand, it is easy to imagine a mechanism that optimizes the
+right-hand side of Eq.Â (<a href="#Ch9.E34" title="(9.34) â£ 9.4.2 Stochastic resonance â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.34</span></a>). For example, an adaptation current
+could change the value of <math id="SS2.p4.m1" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>, or synaptic weights could be
+increased or decreased so that the mean potential <math id="SS2.p4.m2" class="ltx_Math" alttext="u_{\infty}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msub><annotation encoding="application/x-tex">u_{\infty}</annotation></semantics></math> is in the
+appropriate regime.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We apply the idea of an optimal threshold to a problem of neural coding. More
+specifically, we study the question whether an integrate-and-fire neuron
+or a SRM neuron
+is only sensitive to the total number of spikes that
+arrive in some time window <math id="SS2.p4.m3" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>, or also to the relative timing of the input
+spikes.
+To do so, we compare two
+different scenarios of stimulation. In the first scenario input spikes
+arrive with a periodically modulated rate,</span>
+              </p>
+<table id="Ch9.E36" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E36.m1" class="ltx_Math" alttext="\nu^{\rm in}(t)=\nu_{0}+\nu_{1}\,\cos(\Omega\,t)\," display="block"><semantics><mrow><mrow><msup><mi>Î½</mi><mi>in</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>Î½</mi><mn>0</mn></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>Î½</mi><mn>1</mn></msub></mpadded><mo>â¢</mo><mrow><mi>cos</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi mathvariant="normal">Î©</mi></mpadded><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\nu^{\rm in}(t)=\nu_{0}+\nu_{1}\,\cos(\Omega\,t)\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.36)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with <math id="SS2.p4.m4" class="ltx_Math" alttext="0&lt;\nu_{1}&lt;\nu_{0}" display="inline"><semantics><mrow><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">&lt;</mo><msub><mi mathsize="normal" stretchy="false">Î½</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="normal" stretchy="false">&lt;</mo><msub><mi mathsize="normal" stretchy="false">Î½</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">0&lt;\nu_{1}&lt;\nu_{0}</annotation></semantics></math>. Thus, even though input spikes arrive stochastically,
+they have some inherent temporal structure, since they are generated by an
+<span class="ltx_text ltx_font_italic">inhomogeneous</span> Poisson process.
+In the second scenario input spikes are generated by a homogeneous (that is,
+stationary) Poisson process with constant rate <math id="SS2.p4.m5" class="ltx_Math" alttext="\nu_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Î½</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">\nu_{0}</annotation></semantics></math>. In a large interval
+<math id="SS2.p4.m6" class="ltx_Math" alttext="T\gg\Omega^{-1}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="normal" stretchy="false">â«</mo><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î©</mi><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">T\gg\Omega^{-1}</annotation></semantics></math>, however, we expect in both cases a total number of <math id="SS2.p4.m7" class="ltx_Math" alttext="\nu_{0}\,T" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">Î½</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">T</mi></mrow><annotation encoding="application/x-tex">\nu_{0}\,T</annotation></semantics></math> input spikes.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Stochastic spike arrival leads to a fluctuating membrane potential with
+variance <math id="SS2.p4.m8" class="ltx_Math" alttext="\Delta^{2}=\langle\Delta u^{2}\rangle" display="inline"><semantics><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mn mathsize="normal" stretchy="false">2</mn></msup><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="small" stretchy="false">â¨</mo><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">2</mn></msup></mrow><mo mathsize="small" stretchy="false">â©</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta^{2}=\langle\Delta u^{2}\rangle</annotation></semantics></math>. If the membrane potential
+hits the threshold an output spike is emitted. If stimulus 1 is applied
+during the time <math id="SS2.p4.m9" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>, the neuron emits a certain number of action
+potentials, say <math id="SS2.p4.m10" class="ltx_Math" alttext="n^{(1)}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">n</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">n^{(1)}</annotation></semantics></math>. If stimulus 2 is applied it emits <math id="SS2.p4.m11" class="ltx_Math" alttext="n^{(2)}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">n</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">n^{(2)}</annotation></semantics></math>
+spikes. It is found that the
+spike count numbers <math id="SS2.p4.m12" class="ltx_Math" alttext="n^{(1)}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">n</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">n^{(1)}</annotation></semantics></math> and <math id="SS2.p4.m13" class="ltx_Math" alttext="n^{(2)}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">n</mi><mrow><mo mathsize="normal" stretchy="false">(</mo><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="normal" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">n^{(2)}</annotation></semantics></math>
+are significantly different
+if the threshold is in the range</span>
+              </p>
+<table id="Ch9.E37" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch9.E37.m1" class="ltx_Math" alttext="u_{\infty}+\sqrt{\langle\Delta u^{2}\rangle}&lt;\vartheta&lt;u_{\infty}+3\sqrt{%
+\langle\Delta u^{2}\rangle}\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>+</mo><msqrt><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup></mrow><mo>â©</mo></mrow></msqrt></mrow><mo>&lt;</mo><mi>Ï</mi><mo>&lt;</mo><mrow><msub><mi>u</mi><mi mathvariant="normal">â</mi></msub><mo>+</mo><mrow><mn>3</mn><mo>â¢</mo><mpadded width="+1.7pt"><msqrt><mrow><mo>â¨</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup></mrow><mo>â©</mo></mrow></msqrt></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u_{\infty}+\sqrt{\langle\Delta u^{2}\rangle}&lt;\vartheta&lt;u_{\infty}+3\sqrt{%
+\langle\Delta u^{2}\rangle}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(9.37)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We conclude that a neuron in the
+subthreshold regime is capable of transforming a temporal code (amplitude
+<math id="SS2.p4.m14" class="ltx_Math" alttext="\nu_{1}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Î½</mi><mn mathsize="normal" stretchy="false">1</mn></msub><annotation encoding="application/x-tex">\nu_{1}</annotation></semantics></math> of the variations in the input) into a spike count code
+<cite class="ltx_cite">(<a href="bib.html#bib210" title="Extracting oscillations: Neuronal coincidence detection with noisy periodic spike input" class="ltx_ref">254</a>)</cite>. Such a
+transformation plays an important role in the auditory pathway
+<cite class="ltx_cite">(<a href="bib.html#bib205" title="A statistical study of cochlear nerve discharge patterns in reponse to complex speech stimuli" class="ltx_ref">347</a>; <a href="bib.html#bib211" title="Listening with two ears" class="ltx_ref">274</a>; <a href="bib.html#bib212" title="The quality of coincidence detection and itd-tuning: a theoretical framework" class="ltx_ref">255</a>)</cite>.</span>
+              </p>
+</span>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch9.S3.html" title="9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.3 </span>Renewal Approximation of the Spike Response Model</span></a><a href="Ch9.S5.html" title="9.5 Summary â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.5 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1,0 +1,691 @@
+<!DOCTYPE html><html>
+<head>
+<title>14.3 Linear response to time-dependent input | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch14.S4.html" title="14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S4.html" title="14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S6.html" title="14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.Sx1.html" title="Literature â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                , 
+                , frequency dependent, gain, integral equation, linearized, linearized equation, population activity">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14 </span>The Integral-equation Approach</span></a><a href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.2 </span>Recurrent Networks and Interacting Populations</span></a><a href="Ch14.S4.html" title="14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.4 </span>Density equations vs. integral equations</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">14.3 </span>Linear response to time-dependent input</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">We consider a homogeneous population of independent neurons. All neurons
+receive the same time-dependent input
+current <math id="p1.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>
+which varies about the mean <math id="p1.m2" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>.
+For constant input <math id="p1.m3" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> the population
+would fire at an activity <math id="p1.m4" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>
+which we can derive from the neuronal gain function.
+We require that the variations of the input</p>
+<table id="Ch14.E41" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E41.m1" class="ltx_Math" alttext="I(t)=I_{0}+\Delta I(t)\," display="block"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)=I_{0}+\Delta I(t)\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.41)</span></td>
+</tr>
+</table>
+<p class="ltx_p">are small enough for the
+population activity to stay close to the value <math id="p1.m5" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math></p>
+<table id="Ch14.E42" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E42.m1" class="ltx_Math" alttext="A(t)=A_{0}+\Delta A(t)\,," display="block"><semantics><mrow><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">A(t)=A_{0}+\Delta A(t)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.42)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with <math id="p1.m6" class="ltx_Math" alttext="|\Delta A|\ll A_{0}" display="inline"><semantics><mrow><mrow><mo fence="true">|</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><mo fence="true">|</mo></mrow><mo>âª</mo><msub><mi>A</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">|\Delta A|\ll A_{0}</annotation></semantics></math>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">In that case, we may expand the right-hand side of
+the population equation <math id="p2.m1" class="ltx_Math" alttext="A(t)=\int_{-\infty}^{t}P_{I}(t|\hat{t})\,A(\hat{t})\,{\text{d}}\hat{t}" display="inline"><semantics><mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">A(t)=\int_{-\infty}^{t}P_{I}(t|\hat{t})\,A(\hat{t})\,{\text{d}}\hat{t}</annotation></semantics></math> into a Taylor series about <math id="p2.m2" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math> to linear order in <math id="p2.m3" class="ltx_Math" alttext="\Delta A" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\Delta A</annotation></semantics></math>. In
+this section, we want to show that for spiking neuron models (either
+integrate-and-fire or SRM<math id="p2.m4" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons)
+the linearized population equation can
+be written in the form</p>
+<table id="Ch14.E43" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E43.m1" class="ltx_Math" alttext="\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}+A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{\infty}{\mathcal{L}}(x)\,%
+\Delta h(t-x)\,{\text{d}}x\,," display="block"><semantics><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>x</mi></mpadded></mrow></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}+A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{\infty}{\mathcal{L}}(x)\,%
+\Delta h(t-x)\,{\text{d}}x\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.43)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="p2.m5" class="ltx_Math" alttext="P_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t-\hat{t})</annotation></semantics></math> is the interval distribution for constant input <math id="p2.m6" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>,
+<math id="p2.m7" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> is a real-valued function that plays the role of an integral kernel,
+and</p>
+<table id="Ch14.E44" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E44.m1" class="ltx_Math" alttext="\Delta h(t)=\int_{0}^{\infty}\kappa(s)\,\Delta I(t-s)\,{\text{d}}s" display="block"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t)=\int_{0}^{\infty}\kappa(s)\,\Delta I(t-s)\,{\text{d}}s</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.44)</span></td>
+</tr>
+</table>
+<p class="ltx_p">is the input potential generated by the time-dependent part of the input
+current.
+The first term of the right-hand side of Eq.Â (<a href="#Ch14.E43" title="(14.43) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.43</span></a>)
+takes
+into account that previous perturbations <math id="p2.m8" class="ltx_Math" alttext="\Delta A(\hat{t})" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta A(\hat{t})</annotation></semantics></math> with <math id="p2.m9" class="ltx_Math" alttext="\hat{t}&lt;t" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>&lt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\hat{t}&lt;t</annotation></semantics></math> have
+an after-effect one inter-spike interval later. The second term describes the
+immediate response to a change in the input potential. If we want
+to understand the response of the population to an input current
+<math id="p2.m10" class="ltx_Math" alttext="\Delta I(t)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta I(t)</annotation></semantics></math>, we need to know the characteristics of the kernel <math id="p2.m11" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math>.
+The main task of this section is therefore the calculation of <math id="p2.m12" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math>
+to be performed in Section <a href="#SS1" title="14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.3.1</span></a>.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">The linearization of
+the integral equation <cite class="ltx_cite">(<a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>)</cite> is analogous
+to the linearization of the membrane potential
+density equations <cite class="ltx_cite">(<a href="bib.html#bib306" title="Fast global oscillations in networks of integrate-and-fire neurons with low firing rates" class="ltx_ref">78</a>)</cite>
+that was presented in Chapter <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>.
+In order to arrive at the standard formula for
+the linear response,</p>
+<table id="Ch14.E45" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E45.m1" class="ltx_Math" alttext="A(t)=A_{0}+\int_{0}^{\infty}G(s)\,\Delta I(t-s)\,{\text{d}}s" display="block"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi>G</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=A_{0}+\int_{0}^{\infty}G(s)\,\Delta I(t-s)\,{\text{d}}s</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.45)</span></td>
+</tr>
+</table>
+<p class="ltx_p">we insert Eq. (<a href="#Ch14.E44" title="(14.44) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.44</span></a>)
+into Eq. (<a href="#Ch14.E43" title="(14.43) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.43</span></a>)
+and take the Fourier transform.
+For <math id="p3.m1" class="ltx_Math" alttext="\omega\neq 0" display="inline"><semantics><mrow><mi>Ï</mi><mo>â </mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\omega\neq 0</annotation></semantics></math> we find
+</p>
+<table id="Ch14.E46" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E46.m1" class="ltx_Math" alttext="\hat{A}(\omega)={i\omega}\,{A_{0}\,\hat{{\mathcal{L}}}(\omega)\,\hat{\kappa}(%
+\omega)\over 1-\hat{P}(\omega)\,}\,\hat{I}(\omega)=\hat{G}(\omega)\,\hat{I}(%
+\omega)\,." display="block"><semantics><mrow><mrow><mrow><mover accent="true"><mi>A</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>i</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mover accent="true"><mi class="ltx_font_mathcaligraphic">â</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mover accent="true"><mi>Îº</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mrow><mn>1</mn><mo>-</mo><mrow><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mfrac></mpadded><mo>â¢</mo><mover accent="true"><mi>I</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mover accent="true"><mi>I</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{A}(\omega)={i\omega}\,{A_{0}\,\hat{{\mathcal{L}}}(\omega)\,\hat{\kappa}(%
+\omega)\over 1-\hat{P}(\omega)\,}\,\hat{I}(\omega)=\hat{G}(\omega)\,\hat{I}(%
+\omega)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.46)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Hats denote transformed quantities, i.e., <math id="p3.m2" class="ltx_Math" alttext="\hat{\kappa}(\omega)=\int\kappa_{0}(s)\,\exp(-i\,\omega\,s)\,{\text{d}}s" display="inline"><semantics><mrow><mrow><mover accent="true"><mi>Îº</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><msub><mi>Îº</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>i</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\hat{\kappa}(\omega)=\int\kappa_{0}(s)\,\exp(-i\,\omega\,s)\,{\text{d}}s</annotation></semantics></math> is the Fourier transform of the
+response kernel; <math id="p3.m3" class="ltx_Math" alttext="\hat{P}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{P}(\omega)</annotation></semantics></math> is the Fourier transform of the interval
+distribution <math id="p3.m4" class="ltx_Math" alttext="P_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t-\hat{t})</annotation></semantics></math>; and <math id="p3.m5" class="ltx_Math" alttext="\hat{{\mathcal{L}}}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi class="ltx_font_mathcaligraphic">â</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{{\mathcal{L}}}(\omega)</annotation></semantics></math> is the transform of the kernel <math id="p3.m6" class="ltx_Math" alttext="{\mathcal{L}}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">â</mi><annotation encoding="application/x-tex">{\mathcal{L}}</annotation></semantics></math>.
+Note that for <math id="p3.m7" class="ltx_Math" alttext="\omega\neq 0" display="inline"><semantics><mrow><mi>Ï</mi><mo>â </mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\omega\neq 0</annotation></semantics></math> we have <math id="p3.m8" class="ltx_Math" alttext="\hat{A}(\omega)=\hat{(\Delta A)}(\omega)" display="inline"><semantics><mrow><mrow><mover accent="true"><mi>A</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mover accent="true"><mrow><mo>(</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><mo>)</mo></mrow><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\hat{A}(\omega)=\hat{(\Delta A)}(\omega)</annotation></semantics></math> and
+<math id="p3.m9" class="ltx_Math" alttext="I(\omega)=\hat{(\Delta I})(\omega)" display="inline"><semantics><mrow><mi>I</mi><mrow><mo stretchy="false">(</mo><mi>Ï</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mover accent="true"><mrow><mo stretchy="false">(</mo><mi mathvariant="normal">Î</mi><mi>I</mi></mrow><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>Ï</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">I(\omega)=\hat{(\Delta I})(\omega)</annotation></semantics></math> since <math id="p3.m10" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math> and <math id="p3.m11" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> are constant.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">The frequency dependent gain <math id="p4.m1" class="ltx_Math" alttext="\hat{G}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{G}(\omega)</annotation></semantics></math> describes
+the linear response of the population activity to
+a periodic input current <math id="p4.m2" class="ltx_Math" alttext="\hat{I}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>I</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{I}(\omega)</annotation></semantics></math>.
+The linear response filter <math id="p4.m3" class="ltx_Math" alttext="G(s)" display="inline"><semantics><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">G(s)</annotation></semantics></math> in the time-domain
+is found by inverse Fourier transform</p>
+<table id="Ch14.E47" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E47.m1" class="ltx_Math" alttext="G(s)={1\over 2\pi}\int_{-\infty}^{\infty}\hat{G}(\omega)\,e^{+i\,\omega\,s}{%
+\text{d}}\omega\,." display="block"><semantics><mrow><mrow><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mfrac><mn>1</mn><mrow><mn>2</mn><mo>â¢</mo><mi>Ï</mi></mrow></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>i</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mi>s</mi></mrow></mrow></msup><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">G(s)={1\over 2\pi}\int_{-\infty}^{\infty}\hat{G}(\omega)\,e^{+i\,\omega\,s}{%
+\text{d}}\omega\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.47)</span></td>
+</tr>
+</table>
+<p class="ltx_p"><math id="p4.m4" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math> is the mean rate for constant drive <math id="p4.m5" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>.
+The filter <math id="p4.m6" class="ltx_Math" alttext="G" display="inline"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math> plays an important role
+for the analysis of the stability of the stationary state
+in recurrent networks (Section <a href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.2</span></a>).</p>
+</div>
+<div id="p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Leaky integrate-and-fire with escape noise</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">The frequency-dependent gain <math id="p5.m1" class="ltx_Math" alttext="\hat{G}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">G</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{G}</annotation></semantics></math> depends on
+the filter <math id="p5.m2" class="ltx_Math" alttext="{\mathcal{L}}(s)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">â</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(s)</annotation></semantics></math> which in turns
+depends on the width of the interval distribution
+<math id="p5.m3" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">P</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>
+(Fig.Â <a href="#Ch14.F9" title="Fig.Â 14.9 â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.9</span></a>B and A, respectively).
+In
+Fig.Â <a href="#Ch14.F9" title="Fig.Â 14.9 â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.9</span></a>C
+we have plotted the signal gain <math id="p5.m4" class="ltx_Math" alttext="\hat{G}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">G</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{G}(\omega)</annotation></semantics></math> for
+integrate-and-fire neurons with escape noise at different noise levels.
+At
+low noise, the signal gain exhibits resonances
+at the frequency that corresponds to the inverse
+of the mean interval and multiples thereof.
+Increasing the noise level, however, lowers the signal gain of
+the system. For high noise (long-dashed line in Fig.Â <a href="#Ch14.F9" title="Fig.Â 14.9 â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.9</span></a>C) the
+signal gain at 1000 Hz is ten times lower than the gain at zero frequency.
+The cut-off
+frequency depends on the noise level. The gain at
+zero frequency corresponds to the slope
+of the gain function <math id="p5.m5" class="ltx_Math" alttext="g_{\sigma}(I_{0})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" stretchy="false">Ï</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\sigma}(I_{0})</annotation></semantics></math>
+and changes with the level of noise.</span>
+            </p>
+</span>
+</div>
+<figure id="Ch14.F9" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">C</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x353.png" id="Ch14.F9.g1" class="ltx_graphics" width="200" height="166" alt="">
+                </td>
+<td class="ltx_td ltx_align_left">
+                  <img src="x354.png" id="Ch14.F9.g2" class="ltx_graphics" width="199" height="159" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x355.png" id="Ch14.F9.g3" class="ltx_graphics" width="200" height="168" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 14.9: </span>
+Response properties of
+a population of leaky integrate-and-fire neurons with escape noise.
+<span class="ltx_text ltx_font_bold">A</span>.
+Interval distribution
+for three different noise levels.
+The escape rate has
+been taken as piecewise linear <math id="Ch14.F9.m14" class="ltx_Math" alttext="\rho=\rho_{0}\,[u-\vartheta]{\mathcal{H}}(u-\vartheta)" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>]</mo></mrow><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho=\rho_{0}\,[u-\vartheta]{\mathcal{H}}(u-\vartheta)</annotation></semantics></math>.
+The value of the bias current
+<math id="Ch14.F9.m15" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> has been adjusted so that the mean interval is always
+<math id="Ch14.F9.m16" class="ltx_Math" alttext="\langle T\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mi>T</mi><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle T\rangle</annotation></semantics></math>
+=8âms.
+<span class="ltx_text ltx_font_bold">B</span>. The corresponding kernel <math id="Ch14.F9.m17" class="ltx_Math" alttext="{\mathcal{L}}^{\rm IF}(x)" display="inline"><semantics><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>IF</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}^{\rm IF}(x)</annotation></semantics></math>.
+The
+dip in the kernel around <math id="Ch14.F9.m18" class="ltx_Math" alttext="x=\langle T\rangle" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo>â¨</mo><mi>T</mi><mo>â©</mo></mrow></mrow><annotation encoding="application/x-tex">x=\langle T\rangle</annotation></semantics></math> is typical for integrate-and-fire
+neurons.
+<span class="ltx_text ltx_font_bold">C</span>. Frequency dependent gain <math id="Ch14.F9.m19" class="ltx_Math" alttext="|G(f)|=|\hat{G}(\omega=2\pi f)|" display="inline"><semantics><mrow><mo stretchy="false">|</mo><mi>G</mi><mrow><mo stretchy="false">(</mo><mi>f</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">|</mo><mo>=</mo><mo stretchy="false">|</mo><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><mrow><mo stretchy="false">(</mo><mi>Ï</mi><mo>=</mo><mn>2</mn><mi>Ï</mi><mi>f</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">|</mo></mrow><annotation encoding="application/x-tex">|G(f)|=|\hat{G}(\omega=2\pi f)|</annotation></semantics></math>.
+Low noise (short dashed line): the sharply peaked interval distribution
+(standard deviation <math id="Ch14.F9.m20" class="ltx_Math" alttext="0.75" display="inline"><semantics><mn>0.75</mn><annotation encoding="application/x-tex">0.75</annotation></semantics></math>âms)
+and rapid fall-off of kernel <math id="Ch14.F9.m21" class="ltx_Math" alttext="{\mathcal{L}}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">â</mi><annotation encoding="application/x-tex">{\mathcal{L}}</annotation></semantics></math>
+lead to a linear response gain <math id="Ch14.F9.m22" class="ltx_Math" alttext="\hat{G}" display="inline"><semantics><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{G}</annotation></semantics></math> with strong resonances
+at multiples of the intrinsic firing frequency
+<math id="Ch14.F9.m23" class="ltx_Math" alttext="1/\langle T\rangle" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><mrow><mo>â¨</mo><mi>T</mi><mo>â©</mo></mrow></mrow><annotation encoding="application/x-tex">1/\langle T\rangle</annotation></semantics></math>.
+High noise (long-dashed line):
+the broad interval distribution (standard deviation <math id="Ch14.F9.m24" class="ltx_Math" alttext="4" display="inline"><semantics><mn>4</mn><annotation encoding="application/x-tex">4</annotation></semantics></math>âms)
+and broad kernel <math id="Ch14.F9.m25" class="ltx_Math" alttext="{\mathcal{L}}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">â</mi><annotation encoding="application/x-tex">{\mathcal{L}}</annotation></semantics></math>
+suppress resonances in the frequency dependent gain.
+Medium noise (solid line):
+A single resonance for an interval distribution with
+standard deviation <math id="Ch14.F9.m26" class="ltx_Math" alttext="2" display="inline"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math>âms.
+Adapted from <cite class="ltx_cite">(<a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>)</cite>.
+</figcaption>
+</figure>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">14.3.1 </span>Derivation of the linear response filter (*)</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">In order to derive the linearized response <math id="SS1.p1.m1" class="ltx_Math" alttext="\Delta A" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\Delta A</annotation></semantics></math> of the population
+activity to a change in the input we start from the conservation law,</p>
+<table id="Ch14.E48" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E48.m1" class="ltx_Math" alttext="1=\int_{-\infty}^{t}S_{I}(t\,|\,\hat{t})\,A(\hat{t})\,{\text{d}}\hat{t}\,," display="block"><semantics><mrow><mn>1</mn><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msub><mi>S</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>,</mo></mrow><annotation encoding="application/x-tex">1=\int_{-\infty}^{t}S_{I}(t\,|\,\hat{t})\,A(\hat{t})\,{\text{d}}\hat{t}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.48)</span></td>
+</tr>
+</table>
+<p class="ltx_p">cf. Eq. (<a href="Ch14.S1.html#Ch14.E8" title="(14.8) â£ 14.1.3 Normalization and derivation of the integral equation â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.8</span></a>).
+As we have seen in SectionÂ <a href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1</span></a>
+the population equation (<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>)
+can be obtained by taking the
+derivative of Eq.Â (<a href="Ch14.S1.html#Ch14.E8" title="(14.8) â£ 14.1.3 Normalization and derivation of the integral equation â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.8</span></a>) with respect to <math id="SS1.p1.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, i.e.,</p>
+<table id="Ch14.E49" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E49.m1" class="ltx_Math" alttext="0={{\text{d}}\over{\text{d}}t}\int_{-\infty}^{t}S_{I}(t\,|\,\hat{t})\,A(\hat{t%
+})\,{\text{d}}\hat{t}\,." display="block"><semantics><mrow><mn>0</mn><mo>=</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><msub><mi>S</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>A</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">0={{\text{d}}\over{\text{d}}t}\int_{-\infty}^{t}S_{I}(t\,|\,\hat{t})\,A(\hat{t%
+})\,{\text{d}}\hat{t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.49)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For constant input <math id="SS1.p1.m3" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>, the population activity has a constant value
+<math id="SS1.p1.m4" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>. We consider a small perturbation of the stationary state, <math id="SS1.p1.m5" class="ltx_Math" alttext="A(t)=A_{0}+\Delta A(t)" display="inline"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=A_{0}+\Delta A(t)</annotation></semantics></math>, that is caused by a small change in the input current, <math id="SS1.p1.m6" class="ltx_Math" alttext="\Delta I(t)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta I(t)</annotation></semantics></math>. The time-dependent input generates a total postsynaptic potential,
+<math id="SS1.p1.m7" class="ltx_Math" alttext="h(t)=h_{0}+\Delta h(t,\hat{t})" display="inline"><semantics><mrow><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">h(t)=h_{0}+\Delta h(t,\hat{t})</annotation></semantics></math>
+where <math id="SS1.p1.m8" class="ltx_Math" alttext="h_{0}" display="inline"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_{0}</annotation></semantics></math> is the postsynaptic potential for constant
+input <math id="SS1.p1.m9" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> and</p>
+<table id="Ch14.E50" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E50.m1" class="ltx_Math" alttext="\Delta h(t,\hat{t})=\int_{0}^{b(\hat{t})}\kappa(s)\,\Delta I(t-s)\,{\text{d}}s" display="block"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mrow><mi>b</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow></msubsup><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t,\hat{t})=\int_{0}^{b(\hat{t})}\kappa(s)\,\Delta I(t-s)\,{\text{d}}s</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.50)</span></td>
+</tr>
+</table>
+<p class="ltx_p">is the change of the postsynaptic potential generated by <math id="SS1.p1.m10" class="ltx_Math" alttext="\Delta I" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">\Delta I</annotation></semantics></math>.
+Note that we keep the notation general and include a dependence upon
+the last firing time <math id="SS1.p1.m11" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>.
+For leaky integrate-and-fire neurons, we
+set <math id="SS1.p1.m12" class="ltx_Math" alttext="b(\hat{t})=t-\hat{t}" display="inline"><semantics><mrow><mrow><mi>b</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow><annotation encoding="application/x-tex">b(\hat{t})=t-\hat{t}</annotation></semantics></math>
+whereas for SRM<math id="SS1.p1.m13" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons we set <math id="SS1.p1.m14" class="ltx_Math" alttext="b(\hat{t})=\infty" display="inline"><semantics><mrow><mrow><mi>b</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><mo>=</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">b(\hat{t})=\infty</annotation></semantics></math>.
+We
+expand Eq.Â (<a href="#Ch14.E49" title="(14.49) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.49</span></a>) to linear order in <math id="SS1.p1.m15" class="ltx_Math" alttext="\Delta A" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\Delta A</annotation></semantics></math> and <math id="SS1.p1.m16" class="ltx_Math" alttext="\Delta h" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">\Delta h</annotation></semantics></math> and
+find</p>
+<table id="Ch14.E51" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E51.m1" class="ltx_Math" alttext="0={{\text{d}}\over{\text{d}}t}\int_{-\infty}^{t}S_{0}(t-\hat{t})\,\Delta A(%
+\hat{t})\,{\text{d}}\hat{t}\\
++A_{0}\,{{\text{d}}\over{\text{d}}t}\left\{\int_{-\infty}^{t}{\text{d}}s\,\int%
+_{-\infty}^{t}{\text{d}}\hat{t}\,\Delta h(s,\hat{t})\,\left.{\partial S_{I}(t%
+\,|\,\hat{t})\over\partial\Delta h(s,\hat{t})}\right|_{\Delta h=0}\right\}\,." display="block"><semantics><mrow><mrow><mn>0</mn><mo>=</mo><mrow><mrow><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><mo>{</mo><msub><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow><mo>â¢</mo><mfrac><mrow><mo>â</mo><msub><mi>S</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow></mrow><mo fence="true">|</mo></mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><mo>=</mo><mn>0</mn></mrow></msub><mo>}</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">0={{\text{d}}\over{\text{d}}t}\int_{-\infty}^{t}S_{0}(t-\hat{t})\,\Delta A(%
+\hat{t})\,{\text{d}}\hat{t}\\
++A_{0}\,{{\text{d}}\over{\text{d}}t}\left\{\int_{-\infty}^{t}{\text{d}}s\,\int%
+_{-\infty}^{t}{\text{d}}\hat{t}\,\Delta h(s,\hat{t})\,\left.{\partial S_{I}(t%
+\,|\,\hat{t})\over\partial\Delta h(s,\hat{t})}\right|_{\Delta h=0}\right\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.51)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We have used the notation <math id="SS1.p1.m17" class="ltx_Math" alttext="S_{0}(t-\hat{t})=S_{I_{0}}(t\,|\,\hat{t})" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>S</mi><msub><mi>I</mi><mn>0</mn></msub></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(t-\hat{t})=S_{I_{0}}(t\,|\,\hat{t})</annotation></semantics></math> for the survivor function of the asynchronous firing state.
+To take the derivative of the first term in Eq.Â (<a href="#Ch14.E51" title="(14.51) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.51</span></a>) we use <math id="SS1.p1.m18" class="ltx_Math" alttext="{{\text{d}}}S_{0}(s)/{\text{d}}s=-P_{0}(s)" display="inline"><semantics><mrow><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>s</mi></mrow><mo>=</mo><mrow><mo>-</mo><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{{\text{d}}}S_{0}(s)/{\text{d}}s=-P_{0}(s)</annotation></semantics></math> and <math id="SS1.p1.m19" class="ltx_Math" alttext="S_{0}(0)=1" display="inline"><semantics><mrow><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">S_{0}(0)=1</annotation></semantics></math>. This yields</p>
+<table id="Ch14.E52" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E52.m1" class="ltx_Math" alttext="\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}\\
+\mbox{}-A_{0}\,{{\text{d}}\over{\text{d}}t}\left\{\int_{-\infty}^{t}{\text{d}}%
+s\,\int_{-\infty}^{t}{\text{d}}\hat{t}\,\Delta h(s,\hat{t})\,\left.{\partial S%
+_{I}(t\,|\,\hat{t})\over\partial\Delta h(s,\hat{t})}\right|_{\Delta h=0}\right%
+\}\,." display="block"><semantics><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow></mrow></mrow></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><mo>{</mo><msub><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow><mo>â¢</mo><mfrac><mrow><mo>â</mo><msub><mi>S</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow></mrow><mo fence="true">|</mo></mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><mo>=</mo><mn>0</mn></mrow></msub><mo>}</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}\\
+\mbox{}-A_{0}\,{{\text{d}}\over{\text{d}}t}\left\{\int_{-\infty}^{t}{\text{d}}%
+s\,\int_{-\infty}^{t}{\text{d}}\hat{t}\,\Delta h(s,\hat{t})\,\left.{\partial S%
+_{I}(t\,|\,\hat{t})\over\partial\Delta h(s,\hat{t})}\right|_{\Delta h=0}\right%
+\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.52)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We note that the first term on the right-hand side of
+Eq.Â (<a href="#Ch14.E52" title="(14.52) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.52</span></a>) has the same form as the population integral equation
+(<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>),
+except that <math id="SS1.p1.m20" class="ltx_Math" alttext="P_{0}" display="inline"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_{0}</annotation></semantics></math> is the interval distribution in the
+stationary state of asynchronous firing.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">To make some progress in the treatment of the second term on the right-hand
+side of Eq.Â (<a href="#Ch14.E52" title="(14.52) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.52</span></a>), we now
+restrict the choice of neuron model and focus on either
+SRM<math id="SS1.p2.m1" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> or integrate-and-fire neurons.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">(i) For SRM<math id="SS1.p3.m1" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons, we may drop the
+<math id="SS1.p3.m2" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> dependence of the potential and set <math id="SS1.p3.m3" class="ltx_Math" alttext="\Delta h(t,\hat{t})=\Delta h(t)" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t,\hat{t})=\Delta h(t)</annotation></semantics></math> where <math id="SS1.p3.m4" class="ltx_Math" alttext="\Delta h" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">\Delta h</annotation></semantics></math> is the input potential caused by the
+time-dependent current <math id="SS1.p3.m5" class="ltx_Math" alttext="\Delta I" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">\Delta I</annotation></semantics></math>; compare Eqs.Â (<a href="#Ch14.E44" title="(14.44) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.44</span></a>) and
+(<a href="#Ch14.E50" title="(14.50) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.50</span></a>). This allows us to pull the variable <math id="SS1.p3.m6" class="ltx_Math" alttext="\Delta h(s)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta h(s)</annotation></semantics></math> in
+front of the integral over <math id="SS1.p3.m7" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> and write Eq.Â (<a href="#Ch14.E52" title="(14.52) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.52</span></a>) in the form</p>
+<table id="Ch14.E53" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E53.m1" class="ltx_Math" alttext="\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}+A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{\infty}{\mathcal{L}}(x)\,%
+\Delta h(t-x)\,{\text{d}}x\,." display="block"><semantics><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>x</mi></mpadded></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}+A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{\infty}{\mathcal{L}}(x)\,%
+\Delta h(t-x)\,{\text{d}}x\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.53)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with a kernel</p>
+<table id="Ch14.E54" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E54.m1" class="ltx_Math" alttext="{\mathcal{L}}(x)=-\int_{x}^{\infty}d\xi\,{\partial S(\xi|0)\over\partial\Delta
+h%
+(\xi-x)}\equiv{\mathcal{L}}^{\rm SRM}(x)\,." display="block"><semantics><mrow><mrow><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mi>x</mi><mi mathvariant="normal">â</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><mfrac><mrow><mo>â</mo><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>Î¾</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Î¾</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow><mo>â¡</mo><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)=-\int_{x}^{\infty}d\xi\,{\partial S(\xi|0)\over\partial\Delta
+h%
+(\xi-x)}\equiv{\mathcal{L}}^{\rm SRM}(x)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.54)</span></td>
+</tr>
+</table>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">(ii) For leaky
+integrate-and-fire neurons we set
+<math id="SS1.p4.m1" class="ltx_Math" alttext="\Delta h(t,\hat{t})=\Delta h(t)-\Delta h(\hat{t})\,\exp[-(t-\hat{t})/\tau]" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow><mo>/</mo><mi>Ï</mi></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t,\hat{t})=\Delta h(t)-\Delta h(\hat{t})\,\exp[-(t-\hat{t})/\tau]</annotation></semantics></math>,
+because of the reinitialization of
+the membrane potential after the reset
+<cite class="ltx_cite">(<a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>)</cite>.
+After some rearrangements of
+the terms, Eq.Â (<a href="#Ch14.E52" title="(14.52) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.52</span></a>) becomes identical to Eq.Â (<a href="#Ch14.E53" title="(14.53) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.53</span></a>) with a
+kernel</p>
+<table id="Ch14.E55" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E55.m1" class="ltx_Math" alttext="{\mathcal{L}}(x)=-\int_{x}^{\infty}d\xi\,{\partial S(\xi|0)\over\partial\Delta
+h%
+(\xi-x)}+\int_{0}^{x}d\xi\,e^{-\xi/\tau}\,{\partial S(x|0)\over\partial\Delta h%
+(\xi)}\equiv{\mathcal{L}}^{\rm IF}(x)\,." display="block"><semantics><mrow><mrow><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mi>x</mi><mi mathvariant="normal">â</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><mfrac><mrow><mo>â</mo><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>Î¾</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Î¾</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mfrac></mrow></mrow><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi>x</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>Î¾</mi><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><mfrac><mrow><mo>â</mo><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>Î¾</mi><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow><mo>â¡</mo><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>IF</mi></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)=-\int_{x}^{\infty}d\xi\,{\partial S(\xi|0)\over\partial\Delta
+h%
+(\xi-x)}+\int_{0}^{x}d\xi\,e^{-\xi/\tau}\,{\partial S(x|0)\over\partial\Delta h%
+(\xi)}\equiv{\mathcal{L}}^{\rm IF}(x)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.55)</span></td>
+</tr>
+</table>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">Let us discuss Eq.Â (<a href="#Ch14.E53" title="(14.53) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.53</span></a>). The first term on the right-hand side of
+Eq.Â (<a href="#Ch14.E53" title="(14.53) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.53</span></a>) is of the same form as the dynamic equation (<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>) and
+describes how perturbations <math id="SS1.p5.m1" class="ltx_Math" alttext="\Delta A(\hat{t})" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta A(\hat{t})</annotation></semantics></math> in the past influence the
+present activity <math id="SS1.p5.m2" class="ltx_Math" alttext="\Delta A(t)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta A(t)</annotation></semantics></math>. The second term gives an additional
+contribution which is proportional to the derivative of a <span class="ltx_text ltx_font_italic">filtered</span>
+version of the potential <math id="SS1.p5.m3" class="ltx_Math" alttext="\Delta h" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">\Delta h</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">We see from Fig.Â <a href="#Ch14.F10" title="Fig.Â 14.10 â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.10</span></a>
+that the width of the kernel <math id="SS1.p6.m1" class="ltx_Math" alttext="{\mathcal{L}}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">â</mi><annotation encoding="application/x-tex">{\mathcal{L}}</annotation></semantics></math> depends on the noise level.
+For low noise, it is significantly sharper than for high noise.</p>
+</div>
+<figure id="Ch14.F10" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x356.png" id="Ch14.F10.g1" class="ltx_graphics" width="292" height="234" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x357.png" id="Ch14.F10.g2" class="ltx_graphics" width="293" height="227" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 14.10: </span>
+Interval distribution (<span class="ltx_text ltx_font_bold">A</span>) and the kernel <math id="Ch14.F10.m8" class="ltx_Math" alttext="{\mathcal{L}}^{\rm SRM}(x)" display="inline"><semantics><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}^{\rm SRM}(x)</annotation></semantics></math> (<span class="ltx_text ltx_font_bold">B</span>) for SRM<math id="Ch14.F10.m9" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons with escape noise. The escape rate has been taken
+as piecewise linear <math id="Ch14.F10.m10" class="ltx_Math" alttext="\rho=\rho_{0}\,[u-\vartheta]{\mathcal{H}}(u-\vartheta)" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>]</mo></mrow><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho=\rho_{0}\,[u-\vartheta]{\mathcal{H}}(u-\vartheta)</annotation></semantics></math>. For
+low noise (solid lines in A and B) the interval distribution is sharply
+peaked and the kernel <math id="Ch14.F10.m11" class="ltx_Math" alttext="{\mathcal{L}}^{\rm SRM}" display="inline"><semantics><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><annotation encoding="application/x-tex">{\mathcal{L}}^{\rm SRM}</annotation></semantics></math> has a small width. For high
+noise (dashed line) both the interval distribution and the kernel
+<math id="Ch14.F10.m12" class="ltx_Math" alttext="{\mathcal{L}}^{\rm SRM}" display="inline"><semantics><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><annotation encoding="application/x-tex">{\mathcal{L}}^{\rm SRM}</annotation></semantics></math> are broad. The value of the bias current <math id="Ch14.F10.m13" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> has
+been adjusted so that the mean interval is always 40âms.
+The kernel has been normalized to <math id="Ch14.F10.m14" class="ltx_Math" alttext="\int_{0}^{\infty}{\mathcal{L}}(x)\,{\text{d}}x=1" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>x</mi></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\int_{0}^{\infty}{\mathcal{L}}(x)\,{\text{d}}x=1</annotation></semantics></math>. </figcaption>
+</figure>
+<div id="SS1.p7" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: The kernel <math id="SS1.p7.m1" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">â</mi><mo mathsize="small" mathvariant="bold" stretchy="false">â¢</mo><mrow><mo mathsize="normal" mathvariant="bold" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" mathvariant="bold" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> for escape noise (*)</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In the escape noise model, the survivor function is given by</span>
+              </p>
+<table id="Ch14.E56" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E56.m1" class="ltx_Math" alttext="S_{I}(t\,|\,\hat{t})=\exp\left\{-\int_{\hat{t}}^{t}f[\eta(t^{\prime}-\hat{t})+%
+h(t^{\prime},\hat{t})]\,{\text{d}}t^{\prime}\right\}" display="block"><semantics><mrow><msub><mi>S</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>exp</mi><mrow><mo>{</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>f</mi><mrow><mo stretchy="false">[</mo><mi>Î·</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>+</mo><mi>h</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo rspace="4.2pt" stretchy="false">]</mo></mrow><mrow><mtext>Â                        Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                      Â </mtext></mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>}</mo></mrow></mrow><annotation encoding="application/x-tex">S_{I}(t\,|\,\hat{t})=\exp\left\{-\int_{\hat{t}}^{t}f[\eta(t^{\prime}-\hat{t})+%
+h(t^{\prime},\hat{t})]\,{\text{d}}t^{\prime}\right\}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.56)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS1.p7.m2" class="ltx_Math" alttext="f[u]" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">[</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">]</mo></mrow></mrow><annotation encoding="application/x-tex">f[u]</annotation></semantics></math> is the instantaneous escape rate across the noisy threshold;
+cf. ChapterÂ <a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>. We write <math id="SS1.p7.m3" class="ltx_Math" alttext="h(t,\hat{t})=h_{0}(t-\hat{t})+\Delta h(t,\hat{t})" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="small" stretchy="false">,</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">+</mo><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="small" stretchy="false">,</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">h(t,\hat{t})=h_{0}(t-\hat{t})+\Delta h(t,\hat{t})</annotation></semantics></math>. Taking the derivative with respect to <math id="SS1.p7.m4" class="ltx_Math" alttext="\Delta h" display="inline"><semantics><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi></mrow><annotation encoding="application/x-tex">\Delta h</annotation></semantics></math> yields
+</span>
+              </p>
+<table id="Ch14.E57" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E57.m1" class="ltx_Math" alttext="\left.{\partial S_{I}(t\,|\,\hat{t})\over\partial\Delta h(s,\hat{t})}\right|_{%
+\Delta h=0}=-{\mathcal{H}}(s-\hat{t})\,{\mathcal{H}}(t-s)\,f^{\prime}[\eta(s-%
+\hat{t})+h_{0}(s-\hat{t})]\,S_{0}(t-\hat{t})" display="block"><semantics><mrow><msub><mrow><mfrac><mrow><mo>â</mo><msub><mi>S</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>,</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mfrac><mo fence="true">|</mo></mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><mo>=</mo><mn>0</mn></mrow></msub><mo>=</mo><mrow><mo>-</mo><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\left.{\partial S_{I}(t\,|\,\hat{t})\over\partial\Delta h(s,\hat{t})}\right|_{%
+\Delta h=0}=-{\mathcal{H}}(s-\hat{t})\,{\mathcal{H}}(t-s)\,f^{\prime}[\eta(s-%
+\hat{t})+h_{0}(s-\hat{t})]\,S_{0}(t-\hat{t})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.57)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS1.p7.m5" class="ltx_Math" alttext="S_{0}(t-\hat{t})=S_{h_{0}}(t\,|\,\hat{t})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">S</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">)</mo></mrow><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">S</mi><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub></msub><mrow><mo mathsize="normal" stretchy="false">(</mo><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">t</mi></mpadded><mo mathsize="normal" rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(t-\hat{t})=S_{h_{0}}(t\,|\,\hat{t})</annotation></semantics></math> and <math id="SS1.p7.m6" class="ltx_Math" alttext="f^{\prime}={\text{d}}f(u)/{\text{d}}u" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mrow><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mtext mathsize="small" stretchy="false">d</mtext></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">u</mi></mrow></mrow><annotation encoding="application/x-tex">f^{\prime}={\text{d}}f(u)/{\text{d}}u</annotation></semantics></math>. For
+SRM<math id="SS1.p7.m7" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>-neurons, we have <math id="SS1.p7.m8" class="ltx_Math" alttext="h_{0}(t-\hat{t})\equiv h_{0}" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">â¡</mo><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">h_{0}(t-\hat{t})\equiv h_{0}</annotation></semantics></math> and <math id="SS1.p7.m9" class="ltx_Math" alttext="\Delta h(t,\hat{t})=\Delta h(t)" display="inline"><semantics><mrow><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="small" stretchy="false">,</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t,\hat{t})=\Delta h(t)</annotation></semantics></math>, independent of <math id="SS1.p7.m10" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>. The kernel <math id="SS1.p7.m11" class="ltx_Math" alttext="{\mathcal{L}}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">â</mi><annotation encoding="application/x-tex">{\mathcal{L}}</annotation></semantics></math> is therefore</span>
+              </p>
+<table id="Ch14.E58" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E58.m1" class="ltx_Math" alttext="{\mathcal{L}}^{\rm SRM}(t-s)={\mathcal{H}}(t-s)\int_{-\infty}^{s}{\text{d}}%
+\hat{t}\,f^{\prime}[\eta(s-\hat{t})+h_{0}]\,S_{0}(t-\hat{t})\,." display="block"><semantics><mrow><mrow><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>s</mi></msubsup><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mpadded width="+1.7pt"><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mpadded><mo>â¢</mo><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>+</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\mathcal{L}}^{\rm SRM}(t-s)={\mathcal{H}}(t-s)\int_{-\infty}^{s}{\text{d}}%
+\hat{t}\,f^{\prime}[\eta(s-\hat{t})+h_{0}]\,S_{0}(t-\hat{t})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.58)</span></td>
+</tr>
+</table>
+</span>
+</div>
+<section id="SS1.SSSx1" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Example: Absolute refractoriness (*)</h1>
+
+<div id="SS1.SSSx1.p1" class="ltx_para">
+<p class="ltx_p">Absolute refractoriness is defined
+by a refractory kernel <math id="SS1.SSSx1.p1.m1" class="ltx_Math" alttext="\eta(s)=-\infty" display="inline"><semantics><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow><annotation encoding="application/x-tex">\eta(s)=-\infty</annotation></semantics></math> for <math id="SS1.SSSx1.p1.m2" class="ltx_Math" alttext="0&lt;s&lt;\delta^{\rm abs}" display="inline"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>s</mi><mo>&lt;</mo><msup><mi>Î´</mi><mi>abs</mi></msup></mrow><annotation encoding="application/x-tex">0&lt;s&lt;\delta^{\rm abs}</annotation></semantics></math> and zero
+otherwise.
+We take an arbitrary escape rate <math id="SS1.SSSx1.p1.m3" class="ltx_Math" alttext="f(u)\geq 0" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>â¥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(u)\geq 0</annotation></semantics></math>.
+The only condition on <math id="SS1.SSSx1.p1.m4" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> is that the escape
+rate goes rapidly to zero for voltages far below
+threshold: <math id="SS1.SSSx1.p1.m5" class="ltx_Math" alttext="{\rm lim}_{u\to-\infty}f(u)=0={\rm lim}_{u\to-\infty}f^{\prime}(u)" display="inline"><semantics><mrow><mrow><msub><mi>lim</mi><mrow><mi>u</mi><mo>â</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow></msub><mo>â¢</mo><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn><mo>=</mo><mrow><msub><mi>lim</mi><mrow><mi>u</mi><mo>â</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow></msub><mo>â¢</mo><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">{\rm lim}_{u\to-\infty}f(u)=0={\rm lim}_{u\to-\infty}f^{\prime}(u)</annotation></semantics></math>.
+</p>
+</div>
+<div id="SS1.SSSx1.p2" class="ltx_para">
+<p class="ltx_p">This yields <math id="SS1.SSSx1.p2.m1" class="ltx_Math" alttext="f[\eta(t-\hat{t})+h_{0}]=f(h_{0})\,{\mathcal{H}}(t-\hat{t}-\delta^{\rm abs})" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>+</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>-</mo><msup><mi>Î´</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">f[\eta(t-\hat{t})+h_{0}]=f(h_{0})\,{\mathcal{H}}(t-\hat{t}-\delta^{\rm abs})</annotation></semantics></math> and hence</p>
+<table id="Ch14.E59" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E59.m1" class="ltx_Math" alttext="f^{\prime}[\eta(t-\hat{t})+h_{0}]=f^{\prime}(h_{0})\,{\mathcal{H}}(t-\hat{t}-%
+\delta^{\rm abs})\,." display="block"><semantics><mrow><mrow><mrow><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><mo>+</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mrow><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>-</mo><msup><mi>Î´</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">f^{\prime}[\eta(t-\hat{t})+h_{0}]=f^{\prime}(h_{0})\,{\mathcal{H}}(t-\hat{t}-%
+\delta^{\rm abs})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.59)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The survivor function <math id="SS1.SSSx1.p2.m2" class="ltx_Math" alttext="S_{0}(s)" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(s)</annotation></semantics></math> is unity for <math id="SS1.SSSx1.p2.m3" class="ltx_Math" alttext="s&lt;\delta^{\rm abs}" display="inline"><semantics><mrow><mi>s</mi><mo>&lt;</mo><msup><mi>Î´</mi><mi>abs</mi></msup></mrow><annotation encoding="application/x-tex">s&lt;\delta^{\rm abs}</annotation></semantics></math>
+and decays as <math id="SS1.SSSx1.p2.m4" class="ltx_Math" alttext="\exp[-f(h_{0})\,(s-\delta^{\rm abs})]" display="inline"><semantics><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mrow><mo>-</mo><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi>Î´</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\exp[-f(h_{0})\,(s-\delta^{\rm abs})]</annotation></semantics></math> for <math id="SS1.SSSx1.p2.m5" class="ltx_Math" alttext="s&gt;\delta^{\rm abs}" display="inline"><semantics><mrow><mi>s</mi><mo>&gt;</mo><msup><mi>Î´</mi><mi>abs</mi></msup></mrow><annotation encoding="application/x-tex">s&gt;\delta^{\rm abs}</annotation></semantics></math>.
+Integration of Eq.Â (<a href="#Ch14.E58" title="(14.58) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.58</span></a>) yields</p>
+<table id="Ch14.E60" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch14.E60.m1" class="ltx_Math" alttext="{\mathcal{L}}(t-t_{1})={\mathcal{H}}(t-t_{1}){f^{\prime}(h_{0})\over f(h_{0})}%
+\exp[-f(h_{0})\,(t-t_{1})]\,." display="block"><semantics><mrow><mrow><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow><mo>â¢</mo><mfrac><mrow><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow></mfrac><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mrow><mo>-</mo><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>1</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(t-t_{1})={\mathcal{H}}(t-t_{1}){f^{\prime}(h_{0})\over f(h_{0})}%
+\exp[-f(h_{0})\,(t-t_{1})]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(14.60)</span></td>
+</tr>
+</table>
+<p class="ltx_p">As we have seen in
+SectionÂ <a href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.1</span></a>,
+absolute refractoriness leads to the
+Wilson-Cowan integral equation (<a href="Ch14.S1.html#Ch14.E10" title="(14.10) â£ 14.1.3 Normalization and derivation of the integral equation â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.10</span></a>).
+Thus <math id="SS1.SSSx1.p2.m6" class="ltx_Math" alttext="{\mathcal{L}}" display="inline"><semantics><mi class="ltx_font_mathcaligraphic">â</mi><annotation encoding="application/x-tex">{\mathcal{L}}</annotation></semantics></math> defined in
+(<a href="#Ch14.E60" title="(14.60) â£ Example: Absolute refractoriness (*) â£ 14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.60</span></a>) is the kernel relating to Eq.Â (<a href="Ch14.S1.html#Ch14.E10" title="(14.10) â£ 14.1.3 Normalization and derivation of the integral equation â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.10</span></a>).
+It could have
+been derived directly from the linearization of the Wilson-Cowan integral
+equation (see Exercises).
+We note that it is a low-pass filter with cut-off frequency
+<math id="SS1.SSSx1.p2.m7" class="ltx_Math" alttext="f(h_{0})" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>h</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(h_{0})</annotation></semantics></math>, which depends on the input potential <math id="SS1.SSSx1.p2.m8" class="ltx_Math" alttext="h_{0}" display="inline"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_{0}</annotation></semantics></math>.
+</p>
+</div>
+</section>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.2 </span>Recurrent Networks and Interacting Populations</span></a><a href="Ch14.S4.html" title="14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.4 </span>Density equations vs. integral equations</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

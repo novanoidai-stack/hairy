@@ -1,0 +1,378 @@
+<!DOCTYPE html><html>
+<head>
+<title>3.5 Summary | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S1.html" title="3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S3.html" title="3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Dendrites and Synapses</span></a><a href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.4 </span>Compartmental Models</span></a><a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Dimensionality Reduction and Phase Plane Analysis</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3.5 </span>Summary</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">âRealâ neurons are complex biophysical and biochemical
+entities. Before designing a model it is therefore necessary to develop an
+intuition for what is important and what can be safely neglected.
+Synapses are usually modeled as
+specific ion channels that open for a certain time after presynaptic spike
+arrival.
+The geometry of the neuron can play an important role in the
+integration of incoming signals because the effect of synaptic input on the
+somatic membrane potential depends on the location of the synapses on
+the dendritic tree. Though some analytic results can be obtained for
+<span class="ltx_text ltx_font_italic">passive</span> dendrites, it is usually necessary to resort to
+numerical methods and multi-compartment models in order to account for the
+complex geometry and presence of active ion channels on
+neuronal dendrites.</p>
+</div>
+<section id="SSx1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">Literature</h1>
+
+<div id="SSx1.p1" class="ltx_para">
+<p class="ltx_p">The book âDendritesâ <cite class="ltx_cite">(<a href="bib.html#bib71" title="Dendrites" class="ltx_ref">501</a>)</cite> offers a comprehensive review of the role and importance of dendrites from multiple points of view.
+An extensive description of cable theory as applied to neuronal dendrites can be found in the collected works of Wilfrid Rall <cite class="ltx_cite">(<a href="bib.html#bib72" title="The theoretical foundation of dendritic function" class="ltx_ref">464</a>)</cite>. NEURON <cite class="ltx_cite">(<a href="bib.html#bib66" title="The neuron book" class="ltx_ref">90</a>)</cite> and GENESIS <cite class="ltx_cite">(<a href="bib.html#bib64" title="The book of genesis" class="ltx_ref">63</a>)</cite> are important tools to numerically solve the system of differential equations of compartmental neuron models.
+There are useful repositories of neuronal morphologies (see http://NeuroMorpho.Org for instance)
+and of published models on ModelDB http://senselab.med.yale.edu/modeldb.
+The deep layer cortical neuron discussed in this chapter
+is described in <cite class="ltx_cite">(<a href="bib.html#bib65" title="Models of neocortical layer 5b pyramidal cells capturing a wide range of dendritic and perisomatic active properties" class="ltx_ref">208</a>)</cite>. Potential computational consequences
+of nonlinear dendrites are described in <cite class="ltx_cite">(<a href="bib.html#bib73" title="Information processing in dendritic trees" class="ltx_ref">337</a>)</cite>.</p>
+</div>
+</section>
+<section id="SSx2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">Exercises</h1>
+
+<div id="SSx2.p1" class="ltx_para">
+<ol id="Ch3.I2" class="ltx_enumerate">
+<li id="Ch3.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">1.</span>
+                </span> 
+<div id="Ch3.I2.i1.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Biophysical synapse model and its relation
+to other models.
+<br class="ltx_break"></span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">a) Consider Eq. </span>
+                    <a href="Ch3.S1.html#Ch3.E4" title="(3.4) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.4</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">
+and discuss its relation to Eq. </span>
+                    <a href="Ch3.S1.html#Ch3.E2" title="(3.2) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.
+Hint:
+(i) assume that
+the time course </span>
+                    <math id="Ch3.I2.i1.p1.m1" class="ltx_Math" alttext="\gamma(t)" display="inline"><semantics><mrow><mi>Î³</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\gamma(t)</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> can be described
+by a short pulse (duration of 1Â ms) and
+that the unbinding is on a time scale
+</span>
+                    <math id="Ch3.I2.i1.p1.m2" class="ltx_Math" alttext="\beta^{-1}&gt;10~{}ms" display="inline"><semantics><mrow><msup><mi>Î²</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup><mo>&gt;</mo><mrow><mpadded width="+3.3pt"><mn>10</mn></mpadded><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">\beta^{-1}&gt;10~{}ms</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.
+(ii) Assume that the interval between
+two presynaptic spike arrivals
+is much larger than </span>
+                    <math id="Ch3.I2.i1.p1.m3" class="ltx_Math" alttext="\beta^{-1}" display="inline"><semantics><msup><mi>Î²</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\beta^{-1}</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.
+</span>
+                    
+                  </p>
+</div>
+<div id="Ch3.I2.i1.p2" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">b) Discuss the relation of the depressive
+synapse model in Eq. </span>
+                    <a href="Ch3.S1.html#Ch3.E8" title="(3.8) â£ 3.1.3 Rapid synaptic dynamics â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.8</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">
+with the biophysically model in
+Eq. </span>
+                    <a href="Ch3.S1.html#Ch3.E4" title="(3.4) â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.4</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.
+Hint: (i) Assume that the interval between two presynaptic
+spikes if of the same order than </span>
+                    <math id="Ch3.I2.i1.p2.m1" class="ltx_Math" alttext="\beta^{-1}" display="inline"><semantics><msup><mi>Î²</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\beta^{-1}</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">. (ii) In Eq. </span>
+                    <a href="Ch3.S1.html#Ch3.E8" title="(3.8) â£ 3.1.3 Rapid synaptic dynamics â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.8</span></a>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> consider a variable
+</span>
+                    <math id="Ch3.I2.i1.p2.m2" class="ltx_Math" alttext="x=P_{\rm rel}/P_{0}" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><msub><mi>P</mi><mi>rel</mi></msub><mo>/</mo><msub><mi>P</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">x=P_{\rm rel}/P_{0}</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                  </p>
+</div>
+</li>
+<li id="Ch3.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">2.</span>
+                </span> 
+<div id="Ch3.I2.i2.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Transmitter-gated ion channel.</span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> </span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">Mark for each of the following statements
+whether it is correct or wrong:
+a) AMPA channels are activated by glutamate.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">b) AMPA channels are activated by AMPA.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">c) If the AMPA channel is open, AMPA can pass through the channel.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">d) If the AMPA channel is open, glutamate can pass through the channel.</span>
+                    
+<br class="ltx_break">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">e) If the AMPA channel is open, potassium can pass through the channel.</span>
+                    
+<br class="ltx_break">
+                  </p>
+</div>
+</li>
+<li id="Ch3.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">3.</span>
+                </span> 
+<div id="Ch3.I2.i3.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Cable equation.
+<br class="ltx_break"></span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">a) Show
+that the passive cable equation for the current is</span>
+                  </p>
+<table id="Ch3.E46" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E46.m1" class="ltx_Math" alttext="\frac{\partial}{\partial t}\,i(t,x)=\frac{\partial^{2}}{\partial x^{2}}\,i(t,x%
+)-i(t,x)+\frac{\partial}{\partial x}\,i_{\text{ext}}(t,x)\,," display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mpadded><mo>â¢</mo><mi>i</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mfrac><msup><mo>â</mo><mn>2</mn></msup><mrow><mo>â</mo><mo>â¡</mo><msup><mi>x</mi><mn>2</mn></msup></mrow></mfrac></mpadded><mo>â¢</mo><mi>i</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>i</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>x</mi></mrow></mfrac></mpadded><mo>â¢</mo><msub><mi>i</mi><mrow><mtext>Â                                  Â </mtext><mtext mathsize="small" stretchy="false">ðð¥ð¡</mtext><mtext>Â                                Â </mtext></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\frac{\partial}{\partial t}\,i(t,x)=\frac{\partial^{2}}{\partial x^{2}}\,i(t,x%
+)-i(t,x)+\frac{\partial}{\partial x}\,i_{\text{ext}}(t,x)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.46)</span></td>
+</tr>
+</table>
+</div>
+<div id="Ch3.I2.i3.p2" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">b) Set the external current to zero and find the mapping to the heat equation</span>
+                  </p>
+<table id="Ch3.E47" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E47.m1" class="ltx_Math" alttext="\frac{\partial}{\partial t}\,y(t,x)=\frac{\partial^{2}}{\partial x^{2}}\,y(t,x)." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mpadded><mo>â¢</mo><mi>y</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><msup><mo>â</mo><mn>2</mn></msup><mrow><mo>â</mo><mo>â¡</mo><msup><mi>x</mi><mn>2</mn></msup></mrow></mfrac></mpadded><mo>â¢</mo><mi>y</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\frac{\partial}{\partial t}\,y(t,x)=\frac{\partial^{2}}{\partial x^{2}}\,y(t,x).</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.47)</span></td>
+</tr>
+</table>
+</div>
+<div id="Ch3.I2.i3.p3" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">Hint: Try </span>
+                    <math id="Ch3.I2.i3.p3.m1" class="ltx_Math" alttext="y(t,x)=f(t)\,i(t,x)" display="inline"><semantics><mrow><mrow><mi>y</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>i</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">y(t,x)=f(t)\,i(t,x)</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> with some function </span>
+                    <math id="Ch3.I2.i3.p3.m2" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                  </p>
+</div>
+<div id="Ch3.I2.i3.p4" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">c) Find the solution to the current equation in a) for the infinite cable receiving a short current pulse at time </span>
+                    <math id="Ch3.I2.i3.p4.m1" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> and show that the corresponding equation for </span>
+                    <math id="Ch3.I2.i3.p4.m2" class="ltx_Math" alttext="y" display="inline"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> satisfies the heat equation in b).</span>
+                  </p>
+</div>
+</li>
+<li id="Ch3.I2.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">4.</span>
+                </span> 
+<div id="Ch3.I2.i4.p1" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_bold ltx_font_small">Nonleaky Cable. 
+<br class="ltx_break"></span>
+                    <span class="ltx_text ltx_font_italic ltx_font_small">a) Redo the derivation of the cable equation
+for the case of an infinite one-dimensional passive dendrite
+without transversal leak and show that the solution to the equation
+is of the form</span>
+                  </p>
+<table id="Ch3.E48" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E48.m1" class="ltx_Math" alttext="u(x,t)=\int_{-\infty}^{t}\!\!{\text{d}}t^{\prime}\int_{-\infty}^{\infty}\!\!{%
+\text{d}}x^{\prime}\;G_{d}(t-t^{\prime},x-x^{\prime})\,i_{\text{ext}}(t^{%
+\prime},x^{\prime})" display="block"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="-3.4pt"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup></mpadded><mrow><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">ð</mtext><mtext>Â                              Â </mtext></mrow><mo>â¢</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mpadded width="-3.4pt"><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup></mpadded><mrow><mrow><mtext>Â                                    Â </mtext><mtext mathsize="small" stretchy="false">ð</mtext><mtext>Â                                  Â </mtext></mrow><mo>â¢</mo><mpadded width="+2.8pt"><msup><mi>x</mi><mo>â²</mo></msup></mpadded><mo>â¢</mo><msub><mi>G</mi><mi>d</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><mo>,</mo><mrow><mi>x</mi><mo>-</mo><msup><mi>x</mi><mo>â²</mo></msup></mrow></mrow><mo>)</mo></mrow><mo>â¢</mo><msub><mi>i</mi><mrow><mtext>Â                                      Â </mtext><mtext mathsize="small" stretchy="false">ðð¥ð¡</mtext><mtext>Â                                    Â </mtext></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>,</mo><msup><mi>x</mi><mo>â²</mo></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">u(x,t)=\int_{-\infty}^{t}\!\!{\text{d}}t^{\prime}\int_{-\infty}^{\infty}\!\!{%
+\text{d}}x^{\prime}\;G_{d}(t-t^{\prime},x-x^{\prime})\,i_{\text{ext}}(t^{%
+\prime},x^{\prime})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.48)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">where </span>
+                    <math id="Ch3.I2.i4.p1.m1" class="ltx_Math" alttext="G_{d}" display="inline"><semantics><msub><mi>G</mi><mi>d</mi></msub><annotation encoding="application/x-tex">G_{d}</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> is a Gaussian of the form</span>
+                  </p>
+<table id="Ch3.E49" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E49.m1" class="ltx_Math" alttext="G_{d}(x,t)=\frac{1}{\sqrt{2\pi\sigma(t)}}\exp{-\frac{x^{2}}{2\sigma^{2}(t)}}." display="block"><semantics><mrow><mrow><mrow><msub><mi>G</mi><mi>d</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mfrac><mn>1</mn><msqrt><mrow><mn>2</mn><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></msqrt></mfrac><mo>â¢</mo><mi>exp</mi></mrow><mo>-</mo><mfrac><msup><mi>x</mi><mn>2</mn></msup><mrow><mn>2</mn><mo>â¢</mo><msup><mi>Ï</mi><mn>2</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mfrac></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">G_{d}(x,t)=\frac{1}{\sqrt{2\pi\sigma(t)}}\exp{-\frac{x^{2}}{2\sigma^{2}(t)}}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.49)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">Determine </span>
+                    <math id="Ch3.I2.i4.p1.m2" class="ltx_Math" alttext="\sigma(t)" display="inline"><semantics><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma(t)</annotation></semantics></math>
+                    <span class="ltx_text ltx_font_italic ltx_font_small"> and discuss the result.</span>
+                  </p>
+</div>
+<div id="Ch3.I2.i4.p2" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">b) Use the method of mirror charges
+to discuss how the solution changes
+if the cable is semi-infinite and
+extends from zero to infinity.</span>
+                  </p>
+</div>
+<div id="Ch3.I2.i4.p3" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">c) Take the integral over space
+of the elementary solution
+of the non-leaky cable equation
+and show that the value of the integral
+does not change over time.
+Give an interpretation of this result.</span>
+                  </p>
+</div>
+<div id="Ch3.I2.i4.p4" class="ltx_para">
+<p class="ltx_p">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">d) Take the integral over space of the elementary
+solution of the normal leaky cable equation
+</span>
+                    
+                    <span class="ltx_text ltx_font_italic ltx_font_small">of a passive dendrite and
+derive an expression for its temporal evolution.
+Give an interpretation of your result.</span>
+                  </p>
+</div>
+</li>
+<li id="Ch3.I2.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                  <span class="ltx_text ltx_font_italic ltx_font_small">5.</span>
+                </span> 
+<div id="Ch3.I2.i5.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold ltx_font_small">Conduction velocity in unmyelinated axons
+<br class="ltx_break"></span><span class="ltx_text ltx_font_italic ltx_font_small">a) Using the simplified ion channel dynamics of Eq. (</span><a href="Ch3.S3.html#Ch3.E39" title="(3.39) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.39</span></a><span class="ltx_text ltx_font_italic ltx_font_small">), transform </span><math id="Ch3.I2.i5.p1.m1" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> and </span><math id="Ch3.I2.i5.p1.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> to dimensionless variables using effective time and electrotonic constants.</span>
+<br class="ltx_break"><span class="ltx_text ltx_font_italic ltx_font_small">b) A traveling pulse solution will have the form </span><math id="Ch3.I2.i5.p1.m3" class="ltx_Math" alttext="u(x,t)=\tilde{u}(x-{\sf v}t)" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mover accent="true"><mi>u</mi><mo stretchy="false">~</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>-</mo><mrow><mi>ð</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">u(x,t)=\tilde{u}(x-{\sf v}t)</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> where </span><math id="Ch3.I2.i5.p1.m4" class="ltx_Math" alttext="{\sf v}" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">{\sf v}</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small"> is the conduction velocity. Find the ordinary differential equation that rules </span><math id="Ch3.I2.i5.p1.m5" class="ltx_Math" alttext="\tilde{u}" display="inline"><semantics><mover accent="true"><mi>u</mi><mo stretchy="false">~</mo></mover><annotation encoding="application/x-tex">\tilde{u}</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+<br class="ltx_break"><span class="ltx_text ltx_font_italic ltx_font_small">c) Show that
+</span><math id="Ch3.I2.i5.p1.m6" class="ltx_Math" alttext="\tilde{u}(y)=\frac{1}{1+\exp\left(y\right)}" display="inline"><semantics><mrow><mrow><mover accent="true"><mi>u</mi><mo stretchy="false">~</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>y</mi><mo>)</mo></mrow></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mi>y</mi><mo>)</mo></mrow></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tilde{u}(y)=\frac{1}{1+\exp\left(y\right)}</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">
+with traveling speed </span><math id="Ch3.I2.i5.p1.m7" class="ltx_Math" alttext="{\sf v}=\frac{1-2a}{\sqrt{2}}" display="inline"><semantics><mrow><mi>ð</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>-</mo><mrow><mn>2</mn><mo>â¢</mo><mi>a</mi></mrow></mrow><msqrt><mn>2</mn></msqrt></mfrac></mrow><annotation encoding="application/x-tex">{\sf v}=\frac{1-2a}{\sqrt{2}}</annotation></semantics></math><span class="ltx_text ltx_font_italic ltx_font_small">
+is a solution. </span>
+<br class="ltx_break"></p>
+</div>
+</li>
+</ol>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.4 </span>Compartmental Models</span></a><a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Dimensionality Reduction and Phase Plane Analysis</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

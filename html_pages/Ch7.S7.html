@@ -1,0 +1,761 @@
+<!DOCTYPE html><html>
+<head>
+<title>7.7 Summary | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S1.html" title="7.1 Spike train variability â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S2.html" title="7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S3.html" title="7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S5.html" title="7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                          ">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7 </span>Variability of Spike Trains and Neural Codes</span></a><a href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6 </span>The Problem of Neural Coding</span></a><a href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8 </span>Noisy Input Models: Barrage of Spike Arrivals</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7.7 </span>Summary</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Variability of spike timing
+is a common phenomenon in biological neurons.
+Variability can be quantified
+by the <math id="p1.m1" class="ltx_Math" alttext="C_{V}" display="inline"><semantics><msub><mi>C</mi><mi>V</mi></msub><annotation encoding="application/x-tex">C_{V}</annotation></semantics></math> value of
+interval distributions;
+by the Fano factor of the spike count;
+or by the repeatability of spike timings
+between one trial and the next.
+Whether the variability represents
+noise or uncontrolled components of a signal
+which is not well characterized, is a topic
+of debate. Experiments show that
+a neuron <span class="ltx_text ltx_font_italic">in vitro</span>, or in one of the sensory
+areas <span class="ltx_text ltx_font_italic">in vivo</span>, shows highly reliable spike timings
+if driven by a strong stimulus with large-amplitude
+fluctuations of the signal.
+Spontaneous activity <span class="ltx_text ltx_font_italic">in vivo</span>, however, is unreliable
+and exhibits large variability of interspike intervals
+and spike counts.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">The simplest stochastic description of neuronal
+firing is a Poisson process. However,
+since each spike firing in a Poisson process
+is independent from earlier spikes, Poisson firing
+cannot account for refractoriness.
+In renewal processes, the probability of firing
+depends on the time since the last spike.
+Therefore refractoriness is taken care of.
+The independent events are the interspike-intervals
+which are drawn from a interval distribution <math id="p2.m1" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>.
+Knowledge of <math id="p2.m2" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math> is equivalent to knowing
+the survivor function <math id="p2.m3" class="ltx_Math" alttext="S_{0}(s)" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(s)</annotation></semantics></math> or the hazard
+<math id="p2.m4" class="ltx_Math" alttext="\rho_{0}(s)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(s)</annotation></semantics></math>. In neurons showing strong adaptation,
+interspike intervals are <span class="ltx_text ltx_font_italic">not</span> independent
+so that renewal theory is not sufficient.
+Moreover, standard renewal theory is limited to
+stationary stimuli, whereas real-world stimuli
+have a strong temporal component â the solution is then
+a time-dependent generalization of renewal theory
+which we will encounter in ChapterÂ <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">A description of neuronal spike trains in terms
+of firing rates or interval distributions
+does not imply that neurons use the firing
+rate (or interval distribution) to transmit signals.
+In fact, neither the spike count (averaging over time)
+nor the time-dependent rate of the PSTH (averaging over trials)
+can be the neural code of sensory processing because they are too slow given known reaction times. A firing rate in the sense
+of a population activity, defined
+as the instantaneous average of spikes across a population
+of neurons with similar properties, is, however,
+a candidate neural code. Other candidate
+codes, with some experimental support
+are a latency code (time-to-first-spike),
+or a phase code.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">In
+models, noise is usually added <span class="ltx_text ltx_font_italic">ad hoc</span> to account for
+the observed variability of neural spike trains:
+two standard ways of adding noise to neuron models
+will be presented in the next two chapters. But even without
+explicit noise source, neural activity may look noisy
+if the neuron is embedded in a large deterministic network
+with fixed random connectivity.
+The analysis of such networks will be the topic of PartÂ <a href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">III</span></a>.</p>
+</div>
+<section id="SSx1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">Literature</h1>
+
+<div id="SSx1.p1" class="ltx_para">
+<p class="ltx_p">A review of noise in the nervous system with a focus on internal
+noise sources can be found in
+<cite class="ltx_cite">(<a href="bib.html#bib174" title="Noise in the nervous system" class="ltx_ref">145</a>)</cite>. Analysis of spike trains in terms of stochastic point processes has a long
+tradition <cite class="ltx_cite">(<a href="bib.html#bib145" title="Neuronal spike trains and stochastic point processes I. the single spike train" class="ltx_ref">392</a>; <a href="bib.html#bib175" title="Mutual temporal relations among neuronal spike trains." class="ltx_ref">174</a>)</cite> and often involves concepts from
+renewal theory <cite class="ltx_cite">(<a href="bib.html#bib140" title="The statistical analysis of series of events" class="ltx_ref">105</a>)</cite>.
+Some principles of spike-train analysis with an
+emphasis on modern results have been reviewed by <cite class="ltx_cite">Gabbiani and Koch (<a href="bib.html#bib176" title="Principles of spike train analysis" class="ltx_ref">165</a>)</cite> and
+<cite class="ltx_cite">Rieke<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+For a discussion of the variability of interspike intervals
+see the debate of <cite class="ltx_cite">Shadlen and Newsome (<a href="bib.html#bib177" title="Noise, neural codes and cortical organization" class="ltx_ref">470</a>)</cite>, <cite class="ltx_cite">Softky (<a href="bib.html#bib178" title="Simple codes versus efficient codes" class="ltx_ref">486</a>)</cite>, and <cite class="ltx_cite">Bair and Koch (<a href="bib.html#bib127" title="Temporal precision of spike trains in extrastriate cortex of the behaving macaque monekey" class="ltx_ref">37</a>)</cite>;
+these papers also give a critical discussion of the concept of
+temporal averaging. An accessible mathematical treatment of the inhomogeneous
+Poisson model in the context of neuronal signals is given
+in <cite class="ltx_cite">Rieke<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+The same book can also be recommended for its
+excellent discussion of rate codes, and their limits,
+as well as the method of stimulus reconstruction
+<cite class="ltx_cite">(<a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.</p>
+</div>
+<section id="SSx1.SSSx1" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Exercises</h1>
+
+<div id="SSx1.SSSx1.p1" class="ltx_para">
+<ol id="Ch7.I1" class="ltx_enumerate">
+<li id="Ch7.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">1.</span>
+                  </span> 
+<div id="Ch7.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">Poisson process in discrete and continuous time</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+We consider a Poisson neuron model
+in discrete time.
+In every small time interval </span>
+                      <math id="Ch7.I1.i1.p1.m1" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">,
+the probability that the neuron fires is given by </span>
+                      <math id="Ch7.I1.i1.p1.m2" class="ltx_Math" alttext="\nu\,\Delta t" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\nu\,\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Firing in different time intervals is independent.
+The limit </span>
+                      <math id="Ch7.I1.i1.p1.m3" class="ltx_Math" alttext="\Delta t\to 0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta t\to 0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> will be taken only at the end.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i1.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(a) What is the probability that the neuron does not fire during a
+time of arbitrarily large length </span>
+                      <math id="Ch7.I1.i1.p2.m1" class="ltx_Math" alttext="t=N\,\Delta t" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">t=N\,\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i1.p3" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Hint: Consider first the probability of not firing during a single short interval </span>
+                      <math id="Ch7.I1.i1.p3.m1" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">,
+and then extend your reasoning to </span>
+                      <math id="Ch7.I1.i1.p3.m2" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> time steps.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i1.p4" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(b) Suppose that the neuron has fired at time </span>
+                      <math id="Ch7.I1.i1.p4.m1" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Calculate the distribution of intervals </span>
+                      <math id="Ch7.I1.i1.p4.m2" class="ltx_Math" alttext="P(t)" display="inline"><semantics><mrow><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P(t)</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">, i.e., the
+probability density that the neuron fires its next spike at a time </span>
+                      <math id="Ch7.I1.i1.p4.m3" class="ltx_Math" alttext="t=N\,\Delta t" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">t=N\,\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i1.p5" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(c) Start from your results in (a) and (b) and take the limit
+</span>
+                      <math id="Ch7.I1.i1.p5.m1" class="ltx_Math" alttext="N\to\infty" display="inline"><semantics><mrow><mi>N</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">N\to\infty</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">, </span>
+                      <math id="Ch7.I1.i1.p5.m2" class="ltx_Math" alttext="\Delta t\to 0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta t\to 0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">, while keeping </span>
+                      <math id="Ch7.I1.i1.p5.m3" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> fixed.
+What is the resulting survivor function </span>
+                      <math id="Ch7.I1.i1.p5.m4" class="ltx_Math" alttext="S_{0}(t)" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(t)</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> and the interval distribution
+</span>
+                      <math id="Ch7.I1.i1.p5.m5" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> in continuous time?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i1.p6" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(d)
+Suppose that the neuron is driven by some input.
+</span>
+                      
+                      <span class="ltx_text ltx_font_italic ltx_font_small">For </span>
+                      <math id="Ch7.I1.i1.p6.m1" class="ltx_Math" alttext="t&lt;t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>&lt;</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t&lt;t_{0}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> , the input is weak, so that its firing
+rate is </span>
+                      <math id="Ch7.I1.i1.p6.m2" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi>Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> = 2Hz. For </span>
+                      <math id="Ch7.I1.i1.p6.m3" class="ltx_Math" alttext="t_{0}&lt;t&lt;t_{1}=t_{0}+100" display="inline"><semantics><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>&lt;</mo><mi>t</mi><mo>&lt;</mo><msub><mi>t</mi><mn>1</mn></msub><mo>=</mo><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>+</mo><mn>100</mn></mrow></mrow><annotation encoding="application/x-tex">t_{0}&lt;t&lt;t_{1}=t_{0}+100</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">ms,
+the input is strong and the neuron fires at </span>
+                      <math id="Ch7.I1.i1.p6.m4" class="ltx_Math" alttext="\nu=20" display="inline"><semantics><mrow><mi>Î½</mi><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">\nu=20</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Hz.
+Unfortunately, however,
+the onset time </span>
+                      <math id="Ch7.I1.i1.p6.m5" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> of the strong input is unknown; can an observer, who is looking at
+the neuronÃ¢ÂÂs output, detect the period of strong input? How reliably?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i1.p7" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Hint:
+Calculate the interval distributions for weak and strong stimuli.
+What is the probability of having a Ã¢ÂÂburstÃ¢ÂÂ consisting of two intervals of less than 20 ms each if the input is weak/strong?</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">2.</span>
+                  </span> 
+<div id="Ch7.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">Autocorrelation of a Poisson process in discrete time</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+The autocorrelation</span>
+                    </p>
+<table id="Ch7.E58" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E58.m1" class="ltx_Math" alttext="C_{ii}(s)=\langle S_{i}(t)\,S_{i}(t+s)\rangle_{t}\,," display="block"><semantics><mrow><mrow><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><msub><mrow><mo>â¨</mo><mrow><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow><mo>â©</mo></mrow><mi>t</mi></msub></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">C_{ii}(s)=\langle S_{i}(t)\,S_{i}(t+s)\rangle_{t}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.58)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">is defined as the joint probability density of finding a spike at time </span>
+                      <math id="Ch7.I1.i2.p1.m1" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+</span>
+                      <span class="ltx_text ltx_font_bold ltx_font_small">and</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> a spike at time </span>
+                      <math id="Ch7.I1.i2.p1.m2" class="ltx_Math" alttext="t+s" display="inline"><semantics><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">t+s</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+In Eq. (</span>
+                      <a href="Ch7.S5.html#Ch7.E46" title="(7.46) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.46</span></a>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">) we have stated the autocorrelation
+of the homogeneous Poisson process in
+continuous time. Derive this result by starting
+with a Poisson process in discrete time
+</span>
+                      
+                      <span class="ltx_text ltx_font_italic ltx_font_small">where
+the probability of firing
+in a small time interval </span>
+                      <math id="Ch7.I1.i2.p1.m3" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">,
+is given by </span>
+                      <math id="Ch7.I1.i2.p1.m4" class="ltx_Math" alttext="\nu\,\Delta t" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\nu\,\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+To do so, take the following steps:</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i2.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(a)
+What is the joint probability to find a spike in the bin </span>
+                      <math id="Ch7.I1.i2.p2.m1" class="ltx_Math" alttext="[t,t+\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><mi>t</mi><mo>,</mo><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t,t+\Delta t]</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+AND in the bin </span>
+                      <math id="Ch7.I1.i2.p2.m2" class="ltx_Math" alttext="[t^{\prime},t^{\prime}+\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>,</mo><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t^{\prime},t^{\prime}+\Delta t]</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> where </span>
+                      <math id="Ch7.I1.i2.p2.m3" class="ltx_Math" alttext="t\neq t^{\prime}" display="inline"><semantics><mrow><mi>t</mi><mo>â </mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><annotation encoding="application/x-tex">t\neq t^{\prime}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i2.p3" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(b) What is the joint probability to find a spike in the bin </span>
+                      <math id="Ch7.I1.i2.p3.m1" class="ltx_Math" alttext="[t,t+\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><mi>t</mi><mo>,</mo><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t,t+\Delta t]</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+AND in the bin </span>
+                      <math id="Ch7.I1.i2.p3.m2" class="ltx_Math" alttext="[t^{\prime},t^{\prime}+\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>,</mo><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t^{\prime},t^{\prime}+\Delta t]</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> where </span>
+                      <math id="Ch7.I1.i2.p3.m3" class="ltx_Math" alttext="t=t^{\prime}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><annotation encoding="application/x-tex">t=t^{\prime}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i2.p4" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(c) What is the probability to find two spikes in the bin </span>
+                      <math id="Ch7.I1.i2.p4.m1" class="ltx_Math" alttext="[t,t+\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><mi>t</mi><mo>,</mo><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t,t+\Delta t]</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">?
+Why can this term be neglected in the limit </span>
+                      <math id="Ch7.I1.i2.p4.m2" class="ltx_Math" alttext="\Delta t\to 0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta t\to 0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i2.p5" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(d) Take the limit </span>
+                      <math id="Ch7.I1.i2.p5.m1" class="ltx_Math" alttext="\Delta t\to 0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><mo>â</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta t\to 0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> while keeping </span>
+                      <math id="Ch7.I1.i2.p5.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> and </span>
+                      <math id="Ch7.I1.i2.p5.m3" class="ltx_Math" alttext="t^{\prime}" display="inline"><semantics><msup><mi>t</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">t^{\prime}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> fixed
+so as to find
+the autocorrelation function </span>
+                      <math id="Ch7.I1.i2.p5.m4" class="ltx_Math" alttext="C_{0}(s)" display="inline"><semantics><mrow><msub><mi>C</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">C_{0}(s)</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> in continuous time.</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">3.</span>
+                  </span> 
+<div id="Ch7.I1.i3.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">Repeatability and random coincidences</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Suppose that a Poisson neuron with a constant rate of 20 Hz emits, in a trial of 5-second duration,
+100 spikes at times </span>
+                      <math id="Ch7.I1.i3.p1.m1" class="ltx_Math" alttext="t^{(1)};t^{(2)};\dots t^{(100)}" display="inline"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msup><mo>;</mo><msup><mi>t</mi><mrow><mo>(</mo><mn>2</mn><mo>)</mo></mrow></msup><mo>;</mo><mrow><mi mathvariant="normal">â¦</mi><mo>â¢</mo><msup><mi>t</mi><mrow><mo>(</mo><mn>100</mn><mo>)</mo></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">t^{(1)};t^{(2)};\dots t^{(100)}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+</span>
+                      
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Afterward, the experiment is repeated and a second spike train with a
+duration of 5 seconds is observed.
+How many spikes in the first trial can be expected to coincide with a spike in the second trial? More generally, what percentage of spikes coincide between two trials of a Poisson neuron with
+arbitrary rate </span>
+                      <math id="Ch7.I1.i3.p1.m2" class="ltx_Math" alttext="\nu_{0}" display="inline"><semantics><msub><mi>Î½</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\nu_{0}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> under the assumption that trials are sufficiently long?</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">4.</span>
+                  </span> 
+<div id="Ch7.I1.i4.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">Spike count and Fano Factor</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+A homogeneous Poisson process
+has a probability to fire in a very small interval </span>
+                      <math id="Ch7.I1.i4.p1.m1" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> equal to
+</span>
+                      <math id="Ch7.I1.i4.p1.m2" class="ltx_Math" alttext="\nu\,\Delta t" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\nu\,\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i4.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(a) Show that the probability to observe exactly </span>
+                      <math id="Ch7.I1.i4.p2.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> spikes in the time interval </span>
+                      <math id="Ch7.I1.i4.p2.m2" class="ltx_Math" alttext="T=N\,\Delta t" display="inline"><semantics><mrow><mi>T</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>N</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">T=N\,\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> is </span>
+                      <math id="Ch7.I1.i4.p2.m3" class="ltx_Math" alttext="P_{k}(T)=[1/k!]\,(\nu\,T)^{k}\,\exp(-\nu\,T)\," display="inline"><semantics><mrow><mrow><msub><mi>P</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>T</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>/</mo><mrow><mi>k</mi><mi mathvariant="normal">!</mi></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow><mo>)</mo></mrow><mi>k</mi></msup></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi>T</mi></mrow></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">P_{k}(T)=[1/k!]\,(\nu\,T)^{k}\,\exp(-\nu\,T)\,</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i4.p3" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Hint: Start in discrete time and write the
+probability to observe </span>
+                      <math id="Ch7.I1.i4.p3.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> events in </span>
+                      <math id="Ch7.I1.i4.p3.m2" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> slots using the binomial distribution:
+</span>
+                      <math id="Ch7.I1.i4.p3.m3" class="ltx_Math" alttext="P(k;N)=[N!/k!(N-k)!]\,p^{k}\,(1-p)^{N-k}" display="inline"><semantics><mrow><mrow><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>k</mi><mo>;</mo><mi>N</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mrow><mrow><mi>N</mi><mi mathvariant="normal">!</mi></mrow><mo>/</mo><mrow><mi>k</mi><mi mathvariant="normal">!</mi></mrow></mrow><mo>â¢</mo><mrow><mrow><mo>(</mo><mrow><mi>N</mi><mo>-</mo><mi>k</mi></mrow><mo>)</mo></mrow><mi mathvariant="normal">!</mi></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>p</mi><mi>k</mi></msup></mpadded><mo>â¢</mo><msup><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>p</mi></mrow><mo>)</mo></mrow><mrow><mi>N</mi><mo>-</mo><mi>k</mi></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">P(k;N)=[N!/k!(N-k)!]\,p^{k}\,(1-p)^{N-k}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+where </span>
+                      <math id="Ch7.I1.i4.p3.m4" class="ltx_Math" alttext="p" display="inline"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> is the probability of firing in a time bin
+of duration </span>
+                      <math id="Ch7.I1.i4.p3.m5" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Take the continuous time limit with Stirlingâs formula </span>
+                      <math id="Ch7.I1.i4.p3.m6" class="ltx_Math" alttext="N!\approx(N/e)^{N}" display="inline"><semantics><mrow><mrow><mi>N</mi><mi mathvariant="normal">!</mi></mrow><mo>â</mo><msup><mrow><mo>(</mo><mrow><mi>N</mi><mo>/</mo><mi>e</mi></mrow><mo>)</mo></mrow><mi>N</mi></msup></mrow><annotation encoding="application/x-tex">N!\approx(N/e)^{N}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i4.p4" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(b) Repeat the above argument for an inhomogeneous Poisson process.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i4.p5" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(c) Show for the inhomogeneous Poisson process that the mean spike count in an
+interval of duration </span>
+                      <math id="Ch7.I1.i4.p5.m1" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> is
+</span>
+                      <math id="Ch7.I1.i4.p5.m2" class="ltx_Math" alttext="\langle k\rangle=\int_{0}^{T}\nu(t)\,dt" display="inline"><semantics><mrow><mrow><mo>â¨</mo><mi>k</mi><mo>â©</mo></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi>T</mi></msubsup><mrow><mi>Î½</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\langle k\rangle=\int_{0}^{T}\nu(t)\,dt</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i4.p6" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(d) Calculate the variance of the spike count and the Fano factor for the inhomogeneous Poisson process.</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">5.</span>
+                  </span> 
+<div id="Ch7.I1.i5.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">From interval distribution to hazard</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+During stimulation
+with a stationary stimulus,
+interspike intervals in a long spike train
+are found to be independent and
+given by the distribution</span>
+                    </p>
+<table id="Ch7.E59" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E59.m1" class="ltx_Math" alttext="P(t|t^{\prime})={(t-t^{\prime})\over\tau^{2}}\,\exp\left(-{t-t^{\prime}\over%
+\tau}\right)" display="block"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">)</mo></mrow><mo>=</mo><mpadded width="+1.7pt"><mfrac><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><mo>)</mo></mrow><msup><mi>Ï</mi><mn>2</mn></msup></mfrac></mpadded><mi>exp</mi><mrow><mo>(</mo><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><mi>Ï</mi></mfrac><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P(t|t^{\prime})={(t-t^{\prime})\over\tau^{2}}\,\exp\left(-{t-t^{\prime}\over%
+\tau}\right)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.59)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">for </span>
+                      <math id="Ch7.I1.i5.p1.m1" class="ltx_Math" alttext="t&gt;t^{\prime}" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><msup><mi>t</mi><mo>â²</mo></msup></mrow><annotation encoding="application/x-tex">t&gt;t^{\prime}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i5.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(a)
+Calculate the survivor function </span>
+                      <math id="Ch7.I1.i5.p2.m1" class="ltx_Math" alttext="S(t|t^{\prime})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t|t^{\prime})</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">, i.e. the probability
+that the neuron survives from time </span>
+                      <math id="Ch7.I1.i5.p2.m2" class="ltx_Math" alttext="t^{\prime}" display="inline"><semantics><msup><mi>t</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">t^{\prime}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> to </span>
+                      <math id="Ch7.I1.i5.p2.m3" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> without firing.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i5.p3" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Hint: You can use </span>
+                      <math id="Ch7.I1.i5.p3.m1" class="ltx_Math" alttext="\int_{0}^{y}x\,e^{ax}dx=e^{ay}[ay-1]/a^{2}" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi>y</mi></msubsup><mrow><mpadded width="+1.7pt"><mi>x</mi></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mi>a</mi><mo>â¢</mo><mi>x</mi></mrow></msup><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>x</mi></mrow></mrow><mo>=</mo><mrow><mrow><msup><mi>e</mi><mrow><mi>a</mi><mo>â¢</mo><mi>y</mi></mrow></msup><mo>â¢</mo><mrow><mo>[</mo><mrow><mrow><mi>a</mi><mo>â¢</mo><mi>y</mi></mrow><mo>-</mo><mn>1</mn></mrow><mo>]</mo></mrow></mrow><mo>/</mo><msup><mi>a</mi><mn>2</mn></msup></mrow></mrow><annotation encoding="application/x-tex">\int_{0}^{y}x\,e^{ax}dx=e^{ay}[ay-1]/a^{2}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i5.p4" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(b)
+Calculate the hazard function </span>
+                      <math id="Ch7.I1.i5.p4.m1" class="ltx_Math" alttext="\rho(t|t^{\prime})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|t^{\prime})</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">,
+that is, the stochastic intensity that the neuron fires,
+given that its last spike was at </span>
+                      <math id="Ch7.I1.i5.p4.m2" class="ltx_Math" alttext="t^{\prime}" display="inline"><semantics><msup><mi>t</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">t^{\prime}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+and interpret the result: what are the signs
+of refractoriness?</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i5.p5" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(c)
+A spike train starts at time </span>
+                      <math id="Ch7.I1.i5.p5.m1" class="ltx_Math" alttext="0" display="inline"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> and we have observed a first
+spike at time </span>
+                      <math id="Ch7.I1.i5.p5.m2" class="ltx_Math" alttext="t_{1}" display="inline"><semantics><msub><mi>t</mi><mn>1</mn></msub><annotation encoding="application/x-tex">t_{1}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+We are interested in the probability that the </span>
+                      <math id="Ch7.I1.i5.p5.m3" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">th spike occurs around
+time </span>
+                      <math id="Ch7.I1.i5.p5.m4" class="ltx_Math" alttext="t_{n}=t_{1}+s" display="inline"><semantics><mrow><msub><mi>t</mi><mi>n</mi></msub><mo>=</mo><mrow><msub><mi>t</mi><mn>1</mn></msub><mo>+</mo><mi>s</mi></mrow></mrow><annotation encoding="application/x-tex">t_{n}=t_{1}+s</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+With this definition of spike labels,
+calculate the probability density
+</span>
+                      
+                      <math id="Ch7.I1.i5.p5.m5" class="ltx_Math" alttext="P(t_{3}|t_{1})" display="inline"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><msub><mi>t</mi><mn>3</mn></msub><mo stretchy="false">|</mo><msub><mi>t</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(t_{3}|t_{1})</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+that the third spike
+occurs around time </span>
+                      <math id="Ch7.I1.i5.p5.m6" class="ltx_Math" alttext="t_{3}" display="inline"><semantics><msub><mi>t</mi><mn>3</mn></msub><annotation encoding="application/x-tex">t_{3}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i6" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">6.</span>
+                  </span> 
+<div id="Ch7.I1.i6.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">Gamma-distribution</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+
+Stationary interval distributions can often be fitted
+by a Gamma distribution (for </span>
+                      
+                      <math id="Ch7.I1.i6.p1.m1" class="ltx_Math" alttext="s&gt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&gt;0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">)</span>
+                    </p>
+<table id="Ch7.E60" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E60.m1" class="ltx_Math" alttext="P(s)={1\over(k-1)!}\,{s^{k-1}\over\tau^{k}}\,e^{-s/\tau}," display="block"><semantics><mrow><mrow><mrow><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><mrow><mrow><mo>(</mo><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow><mi mathvariant="normal">!</mi></mrow></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><msup><mi>s</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow></msup><msup><mi>Ï</mi><mi>k</mi></msup></mfrac></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>s</mi><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">P(s)={1\over(k-1)!}\,{s^{k-1}\over\tau^{k}}\,e^{-s/\tau},</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.60)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">where </span>
+                      <math id="Ch7.I1.i6.p1.m2" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> is a positive natural number.
+We consider in the following </span>
+                      <math id="Ch7.I1.i6.p1.m3" class="ltx_Math" alttext="k=1" display="inline"><semantics><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k=1</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i6.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(a) Calculate the mean interval </span>
+                      <math id="Ch7.I1.i6.p2.m1" class="ltx_Math" alttext="\langle s\rangle" display="inline"><semantics><mrow><mo>â¨</mo><mi>s</mi><mo>â©</mo></mrow><annotation encoding="application/x-tex">\langle s\rangle</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">
+and the mean firing rate.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i6.p3" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(b) Assume that intervals are independent and calculate the power spectrum.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i6.p4" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Hint: Use Eq. (</span>
+                      <a href="Ch7.S5.html#Ch7.E45" title="(7.45) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.45</span></a>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">).</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i7" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">7.</span>
+                  </span> 
+<div id="Ch7.I1.i7.p1" class="ltx_para">
+<p class="ltx_p">
+                      <math id="Ch7.I1.i7.p1.m1" class="ltx_Math" alttext="C_{V}" display="inline"><semantics><msub><mi>C</mi><mi>V</mi></msub><annotation encoding="application/x-tex">C_{V}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_bold ltx_font_small"> value of Gamma distribution</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Stationary interval distributions can often be fitted
+by a Gamma distribution</span>
+                    </p>
+<table id="Ch7.E61" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E61.m1" class="ltx_Math" alttext="P(s)={1\over(k-1)!}\,{s^{k-1}\over\tau^{k}}\,e^{-s/\tau}," display="block"><semantics><mrow><mrow><mrow><mi>P</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><mrow><mrow><mo>(</mo><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow><mi mathvariant="normal">!</mi></mrow></mfrac></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><msup><mi>s</mi><mrow><mi>k</mi><mo>-</mo><mn>1</mn></mrow></msup><msup><mi>Ï</mi><mi>k</mi></msup></mfrac></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>s</mi><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">P(s)={1\over(k-1)!}\,{s^{k-1}\over\tau^{k}}\,e^{-s/\tau},</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.61)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">where </span>
+                      <math id="Ch7.I1.i7.p1.m2" class="ltx_Math" alttext="k" display="inline"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> is a positive natural number.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i7.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">Calculate the coefficient of variation
+</span>
+                      <math id="Ch7.I1.i7.p2.m1" class="ltx_Math" alttext="C_{V}" display="inline"><semantics><msub><mi>C</mi><mi>V</mi></msub><annotation encoding="application/x-tex">C_{V}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> for
+</span>
+                      <math id="Ch7.I1.i7.p2.m2" class="ltx_Math" alttext="k=1,2,3" display="inline"><semantics><mrow><mi>k</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn></mrow></mrow><annotation encoding="application/x-tex">k=1,2,3</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Interpret your result.</span>
+                    </p>
+</div>
+</li>
+<li id="Ch7.I1.i8" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_enumerate">
+                    <span class="ltx_text ltx_font_italic ltx_font_small">8.</span>
+                  </span> 
+<div id="Ch7.I1.i8.p1" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_bold ltx_font_small">Poisson with dead time as a renewal process</span>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+Consider a process where spikes are generated
+with rate </span>
+                      <math id="Ch7.I1.i8.p1.m1" class="ltx_Math" alttext="\rho_{0}" display="inline"><semantics><msub><mi>Ï</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\rho_{0}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">, but after each spike
+there is a dead time of duration </span>
+                      <math id="Ch7.I1.i8.p1.m2" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.
+More precisely, we have a renewal process</span>
+                    </p>
+<table id="Ch7.E62" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E62.m1" class="ltx_Math" alttext="\rho(t|\hat{t})=\rho_{0}\quad{\rm for}\,t&gt;\hat{t}+\Delta^{\rm abs}," display="block"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>Ï</mi><mn>0</mn></msub><mo mathvariant="italic" separator="true">â</mo><mpadded width="+1.7pt"><mi>for</mi></mpadded><mi>t</mi><mo>&gt;</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>+</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})=\rho_{0}\quad{\rm for}\,t&gt;\hat{t}+\Delta^{\rm abs},</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.62)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">and zero otherwise.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i8.p2" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(a) Calculate the interval distribution, using
+Eqs. (</span>
+                      <a href="Ch7.S5.html#Ch7.E26" title="(7.26) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.26</span></a>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">) and (</span>
+                      <a href="Ch7.S5.html#Ch7.E27" title="(7.27) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.27</span></a>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">).</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i8.p3" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(b) Calculate the Fano factor.</span>
+                    </p>
+</div>
+<div id="Ch7.I1.i8.p4" class="ltx_para">
+<p class="ltx_p">
+                      <span class="ltx_text ltx_font_italic ltx_font_small">(c) If a first spike occurred at time </span>
+                      <math id="Ch7.I1.i8.p4.m1" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">,
+what is the probability that a further
+spike (there could be other spikes in between)
+occurs at </span>
+                      <math id="Ch7.I1.i8.p4.m2" class="ltx_Math" alttext="t=x\,\Delta^{\rm abs}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>x</mi></mpadded><mo>â¢</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mrow><annotation encoding="application/x-tex">t=x\,\Delta^{\rm abs}</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small"> where
+</span>
+                      <math id="Ch7.I1.i8.p4.m3" class="ltx_Math" alttext="x=0.5;1.5;2.5" display="inline"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mn>0.5</mn><mo>;</mo><mn>1.5</mn><mo>;</mo><mn>2.5</mn></mrow></mrow><annotation encoding="application/x-tex">x=0.5;1.5;2.5</annotation></semantics></math>
+                      <span class="ltx_text ltx_font_italic ltx_font_small">.</span>
+                    </p>
+</div>
+</li>
+</ol>
+</div>
+</section>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6 </span>The Problem of Neural Coding</span></a><a href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8 </span>Noisy Input Models: Barrage of Spike Arrivals</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>
