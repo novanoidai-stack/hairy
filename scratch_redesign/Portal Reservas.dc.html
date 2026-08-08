@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="./image-slot.js"></script>
+  <style id="__om-edit-overrides">
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    @keyframes rpUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes rpRing { 0% { transform: scale(0.6); opacity: 0.5; } 100% { transform: scale(1.9); opacity: 0; } }
+    a { color: #c0260a; }
+    a:hover { color: #f4501e; }
+    ::-webkit-scrollbar { height: 0; }
+  </style>
+</helmet>
+
+<div data-screen-label="Portal de reservas" style="min-height:100vh;background:#f6f1ea;font-family:Inter,system-ui,sans-serif;color:#1c1814;">
+
+  <header style="position:sticky;top:0;z-index:30;background:#fffdfb;border-bottom:1px solid rgba(40,30,24,0.08);">
+    <div style="max-width:1360px;margin:0 auto;padding:14px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <image-slot id="logo-mark" shape="rounded" radius="11" placeholder="Logo" style="width:38px;height:38px;flex-shrink:0;"></image-slot>
+        <span style="font-size:16px;font-weight:800;letter-spacing:-0.2px;">Salón Aurora</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:flex-end;">
+        <sc-if value="{{ showHeaderExtras }}" hint-placeholder-val="{{ true }}">
+          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#5c5249;white-space:nowrap;">
+            <svg width="14" height="14" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="#e08a00"></path></svg>
+            <b style="color:#1c1814;">4.9</b>&nbsp;· 182 reseñas
+          </span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#5c5249;white-space:nowrap;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#736658" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Calle Mayor 12, Madrid
+          </span>
+        </sc-if>
+        <a href="tel:+34910234567" style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;border:1.5px solid rgba(40,30,24,0.14);color:#1c1814;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1c1814" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          910 234 567
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div style="position:relative;height:236px;overflow:hidden;">
+    <image-slot id="hero-photo" shape="rect" placeholder="Foto del salón" style="position:absolute;inset:0;width:100%;height:100%;"></image-slot>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(28,24,20,0.02) 0%,rgba(18,14,10,0.74) 100%);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;max-width:1360px;margin:0 auto;padding:0 40px 24px;pointer-events:none;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#ffcf4a;margin-bottom:6px;">Salón de belleza · Madrid</div>
+      <div style="font-family:'Instrument Serif',serif;font-size:44px;color:#fff;line-height:1;">Salón Aurora</div>
+      <div style="font-size:14.5px;color:rgba(255,255,255,0.85);margin-top:8px;max-width:520px;">Corte, color y tratamientos capilares en el corazón de Madrid.</div>
+    </div>
+  </div>
+
+  <div style="max-width:1360px;margin:-30px auto 0;padding:0 40px 56px;position:relative;z-index:2;">
+    <div style="background:#fffdfb;border:1px solid rgba(40,30,24,0.08);border-radius:24px;box-shadow:0 24px 60px rgba(40,30,24,0.12);padding:32px;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px;">
+        <div style="display:inline-flex;padding:4px;background:#f6f1ea;border-radius:14px;gap:4px;">
+          <button onclick="{{ onSetModeGuiada }}" style="{{ tabGuiadaStyle }}">Reserva guiada</button>
+          <button onclick="{{ onSetModeExpres }}" style="{{ tabExpresStyle }}">Reserva exprés</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#736658;font-weight:600;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f9d6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Confirmación inmediata · Sin registro
+        </div>
+      </div>
+
+      <!-- ============ RESERVA GUIADA ============ -->
+      <sc-if value="{{ isGuiada }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ showForm }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ gridStyle }}">
+            <div>
+
+              <div style="margin-bottom:22px;">
+                <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:{{ T.primaryHi }};margin-bottom:5px;">1 · Servicio</div>
+                <div style="font-family:Inter,system-ui,sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.3px;margin-bottom:12px;">¿Qué te apetece hoy?</div>
+
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+                  <button onclick="{{ onCatTodos }}" style="{{ catTodosStyle }}">Todos</button>
+                  <sc-for list="{{ categorias }}" as="cat" hint-placeholder-count="3">
+                    <button onclick="{{ cat.onClick }}" style="{{ cat.style }}">
+                      <span style="{{ cat.dotStyle }}"></span>{{ cat.nombre }}
+                    </button>
+                  </sc-for>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:9px;">
+                  <sc-for list="{{ servicios }}" as="sv" hint-placeholder-count="4">
+                    <button onclick="{{ sv.onClick }}" style="{{ sv.cardStyle }}">
+                      <image-slot id="{{ sv.photoId }}" shape="rounded" radius="14" placeholder="Foto" style="width:64px;height:64px;flex-shrink:0;"></image-slot>
+                      <span style="flex:1;min-width:0;text-align:left;">
+                        <span style="display:block;font-size:15px;font-weight:700;">{{ sv.nombre }}</span>
+                        <span style="display:block;font-size:12.5px;color:#736658;margin-top:2px;">{{ sv.metaLabel }}</span>
+                      </span>
+                      <sc-if value="{{ sv.selected }}" hint-placeholder-val="{{ false }}">
+                        <span style="{{ sv.checkStyle }}">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </sc-if>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <sc-if value="{{ servicioElegido }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-bottom:22px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                    <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:{{ T.primaryHi }};">2 · Profesional</div>
+                    <button onclick="{{ onCambiarServicio }}" style="background:none;border:none;color:#5c5249;font-size:12px;font-weight:700;cursor:pointer;padding:0;">Cambiar servicio</button>
+                  </div>
+                  <div style="font-family:'Instrument Serif',serif;font-size:24px;margin-bottom:12px;">¿Con quién prefieres ir?</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button onclick="{{ onAnyProf }}" style="{{ anyProfStyle }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-3-3.87"></path><path d="M9 21v-2a4 4 0 0 0-4-4H4"></path><circle cx="9" cy="7" r="4"></circle><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                      Cualquiera disponible
+                    </button>
+                    <sc-for list="{{ profesionales }}" as="pr" hint-placeholder-count="4">
+                      <button onclick="{{ pr.onClick }}" style="{{ pr.chipStyle }}">
+                        <span style="{{ pr.avatarStyle }}">{{ pr.inicial }}</span>{{ pr.nombre }}
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="margin-bottom:6px;">
+                  <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:{{ T.primaryHi }};margin-bottom:5px;">3 · Fecha y hora</div>
+                  <div style="font-family:'Instrument Serif',serif;font-size:24px;margin-bottom:12px;">¿Cuándo te viene bien?</div>
+
+                  <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px;">
+                    <sc-for list="{{ dias }}" as="d" hint-placeholder-count="10">
+                      <button onclick="{{ d.onClick }}" style="{{ d.style }}">
+                        <span style="display:block;font-size:10px;font-weight:700;text-transform:capitalize;opacity:0.7;">{{ d.label }}</span>
+                        <span style="display:block;font-size:17px;font-weight:800;line-height:1.25;">{{ d.daynum }}</span>
+                        <span style="display:block;font-size:9px;text-transform:capitalize;opacity:0.55;">{{ d.mon }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+
+                  <sc-if value="{{ sinHuecos }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:26px 20px;text-align:center;border:1px dashed rgba(40,30,24,0.14);border-radius:16px;background:#fbf6f0;">
+                      <div style="font-size:14.5px;font-weight:700;margin-bottom:4px;">Sin huecos este día</div>
+                      <div style="font-size:13px;color:#5c5249;">Prueba otro día del calendario o llámanos y te buscamos hueco.</div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ franjaMananaVisible }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-bottom:14px;">
+                      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                        <span style="display:inline-flex;width:22px;height:22px;border-radius:7px;background:{{ T.primarySoft }};align-items:center;justify-content:center;">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{ T.primary }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+                        </span>
+                        <span style="font-size:12.5px;font-weight:700;color:#5c5249;">Mañana</span>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:7px;">
+                        <sc-for list="{{ franjaMananaItems }}" as="s" hint-placeholder-count="6">
+                          <button onclick="{{ s.onClick }}" style="{{ s.style }}">{{ s.horaLabel }}<span style="{{ s.subStyle }}">{{ s.proCorto }}</span></button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ franjaTardeVisible }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-bottom:14px;">
+                      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                        <span style="display:inline-flex;width:22px;height:22px;border-radius:7px;background:{{ T.primarySoft }};align-items:center;justify-content:center;">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{ T.primary }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2M4.93 10.93l1.41 1.41M2 18h2M20 18h2M17.66 12.34l1.41-1.41M22 22H2M16 18a4 4 0 0 0-8 0M8 6l4 4 4-4"></path></svg>
+                        </span>
+                        <span style="font-size:12.5px;font-weight:700;color:#5c5249;">Tarde</span>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:7px;">
+                        <sc-for list="{{ franjaTardeItems }}" as="s" hint-placeholder-count="6">
+                          <button onclick="{{ s.onClick }}" style="{{ s.style }}">{{ s.horaLabel }}<span style="{{ s.subStyle }}">{{ s.proCorto }}</span></button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ franjaNocheVisible }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-bottom:14px;">
+                      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                        <span style="display:inline-flex;width:22px;height:22px;border-radius:7px;background:{{ T.primarySoft }};align-items:center;justify-content:center;">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{ T.primary }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path></svg>
+                        </span>
+                        <span style="font-size:12.5px;font-weight:700;color:#5c5249;">Noche</span>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:7px;">
+                        <sc-for list="{{ franjaNocheItems }}" as="s" hint-placeholder-count="3">
+                          <button onclick="{{ s.onClick }}" style="{{ s.style }}">{{ s.horaLabel }}<span style="{{ s.subStyle }}">{{ s.proCorto }}</span></button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ slotElegido }}" hint-placeholder-val="{{ false }}">
+                  <div>
+                    <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:{{ T.primaryHi }};margin-bottom:5px;">4 · Tus datos</div>
+                    <div style="font-family:'Instrument Serif',serif;font-size:24px;margin-bottom:12px;">Para confirmar la cita</div>
+                    <div style="display:grid;grid-template-columns:{{ formColsStyle }};gap:12px;">
+                      <label style="display:block;">
+                        <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">Nombre</span>
+                        <input value="{{ nombre }}" oninput="{{ onNombreChange }}" placeholder="Tu nombre" style="{{ inputStyle }}" />
+                      </label>
+                      <label style="display:block;">
+                        <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">Teléfono</span>
+                        <input value="{{ telefono }}" oninput="{{ onTelefonoChange }}" placeholder="600 000 000" style="{{ inputStyle }}" />
+                      </label>
+                      <label style="display:block;">
+                        <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">Email (opcional)</span>
+                        <input value="{{ email }}" oninput="{{ onEmailChange }}" placeholder="tu@email.com" style="{{ inputStyle }}" />
+                      </label>
+                      <label style="display:block;">
+                        <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">Notas (opcional)</span>
+                        <input value="{{ notas }}" oninput="{{ onNotasChange }}" placeholder="Alergias, preferencias…" style="{{ inputStyle }}" />
+                      </label>
+                    </div>
+                    <label style="display:flex;align-items:flex-start;gap:10px;margin-top:14px;cursor:pointer;">
+                      <span onclick="{{ onToggleConsent }}" style="{{ consentBoxStyle }}">
+                        <sc-if value="{{ consent }}" hint-placeholder-val="{{ false }}">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </sc-if>
+                      </span>
+                      <span onclick="{{ onToggleConsent }}" style="font-size:12.5px;color:#5c5249;line-height:1.45;">He leído y acepto la política de privacidad. Solo usamos tus datos para gestionar esta cita.</span>
+                    </label>
+                  </div>
+                </sc-if>
+              </sc-if>
+
+            </div>
+
+            <div style="{{ asideStyle }}">
+              <div style="background:#fbf6f0;border:1px solid rgba(40,30,24,0.08);border-radius:18px;padding:20px;">
+                <div style="font-size:15px;font-weight:800;margin-bottom:14px;">Resumen de tu reserva</div>
+
+                <div style="display:flex;flex-direction:column;gap:11px;">
+                  <div style="display:flex;justify-content:space-between;gap:10px;">
+                    <span style="font-size:12.5px;color:#736658;">Servicio</span>
+                    <span style="font-size:13px;font-weight:700;text-align:right;">{{ resumenServicio }}</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;gap:10px;">
+                    <span style="font-size:12.5px;color:#736658;">Profesional</span>
+                    <span style="font-size:13px;font-weight:700;text-align:right;">{{ resumenProf }}</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;gap:10px;">
+                    <span style="font-size:12.5px;color:#736658;">Fecha</span>
+                    <span style="font-size:13px;font-weight:700;text-align:right;">{{ resumenFecha }}</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;gap:10px;">
+                    <span style="font-size:12.5px;color:#736658;">Hora</span>
+                    <span style="font-size:13px;font-weight:700;text-align:right;">{{ resumenHora }}</span>
+                  </div>
+                </div>
+
+                <sc-if value="{{ mostrarTotal }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(40,30,24,0.08);">
+                    <span style="font-size:13.5px;font-weight:700;">Total</span>
+                    <span style="font-size:19px;font-weight:800;">{{ resumenTotal }}</span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+                  <div style="{{ errorStyleGuiada }}">{{ error }}</div>
+                </sc-if>
+
+                <button onclick="{{ onConfirmar }}" disabled="{{ ctaDisabled }}" style="{{ ctaConfirmStyle }}">Confirmar reserva</button>
+
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5c5249;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0f9d6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Confirmación inmediata por SMS
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5c5249;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0f9d6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Cancelación gratuita hasta 24h antes
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5c5249;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0f9d6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Pago en el salón el día de la cita
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="{{ onSetModeExpres }}" style="width:100%;margin-top:12px;padding:13px 14px;border-radius:14px;border:1px dashed {{ T.primary }};background:{{ T.primarySoft }};color:#1c1814;font-size:13px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+<span style="white-space:nowrap;">¿Tienes prisa? Reserva exprés en 10 segundos</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ T.primaryHi }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showSuccess }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:20px 0 4px;">
+            <div style="position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;">
+              <span style="position:absolute;width:84px;height:84px;border-radius:50%;background:{{ T.primarySoft }};animation:rpRing 1.8s ease-out infinite;"></span>
+              <span style="position:relative;display:inline-flex;width:84px;height:84px;border-radius:50%;background:#fff;border:1px solid rgba(40,30,24,0.08);align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(244,80,30,0.22);">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="{{ T.primary }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+            </div>
+            <div style="font-family:'Instrument Serif',serif;font-size:34px;margin-bottom:8px;">¡Reserva confirmada!</div>
+            <div style="max-width:420px;margin:0 auto 20px;font-size:15px;color:#5c5249;line-height:1.5;">Te esperamos {{ successFechaHora }}. Hemos enviado la confirmación por SMS.</div>
+
+            <div style="max-width:420px;margin:0 auto 20px;border:1px solid rgba(40,30,24,0.08);border-radius:16px;overflow:hidden;text-align:left;">
+              <div style="display:flex;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(40,30,24,0.08);"><span style="font-size:12.5px;color:#736658;">Servicio</span><span style="font-size:13.5px;font-weight:700;">{{ successServicio }}</span></div>
+              <div style="display:flex;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(40,30,24,0.08);"><span style="font-size:12.5px;color:#736658;">Profesional</span><span style="font-size:13.5px;font-weight:700;">{{ successProf }}</span></div>
+              <div style="display:flex;justify-content:space-between;gap:10px;padding:13px 16px;"><span style="font-size:12.5px;color:#736658;">Cuándo</span><span style="font-size:13.5px;font-weight:700;">{{ successFechaHora }}</span></div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto;">
+              <a href="{{ successGcalHref }}" target="_blank" rel="noreferrer" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 16px;border-radius:14px;background:#fff;border:1.5px solid rgba(40,30,24,0.1);color:#1c1814;font-size:14px;font-weight:700;text-decoration:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ T.primary }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>
+                Añadir a Google Calendar
+              </a>
+              <button onclick="{{ onReiniciar }}" style="background:none;border:none;color:{{ T.primary }};font-size:14px;font-weight:700;padding:8px;cursor:pointer;">Hacer otra reserva</button>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- ============ RESERVA EXPRÉS ============ -->
+      <sc-if value="{{ isExpres }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ showExpresForm }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:{{ expresColsStyle }};gap:36px;align-items:center;">
+            <div>
+              <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:{{ T.primaryHi }};margin-bottom:6px;">Reserva exprés</div>
+              <div style="font-family:'Instrument Serif',serif;font-size:30px;margin-bottom:10px;line-height:1.1;">Te buscamos hueco nosotros</div>
+              <div style="font-size:14px;color:#5c5249;line-height:1.55;margin-bottom:22px;max-width:400px;">Ideal si tienes prisa: déjanos tu nombre y teléfono, y te llamamos en cuanto tengamos un hueco libre. Sin elegir servicio ni horario.</div>
+
+              <div style="display:flex;flex-direction:column;gap:16px;">
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:{{ T.primarySoft }};color:{{ T.primaryHi }};font-size:13px;font-weight:800;flex-shrink:0;">1</span>
+                  <span style="font-size:13.5px;color:#1c1814;padding-top:4px;">Nos dejas tu nombre y teléfono</span>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:{{ T.primarySoft }};color:{{ T.primaryHi }};font-size:13px;font-weight:800;flex-shrink:0;">2</span>
+                  <span style="font-size:13.5px;color:#1c1814;padding-top:4px;">Revisamos la agenda y buscamos el primer hueco libre</span>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:{{ T.primarySoft }};color:{{ T.primaryHi }};font-size:13px;font-weight:800;flex-shrink:0;">3</span>
+                  <span style="font-size:13.5px;color:#1c1814;padding-top:4px;">Te llamamos para confirmar día y hora</span>
+                </div>
+              </div>
+
+              <button onclick="{{ onSetModeGuiada }}" style="margin-top:22px;background:none;border:none;color:#5c5249;font-size:12.5px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;">Prefiero elegir servicio y hora yo mismo</button>
+            </div>
+
+            <div style="background:#fbf6f0;border:1px solid rgba(40,30,24,0.08);border-radius:18px;padding:26px;">
+              <label style="display:block;margin-bottom:14px;">
+                <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">Tu nombre</span>
+                <input value="{{ eNombre }}" oninput="{{ onENombreChange }}" placeholder="Nombre y apellido" style="width:100%;padding:13px 14px;border-radius:11px;border:1.5px solid rgba(40,30,24,0.08);font-size:15px;font-family:inherit;outline:none;background:#fff;color:#1c1814;" />
+              </label>
+              <label style="display:block;margin-bottom:14px;">
+                <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">Tu teléfono</span>
+                <input value="{{ eTelefono }}" oninput="{{ onETelefonoChange }}" placeholder="600 000 000" style="width:100%;padding:13px 14px;border-radius:11px;border:1.5px solid rgba(40,30,24,0.08);font-size:15px;font-family:inherit;outline:none;background:#fff;color:#1c1814;" />
+              </label>
+
+              <div style="margin-bottom:14px;">
+                <span style="display:block;font-size:12px;font-weight:600;color:#5c5249;margin-bottom:6px;">¿Alguna preferencia horaria? (opcional)</span>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <sc-for list="{{ franjasE }}" as="f" hint-placeholder-count="4">
+                    <button onclick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <label style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;cursor:pointer;">
+                <span onclick="{{ onToggleConsentE }}" style="{{ consentBoxStyleE }}">
+                  <sc-if value="{{ eConsent }}" hint-placeholder-val="{{ false }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </sc-if>
+                </span>
+                <span onclick="{{ onToggleConsentE }}" style="font-size:12px;color:#5c5249;line-height:1.4;">Acepto la política de privacidad para que me contacten por esta cita.</span>
+              </label>
+
+              <sc-if value="{{ hasErrorE }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ errorStyleExpres }}">{{ eError }}</div>
+              </sc-if>
+
+              <button onclick="{{ onSubmitExpress }}" style="{{ ctaExpressStyle }}">Solicitar hueco exprés</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showExpresSuccess }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:30px 0 10px;">
+            <div style="position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;">
+              <span style="position:absolute;width:84px;height:84px;border-radius:50%;background:{{ T.primarySoft }};animation:rpRing 1.8s ease-out infinite;"></span>
+              <span style="position:relative;display:inline-flex;width:84px;height:84px;border-radius:50%;background:#fff;border:1px solid rgba(40,30,24,0.08);align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(244,80,30,0.22);">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="{{ T.primary }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              </span>
+            </div>
+            <div style="font-family:'Instrument Serif',serif;font-size:32px;margin-bottom:10px;">¡Perfecto, {{ eNombre }}!</div>
+            <div style="max-width:420px;margin:0 auto 22px;font-size:15px;color:#5c5249;line-height:1.55;">Te llamamos al <b style="color:#1c1814;">{{ eTelefono }}</b> en cuanto tengamos un hueco libre — normalmente en menos de 30 minutos.</div>
+            <button onclick="{{ onReiniciarExpress }}" style="background:none;border:none;color:{{ T.primary }};font-size:14px;font-weight:700;padding:8px;cursor:pointer;">Volver al inicio</button>
+          </div>
+        </sc-if>
+      </sc-if>
+
+    </div>
+
+    <div style="margin-top:44px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:{{ T.primaryHi }};margin-bottom:6px;">Opiniones</div>
+          <div style="font-family:Inter,system-ui,sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.4px;">Lo que dicen nuestros clientes</div>
+        </div>
+        <button onclick="{{ onToggleReviewForm }}" style="{{ reviewToggleStyle }}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+          Escribir una reseña
+        </button>
+      </div>
+
+<sc-if value="{{ showReviewFormInput }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fffdfb;border:1px solid rgba(40,30,24,0.08);border-radius:20px;padding:22px;margin-bottom:22px;">
+          <div style="font-family:Inter,system-ui,sans-serif;font-weight:800;font-size:19px;margin-bottom:14px;">Cuéntanos tu experiencia</div>
+
+          <div style="border:1.5px solid {{ T.primary }};background:{{ T.primarySoft }};border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+              <span style="font-size:13px;color:#5c5249;">¿Cómo calificarías tu experiencia?</span>
+              <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:{{ T.primaryHi }};white-space:nowrap;flex-shrink:0;">Obligatorio</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div style="display:flex;gap:6px;">
+                <sc-for list="{{ puntuacionPicker }}" as="pi" hint-placeholder-count="5">
+                  <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:2px;cursor:pointer;display:inline-flex;">
+                    <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                    </svg>
+                  </button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ hasPuntuacionLabel }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:13px;font-weight:700;color:{{ T.primaryHi }};">{{ puntuacionLabel }}</span>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="border:1.5px dashed rgba(40,30,24,0.16);background:rgba(40,30,24,0.02);border-radius:14px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:#736658;margin-bottom:12px;">Opcional</div>
+
+            <div style="display:grid;grid-template-columns:{{ formColsStyle }};gap:12px;margin-bottom:10px;">
+              <div>
+                <span style="display:block;font-size:11.5px;color:#736658;margin-bottom:5px;">Trato recibido</span>
+                <div style="display:flex;gap:4px;">
+                  <sc-for list="{{ tratoPicker }}" as="pi" hint-placeholder-count="5">
+                    <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                      <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                      </svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div>
+                <span style="display:block;font-size:11.5px;color:#736658;margin-bottom:5px;">Limpieza y productos</span>
+                <div style="display:flex;gap:4px;">
+                  <sc-for list="{{ productosPicker }}" as="pi" hint-placeholder-count="5">
+                    <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                      <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                      </svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <label style="display:block;margin-bottom:14px;">
+              <span style="display:block;font-size:11.5px;color:#736658;margin-bottom:5px;">¿Algo que destacar del salón?</span>
+              <textarea value="{{ rComentario }}" oninput="{{ onRComentarioChange }}" placeholder="¿Qué destacarías de tu experiencia?" style="{{ textareaStyle }}"></textarea>
+            </label>
+
+            <div style="border-top:1px solid rgba(40,30,24,0.06);padding-top:12px;margin-bottom:14px;">
+              <span style="display:block;font-size:11.5px;color:#736658;margin-bottom:6px;">¿Quién te atendió?</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                <sc-for list="{{ profChipsReview }}" as="pc" hint-placeholder-count="5">
+                  <button onclick="{{ pc.onClick }}" style="{{ pc.style }}">{{ pc.nombre }}</button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ rProfesionalElegido }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:11.5px;color:#736658;">Su atención:</span>
+                  <div style="display:flex;gap:4px;">
+                    <sc-for list="{{ profPuntuacionPicker }}" as="pi" hint-placeholder-count="5">
+                      <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                        <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                        </svg>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="border-top:1px solid rgba(40,30,24,0.06);padding-top:12px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <span style="font-size:11.5px;color:#736658;white-space:nowrap;flex-shrink:0;">Reserva online:</span>
+                <div style="display:flex;gap:4px;">
+                  <sc-for list="{{ mechaPicker }}" as="pi" hint-placeholder-count="5">
+                    <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                      <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                      </svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;background:rgba(40,30,24,0.02);border:1px solid rgba(40,30,24,0.08);border-radius:10px;padding:9px 12px;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:#736658;white-space:nowrap;">Facilidad</span>
+                  <div style="display:flex;gap:3px;">
+                    <sc-for list="{{ facilidadPicker }}" as="pi" hint-placeholder-count="5">
+                      <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                        <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                        </svg>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:#736658;white-space:nowrap;">Disponibilidad</span>
+                  <div style="display:flex;gap:3px;">
+                    <sc-for list="{{ disponibilidadPicker }}" as="pi" hint-placeholder-count="5">
+                      <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                        <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                        </svg>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:#736658;white-space:nowrap;">Rapidez y pago</span>
+                  <div style="display:flex;gap:3px;">
+                    <sc-for list="{{ pagosPicker }}" as="pi" hint-placeholder-count="5">
+                      <button onclick="{{ pi.onClick }}" style="background:none;border:none;padding:1px;cursor:pointer;display:inline-flex;">
+                        <svg width="{{ pi.size }}" height="{{ pi.size }}" viewBox="0 0 24 24">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" style="{{ pi.bodyStyle }}"></path>
+                        </svg>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+              <label style="display:block;margin-bottom:12px;">
+                <span style="display:block;font-size:11.5px;color:#736658;margin-bottom:5px;">¿Qué mejorarías del sistema de reserva?</span>
+                <textarea value="{{ rMechaMejora }}" oninput="{{ onRMechaMejoraChange }}" placeholder="Sugerencias…" style="{{ textareaStyle }}"></textarea>
+              </label>
+              <input value="{{ rNombre }}" oninput="{{ onRNombreChange }}" placeholder="Tu nombre (opcional, se mostrará públicamente)" style="{{ inputStyle }}" />
+            </div>
+          </div>
+
+          <sc-if value="{{ hasErrorReview }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ errorStyleReview }}">{{ rError }}</div>
+          </sc-if>
+
+          <div style="display:flex;gap:10px;">
+            <button onclick="{{ onSubmitReview }}" style="{{ ctaExpressStyle }}">Enviar reseña</button>
+            <button onclick="{{ onToggleReviewForm }}" style="padding:14px 18px;border-radius:13px;border:1.5px solid rgba(40,30,24,0.14);background:#fff;color:#5c5249;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showReviewThanks }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fffdfb;border:1px solid rgba(40,30,24,0.08);border-radius:20px;padding:30px 26px;margin-bottom:22px;text-align:center;">
+          <span style="display:inline-flex;width:52px;height:52px;border-radius:50%;background:{{ T.primarySoft }};align-items:center;justify-content:center;margin-bottom:12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="{{ T.primary }}"></path>
+            </svg>
+          </span>
+          <div style="font-family:Inter,system-ui,sans-serif;font-weight:800;font-size:19px;margin-bottom:5px;">¡Gracias por tu opinión!</div>
+          <div style="font-size:13px;color:#5c5249;">Nos ayuda muchísimo a mejorar el servicio.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ mostrarResenas }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:{{ reviewsOuterCols }};gap:24px;align-items:start;">
+          <div style="background:#fbf6f0;border:1px solid rgba(40,30,24,0.08);border-radius:18px;padding:20px;">
+            <div style="font-family:Inter,system-ui,sans-serif;font-weight:800;font-size:34px;line-height:1;">{{ ratingAvg }}</div>
+            <div style="display:flex;align-items:center;gap:3px;margin:8px 0 4px;">
+              <sc-for list="{{ summaryFlames }}" as="sf" hint-placeholder-count="5">
+                <svg width="15" height="15" viewBox="0 0 24 24">
+                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="#e08a00"></path>
+                </svg>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:#736658;margin-bottom:14px;">{{ totalResenas }} reseñas</div>
+            <sc-for list="{{ ratingBars }}" as="rb" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <span style="font-size:11px;color:#736658;width:10px;">{{ rb.star }}</span>
+                <div style="{{ rb.trackStyle }}"><div style="{{ rb.fillStyle }}"></div></div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">
+            <sc-for list="{{ reviews }}" as="rv" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid rgba(40,30,24,0.08);border-radius:16px;padding:15px;">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                  <span style="display:inline-flex;width:34px;height:34px;border-radius:50%;background:{{ T.primarySoft }};color:{{ T.primaryHi }};align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">{{ rv.inicial }}</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:13px;font-weight:700;">{{ rv.nombre }}</div>
+                    <div style="font-size:11px;color:#736658;">{{ rv.servicio }} · {{ rv.fecha }}</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:2px;margin-bottom:7px;">
+                  <sc-for list="{{ rv.starsArr }}" as="st" hint-placeholder-count="5">
+                    <svg width="12" height="12" viewBox="0 0 24 24">
+                      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="#e08a00"></path>
+                    </svg>
+                  </sc-for>
+                </div>
+                <div style="font-size:12.5px;color:#3a332c;line-height:1.5;">{{ rv.comentario }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="text-align:center;font-size:11.5px;color:#736658;margin-top:18px;">Reservas gestionadas por <b style="color:#c0260a;">Salón Aurora</b></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:8px;">
+      <svg width="12" height="12" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="#f4501e"></path></svg>
+      <span style="font-size:11px;color:#736658;">Con <b style="color:#f4501e;">mecha</b></span>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 1024},
+  &quot;accentColor&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#f4501e&quot;, &quot;options&quot;: [&quot;#f4501e&quot;, &quot;#0f9d6b&quot;, &quot;#2f5fb3&quot;, &quot;#a3336b&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Marca&quot;},
+  &quot;mostrarPrecios&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Comportamiento&quot;},
+  &quot;modoPorDefecto&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;guiada&quot;, &quot;options&quot;: [&quot;guiada&quot;, &quot;expres&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Comportamiento&quot;},
+  &quot;mostrarResenas&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Comportamiento&quot;}
+}">
+const BASE_T = {
+  bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
+  border: 'rgba(40,30,24,0.08)', borderHi: 'rgba(40,30,24,0.14)',
+  text: '#1c1814', textSec: '#5c5249', textTer: '#736658',
+  success: '#0f9d6b', successSoft: 'rgba(15,157,107,0.14)',
+  danger: '#e23b34', dangerSoft: 'rgba(226,59,52,0.14)',
+};
+const ACCENTS = {
+  '#f4501e': { hi: '#c0260a', soft: 'rgba(244,80,30,0.12)', fire: 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)' },
+  '#0f9d6b': { hi: '#0b7350', soft: 'rgba(15,157,107,0.12)', fire: 'linear-gradient(135deg,#0b7350 0%,#0f9d6b 55%,#4ee3a8 100%)' },
+  '#2f5fb3': { hi: '#1f4488', soft: 'rgba(47,95,179,0.12)', fire: 'linear-gradient(135deg,#1f4488 0%,#2f5fb3 55%,#7fb0ff 100%)' },
+  '#a3336b': { hi: '#7a234e', soft: 'rgba(163,51,107,0.12)', fire: 'linear-gradient(135deg,#7a234e 0%,#a3336b 55%,#ff8fb8 100%)' },
+};
+
+const TOTAL_RESENAS = 182;
+const RATING_COUNTS = [{ star: 5, count: 164 }, { star: 4, count: 15 }, { star: 3, count: 2 }, { star: 2, count: 1 }, { star: 1, count: 0 }];
+const RATING_AVG = (RATING_COUNTS.reduce((a, r) => a + r.star * r.count, 0) / TOTAL_RESENAS).toFixed(1);
+const RESENAS_SEED = [
+  { nombre: 'Cristina M.', servicio: 'Mechas balayage', fecha: 'hace 4 días', rating: 5, comentario: 'Laura entendió exactamente el tono que buscaba, ni una mancha de decoloración. Salgo cada vez más contenta.' },
+  { nombre: 'Javier R.', servicio: 'Corte de cabello', fecha: 'hace 1 semana', rating: 5, comentario: 'Sergio es rápido y el resultado dura semanas. Reservar por aquí es más cómodo que llamar.' },
+  { nombre: 'Beatriz L.', servicio: 'Tratamiento de keratina', fecha: 'hace 2 semanas', rating: 4, comentario: 'El pelo quedó mucho más manejable. Solo un 4 porque la cita se alargó más de lo previsto.' },
+  { nombre: 'Nuria P.', servicio: 'Manicura spa', fecha: 'hace 3 semanas', rating: 5, comentario: 'Ana tiene un pulso perfecto y el ambiente del salón es muy relajante.' },
+  { nombre: 'David H.', servicio: 'Coloración completa', fecha: 'hace 1 mes', rating: 5, comentario: 'Segunda vez que vengo con Marta, siempre acierta con el color que le pido.' },
+  { nombre: 'Elena S.', servicio: 'Peinado de evento', fecha: 'hace 1 mes', rating: 5, comentario: 'Me hicieron un recogido para una boda y aguantó perfecto toda la noche.' },
+];
+const INPUT_STYLE = { width: '100%', padding: '12px 13px', borderRadius: 11, border: '1.5px solid rgba(40,30,24,0.08)', fontSize: 14.5, fontFamily: 'inherit', outline: 'none', background: '#fff', color: '#1c1814' };
+const TEXTAREA_STYLE = Object.assign({}, INPUT_STYLE, { minHeight: 58, lineHeight: 1.5, resize: 'vertical' });
+const ETIQUETAS = ['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'];
+const SERVICIOS = [
+  { id: 'corte', nombre: 'Corte de cabello', duracion: 45, precio: 28, categoria: 'Peluquería', slot: 'svc-corte' },
+  { id: 'color', nombre: 'Coloración completa', duracion: 90, precio: 65, categoria: 'Peluquería', slot: 'svc-color' },
+  { id: 'balayage', nombre: 'Mechas balayage', duracion: 120, precio: 95, categoria: 'Peluquería', slot: 'svc-balayage' },
+  { id: 'keratina', nombre: 'Tratamiento de keratina', duracion: 75, precio: 70, categoria: 'Tratamientos', slot: 'svc-keratina' },
+  { id: 'peinado', nombre: 'Peinado de evento', duracion: 60, precio: 45, categoria: 'Peluquería', slot: 'svc-peinado' },
+  { id: 'manicura', nombre: 'Manicura spa', duracion: 40, precio: 24, categoria: 'Estética', slot: 'svc-manicura' },
+];
+const PROFESIONALES = [
+  { id: 'laura', nombre: 'Laura Gómez', color: '#c0260a' },
+  { id: 'marta', nombre: 'Marta Ruiz', color: '#0f9d6b' },
+  { id: 'sergio', nombre: 'Sergio Palma', color: '#2f5fb3' },
+  { id: 'ana', nombre: 'Ana Torres', color: '#a3336b' },
+];
+const CAT_COLORS = { 'Peluquería': '#c0260a', 'Tratamientos': '#0f9d6b', 'Estética': '#a3336b' };
+const FRANJAS_DEF = [
+  { key: 'manana', horas: [9, 9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13] },
+  { key: 'tarde', horas: [15, 15.5, 16, 16.5, 17, 17.5, 18, 18.5, 19, 19.5] },
+  { key: 'noche', horas: [20, 20.5, 21] },
+];
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const DIAS_SEM = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const DIAS_SEM_LARGO = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+function pseudo(n) { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); }
+function diaFecha(idx) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + idx); return d; }
+function esCerrado(idx) { return diaFecha(idx).getDay() === 0; }
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function buildFranja(diaIdx, servicioIdx, profId, horas) {
+  const out = [];
+  for (const h of horas) {
+    const seed = diaIdx * 131 + h * 17 + servicioIdx * 29 + 3;
+    let pro;
+    if (profId === 'any') {
+      if (pseudo(seed) < 0.30) continue;
+      const idx = Math.floor(pseudo(seed * 2.3) * PROFESIONALES.length);
+      pro = PROFESIONALES[idx];
+    } else {
+      if (pseudo(seed + profId.length * 4.1) < 0.42) continue;
+      pro = PROFESIONALES.find(p => p.id === profId) || PROFESIONALES[0];
+    }
+    const hh = Math.floor(h), mm = h % 1 === 0 ? '00' : '30';
+    out.push({ hora: h, horaLabel: pad2(hh) + ':' + mm, pro });
+  }
+  return out;
+}
+
+class Component extends DCLogic {
+  state = {
+    mode: 'guiada',
+    categoriaFiltro: null,
+    servicioId: null,
+    profId: 'any',
+    diaIdx: 0,
+    slotSel: null,
+    nombre: '', telefono: '', email: '', notas: '', consent: false,
+    error: '', submitted: false,
+    eNombre: '', eTelefono: '', eFranja: 'cualquiera', eConsent: false, eError: '', eSubmitted: false,
+    showReviewForm: false, reviewSubmitted: false,
+    rPuntuacion: 0, rTrato: 0, rProductos: 0, rComentario: '',
+    rProfesionalId: '', rProfesionalPuntuacion: 0,
+    rMechaPuntuacion: 0, rMechaFacilidad: 0, rMechaDisponibilidad: 0, rMechaPagos: 0, rMechaMejora: '',
+    rNombre: '', rError: '',
+    isNarrow: (typeof window !== 'undefined' && window.innerWidth < 980),
+  };
+
+  componentDidMount() {
+    const m = this.props.modoPorDefecto === 'expres' ? 'expres' : 'guiada';
+    let idx = 0;
+    while (idx < 13 && esCerrado(idx)) idx++;
+    this.setState({ mode: m, diaIdx: idx });
+    this._onResize = () => this.setState({ isNarrow: window.innerWidth < 980 });
+    if (typeof window !== 'undefined') window.addEventListener('resize', this._onResize);
+  }
+  componentWillUnmount() {
+    if (typeof window !== 'undefined' && this._onResize) window.removeEventListener('resize', this._onResize);
+  }
+
+  getT() {
+    const acc = ACCENTS[this.props.accentColor] ? this.props.accentColor : '#f4501e';
+    const a = ACCENTS[acc];
+    return Object.assign({}, BASE_T, { primary: acc, primaryHi: a.hi, primarySoft: a.soft, fire: a.fire });
+  }
+
+  setMode(m) { this.setState({ mode: m }); }
+  selectCategoria(id) { this.setState({ categoriaFiltro: id }); }
+  selectServicio(id) { this.setState({ servicioId: id, profId: 'any', slotSel: null, error: '' }); }
+  cambiarServicio() { this.setState({ servicioId: null, slotSel: null }); }
+  selectProf(id) { this.setState({ profId: id, slotSel: null }); }
+  selectDia(idx) { this.setState({ diaIdx: idx, slotSel: null }); }
+  selectSlot(slot) { this.setState({ slotSel: slot, error: '' }); }
+  setField(name, e) { this.setState({ [name]: e.target.value, error: '' }); }
+  toggleConsent() { this.setState(s => ({ consent: !s.consent })); }
+
+  confirmar() {
+    const s = this.state;
+    if (!s.servicioId || !s.slotSel) { this.setState({ error: 'Elige un servicio y una hora.' }); return; }
+    if (!s.nombre.trim()) { this.setState({ error: 'Escribe tu nombre.' }); return; }
+    if (s.telefono.trim().length < 6) { this.setState({ error: 'Escribe un teléfono válido.' }); return; }
+    if (!s.consent) { this.setState({ error: 'Acepta la política de privacidad para continuar.' }); return; }
+    this.setState({ submitted: true, error: '' });
+  }
+  reiniciar() {
+    this.setState({ servicioId: null, profId: 'any', slotSel: null, nombre: '', telefono: '', email: '', notas: '', consent: false, submitted: false, error: '' });
+  }
+
+  selectFranjaE(f) { this.setState({ eFranja: f }); }
+  toggleConsentE() { this.setState(s => ({ eConsent: !s.eConsent })); }
+  setFieldE(name, e) { this.setState({ [name]: e.target.value, eError: '' }); }
+  submitExpress() {
+    const s = this.state;
+    if (!s.eNombre.trim()) { this.setState({ eError: 'Escribe tu nombre.' }); return; }
+    if (s.eTelefono.trim().length < 6) { this.setState({ eError: 'Escribe un teléfono válido.' }); return; }
+    if (!s.eConsent) { this.setState({ eError: 'Acepta la política de privacidad para continuar.' }); return; }
+    this.setState({ eSubmitted: true, eError: '' });
+  }
+  reiniciarExpress() {
+    this.setState({ eNombre: '', eTelefono: '', eFranja: 'cualquiera', eConsent: false, eSubmitted: false, eError: '' });
+  }
+
+  toggleReviewForm() { this.setState(s => ({ showReviewForm: !s.showReviewForm, reviewSubmitted: false, rError: '' })); }
+  setRatingField(name, n) { this.setState(s => ({ [name]: n, rError: name === 'rPuntuacion' ? '' : s.rError })); }
+  selectRProfesional(id) { this.setState(s => ({ rProfesionalId: s.rProfesionalId === id ? '' : id, rProfesionalPuntuacion: 0 })); }
+  setRText(name, e) { this.setState({ [name]: e.target.value }); }
+  submitReview() {
+    const s = this.state;
+    if (!s.rPuntuacion) { this.setState({ rError: 'Elige una valoración para el salón.' }); return; }
+    this.setState({ reviewSubmitted: true, rError: '' });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const T = this.getT();
+    const mostrarPrecios = this.props.mostrarPrecios !== false;
+    const isNarrow = s.isNarrow;
+
+    const tabBase = { flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', background: 'transparent', color: T.textSec, whiteSpace: 'nowrap' };
+    const tabActive = Object.assign({}, tabBase, { background: '#fff', color: T.text, boxShadow: '0 2px 8px rgba(40,30,24,0.10)' });
+    const tabGuiadaStyle = s.mode === 'guiada' ? tabActive : tabBase;
+    const tabExpresStyle = s.mode === 'expres' ? tabActive : tabBase;
+
+    const gridStyle = { display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'minmax(0,1fr) 340px', gap: 32, alignItems: 'start' };
+    const asideStyle = isNarrow ? {} : { position: 'sticky', top: 88 };
+    const expresColsStyle = isNarrow ? '1fr' : 'minmax(0,1fr) 380px';
+    const formColsStyle = isNarrow ? '1fr' : '1fr 1fr';
+
+    // Categorias
+    const catsSeen = [];
+    for (const sv of SERVICIOS) if (catsSeen.indexOf(sv.categoria) === -1) catsSeen.push(sv.categoria);
+    const catPillBase = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: 'transparent', border: '1px solid ' + T.border, color: T.textSec };
+    const catTodosStyle = Object.assign({}, catPillBase, s.categoriaFiltro === null ? { background: T.primarySoft, border: '1px solid ' + T.primary, color: T.primaryHi } : {});
+    const categorias = catsSeen.map(nombre => {
+      const active = s.categoriaFiltro === nombre;
+      const hex = CAT_COLORS[nombre] || T.primary;
+      return {
+        nombre,
+        onClick: () => this.selectCategoria(active ? null : nombre),
+        style: Object.assign({}, catPillBase, active ? { background: hex + '20', border: '1px solid ' + hex, color: T.text } : {}),
+        dotStyle: { display: 'inline-block', width: 7, height: 7, borderRadius: 99, background: hex, marginRight: 6 },
+      };
+    });
+
+    // Servicios
+    const cardBase = { display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: 12, background: '#fff', border: '1.5px solid ' + T.border, borderRadius: 16, cursor: 'pointer', textAlign: 'left', position: 'relative' };
+    const servicios = SERVICIOS.filter(sv => !s.categoriaFiltro || sv.categoria === s.categoriaFiltro).map(sv => {
+      const selected = s.servicioId === sv.id;
+      return {
+        id: sv.id, nombre: sv.nombre, photoId: sv.slot,
+        metaLabel: sv.duracion + ' min' + (mostrarPrecios ? ' · ' + sv.precio + '€' : ''),
+        selected,
+        onClick: () => this.selectServicio(sv.id),
+        cardStyle: Object.assign({}, cardBase, selected ? { border: '1.5px solid ' + T.primary, background: T.primarySoft } : {}),
+        checkStyle: { display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: T.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+      };
+    });
+    const servicioElegido = !!s.servicioId;
+    const servicioObj = SERVICIOS.find(sv => sv.id === s.servicioId) || null;
+    const servicioIdx = servicioObj ? SERVICIOS.indexOf(servicioObj) : 0;
+
+    // Profesionales
+    const chipBase = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 8px', borderRadius: 999, border: '1.5px solid ' + T.border, background: '#fff', color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' };
+    const anyProfStyle = Object.assign({}, chipBase, { paddingLeft: 14 }, s.profId === 'any' ? { border: '1.5px solid ' + T.primary, background: T.primarySoft, color: T.primaryHi } : {});
+    const profesionales = PROFESIONALES.map(pr => {
+      const selected = s.profId === pr.id;
+      return {
+        id: pr.id, nombre: pr.nombre, inicial: pr.nombre.charAt(0),
+        onClick: () => this.selectProf(pr.id),
+        chipStyle: Object.assign({}, chipBase, selected ? { border: '1.5px solid ' + T.primary, background: T.primarySoft, color: T.primaryHi } : {}),
+        avatarStyle: { display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: pr.color + '26', color: pr.color, alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 800 },
+      };
+    });
+
+    // Dias
+    const dayBase = { flexShrink: 0, width: 58, padding: '9px 0', borderRadius: 14, textAlign: 'center', border: '1.5px solid ' + T.border, background: '#fff', color: T.text, cursor: 'pointer' };
+    const dias = [];
+    for (let i = 0; i < 14; i++) {
+      const d = diaFecha(i);
+      const closed = esCerrado(i);
+      const selected = s.diaIdx === i;
+      let label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : DIAS_SEM[d.getDay()];
+      let style = Object.assign({}, dayBase);
+      if (closed) style = Object.assign(style, { opacity: 0.35, cursor: 'default', border: '1.5px solid ' + T.border });
+      else if (selected) style = Object.assign(style, { border: 'none', background: T.fire, color: '#fff', boxShadow: '0 7px 16px rgba(0,0,0,0.18)' });
+      dias.push({
+        idx: i, label, daynum: d.getDate(), mon: MESES[d.getMonth()],
+        onClick: closed ? () => {} : () => this.selectDia(i),
+        style,
+      });
+    }
+
+    // Slots
+    const slotBase = { padding: '10px 6px', borderRadius: 12, fontSize: 14, fontWeight: 700, border: '1.5px solid ' + T.border, background: '#fff', color: T.text, cursor: 'pointer' };
+    const mapSlots = (items) => {
+      return items.map(it => {
+        const key = s.diaIdx + '-' + it.horaLabel;
+        const selected = s.slotSel && s.slotSel.key === key;
+        return {
+          horaLabel: it.horaLabel,
+          proCorto: s.profId === 'any' ? it.pro.nombre.split(' ')[0] : '',
+          onClick: () => this.selectSlot({ key, diaIdx: s.diaIdx, horaLabel: it.horaLabel, pro: it.pro }),
+          style: Object.assign({}, slotBase, selected ? { border: 'none', background: T.primary, color: '#fff', boxShadow: '0 7px 16px rgba(0,0,0,0.18)' } : {}),
+          subStyle: { display: s.profId === 'any' ? 'block' : 'none', fontSize: 9.5, fontWeight: 500, opacity: 0.75, marginTop: 1 },
+        };
+      });
+    };
+    const rawManana = esCerrado(s.diaIdx) ? [] : buildFranja(s.diaIdx, servicioIdx, s.profId, FRANJAS_DEF[0].horas);
+    const rawTarde = esCerrado(s.diaIdx) ? [] : buildFranja(s.diaIdx, servicioIdx, s.profId, FRANJAS_DEF[1].horas);
+    const rawNoche = esCerrado(s.diaIdx) ? [] : buildFranja(s.diaIdx, servicioIdx, s.profId, FRANJAS_DEF[2].horas);
+    const franjaMananaItems = mapSlots(rawManana);
+    const franjaTardeItems = mapSlots(rawTarde);
+    const franjaNocheItems = mapSlots(rawNoche);
+    const sinHuecos = !esCerrado(s.diaIdx) && rawManana.length === 0 && rawTarde.length === 0 && rawNoche.length === 0;
+
+    const slotElegido = !!s.slotSel;
+
+    // Resumen
+    const diaLabel = (idx) => `${DIAS_SEM_LARGO[diaFecha(idx).getDay()]} ${diaFecha(idx).getDate()} de ${MESES_LARGOS[diaFecha(idx).getMonth()]}`;
+    const resumenServicio = servicioObj ? servicioObj.nombre : '—';
+    const resumenProf = servicioElegido ? (s.profId === 'any' ? 'Cualquiera disponible' : (PROFESIONALES.find(p => p.id === s.profId) || {}).nombre || '—') : '—';
+    const resumenFecha = slotElegido ? diaLabel(s.slotSel.diaIdx).charAt(0).toUpperCase() + diaLabel(s.slotSel.diaIdx).slice(1) : '—';
+    const resumenHora = slotElegido ? s.slotSel.horaLabel + ' · ' + s.slotSel.pro.nombre.split(' ')[0] : '—';
+    const mostrarTotal = mostrarPrecios && !!servicioObj;
+    const resumenTotal = servicioObj ? servicioObj.precio + '€' : '';
+    const ctaDisabled = !(servicioElegido && slotElegido);
+    const ctaConfirmStyle = {
+      width: '100%', marginTop: 18, padding: '14px 16px', borderRadius: 13, border: 'none',
+      background: ctaDisabled ? T.borderHi : T.fire, color: ctaDisabled ? T.textTer : '#fff',
+      fontSize: 15, fontWeight: 800, cursor: ctaDisabled ? 'default' : 'pointer',
+      boxShadow: ctaDisabled ? 'none' : '0 12px 26px rgba(0,0,0,0.18)',
+    };
+
+    const showForm = !s.submitted;
+    const showSuccess = s.submitted;
+    const successFechaHora = slotElegido ? diaLabel(s.slotSel.diaIdx) + ' a las ' + s.slotSel.horaLabel : '';
+    const successServicio = resumenServicio + (mostrarPrecios && servicioObj ? ' · ' + servicioObj.precio + '€' : '');
+    const successProf = slotElegido ? s.slotSel.pro.nombre : '';
+    const successGcalHref = '#';
+
+    // Express
+    const franjaChipBase = { padding: '7px 13px', borderRadius: 999, border: '1.5px solid ' + T.border, background: '#fff', color: T.textSec, fontSize: 12, fontWeight: 700, cursor: 'pointer' };
+    const franjasE = [
+      { key: 'cualquiera', label: 'Cuanto antes' },
+      { key: 'manana', label: 'Mañana' },
+      { key: 'tarde', label: 'Tarde' },
+      { key: 'noche', label: 'Noche' },
+    ].map(f => {
+      const active = s.eFranja === f.key;
+      return { label: f.label, onClick: () => this.selectFranjaE(f.key), style: Object.assign({}, franjaChipBase, active ? { border: '1.5px solid ' + T.primary, background: T.primarySoft, color: T.primaryHi } : {}) };
+    });
+    const ctaExpressStyle = { width: '100%', padding: '14px 16px', borderRadius: 13, border: 'none', background: T.fire, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 26px rgba(0,0,0,0.18)' };
+    const checkBase = (on) => ({ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (on ? T.primary : T.borderHi), background: on ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' });
+
+    // Campos unificados (guiada / exprés / reseñas comparten mismo estilo de input)
+    const inputStyle = INPUT_STYLE, textareaStyle = TEXTAREA_STYLE;
+    const errorBoxBase = { padding: '10px 12px', background: T.dangerSoft, border: '1px solid rgba(226,59,52,0.35)', borderRadius: 10, color: T.danger, fontSize: 12.5 };
+    const errorStyleGuiada = Object.assign({}, errorBoxBase, { marginTop: 14 });
+    const errorStyleExpres = Object.assign({}, errorBoxBase, { marginBottom: 12 });
+    const errorStyleReview = Object.assign({}, errorBoxBase, { marginBottom: 12 });
+
+    // Reseñas — mismos campos que recoge el negocio: valoración del salón (obligatoria),
+    // trato/limpieza, profesional que atendió, proceso de reserva online, nombre opcional.
+    const mostrarResenas = this.props.mostrarResenas !== false;
+    const reviewsOuterCols = isNarrow ? '1fr' : '260px minmax(0,1fr)';
+    const ratingBars = RATING_COUNTS.map(rc => {
+      const pct = Math.round(rc.count / TOTAL_RESENAS * 100);
+      return { star: rc.star, trackStyle: { flex: 1, height: 6, borderRadius: 99, background: 'rgba(40,30,24,0.08)', overflow: 'hidden' }, fillStyle: { height: '100%', borderRadius: 99, background: '#e08a00', width: pct + '%' } };
+    });
+    const reviews = RESENAS_SEED.map(rv => Object.assign({}, rv, { starsArr: Array.from({ length: rv.rating }, () => ({})), inicial: rv.nombre.charAt(0) }));
+    const summaryFlames = Array.from({ length: Math.round(RATING_AVG) }, () => ({}));
+    const reviewToggleBase = { display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 16px', borderRadius: 11, border: '1.5px solid ' + T.border, background: '#fff', color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' };
+    const reviewToggleStyle = s.showReviewForm ? Object.assign({}, reviewToggleBase, { border: '1.5px solid ' + T.primary, background: T.primarySoft, color: T.primaryHi }) : reviewToggleBase;
+
+    const flamePicker = (value, size, field) => {
+      const items = [];
+      for (let n = 1; n <= 5; n++) {
+        const filled = n <= value;
+        items.push({
+          size, filled,
+          onClick: () => this.setRatingField(field, n),
+          bodyStyle: filled
+            ? { fill: '#e08a00', stroke: 'none' }
+            : { fill: 'none', stroke: 'rgba(40,30,24,0.28)', strokeWidth: 1.6, strokeLinejoin: 'round', strokeLinecap: 'round' },
+        });
+      }
+      return items;
+    };
+    const puntuacionPicker = flamePicker(s.rPuntuacion, 30, 'rPuntuacion');
+    const puntuacionLabel = s.rPuntuacion > 0 ? ETIQUETAS[s.rPuntuacion] : '';
+    const tratoPicker = flamePicker(s.rTrato, 20, 'rTrato');
+    const productosPicker = flamePicker(s.rProductos, 20, 'rProductos');
+    const mechaPicker = flamePicker(s.rMechaPuntuacion, 24, 'rMechaPuntuacion');
+    const facilidadPicker = flamePicker(s.rMechaFacilidad, 16, 'rMechaFacilidad');
+    const disponibilidadPicker = flamePicker(s.rMechaDisponibilidad, 16, 'rMechaDisponibilidad');
+    const pagosPicker = flamePicker(s.rMechaPagos, 16, 'rMechaPagos');
+    const profPuntuacionPicker = flamePicker(s.rProfesionalPuntuacion, 22, 'rProfesionalPuntuacion');
+
+    const profChipsReview = [{ id: '', nombre: 'Prefiero no decirlo' }].concat(PROFESIONALES).map(pr => {
+      const selected = (s.rProfesionalId || '') === pr.id;
+      return { id: pr.id, nombre: pr.nombre, onClick: () => this.selectRProfesional(pr.id), style: Object.assign({}, catPillBase, selected ? { background: T.primarySoft, border: '1px solid ' + T.primary, color: T.primaryHi } : {}) };
+    });
+    const rProfesionalElegido = !!s.rProfesionalId;
+    const profesionalElegidoNombre = rProfesionalElegido ? (PROFESIONALES.find(p => p.id === s.rProfesionalId) || {}).nombre || '' : '';
+
+    const showReviewFormInput = s.showReviewForm && !s.reviewSubmitted;
+    const showReviewThanks = s.showReviewForm && s.reviewSubmitted;
+
+    return {
+      T,
+      showHeaderExtras: !isNarrow,
+      isGuiada: s.mode === 'guiada', isExpres: s.mode === 'expres',
+      tabGuiadaStyle, tabExpresStyle,
+      onSetModeGuiada: () => this.setMode('guiada'), onSetModeExpres: () => this.setMode('expres'),
+      gridStyle, asideStyle, expresColsStyle, formColsStyle,
+      catTodosStyle, onCatTodos: () => this.selectCategoria(null), categorias,
+      servicios, servicioElegido,
+      onCambiarServicio: () => this.cambiarServicio(),
+      anyProfStyle, onAnyProf: () => this.selectProf('any'), profesionales,
+      dias,
+      sinHuecos,
+      franjaMananaVisible: franjaMananaItems.length > 0, franjaMananaItems,
+      franjaTardeVisible: franjaTardeItems.length > 0, franjaTardeItems,
+      franjaNocheVisible: franjaNocheItems.length > 0, franjaNocheItems,
+      slotElegido,
+      nombre: s.nombre, telefono: s.telefono, email: s.email, notas: s.notas, consent: s.consent,
+      onNombreChange: (e) => this.setField('nombre', e), onTelefonoChange: (e) => this.setField('telefono', e),
+      onEmailChange: (e) => this.setField('email', e), onNotasChange: (e) => this.setField('notas', e),
+      onToggleConsent: () => this.toggleConsent(), consentBoxStyle: checkBase(s.consent),
+      resumenServicio, resumenProf, resumenFecha, resumenHora, mostrarTotal, resumenTotal,
+      hasError: !!s.error, error: s.error,
+      ctaDisabled, ctaConfirmStyle, onConfirmar: () => this.confirmar(),
+      showForm, showSuccess, successFechaHora, successServicio, successProf, successGcalHref,
+      onReiniciar: () => this.reiniciar(),
+      showExpresForm: !s.eSubmitted, showExpresSuccess: s.eSubmitted,
+      eNombre: s.eNombre, eTelefono: s.eTelefono,
+      onENombreChange: (e) => this.setFieldE('eNombre', e), onETelefonoChange: (e) => this.setFieldE('eTelefono', e),
+      franjasE,
+      eConsent: s.eConsent, onToggleConsentE: () => this.toggleConsentE(), consentBoxStyleE: checkBase(s.eConsent),
+      hasErrorE: !!s.eError, eError: s.eError,
+      ctaExpressStyle, onSubmitExpress: () => this.submitExpress(),
+      onReiniciarExpress: () => this.reiniciarExpress(),
+      inputStyle, textareaStyle, errorStyleGuiada, errorStyleExpres, errorStyleReview,
+      mostrarResenas, reviewsOuterCols, ratingAvg: RATING_AVG, totalResenas: TOTAL_RESENAS, ratingBars, reviews, summaryFlames,
+      onToggleReviewForm: () => this.toggleReviewForm(), reviewToggleStyle,
+      showReviewFormInput, showReviewThanks,
+      puntuacionPicker, puntuacionLabel, hasPuntuacionLabel: !!puntuacionLabel,
+      tratoPicker, productosPicker,
+      rComentario: s.rComentario, onRComentarioChange: (e) => this.setRText('rComentario', e),
+      profChipsReview, rProfesionalElegido, profesionalElegidoNombre, profPuntuacionPicker,
+      mechaPicker, facilidadPicker, disponibilidadPicker, pagosPicker,
+      rMechaMejora: s.rMechaMejora, onRMechaMejoraChange: (e) => this.setRText('rMechaMejora', e),
+      rNombre: s.rNombre, onRNombreChange: (e) => this.setRText('rNombre', e),
+      hasErrorReview: !!s.rError, rError: s.rError,
+      onSubmitReview: () => this.submitReview(),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -133,8 +133,7 @@ const IA_SOLO: ReadonlySet<FuncionPlan> = new Set(['ia_chispa', 'ia_voz']);
 // El plan gratuito solo sirve para mirar la demo compartida: no habilita nada.
 const FREE: FuncionPlan[] = [];
 
-// Todo lo que no es IA: igual en esencial que en estudio desde la reestructura.
-const SOFTWARE_COMPLETO: FuncionPlan[] = [
+const ESENCIAL_FUNCIONES: FuncionPlan[] = [
   'agenda',
   'clientes',
   'portal_reserva',
@@ -142,19 +141,23 @@ const SOFTWARE_COMPLETO: FuncionPlan[] = [
   'caja',
   'informes',
   'equipo',
+  'verifactu',
+];
+
+const ESTUDIO_FUNCIONES: FuncionPlan[] = [
+  ...ESENCIAL_FUNCIONES,
   'presupuestos',
   'inventario',
   'resenas',
   'senales',
   'campanas',
   'lista_espera',
-  'verifactu',
 ];
 
 export const PLAN_FUNCIONES: Record<Plan, ReadonlySet<FuncionPlan>> = {
   free: new Set(FREE),
-  esencial: new Set(SOFTWARE_COMPLETO),
-  estudio: new Set(SOFTWARE_COMPLETO),
+  esencial: new Set(ESENCIAL_FUNCIONES),
+  estudio: new Set(ESTUDIO_FUNCIONES),
 };
 
 // Que funciones de IA desbloquea cada nivel del addon.

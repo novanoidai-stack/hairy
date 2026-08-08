@@ -148,10 +148,12 @@
 
   /* ---- selector de plan contratado ---- */
   .plan-switch{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
-    color:var(--text-sec);background:var(--card);border:1px solid var(--border-hi);
-    border-radius:9px;padding:5px 10px;margin-left:8px}
-  .plan-switch select{background:transparent;border:none;color:var(--text);font-size:12.5px;
+    color:var(--text-sec);background:var(--card-hi);border:1px solid var(--border-hi);
+    border-radius:9px;padding:6px 12px;margin-left:8px;transition:border-color 0.2s}
+  .plan-switch:hover{border-color:rgba(168,85,247,.45)}
+  .plan-switch select{background:transparent;border:none;color:var(--text);font-size:13px;
     font-weight:700;cursor:pointer;outline:none}
+  .plan-switch select option{background:var(--bg);color:var(--text)}
   .plan-switch select:disabled{opacity:.5;cursor:wait}
 
   /* ---- modo de acceso del salon (cabecera del grupo) ---- */

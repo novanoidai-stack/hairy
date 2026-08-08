@@ -77,6 +77,8 @@ interface Resena {
   mecha_disponibilidad_puntuacion?: number | null;
   mecha_pagos_puntuacion?: number | null;
   mecha_mejora_comentario?: string | null;
+  profesional_id?: string | null;
+  profesional_puntuacion?: number | null;
   respuesta_borrador?: string | null; // Sesion 9-A: borrador de respuesta generado por Chispa
 }
 
@@ -184,12 +186,14 @@ function ResenasScreen() {
   const paginaManual = usePaginaManualVista('resenas');
   const [loading, setLoading] = useState(true);
   const [resenas, setResenas] = useState<Resena[]>([]);
+  const [equipoMap, setEquipoMap] = useState<Record<string, string>>({});
   const [, setNegocioId] = useState('');
 
   // Filtros
   const [fRating, setFRating] = useState(0); // 0 = todas; 1..5 = puntuacion exacta del salon
   const [fPeriod, setFPeriod] = useState<PeriodKey>('all');
   const [fScope, setFScope] = useState<ScopeKey>('all');
+  const [fProf, setFProf] = useState<string>('all');
   const [fSearch, setFSearch] = useState('');
   // Reseñas desplegadas (movil): por defecto todas compactas para poder ojear
   // muchas de un vistazo; se abre la ficha completa al tocar.
@@ -227,12 +231,21 @@ ${comentarios}`;
         mecha_puntuacion, mecha_comentario,
         salon_trato_puntuacion, salon_productos_puntuacion,
         mecha_facilidad_puntuacion, mecha_disponibilidad_puntuacion,
-        mecha_pagos_puntuacion, mecha_mejora_comentario
+        mecha_pagos_puntuacion, mecha_mejora_comentario,
+        profesional_id, profesional_puntuacion
       `)
       .eq('negocio_id', nId)
       .order('created_at', { ascending: false });
 
     if (data) setResenas(data as Resena[]);
+    
+    const { data: equipoData } = await supabase.from('equipo').select('id, nombre').eq('negocio_id', nId);
+    if (equipoData) {
+      const map: Record<string, string> = {};
+      equipoData.forEach(p => map[p.id] = p.nombre);
+      setEquipoMap(map);
+    }
+    
     setLoading(false);
   };
 
@@ -262,13 +275,14 @@ ${comentarios}`;
       if (cutoff > 0 && parseISO(r.created_at).getTime() < cutoff) return false;
       if (fScope === 'mecha' && !r.mecha_puntuacion) return false;
       if (fScope === 'comentario' && !r.comentario && !r.mecha_mejora_comentario) return false;
+      if (fProf !== 'all' && r.profesional_id !== fProf) return false;
       if (q) {
         const hay = `${r.comentario || ''} ${r.mecha_mejora_comentario || ''} ${r.autor_nombre || ''}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [resenas, fRating, fPeriod, fScope, fSearch]);
+  }, [resenas, fRating, fPeriod, fScope, fSearch, fProf]);
 
   const media = useMemo(() => {
     if (filtradas.length === 0) return 0;
@@ -538,6 +552,16 @@ ${comentarios}`;
                     <Chip key={k} active={fScope === k} onClick={() => setFScope(k)}>{lbl}</Chip>
                   ))}
                 </FilterGroup>
+
+                {/* Profesional */}
+                {Object.keys(equipoMap).length > 0 && (
+                  <FilterGroup label="Profesional">
+                    <Chip active={fProf === 'all'} onClick={() => setFProf('all')}>Todos</Chip>
+                    {Object.entries(equipoMap).map(([id, nombre]) => (
+                      <Chip key={id} active={fProf === id} onClick={() => setFProf(id)}>{nombre}</Chip>
+                    ))}
+                  </FilterGroup>
+                )}
               </div>
             </div>
 
@@ -605,6 +629,16 @@ ${comentarios}`;
                       </div>
                     ) : (
                     <>
+                    {/* PROFESIONAL */}
+                    {r.profesional_id && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, background: 'rgba(244,80,30,0.04)', padding: '4px 10px', borderRadius: 8, alignSelf: 'flex-start' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: TOKENS.textSec }}>
+                          Atendido por {equipoMap[r.profesional_id] || 'Profesional'}
+                        </span>
+                        {r.profesional_puntuacion ? <FlamesRow value={r.profesional_puntuacion} size={13} color={TOKENS.primary} /> : null}
+                      </div>
+                    )}
+
                     {/* VALORACIONES DEL SALÓN */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

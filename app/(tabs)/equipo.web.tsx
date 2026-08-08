@@ -178,10 +178,12 @@ export default function EquipoWeb() {
   const [horarios, setHorarios] = useState<any[]>([]);
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   // Horario editor
-  const [editDia, setEditDia] = useState<number | null>(null); // dia_semana DB (0-6)
-  const [editTurno, setEditTurno] = useState<1 | 2>(1);
-  const [editHIni, setEditHIni] = useState('09:00');
-  const [editHFin, setEditHFin] = useState('18:00');
+  const [editDias, setEditDias] = useState<number[]>([]); 
+  const [editJornadaIni, setEditJornadaIni] = useState('09:00');
+  const [editJornadaFin, setEditJornadaFin] = useState('18:00');
+  const [editHasPausa, setEditHasPausa] = useState(false);
+  const [editPausaIni, setEditPausaIni] = useState('14:00');
+  const [editPausaFin, setEditPausaFin] = useState('16:00');
   const [savingHorario, setSavingHorario] = useState(false);
   // Bloqueo context menu
   const [menuBloqueoId, setMenuBloqueoId] = useState<string | null>(null);
@@ -350,7 +352,7 @@ export default function EquipoWeb() {
     ]);
     setHorarios(hor ?? []);
     setBloqueos(bloq ?? []);
-    setEditDia(null);
+    setEditDias([]);
     setMenuBloqueoId(null);
   }
 
@@ -410,22 +412,37 @@ export default function EquipoWeb() {
 
   const DIAS_SEMANA_FULL = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
-  function openEditDia(dbDia: number, turno: 1 | 2 = 1) {
-    const existing = horarios.find((x) => x.dia_semana === dbDia && (x.turno ?? 1) === turno);
-    if (existing) {
-      setEditHIni(fmtHora(existing.hora_inicio));
-      setEditHFin(fmtHora(existing.hora_fin));
+  function openEditDia(dbDia: number) {
+    setEditDias([dbDia]);
+    const dayTurnos = horarios.filter((x) => x.dia_semana === dbDia).sort((a,b) => (a.turno??1) - (b.turno??1));
+    if (dayTurnos.length === 2) {
+      setEditJornadaIni(fmtHora(dayTurnos[0].hora_inicio));
+      setEditPausaIni(fmtHora(dayTurnos[0].hora_fin));
+      setEditPausaFin(fmtHora(dayTurnos[1].hora_inicio));
+      setEditJornadaFin(fmtHora(dayTurnos[1].hora_fin));
+      setEditHasPausa(true);
+    } else if (dayTurnos.length === 1) {
+      setEditJornadaIni(fmtHora(dayTurnos[0].hora_inicio));
+      setEditJornadaFin(fmtHora(dayTurnos[0].hora_fin));
+      setEditHasPausa(false);
     } else {
-      setEditHIni(turno === 2 ? '16:00' : '09:00');
-      setEditHFin(turno === 2 ? '20:00' : '14:00');
+      setEditJornadaIni('09:00');
+      setEditJornadaFin('20:00');
+      setEditPausaIni('14:00');
+      setEditPausaFin('16:00');
+      setEditHasPausa(false);
     }
-    setEditTurno(turno);
-    setEditDia(dbDia);
   }
 
-  function adjustEditH(field: 'ini' | 'fin', hDelta: number, mDelta: number) {
-    const setter = field === 'ini' ? setEditHIni : setEditHFin;
-    const current = field === 'ini' ? editHIni : editHFin;
+  function adjustEditH(field: 'jornadaIni' | 'jornadaFin' | 'pausaIni' | 'pausaFin', hDelta: number, mDelta: number) {
+    const setter = field === 'jornadaIni' ? setEditJornadaIni :
+                   field === 'jornadaFin' ? setEditJornadaFin :
+                   field === 'pausaIni' ? setEditPausaIni :
+                   setEditPausaFin;
+    const current = field === 'jornadaIni' ? editJornadaIni :
+                    field === 'jornadaFin' ? editJornadaFin :
+                    field === 'pausaIni' ? editPausaIni :
+                    editPausaFin;
     const [hh, mm] = current.split(':').map(Number);
     let nh = hh + hDelta;
     let nm = mm + mDelta;
@@ -437,44 +454,41 @@ export default function EquipoWeb() {
   }
 
   async function guardarHorario() {
-    if (!selected || editDia === null) return;
+    if (!selected || editDias.length === 0) return;
     setSavingHorario(true);
-    const existing = horarios.find((x) => x.dia_semana === editDia && (x.turno ?? 1) === editTurno);
-    if (existing) {
-      await supabase.from('horarios_profesional')
-        .update({ hora_inicio: editHIni, hora_fin: editHFin })
-        .eq('id', existing.id);
-    } else {
-      await supabase.from('horarios_profesional').insert({
-        profesional_id: selected,
-        dia_semana: editDia,
-        turno: editTurno,
-        hora_inicio: editHIni,
-        hora_fin: editHFin,
-      });
+    for (const d of editDias) {
+      // Borrar turnos existentes de ese dia
+      const dHorarios = horarios.filter((x) => x.dia_semana === d);
+      for (const h of dHorarios) {
+        await supabase.from('horarios_profesional').delete().eq('id', h.id);
+      }
+      
+      // Insertar nuevos
+      if (editHasPausa) {
+        await supabase.from('horarios_profesional').insert([
+          { profesional_id: selected, dia_semana: d, turno: 1, hora_inicio: editJornadaIni, hora_fin: editPausaIni },
+          { profesional_id: selected, dia_semana: d, turno: 2, hora_inicio: editPausaFin, hora_fin: editJornadaFin },
+        ]);
+      } else {
+        await supabase.from('horarios_profesional').insert({
+          profesional_id: selected, dia_semana: d, turno: 1, hora_inicio: editJornadaIni, hora_fin: editJornadaFin
+        });
+      }
     }
     setSavingHorario(false);
-    setEditDia(null);
-    await cargarPanelDerecho();
-  }
-
-  async function cerrarTurno() {
-    if (!selected || editDia === null) return;
-    const existing = horarios.find((x) => x.dia_semana === editDia && (x.turno ?? 1) === editTurno);
-    if (existing) {
-      await supabase.from('horarios_profesional').delete().eq('id', existing.id);
-    }
-    setEditDia(null);
+    setEditDias([]);
     await cargarPanelDerecho();
   }
 
   async function cerrarDia() {
-    if (!selected || editDia === null) return;
-    const diaHorarios = horarios.filter((x) => x.dia_semana === editDia);
-    for (const h of diaHorarios) {
-      await supabase.from('horarios_profesional').delete().eq('id', h.id);
+    if (!selected || editDias.length === 0) return;
+    for (const d of editDias) {
+      const diaHorarios = horarios.filter((x) => x.dia_semana === d);
+      for (const h of diaHorarios) {
+        await supabase.from('horarios_profesional').delete().eq('id', h.id);
+      }
     }
-    setEditDia(null);
+    setEditDias([]);
     await cargarPanelDerecho();
   }
 
@@ -944,7 +958,7 @@ export default function EquipoWeb() {
                     const dbDia = i === 6 ? 0 : i + 1;
                     const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
                     const hasH = dayH.length > 0;
-                    const isEditing = editDia === dbDia;
+                    const isEditing = editDias.includes(dbDia);
                     const horasTxt = hasH ? dayH.map((h) => `${fmtHora(h.hora_inicio)}-${fmtHora(h.hora_fin)}`).join(' · ') : 'Cerrado';
                     if (isMobile) {
                       // Fila: nombre del dia a la izquierda, horas a la derecha.
@@ -976,81 +990,119 @@ export default function EquipoWeb() {
                 </div>
               </div>
               {/* Editor inline de horario */}
-              {editDia !== null && (() => {
-                const dayTurnos = horarios.filter((x) => x.dia_semana === editDia);
-                const hasTurno2 = dayTurnos.some((x) => (x.turno ?? 1) === 2);
-                const currentTurnoExists = dayTurnos.some((x) => (x.turno ?? 1) === editTurno);
+              {/* Editor inline de horario múltiple */}
+              {editDias.length > 0 && (() => {
                 return (
                 <div style={{ marginTop: 10, padding: 14, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 12, animation: 'scaleIn 0.2s ease' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}>{DIAS_SEMANA_FULL[editDia]}</div>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button onClick={() => openEditDia(editDia!, 1)}
-                        style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${editTurno === 1 ? TOKENS.primary : TOKENS.border}`, background: editTurno === 1 ? TOKENS.primarySoft : 'transparent', color: editTurno === 1 ? TOKENS.primaryHi : TOKENS.textTer, cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                        Turno 1
+                  
+                  {/* Días de la semana */}
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 10, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>Días a editar</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {DIAS_SEMANA_FULL.map((d, i) => {
+                        const sel = editDias.includes(i);
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              if (sel && editDias.length === 1) return; // al menos 1
+                              if (sel) setEditDias(editDias.filter(x => x !== i));
+                              else setEditDias([...editDias, i].sort());
+                            }}
+                            style={{
+                              padding: '6px 10px', borderRadius: 8,
+                              border: sel ? `2px solid ${TOKENS.primary}` : `1px solid ${TOKENS.border}`,
+                              background: sel ? TOKENS.primarySoft : 'transparent',
+                              color: sel ? TOKENS.primaryHi : TOKENS.textSec,
+                              fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {d.substring(0, 3)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Jornada */}
+                  <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Inicio Jornada</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
+                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', -1, 0)} />
+                        <NumBox value={editJornadaIni.split(':')[0]} label="h" />
+                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', 1, 0)} plus />
+                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', 0, -15)} />
+                        <NumBox value={editJornadaIni.split(':')[1]} label="m" />
+                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', 0, 15)} plus />
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Fin Jornada</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
+                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', -1, 0)} />
+                        <NumBox value={editJornadaFin.split(':')[0]} label="h" />
+                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', 1, 0)} plus />
+                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', 0, -15)} />
+                        <NumBox value={editJornadaFin.split(':')[1]} label="m" />
+                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', 0, 15)} plus />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pausa */}
+                  <div style={{ marginBottom: 12, padding: 12, borderRadius: 8, border: `1px solid ${editHasPausa ? TOKENS.borderHi : TOKENS.border}`, background: editHasPausa ? TOKENS.bgCard : TOKENS.bg }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: editHasPausa ? 12 : 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>Pausa (ej. comida)</div>
+                      <button onClick={() => setEditHasPausa(!editHasPausa)} style={{ fontSize: 11, fontWeight: 600, color: editHasPausa ? '#ef4444' : TOKENS.primary, background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                        {editHasPausa ? 'Quitar pausa' : '+ Añadir pausa'}
                       </button>
-                      {hasTurno2 ? (
-                        <button onClick={() => openEditDia(editDia!, 2)}
-                          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${editTurno === 2 ? TOKENS.primary : TOKENS.border}`, background: editTurno === 2 ? TOKENS.primarySoft : 'transparent', color: editTurno === 2 ? TOKENS.primaryHi : TOKENS.textTer, cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          Turno 2
-                        </button>
-                      ) : editTurno !== 2 ? (
-                        <button onClick={() => openEditDia(editDia!, 2)}
-                          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px dashed ${TOKENS.border}`, background: 'transparent', color: TOKENS.textTer, cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          + Turno 2
-                        </button>
-                      ) : (
-                        <button onClick={() => openEditDia(editDia!, 2)}
-                          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${TOKENS.primary}`, background: TOKENS.primarySoft, color: TOKENS.primaryHi, cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          Turno 2
-                        </button>
-                      )}
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Entrada</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
-                        <BtnFlecha onClick={() => adjustEditH('ini', -1, 0)} />
-                        <NumBox value={editHIni.split(':')[0]} label="h" />
-                        <BtnFlecha onClick={() => adjustEditH('ini', 1, 0)} plus />
-                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
-                        <BtnFlecha onClick={() => adjustEditH('ini', 0, -15)} />
-                        <NumBox value={editHIni.split(':')[1]} label="m" />
-                        <BtnFlecha onClick={() => adjustEditH('ini', 0, 15)} plus />
+                    
+                    {editHasPausa && (
+                      <div style={{ display: 'flex', gap: 16 }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Inicio Pausa</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                            <BtnFlecha onClick={() => adjustEditH('pausaIni', -1, 0)} />
+                            <NumBox value={editPausaIni.split(':')[0]} label="h" />
+                            <BtnFlecha onClick={() => adjustEditH('pausaIni', 1, 0)} plus />
+                            <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                            <BtnFlecha onClick={() => adjustEditH('pausaIni', 0, -15)} />
+                            <NumBox value={editPausaIni.split(':')[1]} label="m" />
+                            <BtnFlecha onClick={() => adjustEditH('pausaIni', 0, 15)} plus />
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Fin Pausa</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                            <BtnFlecha onClick={() => adjustEditH('pausaFin', -1, 0)} />
+                            <NumBox value={editPausaFin.split(':')[0]} label="h" />
+                            <BtnFlecha onClick={() => adjustEditH('pausaFin', 1, 0)} plus />
+                            <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                            <BtnFlecha onClick={() => adjustEditH('pausaFin', 0, -15)} />
+                            <NumBox value={editPausaFin.split(':')[1]} label="m" />
+                            <BtnFlecha onClick={() => adjustEditH('pausaFin', 0, 15)} plus />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Salida</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
-                        <BtnFlecha onClick={() => adjustEditH('fin', -1, 0)} />
-                        <NumBox value={editHFin.split(':')[0]} label="h" />
-                        <BtnFlecha onClick={() => adjustEditH('fin', 1, 0)} plus />
-                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
-                        <BtnFlecha onClick={() => adjustEditH('fin', 0, -15)} />
-                        <NumBox value={editHFin.split(':')[1]} label="m" />
-                        <BtnFlecha onClick={() => adjustEditH('fin', 0, 15)} plus />
-                      </div>
-                    </div>
+                    )}
                   </div>
+
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button onClick={guardarHorario} disabled={savingHorario}
                       style={{ flex: 1, padding: '7px 0', background: TOKENS.primary, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       {savingHorario ? 'Guardando...' : 'Guardar'}
                     </button>
-                    {currentTurnoExists && hasTurno2 && (
-                      <button onClick={cerrarTurno}
-                        style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.08)', color: '#f87171', border: `1px solid rgba(239,68,68,0.18)`, borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                        Quitar turno
-                      </button>
-                    )}
-                    {dayTurnos.length > 0 && (
-                      <button onClick={cerrarDia}
-                        style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: `1px solid rgba(239,68,68,0.25)`, borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                        {hasTurno2 ? 'Cerrar dia completo' : 'Cerrar dia'}
-                      </button>
-                    )}
-                    <button onClick={() => setEditDia(null)}
+                    
+                    <button onClick={cerrarDia}
+                      style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: `1px solid rgba(239,68,68,0.25)`, borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                      Cerrar días seleccionados
+                    </button>
+                    
+                    <button onClick={() => setEditDias([])}
                       style={{ padding: '7px 12px', background: 'transparent', color: TOKENS.textSec, border: `1px solid ${TOKENS.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       Cancelar
                     </button>

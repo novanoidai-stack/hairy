@@ -247,6 +247,7 @@ function MiJornadaScreen() {
   const [error, setError] = useState<string | null>(null);
   const [periodo, setPeriodo] = useState<Periodo>('hoy');
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [nuevaResena, setNuevaResena] = useState<{ id: string; puntuacion: number; comentario: string | null } | null>(null);
   const [fichajesHoy, setFichajesHoy] = useState<Fichaje[]>([]);
   const [userId, setUserId] = useState('');
   const [fichando, setFichando] = useState(false);
@@ -384,6 +385,17 @@ para proponerla completa, así que no llames a esa herramienta.`;
           .order('inicio', { ascending: true })
           .limit(20);
         setAusencias(ausData ?? []);
+      }
+      
+      const hace48h = new Date(Date.now() - 48 * 3600000).toISOString();
+      let qRes = supabase.from('resenas').select('id, puntuacion, comentario').eq('negocio_id', profile.negocio_id).gte('created_at', hace48h).order('created_at', { ascending: false }).limit(1);
+      const pId = identidadActiva(profile.negocio_id)?.profesionalId;
+      if (pId) qRes = qRes.eq('profesional_id', pId);
+      const { data: resData } = await qRes;
+      if (resData && resData.length > 0 && resData[0].puntuacion >= 4) {
+        setNuevaResena(resData[0]);
+      } else {
+        setNuevaResena(null);
       }
     } catch (err) {
       console.error('Error cargando Mi jornada:', err);
@@ -696,6 +708,24 @@ para proponerla completa, así que no llames a esa herramienta.`;
               onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
               onCerrar={paginaManual.marcarVisto}
             />
+          </div>
+        )}
+
+        {nuevaResena && (
+          <div style={{ background: 'linear-gradient(135deg, rgba(244,80,30,0.1), rgba(244,80,30,0.02))', border: `1px solid ${T.primary}`, borderRadius: 16, padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: '50%', background: T.primary, flexShrink: 0, fontSize: 24 }}>
+              ⭐
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 4 }}>
+                ¡Enhorabuena! Tienes una nueva reseña de {nuevaResena.puntuacion} estrellas.
+              </div>
+              {nuevaResena.comentario && (
+                <div style={{ fontSize: 13.5, color: T.textSec, fontStyle: 'italic' }}>
+                  "{nuevaResena.comentario}"
+                </div>
+              )}
+            </div>
           </div>
         )}
 

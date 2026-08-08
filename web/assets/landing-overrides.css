@@ -109,18 +109,19 @@ section[id],
   grid-template-columns:1fr 1fr;gap:14px 16px;align-items:start}
 .faq-item{background:linear-gradient(180deg,var(--card-hi),var(--card));
   border:1px solid var(--border-hi);border-radius:16px;overflow:hidden;
-  transition:border-color .2s var(--ease)}
-.faq-item[open]{border-color:rgba(244,80,30,.45)}
-.faq-item summary{list-style:none;cursor:pointer;padding:16px 44px 16px 16px;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), transform .2s var(--ease)}
+.faq-item:hover{box-shadow: 0 10px 30px rgba(0,0,0,0.15); transform: translateY(-2px);}
+.faq-item[open]{border-color:rgba(244,80,30,.45); background: linear-gradient(180deg, rgba(244,80,30,0.05), var(--card));}
+.faq-item summary{list-style:none;cursor:pointer;padding:18px 48px 18px 20px;
   font-size:15px;font-weight:600;color:var(--text);position:relative;
-  line-height:1.4;transition:color .2s;display:flex;align-items:flex-start;gap:12px}
+  line-height:1.4;transition:color .2s;display:flex;align-items:flex-start;gap:14px}
 .faq-item summary::-webkit-details-marker{display:none}
 .faq-item summary:hover{color:var(--accent-hi)}
-.faq-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px;
+.faq-ic{flex-shrink:0;width:38px;height:38px;border-radius:12px;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(244,80,30,.12);color:var(--accent-hi)}
-.faq-ic svg{width:17px;height:17px}
-.faq-q{padding-top:6px}
+  background:rgba(244,80,30,.12);color:var(--accent-hi); border: 1px solid rgba(244,80,30,0.2)}
+.faq-ic svg{width:20px !important;height:20px !important; min-width:20px; min-height:20px; flex-shrink:0;}
+.faq-q{padding-top:8px}
 /* top:50%+translateY(-50%) en vez de un top: fijo en px: con preguntas de
    una o dos lineas la altura del summary varia, y un valor fijo solo
    centraba la flecha para la version de una linea (se veia descolocada en

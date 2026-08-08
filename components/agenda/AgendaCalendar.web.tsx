@@ -7755,18 +7755,46 @@ function DayTimeline({
                     key={prof.id}
                     style={{ position: "relative", pointerEvents: "none" }}
                   >
-                    {(bloqueos as any[])
-                      .filter((b: any) => {
-                        if (b.profesional_id !== prof.id) return false;
-                        const dayStart = new Date(selectedDateObj);
-                        dayStart.setHours(0, 0, 0, 0);
-                        const dayEnd = new Date(selectedDateObj);
-                        dayEnd.setHours(23, 59, 59, 999);
-                        return (
-                          new Date(b.inicio) <= dayEnd &&
-                          new Date(b.fin) >= dayStart
-                        );
-                      })
+                    {(() => {
+                      const dayStart = new Date(selectedDateObj);
+                      dayStart.setHours(0, 0, 0, 0);
+                      const dayEnd = new Date(selectedDateObj);
+                      dayEnd.setHours(23, 59, 59, 999);
+                      
+                      const dbDia = selectedDateObj.getDay();
+                      const profHorarios = (horarios as any[]).filter(h => h.profesional_id === prof.id && h.dia_semana === dbDia).sort((a,b) => (a.turno ?? 1) - (b.turno ?? 1));
+                      const virtualPauses = [];
+                      if (profHorarios.length > 1) {
+                        for (let i = 0; i < profHorarios.length - 1; i++) {
+                          const h1 = profHorarios[i];
+                          const h2 = profHorarios[i+1];
+                          const vStart = new Date(selectedDateObj);
+                          const [sH, sM] = h1.hora_fin.split(':').map(Number);
+                          vStart.setHours(sH, sM, 0, 0);
+                          const vEnd = new Date(selectedDateObj);
+                          const [eH, eM] = h2.hora_inicio.split(':').map(Number);
+                          vEnd.setHours(eH, eM, 0, 0);
+                          if (vEnd > vStart) {
+                            virtualPauses.push({
+                              id: `pause-${prof.id}-${i}`,
+                              profesional_id: prof.id,
+                              inicio: vStart.toISOString(),
+                              fin: vEnd.toISOString(),
+                              tipo: 'descanso',
+                              motivo: 'Pausa de comida'
+                            });
+                          }
+                        }
+                      }
+                      
+                      return [...(bloqueos as any[]), ...virtualPauses]
+                        .filter((b: any) => {
+                          if (b.profesional_id !== prof.id) return false;
+                          return (
+                            new Date(b.inicio) <= dayEnd &&
+                            new Date(b.fin) >= dayStart
+                          );
+                        })
                       .map((b: any) => {
                         const bloqueoDayStart = new Date(selectedDateObj);
                         bloqueoDayStart.setHours(START_H, 0, 0, 0);

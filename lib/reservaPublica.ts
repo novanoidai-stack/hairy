@@ -98,6 +98,29 @@ export async function getDisponibilidad(
   return (data as SlotDisponible[] | null) ?? [];
 }
 
+export interface SlotDisponibleExpress extends SlotDisponible {
+  error_msg: string | null;
+}
+
+// Búsqueda del primer hueco disponible para clientes con beneficio exprés.
+export async function getDisponibilidadExpress(
+  slug: string,
+  servicioId: string,
+  telefono: string,
+  profesionalId?: string | null,
+  dias = 21,
+): Promise<SlotDisponibleExpress[]> {
+  const { data, error } = await supabase.rpc('disponibilidad_express_publica', {
+    p_slug: slug,
+    p_servicio_id: servicioId,
+    p_telefono: telefono,
+    p_profesional_id: profesionalId ?? null,
+    p_dias: dias,
+  });
+  if (error) throw error;
+  return (data as SlotDisponibleExpress[] | null) ?? [];
+}
+
 // Dias (YYYY-MM-DD, zona del salon) con AL MENOS un hueco reservable en el horizonte.
 // De un solo viaje: el portal auto-selecciona el primer dia disponible y atenua el resto.
 export async function getDiasDisponibles(
@@ -131,6 +154,25 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_consentimiento_datos: args.consentimientoDatos ?? true,
     p_consiente_ia: args.consienteIa ?? false,
     p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
+  });
+  if (error) throw error;
+  return data as CrearCitaResult;
+}
+
+// Crea la cita express.
+export async function crearCitaPublicaExpress(args: CrearCitaArgs): Promise<CrearCitaResult> {
+  const { data, error } = await supabase.rpc('crear_cita_publica_express', {
+    p_slug: args.slug,
+    p_servicio_id: args.servicioId,
+    p_profesional_id: args.profesionalId,
+    p_inicio: args.inicioISO,
+    p_cliente_nombre: args.clienteNombre,
+    p_cliente_telefono: args.clienteTelefono,
+    p_cliente_email: args.clienteEmail ?? null,
+    p_notas: args.notas ?? null,
+    p_consentimiento_datos: args.consentimientoDatos ?? true,
+    p_consiente_ia: args.consienteIa ?? false,
+    p_captcha_token: args.captchaToken ?? null,
   });
   if (error) throw error;
   return data as CrearCitaResult;
@@ -179,6 +221,27 @@ export async function crearGrupoPublico(args: CrearGrupoArgs): Promise<CrearGrup
   });
   if (error) throw error;
   return data as CrearGrupoResult;
+}
+
+// Inserta al cliente en la lista de espera con prioridad express
+export async function crearListaEsperaExpressPublica(args: {
+  slug: string;
+  servicioId: string;
+  telefono: string;
+  profesionalId?: string | null;
+  desde?: string | null;
+  hasta?: string | null;
+}): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc('lista_espera_express_publica', {
+    p_slug: args.slug,
+    p_servicio_id: args.servicioId,
+    p_telefono: args.telefono,
+    p_profesional_id: args.profesionalId ?? null,
+    p_desde: args.desde ?? null,
+    p_hasta: args.hasta ?? null,
+  });
+  if (error) throw error;
+  return data as { ok: boolean; error?: string };
 }
 
 // Agrupa slots por dia local (YYYY-MM-DD en zona del navegador) para pintar el calendario.
