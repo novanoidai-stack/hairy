@@ -7869,7 +7869,8 @@ function DayTimeline({
                             )}
                           </div>
                         );
-                      })}
+                      });
+                    })()}
                     {[...profCitas]
                       .sort(
                         (a: any, b: any) =>

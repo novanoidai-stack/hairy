@@ -105,8 +105,15 @@ export const FAQS_INICIALES: FAQItem[] = [
   {
     id: 'addon-ia-chispa',
     categoria: 'ia',
-    pregunta: '¿Qué incluye el Addon de Inteligencia Artificial (Chispa) y la IA por Voz?',
-    respuesta: 'El Addon de IA es una mejora opcional que añade a tu salón: 1) Chispa por WhatsApp: Asistente que atiende chats, escanea tu salón 24/7 en busca de riesgos de cancelación o stock bajo, y redacta respuestas y promociones. 2) Contestador por Voz (IA): La IA puede atender las llamadas telefónicas de tu salón, hablar con las clientas y agendarles cita de voz de forma autónoma sin que tengas que descolgar el teléfono.',
+    pregunta: '¿En qué secciones de la app me ayuda exactamente Chispa (la Inteligencia Artificial)?',
+    respuesta: 'Chispa es tu asistente integrado y te ayuda en casi todo: 1) En "Mi Jornada", analiza tus citas diarias, detecta tiempos de reposo que puedes aprovechar para otras clientas y te avisa de retrasos. 2) En "Inventario", te sugiere cantidades exactas para comprar basándose en tu consumo y stock crítico. 3) En "Reseñas", lee todos los comentarios y te resume qué hacéis mejor y qué debéis mejorar. 4) En "Presupuestos", tú le dices "balayage y corte" y ella rellena las líneas y precios de tu catálogo automáticamente. 5) En "Campañas", redacta los mensajes de marketing por ti.',
+    linkManualKey: 'chispa',
+  },
+  {
+    id: 'ia-whatsapp-voz',
+    categoria: 'ia',
+    pregunta: '¿Puede la IA contestar el WhatsApp o el teléfono del salón por mí?',
+    respuesta: 'Sí. El Addon de IA incluye a Chispa por WhatsApp, que atiende chats 24/7 y agenda citas de manera autónoma, y el Contestador por Voz (IA), que descuelga las llamadas telefónicas de tu salón, habla de forma natural con las clientas y les reserva hueco directamente en tu agenda sin que tengas que parar de trabajar.',
     linkManualKey: 'chispa',
   },
   {
