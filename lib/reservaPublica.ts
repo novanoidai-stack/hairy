@@ -46,6 +46,8 @@ export interface SlotDisponible {
   profesional_id: string;
   profesional_nombre: string;
   slot: string; // ISO timestamptz
+  en_reposo: boolean;
+  reposo_disponible_min: number | null;
 }
 
 export interface CrearCitaResult {

@@ -699,23 +699,36 @@ export default function PortalReservaWeb() {
                         <div className="rp-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(82px, 1fr))', gap: 7 }}>
                           {items.map((s, i) => {
                             const sel = slotSel?.slot === s.slot;
+                            const notaReposo = s.en_reposo && s.reposo_disponible_min != null
+                              ? t('slot_reposo_nota', { min: s.reposo_disponible_min })
+                              : undefined;
+                            const tituloPro = profId === ANY_PRO ? t('slot_con_pro', { pro: s.profesional_nombre }) : undefined;
                             return (
                               <button
                                 key={s.slot}
                                 className={sel ? 'rp-slot rp-on' : 'rp-slot'}
                                 onClick={() => setSlotSel(s)}
-                                title={profId === ANY_PRO ? t('slot_con_pro', { pro: s.profesional_nombre }) : undefined}
+                                title={[tituloPro, notaReposo].filter(Boolean).join(' · ') || undefined}
                                 style={{
+                                  position: 'relative',
                                   padding: '10px 6px', borderRadius: 12, fontSize: 14.5, fontWeight: 700, animationDelay: `${i * 0.02}s`,
                                   border: sel ? 'none' : `1.5px solid ${T.border}`,
                                   background: sel ? T.primary : T.card, color: sel ? '#fff' : T.text,
                                   boxShadow: sel ? '0 8px 18px rgba(192,38,10,0.22)' : 'none',
                                 }}
                               >
+                                {s.en_reposo && (
+                                  <span aria-hidden style={{ position: 'absolute', top: 5, right: 5, width: 6, height: 6, borderRadius: '50%', background: sel ? '#fff' : T.primary }} />
+                                )}
                                 {fmtHora(s.slot, loc)}
                                 {profId === ANY_PRO && (
                                   <span style={{ display: 'block', fontSize: 9.5, fontWeight: 500, opacity: 0.8, marginTop: 1 }}>
                                     {s.profesional_nombre.split(' ')[0]}
+                                  </span>
+                                )}
+                                {notaReposo && (
+                                  <span style={{ display: 'block', fontSize: 8.5, fontWeight: 600, opacity: 0.75, marginTop: 1 }}>
+                                    {notaReposo}
                                   </span>
                                 )}
                               </button>
