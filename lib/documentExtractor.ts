@@ -116,6 +116,17 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 /**
+ * Sanitiza texto extraído eliminando símbolos iniciales de formato ('>', '•', '*', '-', etc.)
+ */
+export function cleanExtractedText(rawText: string): string {
+  return rawText
+    .split('\n')
+    .map(line => line.replace(/^[\s>•*\-#|~]+/g, '').trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+/**
  * Función principal para procesar cualquier tipo de documento recibido
  */
 export async function extractDocumentContent(file: File): Promise<ExtractedDocument> {
@@ -139,7 +150,7 @@ export async function extractDocumentContent(file: File): Promise<ExtractedDocum
     return {
       type: 'text',
       mimeType: 'text/plain',
-      content: text,
+      content: cleanExtractedText(text),
       filename: file.name,
     };
   }
@@ -150,7 +161,7 @@ export async function extractDocumentContent(file: File): Promise<ExtractedDocum
     return {
       type: 'text',
       mimeType: 'text/plain',
-      content: text,
+      content: cleanExtractedText(text),
       filename: file.name,
     };
   }
@@ -161,7 +172,7 @@ export async function extractDocumentContent(file: File): Promise<ExtractedDocum
     return {
       type: 'text',
       mimeType: 'text/plain',
-      content: text,
+      content: cleanExtractedText(text),
       filename: file.name,
     };
   } catch (e) {
