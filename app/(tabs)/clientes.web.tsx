@@ -137,6 +137,7 @@ interface Cliente {
   bloqueo_motivo?: string | null;
   etiquetas?: string[];
   deposito_perfil_override?: string | null;
+  nivel_fidelizacion_override?: string | null;
   consiente_ia?: boolean;
   consiente_ia_origen?: string;
   consiente_ia_fecha?: string;
@@ -301,6 +302,8 @@ function ClientesWeb() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [negocioId, setNegocioId] = useState('');
+  // Fase D: niveles de fidelidad del negocio, para el selector de asignacion manual (D2).
+  const [niveles, setNiveles] = useState<{ id: string; nombre: string }[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('resumen');
   const [activeTagFilter, setActiveTagFilter] = useState<string>('Todos');
   const [panelExpanded, setPanelExpanded] = useState(false);
@@ -422,10 +425,10 @@ function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }, { data: recompraData }] = await Promise.all([
+    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }, { data: recompraData }, { data: nivelesData }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, consiente_ia, consiente_ia_origen, consiente_ia_fecha')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, nivel_fidelizacion_override, consiente_ia, consiente_ia_origen, consiente_ia_fecha')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -453,6 +456,12 @@ function ClientesWeb() {
       supabase.rpc('clientes_en_riesgo_fuga'),
       supabase.rpc('clientes_riesgo_no_show'),
       supabase.rpc('rpc_clientes_toca_recompra', { p_negocio_id: profile.negocio_id }),
+      supabase
+        .from('niveles_fidelizacion')
+        .select('id, nombre')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('activo', true)
+        .order('orden'),
     ]);
 
     // Riesgo de fuga: mapa cliente_id -> datos del RPC (dias de retraso, recompensa sugerida)
@@ -523,6 +532,7 @@ function ClientesWeb() {
     setServicios(srvData ?? []);
     setProfesionales(profData ?? []);
     setFichasTecnicas(fichasData ?? []);
+    setNiveles(nivelesData ?? []);
     // Solo pre-seleccionar si llega clienteId por URL (p.ej. "ver cliente" desde agenda).
     // Por defecto NO se abre ninguna ficha: la lista queda a pantalla completa.
     const targetId = (params?.clienteId as string | undefined) || null;
@@ -1068,6 +1078,29 @@ function ClientesWeb() {
                           <option value="normal">Normal (senal del servicio)</option>
                           <option value="riesgo">Riesgo (senal aumentada)</option>
                           <option value="alto">Prepago total</option>
+                        </select>
+                      </div>
+                      {/* Fase D (D2): asignacion manual del nivel de fidelidad. Mismo patron que el
+                          override de deposito de arriba: null = automatico (por visitas/gasto),
+                          cualquier otro valor lo fuerza a mano. Los beneficios del nivel
+                          (sin_deposito, acceso_express) se aplican igual que si lo hubiera ganado
+                          por historial (ver obtener_nivel_cliente). */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                        <span title="Fuerza el nivel de fidelidad de este cliente en vez de calcularlo por su historial de visitas/gasto. Los beneficios del nivel (deposito, acceso a citas expres) se aplican igual." style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}>Nivel de fidelidad:</span>
+                        <select
+                          className="m-control"
+                          value={c.nivel_fidelizacion_override ?? ''}
+                          onChange={async (e) => {
+                            const v = e.target.value || null;
+                            const { error } = await supabase.from('clientes').update({ nivel_fidelizacion_override: v }).eq('id', c.id);
+                            if (!error) setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, nivel_fidelizacion_override: v } : x)));
+                          }}
+                          style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontFamily: 'inherit', outline: 'none', cursor: 'pointer', transition: 'border-color 0.15s ease' }}
+                        >
+                          <option value="">Automatico (por historial)</option>
+                          {niveles.map((n) => (
+                            <option key={n.id} value={n.id}>{n.nombre}</option>
+                          ))}
                         </select>
                       </div>
                       {/* C6: etiquetas manuales (las reservadas de resena se gestionan abajo) */}
