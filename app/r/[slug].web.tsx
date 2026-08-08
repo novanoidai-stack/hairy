@@ -13,6 +13,7 @@ import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 import { categoryColorHex } from '@/lib/categoryColors';
 import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
 import { PortalGrupoModal } from '@/components/portal/PortalGrupoModal.web';
+import { useResponsive } from '@/lib/hooks/useResponsive';
 
 const T = PORTAL_TOKENS;
 const FIRE = FIRE_GRADIENT;
@@ -113,6 +114,7 @@ export default function PortalReservaWeb() {
   const params = useLocalSearchParams<{ slug: string, action?: string }>();
   const slug = String(params.slug || '');
   const actionParam = params.action;
+  const { isMobile } = useResponsive();
 
   const [info, setInfo] = useState<PortalInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -470,7 +472,7 @@ export default function PortalReservaWeb() {
   return (
     <div data-screen-label="Portal de reservas" style={{ minHeight: '100vh', background: '#f6f1ea', fontFamily: 'Inter,system-ui,sans-serif', color: '#1c1814' }}>
       <header style={{ position: 'sticky', top: 0, zIndex: 30, background: '#fffdfb', borderBottom: '1px solid rgba(40,30,24,0.08)' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '14px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '12px 20px' : '14px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
             <span style={{ display: 'inline-flex', width: 38, height: 38, borderRadius: 11, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}><MechaMark size={20} /></span>
             <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.2 }}>{info.negocio.nombre}</span>
@@ -498,14 +500,14 @@ export default function PortalReservaWeb() {
           {/* placeholder hero image, could use a real one if available */}
         </div>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(28,24,20,0.02) 0%,rgba(18,14,10,0.74) 100%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxWidth: 1360, margin: '0 auto', padding: '0 40px 24px', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '0 20px 24px' : '0 40px 24px', pointerEvents: 'none' }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#ffcf4a', marginBottom: 6 }}>SalÃ³n de belleza Â· Madrid</div>
-          <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 44, color: '#fff', lineHeight: 1 }}>{info.negocio.nombre}</div>
+          <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: isMobile ? 36 : 44, color: '#fff', lineHeight: 1 }}>{info.negocio.nombre}</div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1360, margin: '-30px auto 0', padding: '0 40px 56px', position: 'relative', zIndex: 2 }}>
-        <div style={{ background: '#fffdfb', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 24, boxShadow: '0 24px 60px rgba(40,30,24,0.12)', padding: 32 }}>
+      <div style={{ maxWidth: 1360, margin: '-30px auto 0', padding: isMobile ? '0 16px 40px' : '0 40px 56px', position: 'relative', zIndex: 2 }}>
+        <div style={{ background: '#fffdfb', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 24, boxShadow: '0 24px 60px rgba(40,30,24,0.12)', padding: isMobile ? 20 : 32 }}>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
             <div style={{ display: 'inline-flex', padding: 4, background: '#f6f1ea', borderRadius: 14, gap: 4 }}>
@@ -521,8 +523,8 @@ export default function PortalReservaWeb() {
           {isGuiada && (
             <>
               {showForm && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 32, alignItems: 'start' }}>
-                  <div>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 32, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     {/* 1. Servicio */}
                     <div style={{ marginBottom: 22 }}>
                       <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>1 Â· Servicio</div>
@@ -678,7 +680,7 @@ export default function PortalReservaWeb() {
                   </div>
 
                   {/* Aside Resumen */}
-                  <div style={{ position: 'sticky', top: 88 }}>
+                  <div style={{ position: 'sticky', top: 88, width: isMobile ? '100%' : 340, flexShrink: 0 }}>
                     <div style={{ background: '#fbf6f0', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 18, padding: 20 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 14 }}>Resumen de tu reserva</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
@@ -746,8 +748,8 @@ export default function PortalReservaWeb() {
           {isExpresMode && (
             <>
               {showExpresForm && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 380px', gap: 36, alignItems: 'center' }}>
-                  <div>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 36, alignItems: isMobile ? 'flex-start' : 'center' }}>
+                  <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 6 }}>Reserva exprÃ©s</div>
                     <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 30, marginBottom: 10, lineHeight: 1.1 }}>Te buscamos hueco nosotros</div>
                     <div style={{ fontSize: 14, color: '#5c5249', lineHeight: 1.55, marginBottom: 22, maxWidth: 400 }}>Ideal si tienes prisa: dÃ©janos tu nombre y telÃ©fono, y te llamamos en cuanto tengamos un hueco libre. Sin elegir servicio ni horario.</div>
@@ -758,7 +760,7 @@ export default function PortalReservaWeb() {
                     </div>
                     <button onClick={() => setIsExpress(false)} style={{ marginTop: 22, background: 'none', border: 'none', color: '#5c5249', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Prefiero elegir servicio y hora yo mismo</button>
                   </div>
-                  <div style={{ background: '#fbf6f0', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 18, padding: 26 }}>
+                  <div style={{ width: isMobile ? '100%' : 380, flexShrink: 0, background: '#fbf6f0', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 18, padding: 26 }}>
                     <label style={{ display: 'block', marginBottom: 14 }}>
                       <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Tu nombre</span>
                       <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre y apellido" style={inputStyle} />
@@ -842,7 +844,7 @@ export default function PortalReservaWeb() {
               </div>
               <div style={{ border: '1.5px dashed rgba(40,30,24,0.16)', background: 'rgba(40,30,24,0.02)', borderRadius: 14, padding: 16, marginBottom: 16 }}>
                 <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#736658', marginBottom: 12 }}>Opcional</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 10 }}>
                   <div>
                     <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 5 }}>Trato recibido</span>
                     <div style={{ display: 'flex', gap: 4 }}>{[1,2,3,4,5].map(n => <button key={n} onClick={() => setRTrato(n)} style={{ background: 'none', border: 'none', padding: 1, cursor: 'pointer' }}>{n <= rTrato ? <IconStarFilled size={20} /> : <IconStarOutline size={20} />}</button>)}</div>
