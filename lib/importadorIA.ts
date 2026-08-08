@@ -55,7 +55,7 @@ export function parseDurationToMinutes(durStr: string | number): number {
  * como la Carta de Florent Suárez u otros documentos sin requerir API activa.
  */
 function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; direccion?: string; servicios: ExtractedServicio[] } {
-  // 1. Pre-procesar: quitar el prefijo '> ' que deja la extracción DOCX de tablas
+  // 1. Pre-procesar: quitar prefijo '>' y limpiar espacios
   const rawLines = text.split('\n')
     .map(l => l.replace(/^>\s*/, '').trim())
     .filter(Boolean);
@@ -83,12 +83,12 @@ function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; dir
   const priceSoloRegex = /^(\d+[\.,]\d{2})\s*€?\s*$/;
   // Regex para detectar una línea que es solo duración (ej: "30 min", "1 h 15 min", "1 h")
   const durationSoloRegex = /^(\d+\s*h(?:\s*\d+\s*min)?|\d+\s*min)\s*$/i;
-  // Regex original para línea combinada: "Corte 30,00 € 30 min"
+  // Regex para línea combinada o tabulada: "Secado Esprés \t 15,00 € \t 20 min"
   const priceInlineRegex = /(\d+[\.,]\d{2})\s*€?\s*(\d+\s*h(?:\s*\d+\s*min)?|\d+\s*min)?/i;
 
-  // 3. Iterar reconociendo dos formatos:
-  //   A) Formato tabla (DOCX): nombre / precio / duración en líneas separadas
-  //   B) Formato inline: "Nombre 30,00 € 30 min" todo en una línea
+  // 3. Iterar reconociendo formatos:
+  //   A) Formato tabulado (DOMParser): "Nombre \t Precio € \t Duración"
+  //   B) Formato multilínea (DOCX): nombre en una línea, precio en la siguiente
   let i = 0;
   while (i < rawLines.length) {
     const line = rawLines[i];
@@ -101,7 +101,32 @@ function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; dir
     // Ignorar título "Carta de servicios…"
     if (line.toLowerCase().startsWith('carta de servicio')) { i++; continue; }
 
-    // --- Formato A: la siguiente línea es un precio aislado ---
+    // --- Formato Tabulado / Inline: "Secado Esprés \t 15,00 € \t 20 min" ---
+    if (line.includes('\t') || line.includes('€')) {
+      const inlineMatch = line.match(priceInlineRegex);
+      if (inlineMatch) {
+        const priceVal = parseFloat(inlineMatch[1].replace(',', '.'));
+        const durVal = inlineMatch[2] ? parseDurationToMinutes(inlineMatch[2]) : 30;
+        let serviceName = line.split('\t')[0].replace(inlineMatch[0], '').replace('€', '').trim();
+        if (!serviceName && line.includes('\t')) {
+          serviceName = line.split('\t')[0].trim();
+        }
+        if (serviceName && serviceName.length > 1 && !headerWords.has(serviceName.toLowerCase())) {
+          servicios.push({
+            idTemp: `srv_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${servicios.length}`,
+            nombre: serviceName,
+            precio: priceVal,
+            duracion_min: durVal,
+            categoria: currentCategory,
+            seleccionado: true,
+          });
+          i++;
+          continue;
+        }
+      }
+    }
+
+    // --- Formato Multilínea (DOCX sin pestañas): la siguiente línea es un precio ---
     if (i + 1 < rawLines.length && priceSoloRegex.test(rawLines[i + 1])) {
       const serviceName = line;
       const priceStr = rawLines[i + 1].match(priceSoloRegex)![1];
@@ -111,12 +136,11 @@ function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; dir
       // ¿La línea i+2 es una duración?
       if (i + 2 < rawLines.length && durationSoloRegex.test(rawLines[i + 2])) {
         durVal = parseDurationToMinutes(rawLines[i + 2]);
-        i += 3; // Consumimos nombre + precio + duración
+        i += 3;
       } else {
-        i += 2; // Consumimos nombre + precio
+        i += 2;
       }
 
-      // Descartar si el "nombre" es en realidad un encabezado
       if (serviceName.length > 1 && !headerWords.has(serviceName.toLowerCase())) {
         servicios.push({
           idTemp: `srv_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${servicios.length}`,
@@ -130,34 +154,9 @@ function fallbackLocalCatalogParser(text: string): { nombreNegocio?: string; dir
       continue;
     }
 
-    // --- Formato B: precio inline en la misma línea ---
-    const inlineMatch = line.match(priceInlineRegex);
-    if (inlineMatch && line.includes('€')) {
-      const priceVal = parseFloat(inlineMatch[1].replace(',', '.'));
-      const durVal = inlineMatch[2] ? parseDurationToMinutes(inlineMatch[2]) : 30;
-      let serviceName = line.replace(inlineMatch[0], '').replace('€', '').trim();
-      if (!serviceName && i > 0 && !rawLines[i - 1].includes('€')) {
-        serviceName = rawLines[i - 1];
-      }
-      if (serviceName && serviceName.length > 1 && !headerWords.has(serviceName.toLowerCase())) {
-        servicios.push({
-          idTemp: `srv_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${servicios.length}`,
-          nombre: serviceName,
-          precio: priceVal,
-          duracion_min: durVal,
-          categoria: currentCategory,
-          seleccionado: true,
-        });
-      }
-      i++;
-      continue;
-    }
-
     // --- No es servicio: posible categoría ---
     if (line.length < 60 && !line.includes('€') && !line.includes('http') && !line.includes('Avenida')) {
-      // Es categoría solo si la línea NO es nombre de servicio previo al precio
       if (i + 1 < rawLines.length && priceSoloRegex.test(rawLines[i + 1])) {
-        // Es nombre de servicio (se procesará en la siguiente iteración como Formato A)
         i++;
         continue;
       }
@@ -241,6 +240,25 @@ export async function parseTarifasDocumento(file: File, negocioId: string): Prom
       error: funcError?.message || data?.error || 'No se pudieron extraer tarifas del documento. Revisa el formato.',
     };
   } catch (e: any) {
+    // Si hubo cualquier fallo de conexión o ejecución con la Edge Function, intentar el parser local de respaldo
+    try {
+      const doc = await extractDocumentContent(file);
+      if (doc.type === 'text') {
+        const fallbackResult = fallbackLocalCatalogParser(doc.content);
+        if (fallbackResult.servicios.length > 0) {
+          const servicios = await marcarExistentes(fallbackResult.servicios, negocioId);
+          return {
+            ok: true,
+            nombreNegocio: fallbackResult.nombreNegocio,
+            direccion: fallbackResult.direccion,
+            servicios,
+          };
+        }
+      }
+    } catch {
+      // Ignorar error del fallback y devolver el error original
+    }
+
     return {
       ok: false,
       servicios: [],

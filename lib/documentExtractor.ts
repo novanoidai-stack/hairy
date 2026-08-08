@@ -14,27 +14,61 @@ export interface ExtractedDocument {
 async function extractTextFromDocx(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
 
-  // Un .docx es un ZIP con word/document.xml comprimido (DEFLATE) dentro: hay que
-  // inflarlo de verdad. Buscar el string "word/document.xml" en los bytes crudos
-  // (como hacia la version anterior) solo encuentra el nombre del fichero en la
-  // cabecera del ZIP; lo que sigue es el binario comprimido, no XML.
   const zip = await JSZip.loadAsync(arrayBuffer);
   const documentXmlFile = zip.file('word/document.xml');
   const xmlString = documentXmlFile ? await documentXmlFile.async('string') : '';
 
-  // Eliminar cualquier etiqueta XML (<w:p ...>, </w:p>, <w:t>, etc.)
-  // Reemplazar párrafos <w:p> por salto de línea y celdas <w:tc> por tabulaciones
+  if (!xmlString) return '';
+
+  // 1. Usar DOMParser en navegador web para preservar estructura exacta de tablas (w:tbl, w:tr, w:tc)
+  if (typeof DOMParser !== 'undefined') {
+    try {
+      const doc = new DOMParser().parseFromString(xmlString, 'text/xml');
+      const body = doc.getElementsByTagName('w:body')[0] || doc.documentElement;
+      const lines: string[] = [];
+
+      for (let i = 0; i < body.childNodes.length; i++) {
+        const node = body.childNodes[i] as Element;
+        const nodeName = node.nodeName || '';
+
+        if (nodeName === 'w:p') {
+          const text = node.textContent?.replace(/\s+/g, ' ').trim();
+          if (text) lines.push(text);
+        } else if (nodeName === 'w:tbl') {
+          const rows = node.getElementsByTagName('w:tr');
+          for (let r = 0; r < rows.length; r++) {
+            const cells = rows[r].getElementsByTagName('w:tc');
+            const rowTexts: string[] = [];
+            for (let c = 0; c < cells.length; c++) {
+              const cellText = cells[c].textContent?.replace(/\s+/g, ' ').trim();
+              if (cellText) rowTexts.push(cellText);
+            }
+            if (rowTexts.length > 0) {
+              lines.push(rowTexts.join('\t'));
+            }
+          }
+        }
+      }
+
+      if (lines.length > 0) {
+        return lines.join('\n');
+      }
+    } catch {
+      // Continuar al fallback de expresiones regulares
+    }
+  }
+
+  // 2. Fallback con expresiones regulares eliminando adecuadamente etiquetas de apertura completas
   let formattedText = xmlString
-    .replace(/<w:p[ >]/gi, '\n')
-    .replace(/<w:tc[ >]/gi, '\t')
-    .replace(/<[^>]+>/g, ' ')
+    .replace(/<w:tr[\s\S]*?>/gi, '\n')
+    .replace(/<w:p[\s\S]*?>/gi, '\n')
+    .replace(/<w:tc[\s\S]*?>/gi, '\t')
+    .replace(/<[^>]+>/g, '')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
-    .replace(/w14:[a-z0-9]+="[^"]*"/gi, '') // Eliminar atributos residuales si existieran
-    .replace(/w:[a-z0-9]+="[^"]*"/gi, '')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n /g, '\n')
     .replace(/\n+/g, '\n')
