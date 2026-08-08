@@ -39,6 +39,8 @@ interface Nivel {
   umbral_gastado?: number;
   color: string;
   orden: number;
+  sin_deposito: boolean;
+  acceso_express: boolean;
 }
 
 interface Logro {
@@ -131,6 +133,8 @@ export function TabRecompensas({ negocioId }: TabRecompensasProps) {
       setNiveles((data || []).map((n: any) => ({
         ...n,
         umbral_gastado: n.umbral_gastado_cents != null ? n.umbral_gastado_cents / 100 : undefined,
+        sin_deposito: !!n.sin_deposito,
+        acceso_express: !!n.acceso_express,
       })));
     } catch (e) {
       console.error('Error cargando niveles:', e);
@@ -256,6 +260,8 @@ export function TabRecompensas({ negocioId }: TabRecompensasProps) {
         umbral_gastado_cents: nivel.umbral_gastado ? Math.round(nivel.umbral_gastado * 100) : null,
         color: nivel.color,
         orden: nivel.orden,
+        sin_deposito: nivel.sin_deposito,
+        acceso_express: nivel.acceso_express,
       };
 
       let error;
@@ -515,6 +521,8 @@ export function TabRecompensas({ negocioId }: TabRecompensasProps) {
             umbral_gastado: 0,
             color: T.primary,
             orden: niveles.length,
+            sin_deposito: false,
+            acceso_express: false,
           })}>
             Añadir nivel
           </Btn>
@@ -1166,6 +1174,22 @@ function ModalNivel({ nivel, onClose, onSave, saving }: ModalNivelProps) {
                   );
                 })}
               </div>
+            </FieldRow>
+
+            <FieldRow label="Sin depósito" hint="Los clientes de este nivel nunca pagan señal al reservar online, aunque el salón tenga activado el depósito dinámico por riesgo.">
+              <Toggle
+                on={form.sin_deposito}
+                onChange={v => setForm({ ...form, sin_deposito: v })}
+                label={form.sin_deposito ? 'Sin depósito' : 'Depósito normal'}
+              />
+            </FieldRow>
+
+            <FieldRow label="Acceso a citas exprés" hint='Los clientes de este nivel pueden usar "Lo antes posible" en el portal de reservas.'>
+              <Toggle
+                on={form.acceso_express}
+                onChange={v => setForm({ ...form, acceso_express: v })}
+                label={form.acceso_express ? 'Con acceso' : 'Sin acceso'}
+              />
             </FieldRow>
           </div>
         </FieldStack>
