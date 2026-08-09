@@ -176,7 +176,6 @@ export default function PortalReservaWeb() {
   const t: TFn = useMemo(() => makeT(info?.negocio?.idioma), [info?.negocio?.idioma]);
   const loc = useMemo(() => localeOf(info?.negocio?.idioma), [info?.negocio?.idioma]);
 
-  const [cobroReserva, setCobroReserva] = useState(0);
 
   useEffect(() => {
     let cancel = false;
@@ -187,10 +186,9 @@ export default function PortalReservaWeb() {
         if (cancel) return;
         if (!data) { setNotFound(true); } else { setInfo(data); setResenas(res); }
         // Fetch cobro reserva and fondo portal
-        const { data: negData } = await supabase.from('negocios').select('cobro_reserva').eq('slug', slug).single();
-        if (negData && !cancel) {
-          setCobroReserva(negData.cobro_reserva || 0);
-        }
+        // OJO: negocio_portal.fondo_portal_url NO existe como columna (da 400).
+        // Se conserva la llamada a proposito para poder recuperar la funcion de fondo
+        // de portal mas adelante; hoy no hace nada. Ver spec 2026-08-09.
         const { data: portalData } = await supabase.from('negocio_portal').select('fondo_portal_url').eq('slug', slug).single();
         if (portalData && !cancel) {
           if (portalData.fondo_portal_url) {
@@ -496,7 +494,9 @@ export default function PortalReservaWeb() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5c5249', whiteSpace: 'nowrap' }}>
-              <IconStarFilled size={14} /> <b style={{ color: '#1c1814' }}>{resenas?.media || '4.9'}</b>&nbsp;· {resenas?.total || 182} reseñas
+              {resenas && resenas.total > 0 ? (
+                <><IconStarFilled size={14} /> <b style={{ color: '#1c1814' }}>{resenas.media}</b>&nbsp;· {resenas.total} {resenas.total === 1 ? 'reseña' : 'reseñas'}</>
+              ) : null}
             </span>
             {info.negocio.direccion && (
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5c5249', whiteSpace: 'nowrap' }}>
@@ -520,7 +520,7 @@ export default function PortalReservaWeb() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(28,24,20,0.02) 0%,rgba(18,14,10,0.74) 100%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '0 20px 24px' : '0 40px 24px', pointerEvents: 'none' }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#ffcf4a', marginBottom: 6 }}>Salón de belleza · Madrid</div>
-          <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: isMobile ? 36 : 44, color: '#fff', lineHeight: 1 }}>{info.negocio.nombre}</div>
+          <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: isMobile ? 36 : 44, color: '#fff', lineHeight: 1 }}>{info.negocio.nombre}</div>
         </div>
       </div>
 
@@ -589,7 +589,7 @@ export default function PortalReservaWeb() {
                           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi }}>2 · Profesional</div>
                           <button onClick={() => setServicio(null)} style={{ background: 'none', border: 'none', color: '#5c5249', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Cambiar servicio</button>
                         </div>
-                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>¿Con quién prefieres ir?</div>
+                        <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 12 }}>¿Con quién prefieres ir?</div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <button onClick={() => setProfId(ANY_PRO)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 700, cursor: 'pointer', ...(profId === ANY_PRO ? { border: `1.5px solid ${T.primary}`, background: T.primarySoft, color: T.primaryHi } : { border: '1.5px solid ' + T.border, background: '#fff', color: T.text }) }}>
                             <Icon name="users" size={16} /> Cualquiera disponible
@@ -611,7 +611,7 @@ export default function PortalReservaWeb() {
                     {servicioElegido && (
                       <div style={{ marginBottom: 6 }}>
                         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>3 · Fecha y hora</div>
-                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>¿Cuándo te viene bien?</div>
+                        <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 12 }}>¿Cuándo te viene bien?</div>
                         
                         <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 10, marginBottom: 8 }}>
                           {proximosDias.map((d, i) => {
@@ -668,7 +668,7 @@ export default function PortalReservaWeb() {
                     {slotElegido && (
                       <div>
                         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>4 · Tus datos</div>
-                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>Para confirmar la cita</div>
+                        <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 12 }}>Para confirmar la cita</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                           <label style={{ display: 'block' }}>
                             <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Nombre</span>
@@ -725,7 +725,7 @@ export default function PortalReservaWeb() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Confirmación inmediata por WhatsApp</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Cancelación gratuita hasta 24h antes</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> {cobroReserva > 0 ? 'Se requerirá señal de reserva' : 'Pago en el salón el día de la cita'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> {servicio?.prepago ? 'Se requerirá señal de reserva' : 'Pago en el salón el día de la cita'}</div>
                       </div>
                     </div>
                     <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ width: '100%', marginTop: 12, padding: '13px 14px', borderRadius: 14, border: `1px dashed ${T.primary}`, background: T.primarySoft, color: '#1c1814', fontSize: 13, fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
@@ -744,7 +744,7 @@ export default function PortalReservaWeb() {
                       <Icon name="check" size={36} color={T.primary} />
                     </span>
                   </div>
-                  <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 34, marginBottom: 8 }}>¡Reserva confirmada!</div>
+                  <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 34, marginBottom: 8 }}>¡Reserva confirmada!</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', fontSize: 15, color: '#5c5249', lineHeight: 1.5 }}>Te esperamos {capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}. Hemos enviado la confirmación por WhatsApp.</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 16, overflow: 'hidden', textAlign: 'left' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{servicio!.nombre}</span></div>
@@ -769,7 +769,7 @@ export default function PortalReservaWeb() {
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 36, alignItems: isMobile ? 'flex-start' : 'center' }}>
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 6 }}>Reserva exprés</div>
-                    <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 30, marginBottom: 10, lineHeight: 1.1 }}>Te buscamos hueco nosotros</div>
+                    <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 30, marginBottom: 10, lineHeight: 1.1 }}>Te buscamos hueco nosotros</div>
                     <div style={{ fontSize: 14, color: '#5c5249', lineHeight: 1.55, marginBottom: 22, maxWidth: 400 }}><strong>Plazas muy limitadas.</strong> Ideal si tienes prisa: déjanos tus datos y te llamamos <strong>SÓLO</strong> si se libera algún hueco o cancelación. <strong>No asegura disponibilidad.</strong></div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>1</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Nos dejas tu nombre y teléfono</span></div>
@@ -819,7 +819,7 @@ export default function PortalReservaWeb() {
                       <Icon name="phone" size={34} color={T.primary} />
                     </span>
                   </div>
-                  <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 32, marginBottom: 10 }}>¡Perfecto, {nombre}!</div>
+                  <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 32, marginBottom: 10 }}>¡Perfecto, {nombre}!</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 22px', fontSize: 15, color: '#5c5249', lineHeight: 1.55 }}>Te llamamos al <b style={{ color: '#1c1814' }}>{telefono}</b> en cuanto tengamos un hueco libre — normalmente en menos de 30 minutos.</div>
                   <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: 8, cursor: 'pointer' }}>Volver al inicio</button>
                 </div>
@@ -928,11 +928,11 @@ export default function PortalReservaWeb() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '260px minmax(0,1fr)', gap: 24, alignItems: 'start' }}>
             <div style={{ background: '#fbf6f0', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 18, padding: 20 }}>
-              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{resenas?.media || '4.9'}</div>
+              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{resenas.media}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 3, margin: '8px 0 4px' }}>
                 {[1, 2, 3, 4, 5].map(n => <IconStarFilled key={n} size={15} />)}
               </div>
-              <div style={{ fontSize: 12, color: '#736658', marginBottom: 14 }}>{resenas?.total || 182} reseñas</div>
+              <div style={{ fontSize: 12, color: '#736658', marginBottom: 14 }}>{resenas.total} {resenas.total === 1 ? 'reseña' : 'reseñas'}</div>
               {ratingBars.map(rb => (
                 <div key={rb.star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 11, color: '#736658', width: 10 }}>{rb.star}</span>
