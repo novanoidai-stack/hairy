@@ -63,6 +63,31 @@ export function reportarError(
   }
 }
 
+export async function notificarErrorSoporte(error: unknown, pila?: string) {
+  if (IS_DEMO_MODE) return;
+  const err = error as { message?: string; stack?: string } | null;
+  const mensaje = String(err?.message ?? error ?? '').trim();
+  if (!mensaje) return;
+
+  const ruta = rutaActual();
+  const navegador = typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A';
+  const cuerpoError = `Ruta: ${ruta}\nNavegador: ${navegador}\n\nDetalles:\n${pila ?? err?.stack ?? 'Sin pila'}`.slice(0, 3000);
+
+  try {
+    await supabase.functions.invoke('notificar-soporte', {
+      body: {
+        asunto: `🔴 Error Crítico en App/Portal: ${mensaje.slice(0, 50)}`,
+        mensaje: cuerpoError,
+        negocio: 'Auto-Reporte ErrorBoundary',
+        autor_nombre: 'Sistema Mecha',
+        autor_email: 'contacto@mechaa.es'
+      }
+    });
+  } catch (e) {
+    console.error('No se pudo enviar el correo de error:', e);
+  }
+}
+
 // Errores que no pasan por ningun try/catch ni por el boundary de React: una
 // promesa que nadie captura, un error suelto de un script. Son justo los que se
 // perdian enteros.

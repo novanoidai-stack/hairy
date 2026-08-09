@@ -4453,6 +4453,7 @@ export default function AgendaCalendar() {
                   onCreateSlot={dtCreateSlot}
                   theme={roleTheme}
                   categorias={categorias}
+                  horarios={horarios}
                   selectedProf={selectedProf}
                   agendaFit={agendaFit}
                   zonasResaltadas={zonasResaltadas}
@@ -6468,6 +6469,7 @@ function DayTimeline({
   theme,
   categorias = [],
   selectedProf,
+  horarios = [],
   agendaFit = true,
   // Zonas a resaltar en modo "Enseñamelo" (ProblemaAgenda[]). Vacio = nada.
   zonasResaltadas = [],

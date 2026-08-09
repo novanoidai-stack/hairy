@@ -1258,11 +1258,12 @@ export default function EquipoWeb() {
                 while (cells.length % 7 !== 0) cells.push({ day: null });
 
                 // Map work days from horarios
-                const workDays = new Set<number>();
+                const workDays = new Map<number, boolean>(); // day -> hasPausa
                 for (let d = 1; d <= numDays; d++) {
                   const dt = new Date(year, month, d);
                   const dow = dt.getDay(); // 0=Sun
-                  if (horarios.some(h => h.dia_semana === dow)) workDays.add(d);
+                  const dowHorarios = horarios.filter(h => h.dia_semana === dow);
+                  if (dowHorarios.length > 0) workDays.set(d, dowHorarios.length > 1);
                 }
 
                 // Map blockages to days
@@ -1294,6 +1295,7 @@ export default function EquipoWeb() {
                         const isToday = isCurrentMonth && c.day === today;
                         const blocked = blockDayMap.get(c.day);
                         const works = workDays.has(c.day) && !blocked;
+                        const hasPausa = works && workDays.get(c.day);
                         const bgColor = blocked ? (TIPO_COL[blocked] || '#94a3b8') : works ? 'rgba(244,80,30,0.12)' : TOKENS.bg;
                         const textColor = blocked ? '#fff' : works ? TOKENS.text : TOKENS.textTer;
                         return (
@@ -1308,6 +1310,9 @@ export default function EquipoWeb() {
                             position: 'relative',
                           }}>
                             {c.day}
+                            {hasPausa && (
+                              <div style={{ position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: 2, background: TOKENS.primary }} />
+                            )}
                           </div>
                         );
                       })}
@@ -1325,6 +1330,12 @@ export default function EquipoWeb() {
                           {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
                         </span>
                       ))}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                        <span style={{ position: 'relative', width: 8, height: 8, borderRadius: 2, background: 'rgba(244,80,30,0.12)' }}>
+                          <span style={{ position: 'absolute', bottom: 1, left: 2, width: 4, height: 4, borderRadius: 2, background: TOKENS.primary }} />
+                        </span> 
+                        Pausa programada
+                      </span>
                     </div>
                   </div>
                 );

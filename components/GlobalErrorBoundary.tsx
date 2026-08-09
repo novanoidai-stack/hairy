@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { reportarError } from '@/lib/reportarError';
+import { reportarError, notificarErrorSoporte } from '@/lib/reportarError';
 
 interface Props {
   children: React.ReactNode;
@@ -9,6 +9,8 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  enviandoCorreo: boolean;
+  correoEnviado: boolean;
 }
 
 /**
@@ -20,7 +22,7 @@ interface State {
 export class GlobalErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, enviandoCorreo: false, correoEnviado: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -32,6 +34,8 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
     // Y ademas se manda, que si no lo de abajo ("nuestro equipo ya esta al
     // tanto") era mentira: el error se quedaba en la consola de su navegador.
     reportarError(error, { pila: info.componentStack ?? error.stack ?? undefined });
+    // "Y siguiente se envia automaticamente con cualquier error" -> Se envía el correo en background
+    notificarErrorSoporte(error, info.componentStack ?? error.stack ?? undefined).catch(() => {});
   }
 
   handleReload = () => {
@@ -42,14 +46,24 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
     }
   };
 
-  handleContact = () => {
-    const subject = encodeURIComponent('Error en Mecha – la app no carga');
-    const body = encodeURIComponent(
-      `Hola equipo,\n\nLa aplicación ha dejado de funcionar.\n\nError: ${this.state.error?.message || 'desconocido'}\n\nNavegador: ${typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A'}\nFecha: ${new Date().toLocaleString('es-ES')}\n\nGracias.`
-    );
-    const mailto = `mailto:contacto@mechaa.es?subject=${subject}&body=${body}`;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.location.href = mailto;
+  handleContact = async () => {
+    if (this.state.enviandoCorreo || this.state.correoEnviado) return;
+    this.setState({ enviandoCorreo: true });
+    
+    try {
+      await notificarErrorSoporte(this.state.error, this.state.error?.stack);
+      this.setState({ enviandoCorreo: false, correoEnviado: true });
+      if (typeof window !== 'undefined') {
+        alert('¡Reporte enviado! Nuestro equipo lo revisará lo antes posible.');
+      }
+    } catch (err) {
+      this.setState({ enviandoCorreo: false });
+      // Fallback
+      if (typeof window !== 'undefined') {
+        const subject = encodeURIComponent('Error en Mecha – la app no carga');
+        const body = encodeURIComponent(`Error: ${this.state.error?.message || 'desconocido'}`);
+        window.location.href = `mailto:contacto@mechaa.es?subject=${subject}&body=${body}`;
+      }
     }
   };
 
@@ -203,8 +217,9 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
               (e.target as HTMLElement).style.transform = 'translateY(0)';
               (e.target as HTMLElement).style.background = 'rgba(244,80,30,0.08)';
             }}
+            disabled={this.state.enviandoCorreo || this.state.correoEnviado}
           >
-            ✉️ Alertar al equipo
+            {this.state.enviandoCorreo ? 'Enviando...' : (this.state.correoEnviado ? '✅ Reporte enviado' : '✉️ Alertar al equipo')}
           </button>
         </div>
 
