@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-// @ts-ignore react-dom no tiene @types instalado en este proyecto; createPortal existe en runtime.
-import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
@@ -13,7 +11,7 @@ import { esCompletada, esConfirmada, esPendiente, esNoShow, esCancelada, esActiv
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subMonths,
   differenceInMinutes, differenceInDays, format, parseISO, isValid,
-  eachDayOfInterval, getDay,
+  eachDayOfInterval, eachHourOfInterval, startOfDay, endOfDay, startOfHour, getDay,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
@@ -21,7 +19,10 @@ import { manualInformes } from '@/lib/manuals/informes';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { LineChartMini } from '@/components/charts/LineChartMini.web';
+import { GraficaExplicada } from '@/components/charts/GraficaExplicada.web';
+import { BandaLectura } from '@/components/charts/BandaLectura.web';
+import { InfoDot } from '@/components/ui/InfoDot.web';
+import { leerReparto, nombreGrano, type Granularidad } from '@/lib/informes/lecturaSerie';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import type { AccionEstado } from '@/components/chispa/BloqueRenderer.web';
@@ -141,8 +142,8 @@ const ANIMATIONS = `
   .metric-row {
     transition: all 0.2s ease;
   }
-  /* Selectores segmentados (periodo, agrupacion del eje X, comision): el fondo va
-     inline, asi que el hover necesita !important y separar el activo. */
+  /* Selectores segmentados (periodo, comision): el fondo va inline, asi que el
+     hover necesita !important y separar el activo. */
   .seg-btn:hover:not(.is-active) {
     background: rgba(40, 30, 24, 0.06) !important;
     color: ${TOKENS.text} !important;
@@ -157,106 +158,6 @@ const ANIMATIONS = `
 `;
 
 // ---------------------------------------------------------------------------
-// InfoDot: icono "i" con explicacion al pasar el raton o pulsar.
-// Texto: que mide, en que franja/periodo y para que sirve.
-// ---------------------------------------------------------------------------
-const TOOLTIP_W = 224;
-const InfoDot = ({ text, color = '#736658' }: { text: string; color?: string }) => {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLButtonElement | null>(null);
-  // El tooltip se renderiza en un PORTAL a document.body con position:fixed y sus
-  // coords calculadas del ancla. Motivo (Sesion 10 del plan): las tarjetas del
-  // dashboard tienen transform (animacion de entrada slideInUp con fill 'both' +
-  // hover-lift), lo que crea un stacking context que ATRAPA el z-index del
-  // tooltip; en flujo normal la tarjeta/seccion siguiente lo tapaba. Portalarlo
-  // a body lo saca de todo stacking context y nunca se solapa.
-  const [pos, setPos] = useState<{ left: number; top: number; arrow: number } | null>(null);
-
-  const recompute = useCallback(() => {
-    const el = anchorRef.current;
-    if (!el || typeof window === 'undefined') return;
-    const r = el.getBoundingClientRect();
-    const anchorCX = r.left + r.width / 2;
-    const half = TOOLTIP_W / 2;
-    const margin = 10;
-    const vw = window.innerWidth;
-    // Recorta el centro para que el tooltip no se salga del viewport...
-    const left = Math.min(Math.max(anchorCX, margin + half), vw - margin - half);
-    // ...y recoloca la flecha para que siga apuntando al ancla real.
-    const arrow = Math.min(Math.max(anchorCX - (left - half), 14), TOOLTIP_W - 14);
-    setPos({ left, top: r.bottom + 9, arrow });
-  }, []);
-
-  const show = useCallback(() => { recompute(); setOpen(true); }, [recompute]);
-  const hide = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onMove = () => recompute();
-    // capture: reposiciona ante el scroll de CUALQUIER contenedor, no solo window.
-    window.addEventListener('scroll', onMove, true);
-    window.addEventListener('resize', onMove);
-    return () => {
-      window.removeEventListener('scroll', onMove, true);
-      window.removeEventListener('resize', onMove);
-    };
-  }, [open, recompute]);
-
-  return (
-    <span
-      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-    >
-      <button
-        ref={anchorRef}
-        type="button"
-        aria-label="Mas informacion"
-        onClick={(e) => { e.stopPropagation(); if (open) hide(); else show(); }}
-        style={{
-          width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          border: 'none', background: 'transparent', cursor: 'help', padding: 0, margin: '-14px',
-          color, flexShrink: 0,
-        }}
-      >
-        <span
-          style={{
-            width: 16, height: 16, borderRadius: '50%', border: `1px solid ${color}66`,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, fontWeight: 700, lineHeight: 1, fontFamily: 'Georgia, "Times New Roman", serif',
-            fontStyle: 'italic', transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${color}1a`; (e.currentTarget as HTMLElement).style.borderColor = color; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${color}66`; }}
-        >
-          i
-        </span>
-      </button>
-      {open && pos && typeof document !== 'undefined' && createPortal(
-        <span
-          role="tooltip"
-          style={{
-            position: 'fixed', left: pos.left, top: pos.top, transform: 'translateX(-50%)',
-            width: TOOLTIP_W, padding: '10px 12px', borderRadius: 10, zIndex: 120,
-            background: '#241d17', color: '#f6f1ea', fontSize: 11.5, lineHeight: 1.5,
-            fontWeight: 400, fontStyle: 'normal', textTransform: 'none', letterSpacing: 'normal',
-            textAlign: 'left', boxShadow: '0 12px 34px rgba(28,24,20,0.30)', pointerEvents: 'none',
-            animation: 'infoPop 0.16s cubic-bezier(0.16,1,0.3,1) both',
-          }}
-        >
-          <span style={{
-            position: 'absolute', bottom: '100%', left: pos.arrow, transform: 'translateX(-50%)',
-            width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
-            borderBottom: '6px solid #241d17',
-          }} />
-          {text}
-        </span>,
-        document.body
-      )}
-    </span>
-  );
-};
-
 // Explicaciones de cada KPI del dashboard (clave = label de la tarjeta).
 const KPI_INFO: Record<string, string> = {
   'Citas totales': 'Numero total de citas registradas en el periodo elegido (semana, mes, 3 meses o ano). Es la foto global de actividad del salon.',
@@ -319,7 +220,24 @@ interface Cliente {
   telefono?: string;
 }
 
-type Periodo = 'semana' | 'mes' | '3meses' | 'anio';
+type Periodo = 'hoy' | 'semana' | 'mes' | '3meses' | 'anio';
+
+/**
+ * Grano del eje X para cada periodo. Antes habia DOS filtros de tiempo peleando:
+ * este de arriba y un selector dia/semana/mes escondido dentro de la tarjeta de
+ * evolucion. Se podia elegir "semana" arriba y "mes" abajo, con lo que la grafica
+ * mostraba un solo punto. Ahora el grano se deduce del periodo y no hay forma de
+ * pedir una combinacion sin sentido.
+ */
+function granularidadDe(p: Periodo): Granularidad {
+  switch (p) {
+    case 'hoy': return 'hora';
+    case 'semana': return 'dia';
+    case 'mes': return 'dia';
+    case '3meses': return 'semana';
+    case 'anio': return 'mes';
+  }
+}
 
 type SeccionId = 'ocupacion' | 'noshows' | 'espera' | 'reposo' | 'ingresos' | 'servicios' | 'retencion' | 'comisiones';
 
@@ -329,6 +247,8 @@ type SeccionId = 'ocupacion' | 'noshows' | 'espera' | 'reposo' | 'ingresos' | 's
 function getRango(p: Periodo): { desde: Date; hasta: Date } {
   const now = new Date();
   switch (p) {
+    case 'hoy':
+      return { desde: startOfDay(now), hasta: endOfDay(now) };
     case 'semana':
       return { desde: startOfWeek(now, { weekStartsOn: 1 }), hasta: endOfWeek(now, { weekStartsOn: 1 }) };
     case 'mes':
@@ -388,7 +308,6 @@ function InformesScreen() {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [periodo, setPeriodo] = useState<Periodo>('mes');
-  const [agrupacionEjeX, setAgrupacionEjeX] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [negocioId, setNegocioId] = useState('');
   // Demo guiada: enfocar los botones de descarga (PDF/CSV) cuando la guia lo pide.
   const [demoExport, setDemoExport] = useState(false);
@@ -471,10 +390,6 @@ function InformesScreen() {
     setCobros(cobRes.data ?? []);
     setGastos(gastosRes.data ?? []);
 
-    if (periodo === 'semana') setAgrupacionEjeX('dia');
-    else if (periodo === 'mes') setAgrupacionEjeX('semana');
-    else setAgrupacionEjeX('mes');
-
     setLoading(false);
   }
 
@@ -486,6 +401,9 @@ function InformesScreen() {
   const cltMap = useMemo(() => new Map(clientes.map(c => [c.id, c])), [clientes]);
 
   const { desde, hasta } = useMemo(() => getRango(periodo), [periodo]);
+
+  // El grano del eje X lo manda el periodo elegido arriba: no hay segundo selector.
+  const granularidad = useMemo(() => granularidadDe(periodo), [periodo]);
 
   // -------------------------------------------------------------------------
   // Derived metrics
@@ -856,7 +774,103 @@ function InformesScreen() {
     return `${format(desde, 'd MMM', { locale: es })} - ${format(hasta, 'd MMM yyyy', { locale: es })}`;
   }, [desde, hasta]);
 
+  // Como se lee el eje X con el periodo elegido, para decirlo en la cabecera de
+  // la seccion en vez de dejar que el usuario lo adivine.
+  const etiquetaGrano = useMemo(() => {
+    switch (granularidad) {
+      case 'hora': return 'hora a hora';
+      case 'dia': return 'día a día';
+      case 'semana': return 'semana a semana';
+      case 'mes': return 'mes a mes';
+    }
+  }, [granularidad]);
+
+  // -------------------------------------------------------------------------
+  // Lecturas de las secciones de barras (A5). Las graficas de linea se explican
+  // solas via GraficaExplicada; las barras necesitan lo mismo, porque un reparto
+  // de siete barras tampoco se lee de un vistazo.
+  // -------------------------------------------------------------------------
+  const lecturaOcupacion = useMemo(() => {
+    const profs = leerReparto(
+      ocupacionData.porProf.map(p => ({ etiqueta: p.nombre, valor: p.citas })),
+      { dimension: 'profesional', sustantivo: 'citas' },
+    );
+    const franjas = leerReparto(
+      FRANJAS.map((f, i) => ({ etiqueta: f, valor: ocupacionData.franjaCount[i] })),
+      { dimension: 'franja', sustantivo: 'citas' },
+    );
+    const dias = leerReparto(
+      [1, 2, 3, 4, 5, 6, 0].map(d => ({ etiqueta: DIAS_SEMANA[d], valor: ocupacionData.diaCount[d] })),
+      { dimension: 'día', sustantivo: 'citas' },
+    );
+    if (ocupacionData.total === 0) {
+      return { frase: 'Sin citas en este periodo, así que no hay reparto que leer.', vacio: true, chips: [] as { etiqueta: string; valor: string }[] };
+    }
+    const partes = [franjas.frase];
+    if (dias.fuerte) partes.push(`El día que más se llena es el ${dias.fuerte.etiqueta.toLowerCase()}.`);
+    if (profs.concentrado && profs.fuerte) {
+      partes.push(`${profs.fuerte.etiqueta} lleva más de la mitad de las citas: si falta, lo notas entero.`);
+    }
+    return {
+      frase: partes.join(' '),
+      vacio: false,
+      chips: [
+        ...(franjas.fuerte ? [{ etiqueta: 'Franja fuerte', valor: franjas.fuerte.etiqueta }] : []),
+        ...(dias.fuerte ? [{ etiqueta: 'Día fuerte', valor: dias.fuerte.etiqueta }] : []),
+        ...(profs.fuerte ? [{ etiqueta: 'Más citas', valor: profs.fuerte.etiqueta }] : []),
+      ],
+    };
+  }, [ocupacionData]);
+
+  const lecturaNoShows = useMemo(() => {
+    if (noShows.length === 0) {
+      return { frase: 'Ni una ausencia en este periodo. Eso es una buena noticia: los clientes están cumpliendo.', vacio: true, chips: [] as { etiqueta: string; valor: string }[] };
+    }
+    const porProf = leerReparto(
+      Object.entries(noShowData.porProf).map(([id, n]) => ({ etiqueta: profMap.get(id)?.nombre || id, valor: n })),
+      { dimension: 'profesional', sustantivo: 'ausencias' },
+    );
+    const porSrv = leerReparto(
+      Object.entries(noShowData.porServicio).map(([id, n]) => ({ etiqueta: srvMap.get(id)?.nombre || id, valor: n })),
+      { dimension: 'servicio', sustantivo: 'ausencias' },
+    );
+    const partes: string[] = [
+      `De cada 100 citas, ${Math.round(tasaNoShow)} se quedan sin venir.`,
+    ];
+    if (porSrv.fuerte) partes.push(`Donde más pasa es en ${porSrv.fuerte.etiqueta} (${porSrv.fuerte.valor} de ${noShows.length}).`);
+    if (porProf.fuerte && porProf.concentrado) partes.push(`Se concentran en la agenda de ${porProf.fuerte.etiqueta}.`);
+    // Umbral del sector: por encima de un 10% deja de ser mala suerte.
+    partes.push(tasaNoShow >= 10
+      ? 'Por encima del 10 % ya no es mala suerte: conviene pedir señal o reforzar el recordatorio.'
+      : 'Por debajo del 10 % está dentro de lo razonable para el sector.');
+    return {
+      frase: partes.join(' '),
+      vacio: false,
+      chips: [
+        { etiqueta: 'Tasa', valor: `${Math.round(tasaNoShow)} %` },
+        ...(porSrv.fuerte ? [{ etiqueta: 'Servicio', valor: porSrv.fuerte.etiqueta }] : []),
+      ],
+    };
+  }, [noShows.length, noShowData, profMap, srvMap, tasaNoShow]);
+
+  const lecturaServicios = useMemo(() => {
+    const items = serviciosData.ranking.map(r => ({ etiqueta: r.nombre, valor: r.count }));
+    const r = leerReparto(items, { dimension: 'servicio', sustantivo: 'veces' });
+    if (!r.fuerte) return { frase: r.frase, vacio: true, chips: [] as { etiqueta: string; valor: string }[] };
+    const partes = [r.frase];
+    const combo = serviciosData.topCombos[0];
+    if (combo) {
+      partes.push(`La pareja que más se repite es «${combo.combo}» (${combo.count} veces): es tu upsell natural.`);
+    }
+    return {
+      frase: partes.join(' '),
+      vacio: false,
+      chips: [{ etiqueta: 'Top', valor: r.fuerte.etiqueta }],
+    };
+  }, [serviciosData]);
+
   const periodos: { key: Periodo; label: string }[] = [
+    { key: 'hoy', label: 'Hoy' },
     { key: 'semana', label: 'Semana' },
     { key: 'mes', label: 'Mes' },
     { key: '3meses', label: '3 Meses' },
@@ -1191,13 +1205,25 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
 
   // -- C4: serie temporal (ingresos y citas por periodo agrupado) --
   const agruparFecha = useCallback((d: Date) => {
-    if (agrupacionEjeX === 'semana') return format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-    if (agrupacionEjeX === 'mes') return format(startOfMonth(d), 'yyyy-MM-dd');
+    if (granularidad === 'hora') return format(startOfHour(d), "yyyy-MM-dd'T'HH");
+    if (granularidad === 'semana') return format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    if (granularidad === 'mes') return format(startOfMonth(d), 'yyyy-MM-dd');
     return format(d, 'yyyy-MM-dd');
-  }, [agrupacionEjeX]);
+  }, [granularidad]);
+
+  // Momentos que forman el eje X. Con grano de hora se recorren solo las horas de
+  // apertura del salon: un eje de 24 puntos con 13 a cero no se lee.
+  const momentosDelPeriodo = useCallback((): Date[] => {
+    if (granularidad === 'hora') {
+      const ini = new Date(desde); ini.setHours(HORARIO_APERTURA.horas, 0, 0, 0);
+      const fin = new Date(desde); fin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+      return eachHourOfInterval({ start: ini, end: fin });
+    }
+    return eachDayOfInterval({ start: desde, end: hasta });
+  }, [granularidad, desde, hasta]);
 
   const tendenciaData = useMemo(() => {
-    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const dias = momentosDelPeriodo();
     const map = new Map<string, { fecha: Date, ingresos: number; citas: number }>();
     dias.forEach(d => {
       const g = agruparFecha(d);
@@ -1209,10 +1235,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
       if (b) { b.ingresos += srvMap.get(c.servicio_id ?? '')?.precio || 0; b.citas += 1; }
     });
     return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-  }, [activas, srvMap, desde, hasta, agruparFecha]);
+  }, [activas, srvMap, momentosDelPeriodo, agruparFecha]);
 
   const noShowEvolucionData = useMemo(() => {
-    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const dias = momentosDelPeriodo();
     const map = new Map<string, { fecha: Date, count: number }>();
     dias.forEach(d => {
       const g = agruparFecha(d);
@@ -1224,10 +1250,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
       if (b) b.count += 1;
     });
     return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-  }, [noShows, desde, hasta, agruparFecha]);
+  }, [noShows, momentosDelPeriodo, agruparFecha]);
 
   const retencionEvolucionData = useMemo(() => {
-    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const dias = momentosDelPeriodo();
     const map = new Map<string, { fecha: Date, nuevos: number; recurrentes: number }>();
     dias.forEach(d => {
       const g = agruparFecha(d);
@@ -1262,10 +1288,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
     });
 
     return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-  }, [activas, citas, desde, hasta, agruparFecha]);
+  }, [activas, citas, momentosDelPeriodo, agruparFecha]);
 
   const eficienciaReposoEvolucionData = useMemo(() => {
-    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const dias = momentosDelPeriodo();
     const map = new Map<string, { fecha: Date, totalMin: number; usedMin: number }>();
     dias.forEach(d => {
       const g = agruparFecha(d);
@@ -1322,10 +1348,11 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
       fecha: d.fecha,
       pct: d.totalMin > 0 ? (d.usedMin / d.totalMin) * 100 : 0
     })).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-  }, [activas, desde, hasta, agruparFecha]);
+  }, [activas, momentosDelPeriodo, agruparFecha]);
 
-  // Grafico de linea: componente compartido components/charts/LineChartMini
-  // (mismo algoritmo, reutilizado tambien por el bloque 'grafica' de Chispa).
+  // Graficas: components/charts/GraficaExplicada envuelve a LineChartMini (que
+  // reutiliza tambien el bloque 'grafica' de Chispa) y le añade el icono "i" con
+  // el concepto y la banda con la lectura real de los datos.
 
   // Cabecera estatica de seccion (siempre visible, parte superior de la tarjeta)
   const SectionHeader = ({ id, icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
@@ -1553,66 +1580,66 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
 
             {/* ============================================================= */}
             {/* C4: Evolucion temporal                                        */}
+            {/* Cada grafica se explica sola: el icono "i" dice que mide y la   */}
+            {/* banda de abajo dice que esta diciendo con ESTOS datos. El grano */}
+            {/* del eje X lo manda el filtro de arriba (ya no hay dos filtros). */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle="Métricas a lo largo del periodo" />
+              <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle={`${periodoLabel} · ${etiquetaGrano}`} />
               <SectionBody>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                  <div style={{ display: 'flex', gap: 4, background: TOKENS.bg, borderRadius: 8, padding: 3, border: `1px solid ${TOKENS.border}` }}>
-                    {(['dia', 'semana', 'mes'] as const).map(g => (
-                      <button
-                        key={g}
-                        className={agrupacionEjeX === g ? 'seg-btn is-active' : 'seg-btn'}
-                        onClick={() => setAgrupacionEjeX(g)}
-                        style={{
-                          padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                          fontSize: 11, fontWeight: agrupacionEjeX === g ? 600 : 400,
-                          background: agrupacionEjeX === g ? TOKENS.bgCard : 'transparent',
-                          color: agrupacionEjeX === g ? TOKENS.text : TOKENS.textSec,
-                          boxShadow: agrupacionEjeX === g ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                          transition: 'all 0.2s ease', textTransform: 'capitalize'
-                        }}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ingresos acumulados (€)</div>
-                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.ingresos }))} color={TOKENS.success} fmt={(n) => `${fmtEur(n)} €`} labelExplicativo="Ingresos recaudados en el periodo" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Volumen de Citas</div>
-                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.citas }))} color={TOKENS.primary} fmt={(n) => `${n} citas`} labelExplicativo="Total citas reservadas" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Evolución de No-shows (Ausencias)</div>
-                    <LineChartMini serie={noShowEvolucionData.map(d => ({ fecha: d.fecha, valor: d.count }))} color={TOKENS.danger} fmt={(n) => `${n} ausencias`} labelExplicativo="Clientes que no acudieron" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Eficiencia de Reposos (%)</div>
-                    <LineChartMini serie={eficienciaReposoEvolucionData.map(d => ({ fecha: d.fecha, valor: d.pct }))} color={TOKENS.violet} fmt={(n) => `${Math.round(n)}%`} labelExplicativo="% tiempo reposo optimizado" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Retención (Clientes Recurrentes)</div>
-                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.recurrentes }))} color={TOKENS.rose} fmt={(n) => `${n} recurrentes`} labelExplicativo="Clientas habituales del salón" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Adquisición (Clientes Nuevos)</div>
-                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.nuevos }))} color={TOKENS.cyan} fmt={(n) => `${n} nuevos`} labelExplicativo="Primera visita en el salón" />
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 20 : 26 }}>
+                  <GraficaExplicada
+                    titulo="Ingresos"
+                    queEs={`Lo que factura el salón en cada ${nombreGrano(granularidad)}, sumando el precio de los servicios de las citas que no se cancelaron. Sirve para ver si la facturación crece o se estanca y para localizar los huecos flojos que rellenar con campañas.`}
+                    serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.ingresos }))}
+                    color={TOKENS.success}
+                    unidad="eur"
+                    granularidad={granularidad}
+                    labelExplicativo="Ingresos del periodo"
+                    isMobile={isMobile}
+                  />
+                  <GraficaExplicada
+                    titulo="Volumen de citas"
+                    queEs={`Cuántas citas entran en cada ${nombreGrano(granularidad)}. No depende del precio: si las citas suben y los ingresos no, estás vendiendo servicios más baratos que antes.`}
+                    serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.citas }))}
+                    color={TOKENS.primary}
+                    unidad="conteo"
+                    sustantivo="citas"
+                    granularidad={granularidad}
+                    labelExplicativo="Citas reservadas"
+                    isMobile={isMobile}
+                  />
+                  <GraficaExplicada
+                    titulo="Ausencias (no-shows)"
+                    queEs={`Clientes que no aparecieron y no avisaron, en cada ${nombreGrano(granularidad)}. Si la línea sube, toca reforzar los recordatorios o pedir señal para reservar.`}
+                    serie={noShowEvolucionData.map(d => ({ fecha: d.fecha, valor: d.count }))}
+                    color={TOKENS.danger}
+                    unidad="conteo"
+                    sustantivo="ausencias"
+                    granularidad={granularidad}
+                    labelExplicativo="No se presentaron"
+                    isMobile={isMobile}
+                  />
+                  <GraficaExplicada
+                    titulo="Aprovechamiento del reposo"
+                    queEs="Del tiempo que un cliente pasa en reposo (mientras actúa un tinte, por ejemplo), qué porcentaje se reaprovecha para atender a otra persona. Cuanto más alto, más partido le saca tu agenda al tiempo muerto."
+                    serie={eficienciaReposoEvolucionData.map(d => ({ fecha: d.fecha, valor: d.pct }))}
+                    color={TOKENS.violet}
+                    unidad="pct"
+                    granularidad={granularidad}
+                    labelExplicativo="Reposo reutilizado"
+                    isMobile={isMobile}
+                  />
                 </div>
 
                 <div style={{
-                  marginTop: 20, padding: '12px 16px', borderRadius: 12,
+                  marginTop: 18, padding: '10px 14px', borderRadius: 10,
                   background: 'rgba(244,80,30,0.05)', border: `1px solid ${TOKENS.borderHi}`,
-                  fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5
+                  fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.5
                 }}>
-                  <strong style={{ color: TOKENS.primary, display: 'block', marginBottom: 4 }}>💡 ¿Cómo interpretar este informe de tendencias?</strong>
-                  Pasa el cursor o toca cualquier punto de las gráficas para consultar la <strong>fecha concreta</strong>, la <strong>cifra exacta (€ / citas)</strong> y la <strong>tendencia porcentual</strong> en tiempo real.
+                  Cada gráfica lleva debajo su lectura. Si quieres el dato de un punto concreto,
+                  pasa el cursor o tócalo: sale la fecha exacta, la cifra y la variación respecto
+                  al punto anterior. La línea de puntos gris es tu media del periodo.
                 </div>
               </SectionBody>
             </div>
@@ -1665,6 +1692,14 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     return <BarHorizontal key={d} pct={total > 0 ? (cnt / total) * 100 : 0} color={TOKENS.primary} label={DIAS_SEMANA[d]} sublabel={`${cnt} citas`} delay={i * 80} />;
                   })}
                 </div>
+
+                <BandaLectura
+                  frase={lecturaOcupacion.frase}
+                  chips={lecturaOcupacion.chips}
+                  color={TOKENS.cyan}
+                  atenuada={lecturaOcupacion.vacio}
+                  isMobile={isMobile}
+                />
               </SectionBody>
             </div>
 
@@ -1710,6 +1745,14 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                       })}
                   </div>
                 </div>
+
+                <BandaLectura
+                  frase={lecturaNoShows.frase}
+                  chips={lecturaNoShows.chips}
+                  color={TOKENS.danger}
+                  atenuada={lecturaNoShows.vacio}
+                  isMobile={isMobile}
+                />
               </SectionBody>
             </div>
 
@@ -1961,6 +2004,14 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     ))}
                   </div>
                 </div>
+
+                <BandaLectura
+                  frase={lecturaServicios.frase}
+                  chips={lecturaServicios.chips}
+                  color={TOKENS.primary}
+                  atenuada={lecturaServicios.vacio}
+                  isMobile={isMobile}
+                />
               </SectionBody>
             </div>
 
