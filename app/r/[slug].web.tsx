@@ -171,6 +171,16 @@ export default function PortalReservaWeb() {
   // Expres extra states
   const [eFranja, setEFranja] = useState('cualquiera');
 
+  // Waitlist modal state
+  const [showWlModal, setShowWlModal] = useState(false);
+  const [wlRango, setWlRango] = useState<'dia' | 'semanal'>('semanal');
+  const [wlFranja, setWlFranja] = useState<'manana' | 'tarde' | 'cualquiera'>('cualquiera');
+  const [wlNombre, setWlNombre] = useState('');
+  const [wlTelefono, setWlTelefono] = useState('');
+  const [wlEnviando, setWlEnviando] = useState(false);
+  const [wlExito, setWlExito] = useState(false);
+  const [wlError, setWlError] = useState('');
+
   // Reviews states
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
@@ -650,8 +660,11 @@ export default function PortalReservaWeb() {
 
                         {sinHuecos && (
                           <div style={{ padding: '26px 20px', textAlign: 'center', border: '1px dashed rgba(40,30,24,0.14)', borderRadius: 16, background: '#fbf6f0' }}>
-                            <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>Sin huecos este día</div>
-                            <div style={{ fontSize: 13, color: '#5c5249' }}>Prueba otro día del calendario o llámanos y te buscamos hueco.</div>
+                            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: T.text }}>Sin huecos disponibles este día</div>
+                            <div style={{ fontSize: 13, color: '#5c5249', marginBottom: 14 }}>Prueba otro día o apúntate a la lista de espera para avisarte si alguien cancela.</div>
+                            <button onClick={() => { setWlNombre(nombre); setWlTelefono(telefono); setShowWlModal(true); }} style={{ padding: '10px 20px', borderRadius: 12, background: T.primary, color: '#fff', border: 'none', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+                              ⚡ Apuntarme a la Lista de Espera
+                            </button>
                           </div>
                         )}
 
@@ -1008,6 +1021,62 @@ export default function PortalReservaWeb() {
             <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6 }}>{t('grupo_ok_title')}</div>
             <div style={{ fontSize: 13.5, color: T.textSec, marginBottom: 16 }}>{t('grupo_ok_personas', { n: grupoOk.total })} · {new Date(grupoOk.inicio).toLocaleString(loc, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. {t('grupo_ok_aviso')}</div>
             <button onClick={() => setGrupoOk(null)} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('grupo_ok_cerrar')}</button>
+          </div>
+        </div>
+      )}
+      {showWlModal && (
+        <div onClick={() => setShowWlModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,7,10,0.75)', zIndex: 310, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: '1px solid ' + T.border, borderRadius: 18, padding: 24, maxWidth: 440, width: '100%' }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 4 }}>⚡ Apuntarme a la Lista de Espera</div>
+            <div style={{ fontSize: 13, color: T.textSec, marginBottom: 16 }}>Te notificaremos por WhatsApp en cuanto se libere un hueco compatible.</div>
+
+            {wlExito ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: T.primary, marginBottom: 6 }}>¡Apuntado correctamente!</div>
+                <div style={{ fontSize: 13, color: T.textSec, marginBottom: 16 }}>Te avisaremos por WhatsApp si se abre un hueco.</div>
+                <button onClick={() => { setShowWlModal(false); setWlExito(false); }} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cerrar</button>
+              </div>
+            ) : (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!wlNombre.trim() || !wlTelefono.trim()) { setWlError('Introduce nombre y teléfono'); return; }
+                setWlEnviando(true); setWlError('');
+                try {
+                  const res = await crearListaEsperaExpressPublica({
+                    slug,
+                    servicioId: servicio?.id || '',
+                    telefono: wlTelefono,
+                    profesionalId: profId === ANY_PRO ? null : profId,
+                    desde: wlRango === 'dia' && fecha ? fechaISOaClave(fecha) : null,
+                    hasta: wlRango === 'dia' && fecha ? fechaISOaClave(fecha) : null,
+                  });
+                  if (res.ok) { setWlExito(true); } else { setWlError(res.error || 'Error al guardar'); }
+                } catch (err: any) {
+                  setWlError(err.message || 'Error de conexión');
+                } finally { setWlEnviando(false); }
+              }}>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 4 }}>Alcance del aviso</label>
+                  <select value={wlRango} onChange={(e) => setWlRango(e.target.value as any)} style={inputStyle}>
+                    <option value="semanal">Cualquier día de las próximas 2 semanas (Global)</option>
+                    <option value="dia">Solo este día específico ({fecha ? fecha.toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short' }) : ''})</option>
+                  </select>
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 4 }}>Tu nombre</label>
+                  <input value={wlNombre} onChange={e => setWlNombre(e.target.value)} placeholder="Nombre" style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 4 }}>Tu teléfono WhatsApp</label>
+                  <PhoneInput value={wlTelefono} onChange={setWlTelefono} placeholder="600 000 000" />
+                </div>
+                {wlError && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 12 }}>{wlError}</div>}
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={() => setShowWlModal(false)} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid ' + T.border, background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                  <button type="submit" disabled={wlEnviando} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: wlEnviando ? 0.6 : 1 }}>{wlEnviando ? 'Guardando…' : 'Confirmar e inscribir'}</button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
