@@ -11,6 +11,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA, CITA_STATUS_ACTIVOS } from '@/lib/constants';
 import { esCompletada, esCanceladaONoShow } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
+import { InfoDot } from '@/components/ui/InfoDot.web';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
@@ -1509,8 +1510,66 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
     .filter((cit) => cit.cliente_id === cliente.id && new Date(cit.inicio) > now)
     .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())[0];
 
+  // Ritmo de visitas. El dato ya lo calcula el job de agregados
+  // (migrations/alerta-fuga-clientas.sql: media de los ultimos 6 intervalos entre
+  // citas completadas, requiere 3 visitas) y ya se veia en la app nativa, pero en
+  // la web solo aparecia escondido dentro del aviso de fuga.
+  const frec = cliente.frecuencia_dias ?? 0;
+  const diasSin = cliente.diasInactiva ?? null;
+  const ritmo = (() => {
+    if (!frec || frec <= 0) return null;
+    if (diasSin === null) return { texto: 'Todavía no ha venido.', color: TOKENS.textTer };
+    const restante = frec - diasSin;
+    // El x1,4 es el mismo umbral que usa el aviso automatico de fuga: por encima
+    // de ahi ya no es que se retrase, es que se ha ido.
+    if (diasSin > frec * 1.4) {
+      return { texto: `Se está yendo: lleva ${diasSin} días sin venir, ${diasSin - frec} más de lo que suele tardar.`, color: TOKENS.danger };
+    }
+    if (restante <= 0) {
+      return { texto: `Le toca ya: lleva ${diasSin} días y su ritmo es de ${frec}.`, color: TOKENS.warning };
+    }
+    if (restante <= 7) {
+      return { texto: `Le toca esta semana: en unos ${restante} días.`, color: TOKENS.primary };
+    }
+    return { texto: `Le toca dentro de unos ${restante} días.`, color: TOKENS.success };
+  })();
+
   return (
     <>
+      <Section title="Ritmo de visitas">
+        <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14 }}>
+          {ritmo ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Cada {frec} días</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 11, color: TOKENS.textTer }}>es lo que tarda en volver</span>
+                  <InfoDot
+                    text="Media de los últimos 6 intervalos entre sus visitas completadas. Hacen falta 3 visitas para poder calcularlo. Sirve para saber cuándo le toca y para detectar que se está yendo antes de perderlo."
+                    color={TOKENS.primary}
+                  />
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: ritmo.color, fontWeight: 500, marginTop: 6, lineHeight: 1.45 }}>
+                {ritmo.texto}
+              </div>
+              {cliente.ultimaVisitaStr && (
+                <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 4 }}>
+                  Última visita: {cliente.ultimaVisitaStr}
+                  {diasSin !== null && ` · hace ${diasSin} días`}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ fontSize: 12, color: TOKENS.textTer, lineHeight: 1.5 }}>
+              {(cliente.visitas || 0) === 0
+                ? 'Sin visitas todavía, así que no hay ritmo que medir.'
+                : `Hacen falta 3 visitas para saber cada cuánto vuelve. Lleva ${cliente.visitas}.`}
+            </div>
+          )}
+        </div>
+      </Section>
+
       {cliente.fav && (
         <Section title="Servicio preferido">
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

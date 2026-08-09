@@ -6,7 +6,7 @@ import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection
 import { GastosSection } from '@/components/informes/GastosSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
-import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE } from '@/lib/constants';
+import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE, CITA_STATUS } from '@/lib/constants';
 import { esCompletada, esConfirmada, esPendiente, esNoShow, esCancelada, esActiva } from '@/lib/citasMetrics';
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subMonths,
@@ -23,6 +23,11 @@ import { GraficaExplicada } from '@/components/charts/GraficaExplicada.web';
 import { BandaLectura } from '@/components/charts/BandaLectura.web';
 import { InfoDot } from '@/components/ui/InfoDot.web';
 import { leerReparto, nombreGrano, type Granularidad } from '@/lib/informes/lecturaSerie';
+import {
+  serieBaseFidelizada, embudoFidelizacion, cohortesRetencion, frasesCohortes,
+  frecuenciaRetorno, fraseFrecuencia, VENTANA_ACTIVO_DIAS,
+  type VisitaHistorica,
+} from '@/lib/informes/retencionClientes';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import type { AccionEstado } from '@/components/chispa/BloqueRenderer.web';
@@ -167,7 +172,7 @@ const KPI_INFO: Record<string, string> = {
   'Tiempo espera medio': 'Minutos medios que un cliente espera desde que llega hasta que empieza su servicio, calculado con las marcas de tiempo de cada cita. Cuanto mas bajo, mejor.',
   'Reposo aprovechado': 'Porcentaje del tiempo de reposo (p. ej. mientras actua un tinte) que se reutiliza para atender a otro cliente. Mide la eficiencia de la agenda.',
   'Clientes activos': 'Clientes distintos con al menos una cita en el periodo. Es tu base de clientes viva, no el historico total acumulado.',
-  'Retencion (frec. media)': 'Dias de media entre visitas de un mismo cliente en el periodo. Cuanto mas baja la cifra, antes vuelven: indica fidelidad.',
+  'Vuelven cada': 'Dias que pasan entre una visita y la siguiente del mismo cliente. Es la MEDIANA sobre los 13 meses de historial, no la media del periodo: la media la destroza un cliente que reaparece al año y medio, y el periodo del filtro es demasiado corto para ver un ciclo completo. Cuanto mas baja la cifra, antes vuelven.',
   'Valoración media': 'La valoración media de 1 a 5 estrellas dejada por tus clientes en el portal de valoración durante el periodo seleccionado.',
 };
 
@@ -273,6 +278,13 @@ function diasLaborales(desde: Date, hasta: Date): number {
   return dias.filter(d => getDay(d) !== 0).length; // excluir domingos
 }
 
+// Ventana del historico de fidelizacion: 13 meses permiten comparar el mes
+// actual con el mismo mes del ano pasado y dan 12 cohortes.
+const MESES_HISTORICO = 13;
+// Tope de filas del historico. Supabase corta en 1000 por defecto, asi que hay
+// que pedirlo explicito; si se alcanza, la UI avisa de que va recortado.
+const TOPE_HISTORICO = 20000;
+
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const FRANJAS = ['09-11', '11-13', '13-15', '15-17', '17-20'];
 function franjaIndex(hora: number): number {
@@ -330,10 +342,21 @@ function InformesScreen() {
   const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
   const [cobros, setCobros] = useState<{ total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number; profesional_id?: string | null }[]>([]);
   const [gastos, setGastos] = useState<{ importe_cents: number }[]>([]);
+  // Historico de visitas cumplidas de los ultimos 13 meses. Hace falta aparte de
+  // `citas` porque la fidelizacion NO se puede medir dentro del periodo del
+  // filtro: para saber si un cliente esta fidelizado hay que ver si volvio, y
+  // eso pasa fuera de la ventana elegida.
+  const [historico, setHistorico] = useState<{ cliente_id: string | null; inicio: string; servicio_id?: string | null }[]>([]);
+  // true si la consulta llego al tope de filas: entonces el historico esta
+  // recortado y hay que decirlo en vez de dar las cifras por completas.
+  const [historicoRecortado, setHistoricoRecortado] = useState(false);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(30);
   const [comisionCustom, setComisionCustom] = useState<string>('');
+  // Las cohortes van plegadas: son el analisis mas potente y el mas duro de leer,
+  // asi que no se le ponen delante a quien solo quiere el titular.
+  const [verCohortes, setVerCohortes] = useState(false);
 
   // -------------------------------------------------------------------------
   // Data loading
@@ -349,7 +372,7 @@ function InformesScreen() {
 
     const { desde, hasta } = getRango(periodo);
 
-    const [citaRes, profRes, srvRes, cltRes, resRes, cobRes, gastosRes] = await Promise.all([
+    const [citaRes, profRes, srvRes, cltRes, resRes, cobRes, gastosRes, histRes] = await Promise.all([
       supabase
         .from('citas')
         .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
@@ -380,6 +403,17 @@ function InformesScreen() {
         .eq('negocio_id', nId)
         .gte('fecha', desde.toISOString())
         .lte('fecha', hasta.toISOString()),
+      // Historico de 13 meses, solo lo imprescindible (tres columnas) para que
+      // el payload sea pequeno. Ver MESES_HISTORICO / TOPE_HISTORICO.
+      supabase
+        .from('citas')
+        .select('cliente_id, inicio, servicio_id')
+        .eq('negocio_id', nId)
+        .eq('estado', CITA_STATUS.COMPLETADA)
+        .not('cliente_id', 'is', null)
+        .gte('inicio', subMonths(new Date(), MESES_HISTORICO).toISOString())
+        .order('inicio', { ascending: true })
+        .limit(TOPE_HISTORICO),
     ]);
 
     setCitas(citaRes.data ?? []);
@@ -389,6 +423,9 @@ function InformesScreen() {
     setResenas(resRes.data ?? []);
     setCobros(cobRes.data ?? []);
     setGastos(gastosRes.data ?? []);
+    const hist = histRes.data ?? [];
+    setHistorico(hist);
+    setHistoricoRecortado(hist.length >= TOPE_HISTORICO);
 
     setLoading(false);
   }
@@ -786,6 +823,48 @@ function InformesScreen() {
   }, [granularidad]);
 
   // -------------------------------------------------------------------------
+  // Fidelizacion (parte B). Se calcula sobre el historico de 13 meses, NO sobre
+  // el periodo del filtro: si solo mirases la ventana elegida, un cliente que
+  // vuelve cada mes y medio pareceria nuevo cada vez.
+  // -------------------------------------------------------------------------
+  const visitasHistoricas = useMemo<VisitaHistorica[]>(
+    () => historico
+      .filter(h => h.cliente_id)
+      .map(h => ({ clienteId: h.cliente_id as string, fecha: parseISO(h.inicio), servicioId: h.servicio_id ?? null }))
+      .filter(v => isValid(v.fecha)),
+    [historico],
+  );
+
+  const baseFidelizadaSerie = useMemo(
+    () => serieBaseFidelizada(visitasHistoricas, { meses: 12, hasta: new Date() }),
+    [visitasHistoricas],
+  );
+
+  const embudo = useMemo(
+    () => embudoFidelizacion(visitasHistoricas, { desde, hasta }),
+    [visitasHistoricas, desde, hasta],
+  );
+
+  const cohortes = useMemo(
+    () => cohortesRetencion(visitasHistoricas, { meses: 12, hasta: new Date(), offsets: 6 }),
+    [visitasHistoricas],
+  );
+
+  const fraseCohortes = useMemo(() => frasesCohortes(cohortes), [cohortes]);
+
+  // Ultimo punto de la serie: la base fidelizada de hoy mismo.
+  const baseFidelizadaHoy = baseFidelizadaSerie.length > 0
+    ? baseFidelizadaSerie[baseFidelizadaSerie.length - 1].valor
+    : 0;
+
+  const frecuencia = useMemo(() => frecuenciaRetorno(visitasHistoricas), [visitasHistoricas]);
+
+  const fraseDeFrecuencia = useMemo(
+    () => fraseFrecuencia(frecuencia, (id) => srvMap.get(id)?.nombre),
+    [frecuencia, srvMap],
+  );
+
+  // -------------------------------------------------------------------------
   // Lecturas de las secciones de barras (A5). Las graficas de linea se explican
   // solas via GraficaExplicada; las barras necesitan lo mismo, porque un reparto
   // de siete barras tampoco se lee de un vistazo.
@@ -954,7 +1033,9 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
       { label: 'Espera media', value: `${Math.round(esperaData.avgGlobal)} min` },
       { label: 'Reposo aprovechado', value: fmtPct(reposoData.pctGlobal) },
       { label: 'Clientes activos', value: String(retencionData.clientesActivos) },
-      { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} días` },
+      // Mediana sobre 13 meses, igual que en pantalla: la media del periodo no
+      // aguanta un periodo corto ni una reaparicion tardia.
+      { label: 'Vuelven cada', value: frecuencia.global.intervalos > 0 ? `${Math.round(frecuencia.global.medianaDias)} días` : 'Sin datos' },
     ];
     const kpiHtml = kpis.map(k => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div></div>`).join('');
 
@@ -1007,14 +1088,15 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
     const srvCombos = serviciosData.topCombos.map(c => `<tr><td>${esc(c.combo)}</td><td class="num">${c.count}x</td></tr>`).join('')
       || '<tr><td colspan="2" class="empty">Sin combinaciones</td></tr>';
 
-    // Retencion
+    // Fidelizacion: las mismas cifras que en pantalla (historico de 13 meses),
+    // para que el PDF no contradiga a la app.
     const retCards = [
-      { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} días` },
-      { label: 'Días sin visita (media)', value: `${Math.round(retencionData.avgSinVisita)} días` },
-      { label: 'Clientes nuevos', value: String(retencionData.nuevos) },
-      { label: 'Recurrentes (3+)', value: String(retencionData.recurrentes) },
+      { label: 'Base fidelizada hoy', value: String(baseFidelizadaHoy) },
+      { label: 'Vuelven cada', value: frecuencia.global.intervalos > 0 ? `${Math.round(frecuencia.global.medianaDias)} días` : 'Sin datos' },
+      { label: 'Estrenaron el salón', value: String(embudo.nuevos) },
+      { label: 'Volvieron 2ª vez', value: `${embudo.volvieron} (${Math.round(embudo.pctVuelven)} %)` },
+      { label: 'Ya son del salón (3+)', value: `${embudo.fieles} (${Math.round(embudo.pctFieles)} %)` },
       { label: 'En riesgo (60+ días)', value: String(retencionData.inactivos) },
-      { label: 'Fidelizados', value: String(retencionData.clientesActivos - retencionData.inactivos) },
     ].map(k => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div></div>`).join('');
 
     // Comisiones
@@ -1152,7 +1234,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   </section>
 
   <section>
-    <h2>Retención de clientes</h2>
+    <h2>Fidelización de clientes</h2>
     <div class="kpis">${retCards}</div>
   </section>
 
@@ -1525,7 +1607,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                 { label: 'Tiempo espera medio', value: `${Math.round(esperaData.avgGlobal)} min`, icon: 'clock', color: TOKENS.warning, bg: TOKENS.warningSoft },
                 { label: 'Reposo aprovechado', value: fmtPct(reposoData.pctGlobal), icon: 'zap', color: TOKENS.violet, bg: TOKENS.violetSoft },
                 { label: 'Clientes activos', value: retencionData.clientesActivos, icon: 'users', color: TOKENS.primary, bg: TOKENS.primarySoft },
-                { label: 'Retencion (frec. media)', value: `${Math.round(retencionData.avgFreq)} dias`, icon: 'heart', color: TOKENS.rose, bg: TOKENS.roseSoft },
+                { label: 'Vuelven cada', value: frecuencia.global.intervalos > 0 ? `${Math.round(frecuencia.global.medianaDias)} dias` : 'Sin datos', icon: 'heart', color: TOKENS.rose, bg: TOKENS.roseSoft },
                 { label: 'Valoración media', value: resenas.length > 0 ? `${ratingMedia} ★ (${resenas.length})` : 'Sin valorar', icon: 'star', color: TOKENS.amber, bg: TOKENS.amberSoft },
               ].map((kpi, i) => (
                 <div key={kpi.label} className="kpi-card" style={{
@@ -2016,42 +2098,247 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             </div>
 
             {/* ============================================================= */}
-            {/* 9.7: Retencion de clientes                                    */}
+            {/* 9.7: Fidelizacion — la seccion que dice si el salon mejora     */}
+            {/* Sustituye a la vieja "Retencion", que medi­a dias medios entre  */}
+            {/* visitas DENTRO del periodo del filtro. Con el filtro en semana */}
+            {/* aquello era ruido puro, y ademas no respondia a la unica       */}
+            {/* pregunta que importa: cuantos clientes consigues retener.      */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader id="retencion" icon="heart" iconColor={TOKENS.rose} title="Retencion de clientes" subtitle={`${retencionData.clientesActivos} clientes activos en el periodo`} />
+              <SectionHeader
+                id="retencion"
+                icon="heart"
+                iconColor={TOKENS.rose}
+                title="Fidelización: ¿está creciendo tu base?"
+                subtitle={`${baseFidelizadaHoy} clientes fidelizados ahora mismo · calculado sobre 13 meses de historial`}
+              />
               <SectionBody id="retencion">
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
-                  {[
-                    { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} dias`, color: TOKENS.rose },
-                    { label: 'Dias sin visita (media)', value: `${Math.round(retencionData.avgSinVisita)} dias`, color: TOKENS.warning },
-                    { label: 'Nuevos', value: retencionData.nuevos, color: TOKENS.cyan },
-                    { label: 'Recurrentes (3+)', value: retencionData.recurrentes, color: TOKENS.success },
-                  ].map((stat, i) => (
-                    <div key={stat.label} style={{
-                      padding: '12px 14px', borderRadius: 10, background: `${stat.color}10`,
-                      border: `1px solid ${stat.color}22`, textAlign: 'center',
-                      animation: 'scaleIn 0.4s ease both', animationDelay: `${i * 80}ms`,
-                    }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: stat.color }}>{stat.value}</div>
-                      <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>{stat.label}</div>
+                {historicoRecortado && (
+                  <div style={{
+                    marginBottom: 14, padding: '9px 12px', borderRadius: 8,
+                    background: TOKENS.warningSoft, border: `1px solid ${TOKENS.warning}44`,
+                    fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.5,
+                  }}>
+                    <strong>Aviso:</strong> tienes tantas citas en estos 13 meses que el historial se ha
+                    tenido que recortar, así que las cifras de esta sección se quedan cortas. Dínoslo y
+                    lo pasamos a un cálculo en servidor.
+                  </div>
+                )}
+
+                {/* --- B1: la curva que mide la mejora real del salon --- */}
+                <GraficaExplicada
+                  titulo="Base fidelizada, mes a mes"
+                  queEs={`Al cerrar cada mes, cuántos clientes habían venido ya al menos dos veces y seguían vivos (con una visita en los últimos ${VENTANA_ACTIVO_DIAS} días). Es la métrica que mide de verdad si el salón mejora: no los que entran por la puerta una vez, sino los que consigues que vuelvan. Si esta línea sube, vas bien pase lo que pase con el resto.`}
+                  serie={baseFidelizadaSerie}
+                  color={TOKENS.rose}
+                  unidad="conteo"
+                  sustantivo="clientes"
+                  granularidad="mes"
+                  etiquetaX="mes a mes"
+                  labelExplicativo="Clientes fidelizados y activos"
+                  isMobile={isMobile}
+                />
+
+                {/* --- A6: cada cuanto vuelven --- */}
+                <div style={{
+                  marginTop: 20, padding: isMobile ? '12px 13px' : '14px 16px', borderRadius: 12,
+                  background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Cada cuánto vuelven
+                    </span>
+                    <InfoDot
+                      text="Días que pasan entre una visita y la siguiente del mismo cliente, medido sobre los 13 meses de historial. Se da la mediana y no la media porque un cliente que reaparece al año y medio infla la media y te hace creer que el salón va peor de lo que va."
+                      color={TOKENS.rose}
+                    />
+                  </div>
+
+                  {frecuencia.global.intervalos === 0 ? (
+                    <div style={{ fontSize: 12, color: TOKENS.textTer }}>
+                      Todavía no hay clientes con dos visitas, así que no se puede medir el ciclo de retorno.
                     </div>
-                  ))}
+                  ) : (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0,1fr))' : 'repeat(4, 1fr)', gap: 10, marginBottom: 12 }}>
+                        {[
+                          { label: 'Ciclo típico', value: `${Math.round(frecuencia.global.medianaDias)} días`, color: TOKENS.rose, ayuda: 'La mediana: la mitad de tus clientes vuelven antes de este plazo y la otra mitad después. Es la cifra honesta.' },
+                          { label: 'Media', value: `${Math.round(frecuencia.global.mediaDias)} días`, color: TOKENS.textTer, ayuda: 'El promedio a secas. Si es muy superior al ciclo típico, tienes clientes que reaparecen muy de tarde en tarde y te estiran la cuenta.' },
+                          { label: 'Los fieles', value: frecuencia.fieles.intervalos > 0 ? `${Math.round(frecuencia.fieles.medianaDias)} días` : '—', color: TOKENS.success, ayuda: 'Ciclo de los clientes con tres visitas o más: los que ya son del salón.' },
+                          { label: 'Los de dos visitas', value: frecuencia.ocasionales.intervalos > 0 ? `${Math.round(frecuencia.ocasionales.medianaDias)} días` : '—', color: TOKENS.warning, ayuda: 'Ciclo de los que volvieron una vez y no más. Cuanto más se separe del de los fieles, más gente se te escapa por el camino.' },
+                        ].map(k => (
+                          <div key={k.label} style={{
+                            padding: '10px 12px', borderRadius: 10,
+                            background: `${k.color}10`, border: `1px solid ${k.color}22`,
+                          }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontSize: 10.5, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                                {k.label}
+                              </span>
+                              <InfoDot text={k.ayuda} color={k.color} />
+                            </span>
+                            <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 700, color: k.color, marginTop: 3 }}>{k.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: isMobile ? 11.5 : 12, lineHeight: 1.55, color: TOKENS.textSec }}>
+                        {fraseDeFrecuencia}
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16 }}>
-                  <div style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: TOKENS.dangerSoft, border: `1px solid ${TOKENS.danger}22` }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.danger, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>En riesgo (60+ dias sin visita)</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: TOKENS.danger }}>{retencionData.inactivos}</div>
-                    <div style={{ fontSize: 11, color: TOKENS.textTer }}>
-                      {retencionData.clientesActivos > 0 ? fmtPct((retencionData.inactivos / retencionData.clientesActivos) * 100) : '0%'} del total
+                {/* --- B2: el embudo, de donde sale la base --- */}
+                <div style={{
+                  marginTop: 14, padding: isMobile ? '12px 13px' : '14px 16px', borderRadius: 12,
+                  background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      De dónde sale esa base · {periodoLabel}
+                    </span>
+                    <InfoDot
+                      text="De los clientes que estrenaron el salón en este periodo, cuántos han vuelto una segunda vez y cuántos han llegado a tres visitas. Cada porcentaje es sobre el peldaño de arriba: esa es la conversión que puedes mejorar."
+                      color={TOKENS.cyan}
+                    />
+                  </div>
+
+                  {embudo.nuevos === 0 ? (
+                    <div style={{ fontSize: 12, color: TOKENS.textTer }}>
+                      Ningún cliente ha estrenado el salón en este periodo. Prueba con un periodo más amplio.
                     </div>
-                  </div>
-                  <div style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: TOKENS.successSoft, border: `1px solid ${TOKENS.success}22` }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.success, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>Fidelizados</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: TOKENS.success }}>{retencionData.clientesActivos - retencionData.inactivos}</div>
-                    <div style={{ fontSize: 11, color: TOKENS.textTer }}>Visita en los ultimos 60 dias</div>
-                  </div>
+                  ) : (
+                    <>
+                      {[
+                        {
+                          label: 'Estrenaron el salón', valor: embudo.nuevos, pct: 100,
+                          sangria: 0, color: TOKENS.cyan,
+                          nota: 'Primera visita de su vida en tu salón.',
+                        },
+                        {
+                          label: 'Volvieron una segunda vez', valor: embudo.volvieron, pct: embudo.pctVuelven,
+                          sangria: 1, color: TOKENS.rose,
+                          nota: 'La conversión que más manda: quien no vuelve una segunda vez, casi nunca vuelve.',
+                        },
+                        {
+                          label: 'Ya son del salón (3 visitas o más)', valor: embudo.fieles, pct: embudo.pctFieles,
+                          sangria: 2, color: TOKENS.success,
+                          nota: 'A partir de la tercera visita el cliente ya cuenta como tuyo.',
+                        },
+                      ].map(p => (
+                        <div key={p.label} style={{ marginBottom: 10, paddingLeft: p.sangria * (isMobile ? 12 : 20) }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
+                            <span style={{ fontSize: 12, color: TOKENS.text, flex: 1 }}>{p.label}</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: p.color }}>{p.valor}</span>
+                            {p.sangria > 0 && (
+                              <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, minWidth: 38, textAlign: 'right' }}>
+                                {Math.round(p.pct)} %
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ height: 8, borderRadius: 4, background: 'rgba(148,163,184,0.10)', overflow: 'hidden' }}>
+                            <div className="bar-fill" style={{
+                              width: `${Math.max(2, (p.valor / Math.max(1, embudo.nuevos)) * 100)}%`,
+                              height: '100%', borderRadius: 4, background: p.color,
+                            }} />
+                          </div>
+                          <div style={{ fontSize: 10.5, color: TOKENS.textTer, marginTop: 3 }}>{p.nota}</div>
+                        </div>
+                      ))}
+                      <div style={{ fontSize: isMobile ? 11.5 : 12, lineHeight: 1.55, color: TOKENS.textSec, marginTop: 8 }}>
+                        {embudo.pctVuelven >= 40
+                          ? `De cada 10 clientes nuevos vuelven ${Math.round(embudo.pctVuelven / 10)}. Eso está bien: lo que entra, se queda.`
+                          : `De cada 10 clientes nuevos solo vuelven ${Math.round(embudo.pctVuelven / 10)}. Ahí tienes el agujero más grande del salón: no te hace falta más gente entrando, te hace falta que la que entra vuelva.`}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* --- B3: cohortes, plegado para no abrumar --- */}
+                <div style={{ marginTop: 14 }}>
+                  <button
+                    onClick={() => setVerCohortes(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 7, width: '100%',
+                      padding: '10px 13px', borderRadius: 10, cursor: 'pointer',
+                      background: 'transparent', border: `1px dashed ${TOKENS.borderHi}`,
+                      fontSize: 11.5, fontWeight: 600, color: TOKENS.textSec, textAlign: 'left',
+                    }}
+                  >
+                    <span style={{ color: TOKENS.primary, fontSize: 13 }}>{verCohortes ? '−' : '+'}</span>
+                    {verCohortes ? 'Ocultar el análisis avanzado por cohortes' : 'Ver el análisis avanzado por cohortes'}
+                    <span style={{ marginLeft: 'auto', fontSize: 10.5, color: TOKENS.textTer, fontWeight: 400 }}>
+                      para cuando quieras entrar al detalle
+                    </span>
+                  </button>
+
+                  {verCohortes && (
+                    <div style={{
+                      marginTop: 10, padding: isMobile ? '12px 11px' : '14px 16px', borderRadius: 12,
+                      background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`,
+                    }}>
+                      <div style={{ fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.55, marginBottom: 12 }}>
+                        <strong style={{ color: TOKENS.text }}>Cómo se lee:</strong> cada fila es un grupo de clientes
+                        según el mes en que estrenaron el salón. Las columnas son los meses que pasaron después. El número
+                        es el porcentaje de ese grupo que volvió en ese mes. Cuanto más oscura la casilla, mejor aguanta ese
+                        grupo. Un punto significa que ese mes todavía no ha llegado.
+                      </div>
+
+                      <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
+                        <table style={{ borderCollapse: 'collapse', fontSize: 11, minWidth: 420 }}>
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign: 'left', padding: '5px 8px', color: TOKENS.textTer, fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.4, whiteSpace: 'nowrap' }}>
+                                Entraron en
+                              </th>
+                              <th style={{ textAlign: 'right', padding: '5px 8px', color: TOKENS.textTer, fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                                Nº
+                              </th>
+                              {Array.from({ length: cohortes.offsets }, (_, i) => (
+                                <th key={i} style={{ padding: '5px 8px', color: TOKENS.textTer, fontWeight: 600, fontSize: 10, whiteSpace: 'nowrap' }}>
+                                  {i + 1}{i === 0 ? ' mes' : ' meses'}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[...cohortes.cohortes].reverse().map(c => (
+                              <tr key={c.mes.toISOString()}>
+                                <td style={{ padding: '5px 8px', color: TOKENS.text, whiteSpace: 'nowrap', textTransform: 'capitalize' }}>
+                                  {format(c.mes, 'MMM yyyy', { locale: es })}
+                                </td>
+                                <td style={{ padding: '5px 8px', textAlign: 'right', color: c.tamano > 0 ? TOKENS.textSec : TOKENS.textTer, fontWeight: 600 }}>
+                                  {c.tamano || '—'}
+                                </td>
+                                {c.retencion.map((r, i) => (
+                                  <td key={i} style={{
+                                    padding: '5px 8px', textAlign: 'center',
+                                    // La intensidad del fondo codifica el %: 0 transparente,
+                                    // 100 naranja de marca. Se topa en 0.8 para que el numero
+                                    // siga leyendose encima.
+                                    background: r === null ? 'transparent' : `rgba(244,80,30,${(r / 100) * 0.8})`,
+                                    color: r === null ? TOKENS.textTer : (r > 55 ? '#fff' : TOKENS.text),
+                                    fontWeight: r === null ? 400 : 600,
+                                    borderRadius: 4,
+                                  }}>
+                                    {r === null ? '·' : `${Math.round(r)}%`}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div style={{
+                        marginTop: 12, padding: '10px 12px', borderRadius: 10,
+                        background: `${TOKENS.rose}0d`, border: `1px solid ${TOKENS.rose}33`,
+                        fontSize: isMobile ? 11.5 : 12, lineHeight: 1.55, color: TOKENS.textSec,
+                      }}>
+                        {fraseCohortes}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </SectionBody>
             </div>
