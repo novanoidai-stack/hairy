@@ -298,7 +298,7 @@ export default function PortalReservaWeb() {
     return arr;
   }, []);
 
-  const mostrarPrecioEnLista = info?.negocio.mostrar_precios === 'catalogo' || info?.negocio.mostrar_precios === 'siempre';
+  const mostrarPrecioEnLista = (info?.negocio.mostrar_precios as string) === 'catalogo' || (info?.negocio.mostrar_precios as string) === 'siempre';
   const mostrarPrecioResumen = info?.negocio.mostrar_precios !== 'nunca';
 
   const profSel = useMemo(() => (profId === ANY_PRO ? null : info?.profesionales.find(p => p.id === profId) ?? null), [profId, info]);

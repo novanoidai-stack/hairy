@@ -1363,7 +1363,6 @@ function ModalLogro({ logro, onClose, onSave, saving }: ModalLogroProps) {
                 <NumberInput
                   value={Number(valorCondicion) || 0}
                   onChange={v => setValorCondicion(String(v))}
-                  placeholder="Ej: 10"
                 />
               </FieldRow>
             ) : (

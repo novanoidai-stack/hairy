@@ -56,7 +56,7 @@ export default function AyudaScreen() {
   useEffect(() => {
     getUserProfile().then(user => {
       if (user) {
-        setNegocioId(user.negocioId || user.id);
+        setNegocioId(user.negocio_id || user.id);
         setRolStr(user.role || '');
       }
     });

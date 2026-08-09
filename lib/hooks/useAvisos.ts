@@ -56,6 +56,7 @@ export interface AvisosData {
   // (senal sin pagar, presupuesto sin respuesta, stock bajo).
   hallazgos: Hallazgo[];
   ineficiencias: ProblemaAgenda[];
+  citasExpress: AvisoCitaExpress[];
   // Vista unificada de TODOS los avisos, normalizada y ordenada (urgencia +
   // cercania temporal). La consumen la campana web y la hoja movil para pintar
   // categorias, urgencia y orden cronologico de forma identica.

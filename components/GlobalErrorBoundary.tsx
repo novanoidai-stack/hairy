@@ -26,7 +26,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, enviandoCorreo: false, correoEnviado: false };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
