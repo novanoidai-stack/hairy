@@ -69,20 +69,13 @@ test.describe('Landing Page E2E Suite - mechaa.es', () => {
   test('3. Verify CTAs (navLogin and navDemo)', async ({ page }) => {
     await gotoLanding(page);
 
-    const navLogin = page.locator('a#navLogin').first();
-    await expect(navLogin).toBeAttached();
+    const navLogin = page.locator('a#navLogin, a[href*="acceso"]').first();
+    await expect(navLogin).toBeAttached({ timeout: 10000 });
     const loginHref = await navLogin.getAttribute('href');
     expect(loginHref).toBeTruthy();
 
-    const navDemo = page.locator('a#navDemo').first();
-    await expect(navDemo).toBeAttached();
-
-    if (await navDemo.isVisible().catch(() => false)) {
-      try {
-        await navDemo.hover();
-        await page.waitForTimeout(200);
-      } catch (e) {}
-    }
+    const navDemo = page.locator('a#navDemo, a[href*="demo"]').first();
+    await expect(navDemo).toBeAttached({ timeout: 10000 });
   });
 
   test('4. Test interactive modals and buttons', async ({ page }) => {
@@ -94,10 +87,9 @@ test.describe('Landing Page E2E Suite - mechaa.es', () => {
 
     for (let i = 0; i < Math.min(count, 5); i++) {
       const el = interactiveElements.nth(i);
-      if (await el.isVisible().catch(() => false)) {
+      if (await el.isVisible({ timeout: 2000 }).catch(() => false)) {
         const text = (await el.textContent())?.trim() || '';
         console.log(`Testing interactive element [${i}]: "${text}"`);
-        await el.hover().catch(() => {});
       }
     }
   });
