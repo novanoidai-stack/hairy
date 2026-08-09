@@ -277,6 +277,7 @@ const TABS: TabDef[] = [
   { id: 'servicios',      label: 'Servicios',      icon: 'scissors',  section: 'Operativa' },
   { id: 'agenda',         label: 'Agenda',         icon: 'calendar',  section: 'Operativa' },
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
+  { id: 'pagos',          label: 'Pagos',          icon: 'card',      section: 'Operativa' },
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'migracion_magica', label: 'Migración Mágica', icon: 'zap', section: 'Operativa' },
@@ -365,6 +366,7 @@ const SOPORTE_TEL = '+34690792975';
 export default function ConfiguracionWeb() {
   const { isMobile, isTablet } = useResponsive();
   const [tab, setTab] = useState<string | null>(null);
+  const [buscarTab, setBuscarTab] = useState('');
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('configuracion');
   const router = useRouter();
@@ -535,6 +537,11 @@ export default function ConfiguracionWeb() {
   }, [config, savedConfig, diasHorario, savedDiasHorario, comisionesProf, savedComisionesProf]);
 
   const currentTab = TABS.find(t => t.id === tab);
+  // Buscador del menu de Configuracion: filtra las pestanas por su etiqueta.
+  const _qTab = buscarTab.trim().toLowerCase();
+  const seccionesFiltradas = _qTab
+    ? TAB_SECTIONS.map(s => ({ ...s, items: s.items.filter(t => t.label.toLowerCase().includes(_qTab)) })).filter(s => s.items.length > 0)
+    : TAB_SECTIONS;
 
   // ─── Load ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -1135,7 +1142,22 @@ export default function ConfiguracionWeb() {
           flexDirection: 'column', gap: 6,
           overflowY: 'auto', background: T.bgPanel,
         }}>
-          {TAB_SECTIONS.map((sec, sIdx) => (
+          <div style={{ marginBottom: 10, position: 'relative' }}>
+            <input
+              value={buscarTab}
+              onChange={(e) => setBuscarTab(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && seccionesFiltradas[0]?.items[0]) setTab(seccionesFiltradas[0].items[0].id); }}
+              placeholder="Buscar ajuste…"
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px 8px 30px', borderRadius: 9, border: '1px solid rgba(40,30,24,0.14)', background: '#fffdfb', color: '#1c1814', fontSize: 12.5, outline: 'none' }}
+            />
+            <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: T.textTertiary, display: 'inline-flex', pointerEvents: 'none' }}>
+              <SettingsIcon name="search" size={13} />
+            </span>
+          </div>
+          {seccionesFiltradas.length === 0 && (
+            <div style={{ fontSize: 12.5, color: T.textTertiary, padding: '8px 12px' }}>Sin resultados</div>
+          )}
+          {seccionesFiltradas.map((sec, sIdx) => (
             <div key={sec.name}>
               <div style={{
                 fontSize: 9.5, letterSpacing: 1.6, color: T.textTertiary, fontWeight: 700,
@@ -1284,6 +1306,7 @@ export default function ConfiguracionWeb() {
               <TabVoz config={config} setC={setC} />
             )}
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
+            {tab === 'pagos' && <TabPagos negocioId={negocioId} />}
             {tab === 'politicas' && <TabPoliticas config={config} setC={setC} negocioId={negocioId} />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
             {tab === 'recompensas' && <TabRecompensas negocioId={negocioId} />}
@@ -3878,6 +3901,18 @@ function FiscalidadSection({ negocioId }: { negocioId: string }) {
   );
 }
 
+// Pestana Pagos: pasarelas de cobro online (Stripe Connect, Redsys/Bizum) y fiscalidad.
+// Antes vivian escondidas dentro de "Politicas" y no se encontraban.
+function TabPagos({ negocioId }: { negocioId: string }) {
+  return (
+    <>
+      <PasarelaStripeSection negocioId={negocioId} />
+      <PasarelaRedsysSection negocioId={negocioId} />
+      <FiscalidadSection negocioId={negocioId} />
+    </>
+  );
+}
+
 function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void; negocioId: string }) {
   const on = config.depositoDinamicoActivo;
   return (
@@ -3940,12 +3975,6 @@ function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: 
           </div>
         </FieldRow>
       </Section>
-
-      <PasarelaStripeSection negocioId={negocioId} />
-
-      <PasarelaRedsysSection negocioId={negocioId} />
-
-      <FiscalidadSection negocioId={negocioId} />
 
       <SoonBanner icon="shield" title="Politicas de cancelacion -- fase 4"
         desc="Penalizaciones por cancelacion tardia. Se activaran junto con el modulo de pagos." />
@@ -4257,6 +4286,8 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [fotos, setFotos] = useState<NegocioFoto[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosMsg, setFotosMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [geocodificando, setGeocodificando] = useState(false);
+  const [geoMsg, setGeoMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     if (!negocioId) return;
@@ -4374,6 +4405,46 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     if (!Number.isFinite(n) || n < -limite || n > limite) return undefined;
     return n;
   };
+
+  // Rellena lat/lng a partir de la direccion escrita, via la edge
+  // geocodificar-direccion (Nominatim en el servidor). Asi el salon no tiene
+  // que buscar las coordenadas a mano en Google Maps.
+  const geocodificar = useCallback(async () => {
+    setGeoMsg(null);
+    if (direccion.trim().length < 3 && ciudad.trim().length < 3) {
+      setGeoMsg({ ok: false, text: 'Escribe al menos la calle (arriba) y la ciudad para poder localizarte.' });
+      return;
+    }
+    setGeocodificando(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('geocodificar-direccion', {
+        body: { direccion: direccion.trim(), codigo_postal: codigoPostal.trim(), ciudad: ciudad.trim(), provincia: provincia.trim() },
+      });
+      if (error) {
+        let code = '';
+        try { code = ((await (error as { context?: Response }).context?.json()) as { error?: string })?.error ?? ''; } catch { /* sin cuerpo */ }
+        setGeoMsg({
+          ok: false,
+          text: code === 'no_encontrada' || code === 'direccion_insuficiente'
+            ? 'No encontramos esa direccion. Revisa la calle y la ciudad, o pon las coordenadas a mano.'
+            : 'No se pudo calcular ahora mismo. Intentalo de nuevo en un momento.',
+        });
+        return;
+      }
+      const d = data as { lat?: number; lng?: number } | null;
+      if (d && Number.isFinite(d.lat) && Number.isFinite(d.lng)) {
+        setLat(String(d.lat));
+        setLng(String(d.lng));
+        setGeoMsg({ ok: true, text: 'Coordenadas rellenadas. Comprueba el mapa en la vista previa y guarda.' });
+      } else {
+        setGeoMsg({ ok: false, text: 'No encontramos esa direccion. Revisa la calle y la ciudad, o pon las coordenadas a mano.' });
+      }
+    } catch {
+      setGeoMsg({ ok: false, text: 'No se pudo calcular ahora mismo. Intentalo de nuevo en un momento.' });
+    } finally {
+      setGeocodificando(false);
+    }
+  }, [direccion, codigoPostal, ciudad, provincia]);
 
   const guardar = useCallback(async () => {
     setMsg(null);
@@ -4656,10 +4727,28 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
             <STextInput value={codigoPostal} onChange={setCodigoPostal} placeholder="15004" width={isMobile ? undefined : 110} />
           </div>
         </FieldRow>
-        <FieldRow label="Coordenadas" hint="Opcional y solo si las sabes (por ejemplo, copiadas de Google Maps). Sirven para ordenar por cercania cuando la clienta busca cerca de ella.">
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <STextInput value={lat} onChange={setLat} placeholder="Latitud: 43.3713" width={isMobile ? undefined : 180} />
-            <STextInput value={lng} onChange={setLng} placeholder="Longitud: -8.4188" width={isMobile ? undefined : 180} />
+        <FieldRow label="Coordenadas" hint="Sirven para ordenar por cercania cuando la clienta busca cerca de ella. Pulsa el boton y las rellenamos desde tu direccion, o ponlas a mano (por ejemplo, copiadas de Google Maps).">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <STextInput value={lat} onChange={setLat} placeholder="Latitud: 43.3713" width={isMobile ? undefined : 180} />
+              <STextInput value={lng} onChange={setLng} placeholder="Longitud: -8.4188" width={isMobile ? undefined : 180} />
+            </div>
+            <button
+              onClick={geocodificar}
+              disabled={geocodificando}
+              style={{
+                alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '7px 12px', borderRadius: 9, border: `1px solid ${T.border}`,
+                background: T.bg, color: T.text, fontSize: 12.5, fontWeight: 600,
+                cursor: geocodificando ? 'default' : 'pointer', opacity: geocodificando ? 0.6 : 1,
+              }}
+            >
+              <SettingsIcon name="map" size={13} />
+              {geocodificando ? 'Calculando…' : 'Calcular desde la direccion'}
+            </button>
+            {geoMsg && (
+              <span style={{ fontSize: 12, color: geoMsg.ok ? '#1a7f37' : '#c0260a' }}>{geoMsg.text}</span>
+            )}
           </div>
         </FieldRow>
         <FieldRow label="Fotos del local" hint="Se ven en tu ficha del directorio. La principal es ademas la que sale en el listado de resultados. JPG o PNG, max 5 MB cada una.">

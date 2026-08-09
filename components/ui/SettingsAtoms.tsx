@@ -40,6 +40,7 @@ const ICON_MAP: Record<string, string> = {
   scissors: 'cut-outline',
   calendar: 'calendar-outline',
   percent: 'stats-chart-outline',
+  card: 'card-outline',
   bell: 'notifications-outline',
   shield: 'shield-outline',
   globe: 'globe-outline',
