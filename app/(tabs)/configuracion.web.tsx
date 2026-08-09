@@ -4557,13 +4557,19 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     try {
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
       const rand = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const path = `${negocioId}/fondo-${rand}.${ext}`;
-      const up = await supabase.storage.from('negocio-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
-      if (up.error) { setFondoErr('No se pudo subir la foto.'); return; }
-      const { data } = supabase.storage.from('negocio-fotos').getPublicUrl(path);
+      // Usamos 'salon-fotos' (bucket existente con políticas RLS correctas).
+      // Subcarpeta 'fondo/' para distinguirlo de las fotos de galería.
+      const path = `${negocioId}/fondo/fondo-${rand}.${ext}`;
+      const up = await supabase.storage.from('salon-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
+      if (up.error) {
+        setFondoErr(`No se pudo subir la foto (${up.error.message || 'error desconocido'}). Comprueba que tienes permisos en el bucket.`);
+        return;
+      }
+      const { data } = supabase.storage.from('salon-fotos').getPublicUrl(path);
       setFondoPortalUrl(data.publicUrl);
-    } catch {
-      setFondoErr('Error al subir la imagen.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido';
+      setFondoErr(`Error al subir la imagen: ${msg}`);
     } finally {
       setSubiendoFondo(false);
     }
