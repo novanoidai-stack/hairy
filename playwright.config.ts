@@ -15,7 +15,10 @@ export default defineConfig({
   workers: 1,
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
-    baseURL: 'https://www.mechaa.es',
+    // Por defecto produccion. Para probar contra el build local:
+    //   npm run build:web && node scripts/serve-web.mjs
+    //   PLAYWRIGHT_BASE_URL=http://localhost:8080 npx playwright test
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://www.mechaa.es',
     headless: true,
     ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
