@@ -30,7 +30,12 @@ export interface RegistroJornadaProps {
   salon?: { nombre?: string | null; cif?: string | null; direccion?: string | null };
   /** Solo para alcance="centro": permite filtrar por persona. */
   profesionales?: Array<{ id: string; nombre: string }>;
-  /** Ficha del profesional que mira (para saber si puede pedir correcciones). */
+  /** Persona preseleccionada en el filtro (p. ej. al venir de su ficha). */
+  profesionalInicial?: string | null;
+  /** Ficha del profesional que mira (para saber si puede pedir correcciones).
+   *  Con alcance="propio" ademas ACOTA lo que se pide al servidor: en modo de
+   *  acceso compartido la cuenta es la del jefe, asi que sin esto "Mi jornada"
+   *  enseñaria el registro de todo el salon en vez del de quien esta delante. */
   miProfesionalId?: string | null;
   /** Cambia este valor desde fuera para que el panel se recargue (p. ej. al
    *  fichar en la misma pantalla: si no, la tabla se queda con lo de antes). */
@@ -92,10 +97,10 @@ function Stat({ label, valor, sub, color = T.text }: {
 }
 
 export function RegistroJornada({
-  alcance, salon, profesionales, miProfesionalId, recargarToken, isMobile = false,
+  alcance, salon, profesionales, profesionalInicial, miProfesionalId, recargarToken, isMobile = false,
 }: RegistroJornadaProps) {
   const [mesRef, setMesRef] = useState(() => new Date());
-  const [profFiltro, setProfFiltro] = useState<string>('');
+  const [profFiltro, setProfFiltro] = useState<string>(profesionalInicial ?? '');
   const [totales, setTotales] = useState<JornadaTotales | null>(null);
   const [asientos, setAsientos] = useState<AsientoJornada[]>([]);
   const [correcciones, setCorrecciones] = useState<CorreccionJornada[]>([]);
@@ -109,7 +114,7 @@ export function RegistroJornada({
 
   const { desde, hasta } = useMemo(() => rangoMes(mesRef), [mesRef]);
   const esCentro = alcance === 'centro';
-  const profArg = esCentro ? (profFiltro || null) : null;
+  const profArg = esCentro ? (profFiltro || null) : (miProfesionalId ?? null);
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -118,7 +123,7 @@ export function RegistroJornada({
       const [tot, asi, corr] = await Promise.all([
         cargarTotales(desde, hasta, profArg),
         cargarRegistro(desde, hasta, profArg),
-        listarCorrecciones(),
+        listarCorrecciones(undefined, esCentro ? (profFiltro || null) : (miProfesionalId ?? null)),
       ]);
       setTotales(tot);
       setAsientos(asi);
@@ -191,7 +196,7 @@ export function RegistroJornada({
         : (typeof window !== 'undefined'
             ? window.prompt('Motivo del rechazo (queda registrado como discrepancia):') ?? undefined
             : undefined);
-      const r = await resolverCorreccion(id, aprobar, nota);
+      const r = await resolverCorreccion(id, aprobar, nota, miProfesionalId ?? null);
       if (r.ok === false) { setError(r.error || 'No se ha podido resolver.'); return; }
       setAviso(aprobar ? 'Correccion autorizada y aplicada al registro.' : 'Correccion rechazada. La discrepancia queda registrada.');
       await cargar();
@@ -206,6 +211,18 @@ export function RegistroJornada({
     const hoy = new Date();
     return mesRef.getFullYear() === hoy.getFullYear() && mesRef.getMonth() === hoy.getMonth();
   }, [mesRef]);
+
+  // Sin ficha de profesional no hay jornada propia que enseñar. Sin este corte,
+  // una cuenta de gestor sin ficha veria aqui el registro de TODO el salon, que
+  // no es lo que promete "Mi jornada".
+  if (!esCentro && !miProfesionalId) {
+    return (
+      <div style={{ ...card, padding: 20, textAlign: 'center', color: T.textSec, fontSize: 13.5, lineHeight: 1.55 }}>
+        Tu cuenta no está vinculada a ninguna ficha de profesional, así que todavía no tienes
+        registro de jornada propio. Pídele al responsable que te vincule desde <b>Equipo</b>.
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

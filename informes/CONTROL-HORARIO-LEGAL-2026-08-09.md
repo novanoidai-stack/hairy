@@ -138,6 +138,64 @@ Bugs encontrados y corregidos durante la verificación:
 
 ---
 
+## 5-bis. Segunda pasada (10 ago 2026): acceso compartido y reorganización
+
+**Acceso compartido (un salón, un correo, selector «¿quién eres?» + PIN).**
+Verificado de punta a punta con el tenant `test_s18_e6d9d`, y en el camino se
+cerraron tres agujeros de la primera versión:
+
+- `jornada_resolver_profesional()`: nueva regla única de «¿puede esta sesión
+  hablar por esta ficha?». Gestor → sí; salón en modo compartido → sí (la
+  identidad la elige el selector); empleado con cuenta propia → solo por sí
+  mismo. Antes `fichar_jornada` aceptaba cualquier ficha del salón sin mirar el
+  rol, así que en modo individual un empleado podía fichar por un compañero.
+- «Mi jornada» enseñaba el registro de **todo el salón** cuando la cuenta
+  compartida no tenía ficha propia (el servidor la trataba como gestor sin
+  filtro). Ahora el cliente acota siempre por la identidad activa, y sin ficha
+  se dice claramente en vez de enseñar lo de los demás.
+- `resolver_correccion_jornada` y `listar_correcciones_jornada` aceptan la
+  identidad activa: sin eso, la persona que está delante de la tablet no podía
+  dar su conformidad a una corrección propuesta por la empresa.
+
+**Reorganización pedida por Carlos.** «Mi jornada» tenía un conmutador
+Mi jornada / Equipo que mezclaba lo tuyo con lo de todos. Se ha quitado:
+
+- **Mi jornada** = literalmente tu jornada. Tu fichaje, tus números, tus
+  ausencias, tus cambios de turno y tu registro.
+- **Equipo** = tres pestañas: *Fichas*, *Rendimiento* (el ranking y los
+  objetivos que estaban en Mi jornada) y *Control horario* (el registro de todo
+  el salón). Desde la ficha de cada persona, «Ver su control horario» abre esa
+  vista ya filtrada por ella.
+- **Horarios**: eran dos cosas con el mismo nombre. Ahora el de APERTURA del
+  local se llama así y vive solo en Configuración › Horarios (su «Pausa» pasa a
+  llamarse «Cierre mediodía»), y el de TRABAJO de cada persona vive en su ficha.
+  Además la ficha **avisa** si el horario de alguien se sale de lo que abre el
+  salón, con el día concreto: esa era la incoherencia que se notaba.
+
+**Campañas** se rediseñó: pasaba de 900 px de ancho a una columna infinita. Ahora
+usa el ancho real (dos columnas en escritorio), va por pasos numerados, tiene
+vista previa en vivo del mensaje tal como le llega a la clienta, el segmento
+escrito en cristiano, contador grande de destinatarios, «falta X para poder
+enviar» en vez de un botón muerto, y estado vacío en el historial.
+
+Bugs de fuera del alcance encontrados y corregidos de paso:
+
+- `equipo_jornada_ranking` calculaba las horas por `user_id`, así que una ficha
+  sin cuenta vinculada salía siempre con **0 h** y en acceso compartido el
+  reparto era falso. Pasa a `jornada_tramos` (mismo motor que el registro legal).
+- En `equipo.web.tsx`, `profileData` se guardaba **sin el rol**, y como los gates
+  hacen `can({ role: roleOf(profileData) }, …)`, daban siempre que no: el botón
+  del horario del salón no se veía nunca.
+- «Mi jornada» leía los fichajes del día con `supabase.from('fichajes')` por
+  `user_id`; ahora usa `jornada_estado()`, que es la misma fuente que el registro
+  legal y evita el desfase de reloj entre navegador y servidor.
+- El rol que se muestra en «Mi jornada» era el de la cuenta («Propietario»)
+  aunque delante estuviera una profesional; ahora es el de la identidad activa.
+
+Durante la verificación se cambió el modo de acceso del tenant de pruebas
+`test_s18_e6d9d` a `individual` para poder ver la vista de gestor sin el PIN, y
+se **restauró a `compartido`** al terminar (el PIN no se tocó).
+
 ## 6. Pendiente / avisos
 
 - **Esto no es asesoramiento jurídico.** Antes de venderlo como "100 % legal" conviene

@@ -32,6 +32,46 @@ as $$
 $$;
 
 -- ═════════════════════════════════════════════════════════════════════════════
+-- 0-bis. ACCESO COMPARTIDO: quien esta delante de la tablet
+-- ═════════════════════════════════════════════════════════════════════════════
+-- En el modo "un salon, un correo" (salon_acceso.modo = 'compartido') la sesion
+-- es siempre la del jefe, asi que auth.uid() NO dice quien esta fichando: lo
+-- dice el selector "¿quien eres?" y llega por parametro. Aqui se comprueba lo
+-- unico comprobable en el servidor: que esa ficha es de ESTE salon y que quien
+-- la pide tiene derecho a hablar por ella. Mismo patron que mi_jornada_resumen.
+--
+-- Devuelve NULL = denegado (o "no tienes ficha", si no se pidio ninguna).
+create or replace function public.jornada_resolver_profesional(
+  p_uid uuid, p_negocio text, p_es_gestor boolean, p_mi_ficha uuid, p_pedido uuid
+) returns uuid
+language plpgsql stable security definer set search_path = public
+as $$
+declare
+  v_compartido boolean;
+begin
+  if p_pedido is null then return p_mi_ficha; end if;
+  if p_pedido = p_mi_ficha then return p_pedido; end if;
+
+  if not exists (select 1 from public.profesionales pr
+                  where pr.id = p_pedido and pr.negocio_id = p_negocio) then
+    return null;
+  end if;
+
+  if p_es_gestor then return p_pedido; end if;
+
+  select true into v_compartido from public.salon_acceso sa
+   where sa.negocio_id = p_negocio and sa.modo = 'compartido';
+  if coalesce(v_compartido, false) then return p_pedido; end if;
+
+  -- Un empleado con cuenta propia solo responde por si mismo.
+  return null;
+end;
+$$;
+
+revoke execute on function public.jornada_resolver_profesional(uuid, text, boolean, uuid, uuid)
+  from public, anon, authenticated;
+
+-- ═════════════════════════════════════════════════════════════════════════════
 -- 1. jornada_tramos — de marcas sueltas a intervalos de trabajo y de pausa
 -- ═════════════════════════════════════════════════════════════════════════════
 -- Un tramo de TRABAJO va de 'entrada'/'pausa_fin' a 'salida'/'pausa_inicio'.
@@ -147,19 +187,22 @@ begin
     return jsonb_build_object('ok', false, 'error', 'La modalidad debe ser presencial o remoto.');
   end if;
 
-  -- Identificacion exacta de la persona trabajadora. Con cuenta compartida, la
-  -- identidad activa (selector "¿quien eres?") llega en p_profesional_id; un
-  -- gestor solo puede fichar por otra persona de su propio centro.
-  v_prof := coalesce(p_profesional_id, c.profesional_id);
+  -- Identificacion exacta de la persona trabajadora. Con cuenta compartida la
+  -- identidad activa (selector "¿quien eres?") llega en p_profesional_id.
+  if p_profesional_id is not null and p_profesional_id is distinct from c.profesional_id then
+    v_prof := public.jornada_resolver_profesional(
+      c.uid, c.negocio_id, c.es_gestor, c.profesional_id, p_profesional_id);
+    if v_prof is null then
+      return jsonb_build_object('ok', false, 'error',
+        'Solo puedes fichar por ti. Pidele al responsable que lo haga por ti si hace falta.');
+    end if;
+  else
+    v_prof := c.profesional_id;
+  end if;
+
   if v_prof is null then
     return jsonb_build_object('ok', false, 'error',
       'Para fichar hace falta una ficha de profesional vinculada. Pideselo al responsable en Equipo.');
-  end if;
-  if v_prof is distinct from c.profesional_id then
-    if not exists (select 1 from public.profesionales pr
-                    where pr.id = v_prof and pr.negocio_id = c.negocio_id) then
-      return jsonb_build_object('ok', false, 'error', 'Ese profesional no pertenece a tu salon.');
-    end if;
   end if;
 
   -- Estado actual segun la ultima marca valida de esa persona.
@@ -227,13 +270,14 @@ begin
   if c.uid is null then return jsonb_build_object('ok', false, 'error', 'no_autenticado'); end if;
 
   v_zona := coalesce((public.jornada_config()->>'zona'), 'Europe/Madrid');
-  v_prof := coalesce(p_profesional_id, c.profesional_id);
+  v_prof := public.jornada_resolver_profesional(
+    c.uid, c.negocio_id, c.es_gestor, c.profesional_id, p_profesional_id);
+  if v_prof is null and p_profesional_id is not null then
+    return jsonb_build_object('ok', false, 'error', 'Solo puedes consultar tu propia jornada.');
+  end if;
   if v_prof is null then
     return jsonb_build_object('ok', true, 'vinculado', false, 'estado', 'sin_ficha',
       'minutos_hoy', 0, 'minutos_pausa_hoy', 0, 'marcas', '[]'::jsonb);
-  end if;
-  if not c.es_gestor and v_prof is distinct from c.profesional_id then
-    return jsonb_build_object('ok', false, 'error', 'Solo puedes consultar tu propia jornada.');
   end if;
 
   v_hoy_ini := date_trunc('day', now() at time zone v_zona) at time zone v_zona;
@@ -553,10 +597,14 @@ revoke execute on function public.solicitar_correccion_jornada(text, text, uuid,
 grant execute on function public.solicitar_correccion_jornada(text, text, uuid, uuid, text, timestamptz, text) to authenticated;
 
 
+-- p_profesional_id = identidad activa (modo compartido): sin esto, la persona
+-- trabajadora que esta delante de la tablet no puede dar su conformidad, porque
+-- auth.uid() es el jefe.
 create or replace function public.resolver_correccion_jornada(
   p_id uuid,
   p_aprobar boolean,
-  p_nota text default null
+  p_nota text default null,
+  p_profesional_id uuid default null
 )
 returns jsonb
 language plpgsql
@@ -568,6 +616,7 @@ declare
   v_c record;
   v_puede boolean := false;
   v_nuevo uuid;
+  v_yo uuid;
   v_prop_tipo text;
   v_prop_at timestamptz;
   v_prop_mod text;
@@ -584,12 +633,15 @@ begin
     return jsonb_build_object('ok', false, 'error', 'Esa solicitud ya esta resuelta.');
   end if;
 
+  v_yo := coalesce(
+    public.jornada_resolver_profesional(c.uid, c.negocio_id, c.es_gestor, c.profesional_id, p_profesional_id),
+    c.profesional_id);
+
   -- Quien tiene que dar la conformidad que falta: la otra parte.
   if v_c.solicitada_por_rol = 'trabajador' then
     v_puede := c.es_gestor;                                   -- falta la empresa
   else
-    v_puede := c.profesional_id is not null
-               and c.profesional_id = v_c.profesional_id;     -- falta la persona trabajadora
+    v_puede := v_yo is not null and v_yo = v_c.profesional_id; -- falta la persona trabajadora
   end if;
   if not v_puede then
     return jsonb_build_object('ok', false, 'error', 'No te corresponde a ti autorizar esta correccion.');
@@ -652,13 +704,15 @@ begin
 end;
 $$;
 
-revoke execute on function public.resolver_correccion_jornada(uuid, boolean, text) from public, anon;
-grant execute on function public.resolver_correccion_jornada(uuid, boolean, text) to authenticated;
+drop function if exists public.resolver_correccion_jornada(uuid, boolean, text);
+revoke execute on function public.resolver_correccion_jornada(uuid, boolean, text, uuid) from public, anon;
+grant execute on function public.resolver_correccion_jornada(uuid, boolean, text, uuid) to authenticated;
 
 
 create or replace function public.listar_correcciones_jornada(
   p_estado text default null,
-  p_limit integer default 100
+  p_limit integer default 100,
+  p_profesional_id uuid default null
 )
 returns jsonb
 language plpgsql
@@ -669,9 +723,14 @@ as $$
 declare
   c record;
   v_rows jsonb := '[]'::jsonb;
+  v_yo uuid;
 begin
   select * into c from public.jornada_contexto();
   if c.uid is null then return jsonb_build_object('ok', false, 'error', 'no_autenticado'); end if;
+
+  v_yo := coalesce(
+    public.jornada_resolver_profesional(c.uid, c.negocio_id, c.es_gestor, c.profesional_id, p_profesional_id),
+    c.profesional_id);
 
   select coalesce(jsonb_agg(to_jsonb(q) order by q.created_at desc), '[]'::jsonb) into v_rows
   from (
@@ -684,13 +743,16 @@ begin
            -- Le toca actuar a quien mira? (para pintar los botones)
            (k.estado = 'pendiente' and (
               (k.solicitada_por_rol = 'trabajador' and c.es_gestor)
-              or (k.solicitada_por_rol = 'empresa' and c.profesional_id = k.profesional_id)
+              or (k.solicitada_por_rol = 'empresa' and v_yo = k.profesional_id)
            )) as me_toca
     from public.jornada_correcciones k
     left join public.profesionales pr on pr.id = k.profesional_id
     left join public.fichajes f on f.id = k.fichaje_id
     where k.negocio_id = c.negocio_id
-      and (c.es_gestor or k.profesional_id = c.profesional_id or k.solicitada_por = c.uid)
+      and (c.es_gestor or k.profesional_id = v_yo or k.solicitada_por = c.uid)
+      -- Si el cliente acota a una persona (Mi jornada con identidad activa),
+      -- se respeta: ahi solo se ven las correcciones de esa persona.
+      and (p_profesional_id is null or k.profesional_id = p_profesional_id)
       and (p_estado is null or k.estado = p_estado)
     order by k.created_at desc
     limit greatest(coalesce(p_limit, 100), 1)
@@ -700,8 +762,9 @@ begin
 end;
 $$;
 
-revoke execute on function public.listar_correcciones_jornada(text, integer) from public, anon;
-grant execute on function public.listar_correcciones_jornada(text, integer) to authenticated;
+drop function if exists public.listar_correcciones_jornada(text, integer);
+revoke execute on function public.listar_correcciones_jornada(text, integer, uuid) from public, anon;
+grant execute on function public.listar_correcciones_jornada(text, integer, uuid) to authenticated;
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 7. jornada_verificar_integridad — recalcula la cadena de hash

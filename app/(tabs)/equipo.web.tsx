@@ -18,6 +18,8 @@ import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
 import * as chispaOps from '@/lib/chispaOps';
 import { cargarCuentasEquipo, avisoDeAcceso, estadoLegible, invitarAcceso, reenviarInvitacion, type CuentaEquipo } from '@/lib/equipoAccesos';
+import { RendimientoEquipo } from '@/components/equipo/RendimientoEquipo.web';
+import { RegistroJornada } from '@/components/jornada/RegistroJornada.web';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -175,6 +177,15 @@ export default function EquipoWeb() {
   const [showNewProf, setShowNewProf] = useState(false);
   const [showNewBloqueo, setShowNewBloqueo] = useState(false);
   const [negocioId, setNegocioId] = useState('');
+  // La pagina de Equipo es ahora el sitio unico de todo lo que tiene que ver con
+  // las personas: sus fichas, como rinden y su control horario. Antes el ranking
+  // y los fichajes vivian dentro de "Mi jornada" detras de un conmutador, que
+  // mezclaba lo mio con lo de todos.
+  const [vistaEquipo, setVistaEquipo] = useState<'fichas' | 'rendimiento' | 'horario'>('fichas');
+  const [salonNombre, setSalonNombre] = useState('');
+  // Persona con la que se abre "Control horario" al venir desde su ficha.
+  const [horarioProfInicial, setHorarioProfInicial] = useState<string | null>(null);
+  const [horarioSalon, setHorarioSalon] = useState<Record<number, { abierto: boolean; apertura: string; cierre: string; pausa_inicio: string | null; pausa_fin: string | null }>>({});
   const [horarios, setHorarios] = useState<any[]>([]);
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   // Horario editor
@@ -198,11 +209,16 @@ export default function EquipoWeb() {
 
   // --- INYECCIÓN IA: EQUIPO ---
   const ayudaIA = useAyudaIA();
-  const [profileData, setProfileData] = useState<{ id: string; negocio_id: string } | null>(null);
+  // OJO: aqui faltaba el `role`, y como los gates de esta pagina hacen
+  // can({ role: roleOf(profileData) }, ...), sin el rol daban SIEMPRE que no.
+  // Por eso el boton del horario del salon no se veia nunca.
+  const [profileData, setProfileData] = useState<{ id: string; negocio_id: string; role?: string } | null>(null);
 
   useEffect(() => {
     getUserProfile().then(p => {
-      if (p) setProfileData({ id: p.id, negocio_id: p.negocio_id });
+      // El rol CRUDO tal cual viene del perfil (ya resuelto por la identidad
+      // activa en getUserProfile): roleOf() lo normaliza donde haga falta.
+      if (p) setProfileData({ id: p.id, negocio_id: p.negocio_id, role: p.role });
     });
   }, []);
 
@@ -257,12 +273,13 @@ export default function EquipoWeb() {
       if (profile && !can(profile, 'equipo.ver') && !isProf) { setAccessDenied(true); setLoading(false); return; }
       const negocioId = profile?.negocio_id ?? NEGOCIO_ID_FALLBACK;
       setNegocioId(negocioId);
+      setSalonNombre(profile?.nombre_negocio || negocioId);
 
       const now = new Date();
       const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [{ data: profsRaw }, { data: citsData }, { data: srvData }, { data: cfgRow }] = await Promise.all([
+      const [{ data: profsRaw }, { data: citsData }, { data: srvData }, { data: cfgRow }, { data: horSalon }] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil, rol_acceso').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
@@ -270,7 +287,13 @@ export default function EquipoWeb() {
           .lte('inicio', mesFin),
         supabase.from('servicios').select('id, precio').eq('negocio_id', negocioId),
         supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
+        // Horario de APERTURA del salon (Configuracion > Horarios). Aqui solo se
+        // lee: sirve de contexto y para avisar si el horario de una persona se
+        // sale de lo que abre el local, que es la incoherencia tipica.
+        supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre, pausa_inicio, pausa_fin')
+          .eq('negocio_id', negocioId),
       ]);
+      setHorarioSalon(Object.fromEntries((horSalon ?? []).map((h: any) => [h.dia_semana, h])));
 
       // Limite de fichas de ESTE salon (lo sube Mecha desde su panel si hace falta).
       const limiteCfg = Number((cfgRow as { config?: Record<string, unknown> } | null)?.config?.limiteProfesionales);
@@ -536,10 +559,10 @@ export default function EquipoWeb() {
             <button
               className="m-btn-secondary"
               onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
-              title="Horario general del salon (Configuracion -> Horarios)"
+              title="A que hora abre y cierra el local (Configuracion -> Horarios). El horario de cada persona se toca en su ficha."
               style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="calendar" size={16} color={TOKENS.text} />
-              {isMobile ? 'Horarios' : 'Horarios base'}
+              {isMobile ? 'Salón' : 'Horario del salón'}
             </button>
           ) : null}
           {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar') ? (
@@ -557,6 +580,34 @@ export default function EquipoWeb() {
         </div>
       </div>
 
+      {/* Fichas · Rendimiento · Control horario. Solo quien gestiona el equipo ve
+          las dos ultimas: son datos de todo el centro. */}
+      {(!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar')) && (
+        <div style={{ padding: isMobile ? '12px 16px 0' : '16px 32px 0' }}>
+          <div style={{ display: 'inline-flex', background: TOKENS.bg, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap' }}>
+            {([
+              { value: 'fichas', label: 'Fichas' },
+              { value: 'rendimiento', label: 'Rendimiento' },
+              { value: 'horario', label: 'Control horario' },
+            ] as const).map((o) => (
+              <button
+                key={o.value}
+                onClick={() => { setVistaEquipo(o.value); if (o.value !== 'fichas') setSelected(null); }}
+                style={{
+                  padding: '7px 14px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  fontSize: 12.5, fontWeight: 700,
+                  background: vistaEquipo === o.value ? TOKENS.bgCard : 'transparent',
+                  color: vistaEquipo === o.value ? TOKENS.text : TOKENS.textSec,
+                  boxShadow: vistaEquipo === o.value ? '0 1px 3px rgba(40,30,24,0.12)' : 'none',
+                }}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!paginaManual.loading && !paginaManual.visto && (
         <div style={{ padding: isMobile ? '12px 12px 0' : '16px 24px 0' }}>
           <AvisoPrimeraVisita
@@ -570,7 +621,33 @@ export default function EquipoWeb() {
 
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {/* Cards grid — visible cuando no hay miembro seleccionado */}
-        {!(profSel && selected) && (
+        {/* Rendimiento y Control horario: vienen de "Mi jornada", que ahora solo
+            enseña lo tuyo. Todo lo del equipo se gestiona desde aqui. */}
+        {vistaEquipo !== 'fichas' && (
+          <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 96px' : 24, height: '100%' }}>
+            {vistaEquipo === 'rendimiento' && <RendimientoEquipo isMobile={isMobile} />}
+            {vistaEquipo === 'horario' && (
+              <>
+                <div style={{ fontSize: 12.5, color: TOKENS.textSec, lineHeight: 1.55, marginBottom: 14, maxWidth: 760 }}>
+                  Registro de jornada del equipo: entradas, salidas y pausas con la hora del servidor.
+                  Los asientos no se pueden editar ni borrar y se conservan cuatro años, como exige el
+                  art. 34.9 del Estatuto de los Trabajadores. Cada profesional ve y descarga el suyo
+                  desde <b>Mi jornada</b>.
+                </div>
+                <RegistroJornada
+                  key={horarioProfInicial ?? 'todos'}
+                  alcance="centro"
+                  salon={{ nombre: salonNombre || negocioId }}
+                  profesionales={profesionales.filter((p) => p.activo).map((p) => ({ id: p.id, nombre: p.nombre }))}
+                  profesionalInicial={horarioProfInicial}
+                  isMobile={isMobile}
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {vistaEquipo === 'fichas' && !(profSel && selected) && (
         <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 96px' : 24, height: '100%' }}>
           <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'), gap: isMobile ? 12 : 16 }}>
             {profesionales.map((p, idx) => {
@@ -806,7 +883,7 @@ export default function EquipoWeb() {
         )}
 
         {/* Detalle del miembro a pantalla completa */}
-        {profSel && selected && (
+        {vistaEquipo === 'fichas' && profSel && selected && (
           <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
             {/* Cabecera: volver · identidad · acciones */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
@@ -949,9 +1026,68 @@ export default function EquipoWeb() {
               </div>
             </Section>
 
-            {/* Horario base — en movil lista vertical por dia (cabe sin scroll
-                horizontal); en escritorio rejilla de 7 columnas. */}
-            <Section title="Horario base">
+            {/* Registro de jornada de esta persona: entra en la vista de Control
+                horario ya filtrada por ella. */}
+            <Section title="Registro de jornada">
+              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5, minWidth: 200, flex: 1 }}>
+                  Entradas, salidas, pausas y horas totalizadas. Inalterable y descargable en PDF o CSV.
+                </div>
+                <button
+                  onClick={() => { setHorarioProfInicial(profSel.id); setVistaEquipo('horario'); setSelected(null); }}
+                  className="m-btn-secondary"
+                  style={{ padding: '8px 13px', borderRadius: 9, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.text, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  Ver su control horario
+                </button>
+              </div>
+            </Section>
+
+            {/* Horario de TRABAJO de esta persona (horarios_profesional). No
+                confundir con el horario de APERTURA del salon, que se toca en
+                Configuracion > Horarios: son dos cosas distintas y antes las dos
+                se llamaban "horario base". En movil lista vertical por dia; en
+                escritorio rejilla de 7 columnas. */}
+            <Section title={`Horario de trabajo de ${profSel.nombre.split(' ')[0]}`}>
+              {(() => {
+                // Incoherencias con el horario del salon: trabajar un dia que el
+                // local cierra, o fuera de la franja de apertura.
+                const avisos: string[] = [];
+                for (let i = 0; i < 7; i++) {
+                  const dbDia = i === 6 ? 0 : i + 1;
+                  const dayH = horarios.filter((x) => x.dia_semana === dbDia);
+                  if (dayH.length === 0) continue;
+                  const s = horarioSalon[dbDia];
+                  if (!s) continue;
+                  if (!s.abierto) { avisos.push(`${DIAS_SEMANA_FULL[dbDia]}: el salón está cerrado`); continue; }
+                  const fuera = dayH.some((h) =>
+                    fmtHora(h.hora_inicio) < (s.apertura || '00:00') || fmtHora(h.hora_fin) > (s.cierre || '23:59'));
+                  if (fuera) avisos.push(`${DIAS_SEMANA_FULL[dbDia]}: fuera de ${s.apertura}–${s.cierre}`);
+                }
+                const abiertos = Object.entries(horarioSalon).filter(([, s]) => s.abierto);
+                return (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.5 }}>
+                      {abiertos.length === 0
+                        ? 'Todavía no has definido el horario de apertura del salón.'
+                        : 'Estas son las horas que trabaja esta persona, dentro de lo que abre el salón.'}
+                      {' '}
+                      <button
+                        onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
+                        style={{ background: 'none', border: 'none', padding: 0, color: TOKENS.primary, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        Horario de apertura del salón
+                      </button>
+                    </div>
+                    {avisos.length > 0 && (
+                      <div style={{ marginTop: 8, padding: '8px 11px', borderRadius: 9, background: 'rgba(224,138,0,0.14)', border: '1px solid rgba(224,138,0,0.4)', fontSize: 11.5, color: TOKENS.text }}>
+                        <b>No cuadra con el horario del salón:</b> {avisos.join(' · ')}.
+                        Revísalo aquí o cambia la apertura del salón.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               <div style={{ width: '100%', paddingBottom: 6 }}>
                 <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: isMobile ? 6 : 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7,1fr)', gap: isMobile ? 2 : 4 }}>
                   {DIAS_SEMANA.map((dia, i) => {

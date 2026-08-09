@@ -22,7 +22,7 @@ import { ejecutarAccion } from '@/lib/chispaOps';
 import { fasesDe, type CitaRetraso } from '@/lib/retrasos';
 import { UMBRAL_HUECO_MIN_DEFAULT } from '@/lib/organizarAgenda';
 import { CITA_STATUS, CITA_STATUS_ACTIVOS } from '@/lib/constants';
-import { fichar as ficharJornada, type Modalidad } from '@/lib/jornada';
+import { fichar as ficharJornada, cargarEstadoJornada, type Modalidad, type JornadaEstado } from '@/lib/jornada';
 import { RegistroJornada } from '@/components/jornada/RegistroJornada.web';
 
 const T = DESIGN_TOKENS;
@@ -57,8 +57,6 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
 }
 
 type Periodo = 'hoy' | 'semana' | 'mes';
-type Vista = 'personal' | 'equipo';
-type Fichaje = { tipo: string; marcado_at: string; user_id: string | null };
 
 interface CitaLista { inicio: string; cliente: string | null; servicio: string | null; es_tinte: boolean; }
 interface Resumen {
@@ -80,24 +78,9 @@ interface Resumen {
 }
 
 interface ServicioTop { nombre: string; count: number; }
-interface EquipoProfesional {
-  id: string;
-  nombre: string;
-  horas: number;
-  citas_completadas: number;
-  servicios_top: ServicioTop[];
-  reposo_total_min: number;
-  reposo_usado_min: number;
-  ingresos_cents: number;
-  propinas_cents: number;
-  cobros_count: number;
-  comision_cents: number;
-}
-type OrdenEquipo = 'ingresos' | 'servicios' | 'horas' | 'productivo';
 type MetricaObjetivo = 'ingresos' | 'servicios' | 'horas' | 'productivo';
 
 interface MiObjetivo { id: string; metrica: MetricaObjetivo; objetivo_valor: number; bonus_cents: number | null; actual: number }
-interface ObjetivoEquipo extends MiObjetivo { profesional_id: string; profesional_nombre: string }
 interface ProfesionalMini { id: string; nombre: string }
 
 const METRICA_LABEL: Record<MetricaObjetivo, string> = {
@@ -122,26 +105,6 @@ function rangoDe(periodo: Periodo): [Date, Date] {
   if (periodo === 'hoy') { const d = startOfDay(now); return [d, addDays(d, 1)]; }
   if (periodo === 'semana') { const d = startOfWeek(now, { weekStartsOn: 1 }); return [d, addWeeks(d, 1)]; }
   const d = startOfMonth(now); return [d, addMonths(d, 1)];
-}
-
-// Horas trabajadas a partir de marcas entrada/salida (sesion abierta cuenta hasta
-// ahora). La pausa NO cuenta: 'pausa_inicio' cierra el intervalo activo y
-// 'pausa_fin' abre uno nuevo, igual que salida/entrada.
-function horasDeMarcas(fichajes: Fichaje[]): number {
-  const sorted = [...fichajes].sort((a, b) => a.marcado_at.localeCompare(b.marcado_at));
-  let total = 0;
-  let abierta: number | null = null;
-  for (const f of sorted) {
-    if (f.tipo === 'entrada' || f.tipo === 'pausa_fin') abierta = parseISO(f.marcado_at).getTime();
-    else if ((f.tipo === 'salida' || f.tipo === 'pausa_inicio') && abierta != null) {
-      total += (parseISO(f.marcado_at).getTime() - abierta) / 3600000;
-      abierta = null;
-    }
-  }
-  // La marca la sella el servidor, que puede ir unos segundos por delante del
-  // reloj del navegador: sin el Math.max saldria un tramo negativo.
-  if (abierta != null) total += Math.max(0, Date.now() - abierta) / 3600000;
-  return total;
 }
 
 function fmtHoras(h: number): string {
@@ -254,7 +217,8 @@ function MiJornadaScreen() {
   const [periodo, setPeriodo] = useState<Periodo>('hoy');
   const [resumen, setResumen] = useState<Resumen | null>(null);
   const [nuevaResena, setNuevaResena] = useState<{ id: string; puntuacion: number; comentario: string | null } | null>(null);
-  const [fichajesHoy, setFichajesHoy] = useState<Fichaje[]>([]);
+  const [estadoJornada, setEstadoJornada] = useState<JornadaEstado | null>(null);
+  const [identidadRol, setIdentidadRol] = useState<string | null>(null);
   const [userId, setUserId] = useState('');
   const [salonNombre, setSalonNombre] = useState('');
   const [fichando, setFichando] = useState(false);
@@ -262,19 +226,11 @@ function MiJornadaScreen() {
   // Presencial vs remoto: el registro de jornada tiene que distinguirlos.
   const [modalidad, setModalidad] = useState<Modalidad>('presencial');
   const [resumenIaOpen, setResumenIaOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
-  const [vista, setVista] = useState<Vista>('personal');
-  const [equipo, setEquipo] = useState<EquipoProfesional[] | null>(null);
-  const [loadingEquipo, setLoadingEquipo] = useState(false);
-  const [errorEquipo, setErrorEquipo] = useState<string | null>(null);
-  const [ordenEquipo, setOrdenEquipo] = useState<OrdenEquipo>('ingresos');
   const [intercambios, setIntercambios] = useState<any[]>([]);
   const [showIntercambioModal, setShowIntercambioModal] = useState(false);
   const [nuevoIntercambio, setNuevoIntercambio] = useState<{ companero_id: string; fecha_solicitante: string; fecha_companero: string; motivo: string } | null>(null);
   const [misObjetivos, setMisObjetivos] = useState<MiObjetivo[]>([]);
-  const [objetivosEquipo, setObjetivosEquipo] = useState<ObjetivoEquipo[]>([]);
   const [profesionalesActivos, setProfesionalesActivos] = useState<ProfesionalMini[]>([]);
-  const [showObjetivoModal, setShowObjetivoModal] = useState(false);
-  const [objetivoEnCurso, setObjetivoEnCurso] = useState<{ profesional_id: string; metrica: MetricaObjetivo; objetivo_valor: string; bonus_euros: string } | null>(null);
   const [ausencias, setAusencias] = useState<Array<{id: string; inicio: string; fin: string; tipo: string; motivo: string | null}>>([]);
   const [showAusenciaModal, setShowAusenciaModal] = useState(false);
   const ayudaIA = useAyudaIA();
@@ -283,7 +239,7 @@ function MiJornadaScreen() {
 
   useEffect(() => {
     const profId = resumen?.profesional?.id;
-    if (periodo !== 'hoy' || vista !== 'personal' || !resumen?.profesional?.vinculado || !profId) {
+    if (periodo !== 'hoy' || !resumen?.profesional?.vinculado || !profId) {
       setHuecosHoy([]);
       return;
     }
@@ -308,7 +264,7 @@ function MiJornadaScreen() {
       setHuecosHoy(calcularHuecosHoy(citasFases, Date.now()));
     })();
     return () => { cancelado = true; };
-  }, [periodo, vista, resumen?.profesional?.id, resumen?.profesional?.vinculado]);
+  }, [periodo, resumen?.profesional?.id, resumen?.profesional?.vinculado]);
 
   const analizarDiaIA = () => {
     setAccionEstadoIA('pendiente');
@@ -355,25 +311,15 @@ para proponerla completa, así que no llames a esa herramienta.`;
       if (!profile?.negocio_id) { setLoading(false); return; }
       setUserId(profile.id || '');
       setSalonNombre(profile.nombre_negocio || profile.negocio_id);
-      const hoy0 = startOfDay(new Date());
       // Con acceso compartido, user_id es el del jefe para todo el mundo: las
       // marcas de cada persona se distinguen por su ficha, no por la cuenta.
+      // Todo el estado del fichaje (que marcas hay hoy, cuanto lleva trabajado y
+      // si esta dentro, en pausa o fuera) lo da el servidor: asi la hora es la
+      // suya y no la del navegador, y las pausas se descuentan igual que en el
+      // registro legal.
       const identidadFichajes = identidadActiva(profile.negocio_id);
-      let qFichajes = supabase
-        .from('fichajes')
-        .select('tipo, marcado_at, user_id')
-        .eq('negocio_id', profile.negocio_id)
-        // Los asientos anulados por una correccion siguen en la tabla (son
-        // indelebles), pero no cuentan como jornada.
-        .eq('estado', 'valido');
-      qFichajes = identidadFichajes?.profesionalId
-        ? qFichajes.eq('profesional_id', identidadFichajes.profesionalId)
-        : qFichajes.eq('user_id', profile.id);
-      const { data: fchs } = await qFichajes
-        .gte('marcado_at', hoy0.toISOString())
-        .lt('marcado_at', addDays(hoy0, 1).toISOString())
-        .order('marcado_at', { ascending: true });
-      setFichajesHoy((fchs as Fichaje[]) || []);
+      setIdentidadRol(identidadFichajes?.rol ?? null);
+      setEstadoJornada(await cargarEstadoJornada(identidadFichajes?.profesionalId ?? null));
       const [d, h] = rangoDe(per);
       // En un salon con un solo correo la cuenta es la del jefe, asi que la
       // ficha hay que decirla: es la persona que se identifico en la tablet.
@@ -419,48 +365,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
   }, []);
 
   useEffect(() => { cargar(periodo); }, [periodo, cargar]);
-
-  const esGestor = resumen?.rol === 'owner' || resumen?.rol === 'admin';
-  const cargarEquipo = useCallback(async (per: Periodo) => {
-    setLoadingEquipo(true);
-    setErrorEquipo(null);
-    try {
-      const [d, h] = rangoDe(per);
-      const { data, error: rpcErr } = await supabase.rpc('equipo_jornada_ranking', {
-        p_desde: d.toISOString(),
-        p_hasta: h.toISOString(),
-      });
-      if (rpcErr) throw rpcErr;
-      setEquipo(((data as any)?.profesionales as EquipoProfesional[]) || []);
-    } catch (err) {
-      console.error('Error cargando el equipo:', err);
-      setErrorEquipo(mensajeDeError(err));
-    } finally {
-      setLoadingEquipo(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (vista === 'equipo' && esGestor) cargarEquipo(periodo);
-  }, [vista, periodo, esGestor, cargarEquipo]);
-
-  const cargarObjetivosEquipo = useCallback(async () => {
-    try {
-      const profile = await getUserProfile();
-      if (!profile?.negocio_id) return;
-      const [{ data: objRes }, { data: profs }] = await Promise.all([
-        supabase.rpc('objetivos_negocio_progreso'),
-        supabase.from('profesionales').select('id, nombre').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre'),
-      ]);
-      setObjetivosEquipo(((objRes as any)?.objetivos as ObjetivoEquipo[]) || []);
-      setProfesionalesActivos((profs as ProfesionalMini[]) || []);
-    } catch (err) {
-      console.error('Error cargando objetivos del equipo:', err);
-    }
-  }, []);
-  useEffect(() => {
-    if (vista === 'equipo' && esGestor) cargarObjetivosEquipo();
-  }, [vista, esGestor, cargarObjetivosEquipo]);
 
   const cargarIntercambios = useCallback(async () => {
     try {
@@ -549,72 +453,12 @@ para proponerla completa, así que no llames a esa herramienta.`;
     return { label: estado, color: T.textSec };
   };
 
-  const abrirNuevoObjetivo = () => {
-    setObjetivoEnCurso({
-      profesional_id: profesionalesActivos[0]?.id || '',
-      metrica: 'ingresos',
-      objetivo_valor: '',
-      bonus_euros: '',
-    });
-    setShowObjetivoModal(true);
-  };
-
-  const guardarObjetivo = async () => {
-    if (!objetivoEnCurso) return;
-    const valor = parseFloat(objetivoEnCurso.objetivo_valor);
-    if (!objetivoEnCurso.profesional_id || !valor || valor <= 0) return;
-    const bonusEuros = parseFloat(objetivoEnCurso.bonus_euros);
-    const bonusCents = !isNaN(bonusEuros) && bonusEuros > 0 ? Math.round(bonusEuros * 100) : null;
-    try {
-      const { error: rpcErr } = await supabase.rpc('guardar_objetivo_profesional', {
-        p_profesional_id: objetivoEnCurso.profesional_id,
-        p_metrica: objetivoEnCurso.metrica,
-        p_objetivo_valor: valor,
-        p_bonus_cents: bonusCents,
-      });
-      if (rpcErr) throw rpcErr;
-      setShowObjetivoModal(false);
-      setObjetivoEnCurso(null);
-      await cargarObjetivosEquipo();
-    } catch (err) {
-      console.error('Error guardando objetivo:', err);
-      setError(mensajeDeError(err));
-    }
-  };
-
-  const eliminarObjetivoEquipo = async (id: string) => {
-    if (!window.confirm('¿Eliminar este objetivo?')) return;
-    try {
-      const { error: rpcErr } = await supabase.rpc('eliminar_objetivo_profesional', { p_id: id });
-      if (rpcErr) throw rpcErr;
-      await cargarObjetivosEquipo();
-    } catch (err) {
-      console.error('Error eliminando objetivo:', err);
-    }
-  };
-
-  const equipoOrdenado = useMemo(() => {
-    if (!equipo) return [];
-    const arr = [...equipo];
-    if (ordenEquipo === 'ingresos') arr.sort((a, b) => b.ingresos_cents - a.ingresos_cents);
-    else if (ordenEquipo === 'servicios') arr.sort((a, b) => b.citas_completadas - a.citas_completadas);
-    else if (ordenEquipo === 'horas') arr.sort((a, b) => b.horas - a.horas);
-    else arr.sort((a, b) => {
-      const pa = a.reposo_total_min > 0 ? a.reposo_usado_min / a.reposo_total_min : -1;
-      const pb = b.reposo_total_min > 0 ? b.reposo_usado_min / b.reposo_total_min : -1;
-      return pb - pa;
-    });
-    return arr;
-  }, [equipo, ordenEquipo]);
-
-  const ultimaMarca = useMemo(() => {
-    const sorted = [...fichajesHoy].sort((a, b) => a.marcado_at.localeCompare(b.marcado_at));
-    return sorted[sorted.length - 1];
-  }, [fichajesHoy]);
-  const enPausa = ultimaMarca?.tipo === 'pausa_inicio';
-  const trabajando = ultimaMarca?.tipo === 'entrada' || ultimaMarca?.tipo === 'pausa_fin';
+  const marcasHoy = estadoJornada?.marcas ?? [];
+  const ultimaMarca = marcasHoy[marcasHoy.length - 1];
+  const enPausa = estadoJornada?.estado === 'en_pausa';
+  const trabajando = estadoJornada?.estado === 'trabajando';
   const fichado = trabajando || enPausa;
-  const horasHoy = useMemo(() => horasDeMarcas(fichajesHoy), [fichajesHoy]);
+  const horasHoy = (estadoJornada?.minutos_hoy ?? 0) / 60;
 
   // El fichaje va SIEMPRE por la RPC `fichar_jornada`: la hora del asiento la
   // pone el servidor (no el navegador, que se puede trastear), valida que la
@@ -655,7 +499,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
 
   const nombre = resumen?.profesional.nombre || 'Tu jornada';
   const iniciales = nombre.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  const rolTxt = resumen?.rol ? roleLabel({ role: resumen.rol }) : '';
+  // Con acceso compartido la cuenta es la del jefe, pero delante del dispositivo
+  // esta quien se identifico: manda su rol, no el de la cuenta.
+  const rolTxt = identidadRol ? roleLabel({ role: identidadRol })
+    : resumen?.rol ? roleLabel({ role: resumen.rol }) : '';
   const vinculado = resumen?.profesional.vinculado ?? false;
   const pLabel = PERIODO_LABEL[periodo];
   const verImportes = resumen?.puede_ver_importes;
@@ -700,13 +547,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
               <span style={{ display: isMobile ? 'none' : 'inline' }}>Pedir Ausencia</span>
             </button>
             <AvisosBell mode="header" />
-            {esGestor && (
-              <Segmented
-                value={vista}
-                onChange={(v) => setVista(v as Vista)}
-                options={[{ value: 'personal', label: 'Mi jornada' }, { value: 'equipo', label: 'Equipo' }]}
-              />
-            )}
+            {/* Antes habia aqui un conmutador "Mi jornada / Equipo". Se ha
+                quitado: el ranking del equipo y el control horario de todos
+                viven ahora en la pagina de Equipo, y esta pantalla es
+                literalmente TU jornada. */}
             <Segmented
               value={periodo}
               onChange={(v) => setPeriodo(v as Periodo)}
@@ -750,155 +594,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </div>
         )}
 
-        {vista === 'equipo' && esGestor ? (
-          <>
-            {errorEquipo && (
-              <div style={{ padding: '12px 16px', borderRadius: 10, marginBottom: 16, background: T.dangerSoft, color: T.danger, fontSize: 14 }}>
-                {errorEquipo}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '4px 2px 10px' }}>
-              <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                Ranking del equipo · {pLabel}
-              </div>
-              <Segmented
-                value={ordenEquipo}
-                onChange={(v) => setOrdenEquipo(v as OrdenEquipo)}
-                options={[
-                  { value: 'ingresos', label: 'Dinero' },
-                  { value: 'servicios', label: 'Servicios' },
-                  { value: 'horas', label: 'Horas' },
-                  { value: 'productivo', label: 'Productivo' },
-                ]}
-              />
-            </div>
-
-            {loadingEquipo && !equipo ? (
-              <div style={{ padding: 40, textAlign: 'center', color: T.textSec }}>
-                <div style={{ width: 28, height: 28, border: '3px solid #e0e0e0', borderTopColor: T.primary, borderRadius: '50%', animation: 'mjSpin 0.8s linear infinite', margin: '0 auto 12px' }} />
-                Cargando el equipo...
-              </div>
-            ) : equipoOrdenado.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, color: T.textSec, fontSize: 14 }}>
-                <Icon name="calendar" size={36} color={T.textTer} />
-                <div style={{ marginTop: 10 }}>No hay profesionales activos con actividad {pLabel}.</div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {equipoOrdenado.map((p, idx) => {
-                  const pct = p.reposo_total_min > 0 ? (p.reposo_usado_min / p.reposo_total_min) * 100 : null;
-                  const inic = p.nombre.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                  return (
-                    <div key={p.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: isMobile ? 14 : 16, animationDelay: `${Math.min(idx, 10) * 0.03}s` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                        <div style={{ width: 20, textAlign: 'center', fontSize: 13, fontWeight: 700, color: T.textTer }}>{idx + 1}</div>
-                        <div style={{ width: 36, height: 36, borderRadius: 999, background: T.primary, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
-                          {inic}
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
-                          <div style={{ fontSize: 12, color: T.textSec }}>
-                            {fmtHoras(p.horas)} trabajadas · {p.citas_completadas} servicio{p.citas_completadas === 1 ? '' : 's'}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{eur(p.ingresos_cents)}</div>
-                          {p.comision_cents > 0 && <div style={{ fontSize: 11, color: T.primaryHi }}>{eur(p.comision_cents)} comisión</div>}
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.4fr 1fr', gap: 12 }}>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>Servicios más realizados</div>
-                          {p.servicios_top.length === 0 ? (
-                            <div style={{ fontSize: 12, color: T.textTer }}>Sin servicios en este periodo</div>
-                          ) : (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                              {p.servicios_top.map((s, i) => (
-                                <span key={i} style={{ fontSize: 11.5, color: T.text, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${T.border}` }}>
-                                  {s.nombre} <b style={{ color: T.textSec }}>×{s.count}</b>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>
-                            Tiempo de reposo (tintes/mechas)
-                          </div>
-                          {pct === null ? (
-                            <div style={{ fontSize: 12, color: T.textTer }}>Sin tiempos de reposo</div>
-                          ) : (
-                            <>
-                              <div style={{ height: 6, borderRadius: 999, background: T.bg, overflow: 'hidden', marginBottom: 4 }}>
-                                <div style={{ height: '100%', width: `${Math.min(100, pct)}%`, background: pct >= 50 ? T.success : T.warning, borderRadius: 999 }} />
-                              </div>
-                              <div style={{ fontSize: 11.5, color: T.textSec }}>
-                                <b style={{ color: T.text }}>{fmtPct(pct)}</b> productivo · {Math.round(p.reposo_usado_min)} de {Math.round(p.reposo_total_min)} min aprovechados
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Icon name="star" size={14} color={T.primaryHi} />
-                <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                  Objetivos del equipo · este mes
-                </div>
-              </div>
-              <button
-                onClick={abrirNuevoObjetivo}
-                disabled={profesionalesActivos.length === 0}
-                className="btn-interactive"
-                style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length === 0 ? 'not-allowed' : 'pointer' }}
-              >
-                + Nuevo objetivo
-              </button>
-            </div>
-            {objetivosEquipo.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
-                Aún no hay objetivos. Fija uno por profesional (dinero, servicios, horas o % de reposo aprovechado) y verán su progreso en su "Mi jornada". Motiva y ayuda a retener talento.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {objetivosEquipo.map((o) => {
-                  const pct = Math.min(100, (o.actual / o.objetivo_valor) * 100);
-                  const done = pct >= 100;
-                  return (
-                    <div key={o.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${done ? T.success : T.border}`, borderRadius: 12, padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {o.profesional_nombre} · {METRICA_LABEL[o.metrica]}
-                        </div>
-                        <div style={{ fontSize: 12, color: done ? T.success : T.textSec, fontWeight: 700 }}>
-                          {fmtMetrica(o.metrica, o.actual)} / {fmtMetrica(o.metrica, o.objetivo_valor)}
-                        </div>
-                        <button onClick={() => eliminarObjetivoEquipo(o.id)} className="btn-interactive" title="Eliminar objetivo" style={{ background: 'transparent', border: 'none', color: T.textTer, fontSize: 18, cursor: 'pointer', padding: '0 6px' }}>×</button>
-                      </div>
-                      <div style={{ height: 6, borderRadius: 999, background: T.bg, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: done ? T.success : T.primary, borderRadius: 999, transition: 'width 0.4s ease' }} />
-                      </div>
-                      {o.bonus_cents != null && o.bonus_cents > 0 && (
-                        <div style={{ fontSize: 11.5, color: done ? T.success : T.textSec, marginTop: 6 }}>
-                          Bonus: <b>{eur(o.bonus_cents)}</b>{done ? ' · conseguido' : ''}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        ) : (
-        <>
         {resumen && !vinculado && (
           <div className="mj-row" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 16px', borderRadius: 12, marginBottom: 16, background: T.warningSoft, border: `1px solid ${T.warning}33` }}>
             <Icon name="info" size={18} color={T.warning} />
@@ -949,9 +644,9 @@ para proponerla completa, así que no llames a esa herramienta.`;
               )}
             </div>
           </div>
-          {fichajesHoy.length > 0 && (
+          {marcasHoy.length > 0 && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {fichajesHoy.map((f, i) => {
+              {marcasHoy.map((f, i) => {
                 const meta = f.tipo === 'entrada' ? { label: 'Entrada', color: T.success }
                   : f.tipo === 'salida' ? { label: 'Salida', color: T.textTer }
                   : f.tipo === 'pausa_inicio' ? { label: 'Pausa', color: T.warning }
@@ -1329,83 +1024,12 @@ para proponerla completa, así que no llames a esa herramienta.`;
               miProfesionalId={resumen?.profesional?.id ?? null}
               // Al fichar en esta misma pantalla cambia la ultima marca: eso
               // recarga el registro para que la tabla no quede desfasada.
-              recargarToken={`${fichajesHoy.length}:${ultimaMarca?.marcado_at ?? ''}`}
+              recargarToken={`${marcasHoy.length}:${ultimaMarca?.marcado_at ?? ''}`}
               isMobile={isMobile}
             />
           </div>
         )}
-        </>
-        )}
       </div>
-
-      {showObjetivoModal && objetivoEnCurso && (
-        <div
-          onClick={() => setShowObjetivoModal(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.45)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 16 }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 12 }}>Nuevo objetivo</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                Profesional
-                <select
-                  className="m-control"
-                  value={objetivoEnCurso.profesional_id}
-                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, profesional_id: e.target.value })}
-                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
-                >
-                  {profesionalesActivos.map((p) => (<option key={p.id} value={p.id}>{p.nombre}</option>))}
-                </select>
-              </label>
-              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                Métrica
-                <select
-                  className="m-control"
-                  value={objetivoEnCurso.metrica}
-                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, metrica: e.target.value as MetricaObjetivo })}
-                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
-                >
-                  <option value="ingresos">Dinero generado (€)</option>
-                  <option value="servicios">Servicios completados</option>
-                  <option value="horas">Horas trabajadas</option>
-                  <option value="productivo">% de reposo aprovechado</option>
-                </select>
-              </label>
-              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                Objetivo del mes ({METRICA_SUFIJO[objetivoEnCurso.metrica] || 'unidades'})
-                <input
-                  type="number" min="1" step="1"
-                  value={objetivoEnCurso.objetivo_valor}
-                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, objetivo_valor: e.target.value })}
-                  placeholder={objetivoEnCurso.metrica === 'ingresos' ? '3000' : objetivoEnCurso.metrica === 'servicios' ? '80' : objetivoEnCurso.metrica === 'horas' ? '160' : '70'}
-                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
-                />
-              </label>
-              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                Bonus al alcanzarlo (€, opcional)
-                <input
-                  type="number" min="0" step="1"
-                  value={objetivoEnCurso.bonus_euros}
-                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, bonus_euros: e.target.value })}
-                  placeholder="100"
-                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
-                />
-              </label>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-              <button onClick={() => setShowObjetivoModal(false)} className="btn-interactive" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                Cancelar
-              </button>
-              <button onClick={guardarObjetivo} className="btn-interactive" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showIntercambioModal && nuevoIntercambio && (
         <div

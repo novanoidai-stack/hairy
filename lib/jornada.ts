@@ -275,19 +275,24 @@ export async function solicitarCorreccion(args: {
   return data as any;
 }
 
+// `profesionalId` = identidad activa. Hace falta en modo compartido: la cuenta
+// es la del jefe, asi que sin esto el servidor no sabe quien esta dando su
+// conformidad delante de la tablet.
 export async function resolverCorreccion(
-  id: string, aprobar: boolean, nota?: string
+  id: string, aprobar: boolean, nota?: string, profesionalId?: string | null
 ): Promise<{ ok: boolean; error?: string; estado?: string }> {
   const { data, error } = await supabase.rpc('resolver_correccion_jornada', {
-    p_id: id, p_aprobar: aprobar, p_nota: nota ?? null,
+    p_id: id, p_aprobar: aprobar, p_nota: nota ?? null, p_profesional_id: profesionalId ?? null,
   });
   if (error) throw error;
   return data as any;
 }
 
-export async function listarCorrecciones(estado?: string): Promise<CorreccionJornada[]> {
+export async function listarCorrecciones(
+  estado?: string, profesionalId?: string | null
+): Promise<CorreccionJornada[]> {
   const { data, error } = await supabase.rpc('listar_correcciones_jornada', {
-    p_estado: estado ?? null, p_limit: 200,
+    p_estado: estado ?? null, p_limit: 200, p_profesional_id: profesionalId ?? null,
   });
   const res = desempaquetar<{ solicitudes: CorreccionJornada[] }>(data, error, { solicitudes: [] });
   return res.solicitudes ?? [];

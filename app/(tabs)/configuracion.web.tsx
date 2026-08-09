@@ -2609,8 +2609,8 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
   return (
     <>
       <Section
-        title="Horario semanal del salon"
-        desc="Define que dias abre el salon y a que horas. Las citas no podran crearse fuera de este rango."
+        title="Horario de apertura del salon"
+        desc="A que hora abre y cierra el LOCAL cada dia, y su cierre del mediodia si lo tiene. Las citas no podran crearse fuera de este rango. El horario de trabajo de cada persona es otra cosa y se toca en su ficha, dentro de Equipo: alli se avisa si el horario de alguien se sale de lo que abre el salon."
         action={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 11, color: T.textTertiary }}>Plantilla rapida</span>
@@ -2661,7 +2661,9 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
                   </div>
                   <div style={{ width: 1, height: 24, background: T.border, margin: '0 4px' }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 11, color: T.textTertiary }}>Pausa</span>
+                    {/* Es el cierre del LOCAL al mediodia. No confundir con las
+                        pausas de fichaje de cada persona (Mi jornada). */}
+                    <span style={{ fontSize: 11, color: T.textTertiary }} title="Cierre del local al mediodia">Cierre mediodía</span>
                     <TimeInput value={d.pausa_inicio || ''} onChange={v => setDayValue(i, 'pausa_inicio', v)} disabled={!open} />
                     <span style={{ fontSize: 11, color: T.textTertiary, padding: '0 4px' }}>--</span>
                     <TimeInput value={d.pausa_fin || ''} onChange={v => setDayValue(i, 'pausa_fin', v)} disabled={!open} />
