@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { ConsentBanner } from '@/components/portal/ConsentBanner';
@@ -92,7 +93,7 @@ function gcalLink(servicioNombre: string, negocioNombre: string, inicioISO: stri
   const ini = new Date(inicioISO);
   const fin = new Date(ini.getTime() + durMin * 60000);
   const p = new URLSearchParams({
-    action: 'TEMPLATE', text: `${servicioNombre} Â· ${negocioNombre}`,
+    action: 'TEMPLATE', text: `${servicioNombre} · ${negocioNombre}`,
     dates: `${fmt(ini)}/${fmt(fin)}`, details: `Reserva en ${negocioNombre}`,
   });
   if (direccion) p.set('location', direccion);
@@ -175,6 +176,8 @@ export default function PortalReservaWeb() {
   const t: TFn = useMemo(() => makeT(info?.negocio?.idioma), [info?.negocio?.idioma]);
   const loc = useMemo(() => localeOf(info?.negocio?.idioma), [info?.negocio?.idioma]);
 
+  const [cobroReserva, setCobroReserva] = useState(0);
+
   useEffect(() => {
     let cancel = false;
     (async () => {
@@ -183,6 +186,17 @@ export default function PortalReservaWeb() {
         const [data, res] = await Promise.all([getPortalInfo(slug), getResenasPublicas(slug)]);
         if (cancel) return;
         if (!data) { setNotFound(true); } else { setInfo(data); setResenas(res); }
+        // Fetch cobro reserva and fondo portal
+        const { data: negData } = await supabase.from('negocios').select('cobro_reserva').eq('slug', slug).single();
+        if (negData && !cancel) {
+          setCobroReserva(negData.cobro_reserva || 0);
+        }
+        const { data: portalData } = await supabase.from('negocio_portal').select('fondo_portal_url').eq('slug', slug).single();
+        if (portalData && !cancel) {
+          if (portalData.fondo_portal_url) {
+            (data as any).fondo_portal_url = portalData.fondo_portal_url;
+          }
+        }
       } catch {
         if (!cancel) setNotFound(true);
       } finally {
@@ -326,7 +340,7 @@ export default function PortalReservaWeb() {
           const wl = await crearListaEsperaExpressPublica({
             slug, servicioId: servicio.id, telefono: telefono.trim(), profesionalId: profId === ANY_PRO ? null : profId,
           });
-          if (!wl.ok) { setError(wl.error || 'Error al solicitar cita exprÃ©s'); }
+          if (!wl.ok) { setError(wl.error || 'Error al solicitar cita exprés'); }
           else {
             setResultado({ cita_id: 'waitlist', cliente_id: '', estado: 'pendiente', deposito_requerido: false, deposito_importe: 0, inicio: '', fin: '' });
             setStep('confirmado');
@@ -353,15 +367,15 @@ export default function PortalReservaWeb() {
   const submitExpress = useCallback(async () => {
     // Basic validation
     if (!nombre.trim()) { setError('Escribe tu nombre.'); return; }
-    if (telefono.trim().length < 6) { setError('Escribe un telÃ©fono vÃ¡lido.'); return; }
-    if (!consent) { setError('Acepta la polÃ­tica de privacidad para continuar.'); return; }
+    if (telefono.trim().length < 6) { setError('Escribe un teléfono válido.'); return; }
+    if (!consent) { setError('Acepta la política de privacidad para continuar.'); return; }
     setEnviando(true);
     try {
       // Simulate backend request for express
       const wl = await crearListaEsperaExpressPublica({
         slug, servicioId: '', telefono: telefono.trim(), profesionalId: null,
       });
-      if (!wl.ok) { setError(wl.error || 'Error al solicitar cita exprÃ©s'); }
+      if (!wl.ok) { setError(wl.error || 'Error al solicitar cita exprés'); }
       else {
         setResultado({ cita_id: 'waitlist-expres', cliente_id: '', estado: 'pendiente', deposito_requerido: false, deposito_importe: 0, inicio: '', fin: '' });
         setStep('confirmado');
@@ -374,7 +388,7 @@ export default function PortalReservaWeb() {
   }, [nombre, telefono, consent, slug]);
 
   const submitReview = () => {
-    if (!rPuntuacion) { setRError('Elige una valoraciÃ³n para el salÃ³n.'); return; }
+    if (!rPuntuacion) { setRError('Elige una valoración para el salón.'); return; }
     setRError('');
     // Mock save review
     setReviewSubmitted(true);
@@ -470,16 +484,19 @@ export default function PortalReservaWeb() {
     return { star, pct };
   });
   return (
-    <div data-screen-label="Portal de reservas" style={{ minHeight: '100vh', background: '#f6f1ea', fontFamily: 'Inter,system-ui,sans-serif', color: '#1c1814' }}>
+    <div data-screen-label="Portal de reservas" style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', background: '#f6f1ea', fontFamily: 'Inter,system-ui,sans-serif', color: '#1c1814' }}>
       <header style={{ position: 'sticky', top: 0, zIndex: 30, background: '#fffdfb', borderBottom: '1px solid rgba(40,30,24,0.08)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '12px 20px' : '14px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+            <button onClick={() => window.location.href = '/'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, background: 'rgba(40,30,24,0.06)', border: 'none', cursor: 'pointer' }} title="Volver al inicio">
+              <Icon name="chevronLeft" size={18} />
+            </button>
             <span style={{ display: 'inline-flex', width: 38, height: 38, borderRadius: 11, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}><MechaMark size={20} /></span>
             <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.2 }}>{info.negocio.nombre}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5c5249', whiteSpace: 'nowrap' }}>
-              <IconStarFilled size={14} /> <b style={{ color: '#1c1814' }}>{resenas?.media || '4.9'}</b>&nbsp;Â· {resenas?.total || 182} reseÃ±as
+              <IconStarFilled size={14} /> <b style={{ color: '#1c1814' }}>{resenas?.media || '4.9'}</b>&nbsp;· {resenas?.total || 182} reseñas
             </span>
             {info.negocio.direccion && (
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5c5249', whiteSpace: 'nowrap' }}>
@@ -498,10 +515,11 @@ export default function PortalReservaWeb() {
       <div style={{ position: 'relative', height: 236, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: '#ccc' }}>
           {/* placeholder hero image, could use a real one if available */}
+          {(info as any).fondo_portal_url && <img src={(info as any).fondo_portal_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Fondo" />}
         </div>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(28,24,20,0.02) 0%,rgba(18,14,10,0.74) 100%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '0 20px 24px' : '0 40px 24px', pointerEvents: 'none' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#ffcf4a', marginBottom: 6 }}>SalÃ³n de belleza Â· Madrid</div>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#ffcf4a', marginBottom: 6 }}>Salón de belleza · Madrid</div>
           <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: isMobile ? 36 : 44, color: '#fff', lineHeight: 1 }}>{info.negocio.nombre}</div>
         </div>
       </div>
@@ -512,10 +530,10 @@ export default function PortalReservaWeb() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
             <div style={{ display: 'inline-flex', padding: 4, background: '#f6f1ea', borderRadius: 14, gap: 4 }}>
               <button onClick={() => setIsExpress(false)} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isGuiada ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva guiada</button>
-              <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isExpresMode ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva exprÃ©s</button>
+              <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isExpresMode ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva exprés</button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: '#736658', fontWeight: 600 }}>
-              <Icon name="check" size={14} color="#0f9d6b" /> ConfirmaciÃ³n inmediata Â· Sin registro
+              <Icon name="check" size={14} color="#0f9d6b" /> Confirmación inmediata · Sin registro
             </div>
           </div>
 
@@ -527,8 +545,8 @@ export default function PortalReservaWeb() {
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     {/* 1. Servicio */}
                     <div style={{ marginBottom: 22 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>1 Â· Servicio</div>
-                      <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: -0.3, marginBottom: 12 }}>Â¿QuÃ© te apetece hoy?</div>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>1 · Servicio</div>
+                      <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: -0.3, marginBottom: 12 }}>¿Qué te apetece hoy?</div>
                       <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 14 }}>
                         <button onClick={() => setCategoriaFiltro(null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', ...(categoriaFiltro === null ? { background: T.primarySoft, border: `1px solid ${T.primary}`, color: T.primaryHi } : { background: 'transparent', border: '1px solid ' + T.border, color: T.textSec }) }}>Todos</button>
                         {categorias.map(cat => {
@@ -551,7 +569,7 @@ export default function PortalReservaWeb() {
                               </span>
                               <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                                 <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>{sv.nombre}</span>
-                                <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>{sv.duracion} min{mostrarPrecioEnLista ? ` Â· ${sv.precio}â‚¬` : ''}</span>
+                                <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>{sv.duracion} min{mostrarPrecioEnLista ? ` · ${sv.precio}â‚¬` : ''}</span>
                               </span>
                               {selected && (
                                 <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: T.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -568,10 +586,10 @@ export default function PortalReservaWeb() {
                     {servicioElegido && (
                       <div style={{ marginBottom: 22 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi }}>2 Â· Profesional</div>
+                          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi }}>2 · Profesional</div>
                           <button onClick={() => setServicio(null)} style={{ background: 'none', border: 'none', color: '#5c5249', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Cambiar servicio</button>
                         </div>
-                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>Â¿Con quiÃ©n prefieres ir?</div>
+                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>¿Con quién prefieres ir?</div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <button onClick={() => setProfId(ANY_PRO)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 700, cursor: 'pointer', ...(profId === ANY_PRO ? { border: `1.5px solid ${T.primary}`, background: T.primarySoft, color: T.primaryHi } : { border: '1.5px solid ' + T.border, background: '#fff', color: T.text }) }}>
                             <Icon name="users" size={16} /> Cualquiera disponible
@@ -592,15 +610,15 @@ export default function PortalReservaWeb() {
                     {/* 3. Fecha y hora */}
                     {servicioElegido && (
                       <div style={{ marginBottom: 6 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>3 Â· Fecha y hora</div>
-                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>Â¿CuÃ¡ndo te viene bien?</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>3 · Fecha y hora</div>
+                        <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>¿Cuándo te viene bien?</div>
                         
                         <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 10, marginBottom: 8 }}>
                           {proximosDias.map((d, i) => {
                             const key = fechaISOaClave(d);
                             const on = diasDisp.has(key);
                             const sel = key === fechaISOaClave(fecha);
-                            const rel = i === 0 ? 'Hoy' : i === 1 ? 'MaÃ±ana' : d.toLocaleDateString(loc, { weekday: 'short' });
+                            const rel = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : d.toLocaleDateString(loc, { weekday: 'short' });
                             return (
                               <button key={key} onClick={() => on && setFecha(d)} style={{ flexShrink: 0, width: 58, padding: '9px 0', borderRadius: 14, textAlign: 'center', cursor: on ? 'pointer' : 'default', border: sel ? 'none' : '1.5px solid ' + T.border, background: sel ? FIRE : '#fff', color: sel ? '#fff' : T.text, opacity: on ? 1 : 0.35, boxShadow: sel ? '0 7px 16px rgba(0,0,0,0.18)' : 'none' }}>
                                 <span style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'capitalize', opacity: sel ? 0.92 : 0.7 }}>{rel}</span>
@@ -613,13 +631,13 @@ export default function PortalReservaWeb() {
 
                         {sinHuecos && (
                           <div style={{ padding: '26px 20px', textAlign: 'center', border: '1px dashed rgba(40,30,24,0.14)', borderRadius: 16, background: '#fbf6f0' }}>
-                            <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>Sin huecos este dÃ­a</div>
-                            <div style={{ fontSize: 13, color: '#5c5249' }}>Prueba otro dÃ­a del calendario o llÃ¡manos y te buscamos hueco.</div>
+                            <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>Sin huecos este día</div>
+                            <div style={{ fontSize: 13, color: '#5c5249' }}>Prueba otro día del calendario o llámanos y te buscamos hueco.</div>
                           </div>
                         )}
 
                         {!sinHuecos && [
-                          { label: 'MaÃ±ana', icon: 'sun', items: franjaMananaItems },
+                          { label: 'Mañana', icon: 'sun', items: franjaMananaItems },
                           { label: 'Tarde', icon: 'sunset', items: franjaTardeItems },
                           { label: 'Noche', icon: 'moon', items: franjaNocheItems },
                         ].map((fr, idx) => fr.items.length > 0 && (
@@ -649,7 +667,7 @@ export default function PortalReservaWeb() {
                     {/* 4. Tus datos */}
                     {slotElegido && (
                       <div>
-                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>4 Â· Tus datos</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>4 · Tus datos</div>
                         <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 24, marginBottom: 12 }}>Para confirmar la cita</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                           <label style={{ display: 'block' }}>
@@ -657,7 +675,7 @@ export default function PortalReservaWeb() {
                             <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre" style={inputStyle} />
                           </label>
                           <label style={{ display: 'block' }}>
-                            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>TelÃ©fono</span>
+                            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Teléfono</span>
                             <PhoneInput value={telefono} onChange={setTelefono} placeholder="600 000 000" />
                           </label>
                           <label style={{ display: 'block' }}>
@@ -673,7 +691,7 @@ export default function PortalReservaWeb() {
                           <span onClick={() => setConsent(!consent)} style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {consent && <Icon name="check" size={14} color="#fff" />}
                           </span>
-                          <span onClick={() => setConsent(!consent)} style={{ fontSize: 12.5, color: '#5c5249', lineHeight: 1.45 }}>He leÃ­do y acepto la polÃ­tica de privacidad. Solo usamos tus datos para gestionar esta cita.</span>
+                          <span onClick={() => setConsent(!consent)} style={{ fontSize: 12.5, color: '#5c5249', lineHeight: 1.45 }}>He leído y acepto la política de privacidad. Solo usamos tus datos para gestionar esta cita.</span>
                         </label>
                       </div>
                     )}
@@ -694,7 +712,7 @@ export default function PortalReservaWeb() {
                           <span style={{ fontSize: 12.5, color: '#736658' }}>Fecha</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc)) : 'â€”'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                          <span style={{ fontSize: 12.5, color: '#736658' }}>Hora</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? `${fmtHora(slotSel!.slot, loc)} Â· ${slotSel!.profesional_nombre.split(' ')[0]}` : 'â€”'}</span>
+                          <span style={{ fontSize: 12.5, color: '#736658' }}>Hora</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? `${fmtHora(slotSel!.slot, loc)} · ${slotSel!.profesional_nombre.split(' ')[0]}` : 'â€”'}</span>
                         </div>
                       </div>
                       {(mostrarPrecioResumen && servicio) && (
@@ -705,13 +723,13 @@ export default function PortalReservaWeb() {
                       {error && <div style={errorStyleBox}>{error}</div>}
                       <button onClick={confirmar} disabled={ctaDisabled || enviando} style={{ width: '100%', marginTop: 18, padding: '14px 16px', borderRadius: 13, border: 'none', background: ctaDisabled ? T.borderHi : FIRE, color: ctaDisabled ? T.textTer : '#fff', fontSize: 15, fontWeight: 800, cursor: ctaDisabled ? 'default' : 'pointer', boxShadow: ctaDisabled ? 'none' : '0 12px 26px rgba(0,0,0,0.18)' }}>{enviando ? 'Confirmando...' : 'Confirmar reserva'}</button>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> ConfirmaciÃ³n inmediata por SMS</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> CancelaciÃ³n gratuita hasta 24h antes</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Pago en el salÃ³n el dÃ­a de la cita</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Confirmación inmediata por WhatsApp</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Cancelación gratuita hasta 24h antes</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> {cobroReserva > 0 ? 'Se requerirá señal de reserva' : 'Pago en el salón el día de la cita'}</div>
                       </div>
                     </div>
                     <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ width: '100%', marginTop: 12, padding: '13px 14px', borderRadius: 14, border: `1px dashed ${T.primary}`, background: T.primarySoft, color: '#1c1814', fontSize: 13, fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                      <span style={{ whiteSpace: 'nowrap' }}>Â¿Tienes prisa? Reserva exprÃ©s en 10 segundos</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>¿Tienes prisa? Reserva exprés en 10 segundos</span>
                       <Icon name="chevronRight" size={16} color={T.primaryHi} />
                     </button>
                   </div>
@@ -727,15 +745,15 @@ export default function PortalReservaWeb() {
                     </span>
                   </div>
                   <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 34, marginBottom: 8 }}>Â¡Reserva confirmada!</div>
-                  <div style={{ maxWidth: 420, margin: '0 auto 20px', fontSize: 15, color: '#5c5249', lineHeight: 1.5 }}>Te esperamos {capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}. Hemos enviado la confirmaciÃ³n por SMS.</div>
+                  <div style={{ maxWidth: 420, margin: '0 auto 20px', fontSize: 15, color: '#5c5249', lineHeight: 1.5 }}>Te esperamos {capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}. Hemos enviado la confirmación por WhatsApp.</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 16, overflow: 'hidden', textAlign: 'left' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{servicio!.nombre}</span></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Profesional</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{slotSel!.profesional_nombre}</span></div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px' }}><span style={{ fontSize: 12.5, color: '#736658' }}>CuÃ¡ndo</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}</span></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Cuándo</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}</span></div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
                     <a href={gcalLink(servicio!.nombre, info.negocio.nombre || 'tu salon', slotSel!.slot, servicio!.duracion, info.negocio.direccion)} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
-                      <Icon name="calendar" size={16} color={T.primary} /> AÃ±adir a Google Calendar
+                      <Icon name="calendar" size={16} color={T.primary} /> Añadir a Google Calendar
                     </a>
                     <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: 8, cursor: 'pointer' }}>Hacer otra reserva</button>
                   </div>
@@ -750,13 +768,13 @@ export default function PortalReservaWeb() {
               {showExpresForm && (
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 36, alignItems: isMobile ? 'flex-start' : 'center' }}>
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 6 }}>Reserva exprÃ©s</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 6 }}>Reserva exprés</div>
                     <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 30, marginBottom: 10, lineHeight: 1.1 }}>Te buscamos hueco nosotros</div>
-                    <div style={{ fontSize: 14, color: '#5c5249', lineHeight: 1.55, marginBottom: 22, maxWidth: 400 }}>Ideal si tienes prisa: dÃ©janos tu nombre y telÃ©fono, y te llamamos en cuanto tengamos un hueco libre. Sin elegir servicio ni horario.</div>
+                    <div style={{ fontSize: 14, color: '#5c5249', lineHeight: 1.55, marginBottom: 22, maxWidth: 400 }}><strong>Plazas muy limitadas.</strong> Ideal si tienes prisa: déjanos tus datos y te llamamos <strong>SÓLO</strong> si se libera algún hueco o cancelación. <strong>No asegura disponibilidad.</strong></div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>1</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Nos dejas tu nombre y telÃ©fono</span></div>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>1</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Nos dejas tu nombre y teléfono</span></div>
                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>2</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Revisamos la agenda y buscamos el primer hueco libre</span></div>
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>3</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Te llamamos para confirmar dÃ­a y hora</span></div>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>3</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Te llamamos para confirmar día y hora</span></div>
                     </div>
                     <button onClick={() => setIsExpress(false)} style={{ marginTop: 22, background: 'none', border: 'none', color: '#5c5249', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Prefiero elegir servicio y hora yo mismo</button>
                   </div>
@@ -766,15 +784,15 @@ export default function PortalReservaWeb() {
                       <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre y apellido" style={inputStyle} />
                     </label>
                     <label style={{ display: 'block', marginBottom: 14 }}>
-                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Tu telÃ©fono</span>
+                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Tu teléfono</span>
                       <PhoneInput value={telefono} onChange={setTelefono} placeholder="600 000 000" />
                     </label>
                     <div style={{ marginBottom: 14 }}>
-                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Â¿Alguna preferencia horaria? (opcional)</span>
+                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>¿Alguna preferencia horaria? (opcional)</span>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         {[
                           { key: 'cualquiera', label: 'Cuanto antes' },
-                          { key: 'manana', label: 'MaÃ±ana' },
+                          { key: 'manana', label: 'Mañana' },
                           { key: 'tarde', label: 'Tarde' },
                           { key: 'noche', label: 'Noche' },
                         ].map(f => (
@@ -786,10 +804,10 @@ export default function PortalReservaWeb() {
                       <span onClick={() => setConsent(!consent)} style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {consent && <Icon name="check" size={14} color="#fff" />}
                       </span>
-                      <span onClick={() => setConsent(!consent)} style={{ fontSize: 12, color: '#5c5249', lineHeight: 1.4 }}>Acepto la polÃ­tica de privacidad para que me contacten por esta cita.</span>
+                      <span onClick={() => setConsent(!consent)} style={{ fontSize: 12, color: '#5c5249', lineHeight: 1.4 }}>Acepto la política de privacidad para que me contacten por esta cita.</span>
                     </label>
                     {error && <div style={errorStyleBox}>{error}</div>}
-                    <button onClick={submitExpress} disabled={enviando} style={{ width: '100%', padding: '14px 16px', borderRadius: 13, border: 'none', background: FIRE, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 26px rgba(0,0,0,0.18)' }}>{enviando ? 'Enviando...' : 'Solicitar hueco exprÃ©s'}</button>
+                    <button onClick={submitExpress} disabled={enviando} style={{ width: '100%', padding: '14px 16px', borderRadius: 13, border: 'none', background: FIRE, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 26px rgba(0,0,0,0.18)' }}>{enviando ? 'Enviando...' : 'Solicitar hueco exprés'}</button>
                   </div>
                 </div>
               )}
@@ -819,16 +837,16 @@ export default function PortalReservaWeb() {
               <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 26, letterSpacing: -0.4 }}>Lo que dicen nuestros clientes</div>
             </div>
             <button onClick={() => setShowReviewForm(!showReviewForm)} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 16px', borderRadius: 11, border: '1.5px solid ' + (showReviewForm ? T.primary : T.border), background: showReviewForm ? T.primarySoft : '#fff', color: showReviewForm ? T.primaryHi : T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              <Icon name="edit" size={15} /> Escribir una reseÃ±a
+              <Icon name="edit" size={15} /> Escribir una reseña
             </button>
           </div>
 
           {showReviewForm && !reviewSubmitted && (
             <div style={{ background: '#fffdfb', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 20, padding: 22, marginBottom: 22 }}>
-              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 19, marginBottom: 14 }}>CuÃ©ntanos tu experiencia</div>
+              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 19, marginBottom: 14 }}>Cuéntanos tu experiencia</div>
               <div style={{ border: `1.5px solid ${T.primary}`, background: T.primarySoft, borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: '#5c5249' }}>Â¿CÃ³mo calificarÃ­as tu experiencia?</span>
+                  <span style={{ fontSize: 13, color: '#5c5249' }}>¿Cómo calificarías tu experiencia?</span>
                   <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: T.primaryHi, whiteSpace: 'nowrap', flexShrink: 0 }}>Obligatorio</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -855,11 +873,11 @@ export default function PortalReservaWeb() {
                   </div>
                 </div>
                 <label style={{ display: 'block', marginBottom: 14 }}>
-                  <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 5 }}>Â¿Algo que destacar del salÃ³n?</span>
-                  <textarea value={rComentario} onChange={e => setRComentario(e.target.value)} placeholder="Â¿QuÃ© destacarÃ­as de tu experiencia?" style={textareaStyle}></textarea>
+                  <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 5 }}>¿Algo que destacar del salón?</span>
+                  <textarea value={rComentario} onChange={e => setRComentario(e.target.value)} placeholder="¿Qué destacarías de tu experiencia?" style={textareaStyle}></textarea>
                 </label>
                 <div style={{ borderTop: '1px solid rgba(40,30,24,0.06)', paddingTop: 12, marginBottom: 14 }}>
-                  <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 6 }}>Â¿QuiÃ©n te atendiÃ³?</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 6 }}>¿Quién te atendió?</span>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
                     {[{ id: '', nombre: 'Prefiero no decirlo' }, ...info.profesionales].map(pr => {
                       const sel = rProfesionalId === pr.id;
@@ -868,7 +886,7 @@ export default function PortalReservaWeb() {
                   </div>
                   {rProfesionalId && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 11.5, color: '#736658' }}>Su atenciÃ³n:</span>
+                      <span style={{ fontSize: 11.5, color: '#736658' }}>Su atención:</span>
                       <div style={{ display: 'flex', gap: 4 }}>{[1,2,3,4,5].map(n => <button key={n} onClick={() => setRProfesionalPuntuacion(n)} style={{ background: 'none', border: 'none', padding: 1, cursor: 'pointer' }}>{n <= rProfesionalPuntuacion ? <IconStarFilled size={22} /> : <IconStarOutline size={22} />}</button>)}</div>
                     </div>
                   )}
@@ -884,15 +902,15 @@ export default function PortalReservaWeb() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 11.5, color: '#736658' }}>Rapidez y pago</span><div style={{ display: 'flex', gap: 3 }}>{[1,2,3,4,5].map(n => <button key={n} onClick={() => setRMechaPagos(n)} style={{ background: 'none', border: 'none', padding: 1, cursor: 'pointer' }}>{n <= rMechaPagos ? <IconStarFilled size={16} /> : <IconStarOutline size={16} />}</button>)}</div></div>
                   </div>
                   <label style={{ display: 'block', marginBottom: 12 }}>
-                    <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 5 }}>Â¿QuÃ© mejorarÃ­as del sistema de reserva?</span>
+                    <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 5 }}>¿Qué mejorarías del sistema de reserva?</span>
                     <textarea value={rMechaMejora} onChange={e => setRMechaMejora(e.target.value)} placeholder="Sugerenciasâ€¦" style={textareaStyle}></textarea>
                   </label>
-                  <input value={rNombre} onChange={e => setRNombre(e.target.value)} placeholder="Tu nombre (opcional, se mostrarÃ¡ pÃºblicamente)" style={inputStyle} />
+                  <input value={rNombre} onChange={e => setRNombre(e.target.value)} placeholder="Tu nombre (opcional, se mostrará públicamente)" style={inputStyle} />
                 </div>
               </div>
               {rError && <div style={errorStyleBox}>{rError}</div>}
               <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                <button onClick={submitReview} style={{ padding: '14px 16px', borderRadius: 13, border: 'none', background: FIRE, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', flex: 1 }}>Enviar reseÃ±a</button>
+                <button onClick={submitReview} style={{ padding: '14px 16px', borderRadius: 13, border: 'none', background: FIRE, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', flex: 1 }}>Enviar reseña</button>
                 <button onClick={() => setShowReviewForm(false)} style={{ padding: '14px 18px', borderRadius: 13, border: '1.5px solid rgba(40,30,24,0.14)', background: '#fff', color: '#5c5249', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
               </div>
             </div>
@@ -903,8 +921,8 @@ export default function PortalReservaWeb() {
               <span style={{ display: 'inline-flex', width: 52, height: 52, borderRadius: '50%', background: T.primarySoft, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <IconStarFilled size={24} color={T.primary} />
               </span>
-              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 19, marginBottom: 5 }}>Â¡Gracias por tu opiniÃ³n!</div>
-              <div style={{ fontSize: 13, color: '#5c5249' }}>Nos ayuda muchÃ­simo a mejorar el servicio.</div>
+              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 19, marginBottom: 5 }}>Â¡Gracias por tu opinión!</div>
+              <div style={{ fontSize: 13, color: '#5c5249' }}>Nos ayuda muchísimo a mejorar el servicio.</div>
             </div>
           )}
 
@@ -914,7 +932,7 @@ export default function PortalReservaWeb() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 3, margin: '8px 0 4px' }}>
                 {[1, 2, 3, 4, 5].map(n => <IconStarFilled key={n} size={15} />)}
               </div>
-              <div style={{ fontSize: 12, color: '#736658', marginBottom: 14 }}>{resenas?.total || 182} reseÃ±as</div>
+              <div style={{ fontSize: 12, color: '#736658', marginBottom: 14 }}>{resenas?.total || 182} reseñas</div>
               {ratingBars.map(rb => (
                 <div key={rb.star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 11, color: '#736658', width: 10 }}>{rb.star}</span>
@@ -930,7 +948,7 @@ export default function PortalReservaWeb() {
                     <span style={{ display: 'inline-flex', width: 34, height: 34, borderRadius: '50%', background: T.primarySoft, color: T.primaryHi, alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>C</span>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700 }}>Cliente feliz</div>
-                      <div style={{ fontSize: 11, color: '#736658' }}>Servicio x Â· hace 4 dÃ­as</div>
+                      <div style={{ fontSize: 11, color: '#736658' }}>Servicio x · hace 4 días</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 2, marginBottom: 7 }}>{[1,2,3,4,5].map(n => <IconStarFilled key={n} size={12} />)}</div>
@@ -955,7 +973,7 @@ export default function PortalReservaWeb() {
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: '1px solid ' + T.border, borderRadius: 18, padding: 24, maxWidth: 420, textAlign: 'center' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: '50%', background: T.primarySoft, marginBottom: 14 }}><MechaMark size={30} /></div>
             <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6 }}>{t('grupo_ok_title')}</div>
-            <div style={{ fontSize: 13.5, color: T.textSec, marginBottom: 16 }}>{t('grupo_ok_personas', { n: grupoOk.total })} Â· {new Date(grupoOk.inicio).toLocaleString(loc, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. {t('grupo_ok_aviso')}</div>
+            <div style={{ fontSize: 13.5, color: T.textSec, marginBottom: 16 }}>{t('grupo_ok_personas', { n: grupoOk.total })} · {new Date(grupoOk.inicio).toLocaleString(loc, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. {t('grupo_ok_aviso')}</div>
             <button onClick={() => setGrupoOk(null)} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('grupo_ok_cerrar')}</button>
           </div>
         </div>

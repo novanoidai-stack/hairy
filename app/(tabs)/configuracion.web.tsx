@@ -4251,6 +4251,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [linkResenaGoogle, setLinkResenaGoogle] = useState('');
+  const [fondoPortalUrl, setFondoPortalUrl] = useState('');
   const [fotos, setFotos] = useState<NegocioFoto[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosMsg, setFotosMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -4284,6 +4285,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         setLat(data.lat != null ? String(data.lat) : '');
         setLng(data.lng != null ? String(data.lng) : '');
         setLinkResenaGoogle(data.link_resena_google || '');
+        setFondoPortalUrl(data.fondo_portal_url || '');
       } else {
         setActivo(true);
         setSlug(slugifyPortal(defaultNombre || ''));
@@ -4400,6 +4402,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       lat: latNum,
       lng: lngNum,
       link_resena_google: linkResenaGoogle.trim() || null,
+      fondo_portal_url: fondoPortalUrl.trim() || null,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'negocio_id' });
     setSaving(false);
@@ -4531,34 +4534,10 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
             )}
           </div>
         </FieldRow>
-        <FieldRow label="Enlace de valoracion" hint="Comparte esta pagina (o su QR) para que tus clientes dejen su opinion tras la visita.">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {enlaceResena ? (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 12, color: T.textSecondary, fontFamily: 'monospace' }}>{enlaceResena}</span>
-                  <Btn variant="primary" size="sm" onClick={() => { if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(enlaceResena); setMsg({ ok: true, text: 'Enlace copiado.' }); } }}>Copiar</Btn>
-                  <Btn variant="ghost" size="sm" onClick={() => { if (typeof window !== 'undefined') window.open(enlaceResena, '_blank'); }}>Abrir</Btn>
-                </div>
-                {qrResenaSvg && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
-                    <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrResenaSvg }} />
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 220 }}>
-                      <span style={{ fontSize: 12, color: T.textTertiary }}>Codigo QR de tu pagina de valoraciones.</span>
-                      <Btn variant="ghost" size="sm" onClick={() => descargarQR(qrResenaSvg, `qr-valoracion-${savedSlug}.svg`)}>Descargar QR</Btn>
-                    </div>
-                  </div>
-                )}
-                <div style={{ marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
-                  <Btn variant="ghost" size="sm" onClick={() => router.push('/(tabs)/resenas' as any)}>
-                    Ver todas las reseñas recibidas →
-                  </Btn>
-                </div>
-              </>
-            ) : (
-              <span style={{ fontSize: 12, color: T.textTertiary }}>Guarda el enlace de reserva para activar tambien el de valoracion.</span>
-            )}
           </div>
+        </FieldRow>
+        <FieldRow label="Foto de fondo" hint="URL de la imagen de fondo para el portal de reservas online. Usa una imagen de buena calidad.">
+          <STextInput value={fondoPortalUrl} onChange={setFondoPortalUrl} placeholder="https://ejemplo.com/fondo.jpg" width={isMobile ? undefined : 360} />
         </FieldRow>
         <FieldRow label="Reseña de Google" hint="Pega el enlace para dejar una reseña en tu ficha de Google (Google Business). Generamos un QR para imprimir y dejar en el mostrador.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

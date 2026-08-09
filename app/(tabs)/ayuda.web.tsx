@@ -361,7 +361,6 @@ export default function AyudaScreen() {
 
                   <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: T.primary }}>Ver manual completo →</span>
-                    <span style={{ fontSize: 11, color: T.textTer }}>Guía interactiva</span>
                   </div>
                 </div>
               ))}
