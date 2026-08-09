@@ -86,7 +86,7 @@ test.describe('Portal de reservas', () => {
 
     const conSerif = await page.evaluate(
       () =>
-        [...document.querySelectorAll('*')].filter((e) =>
+        Array.from(document.querySelectorAll('*')).filter((e) =>
           getComputedStyle(e).fontFamily.includes('Instrument Serif')
         ).length
     );
