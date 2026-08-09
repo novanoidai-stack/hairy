@@ -247,7 +247,7 @@ export default function PortalReservaWeb() {
   }, [info]);
 
   useEffect(() => {
-    if (step !== 'fecha' || !servicio) return;
+    if (!servicio) return;
     let cancel = false;
     (async () => {
       setDiasLoading(true);
@@ -265,10 +265,10 @@ export default function PortalReservaWeb() {
       }
     })();
     return () => { cancel = true; };
-  }, [step, servicio, profId, slug]);
+  }, [servicio, profId, slug]);
 
   useEffect(() => {
-    if (step !== 'fecha' || !servicio) return;
+    if (!servicio) return;
     let cancel = false;
     (async () => {
       setSlotsLoading(true);
@@ -283,7 +283,7 @@ export default function PortalReservaWeb() {
       }
     })();
     return () => { cancel = true; };
-  }, [step, servicio, profId, fecha, slug]);
+  }, [servicio, profId, fecha, slug]);
 
   const horas = useMemo(() => {
     const map = new Map<string, SlotDisponible>();
@@ -684,7 +684,7 @@ export default function PortalReservaWeb() {
                           </label>
                           <label style={{ display: 'block' }}>
                             <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Notas (opcional)</span>
-                            <input value={notas} onChange={e => setNotas(e.target.value)} placeholder="Alergias, preferenciasâ€¦" style={inputStyle} />
+                            <input value={notas} onChange={e => setNotas(e.target.value)} placeholder="Alergias, preferencias…" style={inputStyle} />
                           </label>
                         </div>
                         <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer' }}>
@@ -703,16 +703,16 @@ export default function PortalReservaWeb() {
                       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 14 }}>Resumen de tu reserva</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                          <span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{servicio ? servicio.nombre : 'â€”'}</span>
+                          <span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{servicio ? servicio.nombre : '—'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                          <span style={{ fontSize: 12.5, color: '#736658' }}>Profesional</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{servicioElegido ? (profSel ? profSel.nombre : 'Cualquiera disponible') : 'â€”'}</span>
+                          <span style={{ fontSize: 12.5, color: '#736658' }}>Profesional</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{servicioElegido ? (profSel ? profSel.nombre : 'Cualquiera disponible') : '—'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                          <span style={{ fontSize: 12.5, color: '#736658' }}>Fecha</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc)) : 'â€”'}</span>
+                          <span style={{ fontSize: 12.5, color: '#736658' }}>Fecha</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc)) : '—'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                          <span style={{ fontSize: 12.5, color: '#736658' }}>Hora</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? `${fmtHora(slotSel!.slot, loc)} · ${slotSel!.profesional_nombre.split(' ')[0]}` : 'â€”'}</span>
+                          <span style={{ fontSize: 12.5, color: '#736658' }}>Hora</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{slotElegido ? `${fmtHora(slotSel!.slot, loc)} · ${slotSel!.profesional_nombre.split(' ')[0]}` : '—'}</span>
                         </div>
                       </div>
                       {(mostrarPrecioResumen && servicio) && (
@@ -744,7 +744,7 @@ export default function PortalReservaWeb() {
                       <Icon name="check" size={36} color={T.primary} />
                     </span>
                   </div>
-                  <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 34, marginBottom: 8 }}>Â¡Reserva confirmada!</div>
+                  <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 34, marginBottom: 8 }}>¡Reserva confirmada!</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', fontSize: 15, color: '#5c5249', lineHeight: 1.5 }}>Te esperamos {capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}. Hemos enviado la confirmación por WhatsApp.</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 16, overflow: 'hidden', textAlign: 'left' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{servicio!.nombre}</span></div>
@@ -819,8 +819,8 @@ export default function PortalReservaWeb() {
                       <Icon name="phone" size={34} color={T.primary} />
                     </span>
                   </div>
-                  <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 32, marginBottom: 10 }}>Â¡Perfecto, {nombre}!</div>
-                  <div style={{ maxWidth: 420, margin: '0 auto 22px', fontSize: 15, color: '#5c5249', lineHeight: 1.55 }}>Te llamamos al <b style={{ color: '#1c1814' }}>{telefono}</b> en cuanto tengamos un hueco libre â€” normalmente en menos de 30 minutos.</div>
+                  <div style={{ fontFamily: "'Instrument Serif',serif", fontSize: 32, marginBottom: 10 }}>¡Perfecto, {nombre}!</div>
+                  <div style={{ maxWidth: 420, margin: '0 auto 22px', fontSize: 15, color: '#5c5249', lineHeight: 1.55 }}>Te llamamos al <b style={{ color: '#1c1814' }}>{telefono}</b> en cuanto tengamos un hueco libre — normalmente en menos de 30 minutos.</div>
                   <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: 8, cursor: 'pointer' }}>Volver al inicio</button>
                 </div>
               )}
@@ -857,7 +857,7 @@ export default function PortalReservaWeb() {
                       </button>
                     ))}
                   </div>
-                  {rPuntuacion > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: T.primaryHi }}>{['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', 'Â¡Excelente!'][rPuntuacion]}</span>}
+                  {rPuntuacion > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: T.primaryHi }}>{['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'][rPuntuacion]}</span>}
                 </div>
               </div>
               <div style={{ border: '1.5px dashed rgba(40,30,24,0.16)', background: 'rgba(40,30,24,0.02)', borderRadius: 14, padding: 16, marginBottom: 16 }}>
@@ -903,7 +903,7 @@ export default function PortalReservaWeb() {
                   </div>
                   <label style={{ display: 'block', marginBottom: 12 }}>
                     <span style={{ display: 'block', fontSize: 11.5, color: '#736658', marginBottom: 5 }}>¿Qué mejorarías del sistema de reserva?</span>
-                    <textarea value={rMechaMejora} onChange={e => setRMechaMejora(e.target.value)} placeholder="Sugerenciasâ€¦" style={textareaStyle}></textarea>
+                    <textarea value={rMechaMejora} onChange={e => setRMechaMejora(e.target.value)} placeholder="Sugerencias…" style={textareaStyle}></textarea>
                   </label>
                   <input value={rNombre} onChange={e => setRNombre(e.target.value)} placeholder="Tu nombre (opcional, se mostrará públicamente)" style={inputStyle} />
                 </div>
@@ -921,7 +921,7 @@ export default function PortalReservaWeb() {
               <span style={{ display: 'inline-flex', width: 52, height: 52, borderRadius: '50%', background: T.primarySoft, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <IconStarFilled size={24} color={T.primary} />
               </span>
-              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 19, marginBottom: 5 }}>Â¡Gracias por tu opinión!</div>
+              <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 19, marginBottom: 5 }}>¡Gracias por tu opinión!</div>
               <div style={{ fontSize: 13, color: '#5c5249' }}>Nos ayuda muchísimo a mejorar el servicio.</div>
             </div>
           )}
