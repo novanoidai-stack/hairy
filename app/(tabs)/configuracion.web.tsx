@@ -4252,6 +4252,8 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [lng, setLng] = useState('');
   const [linkResenaGoogle, setLinkResenaGoogle] = useState('');
   const [fondoPortalUrl, setFondoPortalUrl] = useState('');
+  const [subiendoFondo, setSubiendoFondo] = useState(false);
+  const [fondoErr, setFondoErr] = useState('');
   const [fotos, setFotos] = useState<NegocioFoto[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosMsg, setFotosMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -4475,6 +4477,27 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     }
   }, [negocioId, fotos]);
 
+  const subirFondoPortal = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file || !negocioId) return;
+    if (!file.type.startsWith('image/')) { setFondoErr('Selecciona una imagen.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setFondoErr('La imagen excede 5MB. Usa una imagen más pequeña.'); return; }
+    setSubiendoFondo(true); setFondoErr('');
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const rand = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const path = `${negocioId}/fondo-${rand}.${ext}`;
+      const up = await supabase.storage.from('negocio-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
+      if (up.error) { setFondoErr('No se pudo subir la foto.'); return; }
+      const { data } = supabase.storage.from('negocio-fotos').getPublicUrl(path);
+      setFondoPortalUrl(data.publicUrl);
+    } catch {
+      setFondoErr('Error al subir la imagen.');
+    } finally {
+      setSubiendoFondo(false);
+    }
+  };
+
   const borrarFoto = useCallback(async (foto: NegocioFoto) => {
     setFotosMsg(null);
     const { error } = await supabase.from('negocio_fotos').delete().eq('id', foto.id);
@@ -4536,8 +4559,24 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         </FieldRow>
           </div>
         </FieldRow>
-        <FieldRow label="Foto de fondo" hint="URL de la imagen de fondo para el portal de reservas online. Usa una imagen de buena calidad.">
-          <STextInput value={fondoPortalUrl} onChange={setFondoPortalUrl} placeholder="https://ejemplo.com/fondo.jpg" width={isMobile ? undefined : 360} />
+        <FieldRow label="Foto de fondo" hint="Imagen principal del portal de reservas online. Usa una imagen horizontal (paisaje) de buena calidad (máx 5MB).">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 140, height: 78, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: T.bgCard, border: `1px solid ${T.border}`, display: 'grid', placeItems: 'center' }}>
+              {fondoPortalUrl
+                ? <img src={fondoPortalUrl} alt="Fondo portal" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span style={{ fontSize: 10, color: T.textTertiary }}>Sin foto</span>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 8, background: 'rgba(244,80,30,0.14)', border: '1px solid rgba(244,80,30,0.4)', color: T.primaryHi, fontSize: 11, fontWeight: 600, cursor: subiendoFondo ? 'default' : 'pointer' }}>
+                {subiendoFondo ? 'Subiendo...' : fondoPortalUrl ? 'Cambiar fondo' : 'Subir foto'}
+                <input type="file" accept="image/*" disabled={subiendoFondo} onChange={e => subirFondoPortal(e.target.files)} style={{ display: 'none' }} />
+              </label>
+              {fondoPortalUrl && !subiendoFondo && (
+                <button className="m-btn-danger" onClick={() => setFondoPortalUrl('')} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}>Quitar</button>
+              )}
+            </div>
+          </div>
+          {fondoErr && <div style={{ fontSize: 11, color: T.danger, marginTop: 6 }}>{fondoErr}</div>}
         </FieldRow>
         <FieldRow label="Reseña de Google" hint="Pega el enlace para dejar una reseña en tu ficha de Google (Google Business). Generamos un QR para imprimir y dejar en el mostrador.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
