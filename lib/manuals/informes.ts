@@ -36,6 +36,10 @@ export const manualInformes: ManualContent = {
       texto: 'En el bloque de gastos registras los fijos y variables de cada mes. Son los que convierten los ingresos en margen real, así que sin ellos el margen que ves está incompleto.',
     },
     {
+      titulo: 'Control horario',
+      texto: 'Es el registro de jornada del equipo, el que tienes que poder enseñar si te lo piden. Eliges el mes, filtras por persona si quieres, y ves entrada, salida, pausas y horas totalizadas de cada día, más el resumen por persona que se adjunta al recibo de salarios. Se descarga en PDF (informe completo con el detalle de asientos) o en CSV. Los fichajes llevan la hora del servidor, no se pueden editar ni borrar y se conservan cuatro años; si hay que arreglar algo se hace con una corrección que necesita el visto bueno de la empresa y de la persona trabajadora, y deja escrito quién, cuándo y por qué. Los días marcados como incidencia son aquellos en los que falta la marca de salida: conviene regularizarlos. "Verificar integridad" recalcula la cadena de huellas y confirma que nadie ha tocado el registro por fuera de la aplicación.',
+    },
+    {
       titulo: 'Exportar',
       texto: 'Los botones "CSV" y "Descargar PDF" arriba a la derecha generan un informe descargable del periodo seleccionado. El PDF se abre en una pestaña nueva lista para imprimir o guardar: necesitas permitir las ventanas emergentes.',
     },

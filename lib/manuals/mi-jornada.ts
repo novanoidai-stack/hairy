@@ -7,8 +7,16 @@ export const manualMiJornada: ManualContent = {
   secciones: [
     {
       titulo: 'Fichar entrada y salida',
-      texto: 'En la tarjeta "Tu fichaje de hoy" el botón cambia entre "Fichar entrada" y "Fichar salida" según tu estado, y mientras trabajas tienes "Pausa" y "Reanudar" para los descansos. Cada marca queda registrada con su hora exacta y la ves listada debajo.',
+      texto: 'En la tarjeta "Tu fichaje de hoy" el botón cambia entre "Fichar entrada" y "Fichar salida" según tu estado, y mientras trabajas tienes "Pausa" y "Reanudar" para los descansos. Antes de fichar la entrada eliges si trabajas "Presencial" o "Remoto". La hora la pone el servidor, no tu dispositivo, y cada marca queda listada debajo.',
       captura: '/manuals/mi-jornada/fichar.png',
+    },
+    {
+      titulo: 'Mi registro de jornada',
+      texto: 'En "Registro" tienes tu control horario mes a mes: entrada, salida, pausas y total de horas de cada día, más el resumen del mes. Puedes descargarlo cuando quieras en PDF o en CSV; es tu copia y no necesitas pedírsela a nadie. Los fichajes no se pueden editar ni borrar y se conservan cuatro años, como exige el registro de jornada (art. 34.9 del Estatuto de los Trabajadores).',
+    },
+    {
+      titulo: 'Si falta o sobra un fichaje',
+      texto: 'Si un día olvidaste fichar la salida, aparece marcado como incidencia. Pulsa "Ver asientos" y luego "Corregir" (o "Falta un fichaje" si no llegaste a marcar nada) y explica el motivo. La corrección no cambia el asiento original: lo anula y crea uno nuevo, y necesita el visto bueno de la empresa y el tuyo. Todo queda registrado con nombre, fecha y motivo, y si alguien no está de acuerdo la discrepancia también se guarda.',
     },
     {
       titulo: 'El resumen de tu día (Chispa)',

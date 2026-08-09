@@ -1333,8 +1333,11 @@ async function ejecutarLectura(
 
       const { data: fichajes } = await svc
         .from('fichajes')
-        .select('id, profesional_id, tipo, marcado_at, nota')
+        .select('id, profesional_id, tipo, marcado_at, nota, modalidad')
         .eq('negocio_id', negocioId)
+        // Los asientos anulados por una correccion siguen en la tabla (son
+        // indelebles) pero no forman parte de la jornada.
+        .eq('estado', 'valido')
         .gte('marcado_at', `${fecha}T00:00:00Z`)
         .lte('marcado_at', `${fecha}T23:59:59Z`)
         .order('marcado_at', { ascending: true });
@@ -1353,7 +1356,12 @@ async function ejecutarLectura(
           id: f.id,
           hora,
           profesional: f.profesional_id ? (profMap.get(f.profesional_id) ?? 'Equipo') : 'Equipo',
-          tipo: f.tipo === 'entrada' ? 'Entrada (Clock-in)' : 'Salida (Clock-out)',
+          tipo: f.tipo === 'entrada' ? 'Entrada'
+            : f.tipo === 'salida' ? 'Salida'
+            : f.tipo === 'pausa_inicio' ? 'Inicio de pausa'
+            : f.tipo === 'pausa_fin' ? 'Fin de pausa'
+            : f.tipo,
+          modalidad: f.modalidad === 'remoto' ? 'Remoto' : 'Presencial',
           nota: f.nota || null,
         };
       });

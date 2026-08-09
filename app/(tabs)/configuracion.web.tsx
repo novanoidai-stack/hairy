@@ -194,6 +194,12 @@ interface ConfigState {
   // Mi jornada (panel del profesional). Claves en snake_case: las lee la RPC mi_jornada_resumen.
   mi_jornada_mostrar_importes: boolean;
   mi_jornada_mostrar_comision: boolean;
+  // Control horario (registro de jornada). Claves en snake_case: las lee la RPC
+  // jornada_config(). Ver migrations/control-horario-legal.sql.
+  control_horario_exigir_fichaje: boolean;
+  control_horario_bloquear: boolean;
+  control_horario_jornada_semanal: number;
+  control_horario_zona: string;
   // Notificaciones (gatean el motor de envio por salon)
   notifConfirmacionActiva: boolean;
   notifRecordatorioActiva: boolean;
@@ -316,6 +322,8 @@ const DEFAULT_CONFIG: ConfigState = {
   comisionAddons: true, comisionPropinas: false, comisionPeriodo: 'mensual',
   bonusProducto: 10, bonusObjetivo: true, bonusObjetivoImporte: 250, bonusEstrella: false,
   mi_jornada_mostrar_importes: true, mi_jornada_mostrar_comision: false,
+  control_horario_exigir_fichaje: false, control_horario_bloquear: false,
+  control_horario_jornada_semanal: 40, control_horario_zona: 'Europe/Madrid',
   notifConfirmacionActiva: true, notifRecordatorioActiva: true, notifRecordatorioHoras: 24,
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
   notifCumpleanosActiva: false, notifCumpleanosDescuentoPct: 0,
@@ -3232,6 +3240,30 @@ function TabComisiones({ config, setC, profesionales, comisionesProf, setComisio
         </FieldRow>
         <FieldRow label="Mostrar comision estimada" hint="Si ademas ve una estimacion de su comision (segun su porcentaje). Dato sensible: desactivado por defecto.">
           <Toggle on={config.mi_jornada_mostrar_comision} onChange={v => setC('mi_jornada_mostrar_comision', v)} />
+        </FieldRow>
+      </Section>
+
+      <Section
+        title="Control horario"
+        desc="El registro de jornada es obligatorio para todas las empresas con personal (art. 34.9 del Estatuto de los Trabajadores). Mecha lo lleva solo: guarda cada entrada, salida y pausa con la hora del servidor, no deja editarlas ni borrarlas, y las conserva cuatro años. El registro completo se descarga desde Informes > Control horario, y cada profesional puede descargar el suyo desde Mi jornada."
+      >
+        <FieldRow label="Recordar fichar al entrar" hint="Al abrir la aplicacion, a quien no haya fichado la entrada se le muestra un aviso con el boton de fichar. No impide trabajar.">
+          <Toggle on={config.control_horario_exigir_fichaje} onChange={v => setC('control_horario_exigir_fichaje', v)} />
+        </FieldRow>
+        <FieldRow label="Exigir fichar para poder trabajar" hint="Ademas del aviso, bloquea el resto de la aplicacion hasta fichar la entrada. Siempre se puede acceder a 'Mi jornada' para consultar el propio registro, porque ese acceso no se puede condicionar. Actívalo solo si tu organizacion lo necesita: la ley obliga a registrar la jornada, no a bloquear el software.">
+          <Toggle
+            on={config.control_horario_bloquear}
+            onChange={v => setC('control_horario_bloquear', v)}
+          />
+        </FieldRow>
+        <FieldRow label="Jornada semanal de referencia" hint="Horas semanales del convenio o del contrato tipo. Se usa como referencia en los informes de control horario.">
+          <NumberInput value={config.control_horario_jornada_semanal} onChange={v => setC('control_horario_jornada_semanal', v)} unit="h" min={1} max={60} step={0.5} />
+        </FieldRow>
+        <FieldRow label="Zona horaria del centro" hint="Determina a que dia pertenece cada fichaje y como se totaliza la jornada.">
+          <Segmented value={config.control_horario_zona} onChange={v => setC('control_horario_zona', v)} options={[
+            { value: 'Europe/Madrid', label: 'Peninsula y Baleares' },
+            { value: 'Atlantic/Canary', label: 'Canarias' },
+          ]} />
         </FieldRow>
       </Section>
 

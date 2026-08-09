@@ -4,6 +4,7 @@ import { useTheme } from '@/lib/theme';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
+import { GateFichaje } from '@/components/jornada/GateFichaje';
 
 export default function TabsLayout({ children }: { children?: React.ReactNode }) {
   const { c } = useTheme();
@@ -32,6 +33,8 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
             <Tabs.Screen name="ayuda" />
           </Tabs>
         </View>
+        {/* Control horario: aviso (o bloqueo, si el salon lo activa) de fichaje. */}
+        <GateFichaje />
       </View>
     );
   }
@@ -42,6 +45,8 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
   // las Tabs.Screen registradas para que las rutas existan (la barra decide que
   // mostrar y como navegar).
   return (
+    <>
+    <GateFichaje />
     <Tabs
       tabBar={(props) => <MobileTabBar state={props.state} navigation={props.navigation} />}
       screenOptions={{
@@ -71,5 +76,6 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
           veces y expo-router lanzaba "Screen names must be unique", que tumbaba
           TODA la app en movil/tablet (pantalla de error global). */}
     </Tabs>
+    </>
   );
 }

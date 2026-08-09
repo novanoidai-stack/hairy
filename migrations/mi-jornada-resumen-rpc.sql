@@ -1,3 +1,13 @@
+-- OJO (9 ago 2026): esta funcion se ha reemplazado en remoto por la version de
+-- la migracion `mi_jornada_resumen_horas_desde_tramos`. Cambian dos cosas: la
+-- firma tiene un tercer parametro p_profesional_id (acceso compartido) y las
+-- horas ya NO se calculan aqui emparejando entrada/salida por user_id, sino con
+-- public.jornada_tramos() por profesional_id, que descuenta las pausas. Motivo:
+-- con un solo correo por salon todas las marcas llevan el user_id del jefe, asi
+-- que a cada persona se le sumaban las horas de las demas. Ver
+-- migrations/control-horario-rpcs.sql. Este fichero se conserva como historia
+-- de la version original.
+--
 -- RPC de "Mi jornada": resumen personal del profesional logueado para un rango.
 -- Carlos + Claude (24 jun 2026). security definer: resuelve auth.uid() -> su ficha
 -- de profesional (profesionales.profile_id) y agrega su actividad del periodo.

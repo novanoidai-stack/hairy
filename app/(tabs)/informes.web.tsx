@@ -4,6 +4,7 @@ import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection';
 import { GastosSection } from '@/components/informes/GastosSection';
+import { ControlHorarioSection } from '@/components/informes/ControlHorarioSection.web';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE, CITA_STATUS } from '@/lib/constants';
@@ -2926,6 +2927,12 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
 
             {/* Liquidaciones persistentes (generar, marcar pagada, exportar) */}
             <LiquidacionesSection negocioId={negocioId} />
+
+            {/* Control horario: registro de jornada del equipo (art. 34.9 ET) */}
+            <ControlHorarioSection
+              profesionales={profsActivos.map((p) => ({ id: p.id, nombre: p.nombre }))}
+              isMobile={isMobile}
+            />
           </>
         )}
       </div>

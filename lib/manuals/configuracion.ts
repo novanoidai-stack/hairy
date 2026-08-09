@@ -33,6 +33,10 @@ export const manualConfiguracion: ManualContent = {
       texto: 'En los apartados de cobro conectas la pasarela de pago, decides si pides señal (y a quién, según el riesgo) y ajustas propinas y fiscalidad. En "Accesos y roles" das de alta las cuentas de tu equipo y eliges qué ve cada rol: Propietario, Dirección, Recepción o Profesional.',
     },
     {
+      titulo: 'Control horario',
+      texto: 'Aquí decides cómo funciona el registro de jornada de tu equipo. "Recordar fichar al entrar" muestra un aviso a quien abre la aplicación sin haber fichado; "Exigir fichar para poder trabajar" además bloquea el resto de la aplicación hasta que fiche (aunque nunca el acceso a "Mi jornada", porque cada persona tiene derecho a consultar su registro). También fijas la jornada semanal de referencia y la zona horaria del centro, que es la que decide a qué día pertenece cada fichaje. El registro en sí se consulta y descarga desde Informes → Control horario.',
+    },
+    {
       titulo: 'Chispa (Asistente de IA)',
       texto: 'Chispa es el asistente de inteligencia artificial que atiende dudas y reserva citas por WhatsApp. En "Qué hace la IA" consultas todo lo que puede hacer en tu salón, y en "Voz de Chispa" eliges cómo suena y con qué tono habla.',
     },

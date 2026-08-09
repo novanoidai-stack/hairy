@@ -22,6 +22,8 @@ import { ejecutarAccion } from '@/lib/chispaOps';
 import { fasesDe, type CitaRetraso } from '@/lib/retrasos';
 import { UMBRAL_HUECO_MIN_DEFAULT } from '@/lib/organizarAgenda';
 import { CITA_STATUS, CITA_STATUS_ACTIVOS } from '@/lib/constants';
+import { fichar as ficharJornada, type Modalidad } from '@/lib/jornada';
+import { RegistroJornada } from '@/components/jornada/RegistroJornada.web';
 
 const T = DESIGN_TOKENS;
 
@@ -136,15 +138,19 @@ function horasDeMarcas(fichajes: Fichaje[]): number {
       abierta = null;
     }
   }
-  if (abierta != null) total += (Date.now() - abierta) / 3600000;
+  // La marca la sella el servidor, que puede ir unos segundos por delante del
+  // reloj del navegador: sin el Math.max saldria un tramo negativo.
+  if (abierta != null) total += Math.max(0, Date.now() - abierta) / 3600000;
   return total;
 }
 
 function fmtHoras(h: number): string {
+  if (!Number.isFinite(h) || h <= 0) return '0h';
   const horas = Math.floor(h);
   const mins = Math.round((h - horas) * 60);
-  if (horas <= 0 && mins <= 0) return '0h';
-  if (horas <= 0) return `${mins}m`;
+  // 0.999 h redondea a 60 min: eso es 1h, no "60m".
+  if (mins === 60) return `${horas + 1}h`;
+  if (horas <= 0) return mins > 0 ? `${mins}m` : '0h';
   return mins > 0 ? `${horas}h ${mins}m` : `${horas}h`;
 }
 
@@ -250,8 +256,11 @@ function MiJornadaScreen() {
   const [nuevaResena, setNuevaResena] = useState<{ id: string; puntuacion: number; comentario: string | null } | null>(null);
   const [fichajesHoy, setFichajesHoy] = useState<Fichaje[]>([]);
   const [userId, setUserId] = useState('');
+  const [salonNombre, setSalonNombre] = useState('');
   const [fichando, setFichando] = useState(false);
-  const [subTab, setSubTab] = useState<'citas' | 'numeros' | 'ausencias'>('citas');
+  const [subTab, setSubTab] = useState<'citas' | 'numeros' | 'ausencias' | 'registro'>('citas');
+  // Presencial vs remoto: el registro de jornada tiene que distinguirlos.
+  const [modalidad, setModalidad] = useState<Modalidad>('presencial');
   const [resumenIaOpen, setResumenIaOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
   const [vista, setVista] = useState<Vista>('personal');
   const [equipo, setEquipo] = useState<EquipoProfesional[] | null>(null);
@@ -345,6 +354,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
       const profile = await getUserProfile();
       if (!profile?.negocio_id) { setLoading(false); return; }
       setUserId(profile.id || '');
+      setSalonNombre(profile.nombre_negocio || profile.negocio_id);
       const hoy0 = startOfDay(new Date());
       // Con acceso compartido, user_id es el del jefe para todo el mundo: las
       // marcas de cada persona se distinguen por su ficha, no por la cuenta.
@@ -352,7 +362,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
       let qFichajes = supabase
         .from('fichajes')
         .select('tipo, marcado_at, user_id')
-        .eq('negocio_id', profile.negocio_id);
+        .eq('negocio_id', profile.negocio_id)
+        // Los asientos anulados por una correccion siguen en la tabla (son
+        // indelebles), pero no cuentan como jornada.
+        .eq('estado', 'valido');
       qFichajes = identidadFichajes?.profesionalId
         ? qFichajes.eq('profesional_id', identidadFichajes.profesionalId)
         : qFichajes.eq('user_id', profile.id);
@@ -603,6 +616,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
   const fichado = trabajando || enPausa;
   const horasHoy = useMemo(() => horasDeMarcas(fichajesHoy), [fichajesHoy]);
 
+  // El fichaje va SIEMPRE por la RPC `fichar_jornada`: la hora del asiento la
+  // pone el servidor (no el navegador, que se puede trastear), valida que la
+  // secuencia tenga sentido y sella el asiento con la cadena de hash. Ver
+  // migrations/control-horario-rpcs.sql.
   const fichar = async (tipo: 'entrada' | 'salida' | 'pausa_inicio' | 'pausa_fin') => {
     setFichando(true);
     setError(null);
@@ -613,13 +630,11 @@ para proponerla completa, así que no llames a esa herramienta.`;
       // un solo correo, user_id es siempre el del jefe: sin profesional_id, las
       // horas de todo el equipo se le acumularian a el.
       const identidad = identidadActiva(profile.negocio_id);
-      const { error: insErr } = await supabase.from('fichajes').insert({
-        negocio_id: profile.negocio_id,
-        user_id: profile.id,
-        profesional_id: identidad?.profesionalId ?? resumen?.profesional?.id ?? null,
-        tipo,
+      const res = await ficharJornada(tipo, {
+        modalidad,
+        profesionalId: identidad?.profesionalId ?? resumen?.profesional?.id ?? null,
       });
-      if (insErr) throw insErr;
+      if (!res?.ok) { setError(res?.error || 'No se ha podido registrar el fichaje.'); return; }
       await cargar(periodo);
     } catch (err) {
       console.error('Error fichando:', err);
@@ -904,7 +919,14 @@ para proponerla completa, así que no llames a esa herramienta.`;
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {!fichado && (
+                <Segmented
+                  value={modalidad}
+                  onChange={(v) => setModalidad(v as Modalidad)}
+                  options={[{ value: 'presencial', label: 'Presencial' }, { value: 'remoto', label: 'Remoto' }]}
+                />
+              )}
               {!fichado && (
                 <button onClick={() => fichar('entrada')} disabled={fichando} className="btn-interactive" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : 'Fichar entrada'}
@@ -1038,6 +1060,26 @@ para proponerla completa, así que no llames a esa herramienta.`;
               }}
             >
               Ausencias
+            </button>
+            <button
+              onClick={() => setSubTab('registro')}
+              onMouseEnter={(e) => { if (subTab !== 'registro') e.currentTarget.style.background = T.primarySoft; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'registro' ? T.primary : 'transparent'; }}
+              style={{
+                flex: 1,
+                padding: '8px 4px',
+                borderRadius: 8,
+                border: 'none',
+                background: subTab === 'registro' ? T.primary : 'transparent',
+                color: subTab === 'registro' ? '#fff' : T.textSec,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'all 0.2s'
+              }}
+            >
+              Registro
             </button>
           </div>
         )}
@@ -1263,6 +1305,34 @@ para proponerla completa, así que no llames a esa herramienta.`;
               </div>
             )}
           </>
+        )}
+
+        {/* Registro de jornada: la persona trabajadora tiene derecho a consultar
+            y a obtener copia de sus propios asientos de forma inmediata
+            (art. 34.9 ET). No depende de que se lo pida a nadie. */}
+        {(!isMobile || subTab === 'registro') && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 2px 8px' }}>
+              <Icon name="clock" size={14} color={T.primaryHi} />
+              <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                Mi registro de jornada
+              </div>
+            </div>
+            <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 12, lineHeight: 1.5, maxWidth: 720 }}>
+              Tus entradas, salidas y pausas mes a mes. Puedes descargar tu copia cuando quieras: se conserva
+              cuatro años y no se puede borrar. Si falta o sobra una marca, pide una corrección y quedará
+              constancia de quién la pidió, cuándo y por qué.
+            </div>
+            <RegistroJornada
+              alcance="propio"
+              salon={{ nombre: salonNombre }}
+              miProfesionalId={resumen?.profesional?.id ?? null}
+              // Al fichar en esta misma pantalla cambia la ultima marca: eso
+              // recarga el registro para que la tabla no quede desfasada.
+              recargarToken={`${fichajesHoy.length}:${ultimaMarca?.marcado_at ?? ''}`}
+              isMobile={isMobile}
+            />
+          </div>
         )}
         </>
         )}
