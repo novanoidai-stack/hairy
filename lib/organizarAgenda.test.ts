@@ -579,3 +579,99 @@ Deno.test('ordenarPorPrioridad no toca la lista original', () => {
   ordenarPorPrioridad(lista);
   assertEquals(lista.map((p) => p.id), ['a', 'b']);
 });
+
+// --- Jornada real por profesional (subproyecto C+D, entrega 1) ---------------
+//
+// OJO con dia_semana: horarios_profesional usa 0=domingo (extract(dow) de
+// Postgres / getDay() de JS), MIENTRAS QUE negocio_horarios usa 0=lunes. Estos
+// tests derivan el dia de D con getDay() a proposito: si alguien "arregla" el
+// codigo copiando el (getDay()+6)%7 de ventanaDelDia, fallan.
+const DOW = new Date(`${D}T00:00:00`).getDay();
+
+function horarioProf(profId: string, hIni: number, hFin: number, turno = 1) {
+  return {
+    profesional_id: profId,
+    dia_semana: DOW,
+    hora_inicio: `${String(hIni).padStart(2, '0')}:00:00`,
+    hora_fin: `${String(hFin).padStart(2, '0')}:00:00`,
+    turno,
+  };
+}
+
+Deno.test('jornada: no se propone un hueco fuera del horario del profesional', () => {
+  // Ana acaba a las 14:00. Su cita de las 17:00 (fuera de jornada, pero existe)
+  // NO puede adelantarse a las 16:00 aunque este libre: a esa hora no trabaja.
+  const citas = [cita('A', 'P1', 17, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 14)],
+    maxAdelantoMin: 600,
+  });
+  const huecos = problemas.filter((p) => p.tipo === 'hueco_muerto' || p.tipo === 'reposo_desaprovechado');
+  for (const h of huecos) {
+    const destino = new Date(h.zona.desde).getHours();
+    assert(destino >= 9 && destino < 14, `propuso las ${destino}h, fuera de 9-14`);
+  }
+});
+
+Deno.test('jornada: no se propone meter una cita en la pausa entre turnos', () => {
+  // Dos turnos: 09-13 y 16-20. La comida (13-16) no es hueco aprovechable.
+  const citas = [cita('A', 'P1', 18, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 13, 1), horarioProf('P1', 16, 20, 2)],
+    maxAdelantoMin: 600,
+  });
+  for (const p of problemas) {
+    const h = new Date(p.zona.desde).getHours();
+    assert(!(h >= 13 && h < 16), `propuso las ${h}h, que es la pausa de comida`);
+  }
+});
+
+Deno.test('jornada: sin fila de horario, el profesional se comporta como antes', () => {
+  const citas = [cita('A', 'P1', 12, 0, 30)];
+  const antes = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(8, 0) });
+  const despues = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P2', 9, 14)], // horario de OTRO profesional
+  });
+  assertEquals(despues.length, antes.length);
+});
+
+Deno.test('jornada: un horario de otro dia de la semana no se aplica', () => {
+  // Fila para el dia siguiente: para D, P1 no tiene horario propio -> no limita.
+  const citas = [cita('A', 'P1', 12, 0, 30)];
+  const otroDia = { ...horarioProf('P1', 9, 10), dia_semana: (DOW + 1) % 7 };
+  const conOtroDia = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(8, 0), horariosProfesional: [otroDia] });
+  const sinHorario = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(8, 0) });
+  assertEquals(conOtroDia.length, sinHorario.length);
+});
+
+Deno.test('reposo: se ofrecen las dos estrategias cuando hay reposo y hueco normal', () => {
+  // Cita larga con reposo: activa 10:00-10:30, espera 10:30-11:30, activa 11:30-12:00.
+  // grupoId: la cita larga NO se mueve (cadena multiprofesional). Sin esto el
+  // organizador la adelantaria primero, se comeria la mañana, y al llegar a la
+  // corta el unico hueco que quedaria SERIA el reposo: los dos candidatos
+  // coincidirian y solo habria una estrategia (que es la respuesta correcta,
+  // pero no es lo que este test quiere comprobar).
+  const larga = cita('L', 'P1', 10, 0, 120, {
+    fin_activa: iso(10, 30),
+    fin_espera: iso(11, 30),
+    grupoId: 'G1',
+  });
+  // Cita corta a las 15:00 que cabe tanto en el reposo (10:30-11:30) como en el
+  // hueco libre de despues de las 12:00.
+  const corta = cita('C', 'P1', 15, 0, 30);
+  const problemas = analizarAgendaDia([larga, corta], PROFS, {
+    ahoraMs: ms(8, 0),
+    maxAdelantoMin: 600,
+    horariosProfesional: [horarioProf('P1', 9, 20)],
+  });
+  const p = problemas.find((x) => x.citaIds.includes('C'));
+  assert(p, 'no se detecto problema para la cita C');
+  assertEquals(p!.tipo, 'reposo_desaprovechado');
+  assertEquals(p!.estrategias.length, 2, `estrategias: ${p!.estrategias.map((e) => e.tipo).join(', ')}`);
+  assertEquals(p!.estrategias[0].tipo, 'aprovechar_reposo');
+  assert(p!.estrategias[0].recomendada, 'el reposo deberia venir marcado como recomendado');
+  assertEquals(p!.estrategias[1].tipo, 'mover_hueco');
+});

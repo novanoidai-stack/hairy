@@ -232,6 +232,29 @@ export interface JornadaDia {
   cierreMs: number;
 }
 
+// Fila de horarios_profesional. Un profesional puede tener varios turnos el
+// mismo dia (turno 1 = mañana, turno 2 = tarde); el hueco ENTRE turnos es la
+// pausa de comida, y por eso no hace falta modelarla aparte.
+//
+// TRAMPA: dia_semana aqui es 0=DOMINGO (extract(dow) de Postgres, igual que
+// getDay() de JS), mientras que negocio_horarios usa 0=LUNES. Por eso
+// ventanaDelDia hace (getDay()+6)%7 y esta funcion NO. Verificado contra datos
+// reales: el 2026-08-09 (domingo) disponibilidad_publica devuelve 0 huecos y
+// ningun profesional del demo tiene fila dia_semana=0.
+export interface HorarioProfesional {
+  profesional_id: string;
+  dia_semana: number;
+  hora_inicio: string; // 'HH:MM' o 'HH:MM:SS'
+  hora_fin: string;
+  turno?: number;
+}
+
+// Tramo trabajable del dia. Una cita solo puede colocarse dentro de UNO.
+export interface TramoJornada {
+  desdeMs: number;
+  hastaMs: number;
+}
+
 export interface AnalisisAgendaOpts {
   ahoraMs?: number;
   // Dia que se esta MIRANDO en la agenda (cualquier instante dentro de el).
@@ -241,6 +264,10 @@ export interface AnalisisAgendaOpts {
   umbralHuecoMin?: number;
   bloqueos?: BloqueoOrganizar[];
   horarios?: HorarioNegocio[];
+  // Jornada propia de cada profesional. Sin esto, el analisis usaba la ventana
+  // del SALON para todos y podia proponer adelantar una cita a una hora en la
+  // que ese profesional no trabaja.
+  horariosProfesional?: HorarioProfesional[];
   // Techo de adelanto en minutos (ajuste del salon). Default: AGENDA_MAX_ADELANTO_MIN_DEFAULT.
   maxAdelantoMin?: number;
 }
@@ -276,6 +303,53 @@ function ventanaDelDia(fechaRefIso: string, horarios?: HorarioNegocio[]): Jornad
   const cierreMs = horaSobreFecha(fechaRefIso, fila.cierre);
   if (aperturaMs == null || cierreMs == null || cierreMs <= aperturaMs) return porDefecto();
   return { aperturaMs, cierreMs };
+}
+
+// Tramos trabajables de UN profesional en el dia de fechaRefIso.
+// Sin filas para ese profesional y ese dia, se cae a la ventana del salon: no
+// se inventa un horario que nadie configuro, y el comportamiento es el de antes.
+export function tramosDelProfesional(
+  fechaRefIso: string,
+  profesionalId: string,
+  horariosProf: HorarioProfesional[] | undefined,
+  respaldo: JornadaDia,
+): TramoJornada[] {
+  if (!horariosProf || horariosProf.length === 0) return [{ desdeMs: respaldo.aperturaMs, hastaMs: respaldo.cierreMs }];
+  // getDay() TAL CUAL: esta tabla es 0=domingo. No usar (getDay()+6)%7.
+  const dow = new Date(fechaRefIso).getDay();
+  const filas = horariosProf.filter((h) => h.profesional_id === profesionalId && h.dia_semana === dow);
+  if (filas.length === 0) return [{ desdeMs: respaldo.aperturaMs, hastaMs: respaldo.cierreMs }];
+
+  const tramos: TramoJornada[] = [];
+  for (const f of filas) {
+    const desdeMs = horaSobreFecha(fechaRefIso, f.hora_inicio);
+    const hastaMs = horaSobreFecha(fechaRefIso, f.hora_fin);
+    if (desdeMs == null || hastaMs == null || hastaMs <= desdeMs) continue;
+    tramos.push({ desdeMs, hastaMs });
+  }
+  if (tramos.length === 0) return [{ desdeMs: respaldo.aperturaMs, hastaMs: respaldo.cierreMs }];
+  return tramos.sort((a, b) => a.desdeMs - b.desdeMs);
+}
+
+// Primer hueco valido DENTRO de los tramos del profesional. Se llama a
+// buscarHueco una vez por tramo en vez de cambiar su contrato: asi un hueco
+// nunca cae fuera de la jornada ni a caballo entre dos turnos (la comida).
+function buscarHuecoEnTramos(
+  propia: Fases,
+  obstaculos: Fases[],
+  desdeMs: number,
+  hastaMs: number,
+  tramos: TramoJornada[],
+  soloReposo: boolean,
+): number | null {
+  for (const t of tramos) {
+    const ini = Math.max(desdeMs, t.desdeMs);
+    const fin = Math.min(hastaMs, t.hastaMs);
+    if (fin <= ini) continue;
+    const slot = buscarHueco(propia, obstaculos, ini, fin, soloReposo);
+    if (slot != null) return slot;
+  }
+  return null;
 }
 
 function esMismoDiaLocal(iso: string, refMs: number): boolean {
@@ -402,6 +476,9 @@ function detectarHuecos(
   umbralMs: number,
   aperturaMs: number,
   maxAdelantoMs: number,
+  // Tramos trabajables del profesional (turnos). Un hueco nunca puede caer
+  // fuera de ellos ni a caballo entre dos (la pausa de comida).
+  tramos: TramoJornada[],
   // Citas ya comprometidas por un arreglo de retraso o de solape en esta misma
   // pasada: moverlas otra vez daria dos propuestas contradictorias sobre la
   // misma cita. Antes esto se evitaba saltandose ENTERA la busqueda de huecos
@@ -422,17 +499,48 @@ function detectarHuecos(
     // El techo acota la busqueda: sin el, una cita de las 17:00 con la manana libre se
     // proponia adelantar 180 min, que ningun salon aplica.
     const desde = Math.max(ahoraMs, aperturaMs, propia.ini - maxAdelantoMs);
-    const slot = buscarHueco(propia, obstaculos, desde, cierreMs, false);
+
+    // Dos candidatos, no uno. Antes solo se buscaba el hueco MAS TEMPRANO y
+    // despues se miraba si por casualidad habia caido dentro de un reposo: el
+    // reposo nunca se buscaba, solo se etiquetaba. Por eso el organizador
+    // "proponia adelantar en vez de aprovechar un reposo".
+    const slotReposo = buscarHuecoEnTramos(propia, obstaculos, desde, cierreMs, tramos, true);
+    const slotNormal = buscarHuecoEnTramos(propia, obstaculos, desde, cierreMs, tramos, false);
+
+    const valido = (s: number | null) => s != null && propia.ini - s >= umbralMs;
+    // Se aplica el candidato preferido (el reposo si lo hay): es el que queda
+    // como estado encadenado para la siguiente cita de la pasada.
+    const slot = valido(slotReposo) ? slotReposo! : valido(slotNormal) ? slotNormal! : null;
     if (slot == null) continue;
-    if (propia.ini - slot < umbralMs) continue; // no merece la pena
 
     const nueva = reubicar(propia, slot);
     if (hayColision([...obstaculos, nueva])) continue;
     efectivo.set(cand.id, nueva); // encadena: la siguiente cita de la pasada ya la ve movida
 
-    const enReposo = obstaculos.some((o) => o.finE > o.finA && slot >= o.finA && slot < o.finE);
+    const enReposo = valido(slotReposo);
     const update = toUpdate(cand, nueva);
     const desplazoMin = Math.round((propia.ini - slot) / MIN);
+
+    // Segunda estrategia: el adelanto normal, cuando existe y es DISTINTO del
+    // reposo. El usuario pidio ver las dos y elegir, no que decidiera el
+    // sistema por el.
+    const alternativas: EstrategiaRetraso[] = [];
+    if (enReposo && valido(slotNormal) && slotNormal !== slot) {
+      const nuevaAlt = reubicar(propia, slotNormal!);
+      if (!hayColision([...obstaculos, nuevaAlt])) {
+        const updAlt = toUpdate(cand, nuevaAlt);
+        alternativas.push({
+          tipo: 'mover_hueco',
+          titulo: `Adelantar ${Math.round((propia.ini - slotNormal!) / MIN)} min (a ${fmtFechaHora(updAlt.inicio)})`,
+          resumen: `${cand.cliente ?? 'La cita'} pasa a ${fmtFechaHora(updAlt.inicio)}, compactando el hueco.`,
+          citasMovidas: 1,
+          retrasoCierreMin: 0,
+          updates: [updAlt],
+          avisos: [],
+          recomendada: false,
+        });
+      }
+    }
     problemas.push({
       id: `${enReposo ? 'reposo_desaprovechado' : 'hueco_muerto'}:${cand.id}`,
       tipo: enReposo ? 'reposo_desaprovechado' : 'hueco_muerto',
@@ -456,6 +564,7 @@ function detectarHuecos(
           avisos: [],
           recomendada: true,
         },
+        ...alternativas,
       ],
       // Zona = el hueco que se va a tapar (destino), no la posicion actual de la
       // cita: es lo que hay que mirar en la rejilla.
@@ -593,7 +702,17 @@ export function analizarAgendaDia(
   const problemas: ProblemaAgenda[] = [];
   for (const [profId, citasProfSinOrdenar] of porProfesional) {
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
-    const { aperturaMs, cierreMs } = ventanaDelDia(citasProf[0].inicio, opts?.horarios);
+    const jornadaSalon = ventanaDelDia(citasProf[0].inicio, opts?.horarios);
+    const { aperturaMs, cierreMs } = jornadaSalon;
+    // Jornada REAL del profesional. Sin esto se usaba la ventana del salon para
+    // todos, y el organizador podia proponer una hora en la que esa persona no
+    // trabaja.
+    const tramos = tramosDelProfesional(
+      citasProf[0].inicio,
+      profId,
+      opts?.horariosProfesional,
+      jornadaSalon,
+    );
 
     // Citas ya comprometidas por un arreglo de este profesional. Antes, con un
     // retraso o un solape se hacia `continue` y ese profesional se quedaba sin
@@ -634,6 +753,7 @@ export function analizarAgendaDia(
       umbralHuecoMs,
       aperturaMs,
       maxAdelantoMs,
+      tramos,
       comprometidas,
     );
     problemas.push(...huecos);
