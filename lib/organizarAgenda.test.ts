@@ -65,7 +65,7 @@ Deno.test('retraso: una cita "olvidada" de hace horas no se trata como retraso a
 
 Deno.test('hueco_muerto: compacta una cita futura al primer hueco libre', () => {
   const citas = [cita('X', 'P2', 10, 0, 30), cita('Y', 'P2', 11, 30, 30)];
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 31) });
+  const problemas = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, ahoraMs: ms(10, 31) });
   assertEquals(problemas.length, 1);
   assertEquals(problemas[0].tipo, 'hueco_muerto');
   assertEquals(problemas[0].profesionalId, 'P2');
@@ -80,7 +80,7 @@ Deno.test('reposo_desaprovechado: adelanta una cita al reposo libre de otra', ()
   ];
   // Adelantar B de 12:00 a 10:30 son 90 min: por encima del techo por defecto (60), asi que
   // este escenario necesita un salon que permita adelantos largos. Ver el test siguiente.
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 20), maxAdelantoMin: 120 });
+  const problemas = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, ahoraMs: ms(10, 20), maxAdelantoMin: 120 });
   const reposo = problemas.find((p) => p.tipo === 'reposo_desaprovechado')!;
   assert(reposo, 'B debe poder adelantarse al reposo de A');
   assertEquals(reposo.estrategias[0].updates[0].id, 'B');
@@ -93,16 +93,18 @@ Deno.test('reposo_desaprovechado: adelanta una cita al reposo libre de otra', ()
 });
 
 Deno.test('reposo_desaprovechado: el techo manda tambien sobre los reposos', () => {
-  // Mismo caso, con el techo por defecto. Aprovechar un tiempo muerto es valioso (PA-03),
+  // Mismo caso, con techo de 60 min. Aprovechar un tiempo muerto es valioso (PA-03),
   // pero no justifica pedirle a la clienta que venga 90 min antes: eso lo decide el salon.
+  // maxAdelantoMin explicito: el default subio de 60 a 240 al pasar el limite real
+  // a ser el margen de reaccion.
   const citas = [
     cita('A', 'P3', 10, 0, 75, { fin_activa: iso(10, 20), fin_espera: iso(11, 0) }),
     cita('B', 'P3', 12, 0, 20),
   ];
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 20) });
+  const problemas = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, maxAdelantoMin: 60, ahoraMs: ms(10, 20) });
   assert(
     !problemas.some((p) => p.tipo === 'reposo_desaprovechado'),
-    'el reposo de las 10:30 esta a 90 min: fuera del techo por defecto',
+    'el reposo de las 10:30 esta a 90 min: fuera del techo de 60',
   );
   // Pero el techo acota, no cancela: B si puede adelantarse hasta donde el techo permite.
   const hueco = problemas.find((p) => p.tipo === 'hueco_muerto');
@@ -168,7 +170,7 @@ Deno.test('un retraso ya NO deja mudo al organizador sobre los huecos del mismo 
     cita('A', 'P1', 9, 0, 30), // 9:00-9:30, ya deberia haber acabado a las 9:45
     cita('B', 'P1', 11, 0, 30), // hueco grande detras
   ];
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 45) });
+  const problemas = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, ahoraMs: ms(9, 45) });
   assert(problemas.some((p) => p.tipo === 'retraso'), 'A va 15 min tarde');
   // Antes el `continue` por profesional se comia esto y solo salia el retraso.
   const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
@@ -249,7 +251,10 @@ Deno.test('el tope de adelanto explica "por que a esa hora y no antes"', () => {
     cita('A', 'P1', 13, 0, 30), // 13:00-13:30, ya pasada
     cita('B', 'P1', 15, 30, 30), // la candidata a adelantarse
   ];
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(14, 0) });
+  // maxAdelantoMin explicito: el default subio de 60 a 240 cuando el limite real
+  // paso a ser el margen de reaccion. Lo que mide este test es que la tarjeta
+  // EXPLIQUE el techo, no cuanto vale por defecto.
+  const problemas = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, maxAdelantoMin: 60, ahoraMs: ms(14, 0) });
   const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
   assert(hueco, 'B puede adelantarse');
   // 15:30 - 60 min = 14:30, no 14:00.
@@ -257,14 +262,14 @@ Deno.test('el tope de adelanto explica "por que a esa hora y no antes"', () => {
   assertEquals(hueco.accionCorta, 'Adelantar a las 14:30');
   assert(/adelanto maximo/.test(hueco.porQue ?? ''), `porQue no explica el techo: ${hueco.porQue}`);
   // Y con el techo subido, si llega a las 14:00.
-  const conTechoAlto = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(14, 0), maxAdelantoMin: 240 });
+  const conTechoAlto = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, ahoraMs: ms(14, 0), maxAdelantoMin: 240 });
   const hueco2 = conTechoAlto.find((p) => p.tipo === 'hueco_muerto')!;
   assertEquals(hueco2.estrategias[0].updates[0].inicio, iso(14, 0));
 });
 
 Deno.test('un hueco que se puede tapar trae zonaOrigen para pintar la flecha', () => {
   const citas = [cita('X', 'P2', 10, 0, 30), cita('Y', 'P2', 11, 30, 30)];
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 31) });
+  const problemas = analizarAgendaDia(citas, PROFS, { margenReaccionMin: 0, ahoraMs: ms(10, 31) });
   const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
   assert(hueco.zonaOrigen, 'sin origen no se puede dibujar "mueve ESTA hasta AQUI"');
   // Origen = donde esta ahora (11:30); destino = a donde iria (10:45).
@@ -471,7 +476,7 @@ Deno.test('limites: el caso real de produccion, adelantar 180 min, queda acotado
 
 Deno.test('limites: un adelanto de 45 min si se propone (dentro del techo, sobre el umbral)', () => {
   const citas = [cita('A', 'P1', 14, 45, 60)];
-  const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], { ahoraMs: ms(14, 0) });
+  const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], { margenReaccionMin: 0, ahoraMs: ms(14, 0) });
   const hueco = problemas.find((p) => p.tipo === 'hueco_muerto');
   assert(hueco, 'adelantar 45 min es razonable: debe proponerse');
   assertEquals(hueco!.estrategias[0].updates[0].inicio, iso(14, 0));
@@ -494,7 +499,7 @@ Deno.test('limites: la ganancia minima es configurable por salon', () => {
   // Salon que si quiere que le avisen por ganancias pequenas (umbral 5, el default viejo).
   const citas = [cita('A', 'P1', 14, 20, 60)];
   const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], {
-    ahoraMs: ms(14, 0),
+    margenReaccionMin: 0, ahoraMs: ms(14, 0),
     umbralHuecoMin: 5,
   });
   assert(problemas.some((p) => p.tipo === 'hueco_muerto'), 'con umbral 5 una ganancia de 20 min cuenta');
@@ -665,6 +670,7 @@ Deno.test('reposo: se ofrecen las dos estrategias cuando hay reposo y hueco norm
   const problemas = analizarAgendaDia([larga, corta], PROFS, {
     ahoraMs: ms(8, 0),
     maxAdelantoMin: 600,
+    margenReaccionMin: 0, // aqui se mide la eleccion reposo/hueco, no el margen
     horariosProfesional: [horarioProf('P1', 9, 20)],
   });
   const p = problemas.find((x) => x.citaIds.includes('C'));
@@ -674,4 +680,58 @@ Deno.test('reposo: se ofrecen las dos estrategias cuando hay reposo y hueco norm
   assertEquals(p!.estrategias[0].tipo, 'aprovechar_reposo');
   assert(p!.estrategias[0].recomendada, 'el reposo deberia venir marcado como recomendado');
   assertEquals(p!.estrategias[1].tipo, 'mover_hueco');
+});
+
+// --- Margen de reaccion de la clienta (entrega 2) ---------------------------
+//
+// Un techo en minutos de adelanto no dice nada por si solo: adelantar de 17:00
+// a 10:00 es razonable a las 07:00 y una temeridad a las 09:50. Lo que limita
+// de verdad es cuanto le queda a la clienta entre el aviso y la hora nueva.
+
+Deno.test('margen: no se propone una hora que no da tiempo de reaccion', () => {
+  // Son las 09:50. Una cita de las 15:00 NO puede irse a las 10:00: la clienta
+  // tendria 10 minutos para enterarse.
+  const citas = [cita('A', 'P1', 15, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(9, 50),
+    maxAdelantoMin: 600,
+    margenReaccionMin: 120,
+    horariosProfesional: [horarioProf('P1', 9, 20)],
+  });
+  for (const p of problemas) {
+    assert(
+      +new Date(p.zona.desde) >= ms(11, 50),
+      `propuso ${new Date(p.zona.desde).toISOString()}, sin margen de reaccion`,
+    );
+  }
+});
+
+Deno.test('margen: con el dia por delante si se adelanta de verdad', () => {
+  // Son las 07:00 y la cita es a las 17:00: hay margen de sobra. Con el techo
+  // viejo de 60 min esto se quedaba en las 16:00; ahora llega a la apertura.
+  const citas = [cita('A', 'P1', 17, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(7, 0),
+    maxAdelantoMin: 600,
+    margenReaccionMin: 120,
+    horariosProfesional: [horarioProf('P1', 9, 20)],
+  });
+  const p = problemas.find((x) => x.citaIds.includes('A'));
+  assert(p, 'no se propuso adelantar');
+  assertEquals(new Date(p!.zona.desde).getHours(), 9);
+});
+
+Deno.test('margen: a cero, deja de limitar', () => {
+  const citas = [cita('A', 'P1', 15, 0, 30)];
+  const opts = {
+    ahoraMs: ms(9, 50),
+    maxAdelantoMin: 600,
+    horariosProfesional: [horarioProf('P1', 9, 20)],
+  };
+  const conMargen = analizarAgendaDia(citas, PROFS, { ...opts, margenReaccionMin: 120 });
+  const sinMargen = analizarAgendaDia(citas, PROFS, { ...opts, margenReaccionMin: 0 });
+  assert(
+    +new Date(sinMargen[0].zona.desde) < +new Date(conMargen[0].zona.desde),
+    'sin margen deberia poder adelantar mas',
+  );
 });

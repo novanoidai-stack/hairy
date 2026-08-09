@@ -465,7 +465,7 @@ export default function AgendaCalendar() {
   const [undoBusy, setUndoBusy] = useState(false);
   const [undoError, setUndoError] = useState<string | null>(null);
   // Limites del organizador configurables por salon (undefined = usar los defaults).
-  const [limitesAgenda, setLimitesAgenda] = useState<{ maxAdelantoMin?: number; umbralHuecoMin?: number }>({});
+  const [limitesAgenda, setLimitesAgenda] = useState<{ maxAdelantoMin?: number; umbralHuecoMin?: number; margenReaccionMin?: number }>({});
   // Cierres del salon completo (festivos/vacaciones): la agenda pinta el dia cerrado.
   const [cierres, setCierres] = useState<
     { fecha: string; motivo: string | null }[]
@@ -970,6 +970,9 @@ export default function AgendaCalendar() {
         setLimitesAgenda({
           maxAdelantoMin: cfg.agendaMaxAdelantoMin,
           umbralHuecoMin: cfg.agendaUmbralHuecoMin,
+          // Cuanto margen debe quedarle a la clienta entre el aviso y la hora
+          // nueva. Es lo que de verdad limita el adelanto.
+          margenReaccionMin: cfg.agendaMargenReaccionMin,
         });
         setNegocioId(negocioId);
         setUserProfile(profile || null);
@@ -1397,6 +1400,7 @@ export default function AgendaCalendar() {
           horariosProfesional: horariosProf,
           maxAdelantoMin: limitesAgenda?.maxAdelantoMin,
           umbralHuecoMin: limitesAgenda?.umbralHuecoMin,
+          margenReaccionMin: limitesAgenda?.margenReaccionMin,
         },
       ));
     } catch {

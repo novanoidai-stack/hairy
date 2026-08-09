@@ -41,6 +41,7 @@ import {
   HORARIO_APERTURA,
   HORARIO_CIERRE,
   AGENDA_MAX_ADELANTO_MIN_DEFAULT,
+  AGENDA_MARGEN_REACCION_MIN_DEFAULT,
   AGENDA_UMBRAL_HUECO_MIN_DEFAULT,
 } from './constants.ts';
 
@@ -270,6 +271,10 @@ export interface AnalisisAgendaOpts {
   horariosProfesional?: HorarioProfesional[];
   // Techo de adelanto en minutos (ajuste del salon). Default: AGENDA_MAX_ADELANTO_MIN_DEFAULT.
   maxAdelantoMin?: number;
+  // Margen minimo entre AHORA y la hora nueva: lo que la clienta necesita para
+  // enterarse y contestar. Es el limite que de verdad manda; el techo de
+  // adelanto queda como red de seguridad. 0 lo desactiva.
+  margenReaccionMin?: number;
 }
 
 // 'HH:MM' o 'HH:MM:SS' -> ms sobre la fecha de referencia (hora local del salon).
@@ -476,6 +481,8 @@ function detectarHuecos(
   umbralMs: number,
   aperturaMs: number,
   maxAdelantoMs: number,
+  // Margen minimo entre ahora y la hora nueva (tiempo de reaccion de la clienta).
+  margenReaccionMs: number,
   // Tramos trabajables del profesional (turnos). Un hueco nunca puede caer
   // fuera de ellos ni a caballo entre dos (la pausa de comida).
   tramos: TramoJornada[],
@@ -498,7 +505,9 @@ function detectarHuecos(
     const obstaculos = citasProf.filter((c) => c.id !== cand.id).map((c) => efectivo.get(c.id)!);
     // El techo acota la busqueda: sin el, una cita de las 17:00 con la manana libre se
     // proponia adelantar 180 min, que ningun salon aplica.
-    const desde = Math.max(ahoraMs, aperturaMs, propia.ini - maxAdelantoMs);
+    // La hora NUEVA nunca puede caer antes de ahora + margen de reaccion: si no,
+    // se le mueve la cita a alguien que no ha tenido tiempo ni de leer el aviso.
+    const desde = Math.max(ahoraMs + margenReaccionMs, aperturaMs, propia.ini - maxAdelantoMs);
 
     // Dos candidatos, no uno. Antes solo se buscaba el hueco MAS TEMPRANO y
     // despues se miraba si por casualidad habia caido dentro de un reposo: el
@@ -673,6 +682,7 @@ export function analizarAgendaDia(
   const corteMs = esHoy ? ahoraMs : inicioDelDia.getTime();
   const umbralHuecoMs = (opts?.umbralHuecoMin ?? AGENDA_UMBRAL_HUECO_MIN_DEFAULT) * MIN;
   const maxAdelantoMs = (opts?.maxAdelantoMin ?? AGENDA_MAX_ADELANTO_MIN_DEFAULT) * MIN;
+  const margenReaccionMs = Math.max(0, opts?.margenReaccionMin ?? AGENDA_MARGEN_REACCION_MIN_DEFAULT) * MIN;
   const nombrePorId = new Map(profesionales.map((p) => [p.id, p.nombre]));
   const inicioPorId = new Map(citas.map((c) => [c.id, +new Date(c.inicio)]));
 
@@ -753,6 +763,7 @@ export function analizarAgendaDia(
       umbralHuecoMs,
       aperturaMs,
       maxAdelantoMs,
+      margenReaccionMs,
       tramos,
       comprometidas,
     );

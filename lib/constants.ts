@@ -14,9 +14,19 @@ export const INTERVALO_MINUTOS = 15;
 
 // Limites del organizador de agenda. Configurables por salon en negocio_config
 // (claves agendaMaxAdelantoMin / agendaUmbralHuecoMin); estos son los defaults.
-// Cuanto se puede adelantar una cita como maximo: mas de una hora antes no lo
-// acepta una clienta que ya tiene su hora dada.
-export const AGENDA_MAX_ADELANTO_MIN_DEFAULT = 60;
+// Cuanto se puede adelantar una cita como maximo.
+//
+// OJO: un techo en minutos de adelanto es un mal criterio y por eso ya no manda
+// solo. Adelantar de 17:00 a 10:00 es razonable si son las 7:00 (la clienta
+// tiene 3 horas para contestar) y una temeridad si son las 9:50. Lo que de
+// verdad limita es AGENDA_MARGEN_REACCION_MIN_DEFAULT: el hueco entre que
+// recibe el aviso y la hora nueva. Este techo se mantiene alto como red de
+// seguridad para que el organizador no proponga barbaridades de dia entero.
+export const AGENDA_MAX_ADELANTO_MIN_DEFAULT = 240;
+// Margen minimo entre que la clienta recibe la propuesta y la hora nueva. Es el
+// limite que de verdad importa: si no le da tiempo a leerlo y contestar, no se
+// propone. Configurable por salon (clave agendaMargenReaccionMin).
+export const AGENDA_MARGEN_REACCION_MIN_DEFAULT = 120;
 // Ganancia minima para proponer mover a una clienta: media hora justifica el
 // aviso, un slot (15 min) es ruido.
 export const AGENDA_UMBRAL_HUECO_MIN_DEFAULT = 30;
