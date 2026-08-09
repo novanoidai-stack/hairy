@@ -78,8 +78,10 @@ test.describe('Landing Page E2E Suite - mechaa.es', () => {
     await expect(navDemo).toBeAttached();
 
     if (await navDemo.isVisible().catch(() => false)) {
-      await navDemo.hover().catch(() => {});
-      await page.waitForTimeout(200);
+      try {
+        await navDemo.hover();
+        await page.waitForTimeout(200);
+      } catch (e) {}
     }
   });
 

@@ -22,9 +22,24 @@ test.describe('Authenticated Software Configuration E2E Suite - mechaa.es/app', 
     // If session expired or redirected to acceso.html, log in dynamically
     if (page.url().includes('acceso.html')) {
       console.log('Session expired, logging in via acceso.html...');
+      const tabLogin = page.locator('#tabLogin');
+      if (await tabLogin.isVisible().catch(() => false)) {
+        await tabLogin.click({ force: true }).catch(() => {});
+      }
+
       const emailInput = page.locator('input#loginEmail');
       const pwInput = page.locator('input#loginPw');
       const loginBtn = page.locator('button#loginBtn');
+
+      await emailInput.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
+      if (!(await emailInput.isVisible().catch(() => false))) {
+        await page.evaluate(() => {
+          const pane = document.getElementById('paneLogin');
+          if (pane) pane.classList.add('on');
+          const loader = document.getElementById('paneLoading');
+          if (loader) loader.classList.remove('on');
+        }).catch(() => {});
+      }
 
       if (await emailInput.isVisible({ timeout: 5000 }).catch(() => false)) {
         await emailInput.fill('carlitosocanamartinez@gmail.com');
