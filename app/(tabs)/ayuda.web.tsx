@@ -10,6 +10,9 @@ import {
   type ManualContent,
   type FAQItem,
 } from '@/lib/manuals';
+import { HubIA } from '@/components/config/HubIA';
+import { getUserProfile } from '@/lib/auth';
+import { useEffect } from 'react';
 
 const T = {
   bg: '#f6f1ea',
@@ -47,6 +50,17 @@ export default function AyudaScreen() {
   const [manualActivo, setManualActivo] = useState<ManualContent | null>(null);
   const [faqAbierta, setFaqAbierta] = useState<string | null>(null);
   const [preguntaChispa, setPreguntaChispa] = useState('');
+  const [negocioId, setNegocioId] = useState<string>('');
+  const [rolStr, setRolStr] = useState<string>('');
+
+  useEffect(() => {
+    getUserProfile().then(user => {
+      if (user) {
+        setNegocioId(user.negocioId || user.id);
+        setRolStr(user.role || '');
+      }
+    });
+  }, []);
 
   // Filtrado de manuales
   const manualesFiltrados = useMemo(() => {
@@ -98,7 +112,7 @@ export default function AyudaScreen() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, color: T.text, padding: isMobile ? 12 : 24, fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ height: '100%', flex: 1, overflowY: 'auto', background: T.bg, color: T.text, padding: isMobile ? 12 : 24, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIMATIONS }} />
 
       {/* ── Cabecera Superior ── */}
@@ -270,10 +284,33 @@ export default function AyudaScreen() {
         >
           ❓ Preguntas Frecuentes ({FAQS_INICIALES.length})
         </button>
+
+        <button
+          onClick={() => setCatSel('hub_ia')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 10,
+            border: `1px solid ${catSel === 'hub_ia' ? T.teal : T.border}`,
+            background: catSel === 'hub_ia' ? T.bgCardHi : T.bgCard,
+            color: catSel === 'hub_ia' ? T.teal : T.textSec,
+            fontWeight: catSel === 'hub_ia' ? 700 : 500,
+            fontSize: 13,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ✨ Qué hace la IA
+        </button>
       </div>
 
+      {catSel === 'hub_ia' && (
+        <div style={{ marginBottom: 32 }}>
+          <HubIA negocioId={negocioId} rolStr={rolStr} />
+        </div>
+      )}
+
       {/* ── Sección de Manuales ── */}
-      {catSel !== 'faqs' && (
+      {catSel !== 'faqs' && catSel !== 'hub_ia' && (
         <div style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 14 }}>
             {catSel === 'todas'
@@ -426,22 +463,25 @@ export default function AyudaScreen() {
             El equipo de soporte de Mecha está disponible para ayudarte a configurar tu salón o resolver cualquier incidencia.
           </div>
         </div>
-        <button
-          onClick={() => router.push('/(tabs)/configuracion')}
-          style={{
-            padding: '9px 16px',
-            borderRadius: 10,
-            background: T.bgCard,
-            border: `1px solid ${T.borderHi}`,
-            color: T.text,
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Contactar con Soporte Técnico
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: 6 }}>
+          <button
+            onClick={() => window.open('https://wa.me/34690792975', '_blank')}
+            style={{
+              padding: '9px 16px',
+              borderRadius: 10,
+              background: T.bgCard,
+              border: `1px solid ${T.borderHi}`,
+              color: T.text,
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Soporte (Llamada o WhatsApp)
+          </button>
+          <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>+34 690 792 975</div>
+        </div>
       </div>
 
       {/* ── Modal de Manual Detallado ── */}

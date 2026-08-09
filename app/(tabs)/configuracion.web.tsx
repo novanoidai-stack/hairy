@@ -280,7 +280,6 @@ const TABS: TabDef[] = [
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'migracion_magica', label: 'Migración Mágica', icon: 'zap', section: 'Operativa' },
-  { id: 'hub_ia',         label: 'Qué hace la IA', icon: 'sparkles',  section: 'Cuenta' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
@@ -1284,9 +1283,6 @@ export default function ConfiguracionWeb() {
             {tab === 'voz' && (
               <TabVoz config={config} setC={setC} />
             )}
-            {tab === 'hub_ia' && (
-              <HubIA negocioId={negocioId} rolStr={account?.role} />
-            )}
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
             {tab === 'politicas' && <TabPoliticas config={config} setC={setC} negocioId={negocioId} />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
@@ -1553,7 +1549,7 @@ function TabReferidos() {
     <>
       <Section
         title="Invita y gana"
-        desc="Comparte tu enlace con otros salones. Ganas descuento en tu plan por cada uno que entra contigo y activa su suscripcion, y tambien por los que ellos traigan (hasta 3 niveles, maximo 40%)."
+        desc="Comparte tu enlace con otros salones. Ganas descuento en tu plan por cada uno que entra contigo y activa su suscripcion, y tambien por los que ellos traigan (hasta 3 niveles, maximo 30%)."
       >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <StatBox label="Tu descuento" value={`-${pct}%`} sub={pct > 0 ? (aplicado ? 'activo en tu plan' : 'acumulado en tu plan') : 'aun sin descuento'} accent={pct > 0 ? T.success : undefined} />

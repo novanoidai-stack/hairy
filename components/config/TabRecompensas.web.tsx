@@ -1240,11 +1240,20 @@ interface ModalLogroProps {
 
 function ModalLogro({ logro, onClose, onSave, saving }: ModalLogroProps) {
   const [form, setForm] = useState<Logro>(logro);
+  const [valorCondicion, setValorCondicion] = useState<string>('');
   const [error, setError] = useState('');
   const { isMobile } = useResponsive();
 
   useEffect(() => {
     setForm(logro);
+    try {
+      const parsed = JSON.parse(logro.condicion_json || '{}');
+      if (logro.tipo === 'visitas') setValorCondicion(String(parsed.visitas || ''));
+      else if (logro.tipo === 'gasto') setValorCondicion(String(parsed.gasto_minimo || ''));
+      else if (logro.tipo === 'referidos') setValorCondicion(String(parsed.referidos || ''));
+    } catch {
+      setValorCondicion('');
+    }
   }, [logro]);
 
   const handleSubmit = () => {
@@ -1255,14 +1264,22 @@ function ModalLogro({ logro, onClose, onSave, saving }: ModalLogroProps) {
       return;
     }
 
-    try {
-      JSON.parse(form.condicion_json);
-    } catch {
-      setError('La condición debe ser un JSON válido.');
-      return;
+    let finalJson = form.condicion_json;
+    if (form.tipo !== 'custom') {
+      const valNum = Number(valorCondicion) || 0;
+      if (form.tipo === 'visitas') finalJson = JSON.stringify({ visitas: valNum });
+      else if (form.tipo === 'gasto') finalJson = JSON.stringify({ gasto_minimo: valNum });
+      else if (form.tipo === 'referidos') finalJson = JSON.stringify({ referidos: valNum });
+    } else {
+      try {
+        JSON.parse(finalJson);
+      } catch {
+        setError('Para logros personalizados, la condición debe ser un JSON válido.');
+        return;
+      }
     }
 
-    onSave(form);
+    onSave({ ...form, condicion_json: finalJson });
   };
 
   return (
@@ -1337,19 +1354,33 @@ function ModalLogro({ logro, onClose, onSave, saving }: ModalLogroProps) {
               />
             </FieldRow>
 
-            <FieldRow
-              label="Condición (JSON)"
-              htmlFor="log-cond"
-              hint='Ej: {"visitas": 10} o {"gasto_minimo": 500}'
-            >
-              <STextInput
-                value={form.condicion_json}
-                onChange={v => setForm({ ...form, condicion_json: v })}
-                placeholder='{"visitas": 10}'
-                width="100%"
-                mono
-              />
-            </FieldRow>
+            {form.tipo !== 'custom' ? (
+              <FieldRow
+                label={`Objetivo de ${form.tipo}`}
+                htmlFor="log-cond-num"
+                hint={`Cantidad necesaria de ${form.tipo} para conseguir el logro`}
+              >
+                <NumberInput
+                  value={Number(valorCondicion) || 0}
+                  onChange={v => setValorCondicion(String(v))}
+                  placeholder="Ej: 10"
+                />
+              </FieldRow>
+            ) : (
+              <FieldRow
+                label="Condición (JSON)"
+                htmlFor="log-cond"
+                hint='Ej: {"visitas": 10} o {"gasto_minimo": 500}'
+              >
+                <STextInput
+                  value={form.condicion_json}
+                  onChange={v => setForm({ ...form, condicion_json: v })}
+                  placeholder='{"visitas": 10}'
+                  width="100%"
+                  mono
+                />
+              </FieldRow>
+            )}
 
             <FieldRow label="Activo">
               <Toggle
