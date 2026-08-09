@@ -24,6 +24,7 @@ import { useTheme } from '@/lib/theme';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import './globals.css';
 
 // Load Google Fonts for web + inject default text color
@@ -312,6 +313,7 @@ export default function RootLayout() {
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
       </Stack>
       {isWeb && <Analytics />}
+      {isWeb && <SpeedInsights />}
     </ThemedRoot>
     </SafeAreaProvider>
     </ThemeProvider>
