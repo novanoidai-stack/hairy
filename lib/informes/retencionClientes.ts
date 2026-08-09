@@ -284,7 +284,23 @@ export interface FrecuenciaRetorno {
   ocasionales: FrecuenciaGrupo;
   /** Por servicio, ordenado de ciclo más largo a más corto. Solo con muestra suficiente. */
   porServicio: { servicioId: string; medianaDias: number; intervalos: number }[];
+  /**
+   * Fichas descartadas por no ser una persona: ver `minDiasCicloCliente`.
+   * Se expone para poder decirlo en pantalla en vez de callar un descarte.
+   */
+  fichasDescartadas: number;
 }
+
+/**
+ * Por debajo de este ciclo, una ficha no es un cliente: es un cajón.
+ *
+ * En producción hay fichas con más de 200 visitas completadas y varias el mismo
+ * día: son las que se usan para atender sin cita, donde se acumulan las visitas
+ * de mucha gente distinta. Si entran en el cálculo, arrastran la mediana del
+ * salón a 1 día y el titular ("tus clientes vuelven cada X días") queda
+ * inservible.
+ */
+export const MIN_DIAS_CICLO_CLIENTE = 2;
 
 const GRUPO_VACIO: FrecuenciaGrupo = { mediaDias: 0, medianaDias: 0, intervalos: 0 };
 
@@ -305,10 +321,12 @@ function grupo(gaps: number[]): FrecuenciaGrupo {
  */
 export function frecuenciaRetorno(
   visitas: VisitaHistorica[],
-  opts: { minIntervalosServicio?: number } = {},
+  opts: { minIntervalosServicio?: number; minDiasCicloCliente?: number } = {},
 ): FrecuenciaRetorno {
   const minIntervalosServicio = opts.minIntervalosServicio ?? 4;
+  const minDiasCiclo = opts.minDiasCicloCliente ?? MIN_DIAS_CICLO_CLIENTE;
   const porCliente = visitasPorCliente(visitas);
+  let fichasDescartadas = 0;
 
   const todos: number[] = [];
   const deFieles: number[] = [];
@@ -326,6 +344,12 @@ export function frecuenciaRetorno(
       gaps.push(dias);
     }
     if (gaps.length === 0) continue;
+
+    // Descarte de las fichas que no son una persona (ver MIN_DIAS_CICLO_CLIENTE).
+    if (medianaDe(gaps) < minDiasCiclo) {
+      fichasDescartadas++;
+      continue;
+    }
 
     todos.push(...gaps);
     if (lista.length >= MIN_VISITAS_FIEL) deFieles.push(...gaps);
@@ -366,7 +390,43 @@ export function frecuenciaRetorno(
     fieles: grupo(deFieles),
     ocasionales: grupo(deOcasionales),
     porServicio: servicios,
+    fichasDescartadas,
   };
+}
+
+/**
+ * Frecuencia de retorno de UN cliente, con la misma definición que usa
+ * `clientes.frecuencia_dias` en la base de datos: media de los últimos
+ * `maxIntervalos` intervalos entre visitas completadas, y hace falta un mínimo de
+ * visitas para que salga un número.
+ *
+ * Existe porque ese campo lo rellena un job (`procesar_alertas_fuga`) que hoy no
+ * está programado, así que en la ficha de cliente casi siempre está a null.
+ * Calcularlo aquí hace que el dato se vea desde el primer día, y como sigue la
+ * misma definición, cuando el job corra las dos cifras coincidirán.
+ *
+ * Devuelve null si no hay suficientes visitas, en vez de un cero enganoso.
+ */
+export function frecuenciaDiasCliente(
+  fechas: Date[],
+  opts: { maxIntervalos?: number; minVisitas?: number } = {},
+): number | null {
+  const maxIntervalos = opts.maxIntervalos ?? 6;
+  const minVisitas = opts.minVisitas ?? MIN_VISITAS_FIEL;
+  if (fechas.length < minVisitas) return null;
+
+  const orden = [...fechas].sort((a, b) => a.getTime() - b.getTime());
+  const gaps: number[] = [];
+  for (let i = 1; i < orden.length; i++) {
+    const dias = (orden[i].getTime() - orden[i - 1].getTime()) / DIA_MS;
+    // Dos servicios el mismo dia son una visita, no un retorno.
+    if (dias < 1) continue;
+    gaps.push(dias);
+  }
+  if (gaps.length === 0) return null;
+
+  const ultimos = gaps.slice(-maxIntervalos);
+  return Math.round(mediaDe(ultimos));
 }
 
 /**

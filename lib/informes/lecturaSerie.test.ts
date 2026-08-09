@@ -69,6 +69,21 @@ Deno.test('formatearValor no deja decimales sueltos y pone la unidad', () => {
   assertEquals(formatearValor(12, 'conteo'), '12');
 });
 
+Deno.test('con un solo elemento usa el singular en vez de decir "1 citas"', () => {
+  assertEquals(formatearValor(1, 'conteo', 'citas', 'cita'), '1 cita');
+  assertEquals(formatearValor(2, 'conteo', 'citas', 'cita'), '2 citas');
+  assertEquals(formatearValor(0, 'conteo', 'citas', 'cita'), '0 citas');
+  // Sin singular no se inventa uno quitando la "s": "veces" no da "vece".
+  assertEquals(formatearValor(1, 'conteo', 'veces'), '1 veces');
+  assertEquals(formatearValor(1, 'conteo', 'veces', 'vez'), '1 vez');
+});
+
+Deno.test('la frase respeta el singular del sustantivo', () => {
+  const l = leerSerie(serie([0, 1, 0, 0]), { unidad: 'conteo', granularidad: 'dia', sustantivo: 'citas', sustantivoSing: 'cita' });
+  assert(l.frase.includes('1 cita,') || l.frase.includes('con 1 cita'), l.frase);
+  assert(!l.frase.includes('1 citas'), l.frase);
+});
+
 Deno.test('etiquetarPunto nombra el punto segun el grano del eje X', () => {
   const d = new Date('2026-08-06T17:00:00');
   assertEquals(etiquetarPunto(d, 'hora'), 'las 17:00');

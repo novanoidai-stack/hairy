@@ -12,6 +12,7 @@ import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA, CITA_STATUS_ACTIVOS } 
 import { esCompletada, esCanceladaONoShow } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { InfoDot } from '@/components/ui/InfoDot.web';
+import { frecuenciaDiasCliente } from '@/lib/informes/retencionClientes';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
@@ -1510,14 +1511,38 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
     .filter((cit) => cit.cliente_id === cliente.id && new Date(cit.inicio) > now)
     .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())[0];
 
-  // Ritmo de visitas. El dato ya lo calcula el job de agregados
+  // Ritmo de visitas.
+  //
+  // El dato canonico es clientes.frecuencia_dias, que rellena el job de agregados
   // (migrations/alerta-fuga-clientas.sql: media de los ultimos 6 intervalos entre
-  // citas completadas, requiere 3 visitas) y ya se veia en la app nativa, pero en
-  // la web solo aparecia escondido dentro del aviso de fuga.
-  const frec = cliente.frecuencia_dias ?? 0;
+  // citas completadas, con 3 visitas minimo) y que ya se veia en la app nativa
+  // pero en la web solo aparecia escondido dentro del aviso de fuga.
+  //
+  // Cuando esta a null se calcula aqui con la MISMA definicion, porque ese job no
+  // esta programado en produccion y si no la ficha no ensenaria el dato nunca.
+  // Al seguir la misma regla, cuando el job corra las dos cifras coincidiran.
+  //
+  // Ojo con el contador: `cliente.visitas` cuenta TODAS sus citas, incluidas las
+  // futuras y las canceladas, asi que no sirve para explicar por que todavia no
+  // hay ritmo. Aqui se cuentan solo las completadas, que son las que lo miden.
+  const { frecCalculada, visitasCompletadas } = useMemo(() => {
+    const suyas = citas
+      .filter((cit) => cit.cliente_id === cliente.id && esCompletada(cit))
+      .map((cit) => new Date(cit.inicio));
+    return { frecCalculada: frecuenciaDiasCliente(suyas), visitasCompletadas: suyas.length };
+  }, [citas, cliente.id]);
+
+  const frec = cliente.frecuencia_dias ?? frecCalculada ?? 0;
   const diasSin = cliente.diasInactiva ?? null;
+  /**
+   * Menos de 2 dias de media no es un ciclo de visitas: es la ficha generica que
+   * se usa para los clientes sin cita, donde se acumulan cientos de visitas y
+   * varias el mismo dia. Hay fichas asi en produccion con ~200 visitas y una
+   * media de 0 dias, y decir "vuelve cada 0 dias" no significa nada.
+   */
+  const ritmoNoFiable = frec > 0 && frec < 2;
   const ritmo = (() => {
-    if (!frec || frec <= 0) return null;
+    if (!frec || frec <= 0 || ritmoNoFiable) return null;
     if (diasSin === null) return { texto: 'Todavía no ha venido.', color: TOKENS.textTer };
     const restante = frec - diasSin;
     // El x1,4 es el mismo umbral que usa el aviso automatico de fuga: por encima
@@ -1526,10 +1551,10 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
       return { texto: `Se está yendo: lleva ${diasSin} días sin venir, ${diasSin - frec} más de lo que suele tardar.`, color: TOKENS.danger };
     }
     if (restante <= 0) {
-      return { texto: `Le toca ya: lleva ${diasSin} días y su ritmo es de ${frec}.`, color: TOKENS.warning };
+      return { texto: `Le toca ya: lleva ${diasSin} días sin venir y su ritmo es de ${frec}.`, color: TOKENS.warning };
     }
     if (restante <= 7) {
-      return { texto: `Le toca esta semana: en unos ${restante} días.`, color: TOKENS.primary };
+      return { texto: `Le toca esta semana: en ${restante === 1 ? 'un día' : `unos ${restante} días`}.`, color: TOKENS.primary };
     }
     return { texto: `Le toca dentro de unos ${restante} días.`, color: TOKENS.success };
   })();
@@ -1541,7 +1566,7 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
           {ritmo ? (
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Cada {frec} días</span>
+                <span style={{ fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Cada {frec} {frec === 1 ? 'día' : 'días'}</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <span style={{ fontSize: 11, color: TOKENS.textTer }}>es lo que tarda en volver</span>
                   <InfoDot
@@ -1562,9 +1587,11 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
             </>
           ) : (
             <div style={{ fontSize: 12, color: TOKENS.textTer, lineHeight: 1.5 }}>
-              {(cliente.visitas || 0) === 0
-                ? 'Sin visitas todavía, así que no hay ritmo que medir.'
-                : `Hacen falta 3 visitas para saber cada cuánto vuelve. Lleva ${cliente.visitas}.`}
+              {ritmoNoFiable
+                ? `Sus visitas están demasiado seguidas (menos de dos días de media entre una y otra) para hablar de un ciclo. Suele pasar en la ficha que se usa para atender sin cita, donde se acumulan las visitas de mucha gente distinta.`
+                : visitasCompletadas === 0
+                  ? 'Todavía no ha completado ninguna visita, así que no hay ritmo que medir.'
+                  : `Lleva ${visitasCompletadas} ${visitasCompletadas === 1 ? 'visita completada' : 'visitas completadas'}. Con 3 ya se puede medir cada cuánto vuelve: hacen falta dos intervalos para sacar una media.`}
             </div>
           )}
         </div>

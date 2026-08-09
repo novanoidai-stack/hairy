@@ -8,6 +8,7 @@ import {
   frasesCohortes,
   frecuenciaRetorno,
   fraseFrecuencia,
+  frecuenciaDiasCliente,
   visitasPorCliente,
   claveMes,
   inicioMes,
@@ -189,6 +190,53 @@ Deno.test('la frase de cohortes traduce el porcentaje a "de cada 10"', () => {
   assert(frase.includes('4 vuelven al mes siguiente'), frase);
 });
 
+// --- Frecuencia de un cliente suelto (fallback de la ficha) -----------------
+
+Deno.test('con menos de 3 visitas no hay frecuencia, y se dice con null', () => {
+  assertEquals(frecuenciaDiasCliente([]), null);
+  assertEquals(frecuenciaDiasCliente([new Date('2026-08-01')]), null);
+  assertEquals(frecuenciaDiasCliente([new Date('2026-07-01'), new Date('2026-08-01')]), null);
+});
+
+Deno.test('con 3 visitas da la media de los intervalos', () => {
+  // Intervalos de 20 y 30 dias -> media 25.
+  const f = frecuenciaDiasCliente([
+    new Date('2026-06-01T12:00:00'),
+    new Date('2026-06-21T12:00:00'),
+    new Date('2026-07-21T12:00:00'),
+  ]);
+  assertEquals(f, 25);
+});
+
+Deno.test('solo promedia los ultimos 6 intervalos, como hace el SQL', () => {
+  // 8 visitas: los dos primeros intervalos son enormes y NO deben contar.
+  const fechas = [new Date('2020-01-01T12:00:00'), new Date('2022-01-01T12:00:00'), new Date('2026-01-01T12:00:00')];
+  let d = new Date('2026-01-01T12:00:00');
+  for (let i = 0; i < 6; i++) {
+    d = new Date(d.getTime() + 30 * 86400000);
+    fechas.push(new Date(d));
+  }
+  assertEquals(frecuenciaDiasCliente(fechas), 30);
+});
+
+Deno.test('las fechas desordenadas se ordenan antes de medir', () => {
+  const f = frecuenciaDiasCliente([
+    new Date('2026-07-21T12:00:00'),
+    new Date('2026-06-01T12:00:00'),
+    new Date('2026-06-21T12:00:00'),
+  ]);
+  assertEquals(f, 25);
+});
+
+Deno.test('dos servicios el mismo dia no cuentan como retorno en la ficha', () => {
+  const f = frecuenciaDiasCliente([
+    new Date('2026-06-01T10:00:00'),
+    new Date('2026-06-01T12:00:00'),
+    new Date('2026-07-01T12:00:00'),
+  ]);
+  assertEquals(f, 30);
+});
+
 // --- A6: cada cuanto vuelven ------------------------------------------------
 
 Deno.test('sin clientes repetidores no se puede medir la frecuencia', () => {
@@ -214,6 +262,39 @@ Deno.test('la mediana no se mueve con la reaparicion tardia que si mueve la medi
   assert(f.global.mediaDias > 50, `la media deberia estar inflada, es ${f.global.mediaDias}`);
   // Y la frase avisa de la diferencia en vez de dar la media por buena.
   assert(fraseFrecuencia(f).includes('reapariciones sueltas'));
+});
+
+Deno.test('la ficha "cajon" de sin cita no arrastra la mediana del salon', () => {
+  const visitas: VisitaHistorica[] = [];
+  // Cinco clientes de verdad con ciclo de 28 dias.
+  for (let i = 0; i < 5; i++) {
+    visitas.push(v(`c${i}`, '2026-07-01'), v(`c${i}`, '2026-07-29'));
+  }
+  // Y una ficha con 60 visitas seguidas dia tras dia: la de atender sin cita.
+  const base = new Date('2026-06-01T12:00:00');
+  for (let d = 0; d < 60; d++) {
+    visitas.push({ clienteId: 'sin-cita', fecha: new Date(base.getTime() + d * 86400000) });
+  }
+
+  const f = frecuenciaRetorno(visitas);
+  assertEquals(Math.round(f.global.medianaDias), 28);
+  assertEquals(f.fichasDescartadas, 1);
+
+  // Sin el descarte, esa ficha sola manda: la mediana se iria a 1 dia.
+  const sinDescarte = frecuenciaRetorno(visitas, { minDiasCicloCliente: 0 });
+  assertEquals(Math.round(sinDescarte.global.medianaDias), 1);
+  assertEquals(sinDescarte.fichasDescartadas, 0);
+});
+
+Deno.test('un cliente normal no se descarta por tener una visita seguida sueltas', () => {
+  // Ciclo de 30 dias con una repeticion al dia siguiente: la mediana sigue alta.
+  const visitas = [
+    v('a', '2026-05-01'), v('a', '2026-05-02'),
+    v('a', '2026-06-01'), v('a', '2026-07-01'),
+  ];
+  const f = frecuenciaRetorno(visitas);
+  assertEquals(f.fichasDescartadas, 0);
+  assert(f.global.medianaDias >= 2, `mediana ${f.global.medianaDias}`);
 });
 
 Deno.test('separa fieles (3+ visitas) de ocasionales (2 visitas)', () => {

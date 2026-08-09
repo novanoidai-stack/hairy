@@ -37,6 +37,12 @@ export interface LineChartMiniProps {
   marcarPico?: boolean;
   /** Qué se resume debajo. 'total' es el comportamiento histórico. */
   pieDeGrafica?: 'total' | 'media' | 'ninguno';
+  /**
+   * Rótulo del pie. Hace falta porque cuando el eje se recorta a "hasta hoy", un
+   * "Total en periodo" contradice al KPI de arriba, que sí cuenta lo ya reservado
+   * del resto del mes.
+   */
+  etiquetaPie?: string;
 }
 
 function ejeLabel(n: number): string {
@@ -80,7 +86,7 @@ function smoothPath(pts: { x: number; y: number }[]): string {
 export function LineChartMini({
   serie, color, fmt, labelExplicativo,
   unidadY, etiquetaX, granularidad,
-  mostrarMedia = false, marcarPico = false, pieDeGrafica = 'total',
+  mostrarMedia = false, marcarPico = false, pieDeGrafica = 'total', etiquetaPie,
 }: LineChartMiniProps) {
   const rawId = useId();
   const gid = `chispa-grad-${rawId.replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -379,7 +385,7 @@ export function LineChartMini({
           "Total en periodo" era literalmente un número sin significado. */}
       {pieDeGrafica !== 'ninguno' && (
         <div style={{ textAlign: 'center', marginTop: 4, fontSize: 11, fontWeight: 600, color: T.textSecondary }}>
-          {pieDeGrafica === 'media' ? 'Media del periodo: ' : 'Total en periodo: '}
+          {etiquetaPie ? `${etiquetaPie}: ` : (pieDeGrafica === 'media' ? 'Media del periodo: ' : 'Total en periodo: ')}
           <strong style={{ color: T.text }}>{fmt(pieDeGrafica === 'media' ? mediaVal : total)}</strong>
         </div>
       )}

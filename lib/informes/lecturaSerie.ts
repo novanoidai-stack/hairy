@@ -44,8 +44,13 @@ export interface LecturaSerie {
 export interface OpcionesLectura {
   unidad: Unidad;
   granularidad: Granularidad;
-  /** Sustantivo del conteo, para que la frase diga "412 citas" y no "412". */
+  /** Sustantivo del conteo en plural, para que la frase diga "412 citas" y no "412". */
   sustantivo?: string;
+  /**
+   * El mismo sustantivo en singular. Sin esto se leia "1 citas". No se deduce
+   * quitando la "s" porque hay palabras donde eso falla ("veces" -> "vece").
+   */
+  sustantivoSing?: string;
 }
 
 // Por debajo de este movimiento no se llama tendencia: es ruido.
@@ -58,7 +63,7 @@ const MIN_PUNTOS_TENDENCIA = 4;
 // ---------------------------------------------------------------------------
 
 /** Formatea un valor segun su unidad, en castellano y sin decimales de mas. */
-export function formatearValor(n: number, unidad: Unidad, sustantivo?: string): string {
+export function formatearValor(n: number, unidad: Unidad, sustantivo?: string, sustantivoSing?: string): string {
   switch (unidad) {
     case 'eur':
       return `${Math.round(n).toLocaleString('es-ES')} €`;
@@ -70,7 +75,8 @@ export function formatearValor(n: number, unidad: Unidad, sustantivo?: string): 
     }
     case 'conteo': {
       const c = Math.round(n);
-      return sustantivo ? `${c} ${sustantivo}` : String(c);
+      if (!sustantivo) return String(c);
+      return `${c} ${c === 1 ? (sustantivoSing ?? sustantivo) : sustantivo}`;
     }
   }
 }
@@ -142,7 +148,7 @@ export function tendenciaMitades(vals: number[]): number | null {
 // ---------------------------------------------------------------------------
 
 export function leerSerie(serie: PuntoSerie[], opts: OpcionesLectura): LecturaSerie {
-  const { unidad, granularidad, sustantivo } = opts;
+  const { unidad, granularidad, sustantivo, sustantivoSing } = opts;
   const vals = serie.map((p) => p.valor);
   const totalTieneSentido = unidad === 'eur' || unidad === 'conteo';
   const total = vals.reduce((a, b) => a + b, 0);
@@ -187,16 +193,16 @@ export function leerSerie(serie: PuntoSerie[], opts: OpcionesLectura): LecturaSe
 
   // 2) Pico y valle, que es donde el dueño puede actuar.
   const grano = nombreGrano(granularidad);
-  const vPico = formatearValor(pico.valor, unidad, sustantivo);
+  const vPico = formatearValor(pico.valor, unidad, sustantivo, sustantivoSing);
   let fraseExtremos = `Tu mejor ${grano} fue ${etiquetarPunto(pico.fecha, granularidad)}, con ${vPico}`;
   if (valle !== pico && serie.length >= 3) {
-    const vValle = formatearValor(valle.valor, unidad, sustantivo);
+    const vValle = formatearValor(valle.valor, unidad, sustantivo, sustantivoSing);
     fraseExtremos += `; el más flojo, ${etiquetarPunto(valle.fecha, granularidad)}, con ${vValle}`;
   }
   partes.push(`${fraseExtremos}.`);
 
   // 3) El nivel normal, para saber si el pico fue un buen dia o un milagro.
-  partes.push(`Lo normal en tu salón es ${formatearValor(med, unidad, sustantivo)} por ${grano}.`);
+  partes.push(`Lo normal en tu salón es ${formatearValor(med, unidad, sustantivo, sustantivoSing)} por ${grano}.`);
 
   return {
     pico, valle, total, media: med, mediana: mdn,
@@ -231,9 +237,9 @@ export interface LecturaReparto {
  */
 export function leerReparto(
   items: ItemReparto[],
-  opts: { dimension: string; unidad?: Unidad; sustantivo?: string },
+  opts: { dimension: string; unidad?: Unidad; sustantivo?: string; sustantivoSing?: string },
 ): LecturaReparto {
-  const { dimension, unidad = 'conteo', sustantivo } = opts;
+  const { dimension, unidad = 'conteo', sustantivo, sustantivoSing } = opts;
   const conDatos = items.filter((i) => i.valor > 0);
   const total = items.reduce((s, i) => s + i.valor, 0);
 
@@ -252,14 +258,14 @@ export function leerReparto(
 
   const partes: string[] = [];
   partes.push(
-    `Tu ${dimension} más fuerte es ${fuerte.etiqueta}: ${formatearValor(fuerte.valor, unidad, sustantivo)}` +
+    `Tu ${dimension} más fuerte es ${fuerte.etiqueta}: ${formatearValor(fuerte.valor, unidad, sustantivo, sustantivoSing)}` +
     (total > 0 ? `, un ${Math.round(pctFuerte)} % del total` : '') + '.',
   );
 
   if (flojo !== fuerte) {
     const pctFlojo = total > 0 ? (flojo.valor / total) * 100 : 0;
     partes.push(
-      `${flojo.etiqueta} es donde menos se mueve: ${formatearValor(flojo.valor, unidad, sustantivo)} ` +
+      `${flojo.etiqueta} es donde menos se mueve: ${formatearValor(flojo.valor, unidad, sustantivo, sustantivoSing)} ` +
       `(${Math.round(pctFlojo)} %).`,
     );
   }

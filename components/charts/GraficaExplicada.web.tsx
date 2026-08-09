@@ -31,8 +31,12 @@ export interface GraficaExplicadaProps {
   color: string;
   unidad: Unidad;
   granularidad: Granularidad;
-  /** Sustantivo del conteo, para que se lea "12 citas" y no "12". */
+  /** Sustantivo del conteo en plural, para que se lea "12 citas" y no "12". */
   sustantivo?: string;
+  /** El mismo en singular, para que no se lea "1 citas". */
+  sustantivoSing?: string;
+  /** Rótulo del pie de la gráfica; por defecto "Total en periodo" o "Media". */
+  etiquetaPie?: string;
   /** Rótulo del eje X. Si no se pasa se deduce de la granularidad. */
   etiquetaX?: string;
   /** Texto corto que aparece en el tooltip al pasar por un punto. */
@@ -62,14 +66,14 @@ function etiquetaXPorDefecto(g: Granularidad): string {
 
 export function GraficaExplicada({
   titulo, queEs, serie, color, unidad, granularidad,
-  sustantivo, etiquetaX, labelExplicativo, isMobile = false,
+  sustantivo, sustantivoSing, etiquetaX, etiquetaPie, labelExplicativo, isMobile = false,
 }: GraficaExplicadaProps) {
   const lectura = useMemo(
-    () => leerSerie(serie, { unidad, granularidad, sustantivo }),
-    [serie, unidad, granularidad, sustantivo],
+    () => leerSerie(serie, { unidad, granularidad, sustantivo, sustantivoSing }),
+    [serie, unidad, granularidad, sustantivo, sustantivoSing],
   );
 
-  const fmt = (n: number) => formatearValor(n, unidad, sustantivo);
+  const fmt = (n: number) => formatearValor(n, unidad, sustantivo, sustantivoSing);
   const sinDatos = lectura.direccion === 'sin_datos';
 
   // Flecha y color de la tendencia. 'estable' no es ni bueno ni malo, así que va
@@ -116,6 +120,7 @@ export function GraficaExplicada({
         mostrarMedia
         marcarPico
         pieDeGrafica={lectura.totalTieneSentido ? 'total' : 'media'}
+        etiquetaPie={etiquetaPie}
       />
 
       <BandaLectura

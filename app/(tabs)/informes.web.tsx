@@ -23,6 +23,9 @@ import { GraficaExplicada } from '@/components/charts/GraficaExplicada.web';
 import { BandaLectura } from '@/components/charts/BandaLectura.web';
 import { InfoDot } from '@/components/ui/InfoDot.web';
 import { leerReparto, nombreGrano, type Granularidad } from '@/lib/informes/lecturaSerie';
+// Mismo motor que la calculadora publica /calculadora-comisiones: una sola cuenta.
+import { calcularComisiones } from '@/lib/comisiones/motor';
+import { CUOTA_PATRONAL_PCT, DESGLOSE_CUOTA_PATRONAL, AVISO_LEGAL } from '@/lib/comisiones/parametrosLegales';
 import {
   serieBaseFidelizada, embudoFidelizacion, cohortesRetencion, frasesCohortes,
   frecuenciaRetorno, fraseFrecuencia, VENTANA_ACTIVO_DIAS,
@@ -184,8 +187,8 @@ const SECTION_INFO: Record<string, string> = {
   reposo: 'Aprovechamiento de los huecos de reposo (tintes, mechas) para encajar otras tareas. Mide cuanto tiempo muerto se convierte en trabajo productivo.',
   ingresos: 'Facturacion del periodo desglosada por dia, profesional y servicio. Solo cuenta citas completadas. Es la base para ver la tendencia de ventas.',
   servicios: 'Ranking de servicios por numero de veces realizados e ingresos que generan en el periodo. Te dice que vende mas y que conviene priorizar.',
-  retencion: 'Fidelidad de clientes: nuevos frente a recurrentes y cada cuanto vuelven, medido sobre el periodo elegido. Ayuda a planificar campanas de recuperacion.',
-  comisiones: 'Comisiones estimadas por profesional segun los servicios completados y su porcentaje configurado. Se calculan sobre la base SIN IVA (el IVA es de Hacienda, no del salon). Util para las nominas.',
+  retencion: 'Si el salon esta retiendo o no: cuantos clientes fidelizados tienes mes a mes, cada cuanto vuelven y que porcentaje de los nuevos acaba quedandose. Se calcula sobre 13 meses de historial, no sobre el periodo del filtro, porque un ciclo de visitas no cabe en una semana.',
+  comisiones: 'Comisiones por profesional sobre la base SIN IVA (el IVA es de Hacienda, no del salon) y coste real de empresa con la cuota patronal. Puedes verlo con el porcentaje que tiene configurado cada uno o simular otro escenario para ver cuanto costaria antes de prometer nada.',
 };
 
 // ---------------------------------------------------------------------------
@@ -209,6 +212,8 @@ interface Profesional {
   color: string;
   activo: boolean;
   categoria?: string;
+  /** % de comision configurado en su ficha de equipo. null = no tiene. */
+  comision_pct?: number | null;
 }
 
 interface Servicio {
@@ -244,6 +249,20 @@ function granularidadDe(p: Periodo): Granularidad {
   }
 }
 
+/** Escenario de comision que se esta mirando en la seccion. */
+type ModeloComision = 'configurado' | 'plano' | 'tramos';
+
+type LineaEntradaComision = { nombre: string; facturacion: number; porcentaje?: number };
+
+/** Porcentaje de partida cuando un profesional no tiene el suyo configurado. */
+const COMISION_PCT_POR_DEFECTO = 30;
+
+/** Tramos con los que arranca el simulador si el salon no tiene ninguno guardado. */
+const TRAMOS_POR_DEFECTO = [
+  { desde: 0, hasta: 2000, porcentaje: 25 },
+  { desde: 2000, hasta: null as number | null, porcentaje: 35 },
+];
+
 type SeccionId = 'ocupacion' | 'noshows' | 'espera' | 'reposo' | 'ingresos' | 'servicios' | 'retencion' | 'comisiones';
 
 // ---------------------------------------------------------------------------
@@ -271,6 +290,17 @@ function fmtEur(n: number) {
 
 function fmtPct(n: number) {
   return `${Math.round(n)}%`;
+}
+
+/** Puntos de margen con coma decimal: se veia "13.2 puntos" en castellano. */
+function fmtPuntos(n: number) {
+  const abs = Math.abs(n);
+  return (Math.round(abs * 10) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 });
+}
+
+/** "1 cita" / "3 citas". Sin esto las barras decian "1 citas". */
+function fmtCitas(n: number) {
+  return `${n} ${n === 1 ? 'cita' : 'citas'}`;
 }
 
 function diasLaborales(desde: Date, hasta: Date): number {
@@ -352,8 +382,12 @@ function InformesScreen() {
   const [historicoRecortado, setHistoricoRecortado] = useState(false);
 
   // UI
-  const [comisionPct, setComisionPct] = useState<number>(30);
+  const [comisionPct, setComisionPct] = useState<number>(COMISION_PCT_POR_DEFECTO);
   const [comisionCustom, setComisionCustom] = useState<string>('');
+  // Escenario de comision: lo configurado en las fichas, un % plano simulado, o
+  // por tramos de facturacion.
+  const [modeloComision, setModeloComision] = useState<ModeloComision>('configurado');
+  const [tramos, setTramos] = useState(TRAMOS_POR_DEFECTO);
   // Las cohortes van plegadas: son el analisis mas potente y el mas duro de leer,
   // asi que no se le ponen delante a quien solo quiere el titular.
   const [verCohortes, setVerCohortes] = useState(false);
@@ -379,7 +413,7 @@ function InformesScreen() {
         .eq('negocio_id', nId)
         .gte('inicio', desde.toISOString())
         .lte('inicio', hasta.toISOString()),
-      supabase.from('profesionales').select('id, nombre, color, activo, categoria').eq('negocio_id', nId),
+      supabase.from('profesionales').select('id, nombre, color, activo, categoria, comision_pct').eq('negocio_id', nId),
       supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min').eq('negocio_id', nId),
       supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', nId),
       supabase
@@ -441,6 +475,44 @@ function InformesScreen() {
 
   // El grano del eje X lo manda el periodo elegido arriba: no hay segundo selector.
   const granularidad = useMemo(() => granularidadDe(periodo), [periodo]);
+
+  /**
+   * Hasta donde llega de verdad el eje X.
+   *
+   * Dos recortes, los dos por honestidad:
+   *
+   * 1. NO SE PINTA EL FUTURO. Con el periodo "Mes" el rango va al 31 aunque hoy
+   *    sea el 9, y aquellos 22 dias vacios hacian que la lectura dijera "va
+   *    bajando un 100 %": comparaba la primera mitad del mes contra una mitad que
+   *    todavia no ha ocurrido. La media y el dia mas flojo salian igual de mal.
+   * 2. NI EL CUBO INCOMPLETO. Con grano de semana o de mes, el ultimo cubo estaria
+   *    a medias y hundiria la tendencia por el mismo motivo. Se corta en el ultimo
+   *    periodo CERRADO, que es lo unico comparable.
+   */
+  const hastaEfectivo = useMemo(() => {
+    const ahora = new Date();
+    let fin = hasta.getTime() > ahora.getTime() ? endOfDay(ahora) : hasta;
+
+    if (granularidad === 'semana') {
+      if (endOfWeek(fin, { weekStartsOn: 1 }).getTime() > fin.getTime()) {
+        fin = subDays(startOfWeek(fin, { weekStartsOn: 1 }), 1);
+      }
+    } else if (granularidad === 'mes') {
+      if (endOfMonth(fin).getTime() > fin.getTime()) {
+        fin = subDays(startOfMonth(fin), 1);
+      }
+    }
+    // Si al recortar nos quedamos por detras del inicio (p. ej. la primera semana
+    // de un periodo que acaba de empezar), se deja al menos el dia de inicio.
+    return fin.getTime() < desde.getTime() ? desde : fin;
+  }, [granularidad, desde, hasta]);
+
+  /** true si el periodo elegido aun no ha terminado: hay que decirlo en pantalla. */
+  const periodoEnCurso = useMemo(
+    () => hasta.getTime() > new Date().getTime(),
+    [hasta],
+  );
+
 
   // -------------------------------------------------------------------------
   // Derived metrics
@@ -708,41 +780,104 @@ function InformesScreen() {
   }, [activas]);
 
   // -- 9.8: Comisiones --
-  // Real cuando el profesional tiene cobros en el periodo (libro de cobros, base sin IVA,
-  // sin la propina porque esa ya es integra del profesional); si no, sigue el estimado de
-  // catalogo de siempre — mismo patron que totalIngresos vs totalCobrado mas arriba.
-  const comisionesData = useMemo(() => {
-    const porProf: { profId: string; nombre: string; color: string; ingresos: number; comision: number; citas: number; real: boolean }[] = [];
-    // El IVA es de Hacienda, no del salon: la comision se calcula sobre la BASE SIN IVA.
-    const IVA_PCT = 21;
-
-    profsActivos.forEach(p => {
+  // Lo que ha facturado cada profesional en el periodo. Real cuando tiene cobros
+  // (libro de caja, sin la propina porque esa es integra suya); si no, estimado
+  // por catalogo — mismo patron que totalIngresos vs totalCobrado mas arriba.
+  const facturacionPorProf = useMemo(() => {
+    return profsActivos.map(p => {
       const profCitas = activas.filter(c => c.profesional_id === p.id);
       const profCobros = cobros.filter(c => c.profesional_id === p.id);
       const real = profCobros.length > 0;
-
-      let ingresos: number;
-      if (real) {
-        // total_cents ya viene neto de descuento y señal; se le quita la propina (no es
-        // base comisionable) antes de pasar a euros.
-        ingresos = profCobros.reduce((s, c) => s + ((c.total_cents || 0) - (c.propina_cents || 0)), 0) / 100;
-      } else {
-        ingresos = profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
-      }
-      const baseSinIva = ingresos / (1 + IVA_PCT / 100);
-      porProf.push({
+      const ingresos = real
+        // total_cents ya viene neto de descuento y señal.
+        ? profCobros.reduce((s, c) => s + ((c.total_cents || 0) - (c.propina_cents || 0)), 0) / 100
+        : profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
+      return {
         profId: p.id,
         nombre: p.nombre,
         color: p.color,
+        // El % que este profesional tiene CONFIGURADO en su ficha de equipo.
+        pctConfigurado: typeof p.comision_pct === 'number' ? p.comision_pct : null,
         ingresos,
-        comision: Math.round(baseSinIva * comisionPct / 100),
         citas: profCitas.length,
         real,
-      });
+      };
+    }).sort((a, b) => b.ingresos - a.ingresos);
+  }, [profsActivos, activas, cobros, srvMap]);
+
+  /**
+   * Calcula las comisiones con el motor COMPARTIDO con la calculadora publica
+   * (lib/comisiones/motor.js). Antes esta pantalla tenia su propia cuenta a mano,
+   * que solo sabia aplicar un porcentaje plano igual para todo el equipo — e
+   * ignoraba el `comision_pct` que cada profesional tiene configurado en su ficha.
+   */
+  const calcularCon = useCallback((modelo: ModeloComision, pctPlano: number) => {
+    const lineas = facturacionPorProf.map(p => {
+      const linea: LineaEntradaComision = { nombre: p.nombre, facturacion: p.ingresos };
+      // En modo "configurado" manda el % de la ficha de cada uno; si no lo tiene,
+      // cae al porcentaje general (y la UI lo señala).
+      if (modelo === 'configurado') linea.porcentaje = p.pctConfigurado ?? pctPlano;
+      return linea;
     });
-    porProf.sort((a, b) => b.ingresos - a.ingresos);
-    return porProf;
-  }, [profsActivos, activas, cobros, srvMap, comisionPct]);
+    return calcularComisiones(lineas, {
+      modelo: modelo === 'tramos' ? 'tramos' : 'plano',
+      porcentaje: pctPlano,
+      tramos: modelo === 'tramos' ? tramos : undefined,
+      ivaIncluido: true,
+      // Las propinas ya se han restado de la facturacion, asi que no se pasan aqui.
+      propinasComisionables: false,
+      calcularCosteEmpresa: true,
+      gastosFijosSalon: totalGastos,
+    });
+  }, [facturacionPorProf, tramos, totalGastos]);
+
+  // Escenario que se esta mirando ahora mismo.
+  const comisionCalculo = useMemo(
+    () => calcularCon(modeloComision, comisionPct),
+    [calcularCon, modeloComision, comisionPct],
+  );
+
+  // Escenario de referencia: lo que el salon tiene configurado hoy. Es contra
+  // esto contra lo que se compara al simular, y es lo que hace util el "¿que pasa
+  // si...?": sin una referencia, mover el porcentaje solo da un numero suelto.
+  const comisionReferencia = useMemo(
+    () => calcularCon('configurado', COMISION_PCT_POR_DEFECTO),
+    [calcularCon],
+  );
+
+  const hayConfiguracionPropia = useMemo(
+    () => facturacionPorProf.some(p => p.pctConfigurado !== null),
+    [facturacionPorProf],
+  );
+
+  // Diferencia entre el escenario simulado y el configurado, en euros de coste
+  // real (con cuota patronal) y en puntos de margen.
+  const deltaComision = useMemo(() => {
+    const a = comisionCalculo.totales;
+    const b = comisionReferencia.totales;
+    return {
+      comision: a.comisiones - b.comisiones,
+      coste: a.costeEmpresa - b.costeEmpresa,
+      margen: a.margenSalon - b.margenSalon,
+      puntosMargen: a.margenPct - b.margenPct,
+      esSimulacion: modeloComision !== 'configurado',
+    };
+  }, [comisionCalculo, comisionReferencia, modeloComision]);
+
+  // Forma que espera el resto de la pantalla (tabla, CSV y PDF).
+  const comisionesData = useMemo(() => {
+    return facturacionPorProf.map((p, i) => {
+      const l = comisionCalculo.lineas[i];
+      return {
+        ...p,
+        baseSinIva: l?.baseSinIva ?? 0,
+        comision: l?.comision ?? 0,
+        pctEfectivo: l?.porcentajeEfectivo ?? 0,
+        costeEmpresa: l?.costeEmpresa ?? 0,
+        avisos: l?.avisos ?? [],
+      };
+    });
+  }, [facturacionPorProf, comisionCalculo]);
 
   // -------------------------------------------------------------------------
   // CSV export callbacks (9.9)
@@ -754,9 +889,16 @@ function InformesScreen() {
   }, [ocupacionData, periodo]);
 
   const exportIngresos = useCallback(() => {
-    const headers = ['Profesional', 'Ingresos (EUR)', 'Comision (EUR)', 'Base'];
-    const rows = comisionesData.map(p => [p.nombre, String(p.ingresos), String(p.comision), p.real ? 'Real (cobros)' : 'Estimado (catalogo)']);
-    descargarCSV(`ingresos_${periodo}.csv`, headers, rows);
+    const headers = [
+      'Profesional', 'Citas', 'Facturado (EUR)', 'Base sin IVA (EUR)',
+      'Comision (EUR)', '% aplicado', 'Coste empresa (EUR)', 'Origen del dato',
+    ];
+    const rows = comisionesData.map(p => [
+      p.nombre, String(p.citas), p.ingresos.toFixed(2), p.baseSinIva.toFixed(2),
+      p.comision.toFixed(2), String(Math.round(p.pctEfectivo)),
+      p.costeEmpresa.toFixed(2), p.real ? 'Real (cobros)' : 'Estimado (catalogo)',
+    ]);
+    descargarCSV(`comisiones_${periodo}.csv`, headers, rows);
   }, [comisionesData, periodo]);
 
   const exportCompleto = useCallback(() => {
@@ -872,15 +1014,15 @@ function InformesScreen() {
   const lecturaOcupacion = useMemo(() => {
     const profs = leerReparto(
       ocupacionData.porProf.map(p => ({ etiqueta: p.nombre, valor: p.citas })),
-      { dimension: 'profesional', sustantivo: 'citas' },
+      { dimension: 'profesional', sustantivo: 'citas', sustantivoSing: 'cita' },
     );
     const franjas = leerReparto(
       FRANJAS.map((f, i) => ({ etiqueta: f, valor: ocupacionData.franjaCount[i] })),
-      { dimension: 'franja', sustantivo: 'citas' },
+      { dimension: 'franja', sustantivo: 'citas', sustantivoSing: 'cita' },
     );
     const dias = leerReparto(
       [1, 2, 3, 4, 5, 6, 0].map(d => ({ etiqueta: DIAS_SEMANA[d], valor: ocupacionData.diaCount[d] })),
-      { dimension: 'día', sustantivo: 'citas' },
+      { dimension: 'día', sustantivo: 'citas', sustantivoSing: 'cita' },
     );
     if (ocupacionData.total === 0) {
       return { frase: 'Sin citas en este periodo, así que no hay reparto que leer.', vacio: true, chips: [] as { etiqueta: string; valor: string }[] };
@@ -907,11 +1049,11 @@ function InformesScreen() {
     }
     const porProf = leerReparto(
       Object.entries(noShowData.porProf).map(([id, n]) => ({ etiqueta: profMap.get(id)?.nombre || id, valor: n })),
-      { dimension: 'profesional', sustantivo: 'ausencias' },
+      { dimension: 'profesional', sustantivo: 'ausencias', sustantivoSing: 'ausencia' },
     );
     const porSrv = leerReparto(
       Object.entries(noShowData.porServicio).map(([id, n]) => ({ etiqueta: srvMap.get(id)?.nombre || id, valor: n })),
-      { dimension: 'servicio', sustantivo: 'ausencias' },
+      { dimension: 'servicio', sustantivo: 'ausencias', sustantivoSing: 'ausencia' },
     );
     const partes: string[] = [
       `De cada 100 citas, ${Math.round(tasaNoShow)} se quedan sin venir.`,
@@ -947,6 +1089,20 @@ function InformesScreen() {
       chips: [{ etiqueta: 'Top', valor: r.fuerte.etiqueta }],
     };
   }, [serviciosData]);
+
+  // Lo que se le dice al usuario sobre el recorte del eje, para que no eche en
+  // falta los dias que no salen.
+  const etiquetaPieGrafica = useMemo(
+    () => (periodoEnCurso ? 'Total hasta hoy' : 'Total en periodo'),
+    [periodoEnCurso],
+  );
+
+  const avisoRecorte = useMemo(() => {
+    if (!periodoEnCurso) return '';
+    if (granularidad === 'mes') return ' · solo meses cerrados';
+    if (granularidad === 'semana') return ' · solo semanas cerradas';
+    return ' · hasta hoy';
+  }, [periodoEnCurso, granularidad]);
 
   const periodos: { key: Periodo; label: string }[] = [
     { key: 'hoy', label: 'Hoy' },
@@ -1100,11 +1256,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
     ].map(k => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div></div>`).join('');
 
     // Comisiones
-    const comRows = comisionesData.map(p => `<tr><td>${esc(p.nombre)}</td><td class="num">${p.citas}</td><td class="num">${fmtEur(p.ingresos)} €</td><td class="num">${fmtEur(p.comision)} €</td><td>${p.real ? 'Real' : 'Estimado'}</td></tr>`).join('')
-      || '<tr><td colspan="5" class="empty">Sin datos</td></tr>';
+    const esCabeceraComisionConfigurada = modeloComision === 'configurado';
+    const comRows = comisionesData.map(p => `<tr><td>${esc(p.nombre)}</td><td class="num">${p.citas}</td><td class="num">${fmtEur(p.baseSinIva)} €</td><td class="num">${fmtEur(p.comision)} €</td><td class="num">${Math.round(p.pctEfectivo)}%</td><td class="num">${fmtEur(p.costeEmpresa)} €</td><td>${p.real ? 'Real' : 'Estimado'}</td></tr>`).join('')
+      || '<tr><td colspan="7" class="empty">Sin datos</td></tr>';
     const comTotCitas = comisionesData.reduce((s, p) => s + p.citas, 0);
-    const comTotIng = comisionesData.reduce((s, p) => s + p.ingresos, 0);
-    const comTotCom = comisionesData.reduce((s, p) => s + p.comision, 0);
 
     const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <title>Informe Mecha - ${esc(periodoLabel)}</title>
@@ -1239,12 +1394,16 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   </section>
 
   <section>
-    <h2>Comisiones · ${esc(comisionPct)}% aplicado</h2>
+    <h2>Comisiones · ${esc(esCabeceraComisionConfigurada ? 'porcentaje configurado de cada profesional' : (modeloComision === 'tramos' ? 'simulación por tramos' : `simulación al ${comisionPct}%`))}</h2>
     <table>
-      <thead><tr><th>Profesional</th><th class="num">Citas</th><th class="num">Ingresos</th><th class="num">Comisión</th><th>Base</th></tr></thead>
+      <thead><tr><th>Profesional</th><th class="num">Citas</th><th class="num">Base sin IVA</th><th class="num">Comisión</th><th class="num">%</th><th class="num">Coste empresa</th><th>Origen</th></tr></thead>
       <tbody>${comRows}</tbody>
-      <tfoot><tr><td>Total</td><td class="num">${comTotCitas}</td><td class="num">${fmtEur(comTotIng)} €</td><td class="num">${fmtEur(comTotCom)} €</td><td></td></tr></tfoot>
+      <tfoot><tr><td>Total</td><td class="num">${comTotCitas}</td><td class="num">${fmtEur(comisionCalculo.totales.baseSinIva)} €</td><td class="num">${fmtEur(comisionCalculo.totales.comisiones)} €</td><td></td><td class="num">${fmtEur(comisionCalculo.totales.costeEmpresa)} €</td><td></td></tr></tfoot>
     </table>
+    <p style="font-size:9.5px;color:#736658;margin-top:7px;line-height:1.5">
+      Comisión sobre la base sin IVA (el IVA es de Hacienda, no del salón). El coste de empresa
+      añade la cuota patronal del ${esc(CUOTA_PATRONAL_PCT)}%. ${esc(AVISO_LEGAL)}
+    </p>
   </section>
 
   <div class="foot">Informe generado por Mecha · gestión inteligente de salón · ${esc(generado)}</div>
@@ -1296,13 +1455,17 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   // Momentos que forman el eje X. Con grano de hora se recorren solo las horas de
   // apertura del salon: un eje de 24 puntos con 13 a cero no se lee.
   const momentosDelPeriodo = useCallback((): Date[] => {
+    const ahora = new Date();
     if (granularidad === 'hora') {
       const ini = new Date(desde); ini.setHours(HORARIO_APERTURA.horas, 0, 0, 0);
-      const fin = new Date(desde); fin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+      const cierre = new Date(desde); cierre.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+      // Tampoco se pintan las horas de hoy que no han llegado.
+      const fin = cierre.getTime() > ahora.getTime() ? startOfHour(ahora) : cierre;
+      if (fin.getTime() < ini.getTime()) return [ini];
       return eachHourOfInterval({ start: ini, end: fin });
     }
-    return eachDayOfInterval({ start: desde, end: hasta });
-  }, [granularidad, desde, hasta]);
+    return eachDayOfInterval({ start: desde, end: hastaEfectivo });
+  }, [granularidad, desde, hastaEfectivo]);
 
   const tendenciaData = useMemo(() => {
     const dias = momentosDelPeriodo();
@@ -1667,7 +1830,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {/* del eje X lo manda el filtro de arriba (ya no hay dos filtros). */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle={`${periodoLabel} · ${etiquetaGrano}`} />
+              <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle={`${periodoLabel} · ${etiquetaGrano}${avisoRecorte}`} />
               <SectionBody>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 20 : 26 }}>
                   <GraficaExplicada
@@ -1677,6 +1840,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     color={TOKENS.success}
                     unidad="eur"
                     granularidad={granularidad}
+                    etiquetaPie={etiquetaPieGrafica}
                     labelExplicativo="Ingresos del periodo"
                     isMobile={isMobile}
                   />
@@ -1687,7 +1851,9 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     color={TOKENS.primary}
                     unidad="conteo"
                     sustantivo="citas"
+                    sustantivoSing="cita"
                     granularidad={granularidad}
+                    etiquetaPie={etiquetaPieGrafica}
                     labelExplicativo="Citas reservadas"
                     isMobile={isMobile}
                   />
@@ -1698,7 +1864,9 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     color={TOKENS.danger}
                     unidad="conteo"
                     sustantivo="ausencias"
+                    sustantivoSing="ausencia"
                     granularidad={granularidad}
+                    etiquetaPie={etiquetaPieGrafica}
                     labelExplicativo="No se presentaron"
                     isMobile={isMobile}
                   />
@@ -1751,7 +1919,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Por profesional</div>
                   {ocupacionData.porProf.length === 0 && <div style={{ fontSize: 12, color: TOKENS.textTer, padding: 12 }}>Sin datos en este periodo</div>}
                   {ocupacionData.porProf.map((p, i) => (
-                    <BarHorizontal key={p.profId} pct={p.pct} color={p.color} label={p.nombre} sublabel={`${p.citas} citas`} delay={i * 80} />
+                    <BarHorizontal key={p.profId} pct={p.pct} color={p.color} label={p.nombre} sublabel={fmtCitas(p.citas)} delay={i * 80} />
                   ))}
                 </div>
 
@@ -1761,7 +1929,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   {FRANJAS.map((f, i) => {
                     const total = ocupacionData.total;
                     const cnt = ocupacionData.franjaCount[i];
-                    return <BarHorizontal key={f} pct={total > 0 ? (cnt / total) * 100 : 0} color={TOKENS.cyan} label={f} sublabel={`${cnt} citas`} delay={i * 80} />;
+                    return <BarHorizontal key={f} pct={total > 0 ? (cnt / total) * 100 : 0} color={TOKENS.cyan} label={f} sublabel={fmtCitas(cnt)} delay={i * 80} />;
                   })}
                 </div>
 
@@ -1771,7 +1939,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   {[1, 2, 3, 4, 5, 6, 0].map((d, i) => {
                     const total = ocupacionData.total;
                     const cnt = ocupacionData.diaCount[d];
-                    return <BarHorizontal key={d} pct={total > 0 ? (cnt / total) * 100 : 0} color={TOKENS.primary} label={DIAS_SEMANA[d]} sublabel={`${cnt} citas`} delay={i * 80} />;
+                    return <BarHorizontal key={d} pct={total > 0 ? (cnt / total) * 100 : 0} color={TOKENS.primary} label={DIAS_SEMANA[d]} sublabel={fmtCitas(cnt)} delay={i * 80} />;
                   })}
                 </div>
 
@@ -2133,6 +2301,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   color={TOKENS.rose}
                   unidad="conteo"
                   sustantivo="clientes"
+                  sustantivoSing="cliente"
                   granularidad="mes"
                   etiquetaX="mes a mes"
                   labelExplicativo="Clientes fidelizados y activos"
@@ -2184,6 +2353,14 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                       <div style={{ fontSize: isMobile ? 11.5 : 12, lineHeight: 1.55, color: TOKENS.textSec }}>
                         {fraseDeFrecuencia}
                       </div>
+                      {frecuencia.fichasDescartadas > 0 && (
+                        <div style={{ fontSize: 10.5, lineHeight: 1.5, color: TOKENS.textTer, marginTop: 6 }}>
+                          Se {frecuencia.fichasDescartadas === 1 ? 'ha dejado' : 'han dejado'} fuera{' '}
+                          {frecuencia.fichasDescartadas === 1 ? 'una ficha' : `${frecuencia.fichasDescartadas} fichas`} con
+                          visitas casi a diario: son las que se usan para atender sin cita y no son una
+                          persona, así que falsearían el ciclo.
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -2344,106 +2521,403 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             </div>
 
             {/* ============================================================= */}
-            {/* 9.8: Comisiones                                               */}
+            {/* 9.8: Comisiones — simulador                                    */}
+            {/* Usa el motor compartido con la calculadora publica. Antes esta  */}
+            {/* pantalla solo sabia aplicar un % plano igual para todos, e      */}
+            {/* ignoraba el comision_pct configurado en cada ficha de equipo.   */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader id="comisiones" icon="percent" iconColor={TOKENS.amber} title="Comisiones por profesional" subtitle={`Porcentaje aplicado: ${comisionPct}% · sobre cobros reales cuando hay, si no estimado por catálogo`} />
+              <SectionHeader
+                id="comisiones"
+                icon="percent"
+                iconColor={TOKENS.amber}
+                title="Comisiones por profesional"
+                subtitle={
+                  modeloComision === 'configurado'
+                    ? (hayConfiguracionPropia
+                        ? 'Con el porcentaje que tiene configurado cada uno en su ficha'
+                        : `Nadie tiene porcentaje en su ficha, así que se aplica el ${comisionPct} % general`)
+                    : modeloComision === 'tramos'
+                      ? 'Simulación por tramos de facturación'
+                      : `Simulación con un ${comisionPct} % igual para todos`
+                }
+              />
               <SectionBody id="comisiones">
-                {/* Commission % selector — envuelve en movil para no salirse */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 8, background: TOKENS.amberSoft, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Porcentaje de comision:</span>
-                  <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-                    {[20, 25, 30, 35, 40].map(pct => (
+
+                {/* --- Escenario --- */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
+                  padding: '9px 12px', borderRadius: 10, background: TOKENS.amberSoft, flexWrap: 'wrap',
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 600 }}>Escenario:</span>
+                    <InfoDot
+                      text="«Como lo tienes» aplica a cada profesional el porcentaje de su ficha de equipo. Los otros dos son simulaciones: no cambian nada, solo te dicen qué pasaría. Todo se calcula sobre la base sin IVA, porque el IVA es de Hacienda."
+                      color={TOKENS.warning}
+                    />
+                  </span>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {([
+                      { key: 'configurado' as ModeloComision, label: 'Como lo tienes' },
+                      { key: 'plano' as ModeloComision, label: 'Simular un % único' },
+                      { key: 'tramos' as ModeloComision, label: 'Simular por tramos' },
+                    ]).map(m => (
                       <button
-                        key={pct}
-                        className={comisionPct === pct && !comisionCustom ? 'seg-btn is-active' : 'seg-btn'}
-                        onClick={() => { setComisionPct(pct); setComisionCustom(''); }}
+                        key={m.key}
+                        className={modeloComision === m.key ? 'seg-btn is-active' : 'seg-btn'}
+                        onClick={() => setModeloComision(m.key)}
                         style={{
-                          padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                          fontSize: 12, fontWeight: comisionPct === pct && !comisionCustom ? 600 : 400,
-                          background: comisionPct === pct && !comisionCustom ? TOKENS.warning : 'transparent',
-                          color: comisionPct === pct && !comisionCustom ? '#000' : TOKENS.textSec,
+                          padding: '5px 11px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          fontSize: 12, fontWeight: modeloComision === m.key ? 600 : 400,
+                          background: modeloComision === m.key ? TOKENS.warning : 'transparent',
+                          color: modeloComision === m.key ? '#000' : TOKENS.textSec,
                           transition: 'all 0.2s ease',
                         }}
                       >
-                        {pct}%
+                        {m.label}
                       </button>
                     ))}
-                    <div style={{ width: 1, height: 18, background: TOKENS.border, margin: '0 4px' }} />
-                    <input
-                      className="m-input"
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Otro"
-                      value={comisionCustom}
-                      onChange={e => {
-                        const v = e.target.value;
-                        setComisionCustom(v);
-                        const n = parseInt(v, 10);
-                        if (!isNaN(n) && n >= 0 && n <= 100) setComisionPct(n);
-                      }}
-                      style={{
-                        width: 56, padding: '4px 8px', borderRadius: 6, fontSize: 12, fontWeight: 500,
-                        border: `1px solid ${comisionCustom ? TOKENS.warning : TOKENS.border}`,
-                        background: comisionCustom ? TOKENS.warning : 'transparent',
-                        color: comisionCustom ? '#000' : TOKENS.textSec,
-                        outline: 'none', textAlign: 'center',
-                        transition: 'all 0.2s ease',
-                      }}
-                    />
-                    <span style={{ fontSize: 11, color: TOKENS.textTer }}>%</span>
                   </div>
                 </div>
 
-                {/* Table — en movil cabe sin scroll horizontal: columnas mas
-                    estrechas, padding apretado y "€" en vez de " EUR". */}
+                {/* --- Porcentaje (para "configurado" es solo el respaldo) --- */}
+                {modeloComision !== 'tramos' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 12, color: TOKENS.textSec }}>
+                      {modeloComision === 'configurado' ? 'Para quien no lo tenga configurado:' : 'Porcentaje a simular:'}
+                    </span>
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {[20, 25, 30, 35, 40].map(pct => (
+                        <button
+                          key={pct}
+                          className={comisionPct === pct && !comisionCustom ? 'seg-btn is-active' : 'seg-btn'}
+                          onClick={() => { setComisionPct(pct); setComisionCustom(''); }}
+                          style={{
+                            padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                            fontSize: 12, fontWeight: comisionPct === pct && !comisionCustom ? 600 : 400,
+                            background: comisionPct === pct && !comisionCustom ? TOKENS.warning : 'transparent',
+                            color: comisionPct === pct && !comisionCustom ? '#000' : TOKENS.textSec,
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          {pct}%
+                        </button>
+                      ))}
+                      <div style={{ width: 1, height: 18, background: TOKENS.border, margin: '0 4px' }} />
+                      <input
+                        className="m-input"
+                        type="number"
+                        min={0}
+                        max={100}
+                        placeholder="Otro"
+                        aria-label="Otro porcentaje de comision"
+                        value={comisionCustom}
+                        onChange={e => {
+                          const v = e.target.value;
+                          setComisionCustom(v);
+                          const n = parseInt(v, 10);
+                          if (!isNaN(n) && n >= 0 && n <= 100) setComisionPct(n);
+                        }}
+                        style={{
+                          width: 56, padding: '4px 8px', borderRadius: 6, fontSize: 12, fontWeight: 500,
+                          border: `1px solid ${comisionCustom ? TOKENS.warning : TOKENS.border}`,
+                          background: comisionCustom ? TOKENS.warning : 'transparent',
+                          color: comisionCustom ? '#000' : TOKENS.textSec,
+                          outline: 'none', textAlign: 'center',
+                          transition: 'all 0.2s ease',
+                        }}
+                      />
+                      <span style={{ fontSize: 11, color: TOKENS.textTer }}>%</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* --- Tramos --- */}
+                {modeloComision === 'tramos' && (
+                  <div style={{
+                    marginBottom: 12, padding: '12px 13px', borderRadius: 10,
+                    background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`,
+                  }}>
+                    <div style={{ fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.5, marginBottom: 10 }}>
+                      Cada porción de la facturación se paga a su tipo, como el IRPF: con 25 % hasta
+                      2.000 € y 35 % de ahí en adelante, quien factura 3.000 € cobra el 25 % de los
+                      primeros 2.000 y el 35 % de los 1.000 restantes. Deja el «hasta» del último
+                      vacío para decir «de aquí en adelante».
+                    </div>
+                    {tramos.map((t, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: TOKENS.textTer, minWidth: 42 }}>Desde</span>
+                        <input
+                          className="m-input" type="number" min={0} step={100} value={t.desde}
+                          aria-label={`Desde, tramo ${i + 1}`}
+                          onChange={e => {
+                            const v = parseFloat(e.target.value) || 0;
+                            setTramos(prev => prev.map((x, j) => (j === i ? { ...x, desde: v } : x)));
+                          }}
+                          style={{ width: 90, padding: '5px 8px', borderRadius: 6, fontSize: 12, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.text, outline: 'none' }}
+                        />
+                        <span style={{ fontSize: 11, color: TOKENS.textTer }}>hasta</span>
+                        <input
+                          className="m-input" type="number" min={0} step={100}
+                          value={t.hasta === null ? '' : t.hasta}
+                          placeholder="en adelante"
+                          aria-label={`Hasta, tramo ${i + 1}`}
+                          onChange={e => {
+                            const raw = e.target.value.trim();
+                            const v = raw === '' ? null : (parseFloat(raw) || 0);
+                            setTramos(prev => prev.map((x, j) => (j === i ? { ...x, hasta: v } : x)));
+                          }}
+                          style={{ width: 100, padding: '5px 8px', borderRadius: 6, fontSize: 12, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.text, outline: 'none' }}
+                        />
+                        <span style={{ fontSize: 11, color: TOKENS.textTer }}>al</span>
+                        <input
+                          className="m-input" type="number" min={0} max={100} step={0.5} value={t.porcentaje}
+                          aria-label={`Porcentaje, tramo ${i + 1}`}
+                          onChange={e => {
+                            const v = parseFloat(e.target.value) || 0;
+                            setTramos(prev => prev.map((x, j) => (j === i ? { ...x, porcentaje: v } : x)));
+                          }}
+                          style={{ width: 66, padding: '5px 8px', borderRadius: 6, fontSize: 12, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.text, outline: 'none' }}
+                        />
+                        <span style={{ fontSize: 11, color: TOKENS.textTer }}>%</span>
+                        {tramos.length > 1 && (
+                          <button
+                            onClick={() => setTramos(prev => prev.filter((_, j) => j !== i))}
+                            aria-label={`Quitar el tramo ${i + 1}`}
+                            style={{ marginLeft: 'auto', border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.textTer, borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14 }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setTramos(prev => {
+                        const ultimo = prev[prev.length - 1];
+                        const desde = ultimo ? (ultimo.hasta ?? ultimo.desde + 2000) : 0;
+                        return [...prev, { desde, hasta: null, porcentaje: 40 }];
+                      })}
+                      style={{
+                        marginTop: 4, fontSize: 12, fontWeight: 600, color: TOKENS.primaryHi,
+                        background: 'transparent', border: `1px dashed ${TOKENS.borderHi}`,
+                        borderRadius: 8, padding: '7px 12px', cursor: 'pointer',
+                      }}
+                    >
+                      + Añadir tramo
+                    </button>
+                  </div>
+                )}
+
+                {/* --- Resultado en grande --- */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0,1fr))' : 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+                  {[
+                    {
+                      label: 'Comisiones', valor: `${fmtEur(comisionCalculo.totales.comisiones)} €`, color: TOKENS.warning,
+                      ayuda: 'Suma de las comisiones del periodo, calculadas sobre la base sin IVA de lo que ha facturado cada uno.',
+                    },
+                    {
+                      label: 'Te cuesta', valor: `${fmtEur(comisionCalculo.totales.costeEmpresa)} €`, color: TOKENS.danger,
+                      ayuda: `Coste real de empresa: la comisión más la cuota patronal de la Seguridad Social (${CUOTA_PATRONAL_PCT} % en 2026 para un indefinido en peluquería). El sueldo nunca es lo que cuesta un empleado.`,
+                    },
+                    {
+                      label: 'Cada punto de %', valor: `${fmtEur(comisionCalculo.totales.costePorPuntoDeComision)} €`, color: TOKENS.cyan,
+                      ayuda: 'Lo que te costaría subir la comisión un punto porcentual en este periodo, con su cuota patronal. Es la cifra que necesitas cuando negocias con tu equipo.',
+                    },
+                    {
+                      label: 'Margen del salón', valor: `${fmtEur(comisionCalculo.totales.margenSalon)} €`, color: comisionCalculo.totales.margenSalon >= 0 ? TOKENS.success : TOKENS.danger,
+                      ayuda: 'Lo que queda de la base sin IVA después del coste del equipo y de los gastos que tengas registrados en la sección de Gastos.',
+                    },
+                  ].map(k => (
+                    <div key={k.label} style={{
+                      padding: '11px 13px', borderRadius: 10,
+                      background: `${k.color}10`, border: `1px solid ${k.color}22`,
+                    }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 10.5, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                          {k.label}
+                        </span>
+                        <InfoDot text={k.ayuda} color={k.color} />
+                      </span>
+                      <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: k.color, marginTop: 3 }}>{k.valor}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* --- ¿Qué pasa si...? Solo tiene sentido al simular --- */}
+                {deltaComision.esSimulacion && (
+                  <div style={{
+                    marginBottom: 14, padding: '12px 14px', borderRadius: 10,
+                    background: Math.abs(deltaComision.coste) < 1 ? 'rgba(115,102,88,0.06)' : (deltaComision.coste > 0 ? TOKENS.dangerSoft : TOKENS.successSoft),
+                    border: `1px solid ${Math.abs(deltaComision.coste) < 1 ? TOKENS.border : (deltaComision.coste > 0 ? TOKENS.danger : TOKENS.success)}44`,
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 5 }}>
+                      ¿Qué pasa si lo cambias?
+                    </div>
+                    <div style={{ fontSize: isMobile ? 12 : 12.5, lineHeight: 1.55, color: TOKENS.textSec }}>
+                      {Math.abs(deltaComision.coste) < 1 ? (
+                        <>Este escenario te sale prácticamente igual que lo que ya tienes configurado.</>
+                      ) : deltaComision.coste > 0 ? (
+                        <>
+                          Comparado con lo que tienes hoy, este escenario te costaría{' '}
+                          <strong style={{ color: TOKENS.danger }}>{fmtEur(deltaComision.coste)} € más</strong> en
+                          este periodo y tu margen bajaría{' '}
+                          <strong style={{ color: TOKENS.danger }}>{fmtPuntos(deltaComision.puntosMargen)} puntos</strong>{' '}
+                          (de {Math.round(comisionReferencia.totales.margenPct)} % a {Math.round(comisionCalculo.totales.margenPct)} %).
+                        </>
+                      ) : (
+                        <>
+                          Comparado con lo que tienes hoy, este escenario te ahorraría{' '}
+                          <strong style={{ color: TOKENS.success }}>{fmtEur(Math.abs(deltaComision.coste))} €</strong> en
+                          este periodo y tu margen subiría{' '}
+                          <strong style={{ color: TOKENS.success }}>{fmtPuntos(deltaComision.puntosMargen)} puntos</strong>{' '}
+                          (de {Math.round(comisionReferencia.totales.margenPct)} % a {Math.round(comisionCalculo.totales.margenPct)} %).
+                          Ojo: bajar la comisión también suele bajar la motivación del equipo.
+                        </>
+                      )}
+                      {!hayConfiguracionPropia && (
+                        <> Como nadie tiene su porcentaje puesto en la ficha, la comparación se hace contra
+                        un {COMISION_PCT_POR_DEFECTO} % para todos. Configúralos en Equipo y esta cifra será
+                        la de tu salón de verdad.</>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* --- Tabla por profesional --- */}
                 <div style={{ width: '100%' }}>
                   <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${TOKENS.border}` }}>
-                    {/* Header */}
                     <div style={{
-                      display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.7fr 1fr 1fr' : '2fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
+                      display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.9fr 1fr 1fr' : '2fr 1fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
                       background: TOKENS.bgPanel, borderBottom: `1px solid ${TOKENS.border}`,
                       fontSize: isMobile ? 10 : 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: isMobile ? 0.2 : 0.5,
                     }}>
                       <div>Profesional</div>
-                      <div style={{ textAlign: 'right' }}>Citas</div>
-                      <div style={{ textAlign: 'right' }}>Ingresos</div>
+                      <div style={{ textAlign: 'right' }}>{isMobile ? 'Base' : 'Base sin IVA'}</div>
                       <div style={{ textAlign: 'right' }}>{isMobile ? 'Comis.' : 'Comision'}</div>
+                      <div style={{ textAlign: 'right' }}>%</div>
+                      {!isMobile && <div style={{ textAlign: 'right' }}>Te cuesta</div>}
                     </div>
 
-                    {/* Rows */}
+                    {comisionesData.length === 0 && (
+                      <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '14px' }}>
+                        Sin profesionales activos en este periodo.
+                      </div>
+                    )}
+
                     {comisionesData.map((p, i) => (
                       <div key={p.profId} className="metric-row" style={{
-                        display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.7fr 1fr 1fr' : '2fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
+                        display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.9fr 1fr 1fr' : '2fr 1fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
                         borderBottom: i < comisionesData.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
                         animation: 'fadeIn 0.3s ease both', animationDelay: `${i * 50}ms`,
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8, minWidth: 0 }}>
                           <div style={{ width: 4, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
                           <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</span>
-                          <span title={p.real ? 'Calculado sobre cobros reales del periodo' : 'Sin cobros en el periodo: estimado por catálogo'} style={{ fontSize: 9, fontWeight: 700, color: p.real ? TOKENS.success : TOKENS.textTer, background: p.real ? TOKENS.successSoft : TOKENS.bgPanel, border: `1px solid ${p.real ? TOKENS.success : TOKENS.border}`, borderRadius: 999, padding: '1px 6px', flexShrink: 0 }}>
+                          <span
+                            title={p.real ? 'Calculado sobre los cobros reales del periodo' : 'Sin cobros en el periodo: estimado con los precios del catálogo'}
+                            style={{
+                              fontSize: 9, fontWeight: 700, color: p.real ? TOKENS.success : TOKENS.textTer,
+                              background: p.real ? TOKENS.successSoft : TOKENS.bgPanel,
+                              border: `1px solid ${p.real ? TOKENS.success : TOKENS.border}`,
+                              borderRadius: 999, padding: '1px 6px', flexShrink: 0,
+                            }}
+                          >
                             {p.real ? 'real' : 'estim.'}
                           </span>
+                          {modeloComision === 'configurado' && p.pctConfigurado === null && (
+                            <span
+                              title="Este profesional no tiene porcentaje en su ficha de equipo, así que se le aplica el general"
+                              style={{
+                                fontSize: 9, fontWeight: 700, color: TOKENS.warning, background: TOKENS.warningSoft,
+                                border: `1px solid ${TOKENS.warning}`, borderRadius: 999, padding: '1px 6px', flexShrink: 0,
+                              }}
+                            >
+                              sin config.
+                            </span>
+                          )}
                         </div>
-                        <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{p.citas}</div>
-                        <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.ingresos)}{isMobile ? ' €' : ' EUR'}</div>
-                        <div style={{ fontSize: 12, color: TOKENS.warning, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.comision)}{isMobile ? ' €' : ' EUR'}</div>
+                        <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{fmtEur(p.baseSinIva)}{isMobile ? '' : ' €'}</div>
+                        <div style={{ fontSize: 12, color: TOKENS.warning, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.comision)}{isMobile ? '' : ' €'}</div>
+                        <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{Math.round(p.pctEfectivo)}%</div>
+                        {!isMobile && <div style={{ fontSize: 12, color: TOKENS.textTer, textAlign: 'right' }}>{fmtEur(p.costeEmpresa)} €</div>}
                       </div>
                     ))}
 
-                    {/* Totals */}
-                    <div style={{
-                      display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.7fr 1fr 1fr' : '2fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
-                      background: TOKENS.bgPanel, borderTop: `1px solid ${TOKENS.border}`,
-                      fontSize: 12, fontWeight: 700, color: TOKENS.text,
-                    }}>
-                      <div>Total</div>
-                      <div style={{ textAlign: 'right' }}>{comisionesData.reduce((s, p) => s + p.citas, 0)}</div>
-                      <div style={{ textAlign: 'right', color: TOKENS.success }}>{fmtEur(comisionesData.reduce((s, p) => s + p.ingresos, 0))}{isMobile ? ' €' : ' EUR'}</div>
-                      <div style={{ textAlign: 'right', color: TOKENS.warning }}>{fmtEur(comisionesData.reduce((s, p) => s + p.comision, 0))}{isMobile ? ' €' : ' EUR'}</div>
-                    </div>
+                    {comisionesData.length > 0 && (
+                      <div style={{
+                        display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.9fr 1fr 1fr' : '2fr 1fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
+                        background: TOKENS.bgPanel, borderTop: `1px solid ${TOKENS.border}`,
+                        fontSize: 12, fontWeight: 700, color: TOKENS.text,
+                      }}>
+                        <div>Total</div>
+                        <div style={{ textAlign: 'right' }}>{fmtEur(comisionCalculo.totales.baseSinIva)}{isMobile ? '' : ' €'}</div>
+                        <div style={{ textAlign: 'right', color: TOKENS.warning }}>{fmtEur(comisionCalculo.totales.comisiones)}{isMobile ? '' : ' €'}</div>
+                        <div style={{ textAlign: 'right' }}></div>
+                        {!isMobile && <div style={{ textAlign: 'right', color: TOKENS.textTer }}>{fmtEur(comisionCalculo.totales.costeEmpresa)} €</div>}
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* --- Avisos del motor (suelo salarial, tramos con huecos...) --- */}
+                {(() => {
+                  const vistos = new Set<string>();
+                  const lista: string[] = [];
+                  comisionCalculo.avisos.forEach(a => {
+                    if (vistos.has(a.texto)) return;
+                    vistos.add(a.texto);
+                    lista.push(a.texto);
+                  });
+                  comisionesData.forEach(p => p.avisos.forEach(texto => {
+                    // El mismo aviso para media plantilla se dice una vez, no cinco.
+                    if (vistos.has(texto)) return;
+                    vistos.add(texto);
+                    lista.push(`${p.nombre}: ${texto}`);
+                  }));
+                  if (lista.length === 0) return null;
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+                      {lista.map(texto => (
+                        <div key={texto} style={{
+                          fontSize: 11.5, lineHeight: 1.5, color: TOKENS.textSec,
+                          padding: '10px 12px', borderRadius: 8,
+                          background: TOKENS.warningSoft, border: `1px solid ${TOKENS.warning}44`,
+                        }}>
+                          {texto}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* --- De donde sale la cuota patronal + aviso legal --- */}
+                <details style={{ marginTop: 14 }}>
+                  <summary style={{ fontSize: 11.5, fontWeight: 600, color: TOKENS.textSec, cursor: 'pointer' }}>
+                    De dónde sale el {CUOTA_PATRONAL_PCT} % de cuota patronal
+                  </summary>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 9 }}>
+                    {DESGLOSE_CUOTA_PATRONAL.map(d => (
+                      <span key={d.concepto} style={{
+                        fontSize: 10.5, color: TOKENS.textSec, border: `1px solid ${TOKENS.border}`,
+                        borderRadius: 999, padding: '3px 9px',
+                      }}>
+                        {d.concepto} <strong style={{ color: TOKENS.text }}>{d.pct} %</strong>
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 10.5, lineHeight: 1.55, color: TOKENS.textTer, marginTop: 10 }}>
+                    {AVISO_LEGAL}
+                  </div>
+                </details>
+
+                <div style={{
+                  marginTop: 12, fontSize: 11.5, lineHeight: 1.55, color: TOKENS.textSec,
+                  padding: '10px 12px', borderRadius: 8, background: 'rgba(244,80,30,0.05)',
+                  border: `1px solid ${TOKENS.borderHi}`,
+                }}>
+                  Cuando tengas claro el escenario, la liquidación mensual se genera y se marca como
+                  pagada en <strong>Liquidaciones</strong>, justo debajo. Los porcentajes de cada
+                  profesional se configuran en <strong>Equipo</strong>.
                 </div>
               </SectionBody>
             </div>
