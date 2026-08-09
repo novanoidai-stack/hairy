@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calculadora de comisiones para peluquerías y barberías — gratis | Mecha</title>
+<meta name="description" content="Calcula en un minuto cuánto se lleva cada profesional a comisión y cuánto te queda a ti. Con el IVA bien quitado, la cuota patronal real y el aviso del salario mínimo. Gratis y sin registro." />
+<meta name="robots" content="index, follow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="canonical" href="https://www.mechaa.es/calculadora-comisiones" />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.mechaa.es/calculadora-comisiones" />
+<meta property="og:title" content="Calculadora de comisiones para peluquerías y barberías" />
+<meta property="og:description" content="Cuánto se lleva tu equipo y cuánto te queda a ti. Con el IVA fuera de la base, el coste real de empresa y el aviso del salario mínimo." />
+<meta property="og:image" content="https://www.mechaa.es/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Calculadora de comisiones para peluquerías y barberías" />
+<meta name="twitter:description" content="Cuánto se lleva tu equipo y cuánto te queda a ti, con el IVA bien quitado y la cuota patronal real." />
+<meta name="twitter:image" content="https://www.mechaa.es/og-image.png" />
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<link rel="stylesheet" href="assets/mecha-sections.css" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de comisiones para peluquerías y barberías",
+  "url": "https://www.mechaa.es/calculadora-comisiones",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "es-ES",
+  "description": "Calcula la comisión de cada profesional de un salón sobre la base sin IVA, el coste real de empresa con la cuota patronal y el margen que le queda al salón. Avisa si el resultado queda por debajo del salario mínimo.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "isAccessibleForFree": true,
+  "publisher": { "@type": "Organization", "name": "Mecha", "url": "https://www.mechaa.es" }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.mechaa.es/" },
+    { "@type": "ListItem", "position": 2, "name": "Calculadora de comisiones", "item": "https://www.mechaa.es/calculadora-comisiones" }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cuánto se suele pagar de comisión en una peluquería o barbería?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Lo habitual en España va del 20 % al 40 % de lo que factura cada profesional, sobre la base sin IVA. El porcentaje depende sobre todo de si además hay salario fijo: cuando el fijo es alto, la comisión suele quedarse entre el 10 % y el 20 %; cuando el fijo es el mínimo de convenio, sube al 30-40 %. También influye la experiencia (un junior que aún no trae clientela propia cobra menos que un senior con cartera) y quién pone el producto." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿La comisión se calcula sobre el precio con IVA o sin IVA?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Siempre sobre la base sin IVA. El IVA que cobras al cliente no es dinero tuyo: lo ingresas en Hacienda. Si pagas el 30 % sobre un corte de 24,20 € con IVA estás pagando 7,26 € en lugar de 6 €, porque la base real son 20 €. Sobre 8.000 € de facturación mensual, ese error son unas 420 € al mes que regalas." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Las propinas entran en la base de la comisión?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. La propina es del trabajador que la recibe, no facturación del salón, así que no forma parte de la base comisionable. Tributa como rendimiento del trabajo de quien la cobra. Solo tiene sentido incluirla si el salón las pone en bote y las reparte, y en ese caso conviene dejarlo por escrito." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuánto me cuesta de verdad un profesional en nómina?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Alrededor de 1,32 veces su sueldo bruto. Sobre el bruto, la empresa paga además la cuota patronal: contingencias comunes 23,60 %, desempleo 5,50 % en indefinido, accidentes y enfermedad profesional 1,50 % en peluquería, formación profesional 0,60 %, MEI 0,75 % y FOGASA 0,20 %. En total un 32,15 % con los tipos de 2026. El error típico es mirar solo contingencias comunes y olvidar MEI, FOGASA y formación." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puedo pagar a mi equipo solo a comisión?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Si hay contrato laboral, la comisión es un complemento del salario y no puede sustituir al salario base. Hay que garantizar el mínimo de tu convenio provincial de peluquería y estética, que suele ser superior al SMI. El SMI de 2026 está en 1.221 € brutos mensuales en 14 pagas (17.094 € al año) según el Real Decreto 126/2026." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es una comisión por tramos y cuándo conviene?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Es pagar un porcentaje distinto según cuánto factura cada persona: por ejemplo el 25 % hasta 2.000 € y el 35 % de ahí en adelante. Conviene calcularlo como el IRPF, es decir por porciones: los primeros 2.000 € al 25 % y solo el exceso al 35 %. Si aplicas el tipo alto a toda la facturación, cruzar el umbral por un euro dispara la nómina de golpe y el modelo se vuelve injusto y difícil de explicar." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Es mejor comisión o alquiler de sillón?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Son cosas distintas, no dos formas de lo mismo. Con comisión hay contrato laboral: tú asumes la cuota patronal, el salario mínimo y las vacaciones, y a cambio diriges el trabajo. Con alquiler de sillón el profesional es autónomo, te paga una renta fija con su 21 % de IVA y factura a sus propios clientes: tú tienes ingreso previsible pero no puedes darle instrucciones ni imponerle horarios, porque si lo haces la Inspección de Trabajo puede considerarlo falso autónomo. Un alquiler de 900 € sobre 3.000 € de facturación equivale a una comisión del 30 %, y así es como conviene compararlos." }
+    }
+  ]
+}
+</script>
+
+<style>
+  /* ---------- Calculadora de comisiones ---------- */
+  .cc-hero{padding-top:132px;padding-bottom:10px}
+  .cc-hero h1{font-family:var(--display);font-size:clamp(30px,5vw,50px);font-weight:800;letter-spacing:-.03em;line-height:1.06}
+  .cc-hero .cc-sub{margin:16px auto 0;max-width:660px;font-size:16.5px;line-height:1.6;color:var(--text-sec)}
+  .cc-badges{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:20px}
+  .cc-badge{font-size:12px;font-weight:600;color:var(--text-sec);border:1px solid var(--border);
+    background:rgba(255,255,255,.02);padding:6px 13px;border-radius:999px}
+
+  .cc-card{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 55%);
+    border:1px solid var(--border);border-radius:var(--r-lg);padding:24px 22px}
+  .cc-card + .cc-card{margin-top:18px}
+  .cc-card h2{font-size:19px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+  .cc-card .cc-help{font-size:13px;color:var(--text-sec);line-height:1.55;margin-bottom:18px}
+
+  .cc-modes{display:flex;gap:6px;background:rgba(255,255,255,.03);border:1px solid var(--border);
+    border-radius:999px;padding:4px;margin:0 auto 24px;width:fit-content;max-width:100%;flex-wrap:wrap;justify-content:center}
+  .cc-modes button{font:inherit;font-size:13px;font-weight:600;color:var(--text-sec);background:transparent;
+    border:0;padding:8px 17px;border-radius:999px;cursor:pointer;transition:all .2s var(--ease)}
+  .cc-modes button[aria-pressed="true"]{background:var(--grad-soft);color:#0b0a12}
+
+  .cc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  .cc-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .cc-field label{font-size:12px;font-weight:600;color:var(--text-sec);display:flex;align-items:center;gap:6px}
+  .cc-field .cc-hint{font-size:11px;color:var(--text-ter);line-height:1.45}
+  .cc-input,.cc-select{font:inherit;font-size:14.5px;color:var(--text);background:rgba(255,255,255,.04);
+    border:1px solid var(--border-hi);border-radius:var(--r-sm);padding:10px 12px;width:100%;
+    transition:border-color .2s var(--ease)}
+  .cc-input:focus,.cc-select:focus{outline:none;border-color:var(--accent)}
+  .cc-input::-webkit-outer-spin-button,.cc-input::-webkit-inner-spin-button{opacity:.35}
+  .cc-select option{background:var(--card);color:var(--text)}
+
+  .cc-switch{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:var(--text-sec);cursor:pointer}
+  .cc-switch input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+
+  .cc-rows{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .cc-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:10px;align-items:end}
+  .cc-row-head{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:10px;
+    font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-ter)}
+  .cc-del{font:inherit;font-size:18px;line-height:1;color:var(--text-ter);background:transparent;border:1px solid var(--border);
+    border-radius:var(--r-sm);width:38px;height:41px;cursor:pointer;transition:all .2s var(--ease);flex-shrink:0}
+  .cc-del:hover{color:var(--danger);border-color:var(--danger)}
+  .cc-add{font:inherit;font-size:13px;font-weight:600;color:var(--accent-hi);background:transparent;
+    border:1px dashed var(--border-hi);border-radius:var(--r-sm);padding:10px 15px;cursor:pointer;margin-top:12px;width:100%}
+  .cc-add:hover{border-color:var(--accent)}
+
+  .cc-adv{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+  .cc-adv > summary{list-style:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-sec);
+    display:flex;align-items:center;gap:8px}
+  .cc-adv > summary::-webkit-details-marker{display:none}
+  .cc-adv > summary:hover{color:var(--accent-hi)}
+  .cc-adv > summary::before{content:'+';color:var(--accent-hi);font-size:15px;font-weight:700}
+  .cc-adv[open] > summary::before{content:'−'}
+  .cc-adv-body{padding-top:16px}
+
+  .cc-tramos{display:flex;flex-direction:column;gap:9px}
+  .cc-tramo{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:9px;align-items:end}
+
+  /* --- Resultado --- */
+  .cc-out{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px}
+  .cc-big{border:1px solid var(--border);border-radius:var(--r-md);padding:17px 18px;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+  .cc-big.hero{border-color:rgba(244,80,30,.35);background:linear-gradient(180deg,rgba(244,80,30,.12),transparent 70%)}
+  .cc-big .k{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-ter)}
+  .cc-big .v{font-family:var(--display);font-size:29px;font-weight:800;letter-spacing:-.03em;margin-top:5px;line-height:1.05}
+  .cc-big.hero .v{color:var(--accent-hi)}
+  .cc-big .n{font-size:11.5px;color:var(--text-sec);margin-top:6px;line-height:1.45}
+
+  .cc-table-wrap{overflow-x:auto;margin-top:20px}
+  table.cc-table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+  table.cc-table th{text-align:right;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--text-ter);padding:8px 10px;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+  table.cc-table th:first-child,table.cc-table td:first-child{text-align:left}
+  table.cc-table td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-sec);
+    font-variant-numeric:tabular-nums}
+  table.cc-table td.name{color:var(--text);font-weight:600}
+  table.cc-table tfoot td{font-weight:800;color:var(--text);border-top:1px solid var(--border-hi);border-bottom:0}
+
+  .cc-avisos{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+  .cc-aviso{display:flex;gap:10px;font-size:12.5px;line-height:1.55;padding:11px 13px;border-radius:var(--r-sm)}
+  .cc-aviso.warn{color:#fde68a;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.30)}
+  .cc-aviso.info{color:var(--text-sec);background:rgba(255,255,255,.03);border:1px solid var(--border)}
+  .cc-aviso b{color:var(--text)}
+
+  .cc-legal{margin-top:18px;font-size:11.5px;line-height:1.6;color:var(--text-ter);
+    border-top:1px solid var(--border);padding-top:13px}
+
+  .cc-desglose{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .cc-chip{font-size:11px;color:var(--text-sec);border:1px solid var(--border);border-radius:999px;padding:4px 10px}
+  .cc-chip b{color:var(--text)}
+
+  /* --- Captura de email --- */
+  .cc-lead{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+  .cc-lead .cc-lead-btn{grid-column:1/-1}
+  .cc-msg{margin-top:12px;font-size:13px;padding:10px 13px;border-radius:var(--r-sm);display:none}
+  .cc-msg.ok{display:block;color:var(--success-hi);background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.30)}
+  .cc-msg.err{display:block;color:#fca5a5;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.30)}
+
+  /* --- Contenido SEO --- */
+  .cc-prose{max-width:760px;margin:0 auto}
+  .cc-prose h2{font-family:var(--display);font-size:clamp(22px,3.4vw,30px);font-weight:800;letter-spacing:-.025em;margin:44px 0 12px}
+  .cc-prose h3{font-size:17px;font-weight:700;margin:26px 0 8px;color:var(--text)}
+  .cc-prose p{font-size:15.5px;line-height:1.72;color:var(--text-sec);margin-bottom:14px}
+  .cc-prose ul{margin:0 0 16px 20px}
+  .cc-prose li{font-size:15px;line-height:1.7;color:var(--text-sec);margin-bottom:8px}
+  .cc-prose b,.cc-prose strong{color:var(--text);font-weight:600}
+  .cc-prose .cc-callout{border-left:3px solid var(--accent);background:rgba(244,80,30,.06);
+    padding:14px 18px;border-radius:0 var(--r-sm) var(--r-sm) 0;margin:18px 0}
+  .cc-prose .cc-callout p:last-child{margin-bottom:0}
+  .cc-prose table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0 20px}
+  .cc-prose th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--text-ter);padding:8px 10px;border-bottom:1px solid var(--border-hi)}
+  .cc-prose td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-sec);vertical-align:top}
+
+  .cc-faq{border-top:1px solid var(--border)}
+  .cc-faq summary{list-style:none;cursor:pointer;padding:15px 2px;font-size:15.5px;font-weight:600;color:var(--text);
+    display:flex;align-items:center;gap:12px}
+  .cc-faq summary::-webkit-details-marker{display:none}
+  .cc-faq summary:hover{color:var(--accent-hi)}
+  .cc-faq summary::after{content:'+';margin-left:auto;color:var(--accent-hi);font-size:18px;font-weight:700;flex-shrink:0}
+  .cc-faq[open] summary::after{content:'−'}
+  .cc-faq .cc-faq-body{padding:0 2px 16px;font-size:14.5px;line-height:1.7;color:var(--text-sec)}
+
+  .cc-cta{text-align:center;border:1px solid rgba(244,80,30,.28);border-radius:var(--r-lg);
+    background:linear-gradient(180deg,rgba(244,80,30,.10),transparent 70%);padding:34px 24px;margin-top:52px}
+  .cc-cta h2{font-family:var(--display);font-size:clamp(21px,3.2vw,29px);font-weight:800;letter-spacing:-.025em;margin-bottom:10px}
+  .cc-cta p{font-size:15px;color:var(--text-sec);line-height:1.65;max-width:560px;margin:0 auto 20px}
+
+  @media(max-width:760px){
+    .cc-row,.cc-row-head{grid-template-columns:1fr 1fr;gap:8px}
+    .cc-row-head{display:none}
+    .cc-row{border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;position:relative}
+    .cc-row .cc-del{position:absolute;top:8px;right:8px;width:30px;height:30px;font-size:15px}
+    .cc-tramo{grid-template-columns:1fr 1fr}
+    .cc-big .v{font-size:25px}
+  }
+</style>
+</head>
+<body>
+
+<a href="#calculadora" class="skip-link">Ir a la calculadora</a>
+
+<!-- ============ LOGO SPRITE ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" />
+      <stop offset=".5" stop-color="#ff7a2e" />
+      <stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============ BACKGROUND ============ -->
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <span class="orb o1"></span>
+  <span class="orb o2"></span>
+  <div class="bg-noise"></div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav class="nav scrolled" id="nav" aria-label="Principal">
+  <div class="wrap nav-in">
+    <a class="brand" href="index.html" aria-label="Mecha, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><use href="#mecha-mark" /></svg>
+      <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#calculadora">Calculadora</a>
+      <a href="#como-funciona">Cómo se calcula</a>
+      <a href="#faq">Preguntas</a>
+    </div>
+    <div class="nav-cta">
+      <a href="index.html" class="login">Ver Mecha</a>
+      <a href="demo.html" class="btn btn-primary">Ver demo gratis</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="cc-hero">
+    <div class="wrap" style="text-align:center">
+      <span class="eyebrow center">Herramienta gratuita</span>
+      <h1>Calculadora de comisiones <br />para peluquerías y barberías</h1>
+      <p class="cc-sub">
+        Pon lo que factura cada profesional y te dice cuánto se lleva, cuánto te cuesta de
+        verdad y cuánto te queda a ti. Con el IVA fuera de la base, la cuota patronal
+        completa y un aviso si el resultado se queda por debajo del salario mínimo.
+      </p>
+      <div class="cc-badges">
+        <span class="cc-badge">Sin registro</span>
+        <span class="cc-badge">Sin instalar nada</span>
+        <span class="cc-badge">Parámetros de 2026</span>
+        <span class="cc-badge">Se calcula en tu navegador</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CALCULADORA ============ -->
+  <section id="calculadora" style="padding-top:34px">
+    <div class="wrap" style="max-width:960px">
+
+      <div class="cc-modes" role="group" aria-label="Modelo de retribución">
+        <button type="button" id="modoComision" aria-pressed="true">Comisión (empleado)</button>
+        <button type="button" id="modoSillon" aria-pressed="false">Alquiler de sillón (autónomo)</button>
+      </div>
+
+      <!-- ---------- MODO COMISIÓN ---------- -->
+      <div id="panelComision">
+        <div class="cc-card">
+          <h2>1. Cómo pagas la comisión</h2>
+          <p class="cc-help">
+            Si no tienes claro qué poner, deja los valores tal cual: son los más habituales del sector.
+          </p>
+
+          <div class="cc-grid">
+            <div class="cc-field">
+              <label for="modelo">Modelo</label>
+              <select id="modelo" class="cc-select">
+                <option value="plano">Un porcentaje igual para todos</option>
+                <option value="tramos">Por tramos de facturación</option>
+              </select>
+              <span class="cc-hint">Por tramos: un % distinto según cuánto factura cada uno.</span>
+            </div>
+
+            <div class="cc-field" id="campoPct">
+              <label for="pct">Porcentaje de comisión</label>
+              <input id="pct" class="cc-input" type="number" min="0" max="100" step="0.5" value="30" inputmode="decimal" />
+              <span class="cc-hint">Lo normal está entre el 20 % y el 40 %.</span>
+            </div>
+
+            <div class="cc-field">
+              <label for="gastosFijos">Gastos fijos del salón al mes</label>
+              <input id="gastosFijos" class="cc-input" type="number" min="0" step="50" value="0" inputmode="decimal" placeholder="0" />
+              <span class="cc-hint">Alquiler, luz, producto, gestoría… Opcional, para ver el margen real.</span>
+            </div>
+          </div>
+
+          <div style="margin-top:16px">
+            <label class="cc-switch">
+              <input type="checkbox" id="ivaIncluido" checked />
+              <span>Las cifras que escribo llevan el IVA incluido (es lo normal: es el precio de tu tarifa)</span>
+            </label>
+          </div>
+
+          <details class="cc-adv" id="advTramos" hidden>
+            <summary>Tramos de comisión</summary>
+            <div class="cc-adv-body">
+              <p class="cc-help" style="margin-bottom:12px">
+                Cada porción de la facturación se paga a su tipo, como en el IRPF: si pones
+                25&nbsp;% hasta 2.000&nbsp;€ y 35&nbsp;% de ahí en adelante, quien factura
+                3.000&nbsp;€ cobra el 25&nbsp;% de los primeros 2.000 y el 35&nbsp;% de los
+                1.000 restantes. Deja el último «hasta» vacío para decir «de aquí en adelante».
+              </p>
+              <div class="cc-tramos" id="tramos"></div>
+              <button type="button" class="cc-add" id="addTramo">+ Añadir tramo</button>
+            </div>
+          </details>
+
+          <details class="cc-adv">
+            <summary>Ajustes finos</summary>
+            <div class="cc-adv-body">
+              <div class="cc-grid">
+                <div class="cc-field">
+                  <label for="cuotaPatronal">Cuota patronal (%)</label>
+                  <input id="cuotaPatronal" class="cc-input" type="number" min="0" max="60" step="0.01" inputmode="decimal" />
+                  <span class="cc-hint" id="hintCuota"></span>
+                </div>
+                <div class="cc-field">
+                  <label for="ivaPct">IVA (%)</label>
+                  <input id="ivaPct" class="cc-input" type="number" min="0" max="30" step="0.5" value="21" inputmode="decimal" />
+                  <span class="cc-hint">En peluquería y estética es el 21 %.</span>
+                </div>
+                <div class="cc-field">
+                  <label for="suelo">Salario mínimo con el que comparar (€/mes)</label>
+                  <input id="suelo" class="cc-input" type="number" min="0" step="10" inputmode="decimal" />
+                  <span class="cc-hint">Por defecto el SMI en 12 pagas. Pon el de tu convenio si es mayor.</span>
+                </div>
+              </div>
+              <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
+                <label class="cc-switch">
+                  <input type="checkbox" id="costeEmpresa" checked />
+                  <span>Contar el coste de empresa (cuota patronal sobre el bruto)</span>
+                </label>
+                <label class="cc-switch">
+                  <input type="checkbox" id="propinasComisionables" />
+                  <span>Las propinas van al bote y se reparten, así que comisionan</span>
+                </label>
+              </div>
+              <div class="cc-desglose" id="desgloseCuota"></div>
+            </div>
+          </details>
+        </div>
+
+        <div class="cc-card">
+          <h2>2. Tu equipo</h2>
+          <p class="cc-help">
+            Una fila por profesional, con lo que factura al mes. El fijo y las propinas son
+            opcionales. Si a alguien le pagas otro porcentaje, escríbelo en su fila.
+          </p>
+
+          <div class="cc-row-head">
+            <span>Profesional</span>
+            <span style="text-align:right">Factura al mes (€)</span>
+            <span style="text-align:right">Fijo (€)</span>
+            <span style="text-align:right">Su % (opcional)</span>
+            <span></span>
+          </div>
+          <div class="cc-rows" id="filas"></div>
+          <button type="button" class="cc-add" id="addFila">+ Añadir profesional</button>
+        </div>
+      </div>
+
+      <!-- ---------- MODO ALQUILER DE SILLÓN ---------- -->
+      <div id="panelSillon" hidden>
+        <div class="cc-card">
+          <h2>Alquiler de sillón</h2>
+          <p class="cc-help">
+            Aquí el profesional es autónomo: no hay comisión ni cuota patronal. Te paga una
+            renta por el puesto, con su IVA, y factura a sus propios clientes. Lo útil de este
+            cálculo es traducir ese alquiler a «su equivalente en comisión», que es lo único
+            comparable con el modelo de arriba.
+          </p>
+          <div class="cc-grid">
+            <div class="cc-field">
+              <label for="alquiler">Alquiler del puesto (€/mes, sin IVA)</label>
+              <input id="alquiler" class="cc-input" type="number" min="0" step="50" value="600" inputmode="decimal" />
+            </div>
+            <div class="cc-field">
+              <label for="factProf">Lo que factura ese profesional (€/mes)</label>
+              <input id="factProf" class="cc-input" type="number" min="0" step="100" value="3000" inputmode="decimal" />
+              <span class="cc-hint">Con IVA incluido, igual que tu tarifa.</span>
+            </div>
+            <div class="cc-field">
+              <label for="retencion">Retención de IRPF (%)</label>
+              <input id="retencion" class="cc-input" type="number" min="0" max="30" step="1" value="0" inputmode="decimal" />
+              <span class="cc-hint" id="hintRetencion"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- RESULTADO ---------- -->
+      <div class="cc-card" id="resultado" aria-live="polite">
+        <h2>Resultado</h2>
+        <p class="cc-help" id="resumenTexto"></p>
+        <div class="cc-out" id="salida"></div>
+        <div class="cc-table-wrap" id="tablaWrap"></div>
+        <div class="cc-avisos" id="avisos"></div>
+        <p class="cc-legal" id="avisoLegal"></p>
+      </div>
+
+      <!-- ---------- CAPTURA DE EMAIL ---------- -->
+      <div class="cc-card">
+        <h2>¿Te lo mandamos por correo?</h2>
+        <p class="cc-help">
+          Te enviamos este desglose y una plantilla para llevar las comisiones mes a mes sin
+          hojas de cálculo. Un correo, nada más: ni llamadas ni insistencia.
+        </p>
+        <form id="leadForm" novalidate>
+          <div class="cc-lead">
+            <div class="cc-field">
+              <label for="leadNombre">Tu nombre</label>
+              <input id="leadNombre" class="cc-input" type="text" autocomplete="name" required />
+            </div>
+            <div class="cc-field">
+              <label for="leadSalon">Tu salón</label>
+              <input id="leadSalon" class="cc-input" type="text" autocomplete="organization" />
+            </div>
+            <div class="cc-field">
+              <label for="leadEmail">Tu correo</label>
+              <input id="leadEmail" class="cc-input" type="email" autocomplete="email" placeholder="hola@tusalon.com" required />
+            </div>
+            <div class="cc-lead-btn">
+              <button type="submit" class="btn btn-primary" id="leadBtn" style="width:100%">Mándame el desglose</button>
+            </div>
+          </div>
+          <div class="cc-msg" id="leadMsg" role="status"></div>
+          <p class="cc-legal">
+            Solo usamos tus datos para enviarte esto y contarte qué es Mecha. Puedes pedirnos que
+            los borremos cuando quieras escribiendo a soporte@mechaa.es. Más detalle en
+            <a href="privacidad.html">privacidad</a>.
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTENIDO ============ -->
+  <section id="como-funciona" style="padding-top:20px">
+    <div class="wrap">
+      <div class="cc-prose">
+
+        <h2>Cómo se calcula una comisión en un salón</h2>
+        <p>
+          El cálculo tiene tres pasos y casi todo el mundo se salta el primero, que es
+          justamente el que cuesta dinero.
+        </p>
+
+        <h3>1. Quita el IVA antes de nada</h3>
+        <p>
+          El precio de tu tarifa lleva el <b>21 % de IVA</b>, que es el tipo general de
+          peluquería, barbería y estética desde 2012. Ese dinero no es tuyo: lo cobras al
+          cliente y lo ingresas en Hacienda cada trimestre. Por tanto no puede formar parte de
+          la base sobre la que pagas comisión.
+        </p>
+        <div class="cc-callout">
+          <p>
+            <b>El error que más dinero cuesta.</b> Un corte a 24,20 € son 20 € de base y 4,20 €
+            de IVA. Si pagas el 30 % sobre los 24,20 € pagas 7,26 € en vez de 6 €. Parece poco,
+            pero sobre 8.000 € de facturación al mes son <b>unos 420 € al mes</b> que sales de
+            tu bolsillo para repartir dinero de Hacienda.
+          </p>
+        </div>
+
+        <h3>2. Las propinas no entran</h3>
+        <p>
+          La propina es de quien la recibe. No es facturación del salón y no forma parte de la
+          base comisionable: tributa como rendimiento del trabajo de ese profesional. Solo
+          tiene sentido incluirla si en tu salón van a un bote común que luego se reparte, y en
+          ese caso conviene tenerlo por escrito para que nadie se lleve una sorpresa.
+        </p>
+
+        <h3>3. El coste no es el sueldo</h3>
+        <p>
+          Sobre lo que le pagas en bruto (fijo más comisión), la empresa paga además la cuota
+          patronal a la Seguridad Social. Con los tipos de 2026, para un contrato indefinido en
+          una peluquería:
+        </p>
+        <table>
+          <thead><tr><th>Concepto</th><th style="text-align:right">A cargo de la empresa</th></tr></thead>
+          <tbody>
+            <tr><td>Contingencias comunes</td><td style="text-align:right">23,60 %</td></tr>
+            <tr><td>Desempleo (contrato indefinido)</td><td style="text-align:right">5,50 %</td></tr>
+            <tr><td>Accidentes y enfermedad profesional (peluquerías y barberías)</td><td style="text-align:right">1,50 %</td></tr>
+            <tr><td>Formación profesional</td><td style="text-align:right">0,60 %</td></tr>
+            <tr><td>MEI</td><td style="text-align:right">0,75 %</td></tr>
+            <tr><td>FOGASA</td><td style="text-align:right">0,20 %</td></tr>
+            <tr><td><b>Total</b></td><td style="text-align:right"><b>32,15 %</b></td></tr>
+          </tbody>
+        </table>
+        <p>
+          Es decir: cada 1.000 € de bruto te cuestan unos <b>1.322 €</b>. El fallo habitual es
+          mirar solo contingencias comunes y olvidarse de MEI, FOGASA y formación, que juntos
+          suman más de un punto y medio.
+        </p>
+
+        <h2>Cuánto se paga en el sector</h2>
+        <p>
+          No hay una cifra única, porque el porcentaje depende de qué más se pague. Estos son
+          los modelos que se ven en la práctica:
+        </p>
+        <table>
+          <thead><tr><th>Modelo</th><th>Comisión típica</th><th>Cuándo encaja</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Fijo alto + comisión pequeña</b></td>
+              <td>10–20 %</td>
+              <td>Equipo estable y sueldos por encima de convenio. Da tranquilidad al profesional y previsibilidad al salón.</td>
+            </tr>
+            <tr>
+              <td><b>Fijo de convenio + comisión alta</b></td>
+              <td>30–40 %</td>
+              <td>Lo más común. Premia a quien trae y retiene clientela, y el salón asume menos riesgo en los meses flojos.</td>
+            </tr>
+            <tr>
+              <td><b>Por tramos</b></td>
+              <td>25 % → 35 %</td>
+              <td>Cuando quieres empujar a que suban de nivel: el porcentaje mejora al pasar de cierta facturación.</td>
+            </tr>
+            <tr>
+              <td><b>Distinto por servicio</b></td>
+              <td>20 % corte / 35 % color</td>
+              <td>Cuando el margen cambia mucho entre servicios y quieres orientar al equipo hacia los que dejan más.</td>
+            </tr>
+            <tr>
+              <td><b>Alquiler de sillón</b></td>
+              <td>renta fija</td>
+              <td>El profesional es autónomo de verdad, con sus clientes y sus horarios. Ni contrato ni comisión.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Lo que no puedes hacer</h2>
+        <p>
+          <b>La comisión es un complemento, no el salario.</b> Si hay contrato laboral, tienes
+          que garantizar el mínimo de tu convenio provincial de peluquería y estética, que
+          suele estar por encima del SMI, con independencia de lo que salga por comisión en un
+          mes malo. El SMI de 2026 está en 1.221 € brutos al mes en 14 pagas, 17.094 € al año
+          (Real Decreto 126/2026). La calculadora te avisa cuando el resultado se queda por
+          debajo del mínimo que le pongas.
+        </p>
+        <p>
+          <b>Y ojo con el alquiler de sillón mal montado.</b> Si le pones horario, le asignas
+          clientes y le dices cómo trabajar, no es un autónomo: es un empleado con otro nombre.
+          La Inspección de Trabajo ha considerado falsos autónomos en situaciones así, y el
+          coste de regularizarlo es muy superior a lo que se ahorra.
+        </p>
+
+        <h2 id="faq">Preguntas frecuentes</h2>
+
+        <details class="cc-faq">
+          <summary>¿Cuánto se suele pagar de comisión en una peluquería o barbería?</summary>
+          <div class="cc-faq-body">
+            Lo habitual va del 20 % al 40 % de lo que factura cada profesional, sobre la base
+            sin IVA. Lo que decide el porcentaje es sobre todo el fijo: con un fijo alto, la
+            comisión se queda entre el 10 % y el 20 %; con el fijo en el mínimo de convenio,
+            sube al 30-40 %. También influyen la experiencia y quién pone el producto.
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿La comisión se calcula sobre el precio con IVA o sin IVA?</summary>
+          <div class="cc-faq-body">
+            Siempre sobre la base sin IVA. El IVA que cobras no es dinero tuyo. Pagar la
+            comisión sobre el precio con IVA es repartir dinero de Hacienda: en un salón que
+            factura 8.000 € al mes al 30 %, son unos 420 € mensuales de más.
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿Las propinas entran en la base de la comisión?</summary>
+          <div class="cc-faq-body">
+            No. La propina es del trabajador que la recibe y no es facturación del salón, así
+            que queda fuera de la base comisionable. Solo entra si el salón las pone en bote y
+            las reparte.
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿Cuánto me cuesta de verdad un profesional en nómina?</summary>
+          <div class="cc-faq-body">
+            Alrededor de 1,32 veces su bruto, con los tipos de 2026 para un contrato indefinido
+            en peluquería: 23,60 % de contingencias comunes, 5,50 % de desempleo, 1,50 % de
+            accidentes, 0,60 % de formación, 0,75 % de MEI y 0,20 % de FOGASA. Total 32,15 %.
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿Puedo pagar a mi equipo solo a comisión?</summary>
+          <div class="cc-faq-body">
+            No, si hay contrato laboral. La comisión complementa el salario pero no lo
+            sustituye: hay que garantizar el mínimo del convenio provincial, que normalmente es
+            superior al SMI (1.221 € en 14 pagas en 2026).
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿Qué es una comisión por tramos y cuándo conviene?</summary>
+          <div class="cc-faq-body">
+            Es pagar distinto porcentaje según la facturación: por ejemplo 25 % hasta 2.000 € y
+            35 % de ahí en adelante. Conviene calcularlo por porciones, como el IRPF. Si
+            aplicas el tipo alto a toda la facturación, cruzar el umbral por un euro dispara la
+            nómina de golpe y el modelo deja de ser explicable.
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿Es mejor comisión o alquiler de sillón?</summary>
+          <div class="cc-faq-body">
+            No son dos versiones de lo mismo. Con comisión hay contrato: asumes cuota patronal,
+            salario mínimo y vacaciones, y a cambio diriges el trabajo. Con alquiler de sillón
+            el profesional es autónomo, te paga una renta con su 21 % de IVA y factura a sus
+            clientes, pero no puedes imponerle horarios ni instrucciones. Para compararlos,
+            traduce el alquiler a su equivalente en comisión: 900 € sobre 3.000 € de
+            facturación es un 30 %.
+          </div>
+        </details>
+
+        <details class="cc-faq">
+          <summary>¿De dónde salen estas cifras?</summary>
+          <div class="cc-faq-body">
+            Del SMI fijado por el Real Decreto 126/2026, de la Orden PJC/297/2026 de cotización
+            a la Seguridad Social para 2026 y de la tarifa de primas de accidentes de trabajo
+            vigente desde el 1 de enero de 2026 (CNAE-2025, epígrafe 9621 «Peluquerías y
+            barberías»). Están todas en un solo sitio del código y se actualizan cada enero. De
+            todas formas, el mínimo de tu convenio provincial y tu tipo de accidentes concretos
+            pueden ser distintos: contrástalo con tu asesor antes de aplicarlo a una nómina.
+          </div>
+        </details>
+
+        <div class="cc-cta">
+          <h2>Esto, calculado solo cada mes</h2>
+          <p>
+            Mecha lleva la agenda, la caja y los cobros de tu salón, así que sabe lo que ha
+            facturado cada profesional sin que tengas que apuntarlo. Las comisiones salen
+            hechas, con su liquidación mensual lista para pagar.
+          </p>
+          <a href="index.html#precios" class="btn btn-primary">Ver Mecha</a>
+          <a href="demo.html" class="btn" style="margin-left:8px">Probar la demo</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="foot-bot">
+      <span>© 2026 Mecha · Hecho para salones de peluquería.</span>
+      <div class="foot-legal"><a href="index.html">Inicio</a><a href="salones.html">Directorio de salones</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="cookies.html">Cookies</a></div>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/mecha.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/cookies.js"></script>
+
+<!--
+  El cálculo NO vive en esta página: se importa de /assets/comisiones/motor.js, que es
+  una copia literal de lib/comisiones/motor.js (la copia la hace
+  scripts/postbuild-web.mjs en el build). El mismo módulo lo usa el simulador de
+  comisiones de dentro de la app. Si la lógica estuviera duplicada, la calculadora del
+  marketing y la del producto acabarían dando cifras distintas, y eso es peor que no
+  tener calculadora.
+-->
+<script type="module">
+import { calcularComisiones, calcularAlquilerSillon } from '/assets/comisiones/motor.js';
+import {
+  CUOTA_PATRONAL_PCT, DESGLOSE_CUOTA_PATRONAL, SMI, IVA_PCT,
+  AVISO_LEGAL, ALQUILER_SILLON,
+} from '/assets/comisiones/parametrosLegales.js';
+
+const $ = (id) => document.getElementById(id);
+const eur = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const eur2 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pctFmt = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 });
+// Los porcentajes tambien se escriben en castellano: 32,15 % y no 32.15 %.
+const pct = (n) => `${pctFmt.format(n)} %`;
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return Number.isFinite(n) ? n : 0; };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// Los valores por defecto vienen del módulo de parámetros legales, no escritos a
+// mano en el HTML: así solo hay un sitio que actualizar cada enero.
+$('cuotaPatronal').value = CUOTA_PATRONAL_PCT;
+$('ivaPct').value = IVA_PCT;
+$('suelo').value = Math.round(SMI.mensual12Pagas);
+$('hintCuota').textContent = `Por defecto ${pct(CUOTA_PATRONAL_PCT)}: lo que paga la empresa en ${SMI.anio} por un indefinido en peluquería.`;
+$('hintRetencion').textContent = ALQUILER_SILLON.nota;
+$('avisoLegal').textContent = AVISO_LEGAL;
+$('desgloseCuota').innerHTML = DESGLOSE_CUOTA_PATRONAL
+  .map((d) => `<span class="cc-chip">${esc(d.concepto)} <b>${pct(d.pct)}</b></span>`).join('');
+
+// --- Filas de profesionales ------------------------------------------------
+const EQUIPO_INICIAL = [
+  { nombre: 'Profesional 1', facturacion: 6000, fijo: 1300 },
+  { nombre: 'Profesional 2', facturacion: 5000, fijo: 1300 },
+];
+
+function pintarFilas(lista) {
+  $('filas').innerHTML = lista.map((p, i) => `
+    <div class="cc-row" data-fila="${i}">
+      <div class="cc-field">
+        <input class="cc-input js-nombre" type="text" value="${esc(p.nombre)}" aria-label="Nombre del profesional ${i + 1}" />
+      </div>
+      <div class="cc-field">
+        <input class="cc-input js-fact" type="number" min="0" step="100" value="${p.facturacion}" inputmode="decimal" aria-label="Factura al mes" placeholder="Factura al mes" />
+      </div>
+      <div class="cc-field">
+        <input class="cc-input js-fijo" type="number" min="0" step="50" value="${p.fijo}" inputmode="decimal" aria-label="Salario fijo" placeholder="Fijo" />
+      </div>
+      <div class="cc-field">
+        <input class="cc-input js-pct" type="number" min="0" max="100" step="0.5" value="" inputmode="decimal" aria-label="Su porcentaje, opcional" placeholder="—" />
+      </div>
+      <button type="button" class="cc-del js-del" aria-label="Quitar a este profesional">×</button>
+    </div>
+  `).join('');
+}
+
+function leerFilas() {
+  return [...document.querySelectorAll('#filas .cc-row')].map((fila, i) => {
+    const pctFila = fila.querySelector('.js-pct').value.trim();
+    const linea = {
+      nombre: fila.querySelector('.js-nombre').value.trim() || `Profesional ${i + 1}`,
+      facturacion: num(fila.querySelector('.js-fact').value),
+      fijoMensual: num(fila.querySelector('.js-fijo').value),
+    };
+    if (pctFila !== '') linea.porcentaje = num(pctFila);
+    return linea;
+  });
+}
+
+// --- Tramos ----------------------------------------------------------------
+const TRAMOS_INICIALES = [
+  { desde: 0, hasta: 2000, porcentaje: 25 },
+  { desde: 2000, hasta: '', porcentaje: 35 },
+];
+
+function pintarTramos(lista) {
+  $('tramos').innerHTML = lista.map((t, i) => `
+    <div class="cc-tramo" data-tramo="${i}">
+      <div class="cc-field">
+        <label>Desde (€)</label>
+        <input class="cc-input js-desde" type="number" min="0" step="100" value="${t.desde}" inputmode="decimal" />
+      </div>
+      <div class="cc-field">
+        <label>Hasta (€)</label>
+        <input class="cc-input js-hasta" type="number" min="0" step="100" value="${t.hasta}" inputmode="decimal" placeholder="en adelante" />
+      </div>
+      <div class="cc-field">
+        <label>Comisión (%)</label>
+        <input class="cc-input js-tpct" type="number" min="0" max="100" step="0.5" value="${t.porcentaje}" inputmode="decimal" />
+      </div>
+      <button type="button" class="cc-del js-deltramo" aria-label="Quitar tramo">×</button>
+    </div>
+  `).join('');
+}
+
+function leerTramos() {
+  return [...document.querySelectorAll('#tramos .cc-tramo')].map((t) => {
+    const hasta = t.querySelector('.js-hasta').value.trim();
+    return {
+      desde: num(t.querySelector('.js-desde').value),
+      hasta: hasta === '' ? null : num(hasta),
+      porcentaje: num(t.querySelector('.js-tpct').value),
+    };
+  });
+}
+
+// --- Render del resultado ---------------------------------------------------
+function tarjeta(k, v, n, hero) {
+  return `<div class="cc-big${hero ? ' hero' : ''}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>${n ? `<div class="n">${n}</div>` : ''}</div>`;
+}
+
+function calcularYPintar() {
+  if (!$('panelSillon').hidden) return pintarSillon();
+
+  const modelo = $('modelo').value;
+  const lineas = leerFilas();
+  const config = {
+    modelo,
+    porcentaje: num($('pct').value),
+    tramos: modelo === 'tramos' ? leerTramos() : undefined,
+    ivaIncluido: $('ivaIncluido').checked,
+    ivaPct: num($('ivaPct').value),
+    propinasComisionables: $('propinasComisionables').checked,
+    calcularCosteEmpresa: $('costeEmpresa').checked,
+    cuotaPatronalPct: num($('cuotaPatronal').value),
+    salarioMinimoMensual: num($('suelo').value),
+    gastosFijosSalon: num($('gastosFijos').value),
+  };
+
+  const r = calcularComisiones(lineas, config);
+  const t = r.totales;
+  ultimoResultado = { config, totales: t };
+
+  $('resumenTexto').textContent = t.baseSinIva > 0
+    ? `Con ${eur.format(t.facturacion)} facturados al mes, la base sin IVA es ${eur.format(t.baseSinIva)}. Sobre esa base se calcula todo lo de abajo.`
+    : 'Escribe lo que factura cada profesional y el resultado se actualiza solo.';
+
+  $('salida').innerHTML = [
+    tarjeta('Te queda a ti', eur.format(t.margenSalon),
+      `Un ${pct(t.margenPct)} de la base. Es lo que sobra después de pagar al equipo${t.gastosFijos > 0 ? ' y tus gastos fijos' : ''}.`, true),
+    tarjeta('Se lleva el equipo', eur.format(t.brutoTrabajadores),
+      `${eur.format(t.comisiones)} de comisión y ${eur.format(t.fijos)} de fijo.`),
+    tarjeta('Te cuesta el equipo', eur.format(t.costeEmpresa),
+      t.cuotaPatronal > 0
+        ? `${eur.format(t.cuotaPatronal)} más que el bruto: es la cuota patronal (${pct(t.cuotaPatronalPct)}).`
+        : 'Sin cuota patronal: lo has desactivado en los ajustes.'),
+    tarjeta('Cada punto de %', eur2.format(t.costePorPuntoDeComision),
+      'Lo que te cuesta al mes subir la comisión un punto porcentual, cuota patronal incluida.'),
+  ].join('');
+
+  const filas = r.lineas.map((l) => `
+    <tr>
+      <td class="name">${esc(l.nombre)}</td>
+      <td>${eur.format(l.facturacion)}</td>
+      <td>${eur.format(l.baseSinIva)}</td>
+      <td>${eur.format(l.comision)}</td>
+      <td>${pct(l.porcentajeEfectivo)}</td>
+      <td>${eur.format(l.fijo)}</td>
+      <td>${eur.format(l.brutoTrabajador)}</td>
+      <td>${eur.format(l.costeEmpresa)}</td>
+    </tr>`).join('');
+
+  $('tablaWrap').innerHTML = r.lineas.length === 0 ? '' : `
+    <table class="cc-table">
+      <thead><tr>
+        <th>Profesional</th><th>Factura</th><th>Base sin IVA</th><th>Comisión</th>
+        <th>% real</th><th>Fijo</th><th>Bruto</th><th>Te cuesta</th>
+      </tr></thead>
+      <tbody>${filas}</tbody>
+      <tfoot><tr>
+        <td>Total</td>
+        <td>${eur.format(t.facturacion)}</td>
+        <td>${eur.format(t.baseSinIva)}</td>
+        <td>${eur.format(t.comisiones)}</td>
+        <td></td>
+        <td>${eur.format(t.fijos)}</td>
+        <td>${eur.format(t.brutoTrabajadores)}</td>
+        <td>${eur.format(t.costeEmpresa)}</td>
+      </tr></tfoot>
+    </table>`;
+
+  // Avisos: los globales del motor y los de cada persona, sin repetir el mismo
+  // texto cinco veces cuando le pasa a todo el equipo.
+  const vistos = new Set();
+  const avisos = [];
+  for (const a of r.avisos) {
+    if (vistos.has(a.texto)) continue;
+    vistos.add(a.texto);
+    avisos.push({ nivel: a.nivel, texto: a.texto });
+  }
+  for (const l of r.lineas) {
+    for (const texto of l.avisos) {
+      if (vistos.has(texto)) continue;
+      vistos.add(texto);
+      avisos.push({ nivel: 'aviso', texto: `<b>${esc(l.nombre)}:</b> ${esc(texto)}` });
+    }
+  }
+  if ($('ivaIncluido').checked && t.iva > 0) {
+    avisos.push({
+      nivel: 'info',
+      texto: `Le hemos quitado <b>${eur.format(t.iva)}</b> de IVA antes de calcular la comisión. Si la calculases sobre el precio con IVA pagarías <b>${eur2.format((t.iva * num($('pct').value)) / 100)}</b> de más al mes.`,
+    });
+  }
+  $('avisos').innerHTML = avisos
+    .map((a) => `<div class="cc-aviso ${a.nivel === 'info' ? 'info' : 'warn'}">${a.nivel === 'info' ? 'ℹ️' : '⚠️'} <span>${a.texto}</span></div>`)
+    .join('');
+}
+
+function pintarSillon() {
+  const r = calcularAlquilerSillon({
+    alquilerMensual: num($('alquiler').value),
+    facturacionProfesional: num($('factProf').value),
+    ivaPct: num($('ivaPct').value) || IVA_PCT,
+    retencionIrpfPct: num($('retencion').value),
+  });
+  ultimoResultado = { modo: 'sillon', resultado: r };
+
+  $('resumenTexto').textContent = 'Con el alquiler de sillón no hay comisión ni cuota patronal: hay una factura.';
+  $('salida').innerHTML = [
+    tarjeta('Cobras por el puesto', eur.format(r.totalFactura),
+      `${eur.format(r.alquilerBase)} de base más ${eur.format(r.iva)} de IVA${r.retencion > 0 ? `, menos ${eur.format(r.retencion)} de retención` : ''}.`, true),
+    tarjeta('Equivale a una comisión de',
+      r.equivalenteEnComisionPct === null ? '—' : pct(r.equivalenteEnComisionPct),
+      'Es la única forma justa de comparar el alquiler con el modelo de comisión.'),
+    tarjeta('Le queda a esa persona',
+      r.quedaAlProfesional === null ? '—' : eur.format(r.quedaAlProfesional),
+      'De su facturación sin IVA, después de pagarte el puesto. De ahí salen aún su cuota de autónomos y su IRPF.'),
+  ].join('');
+  $('tablaWrap').innerHTML = '';
+  $('avisos').innerHTML = `
+    <div class="cc-aviso warn">⚠️ <span><b>Cuidado con el falso autónomo:</b> si le pones horario, le asignas clientes y le dices cómo trabajar, no es un autónomo aunque firme un alquiler. La Inspección de Trabajo lo ha considerado falso autónomo en casos así.</span></div>
+    <div class="cc-aviso info">ℹ️ <span>${esc(ALQUILER_SILLON.nota)}</span></div>`;
+}
+
+let ultimoResultado = null;
+
+// --- Modos -----------------------------------------------------------------
+function setModo(sillon) {
+  $('panelComision').hidden = sillon;
+  $('panelSillon').hidden = !sillon;
+  $('modoComision').setAttribute('aria-pressed', String(!sillon));
+  $('modoSillon').setAttribute('aria-pressed', String(sillon));
+  calcularYPintar();
+}
+$('modoComision').addEventListener('click', () => setModo(false));
+$('modoSillon').addEventListener('click', () => setModo(true));
+
+$('modelo').addEventListener('change', () => {
+  const porTramos = $('modelo').value === 'tramos';
+  $('advTramos').hidden = !porTramos;
+  if (porTramos) $('advTramos').open = true;
+  // Con tramos, el porcentaje único no pinta nada y dejarlo visible confunde.
+  $('campoPct').style.display = porTramos ? 'none' : '';
+  calcularYPintar();
+});
+
+// Un solo listener en el contenedor: las filas se repintan y los listeners
+// individuales se perderían.
+document.addEventListener('input', (e) => {
+  if (e.target.closest('#panelComision, #panelSillon')) calcularYPintar();
+});
+
+$('filas').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('js-del')) return;
+  const filas = leerFilas();
+  if (filas.length <= 1) return;
+  const i = Number(e.target.closest('.cc-row').dataset.fila);
+  filas.splice(i, 1);
+  pintarFilas(filas.map((f) => ({ nombre: f.nombre, facturacion: f.facturacion, fijo: f.fijoMensual })));
+  calcularYPintar();
+});
+
+$('addFila').addEventListener('click', () => {
+  const filas = leerFilas().map((f) => ({ nombre: f.nombre, facturacion: f.facturacion, fijo: f.fijoMensual }));
+  filas.push({ nombre: `Profesional ${filas.length + 1}`, facturacion: 3000, fijo: 1300 });
+  pintarFilas(filas);
+  calcularYPintar();
+});
+
+$('tramos').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('js-deltramo')) return;
+  const tramos = leerTramos();
+  if (tramos.length <= 1) return;
+  const i = Number(e.target.closest('.cc-tramo').dataset.tramo);
+  tramos.splice(i, 1);
+  pintarTramos(tramos.map((t) => ({ ...t, hasta: t.hasta === null ? '' : t.hasta })));
+  calcularYPintar();
+});
+
+$('addTramo').addEventListener('click', () => {
+  const tramos = leerTramos().map((t) => ({ ...t, hasta: t.hasta === null ? '' : t.hasta }));
+  const ultimo = tramos[tramos.length - 1];
+  const desde = ultimo ? num(ultimo.hasta) || num(ultimo.desde) + 2000 : 0;
+  tramos.push({ desde, hasta: '', porcentaje: 40 });
+  pintarTramos(tramos);
+  calcularYPintar();
+});
+
+// --- Captura de email ------------------------------------------------------
+$('leadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('leadMsg');
+  const nombre = $('leadNombre').value.trim();
+  const email = $('leadEmail').value.trim();
+  const salon = $('leadSalon').value.trim();
+
+  if (!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.className = 'cc-msg err';
+    msg.textContent = 'Necesitamos tu nombre y un correo válido para poder enviártelo.';
+    return;
+  }
+
+  const btn = $('leadBtn');
+  const antes = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  // Las cifras del cálculo viajan en meta para poder mandar el desglose. No van
+  // en la URL: son datos del negocio de esta persona.
+  const api = window.MechaAPI;
+  const meta = { origen: 'calculadora-comisiones', calculo: ultimoResultado };
+  const res = api && api.insertSolicitud
+    ? await api.insertSolicitud({ tipo: 'calculadora', nombre, salon, email, telefono: null, nota: null, meta })
+    : { error: new Error('sin API') };
+
+  btn.disabled = false;
+  btn.textContent = antes;
+
+  if (res && res.error) {
+    msg.className = 'cc-msg err';
+    msg.textContent = 'No se ha podido enviar. Escríbenos a contacto@mechaa.es y te lo mandamos a mano.';
+    return;
+  }
+  msg.className = 'cc-msg ok';
+  msg.textContent = `Hecho. Te lo mandamos a ${email} hoy mismo.`;
+  $('leadForm').reset();
+});
+
+// --- Arranque --------------------------------------------------------------
+pintarFilas(EQUIPO_INICIAL);
+pintarTramos(TRAMOS_INICIALES);
+calcularYPintar();
+</script>
+</body>
+</html>

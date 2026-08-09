@@ -7,12 +7,39 @@
 //   2. preconnect a Supabase y a las fuentes + la hoja de Google Fonts, para que
 //      esas conexiones avancen en paralelo con la descarga del bundle (antes las
 //      inyectaba el propio bundle en runtime, tarde).
+// Y ademas copia el motor de comisiones a web/assets (ver mas abajo).
 // Vercel ejecuta build:web, asi que el deploy lleva esto siempre.
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
+
+// ---------------------------------------------------------------------------
+// Motor de comisiones para la landing publica
+//
+// /calculadora-comisiones es HTML estatico y no pasa por el bundle de Expo, pero
+// tiene que calcular EXACTAMENTE igual que el simulador de dentro de la app. En
+// vez de duplicar la logica (que acabaria dando cifras distintas en el marketing
+// y en el producto), se copia el modulo tal cual: es JavaScript puro ESM sin
+// dependencias justo para poder hacer esto.
+//
+// Las copias van gitignoradas: la fuente unica vive en lib/comisiones/.
+// Este bloque va ANTES de los early-exit de abajo a proposito, para que se ejecute
+// aunque el index.html ya estuviera parcheado.
+// ---------------------------------------------------------------------------
+const destinoComisiones = join(root, 'web', 'assets', 'comisiones');
+mkdirSync(destinoComisiones, { recursive: true });
+for (const fichero of ['motor.js', 'parametrosLegales.js']) {
+  const origen = join(root, 'lib', 'comisiones', fichero);
+  if (!existsSync(origen)) {
+    console.error(`[postbuild-web] Falta lib/comisiones/${fichero}: la calculadora publica no funcionara.`);
+    process.exit(1);
+  }
+  copyFileSync(origen, join(destinoComisiones, fichero));
+}
+console.log('[postbuild-web] Motor de comisiones copiado a web/assets/comisiones/');
+
 const indexPath = join(root, 'web', 'app', 'index.html');
 
 if (!existsSync(indexPath)) {

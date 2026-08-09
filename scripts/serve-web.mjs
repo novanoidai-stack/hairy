@@ -85,6 +85,10 @@ async function resolveFile(urlPath) {
     const f = path.join(ROOT, 'salon.html');
     if (await exists(f)) return f;
   }
+  if (pathname === '/calculadora-comisiones') {
+    const f = path.join(ROOT, 'calculadora-comisiones.html');
+    if (await exists(f)) return f;
+  }
 
   return null;
 }

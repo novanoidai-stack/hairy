@@ -44,3 +44,6 @@ scripts/tts-test/processed/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Copias generadas por scripts/postbuild-web.mjs. La fuente unica es lib/comisiones/.
+web/assets/comisiones/

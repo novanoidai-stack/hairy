@@ -17,6 +17,10 @@
       "destination": "/salones.html"
     },
     {
+      "source": "/calculadora-comisiones",
+      "destination": "/calculadora-comisiones.html"
+    },
+    {
       "source": "/salon/:slug",
       "destination": "/salon.html"
     }
