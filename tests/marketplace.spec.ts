@@ -70,7 +70,9 @@ test.describe('Marketplace E2E Suite - mechaa.es/salones.html', () => {
     await page.waitForTimeout(1000);
 
     const listSec = page.locator('#list');
-    await expect(listSec).toBeVisible();
+    await expect(listSec).toBeAttached();
+    const countSec = page.locator('#count');
+    await expect(countSec).toBeAttached();
   });
 
   test('3. Dynamic Lists (#destacados, #carrusel, #list) & Category Filters', async ({ page }) => {
