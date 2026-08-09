@@ -259,11 +259,20 @@ export interface ResenaItem {
   autor: string | null;
   fecha: string;
   verificada?: boolean; // true si la resena esta atada a una cita real (visita verificada)
+  // Grupo "salon" (ver SCORE_FIELDS en app/(tabs)/resenas.web.tsx). El grupo
+  // "mecha" NO viaja al portal publico: es el cliente valorando Mecha como
+  // software, no al salon.
+  trato?: number | null; // salon_trato_puntuacion
+  productos?: number | null; // salon_productos_puntuacion
+  profesional?: string | null; // nombre de quien atendio
+  profesional_puntuacion?: number | null;
+  servicio?: string | null; // nombre del servicio de la cita
 }
 export interface ResenaResumen {
   media: number;
   total: number;
   verificadas?: number; // cuantas de las visibles provienen de una visita verificada
+  distribucion?: Record<string, number>; // reparto real de 5 a 1 estrellas
   ultimas: ResenaItem[];
 }
 
