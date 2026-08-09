@@ -15,6 +15,7 @@ import { categoryColorHex } from '@/lib/categoryColors';
 import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
 import { PortalGrupoModal } from '@/components/portal/PortalGrupoModal.web';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { barrasDistribucion, subNotas } from '@/lib/portalResenas';
 
 const T = PORTAL_TOKENS;
 const FIRE = FIRE_GRADIENT;
@@ -72,6 +73,23 @@ const ANY_PRO = '__any__';
 
 function fmtHora(iso: string, loc: string) { return new Date(iso).toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }); }
 function fmtFechaLarga(d: Date, loc: string) { return d.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' }); }
+function fmtFechaRelativa(iso: string, loc: string) {
+  const dias = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (dias < 1) return 'hoy';
+  if (dias === 1) return 'ayer';
+  if (dias < 7) return `hace ${dias} dias`;
+  if (dias < 30) { const s = Math.floor(dias / 7); return `hace ${s} ${s === 1 ? 'semana' : 'semanas'}`; }
+  if (dias < 365) { const m = Math.floor(dias / 30); return `hace ${m} ${m === 1 ? 'mes' : 'meses'}`; }
+  return new Date(iso).toLocaleDateString(loc, { month: 'long', year: 'numeric' });
+}
+
+// Obliga a declarar que hace la rejilla bajo el breakpoint. Sin esto se colaron
+// los recortes de la cabecera y de las resenas: rejillas de escritorio pintadas
+// tal cual en un viewport de 375px.
+function ResponsiveGrid({ children, mobile, desktop, gap, style }: { children: React.ReactNode; mobile: string; desktop: string; gap: number; style?: React.CSSProperties }) {
+  const { isMobile } = useResponsive();
+  return <div style={{ display: 'grid', gridTemplateColumns: isMobile ? mobile : desktop, gap, ...style }}>{children}</div>;
+}
 function capFirst(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function claveADate(k: string): Date { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); }
 function franjaDe(iso: string): 'manana' | 'tarde' | 'noche' {
@@ -284,8 +302,15 @@ export default function PortalReservaWeb() {
   }, [servicio, profId, fecha, slug]);
 
   const horas = useMemo(() => {
+    // Una fila por hora. Si a la misma hora hay un profesional libre y otro en
+    // reposo, gana el libre: el hueco de reposo solo se ofrece cuando es la
+    // unica opcion. Antes se quedaba con el primero que llegase del orden de la
+    // RPC (slot, nombre), asi que acertar dependia del alfabeto.
     const map = new Map<string, SlotDisponible>();
-    for (const s of slots) if (!map.has(s.slot)) map.set(s.slot, s);
+    for (const s of slots) {
+      const previo = map.get(s.slot);
+      if (!previo || (previo.en_reposo && !s.en_reposo)) map.set(s.slot, s);
+    }
     return [...map.values()].sort((a, b) => a.slot.localeCompare(b.slot));
   }, [slots]);
 
@@ -474,13 +499,7 @@ export default function PortalReservaWeb() {
   const textareaStyle = { ...inputStyle, minHeight: 58, resize: 'vertical' as const };
   const errorStyleBox = { padding: '10px 12px', background: T.dangerSoft, border: '1px solid rgba(226,59,52,0.35)', borderRadius: 10, color: T.danger, fontSize: 12.5, marginTop: 14 };
 
-  const ratingBars = [5, 4, 3, 2, 1].map(star => {
-    // Mock rating data for UI if resenas doesn't have details
-    const count = star === 5 ? 164 : star === 4 ? 15 : star === 3 ? 2 : star === 2 ? 1 : 0;
-    const total = 182;
-    const pct = Math.round((count / total) * 100);
-    return { star, pct };
-  });
+  const ratingBars = barrasDistribucion(resenas?.distribucion, resenas?.total ?? 0);
   return (
     <div data-screen-label="Portal de reservas" style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', background: '#f6f1ea', fontFamily: 'Inter,system-ui,sans-serif', color: '#1c1814' }}>
       <header style={{ position: 'sticky', top: 0, zIndex: 30, background: '#fffdfb', borderBottom: '1px solid rgba(40,30,24,0.08)' }}>
@@ -528,7 +547,7 @@ export default function PortalReservaWeb() {
         <div style={{ background: '#fffdfb', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 24, boxShadow: '0 24px 60px rgba(40,30,24,0.12)', padding: isMobile ? 20 : 32 }}>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
-            <div style={{ display: 'inline-flex', padding: 4, background: '#f6f1ea', borderRadius: 14, gap: 4 }}>
+            <div style={{ display: 'inline-flex', maxWidth: '100%', overflowX: 'auto', padding: 4, background: '#f6f1ea', borderRadius: 14, gap: 4 }}>
               <button onClick={() => setIsExpress(false)} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isGuiada ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva guiada</button>
               <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isExpresMode ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva exprés</button>
             </div>
@@ -569,7 +588,7 @@ export default function PortalReservaWeb() {
                               </span>
                               <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                                 <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>{sv.nombre}</span>
-                                <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>{sv.duracion} min{mostrarPrecioEnLista ? ` · ${sv.precio}â‚¬` : ''}</span>
+                                <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>{sv.duracion} min{mostrarPrecioEnLista ? ` · ${sv.precio}€` : ''}</span>
                               </span>
                               {selected && (
                                 <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: T.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -651,8 +670,12 @@ export default function PortalReservaWeb() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(84px,1fr))', gap: 7 }}>
                               {fr.items.map(s => {
                                 const sel = slotSel?.slot === s.slot;
+                                // La RPC ya garantiza que el servicio CABE en el hueco de
+                                // reposo; aqui solo se distingue visualmente. Borde discontinuo
+                                // para no meter texto que descuadre la rejilla.
+                                const reposo = !!s.en_reposo;
                                 return (
-                                  <button key={s.slot} onClick={() => setSlotSel(s)} style={{ padding: '10px 6px', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: sel ? 'none' : '1.5px solid ' + T.border, background: sel ? T.primary : '#fff', color: sel ? '#fff' : T.text, boxShadow: sel ? '0 7px 16px rgba(0,0,0,0.18)' : 'none' }}>
+                                  <button key={s.slot} onClick={() => setSlotSel(s)} title={reposo ? `Aprovecha un hueco entre servicios${s.reposo_disponible_min ? ` (${s.reposo_disponible_min} min libres)` : ''}` : undefined} style={{ padding: '10px 6px', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: sel ? 'none' : `1.5px ${reposo ? 'dashed' : 'solid'} ` + (reposo ? T.primary : T.border), background: sel ? T.primary : '#fff', color: sel ? '#fff' : T.text, boxShadow: sel ? '0 7px 16px rgba(0,0,0,0.18)' : 'none' }}>
                                     {fmtHora(s.slot, loc)}
                                     <span style={{ display: profId === ANY_PRO ? 'block' : 'none', fontSize: 9.5, fontWeight: 500, opacity: 0.75, marginTop: 1 }}>{s.profesional_nombre.split(' ')[0]}</span>
                                   </button>
@@ -717,7 +740,7 @@ export default function PortalReservaWeb() {
                       </div>
                       {(mostrarPrecioResumen && servicio) && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(40,30,24,0.08)' }}>
-                          <span style={{ fontSize: 13.5, fontWeight: 700 }}>Total</span><span style={{ fontSize: 19, fontWeight: 800 }}>{servicio.precio}â‚¬</span>
+                          <span style={{ fontSize: 13.5, fontWeight: 700 }}>Total</span><span style={{ fontSize: 19, fontWeight: 800 }}>{servicio.precio}€</span>
                         </div>
                       )}
                       {error && <div style={errorStyleBox}>{error}</div>}
@@ -729,7 +752,7 @@ export default function PortalReservaWeb() {
                       </div>
                     </div>
                     <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ width: '100%', marginTop: 12, padding: '13px 14px', borderRadius: 14, border: `1px dashed ${T.primary}`, background: T.primarySoft, color: '#1c1814', fontSize: 13, fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                      <span style={{ whiteSpace: 'nowrap' }}>¿Tienes prisa? Reserva exprés en 10 segundos</span>
+                      <span style={{ minWidth: 0 }}>¿Tienes prisa? Reserva exprés en 10 segundos</span>
                       <Icon name="chevronRight" size={16} color={T.primaryHi} />
                     </button>
                   </div>
@@ -926,7 +949,8 @@ export default function PortalReservaWeb() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '260px minmax(0,1fr)', gap: 24, alignItems: 'start' }}>
+          {resenas && resenas.total > 0 && (
+          <ResponsiveGrid mobile="minmax(0,1fr)" desktop="260px minmax(0,1fr)" gap={24} style={{ alignItems: 'start' }}>
             <div style={{ background: '#fbf6f0', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 18, padding: 20 }}>
               <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 34, lineHeight: 1 }}>{resenas.media}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 3, margin: '8px 0 4px' }}>
@@ -940,23 +964,32 @@ export default function PortalReservaWeb() {
                 </div>
               ))}
             </div>
-            {/* The rest of the reviews would be mapped here, using static for now as mock */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12 }}>
-              {[1,2].map(i => (
+            <ResponsiveGrid mobile="minmax(0,1fr)" desktop="repeat(auto-fill,minmax(240px,1fr))" gap={12}>
+              {resenas.ultimas.map((r, i) => (
                 <div key={i} style={{ background: '#fff', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 16, padding: 15 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
-                    <span style={{ display: 'inline-flex', width: 34, height: 34, borderRadius: '50%', background: T.primarySoft, color: T.primaryHi, alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>C</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700 }}>Cliente feliz</div>
-                      <div style={{ fontSize: 11, color: '#736658' }}>Servicio x · hace 4 días</div>
+                    <span style={{ display: 'inline-flex', width: 34, height: 34, borderRadius: '50%', background: T.primarySoft, color: T.primaryHi, alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{(r.autor || 'A')[0].toUpperCase()}</span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700 }}>{r.autor || 'Anónimo'}</div>
+                      <div style={{ fontSize: 11, color: '#736658' }}>{[r.servicio, fmtFechaRelativa(r.fecha, loc)].filter(Boolean).join(' · ')}</div>
                     </div>
+                    {r.verificada && <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: '#0f9d6b', background: 'rgba(15,157,107,0.08)', borderRadius: 6, padding: '2px 6px' }}>Verificada</span>}
                   </div>
-                  <div style={{ display: 'flex', gap: 2, marginBottom: 7 }}>{[1,2,3,4,5].map(n => <IconStarFilled key={n} size={12} />)}</div>
-                  <div style={{ fontSize: 12.5, color: '#3a332c', lineHeight: 1.5 }}>Muy contenta con el resultado.</div>
+                  <div style={{ display: 'flex', gap: 2, marginBottom: 7 }}>{[1,2,3,4,5].map(n => <IconStarFilled key={n} size={12} color={n <= Math.round(r.puntuacion) ? undefined : 'rgba(40,30,24,0.15)'} />)}</div>
+                  {r.profesional && <div style={{ fontSize: 11, color: '#736658', marginBottom: 6 }}>Atendido por <b style={{ color: '#3a332c' }}>{r.profesional}</b>{r.profesional_puntuacion ? ` · ${r.profesional_puntuacion}/5` : ''}</div>}
+                  {subNotas(r).length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 7 }}>
+                      {subNotas(r).map(sn => (
+                        <span key={sn.etiqueta} style={{ fontSize: 10.5, color: '#736658', background: 'rgba(40,30,24,0.04)', borderRadius: 6, padding: '2px 6px' }}>{sn.etiqueta}: {sn.valor}/5</span>
+                      ))}
+                    </div>
+                  )}
+                  {r.comentario && <div style={{ fontSize: 12.5, color: '#3a332c', lineHeight: 1.5 }}>{r.comentario}</div>}
                 </div>
               ))}
-            </div>
-          </div>
+            </ResponsiveGrid>
+          </ResponsiveGrid>
+          )}
         </div>
       </div>
 
