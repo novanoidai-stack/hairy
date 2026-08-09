@@ -4557,8 +4557,6 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
             )}
           </div>
         </FieldRow>
-          </div>
-        </FieldRow>
         <FieldRow label="Foto de fondo" hint="Imagen principal del portal de reservas online. Usa una imagen horizontal (paisaje) de buena calidad (máx 5MB).">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 140, height: 78, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: T.bgCard, border: `1px solid ${T.border}`, display: 'grid', placeItems: 'center' }}>
