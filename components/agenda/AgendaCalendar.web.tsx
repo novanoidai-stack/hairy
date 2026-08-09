@@ -7285,8 +7285,8 @@ function DayTimeline({
         <div
           style={{
             minWidth:
-              !agendaFit && profesionales.length > 3
-                ? profesionales.length * 220 + 56
+              !agendaFit
+                ? `${(profesionales.length || 1) * 140 + 56}px`
                 : "100%",
             position: "relative",
           }}
@@ -7294,7 +7294,7 @@ function DayTimeline({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`,
+              gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(140px, 1fr))`,
               borderBottom: `1px solid ${TOKENS.borderHi}`,
               background: "#ffffff",
             }}
@@ -7582,7 +7582,7 @@ function DayTimeline({
                 key={h}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`,
+                  gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(140px, 1fr))`,
                   borderBottom: `1px solid rgba(0,0,0,0.04)`,
                   height: ROW_H,
                   boxSizing: "border-box",
