@@ -87,7 +87,19 @@ Deno.serve(async (req) => {
   try {
     event = await stripe.webhooks.constructEventAsync(body, sig ?? '', whSecret);
   } catch (e) {
-    return new Response('Bad signature: ' + String((e as Error)?.message ?? e), { status: 400 });
+    // El destino de "cuentas conectadas" (S5 Connect) es un webhook aparte y firma con OTRO
+    // secreto. En la URL de plataforma (sin ?negocio) reintentamos con el, asi un mismo
+    // endpoint sirve para los eventos de NUESTRA cuenta Y los de las cuentas conectadas.
+    const connectSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET_CONNECT') ?? '';
+    if (!negocio && connectSecret) {
+      try {
+        event = await stripe.webhooks.constructEventAsync(body, sig ?? '', connectSecret);
+      } catch {
+        return new Response('Bad signature (connect)', { status: 400 });
+      }
+    } else {
+      return new Response('Bad signature: ' + String((e as Error)?.message ?? e), { status: 400 });
+    }
   }
 
   // Eventos de la SUSCRIPCION DE MECHA (cuenta de plataforma). No llevan ?negocio.
