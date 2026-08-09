@@ -35,10 +35,12 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // auth.setup.ts guardaba la sesion en STORAGE_STATE y nadie la cargaba:
-        // los tests que necesitan estar dentro del software se ejecutaban como
-        // anonimos y acababan rebotados al login.
-        storageState: STORAGE_STATE,
+        // NO se pone storageState aqui a proposito: la mayoria de specs son de
+        // paginas publicas (landing, marketplace, portal) y con sesion viva el
+        // nav cambia de CTA y fallan. Los specs que necesitan estar DENTRO del
+        // software declaran su propia sesion con
+        //   test.use({ storageState: STORAGE_STATE })
+        // (ver tests/agenda-jornada.spec.ts).
       },
       dependencies: ['setup'],
     },

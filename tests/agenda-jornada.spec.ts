@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { STORAGE_STATE } from '../playwright.config';
 
 // Agenda: jornada real por profesional y "Enseñamelo" paso a paso.
 //
@@ -27,6 +28,11 @@ async function entrarAlSoftware(page: any) {
   await page.waitForTimeout(9000);
   if (!/\/app/.test(page.url())) test.skip(true, 'no se pudo entrar al software (sesion caducada)');
 }
+
+// Este spec SI necesita estar dentro del software. El resto de specs son
+// publicos y deben correr anonimos, asi que la sesion se declara aqui y no en
+// la configuracion global.
+test.use({ storageState: STORAGE_STATE });
 
 test.describe('Agenda — jornada real', () => {
   test('la rejilla marca la jornada propia de cada profesional', async ({ page }) => {
