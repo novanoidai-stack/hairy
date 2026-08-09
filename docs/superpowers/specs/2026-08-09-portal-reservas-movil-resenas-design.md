@@ -167,11 +167,30 @@ propuesta por defecto: borrar la query a `negocios`, y dejar la de
 no existe y que hoy no hace nada, por si se quiere recuperar la función. La
 alternativa es borrar también esa segunda query y su consumidor en `:518`.
 
-**Riesgo abierto:** `cobroReserva` se alimenta de la query muerta a `negocios`, así
-que hoy el depósito es siempre 0 en el portal. Antes de tocar nada hay que averiguar
-de dónde debería salir el importe. Puede ser un bug real de cobros escondido detrás
-de la query muerta. **Si al investigarlo resulta que toca la pasarela de pago, se
-saca de este spec y se trata aparte.**
+### El depósito: riesgo investigado y cerrado
+
+`cobroReserva` se alimenta de la query muerta a `negocios`, así que hoy vale siempre
+0. Investigado antes de escribir nada:
+
+- **No toca la pasarela de pago.** `cobroReserva` se usa en un único sitio, `:728`,
+  y sólo elige el texto de una etiqueta: `'Se requerirá señal de reserva'` frente a
+  `'Pago en el salón el día de la cita'`. No entra en ninguna lógica de cobro.
+- **Sí es un bug real de cara al cliente:** hoy el portal promete "Pago en el salón
+  el día de la cita" incluso en servicios que exigen señal. Es una promesa falsa
+  sobre dinero, aunque sea sólo una etiqueta.
+- **No existe ninguna columna de depósito a nivel de negocio.** El prepago es **por
+  servicio**: `servicios.prepago_requerido`, `prepago_porcentaje`,
+  `prepago_cantidad_fija`. Así lo calculan las RPC de creación de cita
+  (`captcha-portal.sql:96`, `:155`).
+- **El portal ya tiene el dato.** `portal_info(slug)` devuelve `prepago` por
+  servicio en cada elemento de `servicios[]`.
+
+Arreglo: borrar la query muerta y el estado `cobroReserva`, y hacer que `:728` lea
+`servicio?.prepago` del servicio ya seleccionado. Cero queries nuevas, cero
+migración, y la etiqueta pasa a ser correcta por servicio en vez de por negocio.
+
+Queda **fuera** de este spec cobrar la señal de verdad en el portal (importe,
+pasarela, estado `pendiente`): eso es una funcionalidad aparte.
 
 ## Verificación
 
@@ -188,6 +207,8 @@ confirmar con evidencia:
 7. Las reseñas mostradas coinciden una a una con `resenas_publicas('demo')`.
 8. Ningún campo `mecha_*` viaja al cliente. Comprobar la respuesta cruda de la RPC.
 9. Con un salón sin reseñas, el bloque no inventa ni `4.9` ni `182`.
+10. En un servicio con `prepago = true`, la etiqueta dice que se requerirá señal; en
+    uno con `prepago = false`, que se paga en el salón. Hoy siempre dice lo segundo.
 
 Verificar en **producción**, no sólo en local: CSP, buildCommand y latencia esconden
 bugs que en local no aparecen.
