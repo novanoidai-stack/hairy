@@ -52,20 +52,35 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
 
     try {
       const doc = await extractDocumentContent(file);
+      let parsedData: any = null;
 
-      const { data, error: funcError } = await supabase.functions.invoke('migracion-magica', {
-        body: {
-          intencion: state.intencion,
-          mimeType: doc.mimeType,
-          content: doc.content,
-          negocioId
+      try {
+        const { data, error: funcError } = await supabase.functions.invoke('migracion-magica', {
+          body: {
+            intencion: state.intencion,
+            mimeType: doc.mimeType,
+            content: doc.content,
+            negocioId
+          }
+        });
+        if (!funcError && data && data.ok) {
+          parsedData = data.data;
         }
-      });
+      } catch {
+        /* fallback local */
+      }
 
-      if (funcError) throw funcError;
-      if (!data || !data.ok) throw new Error(data?.error || 'Error desconocido al procesar con IA');
+      if (!parsedData) {
+        // Fallback local autónomo
+        const { parsearMigracionLocal } = await import('@/lib/migracionParserLocal');
+        parsedData = parsearMigracionLocal(doc.content, file.name);
+      }
 
-      setState(prev => ({ ...prev, paso: 'preview', data: data.data }));
+      if (!parsedData || ((!parsedData.clientes || parsedData.clientes.length === 0) && (!parsedData.servicios || parsedData.servicios.length === 0))) {
+        throw new Error('No se pudieron extraer clientes o servicios del archivo. Revisa el formato.');
+      }
+
+      setState(prev => ({ ...prev, paso: 'preview', data: parsedData }));
     } catch (e) {
       setError(mensajeDeError(e));
       setState(prev => ({ ...prev, paso: 'subir' }));
