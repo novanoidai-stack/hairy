@@ -42,7 +42,9 @@ import {
   analizarAgendaDia,
   ordenarPorPrioridad,
   prepararCitas,
+  tramosDelProfesional,
   type ProblemaAgenda,
+  type HorarioProfesional,
 } from "@/lib/organizarAgenda";
 import ListaEsperaPropuestaModal, {
   type CandidataListaEspera,
@@ -454,6 +456,10 @@ export default function AgendaCalendar() {
   profesionalesRef.current = profesionales;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [horarios, setHorarios] = useState<any[]>([]);
+  // Jornada propia de cada profesional (horarios_profesional). Un profesional
+  // puede acabar antes que el salon o partir el dia en dos turnos; sin esto la
+  // rejilla pintaba a todos con la ventana del negocio.
+  const [horariosProf, setHorariosProf] = useState<HorarioProfesional[]>([]);
   // Pila de deshacer/rehacer de movimientos de citas (solo esta sesion).
   const [pilaAgenda, setPilaAgenda] = useState<PilaAgenda>(PILA_VACIA);
   const [undoBusy, setUndoBusy] = useState(false);
@@ -893,6 +899,7 @@ export default function AgendaCalendar() {
           catResult,
           cierreResult,
           horarioResult,
+          horarioProfResult,
         ] = await Promise.all([
           supabase
             .from("profesionales")
@@ -945,6 +952,15 @@ export default function AgendaCalendar() {
             .from("negocio_horarios")
             .select("dia_semana, abierto, apertura, cierre")
             .eq("negocio_id", negocioId),
+          // Jornada propia de cada profesional. OJO: aqui dia_semana es
+          // 0=DOMINGO (extract(dow) de Postgres), a diferencia de
+          // negocio_horarios, que usa 0=lunes.
+          // OJO: horarios_profesional NO tiene columna negocio_id (solo
+          // profesional_id). Se acota por los profesionales del salon, igual que
+          // hace lib/hooks/useOnboardingStatus.ts. dia_semana aqui es 0=DOMINGO.
+          supabase
+            .from("horarios_profesional")
+            .select("profesional_id, dia_semana, hora_inicio, hora_fin, turno"),
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
@@ -968,6 +984,7 @@ export default function AgendaCalendar() {
         setClientes(cltResult.data ?? []);
         setBloqueos(bloqueoResult.data ?? []);
         setHorarios(horarioResult.data ?? []);
+        setHorariosProf((horarioProfResult as any)?.data ?? []);
         setCierres((cierreResult as any)?.data ?? []);
         const addonMap: Record<string, any[]> = {};
         for (const row of addonsResult.data ?? []) {
@@ -1377,6 +1394,7 @@ export default function AgendaCalendar() {
           diaMs: selectedDateObj.getTime(),
           bloqueos,
           horarios,
+          horariosProfesional: horariosProf,
           maxAdelantoMin: limitesAgenda?.maxAdelantoMin,
           umbralHuecoMin: limitesAgenda?.umbralHuecoMin,
         },
@@ -1393,6 +1411,7 @@ export default function AgendaCalendar() {
     selectedDateObj,
     bloqueos,
     horarios,
+    horariosProf,
     limitesAgenda,
     ahoraOverrideMs,
   ]);
@@ -1441,16 +1460,22 @@ export default function AgendaCalendar() {
     [citas],
   );
 
-  // Lo que se resalta en la rejilla: con el interruptor encendido, TODOS los del
-  // dia (el enfocado solo manda el scroll); si viene del panel tarjeta a tarjeta,
-  // solo ese.
+  // Lo que se resalta en la rejilla: SIEMPRE uno solo, el que se esta mirando.
+  //
+  // Antes, con el interruptor encendido se devolvian TODOS los problemas del dia
+  // y el enfocado solo mandaba el scroll: la rejilla se encendia entera y no se
+  // distinguia una propuesta de otra. El navegador de "Anterior / N de M /
+  // Siguiente" ya existia; lo que faltaba era que el resalte le hiciera caso.
   const zonasResaltadas = useMemo(() => {
-    if (ensenar) return problemasAgenda;
-    if (problemaEnfocado) {
-      const p = problemasAgenda.find((x) => x.id === problemaEnfocado);
-      return p ? [p] : [];
-    }
-    return [];
+    if (!ensenar && !problemaEnfocado) return [];
+    const p = problemaEnfocado
+      ? problemasAgenda.find((x) => x.id === problemaEnfocado)
+      : null;
+    if (p) return [p];
+    // Encendido pero sin foco valido (p.ej. el problema enfocado se resolvio y
+    // desaparecio de la lista): se cae al primero en vez de dejar la rejilla
+    // apagada, que pareceria que el interruptor no hace nada.
+    return ensenar && problemasAgenda.length > 0 ? [problemasAgenda[0]] : [];
   }, [ensenar, problemaEnfocado, problemasAgenda]);
 
   const idxEnfocado = problemaEnfocado
@@ -4457,6 +4482,7 @@ export default function AgendaCalendar() {
                   selectedProf={selectedProf}
                   agendaFit={agendaFit}
                   zonasResaltadas={zonasResaltadas}
+                  horariosProf={horariosProf}
                 />
               )}
             </>
@@ -6428,6 +6454,9 @@ function ViewTab({ children, active, onClick }: any) {
 }
 
 const BLOQUEO_COLORS: Record<string, string> = {
+  // Fuera de la jornada del profesional: gris apagado, deliberadamente distinto
+  // de "libre" (blanco) y de una ausencia puntual (vacaciones, baja...).
+  fuera_jornada: "#94a3b8",
   vacaciones: "#0f9d6b",
   reunion: "#3b82f6",
   baja: "#e23b34",
@@ -6435,6 +6464,7 @@ const BLOQUEO_COLORS: Record<string, string> = {
   descanso: "#e08a00",
 };
 const BLOQUEO_LABELS: Record<string, string> = {
+  fuera_jornada: "Fuera de jornada",
   vacaciones: "Vacaciones",
   reunion: "Reunión",
   baja: "Baja",
@@ -6470,6 +6500,8 @@ function DayTimeline({
   categorias = [],
   selectedProf,
   horarios = [],
+  // Jornada propia por profesional (horarios_profesional). dia_semana 0=DOMINGO.
+  horariosProf = [],
   agendaFit = true,
   // Zonas a resaltar en modo "Enseñamelo" (ProblemaAgenda[]). Vacio = nada.
   zonasResaltadas = [],
@@ -7763,8 +7795,13 @@ function DayTimeline({
                       const dayEnd = new Date(selectedDateObj);
                       dayEnd.setHours(23, 59, 59, 999);
                       
+                      // OJO: esto leia `horarios` (negocio_horarios), que NO tiene
+                      // profesional_id ni hora_fin, asi que profHorarios salia
+                      // SIEMPRE vacio y la pausa de comida no se pinto nunca. La
+                      // fuente correcta es horarios_profesional (horariosProf).
+                      // dia_semana ahi es 0=DOMINGO, asi que getDay() vale tal cual.
                       const dbDia = selectedDateObj.getDay();
-                      const profHorarios = (horarios as any[]).filter(h => h.profesional_id === prof.id && h.dia_semana === dbDia).sort((a,b) => (a.turno ?? 1) - (b.turno ?? 1));
+                      const profHorarios = (horariosProf as any[]).filter((h: any) => h.profesional_id === prof.id && h.dia_semana === dbDia).sort((a: any, b: any) => (a.turno ?? 1) - (b.turno ?? 1));
                       const virtualPauses = [];
                       if (profHorarios.length > 1) {
                         for (let i = 0; i < profHorarios.length - 1; i++) {
@@ -7789,7 +7826,71 @@ function DayTimeline({
                         }
                       }
                       
-                      return [...(bloqueos as any[]), ...virtualPauses]
+                      // Fuera de la jornada de ESTE profesional: antes de su
+                      // primer turno y despues del ultimo. Es lo que hacia falta
+                      // para ver de un vistazo que uno acaba a las 14:00 y otro a
+                      // las 20:00; hasta ahora la rejilla pintaba a todos con la
+                      // ventana del salon. Sin fila de horario no se pinta nada:
+                      // no se inventa una jornada que nadie configuro.
+                      // Distincion que importa: "no tiene NINGUNA fila" (el salon
+                      // no ha configurado horarios: no se pinta nada, seria pintar
+                      // a todo el mundo de gris) no es lo mismo que "tiene filas
+                      // pero ninguna hoy" (ese dia libra: se apaga la columna
+                      // entera).
+                      const tieneAlgunHorario = (horariosProf as any[]).some(
+                        (h: any) => h.profesional_id === prof.id,
+                      );
+                      const fueraJornada: any[] = [];
+                      if (tieneAlgunHorario && profHorarios.length === 0) {
+                        const rejillaIni = new Date(selectedDateObj);
+                        rejillaIni.setHours(START_H, 0, 0, 0);
+                        const rejillaFin = new Date(selectedDateObj);
+                        rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+                        fueraJornada.push({
+                          id: `jornada-libra-${prof.id}`,
+                          profesional_id: prof.id,
+                          inicio: rejillaIni.toISOString(),
+                          fin: rejillaFin.toISOString(),
+                          tipo: 'fuera_jornada',
+                          motivo: 'No trabaja este dia',
+                        });
+                      }
+                      if (profHorarios.length > 0) {
+                        const alDia = (hhmm: string) => {
+                          const [h, m] = String(hhmm).split(':').map(Number);
+                          const d = new Date(selectedDateObj);
+                          d.setHours(h, m || 0, 0, 0);
+                          return d;
+                        };
+                        const rejillaIni = new Date(selectedDateObj);
+                        rejillaIni.setHours(START_H, 0, 0, 0);
+                        const rejillaFin = new Date(selectedDateObj);
+                        rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+                        const entra = alDia(profHorarios[0].hora_inicio);
+                        const sale = alDia(profHorarios[profHorarios.length - 1].hora_fin);
+                        if (entra > rejillaIni) {
+                          fueraJornada.push({
+                            id: `jornada-ini-${prof.id}`,
+                            profesional_id: prof.id,
+                            inicio: rejillaIni.toISOString(),
+                            fin: entra.toISOString(),
+                            tipo: 'fuera_jornada',
+                            motivo: `Entra a las ${profHorarios[0].hora_inicio.slice(0, 5)}`,
+                          });
+                        }
+                        if (sale < rejillaFin) {
+                          fueraJornada.push({
+                            id: `jornada-fin-${prof.id}`,
+                            profesional_id: prof.id,
+                            inicio: sale.toISOString(),
+                            fin: rejillaFin.toISOString(),
+                            tipo: 'fuera_jornada',
+                            motivo: `Termina a las ${profHorarios[profHorarios.length - 1].hora_fin.slice(0, 5)}`,
+                          });
+                        }
+                      }
+
+                      return [...(bloqueos as any[]), ...virtualPauses, ...fueraJornada]
                         .filter((b: any) => {
                           if (b.profesional_id !== prof.id) return false;
                           return (

@@ -35,6 +35,10 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        // auth.setup.ts guardaba la sesion en STORAGE_STATE y nadie la cargaba:
+        // los tests que necesitan estar dentro del software se ejecutaban como
+        // anonimos y acababan rebotados al login.
+        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },
