@@ -3,6 +3,7 @@
 // El portal es anonimo: usa la anon key; no se accede a tablas privadas directamente.
 
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 export interface PortalServicio {
   id: string;
@@ -78,7 +79,10 @@ export interface CrearCitaArgs {
 // Cabecera + servicios reservables + profesionales del salon. null si el portal no existe / esta apagado.
 export async function getPortalInfo(slug: string): Promise<PortalInfo | null> {
   const { data, error } = await supabase.rpc('portal_info', { p_slug: slug });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return (data as PortalInfo | null) ?? null;
 }
 
@@ -95,7 +99,10 @@ export async function getDisponibilidad(
     p_fecha: fecha,
     p_profesional_id: profesionalId ?? null,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return (data as SlotDisponible[] | null) ?? [];
 }
 
@@ -113,8 +120,10 @@ export async function getDiasDisponibles(
     p_profesional_id: profesionalId ?? null,
     p_dias: dias,
   });
-  if (error) throw error;
-  // El RPC devuelve filas { dia: 'YYYY-MM-DD' }.
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return ((data as { dia: string }[] | null) ?? []).map(r => r.dia);
 }
 
@@ -133,7 +142,10 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_consiente_ia: args.consienteIa ?? false,
     p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return data as CrearCitaResult;
 }
 
