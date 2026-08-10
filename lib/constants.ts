@@ -31,9 +31,6 @@ export const AGENDA_MARGEN_REACCION_MIN_DEFAULT = 120;
 // aviso, un slot (15 min) es ruido.
 export const AGENDA_UMBRAL_HUECO_MIN_DEFAULT = 30;
 
-// Prioridad en lista de espera al fallar una cita express
-export const EXPRESS_LISTA_ESPERA_PRIORIDAD_DEFAULT = 5;
-
 export const CITA_CARD_DETAILS_MIN_HEIGHT = 38;
 
 export const CITA_STATUS = {

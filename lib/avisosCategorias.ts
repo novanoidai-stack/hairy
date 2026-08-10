@@ -18,7 +18,6 @@ export type AvisoCategoria =
   | 'clientes'     // riesgo de fuga, cumpleanos, recuperar
   | 'inventario'   // stock bajo
   | 'presupuestos' // presupuestos sin respuesta
-  | 'express'      // citas express prioritarias
   | 'otros';       // resto de hallazgos de Chispa
 
 export type AvisoUrgencia = 'urgente' | 'alta' | 'media' | 'baja';
@@ -73,13 +72,12 @@ export const CATEGORIA_META: Record<AvisoCategoria, CategoriaMeta> = {
   clientes:     { label: 'Clientas',     ionicon: 'people-outline',        tint: T.rose },
   inventario:   { label: 'Inventario',   ionicon: 'cube-outline',          tint: T.warning },
   presupuestos: { label: 'Presupuestos', ionicon: 'document-text-outline', tint: T.cyan },
-  express:      { label: 'Citas Exprés', ionicon: 'flash-outline',         tint: T.rose },
   otros:        { label: 'Otros',        ionicon: 'sparkles-outline',      tint: T.textTertiary },
 };
 
 // Orden de aparicion de los chips de categoria (los vacios se ocultan en la UI).
 export const CATEGORIA_ORDEN: AvisoCategoria[] = [
-  'citas', 'express', 'pagos', 'agenda', 'ineficiencia', 'mensajes', 'clientes', 'inventario', 'presupuestos', 'otros',
+  'citas', 'pagos', 'agenda', 'ineficiencia', 'mensajes', 'clientes', 'inventario', 'presupuestos', 'otros',
 ];
 
 // Mapea un hallazgo del escaneo proactivo (S13) a una categoria de avisos. Se

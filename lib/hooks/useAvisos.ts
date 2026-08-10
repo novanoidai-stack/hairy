@@ -40,12 +40,6 @@ export interface AvisoCobroPendiente {
   precio: number;
 }
 
-export interface AvisoCitaExpress {
-  id: string;
-  inicio: string;
-  clienteNombre: string;
-}
-
 export interface AvisosData {
   sinConfirmar: AvisoCitaSinConfirmar[];
   cobrosPendientes: AvisoCobroPendiente[];
@@ -56,7 +50,6 @@ export interface AvisosData {
   // (senal sin pagar, presupuesto sin respuesta, stock bajo).
   hallazgos: Hallazgo[];
   ineficiencias: ProblemaAgenda[];
-  citasExpress: AvisoCitaExpress[];
   // Vista unificada de TODOS los avisos, normalizada y ordenada (urgencia +
   // cercania temporal). La consumen la campana web y la hoja movil para pintar
   // categorias, urgencia y orden cronologico de forma identica.
@@ -76,7 +69,6 @@ export function useAvisos(enabled = true): AvisosData {
   const [clientesFuga, setClientesFuga] = useState(0);
   const [hallazgos, setHallazgos] = useState<Hallazgo[]>([]);
   const [ineficiencias, setIneficiencias] = useState<ProblemaAgenda[]>([]);
-  const [citasExpress, setCitasExpress] = useState<AvisoCitaExpress[]>([]);
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
 
@@ -108,7 +100,7 @@ export function useAvisos(enabled = true): AvisosData {
         const hoy0 = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
         const manana0 = new Date(hoy0.getTime() + 86400000);
 
-        const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes, citasHoyRes, profsRes, cobrosPendRes, expressRes] = await Promise.all([
+        const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes, citasHoyRes, profsRes, cobrosPendRes] = await Promise.all([
           // Equivalente SQL del predicado canonico esSinConfirmar48h (lib/citasMetrics):
           // si se toca aqui, tocar tambien alli (banner de agenda y pagina Citas lo usan).
           supabase
@@ -151,16 +143,6 @@ export function useAvisos(enabled = true): AvisosData {
             .lte('inicio', ahora.toISOString())
             .order('inicio', { ascending: false })
             .limit(15),
-          // Citas express inminentes/recientes
-          supabase
-            .from('citas')
-            .select('id, inicio, cliente_id, clientes(nombre)')
-            .eq('negocio_id', negocioId)
-            .eq('origen_express', true)
-            .in('estado', [CITA_STATUS.PENDIENTE, CITA_STATUS.CONFIRMADA])
-            .gte('inicio', ahora.toISOString())
-            .order('inicio', { ascending: true })
-            .limit(10),
         ]);
         if (!alive) return;
 
@@ -183,14 +165,6 @@ export function useAvisos(enabled = true): AvisosData {
           precio: c.servicios?.precio ?? 0,
         }));
         setCobrosPendientes(cobrosP);
-
-        // Citas exprés
-        const expr = (expressRes.data ?? []).map((c: any) => ({
-          id: c.id,
-          inicio: c.inicio,
-          clienteNombre: c.clientes?.nombre || nombreMap.get(c.cliente_id) || 'Cliente',
-        }));
-        setCitasExpress(expr);
 
         // Cumpleanos en los proximos 7 dias (misma logica que la agenda)
         const hoy0Ms = hoy0.getTime();
@@ -285,7 +259,7 @@ export function useAvisos(enabled = true): AvisosData {
     };
   }, [enabled]);
 
-  const total = sinConfirmar.length + cobrosPendientes.length + cumples.length + mensajesSinLeer + clientesFuga + hallazgos.length + ineficiencias.length + citasExpress.length;
+  const total = sinConfirmar.length + cobrosPendientes.length + cumples.length + mensajesSinLeer + clientesFuga + hallazgos.length + ineficiencias.length;
 
   // Vista unificada: normaliza cada fuente a AvisoItem (categoria + urgencia + ts
   // + ruta) y ordena por urgencia y cercania temporal. Un solo lugar de verdad
@@ -424,23 +398,10 @@ export function useAvisos(enabled = true): AvisosData {
       });
     });
 
-    // Citas exprés (alta prioridad)
-    citasExpress.forEach((c) => {
-      out.push({
-        id: `express:${c.id}`,
-        categoria: 'express',
-        urgencia: 'alta',
-        titulo: `${c.clienteNombre}`,
-        subtitulo: 'Nueva cita exprés VIP',
-        ts: new Date(c.inicio).getTime(),
-        ruta: `/(tabs)/?cita=${c.id}`,
-      });
-    });
-
     return ordenarAvisos(out);
-  }, [sinConfirmar, cobrosPendientes, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias, citasExpress]);
+  }, [sinConfirmar, cobrosPendientes, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias]);
 
-  return { sinConfirmar, cobrosPendientes, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias, citasExpress, items, total, loading, refresh, resolverHallazgo };
+  return { sinConfirmar, cobrosPendientes, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias, items, total, loading, refresh, resolverHallazgo };
 }
 
 // Ruta destino de un hallazgo segun su accion sugerida (o por tipo como
