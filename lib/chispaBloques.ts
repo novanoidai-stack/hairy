@@ -61,6 +61,12 @@ export const CHISPA_ORGANIZAR_FLAG = '__mechaOrganizarDisponible';
 export const CHISPA_WAKE_EVENT = 'mecha-chispa-wake';
 export const CHISPA_WAKEWORD_TOGGLE_EVENT = 'mecha-chispa-wakeword-toggle';
 
+// Evento DOM global para abrir Chispa con una pregunta YA escrita en otra
+// pantalla (p.ej. el buscador "Pregunta a Chispa" de Ayuda) y enviarla en el
+// acto, en vez de que el usuario tenga que reescribirla dentro del panel.
+// Mismo patron que CHISPA_WAKE_EVENT pero sin las senales de sesion de voz.
+export const CHISPA_ASK_EVENT = 'mecha-chispa-ask';
+
 // Bloque tipado. Union EXTENSIBLE: anadir nuevos tipos aqui + su caso en
 // BloqueRenderer, sin tocar el resto del flujo.
 // Unidad de un valor numerico de 'grafica'/'comparativa': determina formato y color.

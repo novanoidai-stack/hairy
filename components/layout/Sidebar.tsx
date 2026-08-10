@@ -215,7 +215,7 @@ export function Sidebar() {
     : '';
   const accountTitle = identidad
     ? `${accountName} · ${accountSubtitle} — pulsa para cambiar de persona`
-    : accountSubtitle ? `${accountName} · ${accountSubtitle}` : accountName;
+    : accountSubtitle ? `${accountName} · ${accountSubtitle} — pulsa para ir a tu cuenta` : accountName;
 
   const renderNavItem = (item: typeof NAV_ITEMS[0], idx: number) => {
     const hrefSlug = item.href.split('/').pop() || '';
@@ -439,9 +439,12 @@ export function Sidebar() {
         <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>
           <TouchableOpacity
             style={[s.accountCard, collapsed && s.accountCardCollapsed, accountHovered && s.accountCardHovered]}
-            // Solo hace algo con acceso compartido: suelta la identidad y vuelve
-            // a salir la puerta de "¿Quien eres?" para que entre el siguiente.
-            onPress={identidad ? () => { soltarIdentidad(); } : undefined}
+            // Con acceso compartido, suelta la identidad y vuelve a sacar la
+            // puerta de "¿Quien eres?" para que entre el siguiente. Sin acceso
+            // compartido, lleva a la propia cuenta en Configuracion.
+            onPress={identidad
+              ? () => { soltarIdentidad(); }
+              : () => { router.push({ pathname: '/(tabs)/configuracion', params: { tab: 'cuenta' } } as any); }}
             {...{
               onMouseEnter: () => {
                 setAccountHovered(true);

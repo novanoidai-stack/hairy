@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { useSegments } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { suscribirIdentidad } from '@/lib/identidadActiva';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import { escanearHallazgosAhora } from '@/lib/hallazgos';
@@ -77,7 +78,16 @@ export function ChispaLauncher() {
     // La demo compartida entra sola tras el montaje (signInDemoViewer); reintenta
     // al cambiar la sesion para no quedarnos sin perfil por la carrera inicial.
     const { data: sub } = supabase.auth.onAuthStateChange(() => { void cargar(); });
-    return () => { cancel = true; sub.subscription.unsubscribe(); };
+    // Acceso compartido (un solo correo): getUserProfile() sustituye el rol por
+    // el de la identidad activa (lib/identidadActiva), pero esa identidad se
+    // carga en paralelo (GuardaIdentidad) y puede resolverse DESPUES de este
+    // primer cargar(). Sin este re-fetch, un profesional que elige "soy Marta"
+    // se queda con el perfil ya cacheado del propietario (esGestorOnboarding mal
+    // calculado -> le salta el asistente de puesta en marcha, que es solo para
+    // quien gestiona el salon). Recargar en cada cambio de identidad (elegida,
+    // soltada, o la primera carga desde AsyncStorage) cierra esa carrera.
+    const unsub = suscribirIdentidad(() => { void cargar(); });
+    return () => { cancel = true; sub.subscription.unsubscribe(); unsub(); };
   }, []);
 
   // El asistente general es opt-in (asistenteAgendaActivo, default false), pero

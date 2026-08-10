@@ -5,7 +5,7 @@ import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { reportarError } from '@/lib/reportarError';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
-import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG, CHISPA_WAKE_EVENT, type Bloque } from '@/lib/chispaBloques';
+import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG, CHISPA_WAKE_EVENT, CHISPA_ASK_EVENT, type Bloque } from '@/lib/chispaBloques';
 import { estructurarBloques } from '@/lib/chispaEstructura';
 import { elegirFormatoDatos } from '@/lib/chispaFormato';
 import { lanzarCoach } from '@/lib/coachGuias';
@@ -824,6 +824,21 @@ export default function ChispaPanel({
     };
     window.addEventListener(CHISPA_WAKE_EVENT, handler);
     return () => window.removeEventListener(CHISPA_WAKE_EVENT, handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pregunta ya escrita en otra pantalla (p.ej. el buscador de Ayuda): abre el
+  // panel y la envia en el acto, como si el usuario la hubiera tecleado aqui.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (ev: Event) => {
+      const detalle = (ev as CustomEvent<{ texto?: string }>).detail;
+      if (!detalle?.texto) return;
+      setAbierto(true);
+      void enviarMensaje(detalle.texto);
+    };
+    window.addEventListener(CHISPA_ASK_EVENT, handler);
+    return () => window.removeEventListener(CHISPA_ASK_EVENT, handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

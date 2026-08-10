@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useRouter } from 'expo-router';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { CHISPA_ASK_EVENT } from '@/lib/chispaBloques';
 import {
   CATEGORIAS_MANUALES,
   TODOS_LOS_MANUALES,
@@ -42,7 +42,6 @@ const ANIMATIONS = `
 `;
 
 export default function AyudaScreen() {
-  const router = useRouter();
   const { isMobile } = useResponsive();
 
   const [busqueda, setBusqueda] = useState('');
@@ -103,12 +102,12 @@ export default function AyudaScreen() {
   }, [busqueda, catSel]);
 
   const abrirChispaConConsulta = () => {
-    if (!preguntaChispa.trim()) return;
-    // Redirige al panel o tab de Chispa con la pregunta precargada
-    router.push({
-      pathname: '/(tabs)/bandeja',
-      params: { promptIA: preguntaChispa.trim() },
-    });
+    const pregunta = preguntaChispa.trim();
+    if (!pregunta) return;
+    // Abre el panel flotante de Chispa (montado en app/_layout.tsx) y envia la
+    // pregunta en el acto, en vez de navegar a la bandeja de mensajes de
+    // clientas (que no tiene nada que ver con esto).
+    window.dispatchEvent(new CustomEvent(CHISPA_ASK_EVENT, { detail: { texto: pregunta } }));
   };
 
   return (
