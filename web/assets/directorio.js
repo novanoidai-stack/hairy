@@ -151,7 +151,23 @@
         : 'Peluquerías' + zona + ' que todavía no trabajan con Mecha. Aquí no puedes reservar online, pero sí llamar.';
       sec.hidden = false;
       ablandarVacio(total);
-    }).catch(function () { sec.hidden = true; });
+    }).catch(function (e) {
+      sec.hidden = true;
+      try {
+        fetch(SUPABASE_URL + '/rest/v1/rpc/registrar_error_cliente', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+          body: JSON.stringify({
+            p_mensaje: String(e && e.message || e || 'Fallo RPC salones_externos_publico'),
+            p_ruta: (location.pathname + location.search).slice(0, 200),
+            p_pila: String(e && e.stack || '').slice(0, 2000),
+            p_origen: 'marketplace',
+            p_navegador: navigator.userAgent.slice(0, 200),
+            p_tipo: 'excepcion'
+          })
+        }).catch(function () {});
+      } catch (err) {}
+    });
   }
 
   // Si arriba no hay ningun salon de Mecha pero abajo hay ajenos, el cartelon de
