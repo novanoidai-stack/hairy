@@ -31,6 +31,7 @@ import {
   Btn, IconBtn, ScopeChip, SettingsIcon,
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import {
   cargarCuentasEquipo, avisoDeAcceso, invitarAcceso, reenviarInvitacion, revocarAcceso,
   estadoLegible, type CuentaEquipo, type RolInvitable,
@@ -610,10 +611,12 @@ export default function ConfiguracionWeb() {
 
   const recargarServicios = useCallback(async () => {
     if (!negocioId) return;
-    const [{ data: srvData }, { data: catData }] = await Promise.all([
+    const [{ data: srvData, error: srvErr }, { data: catData, error: catErr }] = await Promise.all([
       supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('nombre'),
       supabase.from('categorias_servicio').select('*').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
     ]);
+    if (srvErr) reportarError(srvErr, { origen: 'app', tipo: 'operativo' });
+    if (catErr) reportarError(catErr, { origen: 'app', tipo: 'operativo' });
     if (srvData) setServicios(srvData);
     if (catData) setCategorias(catData);
   }, [negocioId]);
@@ -726,11 +729,11 @@ export default function ConfiguracionWeb() {
       });
 
       const [
-        { data: srvData },
-        { data: profData },
-        { data: cfgRow },
-        { data: horariosRows },
-        { data: catData },
+        resSrv,
+        resProf,
+        resCfg,
+        resHorarios,
+        resCat,
       ] = await Promise.all([
         supabase.from('servicios').select('*').eq('negocio_id', nid).order('nombre'),
         supabase.from('profesionales').select('id, nombre, color, categoria, comision_pct, activo').eq('negocio_id', nid).order('nombre'),
@@ -738,6 +741,18 @@ export default function ConfiguracionWeb() {
         supabase.from('negocio_horarios').select('*').eq('negocio_id', nid),
         supabase.from('categorias_servicio').select('*').eq('negocio_id', nid).eq('activo', true).order('orden'),
       ]);
+
+      if (resSrv.error) reportarError(resSrv.error, { origen: 'app', tipo: 'operativo' });
+      if (resProf.error) reportarError(resProf.error, { origen: 'app', tipo: 'operativo' });
+      if (resCfg.error) reportarError(resCfg.error, { origen: 'app', tipo: 'operativo' });
+      if (resHorarios.error) reportarError(resHorarios.error, { origen: 'app', tipo: 'operativo' });
+      if (resCat.error) reportarError(resCat.error, { origen: 'app', tipo: 'operativo' });
+
+      const srvData = resSrv.data;
+      const profData = resProf.data;
+      const cfgRow = resCfg.data;
+      const horariosRows = resHorarios.data;
+      const catData = resCat.data;
 
       setServicios(srvData ?? []);
       setCategorias(catData ?? []);
