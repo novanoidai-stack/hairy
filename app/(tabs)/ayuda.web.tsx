@@ -15,6 +15,7 @@ import { getUserProfile } from '@/lib/auth';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { SSelect, Btn, IconBtn } from '@/components/ui/SettingsAtoms';
 
 const T = {
@@ -88,12 +89,18 @@ export default function AyudaScreen() {
       p_mensaje: mensajeSoporte.trim(),
     });
     setEnviandoSoporte(false);
-    if (error) { setErrorSoporte(mensajeDeError(error, 'No se pudo enviar el mensaje.')); return; }
+    if (error) {
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      setErrorSoporte(mensajeDeError(error, 'No se pudo enviar el mensaje.'));
+      return;
+    }
     setEnviadoSoporte(true);
     setMensajeSoporte('');
     void supabase.functions.invoke('notificar-soporte', {
       body: { asunto: asuntoSoporte, mensaje: mensajeSoporte.trim(), negocio: nombreNegocio, autor_email: userEmail },
-    }).then(() => {}, () => {});
+    }).then(() => {}, (err) => {
+      reportarError(err, { origen: 'app', tipo: 'operativo' });
+    });
   };
 
   const cerrarSoporteModal = () => {
