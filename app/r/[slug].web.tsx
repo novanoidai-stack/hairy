@@ -7,7 +7,7 @@ import { ConsentBanner } from '@/components/portal/ConsentBanner';
 import { makeT, localeOf, type TFn } from '@/lib/portalI18n';
 import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
-  getDisponibilidadExpress, crearCitaPublicaExpress, crearListaEsperaExpressPublica,
+  unirseListaEsperaPublica,
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
@@ -173,6 +173,7 @@ export default function PortalReservaWeb() {
   const [wlFranja, setWlFranja] = useState<'manana' | 'tarde' | 'cualquiera'>('cualquiera');
   const [wlNombre, setWlNombre] = useState('');
   const [wlTelefono, setWlTelefono] = useState('');
+  const [wlConsent, setWlConsent] = useState(false);
   const [wlEnviando, setWlEnviando] = useState(false);
   const [wlExito, setWlExito] = useState(false);
   const [wlError, setWlError] = useState('');
@@ -446,6 +447,7 @@ export default function PortalReservaWeb() {
   const franjaTardeItems = horas.filter(s => franjaDe(s.slot) === 'tarde');
   const franjaNocheItems = horas.filter(s => franjaDe(s.slot) === 'noche');
   const sinHuecos = !diasLoading && diasDisp.size > 0 && horas.length === 0;
+  const sinHuecoHorizonte = servicioElegido && !diasLoading && diasDisp.size === 0;
 
   const inputStyle = { width: '100%', padding: '13px 14px', borderRadius: 11, border: '1.5px solid rgba(40,30,24,0.08)', fontSize: 14.5, fontFamily: 'inherit', outline: 'none', background: '#fff', color: '#1c1814' };
   const textareaStyle = { ...inputStyle, minHeight: 58, resize: 'vertical' as const };
@@ -594,12 +596,16 @@ export default function PortalReservaWeb() {
                           })}
                         </div>
 
-                        {sinHuecos && (
+                        {(sinHuecos || sinHuecoHorizonte) && (
                           <div style={{ padding: '26px 20px', textAlign: 'center', border: '1px dashed rgba(40,30,24,0.14)', borderRadius: 16, background: '#fbf6f0' }}>
-                            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: T.text }}>Sin huecos disponibles este día</div>
-                            <div style={{ fontSize: 13, color: '#5c5249', marginBottom: 14 }}>Prueba otro día o apúntate a la lista de espera para avisarte si alguien cancela.</div>
+                            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: T.text }}>
+                              {sinHuecoHorizonte ? 'No hay hueco libre en las próximas 3 semanas' : 'Sin huecos disponibles este día'}
+                            </div>
+                            <div style={{ fontSize: 13, color: '#5c5249', marginBottom: 14 }}>
+                              {sinHuecoHorizonte ? 'Apúntate a la lista de espera y te avisamos por WhatsApp en cuanto se libere un hueco.' : 'Prueba otro día o apúntate a la lista de espera para avisarte si alguien cancela.'}
+                            </div>
                             <button onClick={() => { setWlNombre(nombre); setWlTelefono(telefono); setShowWlModal(true); }} style={{ padding: '10px 20px', borderRadius: 12, background: T.primary, color: '#fff', border: 'none', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
-                              ⚡ Apuntarme a la Lista de Espera
+                              Unirme a la Lista de Espera
                             </button>
                           </div>
                         )}
@@ -897,7 +903,7 @@ export default function PortalReservaWeb() {
       {showWlModal && (
         <div onClick={() => setShowWlModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,7,10,0.75)', zIndex: 310, display: 'grid', placeItems: 'center', padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', border: '1px solid ' + T.border, borderRadius: 18, padding: 24, maxWidth: 440, width: '100%' }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 4 }}>⚡ Apuntarme a la Lista de Espera</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 4 }}>Únete a la Lista de Espera</div>
             <div style={{ fontSize: 13, color: T.textSec, marginBottom: 16 }}>Te notificaremos por WhatsApp en cuanto se libere un hueco compatible.</div>
 
             {wlExito ? (
@@ -910,15 +916,19 @@ export default function PortalReservaWeb() {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 if (!wlNombre.trim() || !wlTelefono.trim()) { setWlError('Introduce nombre y teléfono'); return; }
+                if (!wlConsent) { setWlError('Acepta la política de privacidad para continuar.'); return; }
                 setWlEnviando(true); setWlError('');
                 try {
-                  const res = await crearListaEsperaExpressPublica({
+                  const res = await unirseListaEsperaPublica({
                     slug,
-                    servicioId: servicio?.id || '',
+                    nombre: wlNombre,
                     telefono: wlTelefono,
+                    servicioId: servicio?.id ?? null,
                     profesionalId: profId === ANY_PRO ? null : profId,
+                    franja: wlFranja,
                     desde: wlRango === 'dia' && fecha ? fechaISOaClave(fecha) : null,
                     hasta: wlRango === 'dia' && fecha ? fechaISOaClave(fecha) : null,
+                    consentimientoDatos: wlConsent,
                   });
                   if (res.ok) { setWlExito(true); } else { setWlError(res.error || 'Error al guardar'); }
                 } catch (err: any) {
@@ -933,6 +943,14 @@ export default function PortalReservaWeb() {
                   </select>
                 </div>
                 <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 4 }}>Preferencia horaria</label>
+                  <select value={wlFranja} onChange={(e) => setWlFranja(e.target.value as any)} style={inputStyle}>
+                    <option value="cualquiera">Cualquier hora</option>
+                    <option value="manana">Mañana</option>
+                    <option value="tarde">Tarde</option>
+                  </select>
+                </div>
+                <div style={{ marginBottom: 12 }}>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 4 }}>Tu nombre</label>
                   <input value={wlNombre} onChange={e => setWlNombre(e.target.value)} placeholder="Nombre" style={inputStyle} />
                 </div>
@@ -940,6 +958,10 @@ export default function PortalReservaWeb() {
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 4 }}>Tu teléfono WhatsApp</label>
                   <PhoneInput value={wlTelefono} onChange={setWlTelefono} placeholder="600 000 000" />
                 </div>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 16, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={wlConsent} onChange={e => setWlConsent(e.target.checked)} style={{ marginTop: 2 }} />
+                  <span style={{ fontSize: 12, color: '#5c5249', lineHeight: 1.4 }}>Acepto la política de privacidad para que me contacten sobre esta solicitud.</span>
+                </label>
                 {wlError && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 12 }}>{wlError}</div>}
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button type="button" onClick={() => setShowWlModal(false)} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid ' + T.border, background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
