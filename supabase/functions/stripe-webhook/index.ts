@@ -69,6 +69,19 @@ const ESTADO_SUSCRIPCION: Record<string, string> = {
   paused: 'pausada',
 };
 
+// Desde la API 2025+ (dahlia) invoice.subscription es null; la suscripcion vive en
+// invoice.parent.subscription_details.subscription. Se admiten ambas ubicaciones.
+function subDeInvoice(inv: Stripe.Invoice): string | null {
+  const i = inv as unknown as {
+    subscription?: string | { id: string };
+    parent?: { subscription_details?: { subscription?: string | { id: string } } };
+  };
+  const directo = typeof i.subscription === 'string' ? i.subscription : i.subscription?.id;
+  const viaParent = i.parent?.subscription_details?.subscription;
+  const parentId = typeof viaParent === 'string' ? viaParent : viaParent?.id;
+  return directo ?? parentId ?? null;
+}
+
 Deno.serve(async (req) => {
   const sig = req.headers.get('stripe-signature');
   const body = await req.text();
@@ -197,21 +210,27 @@ Deno.serve(async (req) => {
     // Al darse de baja se pierde todo: el software y el addon. Se escribe explicito
     // en vez de dejar el plan viejo, que es lo que apagaria de verdad el producto.
     const baja = estado === 'cancelada';
+    // Desde la API 2025+ (dahlia) current_period_end vive en la LINEA, no en la
+    // suscripcion. Se admiten ambos y se protege de undefined: un new Date(NaN)
+    // reventaba el handler y, con el dedup ya escrito, el evento se perdia.
+    const subP = sub as unknown as { current_period_end?: number; items?: { data?: Array<{ current_period_end?: number }> } };
+    const finTs = subP.current_period_end ?? subP.items?.data?.[0]?.current_period_end ?? null;
     await supabase.rpc('aplicar_suscripcion_stripe', {
       p_stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
       p_stripe_subscription_id: sub.id,
       p_estado: estado,
-      p_periodo_fin: new Date(sub.current_period_end * 1000).toISOString(),
+      p_periodo_fin: finTs ? new Date(finTs * 1000).toISOString() : null,
       p_plan: baja ? 'free' : plan,
       p_profile_id: (sub.metadata?.profile_id as string) ?? null,
       p_ia_nivel: baja ? 'ninguna' : iaNivel,
     });
   } else if (event.type === 'invoice.paid') {
     const inv = event.data.object as Stripe.Invoice;
-    if (inv.subscription) {
+    const invSub = subDeInvoice(inv);
+    if (invSub) {
       await supabase.rpc('aplicar_suscripcion_stripe', {
         p_stripe_customer_id: typeof inv.customer === 'string' ? inv.customer : inv.customer?.id,
-        p_stripe_subscription_id: typeof inv.subscription === 'string' ? inv.subscription : inv.subscription.id,
+        p_stripe_subscription_id: invSub,
         p_estado: 'activa',
         p_periodo_fin: inv.lines?.data?.[0]?.period?.end
           ? new Date(inv.lines.data[0].period.end * 1000).toISOString()
@@ -220,7 +239,7 @@ Deno.serve(async (req) => {
     }
   } else if (event.type === 'invoice.payment_failed') {
     const inv = event.data.object as Stripe.Invoice;
-    if (inv.subscription) {
+    if (subDeInvoice(inv)) {
       // No se corta el acceso aqui: se marca y se deja que periodo_fin haga de
       // margen. Stripe reintenta varios dias antes de dar la suscripcion por
       // impagada, y ahi llegara customer.subscription.updated con unpaid.
