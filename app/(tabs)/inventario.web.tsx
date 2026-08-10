@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { useAppLang } from '@/lib/hooks/useAppLang';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
@@ -204,7 +205,10 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
         p_categoria: filtroCategoria === 'todas' ? null : filtroCategoria,
       });
 
-      if (error) throw error;
+      if (error) {
+        reportarError(error, { origen: 'app', tipo: 'operativo' });
+        throw error;
+      }
 
       if (data?.ok) {
         setProductos(data.productos || []);
@@ -212,6 +216,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
       }
     } catch (err) {
       console.error('Error cargando inventario:', err);
+      reportarError(err, { origen: 'app', tipo: 'excepcion' });
     } finally {
       setLoading(false);
     }
@@ -220,11 +225,14 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
   const cargarAlertas = async () => {
     try {
       const { data, error } = await supabase.rpc('productos_stock_bajo');
-      if (!error && data?.ok) {
+      if (error) {
+        reportarError(error, { origen: 'app', tipo: 'operativo' });
+      } else if (data?.ok) {
         setAlertasCount(data.total || 0);
       }
     } catch (err) {
       console.error('Error cargando alertas:', err);
+      reportarError(err, { origen: 'app', tipo: 'excepcion' });
     }
   };
 
@@ -235,13 +243,17 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
         p_limit: 50,
       });
 
-      if (error) throw error;
+      if (error) {
+        reportarError(error, { origen: 'app', tipo: 'operativo' });
+        throw error;
+      }
 
       if (data?.ok) {
         setMovimientos(data.movimientos || []);
       }
     } catch (err) {
       console.error('Error cargando movimientos:', err);
+      reportarError(err, { origen: 'app', tipo: 'excepcion' });
     }
   };
 
