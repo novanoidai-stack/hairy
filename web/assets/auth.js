@@ -101,6 +101,14 @@
       try { body = await res.json(); } catch (e) {}
       if (!res.ok || !body.ok) {
         var code = (body && body.error) || 'error';
+        client.rpc('registrar_error_cliente', {
+          p_mensaje: 'signup-free falló: ' + code,
+          p_ruta: (location.pathname + location.search).slice(0, 200),
+          p_pila: 'signup-free HTTP ' + res.status,
+          p_origen: 'landing',
+          p_navegador: navigator.userAgent.slice(0, 200),
+          p_tipo: 'operativo'
+        }).then(function(){}, function(){});
         return { error: { code: code, message: signupErrorMessage(code) } };
       }
       // Cuenta creada y confirmada: iniciar sesion para tener sesion en el navegador.
@@ -111,6 +119,14 @@
       }
       return { error: null, needsConfirmation: false, session: si.data && si.data.session };
     } catch (e) {
+      client.rpc('registrar_error_cliente', {
+        p_mensaje: String(e && e.message || e || 'Excepcion signUpFree landing'),
+        p_ruta: (location.pathname + location.search).slice(0, 200),
+        p_pila: String(e && e.stack || '').slice(0, 2000),
+        p_origen: 'landing',
+        p_navegador: navigator.userAgent.slice(0, 200),
+        p_tipo: 'excepcion'
+      }).then(function(){}, function(){});
       return { error: { code: 'network', message: signupErrorMessage('network') } };
     }
   }
@@ -120,15 +136,32 @@
     return { error: res.error || null, session: res.data && res.data.session };
   }
 
-  // Cuenta de demo compartida: permite que el enlace de la demo cargue el
-  // software real (/app, tenant demo_salon_001) SIN que el visitante tenga que
-  // crear cuenta ni iniciar sesion. Datos de muestra compartidos.
   var DEMO_VIEWER = { email: 'demo.publico@mecha.app', password: 'MechaDemoView_2026' };
   async function signInDemo() {
     try {
       var res = await client.auth.signInWithPassword(DEMO_VIEWER);
+      if (res.error) {
+        client.rpc('registrar_error_cliente', {
+          p_mensaje: String(res.error.message || res.error),
+          p_ruta: (location.pathname + location.search).slice(0, 200),
+          p_pila: 'signInDemo error landing',
+          p_origen: 'landing',
+          p_navegador: navigator.userAgent.slice(0, 200),
+          p_tipo: 'operativo'
+        }).then(function(){}, function(){});
+      }
       return { error: res.error || null, session: res.data && res.data.session };
-    } catch (e) { return { error: e }; }
+    } catch (e) {
+      client.rpc('registrar_error_cliente', {
+        p_mensaje: String(e && e.message || e || 'Excepcion signInDemo landing'),
+        p_ruta: (location.pathname + location.search).slice(0, 200),
+        p_pila: String(e && e.stack || '').slice(0, 2000),
+        p_origen: 'landing',
+        p_navegador: navigator.userAgent.slice(0, 200),
+        p_tipo: 'excepcion'
+      }).then(function(){}, function(){});
+      return { error: e };
+    }
   }
 
   // Comprueba si un proveedor externo (p. ej. 'google') esta activado en el
