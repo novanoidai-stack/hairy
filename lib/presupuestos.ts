@@ -1,6 +1,7 @@
 // Presupuestos: tipos, helpers de dinero y operaciones de datos compartidas
 // (web + nativo). La generación de PDF vive aparte en `presupuestoPdf` (solo web).
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 export type PresupuestoEstado =
   | 'borrador' | 'enviado' | 'aceptado' | 'rechazado' | 'caducado' | 'cobrado';
@@ -73,7 +74,10 @@ export async function cargarConceptos(negocioId: string): Promise<Concepto[]> {
     .eq('negocio_id', negocioId)
     .eq('activo', true)
     .order('nombre');
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return (data || []) as Concepto[];
 }
 
@@ -81,9 +85,12 @@ export async function cargarConceptos(negocioId: string): Promise<Concepto[]> {
 export async function guardarConcepto(negocioId: string, nombre: string, precioCents: number): Promise<void> {
   const limpio = nombre.trim();
   if (!limpio) return;
-  await supabase
+  const { error } = await supabase
     .from('presupuesto_conceptos')
     .upsert({ negocio_id: negocioId, nombre: limpio, precio_cents: precioCents }, { onConflict: 'negocio_id,nombre' });
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+  }
 }
 
 // Crea o actualiza un presupuesto + sus líneas. Devuelve el presupuesto guardado.
@@ -122,12 +129,18 @@ export async function guardarPresupuesto(params: {
   let presupuestoId = params.id;
   if (presupuestoId) {
     const { error } = await supabase.from('presupuestos').update(cabecera).eq('id', presupuestoId);
-    if (error) throw error;
+    if (error) {
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      throw error;
+    }
     // Reemplazamos las líneas (más simple y robusto que diffear).
     await supabase.from('presupuesto_lineas').delete().eq('presupuesto_id', presupuestoId);
   } else {
     const { data, error } = await supabase.from('presupuestos').insert(cabecera).select('id').single();
-    if (error) throw error;
+    if (error) {
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      throw error;
+    }
     presupuestoId = data!.id as string;
   }
 
@@ -141,7 +154,10 @@ export async function guardarPresupuesto(params: {
       orden: i,
     }));
     const { error } = await supabase.from('presupuesto_lineas').insert(filas);
-    if (error) throw error;
+    if (error) {
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      throw error;
+    }
   }
 
   const { data: full, error: e2 } = await supabase
@@ -149,7 +165,10 @@ export async function guardarPresupuesto(params: {
     .select('*')
     .eq('id', presupuestoId)
     .single();
-  if (e2) throw e2;
+  if (e2) {
+    reportarError(e2, { origen: 'app', tipo: 'operativo' });
+    throw e2;
+  }
   return full as Presupuesto;
 }
 
@@ -159,8 +178,12 @@ export async function subirPresupuestoPdf(negocioId: string, presupuestoId: stri
   const { error } = await supabase.storage
     .from('presupuestos')
     .upload(path, blob, { contentType: 'application/pdf', upsert: true });
-  if (error) throw error;
-  await supabase.from('presupuestos').update({ pdf_path: path }).eq('id', presupuestoId);
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
+  const { error: errUpd } = await supabase.from('presupuestos').update({ pdf_path: path }).eq('id', presupuestoId);
+  if (errUpd) reportarError(errUpd, { origen: 'app', tipo: 'operativo' });
   return path;
 }
 
@@ -169,8 +192,13 @@ export async function enviarPresupuestoPorCorreo(presupuestoId: string): Promise
   const { data, error } = await supabase.functions.invoke('enviar-presupuesto', {
     body: { presupuesto_id: presupuestoId },
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   if (data && (data as any).sent === false) {
-    throw new Error((data as any).error || 'No se pudo enviar el correo.');
+    const errObj = new Error((data as any).error || 'No se pudo enviar el correo.');
+    reportarError(errObj, { origen: 'app', tipo: 'operativo' });
+    throw errObj;
   }
 }
