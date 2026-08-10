@@ -133,6 +133,21 @@ const ANIMATIONS = `
   }
 `;
 
+// Rejilla de un mes en semanas de lunes a domingo, con huecos null para
+// cuadrar la primera/ultima semana. La usan tanto el calendario mensual de la
+// ficha como el selector de dias del modal de bloqueos: mismo calculo, cada
+// uno pinta el contenido de la celda a su manera.
+function buildMonthCells(year: number, month: number): Array<{ day: number | null }> {
+  const firstDay = new Date(year, month, 1);
+  const numDays = new Date(year, month + 1, 0).getDate();
+  const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Mon=0
+  const cells: Array<{ day: number | null }> = [];
+  for (let i = 0; i < startDow; i++) cells.push({ day: null });
+  for (let d = 1; d <= numDays; d++) cells.push({ day: d });
+  while (cells.length % 7 !== 0) cells.push({ day: null });
+  return cells;
+}
+
 const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
   vacaciones: { label: 'Vacaciones', color: '#e08a00' },
   formacion:  { label: 'Formación',  color: '#c0260a' },
@@ -188,6 +203,10 @@ export default function EquipoWeb() {
   const [horarioSalon, setHorarioSalon] = useState<Record<number, { abierto: boolean; apertura: string; cierre: string; pausa_inicio: string | null; pausa_fin: string | null }>>({});
   const [horarios, setHorarios] = useState<any[]>([]);
   const [bloqueos, setBloqueos] = useState<any[]>([]);
+  // Vista mensual del calendario de la ficha: mes que se esta mirando (con
+  // flechas de navegacion) y dia clicado para desplegar sus pausas/bloqueos.
+  const [mesCalendario, setMesCalendario] = useState(() => new Date());
+  const [diaCalendarioSel, setDiaCalendarioSel] = useState<number | null>(null);
   // Horario editor
   const [editDias, setEditDias] = useState<number[]>([]); 
   const [editJornadaIni, setEditJornadaIni] = useState('09:00');
@@ -241,7 +260,12 @@ export default function EquipoWeb() {
     - Ticket Medio: ${profSel.ticketMedio}€
     - Comisiones: ${profSel.comisionesDevengadas}€
     
-    Dame un resumen NL de su rendimiento, comisiones, e identifica si hay sobrecarga (>85% ocupación) o demasiados huecos (<40% ocupación) con acciones sugeridas para solucionarlo. Usa bloques de texto.`;
+    Identifica si hay sobrecarga (>85% ocupación) o demasiados huecos (<40% ocupación).
+    FORMATO OBLIGATORIO (nada de párrafos de prosa corridos):
+    - Titular corto en **negrita** (máximo 8 palabras) con el veredicto general.
+    - 2 a 4 viñetas, una por línea empezando por "- ", cada una con la métrica clave en **negrita** y, si aplica, una
+      acción sugerida concreta para solucionar la sobrecarga o los huecos.
+    - Si hay sobrecarga o huecos relevantes, esa viñeta empieza con "ATENCION"; si el rendimiento está sano, con "OK".`;
     
     ayudaIA.analizar(desc, entrada).then(() => {
        registrarEventoIA({
@@ -382,7 +406,39 @@ export default function EquipoWeb() {
   useEffect(() => {
     if (!selected) return;
     cargarPanelDerecho(selected);
+    setMesCalendario(new Date());
+    setDiaCalendarioSel(null);
   }, [selected]);
+
+  // Bloqueos del mes que se esta mirando en el calendario (independiente de
+  // `bloqueos`, que es deliberadamente "solo los proximos 10" para la lista de
+  // arriba). Sin esto, navegar a un mes pasado/futuro con las flechas no
+  // pintaria nada porque `bloqueos` nunca trae fuera de esa ventana.
+  const [bloqueosMes, setBloqueosMes] = useState<any[]>([]);
+  // Clave primitiva del mes visible: al cambiar de profesional, el efecto de
+  // arriba hace `setMesCalendario(new Date())`, y un `Date` siempre es una
+  // referencia nueva aunque sea "el mismo mes" — depender del objeto disparaba
+  // este fetch dos veces seguidas por cada cambio de profesional.
+  const mesCalendarioKey = `${mesCalendario.getFullYear()}-${mesCalendario.getMonth()}`;
+  useEffect(() => {
+    if (!selected) { setBloqueosMes([]); return; }
+    const year = mesCalendario.getFullYear();
+    const month = mesCalendario.getMonth();
+    const desdeMes = new Date(year, month, 1);
+    const hastaMes = new Date(year, month + 1, 0, 23, 59, 59);
+    let cancelado = false;
+    (async () => {
+      const { data } = await supabase
+        .from('bloqueos_profesional')
+        .select('id, tipo, inicio, fin, motivo, recurrencia, recurrencia_padre_id')
+        .eq('profesional_id', selected)
+        .lte('inicio', hastaMes.toISOString())
+        .gte('fin', desdeMes.toISOString())
+        .order('inicio', { ascending: true });
+      if (!cancelado) setBloqueosMes(data ?? []);
+    })();
+    return () => { cancelado = true; };
+  }, [selected, mesCalendarioKey]);
 
   // Deep-link desde el onboarding (?focus=horarios): abre la ficha del primer
   // profesional activo para que el dueno configure su horario sin tener que buscarlo.
@@ -802,6 +858,11 @@ export default function EquipoWeb() {
                       <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, marginTop: 2, color: p.activo ? TOKENS.success : TOKENS.textTer }}>
                         {p.activo ? `${p.ocupacion}%` : '—'}
                       </div>
+                      {p.activo && (
+                        <div style={{ height: 4, borderRadius: 4, background: 'rgba(148,163,184,0.15)', overflow: 'hidden', marginTop: 5 }}>
+                          <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, p.ocupacion ?? 0))}%`, borderRadius: 4, background: (p.ocupacion ?? 0) >= 85 ? '#e08a00' : TOKENS.success, transition: 'width 0.5s cubic-bezier(0.16,1,0.3,1)' }} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1089,13 +1150,16 @@ export default function EquipoWeb() {
                 );
               })()}
               <div style={{ width: '100%', paddingBottom: 6 }}>
+                {/* Codigo de color: inicio de turno, fin de turno y pausa entre
+                    turnos se distinguen claramente (antes todo salia del mismo
+                    gris, sin forma de leer de un vistazo donde empieza/acaba). */}
+                {(() => { const COLOR_INICIO = TOKENS.success; const COLOR_FIN = TOKENS.primaryHi; const COLOR_PAUSA = '#0891b2'; return (
                 <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: isMobile ? 6 : 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7,1fr)', gap: isMobile ? 2 : 4 }}>
                   {DIAS_SEMANA.map((dia, i) => {
                     const dbDia = i === 6 ? 0 : i + 1;
                     const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
                     const hasH = dayH.length > 0;
                     const isEditing = editDias.includes(dbDia);
-                    const horasTxt = hasH ? dayH.map((h) => `${fmtHora(h.hora_inicio)}-${fmtHora(h.hora_fin)}`).join(' · ') : 'Cerrado';
                     if (isMobile) {
                       // Fila: nombre del dia a la izquierda, horas a la derecha.
                       return (
@@ -1103,7 +1167,24 @@ export default function EquipoWeb() {
                           onClick={() => openEditDia(dbDia)}
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 11px', borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.08)' : 'rgba(148,163,184,0.05)', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
                           <span style={{ fontSize: 12.5, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{DIAS_SEMANA_FULL[dbDia]}</span>
-                          <span style={{ fontSize: 12, color: hasH ? TOKENS.textSec : TOKENS.textTer, textAlign: 'right' }}>{horasTxt}</span>
+                          {hasH ? (
+                            <span style={{ fontSize: 12, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
+                              {dayH.map((h, hi) => (
+                                <span key={hi}>
+                                  {hi > 0 && (
+                                    <span style={{ color: COLOR_PAUSA, fontWeight: 700, marginRight: 4 }}>
+                                      pausa {fmtHora(dayH[hi - 1].hora_fin)}–{fmtHora(h.hora_inicio)} ·
+                                    </span>
+                                  )}
+                                  <span style={{ color: COLOR_INICIO, fontWeight: 700 }}>{fmtHora(h.hora_inicio)}</span>
+                                  <span style={{ color: TOKENS.textTer }}> – </span>
+                                  <span style={{ color: COLOR_FIN, fontWeight: 700 }}>{fmtHora(h.hora_fin)}</span>
+                                </span>
+                              ))}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 12, color: TOKENS.textTer }}>Cerrado</span>
+                          )}
                         </div>
                       );
                     }
@@ -1116,13 +1197,34 @@ export default function EquipoWeb() {
                         <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
                         {dayH.length === 0 && <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>Cerrado</div>}
                         {dayH.map((h, hi) => (
-                          <div key={hi} style={{ fontSize: dayH.length > 1 ? 8 : 9, color: TOKENS.textSec, marginTop: hi === 0 ? 2 : 0, lineHeight: 1.3 }}>
-                            {fmtHora(h.hora_inicio)}-{fmtHora(h.hora_fin)}
+                          <div key={hi}>
+                            {hi > 0 && (
+                              <div style={{ fontSize: 7, color: COLOR_PAUSA, fontWeight: 700, marginTop: 1, lineHeight: 1.3 }}>
+                                pausa {fmtHora(dayH[hi - 1].hora_fin)}–{fmtHora(h.hora_inicio)}
+                              </div>
+                            )}
+                            <div style={{ fontSize: dayH.length > 1 ? 8 : 9, marginTop: hi === 0 ? 2 : 0, lineHeight: 1.3 }}>
+                              <span style={{ color: COLOR_INICIO, fontWeight: 700 }}>{fmtHora(h.hora_inicio)}</span>
+                              <span style={{ color: TOKENS.textTer }}>-</span>
+                              <span style={{ color: COLOR_FIN, fontWeight: 700 }}>{fmtHora(h.hora_fin)}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
                     );
                   })}
+                </div>
+                ); })()}
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8, paddingLeft: 2 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: TOKENS.success }} /> Inicio
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: TOKENS.primaryHi }} /> Fin
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#0891b2' }} /> Pausa
+                  </span>
                 </div>
               </div>
               {/* Editor inline de horario */}
@@ -1377,21 +1479,40 @@ export default function EquipoWeb() {
             </Section>
 
             {/* Calendario mensual visual */}
-            <Section title="Vista mensual">
+            <Section
+              title="Vista mensual"
+              right={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => { setMesCalendario(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)); setDiaCalendarioSel(null); }}
+                    title="Mes anterior"
+                    style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}
+                  >
+                    ‹
+                  </button>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: TOKENS.textSec, minWidth: 84, textAlign: 'center', textTransform: 'capitalize' }}>
+                    {mesCalendario.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setMesCalendario(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)); setDiaCalendarioSel(null); }}
+                    title="Mes siguiente"
+                    style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}
+                  >
+                    ›
+                  </button>
+                </div>
+              }
+            >
               {(() => {
                 const now = new Date();
-                const year = now.getFullYear();
-                const month = now.getMonth();
-                const firstDay = new Date(year, month, 1);
-                const lastDay = new Date(year, month + 1, 0);
-                const numDays = lastDay.getDate();
-                const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Mon=0
+                const year = mesCalendario.getFullYear();
+                const month = mesCalendario.getMonth();
+                const numDays = new Date(year, month + 1, 0).getDate();
                 const TIPO_COL: Record<string, string> = { vacaciones: '#f59e0b', baja: '#ef4444', formacion: '#c0260a', descanso: '#10b981', ausencia: '#e08a00', reunion: '#3b82f6' };
                 const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-                const cells: Array<{ day: number | null }> = [];
-                for (let i = 0; i < startDow; i++) cells.push({ day: null });
-                for (let d = 1; d <= numDays; d++) cells.push({ day: d });
-                while (cells.length % 7 !== 0) cells.push({ day: null });
+                const cells = buildMonthCells(year, month);
 
                 // Map work days from horarios
                 const workDays = new Map<number, boolean>(); // day -> hasPausa
@@ -1402,21 +1523,29 @@ export default function EquipoWeb() {
                   if (dowHorarios.length > 0) workDays.set(d, dowHorarios.length > 1);
                 }
 
-                // Map blockages to days
-                const blockDayMap = new Map<number, string>();
-                for (const b of bloqueos) {
+                // Map blockages to days (bloqueosMes: trae el mes que se esta viendo, no solo los proximos 10).
+                // El tipo "dominante" del dia (para el color de la celda) es siempre
+                // el del primer bloqueo de la lista: no hace falta un Map paralelo.
+                const blockDayList = new Map<number, typeof bloqueosMes>();
+                for (const b of bloqueosMes) {
                   const bStart = new Date(b.inicio);
                   const bEnd = new Date(b.fin);
                   for (let d = 1; d <= numDays; d++) {
                     const dt = new Date(year, month, d);
                     if (dt >= new Date(bStart.getFullYear(), bStart.getMonth(), bStart.getDate()) && dt <= new Date(bEnd.getFullYear(), bEnd.getMonth(), bEnd.getDate())) {
-                      blockDayMap.set(d, b.tipo || 'otro');
+                      if (!blockDayList.has(d)) blockDayList.set(d, []);
+                      blockDayList.get(d)!.push(b);
                     }
                   }
                 }
 
                 const today = now.getDate();
                 const isCurrentMonth = now.getMonth() === month && now.getFullYear() === year;
+                const diaSel = diaCalendarioSel;
+                const pausasDelDiaSel = diaSel != null
+                  ? horarios.filter(h => h.dia_semana === new Date(year, month, diaSel).getDay())
+                  : [];
+                const bloqueosDelDiaSel = diaSel != null ? (blockDayList.get(diaSel) ?? []) : [];
 
                 return (
                   <div>
@@ -1429,27 +1558,37 @@ export default function EquipoWeb() {
                       {cells.map((c, i) => {
                         if (c.day === null) return <div key={i} />;
                         const isToday = isCurrentMonth && c.day === today;
-                        const blocked = blockDayMap.get(c.day);
+                        const blocked = blockDayList.get(c.day)?.[0]?.tipo || undefined;
                         const works = workDays.has(c.day) && !blocked;
                         const hasPausa = works && workDays.get(c.day);
                         const bgColor = blocked ? (TIPO_COL[blocked] || '#94a3b8') : works ? 'rgba(244,80,30,0.12)' : TOKENS.bg;
                         const textColor = blocked ? '#fff' : works ? TOKENS.text : TOKENS.textTer;
+                        const isSel = diaCalendarioSel === c.day;
                         return (
-                          <div key={i} style={{
-                            textAlign: 'center', fontSize: 10.5, fontWeight: isToday ? 800 : 600,
-                            color: textColor,
-                            background: bgColor,
-                            borderRadius: 6,
-                            padding: '5px 0',
-                            outline: isToday ? `2px solid ${TOKENS.primary}` : 'none',
-                            outlineOffset: -1,
-                            position: 'relative',
-                          }}>
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setDiaCalendarioSel(d => (d === c.day ? null : c.day))}
+                            title="Ver pausas y bloqueos de este día"
+                            style={{
+                              textAlign: 'center', fontSize: 10.5, fontWeight: isToday ? 800 : 600,
+                              color: textColor,
+                              background: bgColor,
+                              borderRadius: 6,
+                              padding: '5px 0',
+                              border: 'none',
+                              outline: isSel ? `2px solid ${TOKENS.text}` : isToday ? `2px solid ${TOKENS.primary}` : 'none',
+                              outlineOffset: -1,
+                              position: 'relative',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit',
+                            }}
+                          >
                             {c.day}
                             {hasPausa && (
                               <div style={{ position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: 2, background: TOKENS.primary }} />
                             )}
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -1460,7 +1599,7 @@ export default function EquipoWeb() {
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
                         <span style={{ width: 8, height: 8, borderRadius: 2, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }} /> Libre
                       </span>
-                      {Array.from(new Set(blockDayMap.values())).map(tipo => (
+                      {Array.from(new Set(Array.from(blockDayList.values()).flat().map((b) => b.tipo || 'otro'))).map(tipo => (
                         <span key={tipo} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
                           <span style={{ width: 8, height: 8, borderRadius: 2, background: TIPO_COL[tipo] || '#94a3b8' }} />
                           {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
@@ -1469,10 +1608,37 @@ export default function EquipoWeb() {
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
                         <span style={{ position: 'relative', width: 8, height: 8, borderRadius: 2, background: 'rgba(244,80,30,0.12)' }}>
                           <span style={{ position: 'absolute', bottom: 1, left: 2, width: 4, height: 4, borderRadius: 2, background: TOKENS.primary }} />
-                        </span> 
+                        </span>
                         Pausa programada
                       </span>
                     </div>
+
+                    {/* Detalle del dia clicado: pausas/bloqueos de esa jornada concreta */}
+                    {diaSel != null && (
+                      <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.text, marginBottom: 6 }}>
+                          {new Date(year, month, diaSel).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </div>
+                        {pausasDelDiaSel.length === 0 && bloqueosDelDiaSel.length === 0 ? (
+                          <div style={{ fontSize: 11, color: TOKENS.textTer }}>Sin horario ni bloqueos ese día.</div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {pausasDelDiaSel.map((h, i) => (
+                              <div key={`h-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: TOKENS.textSec }}>
+                                <span style={{ width: 6, height: 6, borderRadius: 2, background: TOKENS.primary, flexShrink: 0 }} />
+                                Turno {h.hora_inicio?.slice(0, 5)} – {h.hora_fin?.slice(0, 5)}
+                              </div>
+                            ))}
+                            {bloqueosDelDiaSel.map((b: any) => (
+                              <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: TOKENS.textSec }}>
+                                <span style={{ width: 6, height: 6, borderRadius: 2, background: TIPO_COL[b.tipo] || '#94a3b8', flexShrink: 0 }} />
+                                {(TIPO_CONFIG[b.tipo]?.label ?? b.tipo)}{b.motivo ? ` — ${b.motivo}` : ''}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -1588,7 +1754,7 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
   };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
       <div style={{ width: isMobile ? '100%' : 420, maxWidth: '100%', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Nuevo profesional</h3>
@@ -1965,7 +2131,7 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
   const labelStyle: React.CSSProperties = { fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
       <div style={{ width: isMobile ? '100%' : 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Editar profesional</h3>
@@ -2232,7 +2398,6 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   const [tipo, setTipo] = useState('vacaciones');
   const [fechaInicio, setFechaInicio] = useState('');
   const [horaInicio, setHoraInicio] = useState('09:00');
-  const [fechaFin, setFechaFin] = useState('');
   const [horaFin, setHoraFin] = useState('18:00');
   const [motivo, setMotivo] = useState('');
   const [todoElDia, setTodoElDia] = useState(false);
@@ -2248,20 +2413,17 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   const [paso, setPaso] = useState(0);
   const [conflictos, setConflictos] = useState<any[]>([]);
   const [accionesConflicto, setAccionesConflicto] = useState<Record<string, 'cancelar' | 'mantener'>>({});
+  // Bloqueos NO recurrentes: en vez de un rango continuo fecha-inicio -> fecha-fin,
+  // se eligen dias sueltos haciendo clic en el mini calendario (pueden ser
+  // discontinuos, ej. "todos los lunes de este mes que quiera librar").
+  const [diasSeleccionados, setDiasSeleccionados] = useState<Set<string>>(new Set());
+  const [mesPickerBloqueo, setMesPickerBloqueo] = useState(() => new Date());
 
   const dateInicioRef = useRef<HTMLInputElement>(null);
-  const dateFinRef = useRef<HTMLInputElement>(null);
   const dateRecurrenciaRef = useRef<HTMLInputElement>(null);
 
   function adjustFechaInicio(delta: number) {
     setFechaInicio((prev) => {
-      const d = new Date(prev + 'T12:00:00');
-      d.setDate(d.getDate() + delta);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    });
-  }
-  function adjustFechaFin(delta: number) {
-    setFechaFin((prev) => {
       const d = new Date(prev + 'T12:00:00');
       d.setDate(d.getDate() + delta);
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -2306,7 +2468,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
     const dd = String(hoy.getDate()).padStart(2, '0');
     const f = `${yyyy}-${mm}-${dd}`;
     setFechaInicio(f);
-    setFechaFin(f);
+    setDiasSeleccionados(new Set([f]));
     const fin90 = new Date(hoy);
     fin90.setDate(fin90.getDate() + 90);
     const fy = fin90.getFullYear();
@@ -2325,6 +2487,14 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
     setProfsSeleccionados((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+  };
+
+  const toggleDiaSeleccionado = (iso: string) => {
+    setDiasSeleccionados((prev) => {
+      const next = new Set(prev);
+      next.has(iso) ? next.delete(iso) : next.add(iso);
+      return next;
+    });
   };
 
   function generarInstancias(desde: Date, hasta: Date): { inicio: Date; fin: Date }[] {
@@ -2368,13 +2538,12 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
 
   function getRangosBloqueo(): { inicio: string; fin: string }[] {
     if (!esRecurrente) {
-      const ini = todoElDia
-        ? new Date(`${fechaInicio}T00:00:00`).toISOString()
-        : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString();
-      const fin = todoElDia
-        ? new Date(`${fechaFin}T23:59:00`).toISOString()
-        : new Date(`${fechaFin}T${horaFin}:00`).toISOString();
-      return [{ inicio: ini, fin }];
+      // Dias sueltos elegidos con clic en el calendario (pueden ser discontinuos):
+      // un bloqueo por dia, no un rango continuo.
+      return Array.from(diasSeleccionados).sort().map((d) => ({
+        inicio: todoElDia ? new Date(`${d}T00:00:00`).toISOString() : new Date(`${d}T${horaInicio}:00`).toISOString(),
+        fin: todoElDia ? new Date(`${d}T23:59:00`).toISOString() : new Date(`${d}T${horaFin}:00`).toISOString(),
+      }));
     }
     return generarInstancias(new Date(fechaInicio), new Date(fechaFinRecurrencia)).map((inst) => ({
       inicio: inst.inicio.toISOString(),
@@ -2383,7 +2552,9 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   }
 
   async function detectarConflictos() {
-    if (profsSeleccionados.length === 0 || !fechaInicio || !fechaFin) return;
+    if (profsSeleccionados.length === 0) return;
+    if (!esRecurrente && diasSeleccionados.size === 0) return;
+    if (esRecurrente && (!fechaInicio || !fechaFinRecurrencia)) return;
     setLoading(true);
 
     const rangos = getRangosBloqueo();
@@ -2426,25 +2597,26 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
       }
 
       const grupoId = profsSeleccionados.length > 1 ? crypto.randomUUID() : null;
+      // Un bloqueo por cada dia suelto clicado en el calendario (no un unico
+      // rango continuo): getRangosBloqueo() es la misma fuente que ya escaneo
+      // conflictos, para no duplicar la logica de fechas.
+      const rangosNoRecurrente = !esRecurrente ? getRangosBloqueo() : [];
 
       for (const profId of profsSeleccionados) {
         if (!esRecurrente) {
-          const ini = todoElDia
-            ? new Date(`${fechaInicio}T00:00:00`).toISOString()
-            : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString();
-          const fin = todoElDia
-            ? new Date(`${fechaFin}T23:59:00`).toISOString()
-            : new Date(`${fechaFin}T${horaFin}:00`).toISOString();
-
-          await supabase.from('bloqueos_profesional').insert({
-            profesional_id: profId,
-            negocio_id: negocioId,
-            tipo,
-            inicio: ini,
-            fin: fin,
-            motivo: motivo || null,
-            grupo_bloqueo_id: grupoId,
-          });
+          if (rangosNoRecurrente.length > 0) {
+            await supabase.from('bloqueos_profesional').insert(
+              rangosNoRecurrente.map((r) => ({
+                profesional_id: profId,
+                negocio_id: negocioId,
+                tipo,
+                inicio: r.inicio,
+                fin: r.fin,
+                motivo: motivo || null,
+                grupo_bloqueo_id: grupoId,
+              }))
+            );
+          }
         } else {
           const recurrenciaJson = JSON.stringify({
             frecuencia,
@@ -2696,6 +2868,37 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
           </div>
         </div>
 
+        {/* Recurrente toggle: se decide antes de elegir dias porque cambia por
+            completo como se seleccionan (calendario de dias sueltos vs
+            frecuencia + dias de la semana). */}
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => setEsRecurrente(!esRecurrente)}
+            style={{
+              width: 36,
+              height: 20,
+              borderRadius: 10,
+              border: 'none',
+              background: esRecurrente ? TOKENS.primary : TOKENS.bgCard,
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            <div style={{
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              background: '#fff',
+              position: 'absolute',
+              top: 2,
+              left: esRecurrente ? 18 : 2,
+              transition: 'left 0.2s ease',
+            }} />
+          </button>
+          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Recurrente</span>
+        </div>
+
         {/* Todo el dia toggle */}
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
@@ -2725,9 +2928,11 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
           <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Todo el dia</span>
         </div>
 
-        {/* Fechas */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          <div>
+        {esRecurrente ? (
+          /* Recurrente: la fecha de inicio marca cuando arranca la repeticion
+             (el "Hasta" y los dias de la semana se eligen mas abajo, en el
+             panel de recurrencia). */
+          <div style={{ marginBottom: 16 }}>
             <span style={labelStyle}>Fecha inicio</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
               <BtnFlecha onClick={() => adjustFechaInicio(-1)} />
@@ -2741,21 +2946,63 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               <input ref={dateInicioRef} type="date" value={fechaInicio} onChange={(e) => e.target.value && setFechaInicio(e.target.value)} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
             </div>
           </div>
-          <div>
-            <span style={labelStyle}>Fecha fin</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
-              <BtnFlecha onClick={() => adjustFechaFin(-1)} />
-              <div
-                onClick={() => dateFinRef.current?.showPicker?.()}
-                style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}
-              >
-                {fmtFechaDisplay(fechaFin)}
-              </div>
-              <BtnFlecha onClick={() => adjustFechaFin(1)} plus />
-              <input ref={dateFinRef} type="date" value={fechaFin} onChange={(e) => e.target.value && setFechaFin(e.target.value)} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+        ) : (
+          /* No recurrente: clic directo en los dias del calendario (soporta
+             seleccion multiple y discontinua), en vez de un rango fecha-inicio
+             -> fecha-fin. */
+          <div style={{ marginBottom: 16 }}>
+            <span style={labelStyle}>Días (haz clic para elegir uno o varios)</span>
+            {(() => {
+              const year = mesPickerBloqueo.getFullYear();
+              const month = mesPickerBloqueo.getMonth();
+              const cells = buildMonthCells(year, month);
+              const pad = (n: number) => String(n).padStart(2, '0');
+              return (
+                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <button type="button" onClick={() => setMesPickerBloqueo(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.textSec, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>‹</button>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text, textTransform: 'capitalize' }}>
+                      {mesPickerBloqueo.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button type="button" onClick={() => setMesPickerBloqueo(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.textSec, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>›</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 2 }}>
+                    {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(l => (
+                      <div key={l} style={{ textAlign: 'center', fontSize: 9, fontWeight: 700, color: TOKENS.textTer, padding: '2px 0' }}>{l}</div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
+                    {cells.map((c, i) => {
+                      if (c.day === null) return <div key={i} />;
+                      const iso = `${year}-${pad(month + 1)}-${pad(c.day)}`;
+                      const sel = diasSeleccionados.has(iso);
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => toggleDiaSeleccionado(iso)}
+                          style={{
+                            padding: '6px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                            fontSize: 11, fontWeight: sel ? 800 : 600, fontFamily: 'inherit',
+                            background: sel ? TOKENS.primary : 'rgba(148,163,184,0.06)',
+                            color: sel ? '#fff' : TOKENS.text,
+                          }}
+                        >
+                          {c.day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+            <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: 6 }}>
+              {diasSeleccionados.size === 0
+                ? 'Ningún día seleccionado todavía.'
+                : `${diasSeleccionados.size} día${diasSeleccionados.size === 1 ? '' : 's'} seleccionado${diasSeleccionados.size === 1 ? '' : 's'}.`}
             </div>
           </div>
-        </div>
+        )}
 
         {!todoElDia && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
@@ -2796,35 +3043,6 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
             placeholder="Ej: Cita medica, vacaciones de verano..."
             style={inputStyle}
           />
-        </div>
-
-        {/* Recurrente toggle */}
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => setEsRecurrente(!esRecurrente)}
-            style={{
-              width: 36,
-              height: 20,
-              borderRadius: 10,
-              border: 'none',
-              background: esRecurrente ? TOKENS.primary : TOKENS.bgCard,
-              position: 'relative',
-              cursor: 'pointer',
-              transition: 'background 0.2s ease',
-            }}
-          >
-            <div style={{
-              width: 16,
-              height: 16,
-              borderRadius: 8,
-              background: '#fff',
-              position: 'absolute',
-              top: 2,
-              left: esRecurrente ? 18 : 2,
-              transition: 'left 0.2s ease',
-            }} />
-          </button>
-          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Recurrente</span>
         </div>
 
         {esRecurrente && (
@@ -2976,7 +3194,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
           </button>
           <button
             onClick={detectarConflictos}
-            disabled={loading || profsSeleccionados.length === 0}
+            disabled={loading || profsSeleccionados.length === 0 || (!esRecurrente && diasSeleccionados.size === 0)}
             style={{
               padding: '9px 14px',
               background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
@@ -2987,7 +3205,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               fontSize: 13,
               fontWeight: 600,
               boxShadow: `0 6px 20px rgba(244,80,30,0.45)`,
-              opacity: loading || profsSeleccionados.length === 0 ? 0.6 : 1,
+              opacity: loading || profsSeleccionados.length === 0 || (!esRecurrente && diasSeleccionados.size === 0) ? 0.6 : 1,
             }}
           >
             {loading ? 'Comprobando...' : 'Crear bloqueo'}
@@ -3164,11 +3382,14 @@ function Pill({ children, color = TOKENS.primary }: any) {
   );
 }
 
-function Section({ title, children }: any) {
+function Section({ title, right, children }: any) {
   return (
     <div style={{ marginBottom: 18 }}>
-      <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>
-        {title}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+        <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>
+          {title}
+        </div>
+        {right}
       </div>
       {children}
     </div>

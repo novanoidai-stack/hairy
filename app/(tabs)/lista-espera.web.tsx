@@ -121,6 +121,7 @@ function ListaEsperaScreen() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [niveles, setNiveles] = useState<Nivel[]>([]);
   const [filtro, setFiltro] = useState<FiltroEstado>('activas');
+  const [busqueda, setBusqueda] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   // Sesion 8-B: estado de avisos por lista de espera
   const [avisosEstado, setAvisosEstado] = useState<Record<string, AvisoEstado>>({});
@@ -166,10 +167,17 @@ function ListaEsperaScreen() {
   }, [niveles]);
 
   const visibles = useMemo(() => {
-    if (filtro === 'todas') return items;
-    if (filtro === 'activas') return items.filter(i => i.estado === 'esperando' || i.estado === 'avisado');
-    return items.filter(i => i.estado === filtro);
-  }, [items, filtro]);
+    const porEstado = filtro === 'todas' ? items
+      : filtro === 'activas' ? items.filter(i => i.estado === 'esperando' || i.estado === 'avisado')
+      : items.filter(i => i.estado === filtro);
+    const q = busqueda.trim().toLowerCase();
+    if (!q) return porEstado;
+    return porEstado.filter(i =>
+      (i.nombre || '').toLowerCase().includes(q) ||
+      (i.telefono || '').toLowerCase().includes(q) ||
+      (i.nota || '').toLowerCase().includes(q)
+    );
+  }, [items, filtro, busqueda]);
 
   const conteo = useMemo(() => ({
     esperando: items.filter(i => i.estado === 'esperando').length,
@@ -258,21 +266,31 @@ function ListaEsperaScreen() {
         )}
 
         {/* Filtros */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          {([
-            { k: 'activas', label: `Activas (${conteo.esperando + conteo.avisado})` },
-            { k: 'esperando', label: `Esperando (${conteo.esperando})` },
-            { k: 'avisado', label: `Avisadas (${conteo.avisado})` },
-            { k: 'todas', label: 'Todas' },
-          ] as { k: FiltroEstado; label: string }[]).map(f => {
-            const on = filtro === f.k;
-            return (
-              <button key={f.k} className={on ? "le-chip is-active" : "le-chip"} onClick={() => setFiltro(f.k)} style={{
-                padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-                border: `1.5px solid ${on ? T.primary : T.border}`, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec,
-              }}>{f.label}</button>
-            );
-          })}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {([
+              { k: 'activas', label: `Activas (${conteo.esperando + conteo.avisado})` },
+              { k: 'esperando', label: `Esperando (${conteo.esperando})` },
+              { k: 'avisado', label: `Avisadas (${conteo.avisado})` },
+              { k: 'todas', label: 'Todas' },
+            ] as { k: FiltroEstado; label: string }[]).map(f => {
+              const on = filtro === f.k;
+              return (
+                <button key={f.k} className={on ? "le-chip is-active" : "le-chip"} onClick={() => setFiltro(f.k)} style={{
+                  padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                  border: `1.5px solid ${on ? T.primary : T.border}`, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec,
+                }}>{f.label}</button>
+              );
+            })}
+          </div>
+          <div style={{ width: isMobile ? '100%' : 220 }}>
+            <STextInput
+              value={busqueda}
+              onChange={setBusqueda}
+              placeholder="Buscar por nombre o teléfono..."
+              leadingIcon="search"
+            />
+          </div>
         </div>
 
         {/* Lista */}

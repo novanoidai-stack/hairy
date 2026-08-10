@@ -113,6 +113,16 @@ function downloadCSV(filename: string, rows: (string | number)[][]) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// Cobros pendientes puede listar citas de hoy y de días anteriores no cobrados
+// en la misma lista: mostrar solo la hora hacía imposible saber a qué día
+// pertenecía cada una.
+function fmtFechaHora(iso: string | null | undefined): string {
+  if (!iso) return '--:--';
+  const d = parseISO(iso);
+  const hora = format(d, 'HH:mm', { locale: es });
+  return isToday(d) ? hora : `${format(d, 'd MMM', { locale: es })} · ${hora}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────────
@@ -765,7 +775,7 @@ function CajaScreen() {
             if (concepto.items.length === 1) {
               const cita = concepto.items[0];
               const isSelected = selectedIds.has(cita.id);
-              const hora = cita.hora_inicio ? format(parseISO(cita.hora_inicio), 'HH:mm', { locale: es }) : '--:--';
+              const hora = fmtFechaHora(cita.hora_inicio);
               return (
                 <div
                   key={concepto.key}
@@ -827,7 +837,7 @@ function CajaScreen() {
             const seleccionados = contarSeleccionados(concepto.items);
             const estado = seleccionados === 0 ? 'none' : seleccionados === concepto.items.length ? 'all' : 'some';
             const expanded = expandedIds.has(concepto.key);
-            const primeraHora = concepto.items[0].hora_inicio ? format(parseISO(concepto.items[0].hora_inicio), 'HH:mm', { locale: es }) : '--:--';
+            const primeraHora = fmtFechaHora(concepto.items[0].hora_inicio);
 
             return (
               <div
@@ -904,7 +914,7 @@ function CajaScreen() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
                     {concepto.items.map((sub) => {
                       const subSel = selectedIds.has(sub.id);
-                      const subHora = sub.hora_inicio ? format(parseISO(sub.hora_inicio), 'HH:mm', { locale: es }) : '--:--';
+                      const subHora = fmtFechaHora(sub.hora_inicio);
                       return (
                         <div
                           key={sub.id}

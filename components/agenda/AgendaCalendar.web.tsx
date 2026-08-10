@@ -2908,6 +2908,47 @@ export default function AgendaCalendar() {
               Salon cerrado{cierreHoy.motivo ? ` · ${cierreHoy.motivo}` : ""}
             </div>
           )}
+          {/* Leyenda de bloqueos de la rejilla: sin esto no habia forma de saber
+              a simple vista si una franja atenuada era "fuera de turno de esta
+              persona" o "el salon entero cerrado" — colores parecidos, motivos
+              muy distintos. */}
+          {view === "day" && (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 10,
+                marginTop: 6,
+              }}
+            >
+              {/* Orden fijo de lectura; el texto sale de BLOQUEO_LABELS/BLOQUEO_COLORS
+                  (misma fuente que pinta los bloques) para que no puedan desincronizarse
+                  si se añade un tipo nuevo en un sitio y se olvida el otro. */}
+              {(["fuera_jornada", "salon_cerrado", "vacaciones", "baja", "formacion", "reunion", "descanso"] as const).map((tipo) => (
+                <span
+                  key={tipo}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 10.5,
+                    color: TOKENS.textSecondary,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: 2,
+                      background: BLOQUEO_COLORS[tipo],
+                      flexShrink: 0,
+                    }}
+                  />
+                  {tipo === "salon_cerrado" ? "Salón cerrado / festivo" : BLOQUEO_LABELS[tipo]}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div
           style={{
@@ -4483,6 +4524,7 @@ export default function AgendaCalendar() {
                   theme={roleTheme}
                   categorias={categorias}
                   horarios={horarios}
+                  cierres={cierres}
                   selectedProf={selectedProf}
                   agendaFit={agendaFit}
                   zonasResaltadas={zonasResaltadas}
@@ -6461,6 +6503,10 @@ const BLOQUEO_COLORS: Record<string, string> = {
   // Fuera de la jornada del profesional: gris apagado, deliberadamente distinto
   // de "libre" (blanco) y de una ausencia puntual (vacaciones, baja...).
   fuera_jornada: "#94a3b8",
+  // Salon cerrado (negocio_horarios / cierres_negocio): tono distinto y mas
+  // oscuro que fuera_jornada, porque es un bloqueo del NEGOCIO entero, no de
+  // un profesional individual — no deben confundirse a simple vista.
+  salon_cerrado: "#57534e",
   vacaciones: "#0f9d6b",
   reunion: "#3b82f6",
   baja: "#e23b34",
@@ -6469,6 +6515,7 @@ const BLOQUEO_COLORS: Record<string, string> = {
 };
 const BLOQUEO_LABELS: Record<string, string> = {
   fuera_jornada: "Fuera de jornada",
+  salon_cerrado: "Salón cerrado",
   vacaciones: "Vacaciones",
   reunion: "Reunión",
   baja: "Baja",
@@ -6504,6 +6551,9 @@ function DayTimeline({
   categorias = [],
   selectedProf,
   horarios = [],
+  // Festivos/vacaciones puntuales del salon (cierres_negocio): fecha exacta,
+  // no un patron semanal como `horarios`.
+  cierres = [],
   // Jornada propia por profesional (horarios_profesional). dia_semana 0=DOMINGO.
   horariosProf = [],
   agendaFit = true,
@@ -7268,6 +7318,23 @@ function DayTimeline({
     return result;
   }, [citas]);
 
+  // Horario general del salon y festivo del dia: no dependen del profesional,
+  // asi que se calculan una vez para toda la rejilla en vez de una vez por
+  // cada columna (antes se repetia el mismo `.find()` por profesional).
+  // dia_semana en negocio_horarios usa 0=LUNES (a diferencia de
+  // horarios_profesional, 0=DOMINGO): hay que convertir el getDay() de JS.
+  const { horarioSalonHoy, festivoHoy, salonCerradoTodoElDia } = useMemo(() => {
+    const dbDiaNegocio = (selectedDateObj.getDay() + 6) % 7;
+    const hSalon = (horarios as any[]).find((h: any) => h.dia_semana === dbDiaNegocio);
+    const keyFecha = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedDateObj.getDate()).padStart(2, '0')}`;
+    const fest = (cierres as any[]).find((c: any) => c.fecha === keyFecha) || null;
+    return {
+      horarioSalonHoy: hSalon,
+      festivoHoy: fest,
+      salonCerradoTodoElDia: (!!hSalon && hSalon.abierto === false) || !!fest,
+    };
+  }, [horarios, cierres, selectedDateObj]);
+
   return (
     <>
       <div
@@ -7806,6 +7873,60 @@ function DayTimeline({
                       // dia_semana ahi es 0=DOMINGO, asi que getDay() vale tal cual.
                       const dbDia = selectedDateObj.getDay();
                       const profHorarios = (horariosProf as any[]).filter((h: any) => h.profesional_id === prof.id && h.dia_semana === dbDia).sort((a: any, b: any) => (a.turno ?? 1) - (b.turno ?? 1));
+
+                      // horarioSalonHoy/festivoHoy/salonCerradoTodoElDia vienen del
+                      // useMemo de arriba (no dependen de `prof`, se calculan una
+                      // sola vez para toda la rejilla).
+                      const alDia = (hhmm: string) => {
+                        const [h, m] = String(hhmm).split(':').map(Number);
+                        const d = new Date(selectedDateObj);
+                        d.setHours(h, m || 0, 0, 0);
+                        return d;
+                      };
+                      const salonCerrado: any[] = [];
+                      if (salonCerradoTodoElDia) {
+                        const diaIni = new Date(selectedDateObj);
+                        diaIni.setHours(START_H, 0, 0, 0);
+                        const diaFin = new Date(selectedDateObj);
+                        diaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+                        salonCerrado.push({
+                          id: `salon-cerrado-${prof.id}`,
+                          profesional_id: prof.id,
+                          inicio: diaIni.toISOString(),
+                          fin: diaFin.toISOString(),
+                          tipo: 'salon_cerrado',
+                          motivo: festivoHoy ? (festivoHoy.motivo || 'Festivo') : 'El salón no abre este día',
+                        });
+                      } else if (horarioSalonHoy && horarioSalonHoy.apertura && horarioSalonHoy.cierre) {
+                        // Salon abierto pero con ventana mas estrecha que la rejilla
+                        // (ej. abre a las 10 o cierra a las 18): marcar lo de fuera.
+                        const rejillaIniSalon = new Date(selectedDateObj);
+                        rejillaIniSalon.setHours(START_H, 0, 0, 0);
+                        const rejillaFinSalon = new Date(selectedDateObj);
+                        rejillaFinSalon.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+                        const abreSalon = alDia(horarioSalonHoy.apertura);
+                        const cierraSalon = alDia(horarioSalonHoy.cierre);
+                        if (abreSalon > rejillaIniSalon) {
+                          salonCerrado.push({
+                            id: `salon-antes-${prof.id}`,
+                            profesional_id: prof.id,
+                            inicio: rejillaIniSalon.toISOString(),
+                            fin: abreSalon.toISOString(),
+                            tipo: 'salon_cerrado',
+                            motivo: `El salón abre a las ${String(horarioSalonHoy.apertura).slice(0, 5)}`,
+                          });
+                        }
+                        if (cierraSalon < rejillaFinSalon) {
+                          salonCerrado.push({
+                            id: `salon-despues-${prof.id}`,
+                            profesional_id: prof.id,
+                            inicio: cierraSalon.toISOString(),
+                            fin: rejillaFinSalon.toISOString(),
+                            tipo: 'salon_cerrado',
+                            motivo: `El salón cierra a las ${String(horarioSalonHoy.cierre).slice(0, 5)}`,
+                          });
+                        }
+                      }
                       const virtualPauses = [];
                       if (profHorarios.length > 1) {
                         for (let i = 0; i < profHorarios.length - 1; i++) {
@@ -7845,7 +7966,7 @@ function DayTimeline({
                         (h: any) => h.profesional_id === prof.id,
                       );
                       const fueraJornada: any[] = [];
-                      if (tieneAlgunHorario && profHorarios.length === 0) {
+                      if (tieneAlgunHorario && profHorarios.length === 0 && !salonCerradoTodoElDia) {
                         const rejillaIni = new Date(selectedDateObj);
                         rejillaIni.setHours(START_H, 0, 0, 0);
                         const rejillaFin = new Date(selectedDateObj);
@@ -7859,13 +7980,7 @@ function DayTimeline({
                           motivo: 'No trabaja este dia',
                         });
                       }
-                      if (profHorarios.length > 0) {
-                        const alDia = (hhmm: string) => {
-                          const [h, m] = String(hhmm).split(':').map(Number);
-                          const d = new Date(selectedDateObj);
-                          d.setHours(h, m || 0, 0, 0);
-                          return d;
-                        };
+                      if (profHorarios.length > 0 && !salonCerradoTodoElDia) {
                         const rejillaIni = new Date(selectedDateObj);
                         rejillaIni.setHours(START_H, 0, 0, 0);
                         const rejillaFin = new Date(selectedDateObj);
@@ -7894,7 +8009,7 @@ function DayTimeline({
                         }
                       }
 
-                      return [...(bloqueos as any[]), ...virtualPauses, ...fueraJornada]
+                      return [...(bloqueos as any[]), ...virtualPauses, ...fueraJornada, ...salonCerrado]
                         .filter((b: any) => {
                           if (b.profesional_id !== prof.id) return false;
                           return (

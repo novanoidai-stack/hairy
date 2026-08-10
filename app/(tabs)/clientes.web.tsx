@@ -996,6 +996,12 @@ function ClientesWeb() {
                           <Icon name="star" size={11} color={tagColor} />
                           <span style={{ marginLeft: 4 }}>{c.tag}</span>
                         </Pill>
+                        {c.nivel_fidelizacion_override && (
+                          <Pill color={TOKENS.cyan} title="Nivel de fidelidad asignado a mano: sustituye el calculo automatico por visitas/gasto. Se cambia mas abajo, en Nivel de fidelidad.">
+                            <Icon name="star" size={11} color={TOKENS.cyan} />
+                            <span style={{ marginLeft: 4 }}>{niveles.find((n) => n.id === c.nivel_fidelizacion_override)?.nombre ?? 'Nivel manual'}</span>
+                          </Pill>
+                        )}
                         {c.actividad === 'Inactiva' && <Pill color={TOKENS.textTer} title="Sin visitas recientes. Informativo (util para campanas de recuperacion).">Inactiva</Pill>}
                         {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning} title="Hace tiempo que no viene. Informativo.">Riesgo abandono</Pill>}
                         {/* Riesgo de no-show (Sesion 7): score neutro derivado del historial

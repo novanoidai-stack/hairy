@@ -14,6 +14,7 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import { Badge } from '@/components/ui/SettingsAtoms';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import type { Bloque } from '@/lib/chispaBloques';
 
@@ -211,7 +212,10 @@ function ResenasScreen() {
 
     const prompt = `Analiza estas valoraciones de clientes y resume los temas recurrentes.
 Destaca los puntos fuertes más mencionados y las quejas o áreas de mejora principales.
-Formato: una lista de puntos clara y concisa.
+FORMATO OBLIGATORIO (nada de párrafos de prosa corridos):
+- Titular corto en **negrita** (máximo 8 palabras) con el veredicto general.
+- 2 a 4 viñetas, una por línea empezando por "- ", cada una con el tema en **negrita** y cuántas veces se repite si es
+  relevante. Empieza la viñeta con "OK" si es un punto fuerte o "ATENCION" si es una queja o área de mejora.
 Valoraciones:
 ${comentarios}`;
 
@@ -393,46 +397,33 @@ ${comentarios}`;
           </div>
         ) : (
           <>
-            {/* STATS POR SUBCATEGORIA */}
-            {isMobile ? (
-              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: '16px 20px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: TOKENS.textSec }}>Valoración por categorías</div>
-                {stats.map((s) => {
-                  const isMecha = s.group === 'mecha';
-                  const accent = isMecha ? TOKENS.gold : TOKENS.primary;
-                  return (
-                    <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.textSec }}>{s.label}</span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: TOKENS.text }}>{s.avg || '–'} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
-                      </div>
-                      <BarMeter value={s.avg} color={accent} />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
-                {stats.map((s, i) => {
-                  const isMecha = s.group === 'mecha';
-                  const accent = isMecha ? TOKENS.gold : TOKENS.primary;
-                  return (
-                    <div key={s.key} className="stat-card" style={{ animationDelay: `${i * 0.04}s`, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* STATS POR SUBCATEGORIA — una columna: la barra llega hasta el numero, en la misma fila */}
+            <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: isMobile ? '16px 18px' : '18px 24px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: TOKENS.textSec }}>Valoración por categorías</div>
+              {stats.map((s, i) => {
+                const isMecha = s.group === 'mecha';
+                const accent = isMecha ? TOKENS.gold : TOKENS.primary;
+                return (
+                  <div key={s.key} className="stat-card" style={{ animationDelay: `${i * 0.03}s`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: TOKENS.textSec }}>
                         <span style={{ width: 7, height: 7, borderRadius: '50%', background: accent, flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec, lineHeight: 1.2 }}>{s.label}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                        <span style={{ fontSize: 26, fontWeight: 800, color: s.count ? TOKENS.text : TOKENS.textTer, lineHeight: 1 }}>{s.avg || '–'}</span>
-                        {s.count > 0 && <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.textTer }}>/5</span>}
-                      </div>
-                      <BarMeter value={s.avg} color={accent} />
+                        {s.label}
+                      </span>
                       <span style={{ fontSize: 11.5, color: TOKENS.textTer, fontWeight: 600 }}>{s.count} {s.count === 1 ? 'respuesta' : 'respuestas'}</span>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <BarMeter value={s.avg} color={accent} />
+                      </div>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: s.count ? TOKENS.text : TOKENS.textTer, minWidth: 30, textAlign: 'right', flexShrink: 0 }}>
+                        {s.avg || '–'}<span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* ANALISIS DE SENTIMIENTO */}
             {hasSentiment && (
@@ -450,7 +441,10 @@ ${comentarios}`;
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {sentiment.strengths.map((s) => (
                           <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                            <span style={{ fontSize: 13.5, color: TOKENS.textSec }}>{s.label}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: TOKENS.textSec }}>
+                              <Badge tone="success">+</Badge>
+                              {s.label}
+                            </span>
                             <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.success, whiteSpace: 'nowrap' }}>{s.avg} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
                           </div>
                         ))}
@@ -479,7 +473,10 @@ ${comentarios}`;
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {sentiment.opportunities.map((s) => (
                           <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                            <span style={{ fontSize: 13.5, color: TOKENS.textSec }}>{s.label}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: TOKENS.textSec }}>
+                              <Badge tone="warning">-</Badge>
+                              {s.label}
+                            </span>
                             <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.gold, whiteSpace: 'nowrap' }}>{s.avg} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
                           </div>
                         ))}

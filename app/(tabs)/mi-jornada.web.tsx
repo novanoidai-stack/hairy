@@ -237,6 +237,14 @@ function MiJornadaScreen() {
   const [accionEstadoIA, setAccionEstadoIA] = useState<AccionEstado>('pendiente');
   const [huecosHoy, setHuecosHoy] = useState<HuecoHoy[]>([]);
 
+  // Sin este reset, cambiar de periodo (Hoy/Semana/Mes) refresca `resumen` y las
+  // citas listadas pero deja el analisis de IA ya generado con las cifras del
+  // periodo anterior — el titular hablaba de un numero de citas que ya no
+  // coincidia con las que se veian debajo.
+  useEffect(() => {
+    ayudaIA.reset();
+  }, [periodo]);
+
   useEffect(() => {
     const profId = resumen?.profesional?.id;
     if (periodo !== 'hoy' || !resumen?.profesional?.vinculado || !profId) {
@@ -277,12 +285,14 @@ Citas: ${JSON.stringify(resumen?.citas_lista || [])}.
 Horas: ${resumen?.horas}.
 Comisión estimada: ${(resumen?.comision_cents || 0) / 100}€.
 ${huecosTexto}
-Haz un breve resumen amistoso y motivador (2-3 frases). Si hay huecos libres reales (los de
-arriba), sugiere una forma concreta de aprovecharlos (contactar a una clienta que lleva tiempo
-sin venir, adelantar una tarea, o simplemente descansar si el día ha sido intenso); si no hay
-ninguno, no inventes que los hay.
+Si hay huecos libres reales (los de arriba), sugiere una forma concreta de aprovecharlos (contactar
+a una clienta que lleva tiempo sin venir, adelantar una tarea, o simplemente descansar si el día ha
+sido intenso); si no hay ninguno, no inventes que los hay.
 No propongas crear una cita nueva: no tienes los datos (servicio, profesional, hora)
-para proponerla completa, así que no llames a esa herramienta.`;
+para proponerla completa, así que no llames a esa herramienta.
+FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motivador:
+- Titular corto en **negrita** (máximo 8 palabras) con el resumen del día.
+- 1 a 3 viñetas, una por línea empezando por "- ", con la métrica o sugerencia clave en **negrita**.`;
     ayudaIA.analizar(prompt);
   };
 

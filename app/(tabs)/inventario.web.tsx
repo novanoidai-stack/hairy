@@ -163,7 +163,10 @@ export default function InventarioScreen() {
       id: c.id, nombre: c.nombre, stock_actual: c.stock_actual, stock_minimo: c.stock_minimo
     }));
     const desc = criticos.map(c => `${c.nombre} (Stock: ${c.stock_actual}, Mín: ${c.stock_minimo})`).join(', ');
-    const prompt = `Analiza estos productos con stock crítico en mi salón de belleza: ${desc}. Basado en un consumo típico, sugiere un pedido de reposición razonable en formato de lista (usa bloques de texto) y proporciona un bloque de acción para "Generar pedido sugerido" para estos productos (asumiendo que será un borrador).`;
+    const prompt = `Analiza estos productos con stock crítico en mi salón de belleza: ${desc}. Basado en un consumo típico, sugiere un pedido de reposición razonable y proporciona un bloque de acción para "Generar pedido sugerido" para estos productos (asumiendo que será un borrador).
+FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
+- Titular corto en **negrita** (máximo 8 palabras) con el veredicto general del stock.
+- Una viñeta por producto, empezando por "- ", con el nombre en **negrita** y la cantidad sugerida de reposición.`;
     
     ayudaIA.analizar(prompt, { productosCriticos: entrada }).then(() => {
       registrarEventoIA({
@@ -898,7 +901,7 @@ export default function InventarioScreen() {
 
       {/* Alert Banner */}
       {alertasCount > 0 && (
-        <div style={{...styles.alertBanner, flexDirection: 'column', alignItems: 'stretch', gap: 16}}>
+        <div style={{...styles.alertBanner, flexDirection: 'column', alignItems: 'stretch', gap: 10}}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
             <div style={styles.alertBannerLeft}>
               <div style={styles.alertBannerIcon}>
@@ -918,19 +921,22 @@ export default function InventarioScreen() {
                   ...styles.alertBannerBtn,
                   ...(soloStockBajo ? styles.alertBannerBtnActive : {})
                 }}
-                onClick={() => setSoloStockBajo(!soloStockBajo)}
+                onClick={() => {
+                  if (!soloStockBajo) setFiltroCategoria('todas');
+                  setSoloStockBajo(!soloStockBajo);
+                }}
               >
                 {soloStockBajo ? t('inv_mostrar_todos') : t('inv_ver_criticos')}
               </button>
             </div>
           </div>
           
-          <div style={{ marginTop: 16 }}>
+          <div>
             {!prediccionOpen ? (
               <button
                 className="m-row-hover"
                 onClick={() => setPrediccionOpen(true)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 9, cursor: 'pointer', textAlign: 'left' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z" stroke={TOKENS.primary} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>
                 <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>Predicción de Pedido (IA)</span>
@@ -1394,23 +1400,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '16px 20px',
+    padding: '12px 16px',
     backgroundColor: TOKENS.dangerSoft,
     border: `1px solid ${TOKENS.danger}`,
     borderRadius: '12px',
-    gap: '16px',
+    gap: '12px',
     flexWrap: 'wrap',
   },
   alertBannerLeft: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: '10px',
     flex: 1,
     minWidth: '280px',
   },
   alertBannerIcon: {
-    width: '36px',
-    height: '36px',
+    width: '30px',
+    height: '30px',
     borderRadius: '50%',
     backgroundColor: 'rgba(226, 59, 52, 0.15)',
     display: 'flex',

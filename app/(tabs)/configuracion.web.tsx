@@ -654,7 +654,11 @@ export default function ConfiguracionWeb() {
     - Reserva online: ${config.permitirMismoDia ? 'Activa el mismo día' : 'Requiere antelación'}
     - Avisos por WhatsApp: ${config.notifConfirmacionActiva || config.notifRecordatorioActiva ? 'Sí' : 'No'}
     
-    Dame sugerencias prácticas para mejorar la configuración de mi salón para ahorrar tiempo (ej: activar avisos si están apagados, añadir servicios si faltan) en formato de lista. Usa bloques de texto.`;
+    Dame sugerencias prácticas para mejorar la configuración de mi salón para ahorrar tiempo (ej: activar avisos si están apagados, añadir servicios si faltan).
+    FORMATO OBLIGATORIO (nada de párrafos de prosa corridos):
+    - Titular corto en **negrita** (máximo 8 palabras) con el estado general de la configuración.
+    - 2 a 4 viñetas, una por línea empezando por "- ", cada una con la sugerencia en **negrita** al principio.
+    - Empieza cada viñeta con "OK" si ese punto ya está bien o "ATENCION" si falta configurarlo.`;
 
     ayudaIA.analizar(prompt, { config: { nombre: config.nombre, servicios: services.length, profesionales: profesionales.length } }).then(() => {
       registrarEventoIA({
@@ -4708,7 +4712,8 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     setSavedSlug(s);
     setMsg({ ok: true, text: 'Portal guardado correctamente.' });
   }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios, captchaActivo,
-      analyticsEnabled, analyticsMeasurementId, directorioVisible, descripcion, ciudad, provincia, codigoPostal, lat, lng]);
+      analyticsEnabled, analyticsMeasurementId, directorioVisible, descripcion, ciudad, provincia, codigoPostal, lat, lng,
+      linkResenaGoogle, fondoPortalUrl]);
 
   // Lo que penaliza en el directorio y el salon no tiene por que saber. Van con
   // la vista previa, al lado de lo que se esta viendo, no como error de guardado.

@@ -13,6 +13,9 @@ import {
 import { HubIA } from '@/components/config/HubIA';
 import { getUserProfile } from '@/lib/auth';
 import { useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { mensajeDeError } from '@/lib/errores';
+import { SSelect, Btn, IconBtn } from '@/components/ui/SettingsAtoms';
 
 const T = {
   bg: '#f6f1ea',
@@ -51,15 +54,53 @@ export default function AyudaScreen() {
   const [preguntaChispa, setPreguntaChispa] = useState('');
   const [negocioId, setNegocioId] = useState<string>('');
   const [rolStr, setRolStr] = useState<string>('');
+  const [userEmail, setUserEmail] = useState('');
+  const [nombreNegocio, setNombreNegocio] = useState('');
+
+  // Modal de soporte: mismo circuito que Configuración > Soporte (RPC
+  // crear_mensaje_soporte + aviso por correo notificar-soporte), pero
+  // accesible directo desde Ayuda para no obligar a navegar hasta Ajustes.
+  const ASUNTOS_SOPORTE = ['Reporte de problema', 'Sugerencia', 'Facturación y plan', 'Ayuda con el uso', 'Otro'];
+  const [showSoporteModal, setShowSoporteModal] = useState(false);
+  const [asuntoSoporte, setAsuntoSoporte] = useState(ASUNTOS_SOPORTE[0]);
+  const [mensajeSoporte, setMensajeSoporte] = useState('');
+  const [enviandoSoporte, setEnviandoSoporte] = useState(false);
+  const [enviadoSoporte, setEnviadoSoporte] = useState(false);
+  const [errorSoporte, setErrorSoporte] = useState('');
 
   useEffect(() => {
     getUserProfile().then(user => {
       if (user) {
         setNegocioId(user.negocio_id || user.id);
         setRolStr(user.role || '');
+        setUserEmail(user.email || '');
+        setNombreNegocio(user.nombre_negocio || '');
       }
     });
   }, []);
+
+  const enviarMensajeSoporte = async () => {
+    if (!mensajeSoporte.trim()) { setErrorSoporte('Escribe el mensaje antes de enviarlo.'); return; }
+    setEnviandoSoporte(true);
+    setErrorSoporte('');
+    const { error } = await supabase.rpc('crear_mensaje_soporte', {
+      p_asunto: asuntoSoporte,
+      p_mensaje: mensajeSoporte.trim(),
+    });
+    setEnviandoSoporte(false);
+    if (error) { setErrorSoporte(mensajeDeError(error, 'No se pudo enviar el mensaje.')); return; }
+    setEnviadoSoporte(true);
+    setMensajeSoporte('');
+    void supabase.functions.invoke('notificar-soporte', {
+      body: { asunto: asuntoSoporte, mensaje: mensajeSoporte.trim(), negocio: nombreNegocio, autor_email: userEmail },
+    }).then(() => {}, () => {});
+  };
+
+  const cerrarSoporteModal = () => {
+    setShowSoporteModal(false);
+    setEnviadoSoporte(false);
+    setErrorSoporte('');
+  };
 
   // Filtrado de manuales
   const manualesFiltrados = useMemo(() => {
@@ -462,23 +503,18 @@ export default function AyudaScreen() {
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: 6 }}>
-          <button
-            onClick={() => window.open('https://wa.me/34690792975', '_blank')}
-            style={{
-              padding: '9px 16px',
-              borderRadius: 10,
-              background: T.bgCard,
-              border: `1px solid ${T.borderHi}`,
-              color: T.text,
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Soporte (Llamada o WhatsApp)
-          </button>
-          <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>+34 690 792 975</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
+            <Btn variant="ghost" icon="phone" onClick={() => window.open('tel:+34690792975', '_self')}>
+              Llamada
+            </Btn>
+            <Btn variant="ghost" onClick={() => window.open('https://wa.me/34690792975', '_blank')}>
+              WhatsApp
+            </Btn>
+            <Btn variant="primary" icon="mail" onClick={() => setShowSoporteModal(true)}>
+              Correo / Mensaje
+            </Btn>
+          </div>
+          <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>+34 690 792 975 · respuesta en menos de 24h</div>
         </div>
       </div>
 
@@ -489,6 +525,88 @@ export default function AyudaScreen() {
           isMobile={isMobile}
           onClose={() => setManualActivo(null)}
         />
+      )}
+
+      {/* ── Modal de Soporte por correo/mensaje ── */}
+      {showSoporteModal && (
+        <div
+          onClick={cerrarSoporteModal}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(28,24,20,0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 12 : 24,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: isMobile ? '100%' : 440, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto',
+              background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 18,
+              padding: isMobile ? 18 : 24, boxShadow: '0 30px 80px rgba(28,24,20,0.35)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: T.text }}>Escríbenos</h3>
+              <IconBtn icon="x" onClick={cerrarSoporteModal} title="Cerrar" />
+            </div>
+
+            {enviadoSoporte ? (
+              <div style={{ textAlign: 'center', padding: '24px 8px' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: T.success, marginBottom: 6 }}>Mensaje enviado</div>
+                <div style={{ fontSize: 13, color: T.textSec }}>
+                  Lo hemos registrado y te responderemos en menos de 24h a {userEmail || 'tu correo'}.
+                </div>
+                <button
+                  onClick={cerrarSoporteModal}
+                  style={{ marginTop: 18, padding: '9px 18px', borderRadius: 10, background: T.primary, border: 'none', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 16 }}>
+                  Se guarda como ticket de soporte y avisamos por correo al equipo. Respuesta en menos de 24h.
+                </div>
+                <label style={{ fontSize: 11, letterSpacing: 0.5, color: T.textTer, textTransform: 'uppercase', fontWeight: 700 }}>Asunto</label>
+                <div style={{ marginTop: 6, marginBottom: 14 }}>
+                  <SSelect
+                    value={asuntoSoporte}
+                    onChange={setAsuntoSoporte}
+                    options={ASUNTOS_SOPORTE.map((op) => ({ value: op, label: op }))}
+                    width={isMobile ? undefined : 260}
+                  />
+                </div>
+                <label style={{ fontSize: 11, letterSpacing: 0.5, color: T.textTer, textTransform: 'uppercase', fontWeight: 700 }}>Mensaje</label>
+                <textarea
+                  value={mensajeSoporte}
+                  onChange={(e) => setMensajeSoporte(e.target.value)}
+                  placeholder="Cuéntanos qué necesitas..."
+                  rows={5}
+                  style={{
+                    width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 10,
+                    border: `1px solid ${T.border}`, background: T.bgCard, color: T.text,
+                    fontSize: 13.5, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box',
+                  }}
+                />
+                {errorSoporte && (
+                  <div style={{ marginTop: 10, fontSize: 12.5, color: '#e23b34' }}>{errorSoporte}</div>
+                )}
+                <button
+                  onClick={enviarMensajeSoporte}
+                  disabled={enviandoSoporte}
+                  style={{
+                    marginTop: 16, width: '100%', padding: '11px 16px', borderRadius: 10,
+                    background: enviandoSoporte ? T.bgCardHi : T.primary, border: 'none',
+                    color: enviandoSoporte ? T.textTer : '#fff', fontWeight: 700, fontSize: 14,
+                    cursor: enviandoSoporte ? 'default' : 'pointer',
+                  }}
+                >
+                  {enviandoSoporte ? 'Enviando...' : 'Enviar mensaje'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

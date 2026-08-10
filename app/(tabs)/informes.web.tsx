@@ -23,6 +23,7 @@ import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { GraficaExplicada } from '@/components/charts/GraficaExplicada.web';
 import { BandaLectura } from '@/components/charts/BandaLectura.web';
 import { InfoDot } from '@/components/ui/InfoDot.web';
+import { SSelect } from '@/components/ui/SettingsAtoms';
 import { leerReparto, nombreGrano, type Granularidad } from '@/lib/informes/lecturaSerie';
 // Mismo motor que la calculadora publica /calculadora-comisiones: una sola cuenta.
 import { calcularComisiones } from '@/lib/comisiones/motor';
@@ -231,7 +232,7 @@ interface Cliente {
   telefono?: string;
 }
 
-type Periodo = 'hoy' | 'semana' | 'mes' | '3meses' | 'anio';
+type Periodo = 'hoy' | 'semana' | 'mes' | '3meses' | 'anio' | 'anio_h1' | 'anio_h2' | 'anio_h4';
 
 /**
  * Grano del eje X para cada periodo. Antes habia DOS filtros de tiempo peleando:
@@ -246,7 +247,7 @@ function granularidadDe(p: Periodo): Granularidad {
     case 'semana': return 'dia';
     case 'mes': return 'dia';
     case '3meses': return 'semana';
-    case 'anio': return 'mes';
+    case 'anio': case 'anio_h1': case 'anio_h2': case 'anio_h4': return 'mes';
   }
 }
 
@@ -282,6 +283,12 @@ function getRango(p: Periodo): { desde: Date; hasta: Date } {
       return { desde: startOfMonth(subMonths(now, 2)), hasta: endOfMonth(now) };
     case 'anio':
       return { desde: new Date(now.getFullYear(), 0, 1), hasta: new Date(now.getFullYear(), 11, 31) };
+    case 'anio_h1':
+      return { desde: new Date(now.getFullYear() - 1, 0, 1), hasta: new Date(now.getFullYear() - 1, 11, 31) };
+    case 'anio_h2':
+      return { desde: new Date(now.getFullYear() - 2, 0, 1), hasta: new Date(now.getFullYear() - 2, 11, 31) };
+    case 'anio_h4':
+      return { desde: new Date(now.getFullYear() - 4, 0, 1), hasta: new Date(now.getFullYear() - 4, 11, 31) };
   }
 }
 
@@ -381,6 +388,10 @@ function InformesScreen() {
   // true si la consulta llego al tope de filas: entonces el historico esta
   // recortado y hay que decirlo en vez de dar las cifras por completas.
   const [historicoRecortado, setHistoricoRecortado] = useState(false);
+  // Mismo aviso para el periodo principal: los rangos "hace N años" pueden
+  // acercarse al limite implicito de 1000 filas de Supabase en un salon con
+  // mucho volumen, y sin .limit() explicito se recortaria en silencio.
+  const [citasRecortado, setCitasRecortado] = useState(false);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(COMISION_PCT_POR_DEFECTO);
@@ -413,7 +424,9 @@ function InformesScreen() {
         .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
         .eq('negocio_id', nId)
         .gte('inicio', desde.toISOString())
-        .lte('inicio', hasta.toISOString()),
+        .lte('inicio', hasta.toISOString())
+        .order('inicio', { ascending: true })
+        .limit(TOPE_HISTORICO),
       supabase.from('profesionales').select('id, nombre, color, activo, categoria, comision_pct').eq('negocio_id', nId),
       supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min').eq('negocio_id', nId),
       supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', nId),
@@ -451,7 +464,9 @@ function InformesScreen() {
         .limit(TOPE_HISTORICO),
     ]);
 
-    setCitas(citaRes.data ?? []);
+    const citasData = citaRes.data ?? [];
+    setCitas(citasData);
+    setCitasRecortado(citasData.length >= TOPE_HISTORICO);
     setProfesionales(profRes.data ?? []);
     setServicios(srvRes.data ?? []);
     setClientes(cltRes.data ?? []);
@@ -1146,16 +1161,32 @@ function InformesScreen() {
     // useAyudaIA solo usa el texto de la ULTIMA respuesta, así que el informe
     // narrado se perdia (bloques visuales sin texto). Mismo tipo de ajuste de
     // prompt que la Sesion 3 V2 (probar en vivo, reforzar con regla explicita).
-    const prompt = `Necesito un informe narrado del periodo ${periodoLabel}. Sigue este orden EXACTO:
+    const servicioTop = serviciosData.ranking[0];
+    const comisionTotal = comisionesData.reduce((s, p) => s + p.comision, 0);
+    const prompt = `Necesito un informe narrado del periodo ${periodoLabel} que cubra TODAS las areas de la pagina de
+Informes, no solo ingresos. Sigue este orden EXACTO:
 1) Llama a mostrar_grafica con metrica "ingresos" desde "${format(desde, 'yyyy-MM-dd')}" hasta "${format(hasta, 'yyyy-MM-dd')}",
    y a mostrar_comparativa con metrica "ingresos" y periodo "${periodoComparativa}" para contrastar con el periodo anterior equivalente.
-2) En cuanto termines esas llamadas, tu SIGUIENTE respuesta (sin mas llamadas a tools) tiene que ser el INFORME:
-   3-4 frases en tono profesional y directo interpretando estas cifras YA CALCULADAS (no inventes otras): ${totalCitas} citas,
-   ${hayCobros ? `${totalCobrado.toFixed(2)}€ cobrados de verdad` : `${totalIngresos.toFixed(2)}€ estimados (aun sin cobros registrados)`},
-   ocupacion media ${Math.round(ocupacionGlobal * 10) / 10} citas/profesional, ${noShows.length} no-shows (${Math.round(tasaNoShow)}%).
-   No repitas estos numeros tal cual (ya se ven en el panel de arriba): interpreta que significan para el negocio. Si la
-   comparativa muestra una caida relevante (mas de 10%), señalalo con franqueza como alerta; si sube, celebralo brevemente.
+2) En cuanto termines esas llamadas, tu SIGUIENTE respuesta (sin mas llamadas a tools) tiene que ser el INFORME,
+   interpretando estas cifras YA CALCULADAS de TODAS las secciones (no inventes otras):
+   - Citas y ocupacion: ${totalCitas} citas, ocupacion media ${Math.round(ocupacionGlobal * 10) / 10} citas/profesional.
+   - Ingresos: ${hayCobros ? `${totalCobrado.toFixed(2)}€ cobrados de verdad` : `${totalIngresos.toFixed(2)}€ estimados (aun sin cobros registrados)`}.
+   - No-shows: ${noShows.length} (${Math.round(tasaNoShow)}%).
+   - Espera media entre citas: ${Math.round(esperaData.avgGlobal)} min.
+   - Reposo aprovechado (tintes/mechas): ${fmtPct(reposoData.pctGlobal)}.
+   - Servicio mas demandado: ${servicioTop ? `${servicioTop.nombre} (${servicioTop.count} veces)` : 'sin datos suficientes'}.
+   - Clientes activos (retencion, base de 13 meses): ${retencionData.clientesActivos}.
+   - Comisiones devengadas del equipo: ${fmtEur(comisionTotal)}€.
+   No repitas estos numeros tal cual (ya se ven en el panel de arriba): interpreta que significan para el negocio.
    No inventes cifras que no te haya dado o que no devuelvan las tools.
+   FORMATO OBLIGATORIO (nada de parrafos de prosa corridos):
+   - Titular corto en **negrita** (maximo 8 palabras) con el veredicto general del periodo.
+   - Una viñeta por cada area de arriba que tenga algo relevante que decir (normalmente 4 a 6), una por linea
+     empezando por "- ", cada una con la metrica clave en **negrita** y un indicador de estado al principio:
+     "OK" si va bien, "ATENCION" si hay algo a vigilar, "ALERTA" si es urgente. No hace falta cubrir un area sin
+     nada destacable, pero no te limites solo a ingresos.
+   - Si la comparativa de ingresos muestra una caida relevante (mas de 10%), esa viñeta va con "ALERTA"; si sube, con "OK".
+   - Cierra con una conclusion de una linea (parte del ultimo bullet o una linea aparte) priorizando que atender primero.
 NO uses sugerir_enlace en esta respuesta (ya estamos en Informes, un enlace aqui es redundante). Tu ULTIMA respuesta
 SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia sin el texto.`;
     informeIA.analizar(prompt);
@@ -1667,30 +1698,55 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             </button>
             <AvisosBell mode="header" />
           </h1>
-          <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2 }}>{periodoLabel}</div>
+          <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2 }}>
+            {periodoLabel}
+            {citasRecortado && (
+              <span style={{ marginLeft: 8, color: TOKENS.warning, fontWeight: 600 }}>
+                · aviso: hay tantas citas en este periodo que las cifras están recortadas
+              </span>
+            )}
+          </div>
         </div>
         {/* flexWrap: en movil el selector de periodo y los botones CSV/PDF no
             caben en una linea; sin esto el PDF quedaba cortado fuera de pantalla */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Periodo selector */}
           <div style={{ display: 'flex', gap: 4, background: TOKENS.bgCard, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}` }}>
-            {periodos.map(p => (
-              <button
-                key={p.key}
-                className={periodo === p.key ? 'seg-btn is-active' : 'seg-btn'}
-                onClick={() => setPeriodo(p.key)}
-                style={{
-                  padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  fontSize: isMobile ? 11.5 : 12, fontWeight: periodo === p.key ? 600 : 400,
-                  background: periodo === p.key ? TOKENS.primary : 'transparent',
-                  color: periodo === p.key ? '#fff' : TOKENS.textSec,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+            {periodos.map(p => {
+              const activo = p.key === 'anio' ? periodo.startsWith('anio') : periodo === p.key;
+              return (
+                <button
+                  key={p.key}
+                  className={activo ? 'seg-btn is-active' : 'seg-btn'}
+                  onClick={() => setPeriodo(p.key)}
+                  style={{
+                    padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                    fontSize: isMobile ? 11.5 : 12, fontWeight: activo ? 600 : 400,
+                    background: activo ? TOKENS.primary : 'transparent',
+                    color: activo ? '#fff' : TOKENS.textSec,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
+
+          {/* Datos de ejercicios anteriores: fuera del segmentado para no saturarlo de pills. */}
+          {periodo.startsWith('anio') && (
+            <SSelect
+              value={periodo}
+              onChange={(v) => setPeriodo(v as Periodo)}
+              options={[
+                { value: 'anio', label: 'Año actual' },
+                { value: 'anio_h1', label: 'Hace 1 año' },
+                { value: 'anio_h2', label: 'Hace 2 años' },
+                { value: 'anio_h4', label: 'Hace 4 años' },
+              ]}
+              width={140}
+            />
+          )}
 
           <div ref={(el) => { exportRef.current = el; }} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Export CSV */}
