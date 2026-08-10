@@ -6,6 +6,7 @@
  */
 
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,6 +112,7 @@ export async function obtenerNivelCliente(clienteId: string): Promise<{
     return data as any;
   } catch (e) {
     console.error('Error obteniendo nivel cliente:', e);
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, error: (e as any).message };
   }
 }
@@ -137,6 +139,7 @@ export async function verificarLogrosCliente(clienteId: string): Promise<{
     return data as any;
   } catch (e) {
     console.error('Error verificando logros:', e);
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, error: (e as any).message };
   }
 }
@@ -166,6 +169,7 @@ export async function obtenerLogrosDesbloqueados(clienteId: string): Promise<{
     return data as any;
   } catch (e) {
     console.error('Error obteniendo logros desbloqueados:', e);
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, error: (e as any).message };
   }
 }
@@ -191,6 +195,7 @@ export async function obtenerRecompensasNegocio(negocioId: string, soloActivas =
     return data as any;
   } catch (e) {
     console.error('Error obteniendo recompensas:', e);
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, error: (e as any).message };
   }
 }
@@ -226,6 +231,7 @@ export async function canjearRecompensa(
     return data as any;
   } catch (e) {
     console.error('Error canjeando recompensa:', e);
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, error: (e as any).message };
   }
 }
