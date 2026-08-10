@@ -8,6 +8,7 @@ import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA, CITA_STATUS_ACTIVOS } from '@/lib/constants';
 import { esCompletada, esCanceladaONoShow } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
@@ -427,7 +428,7 @@ function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }, { data: recompraData }, { data: nivelesData }] = await Promise.all([
+    const [resClts, resCits, resSrv, resProf, resFichas, resCfg, resFuga, resRiesgo, resRecompra, resNiveles] = await Promise.all([
       supabase
         .from('clientes')
         .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, nivel_fidelizacion_override, consiente_ia, consiente_ia_origen, consiente_ia_fecha')
@@ -465,6 +466,23 @@ function ClientesWeb() {
         .eq('activo', true)
         .order('orden'),
     ]);
+
+    if (resClts.error) reportarError(resClts.error, { origen: 'app', tipo: 'operativo' });
+    if (resCits.error) reportarError(resCits.error, { origen: 'app', tipo: 'operativo' });
+    if (resSrv.error) reportarError(resSrv.error, { origen: 'app', tipo: 'operativo' });
+    if (resProf.error) reportarError(resProf.error, { origen: 'app', tipo: 'operativo' });
+    if (resFichas.error) reportarError(resFichas.error, { origen: 'app', tipo: 'operativo' });
+
+    const clts = resClts.data;
+    const citsData = resCits.data;
+    const srvData = resSrv.data;
+    const profData = resProf.data;
+    const fichasData = resFichas.data;
+    const cfgRow = resCfg.data;
+    const fugaData = resFuga.data;
+    const riesgoNoShowData = resRiesgo.data;
+    const recompraData = resRecompra.data;
+    const nivelesData = resNiveles.data;
 
     // Riesgo de fuga: mapa cliente_id -> datos del RPC (dias de retraso, recompensa sugerida)
     const fugaPorCliente = new Map<string, { dias: number; recompensa?: string }>();
