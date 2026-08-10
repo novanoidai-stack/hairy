@@ -33,6 +33,7 @@ export interface PortalNegocio {
   idioma: string;
   mostrar_precios: 'catalogo' | 'tras_seleccion' | 'nunca';
   color_acento: string;
+  fondo_portal_url: string | null;
   analytics_config?: { enabled: boolean; measurementId: string; consentGiven: boolean };
 }
 

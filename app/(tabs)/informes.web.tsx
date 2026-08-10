@@ -1677,6 +1677,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
 
       {/* Topbar */}
       <div className="informe-topbar" style={{
+        position: 'relative', zIndex: 20,
         padding: isMobile ? '12px 16px' : '20px 28px 16px', borderBottom: `1px solid ${TOKENS.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: isMobile ? 10 : 12,
@@ -1786,7 +1787,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '14px 14px 96px' : '20px 28px 40px' }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: isMobile ? '14px 14px 96px' : '20px 28px 40px' }}>
         {!paginaManual.loading && !paginaManual.visto && (
           <div style={{ marginBottom: 16 }}>
             <AvisoPrimeraVisita

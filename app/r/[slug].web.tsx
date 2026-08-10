@@ -11,7 +11,6 @@ import {
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
-import { categoryColorHex } from '@/lib/categoryColors';
 import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
 import { PortalGrupoModal } from '@/components/portal/PortalGrupoModal.web';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -40,7 +39,9 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
     sunset: '<path d="M12 10V2M4.93 10.93l1.41 1.41M2 18h2M20 18h2M17.66 12.34l1.41-1.41M22 22H2M16 18a4 4 0 0 0-8 0M8 6l4 4 4-4"/>',
     moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
-    star: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'
+    star: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+    search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
   };
   return (
     <span
@@ -91,7 +92,35 @@ function ResponsiveGrid({ children, mobile, desktop, gap, style }: { children: R
   return <div style={{ display: 'grid', gridTemplateColumns: isMobile ? mobile : desktop, gap, ...style }}>{children}</div>;
 }
 function capFirst(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
+// Busqueda tolerante a mayusculas y tildes ("mechas" encuentra "Mechas Californianas").
+function normalizaTexto(s: string) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
 function claveADate(k: string): Date { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); }
+
+// Fila de servicio del paso 1. Se comparte entre el acordeon por categoria y la
+// lista plana de resultados de busqueda (ahi si se muestra a que categoria pertenece).
+function ServicioFila({ sv, selected, mostrarPrecio, conCategoria, onClick }: {
+  sv: PortalServicio; selected: boolean; mostrarPrecio: boolean; conCategoria?: boolean; onClick: () => void;
+}) {
+  return (
+    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: 12, background: selected ? T.primarySoft : '#fff', border: `1.5px solid ${selected ? T.primary : T.border}`, borderRadius: 16, cursor: 'pointer', textAlign: 'left' }}>
+      <span style={{ display: 'inline-flex', width: 64, height: 64, borderRadius: 14, background: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {sv.foto_url ? <img src={sv.foto_url} alt="" style={{ width: '100%', height: '100%', borderRadius: 14, objectFit: 'cover' }} /> : <Icon name="scissors" size={24} color="#ccc" />}
+      </span>
+      <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+        {conCategoria && sv.categoria_nombre && (
+          <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 2 }}>{sv.categoria_nombre}</span>
+        )}
+        <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>{sv.nombre}</span>
+        <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>{sv.duracion} min{mostrarPrecio ? ` · ${sv.precio}€` : ''}</span>
+      </span>
+      {selected && (
+        <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: T.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon name="check" size={14} color="#fff" />
+        </span>
+      )}
+    </button>
+  );
+}
 function franjaDe(iso: string): 'manana' | 'tarde' | 'noche' {
   const h = new Date(iso).getHours();
   if (h < 14) return 'manana';
@@ -123,6 +152,9 @@ const ANIM = `
   body { margin: 0; }
   @keyframes rpUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes rpRing { 0% { transform: scale(0.6); opacity: 0.5; } 100% { transform: scale(1.9); opacity: 0; } }
+  @keyframes rpShake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-5px); } 40%,80% { transform: translateX(5px); } }
+  .rp-shake { animation: rpShake 0.4s ease-in-out; }
+  @media (prefers-reduced-motion: reduce) { .rp-shake { animation: none; } }
   a { color: #c0260a; }
   a:hover { color: #f4501e; }
   ::-webkit-scrollbar { height: 0; }
@@ -143,7 +175,8 @@ export default function PortalReservaWeb() {
 
   const [step, setStep] = useState<Step>('servicio');
   const [servicio, setServicio] = useState<PortalServicio | null>(null);
-  const [categoriaFiltro, setCategoriaFiltro] = useState<string | null>(null);
+  const [catAbierta, setCatAbierta] = useState<string | null>(null);
+  const [busqueda, setBusqueda] = useState('');
   const [showGrupoModal, setShowGrupoModal] = useState(false);
   const [grupoOk, setGrupoOk] = useState<{ total: number; inicio: string } | null>(null);
   const [profId, setProfId] = useState<string>(ANY_PRO);
@@ -159,6 +192,9 @@ export default function PortalReservaWeb() {
   const [email, setEmail] = useState('');
   const [notas, setNotas] = useState('');
   const [consent, setConsent] = useState(false);
+  const [consentFallo, setConsentFallo] = useState(false);
+  const consentRef = useRef<HTMLLabelElement>(null);
+  const exitoRef = useRef<HTMLDivElement>(null);
   const [consentIa, setConsentIa] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
@@ -210,16 +246,8 @@ export default function PortalReservaWeb() {
         const [data, res] = await Promise.all([getPortalInfo(slug), getResenasPublicas(slug)]);
         if (cancel) return;
         if (!data) { setNotFound(true); } else { setInfo(data); setResenas(res); }
-        // Fetch cobro reserva and fondo portal
-        // OJO: negocio_portal.fondo_portal_url NO existe como columna (da 400).
-        // Se conserva la llamada a proposito para poder recuperar la funcion de fondo
-        // de portal mas adelante; hoy no hace nada. Ver spec 2026-08-09.
-        const { data: portalData } = await supabase.from('negocio_portal').select('fondo_portal_url').eq('slug', slug).single();
-        if (portalData && !cancel) {
-          if (portalData.fondo_portal_url) {
-            (data as any).fondo_portal_url = portalData.fondo_portal_url;
-          }
-        }
+        // El fondo del portal viene dentro de portal_info (negocio.fondo_portal_url).
+        // anon no tiene SELECT sobre negocio_portal: todo pasa por la RPC.
       } catch {
         if (!cancel) setNotFound(true);
       } finally {
@@ -343,7 +371,13 @@ export default function PortalReservaWeb() {
     setError('');
     if (!nombre.trim()) { setError(t('err_nombre')); return; }
     if (telefono.trim().length < 6) { setError(t('err_tel')); return; }
-    if (!consent) { setError(t('err_consent')); return; }
+    if (!consent) {
+      setError(t('err_consent'));
+      setConsentFallo(true);
+      consentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setConsentFallo(false);
     setEnviando(true);
     try {
       let captchaToken: string | undefined;
@@ -359,6 +393,9 @@ export default function PortalReservaWeb() {
         consentimientoDatos: consent, consienteIa: consentIa, captchaToken,
       });
       setResultado(r); setStep('confirmado');
+      // El formulario deja paso a una tarjeta mas corta: sin esto la pagina se
+      // queda a la altura de las opiniones y la clienta no llega a ver el "confirmada".
+      requestAnimationFrame(() => exitoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       if (analyticsConsent) {
         AnalyticsEvents.bookingCompleted(r.cita_id, servicio.nombre, slotSel.profesional_nombre, servicio.precio || 0, slug);
       }
@@ -367,6 +404,17 @@ export default function PortalReservaWeb() {
       if (/ocupado|disponib|antelacion|horario/i.test(msg)) { setError(t('err_ocupado')); setStep('fecha'); } else { setError(msg); }
     } finally { setEnviando(false); }
   }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t, captchaReady, consentIa, analyticsConsent, info]);
+
+  // El publico del portal es el cliente final, no el salon: "atras" debe devolverle
+  // al marketplace (de donde suele venir), nunca a la landing comercial de Mecha.
+  // Si venia de otra pagina del sitio se usa el historial para no perder su scroll ni sus filtros.
+  const volverAtras = useCallback(() => {
+    const ref = typeof document !== 'undefined' ? document.referrer : '';
+    let mismoSitio = false;
+    try { mismoSitio = !!ref && new URL(ref).origin === window.location.origin && !new URL(ref).pathname.startsWith('/app/r/'); } catch { mismoSitio = false; }
+    if (mismoSitio && window.history.length > 1) window.history.back();
+    else window.location.href = '/salones.html';
+  }, []);
 
   const submitReview = () => {
     if (!rPuntuacion) { setRError('Elige una valoración para el salón.'); return; }
@@ -440,8 +488,24 @@ export default function PortalReservaWeb() {
   const slotElegido = !!slotSel;
   const ctaDisabled = !(servicioElegido && slotElegido);
 
-  const categorias = Array.from(new Set(info.servicios.map(s => s.categoria_id).filter(Boolean)));
-  const servFiltrados = info.servicios.filter(sv => !categoriaFiltro || sv.categoria_id === categoriaFiltro);
+  // Catalogos grandes (50+ servicios): en vez de una lista plana que obliga a
+  // scrollear, se agrupa por categoria en acordeon y se ofrece buscador.
+  const grupos: { id: string; nombre: string; servicios: typeof info.servicios }[] = [];
+  for (const sv of info.servicios) {
+    const id = sv.categoria_id || '__sin_categoria';
+    let g = grupos.find(x => x.id === id);
+    if (!g) { g = { id, nombre: sv.categoria_nombre || 'Otros servicios', servicios: [] }; grupos.push(g); }
+    g.servicios.push(sv);
+  }
+  const qBusqueda = normalizaTexto(busqueda);
+  const resultadosBusqueda = qBusqueda
+    ? info.servicios.filter(sv =>
+        normalizaTexto(sv.nombre).includes(qBusqueda) ||
+        normalizaTexto(sv.categoria_nombre || '').includes(qBusqueda) ||
+        normalizaTexto(sv.descripcion || '').includes(qBusqueda))
+    : [];
+  // Con una sola categoria el acordeon no aporta: se abre sola.
+  const catAbiertaEfectiva = grupos.length === 1 ? grupos[0].id : catAbierta;
 
   const franjaMananaItems = horas.filter(s => franjaDe(s.slot) === 'manana');
   const franjaTardeItems = horas.filter(s => franjaDe(s.slot) === 'tarde');
@@ -459,7 +523,7 @@ export default function PortalReservaWeb() {
       <header style={{ position: 'sticky', top: 0, zIndex: 30, background: '#fffdfb', borderBottom: '1px solid rgba(40,30,24,0.08)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '12px 20px' : '14px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-            <button onClick={() => window.location.href = '/'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, background: 'rgba(40,30,24,0.06)', border: 'none', cursor: 'pointer' }} title="Volver al inicio">
+            <button onClick={volverAtras} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, background: 'rgba(40,30,24,0.06)', border: 'none', cursor: 'pointer' }} title="Volver a los salones">
               <Icon name="chevronLeft" size={18} />
             </button>
             <span style={{ display: 'inline-flex', width: 38, height: 38, borderRadius: 11, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}><MechaMark size={20} /></span>
@@ -486,9 +550,9 @@ export default function PortalReservaWeb() {
       </header>
 
       <div style={{ position: 'relative', height: 236, overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: '#ccc' }}>
-          {/* placeholder hero image, could use a real one if available */}
-          {(info as any).fondo_portal_url && <img src={(info as any).fondo_portal_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Fondo" />}
+        <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg,#3a2a20 0%,#1c1814 100%)' }}>
+          {/* Foto de fondo elegida por el salon en Ajustes > Portal. Sin ella, degradado de marca. */}
+          {info.negocio.fondo_portal_url && <img src={info.negocio.fondo_portal_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
         </div>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(28,24,20,0.02) 0%,rgba(18,14,10,0.74) 100%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '0 20px 24px' : '0 40px 24px', pointerEvents: 'none' }}>
@@ -514,39 +578,72 @@ export default function PortalReservaWeb() {
                     <div style={{ marginBottom: 22 }}>
                       <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>1 · Servicio</div>
                       <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: -0.3, marginBottom: 12 }}>¿Qué te apetece hoy?</div>
-                      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 14 }}>
-                        <button onClick={() => setCategoriaFiltro(null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', ...(categoriaFiltro === null ? { background: T.primarySoft, border: `1px solid ${T.primary}`, color: T.primaryHi } : { background: 'transparent', border: '1px solid ' + T.border, color: T.textSec }) }}>Todos</button>
-                        {categorias.map(cat => {
-                          const active = categoriaFiltro === cat;
-                          const hex = categoryColorHex('primary'); // simplifying color handling for now
-                          return (
-                            <button key={cat} onClick={() => setCategoriaFiltro(active ? null : cat)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', ...(active ? { background: hex + '20', border: '1px solid ' + hex, color: T.text } : { background: 'transparent', border: '1px solid ' + T.border, color: T.textSec }) }}>
-                              <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 99, background: hex, marginRight: 0 }} />{info.servicios.find(s => s.categoria_id === cat)?.categoria_nombre || cat}
-                            </button>
-                          );
-                        })}
+                      {/* Buscador: con catalogos de 50 servicios es la via rapida. */}
+                      <div style={{ position: 'relative', marginBottom: 14 }}>
+                        <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', display: 'inline-flex', pointerEvents: 'none' }}>
+                          <Icon name="search" size={16} color={T.textTer} />
+                        </span>
+                        <input
+                          value={busqueda}
+                          onChange={e => setBusqueda(e.target.value)}
+                          placeholder="Buscar servicio..."
+                          aria-label="Buscar servicio"
+                          style={{ ...inputStyle, paddingLeft: 38, paddingRight: busqueda ? 38 : 14 }}
+                        />
+                        {busqueda !== '' && (
+                          <button onClick={() => setBusqueda('')} aria-label="Borrar búsqueda" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                            <Icon name="x" size={15} color={T.textTer} />
+                          </button>
+                        )}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                        {servFiltrados.map(sv => {
-                          const selected = servicio?.id === sv.id;
-                          return (
-                            <button key={sv.id} onClick={() => elegirServicio(sv)} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: 12, background: selected ? T.primarySoft : '#fff', border: `1.5px solid ${selected ? T.primary : T.border}`, borderRadius: 16, cursor: 'pointer', textAlign: 'left' }}>
-                              <span style={{ display: 'inline-flex', width: 64, height: 64, borderRadius: 14, background: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                {sv.foto_url ? <img src={sv.foto_url} alt="" style={{ width: '100%', height: '100%', borderRadius: 14, objectFit: 'cover' }} /> : <Icon name="scissors" size={24} color="#ccc" />}
-                              </span>
-                              <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                                <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>{sv.nombre}</span>
-                                <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>{sv.duracion} min{mostrarPrecioEnLista ? ` · ${sv.precio}€` : ''}</span>
-                              </span>
-                              {selected && (
-                                <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: T.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  <Icon name="check" size={14} color="#fff" />
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+
+                      {qBusqueda ? (
+                        // Buscando: lista plana de coincidencias, sin acordeon.
+                        resultadosBusqueda.length === 0 ? (
+                          <div style={{ padding: '20px 14px', textAlign: 'center', fontSize: 13.5, color: '#736658', background: '#fff', border: `1px solid ${T.border}`, borderRadius: 16 }}>
+                            No encontramos ningún servicio con «{busqueda}».
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                            {resultadosBusqueda.map(sv => (
+                              <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} conCategoria onClick={() => elegirServicio(sv)} />
+                            ))}
+                          </div>
+                        )
+                      ) : (
+                        // Sin busqueda: acordeon por categoria, todo plegado de inicio.
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                          {grupos.map(g => {
+                            const abierta = catAbiertaEfectiva === g.id;
+                            const tieneSeleccion = g.servicios.some(s => s.id === servicio?.id);
+                            return (
+                              <div key={g.id} style={{ background: '#fff', border: `1.5px solid ${abierta || tieneSeleccion ? T.primary : T.border}`, borderRadius: 16, overflow: 'hidden' }}>
+                                <button
+                                  onClick={() => setCatAbierta(abierta ? null : g.id)}
+                                  aria-expanded={abierta}
+                                  style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '15px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                                >
+                                  <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 700 }}>{g.nombre}</span>
+                                  {tieneSeleccion && !abierta && (
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: T.primaryHi, whiteSpace: 'nowrap' }}>1 elegido</span>
+                                  )}
+                                  <span style={{ fontSize: 12.5, color: '#736658', flexShrink: 0 }}>{g.servicios.length}</span>
+                                  <span style={{ display: 'inline-flex', flexShrink: 0, transform: abierta ? 'rotate(90deg)' : 'none', transition: 'transform 0.18s ease' }}>
+                                    <Icon name="chevronRight" size={16} color={T.textSec} />
+                                  </span>
+                                </button>
+                                {abierta && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: '0 10px 10px' }}>
+                                    {g.servicios.map(sv => (
+                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} onClick={() => elegirServicio(sv)} />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     {/* 2. Profesional */}
@@ -665,11 +762,18 @@ export default function PortalReservaWeb() {
                             <input value={notas} onChange={e => setNotas(e.target.value)} placeholder="Alergias, preferencias…" style={inputStyle} />
                           </label>
                         </div>
-                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer' }}>
-                          <span onClick={() => setConsent(!consent)} style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {/* Si falta el consentimiento el boton no dice nada util: se resalta
+                            la casilla (borde rojo + fondo + sacudida) y se lleva a la vista. */}
+                        <label
+                          ref={consentRef}
+                          className={consentFallo ? 'rp-shake' : undefined}
+                          onClick={() => { setConsent(!consent); setConsentFallo(false); }}
+                          style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer', padding: consentFallo ? '10px 12px' : 0, borderRadius: 12, border: consentFallo ? `1.5px solid ${T.danger}` : '1.5px solid transparent', background: consentFallo ? T.dangerSoft : 'transparent', transition: 'background 0.2s ease, border-color 0.2s ease' }}
+                        >
+                          <span style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : consentFallo ? T.danger : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {consent && <Icon name="check" size={14} color="#fff" />}
                           </span>
-                          <span onClick={() => setConsent(!consent)} style={{ fontSize: 12.5, color: '#5c5249', lineHeight: 1.45 }}>He leído y acepto la política de privacidad. Solo usamos tus datos para gestionar esta cita.</span>
+                          <span style={{ fontSize: 12.5, color: consentFallo ? T.danger : '#5c5249', lineHeight: 1.45, fontWeight: consentFallo ? 600 : 400 }}>He leído y acepto la política de privacidad. Solo usamos tus datos para gestionar esta cita.</span>
                         </label>
                       </div>
                     )}
@@ -715,7 +819,7 @@ export default function PortalReservaWeb() {
               )}
 
               {showSuccess && (
-                <div style={{ textAlign: 'center', padding: '20px 0 4px' }}>
+                <div ref={exitoRef} style={{ textAlign: 'center', padding: '20px 0 4px' }}>
                   <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
                     <span style={{ position: 'absolute', width: 84, height: 84, borderRadius: '50%', background: T.primarySoft, animation: 'rpRing 1.8s ease-out infinite' }} />
                     <span style={{ position: 'relative', display: 'inline-flex', width: 84, height: 84, borderRadius: '50%', background: '#fff', border: '1px solid rgba(40,30,24,0.08)', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(244,80,30,0.22)' }}>
@@ -733,6 +837,14 @@ export default function PortalReservaWeb() {
                     <a href={gcalLink(servicio!.nombre, info.negocio.nombre || 'tu salon', slotSel!.slot, servicio!.duracion, info.negocio.direccion)} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
                       <Icon name="calendar" size={16} color={T.primary} /> Añadir a Google Calendar
                     </a>
+                    {/* La resena se pide DESPUES de que la clienta haya visto la confirmacion,
+                        y solo si ella decide bajar: nunca arrastrandola sin avisar. */}
+                    <button
+                      onClick={() => { setShowReviewForm(true); requestAnimationFrame(() => reviewsRef.current?.scrollIntoView({ behavior: 'smooth' })); }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      <Icon name="edit" size={16} color={T.primary} /> ¿Ya nos conoces? Déjanos tu opinión
+                    </button>
                     <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: 8, cursor: 'pointer' }}>Hacer otra reserva</button>
                   </div>
                 </div>

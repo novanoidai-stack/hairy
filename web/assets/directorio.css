@@ -67,6 +67,11 @@ body.directorio {
 .d-top-sp { flex: 1; }
 .d-top-link { font-size: 13.5px; font-weight: 600; color: var(--d-text-sec); text-decoration: none; }
 .d-top-link:hover { color: var(--d-fuego-hi); }
+/* Enlace de vuelta a la landing B2B: perfilado para que se lea como otra puerta,
+   no como un item mas de navegacion del marketplace. */
+.d-top-pro { padding: 7px 13px; border: 1px solid var(--d-border-hi); border-radius: 999px; white-space: nowrap; }
+.d-top-pro:hover { border-color: var(--d-fuego-hi); background: rgba(244,80,30,.06); }
+@media (max-width: 560px) { .d-top-pro { padding: 6px 10px; font-size: 12.5px; } }
 
 /* ---------- Buscador ---------- */
 .d-search {
