@@ -403,6 +403,128 @@ function getCategoryIcon(icono: string, color: string, size = 14) {
   return CATEGORY_ICONS.general(color, size);
 }
 
+function fmtHHMM(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+const ReposoFreeGapInteractive = memo(({
+  ini,
+  fin,
+  gapMin,
+  gapTop,
+  gapH,
+  cita,
+  clienteMap,
+  servicioMap,
+  onSelectReposo,
+}: {
+  ini: number;
+  fin: number;
+  gapMin: number;
+  gapTop: number;
+  gapH: number;
+  cita: any;
+  clienteMap: any;
+  servicioMap: any;
+  onSelectReposo: (info: {
+    horaStr: string;
+    profId: string;
+    reposoContext: any;
+  }) => void;
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const iniDate = new Date(ini);
+  const finDate = new Date(fin);
+  const iniStr = fmtHHMM(iniDate);
+  const finStr = fmtHHMM(finDate);
+  const clienteNombre = clienteMap?.get(cita.cliente_id)?.nombre || "Clienta";
+  const servicioNombre = servicioMap?.get(cita.servicio_id)?.nombre || "Servicio";
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const ratio = gapH > 0 ? Math.max(0, Math.min(1, offsetY / gapH)) : 0;
+    const clickMs = ini + ratio * (fin - ini);
+    const clickDate = new Date(clickMs);
+    const mins = Math.floor(clickDate.getMinutes() / 5) * 5;
+    clickDate.setMinutes(mins, 0, 0);
+    const horaStr = fmtHHMM(clickDate);
+
+    onSelectReposo({
+      horaStr,
+      profId: cita.profesional_id,
+      reposoContext: {
+        hostCitaId: cita.id,
+        hostClienteNombre: clienteNombre,
+        hostServicioNombre: servicioNombre,
+        reposoInicio: iniDate,
+        reposoFin: finDate,
+        duracionReposoMin: gapMin,
+      },
+    });
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title={`Reposo de ${clienteNombre} (${iniStr} - ${finStr}, ${gapMin}′ libre) · Haz clic para crear cita en este reposo`}
+      style={{
+        position: "absolute",
+        top: gapTop,
+        left: 0,
+        right: 0,
+        height: gapH,
+        background: hovered ? "rgba(16,185,129,0.28)" : "rgba(16,185,129,0.10)",
+        boxShadow: hovered
+          ? "inset 0 0 12px rgba(16,185,129,0.50), 0 0 10px rgba(16,185,129,0.30)"
+          : "none",
+        border: hovered ? "1.5px solid #10b981" : "none",
+        borderRadius: hovered ? 6 : 0,
+        display: "flex",
+        alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
+        justifyContent: "center",
+        paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
+        cursor: "pointer",
+        zIndex: hovered ? 10 : 2,
+        transition: "all 0.15s ease",
+        pointerEvents: "auto",
+      }}
+    >
+      {gapH >= 15 && (
+        <span
+          style={{
+            padding: hovered ? "3px 10px" : "2px 8px",
+            borderRadius: 999,
+            background: hovered ? "#059669" : "#10b981",
+            fontSize: hovered ? 10 : 9.5,
+            fontWeight: 700,
+            letterSpacing: 0.4,
+            textTransform: "uppercase",
+            color: "#ffffff",
+            whiteSpace: "nowrap",
+            boxShadow: hovered
+              ? "0 2px 8px rgba(16,185,129,0.50)"
+              : "0 1px 3px rgba(0,0,0,0.15)",
+            transform: hovered ? "scale(1.05)" : "scale(1)",
+            transition: "all 0.15s ease",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          {hovered
+            ? `⚡ Creando en reposo ${iniStr}-${finStr}`
+            : `Hueco libre ${gapMin}′`}
+        </span>
+      )}
+    </div>
+  );
+});
+
 export default function AgendaCalendar() {
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
@@ -429,7 +551,7 @@ export default function AgendaCalendar() {
   const [showNewCita, setShowNewCita] = useState(false);
   const [showEditCita, setShowEditCita] = useState(false);
   const [selectedCitaEdit, setSelectedCitaEdit] = useState<any>(null);
-  // Prellenado al crear cita desde un clic en un hueco de la rejilla (hora + profesional)
+  // Prellenado al crear cita desde un clic en un hueco de la rejilla o en un reposo
   const [newCitaPrefill, setNewCitaPrefill] = useState<{
     hora?: string;
     profId?: string;
@@ -437,6 +559,14 @@ export default function AgendaCalendar() {
     servicioId?: string;
     notas?: string;
     waitlistId?: string;
+    reposoContext?: {
+      hostCitaId: string;
+      hostClienteNombre: string;
+      hostServicioNombre: string;
+      reposoInicio: Date;
+      reposoFin: Date;
+      duracionReposoMin: number;
+    };
   } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
   const [showManualPanel, setShowManualPanel] = useState(false);
@@ -905,15 +1035,29 @@ export default function AgendaCalendar() {
             .from("profesionales")
             .select("id, nombre, color, activo, foto_perfil, categoria")
             .eq("negocio_id", negocioId),
-          supabase
-            .from("citas")
-            .select(
-              "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id",
-            )
-            .eq("negocio_id", negocioId)
-            .eq("oculta_en_calendario", false)
-            .gte("inicio", desdeW.toISOString())
-            .lte("inicio", hastaW.toISOString()),
+          (async () => {
+            let allData: any[] = [];
+            let from = 0;
+            const step = 1000;
+            while (true) {
+              const { data, error } = await supabase
+                .from("citas")
+                .select(
+                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id",
+                )
+                .eq("negocio_id", negocioId)
+                .eq("oculta_en_calendario", false)
+                .gte("inicio", desdeW.toISOString())
+                .lte("inicio", hastaW.toISOString())
+                .range(from, from + step - 1);
+              if (error) return { error };
+              if (!data || data.length === 0) break;
+              allData = allData.concat(data);
+              if (data.length < step) break;
+              from += step;
+            }
+            return { data: allData };
+          })(),
           supabase
             .from("servicios")
             .select(
@@ -1184,8 +1328,8 @@ export default function AgendaCalendar() {
     setShowEditCita(true);
   }, []);
   const dtCreateSlot = useCallback(
-    ({ hora, profId }: { hora: string; profId: string }) => {
-      setNewCitaPrefill({ hora, profId });
+    ({ hora, profId, reposoContext }: { hora: string; profId: string; reposoContext?: any }) => {
+      setNewCitaPrefill({ hora, profId, reposoContext });
       setShowNewCita(true);
     },
     [],
@@ -4491,11 +4635,13 @@ export default function AgendaCalendar() {
                   onCreateSlot={({
                     hora,
                     profId,
+                    reposoContext,
                   }: {
                     hora: string;
                     profId: string;
+                    reposoContext?: any;
                   }) => {
-                    setNewCitaPrefill({ hora, profId });
+                    setNewCitaPrefill({ hora, profId, reposoContext });
                     setShowNewCita(true);
                   }}
                   selectedDateObj={selectedDateObj}
@@ -4657,6 +4803,7 @@ export default function AgendaCalendar() {
           prefillServicioId={newCitaPrefill?.servicioId}
           prefillNotas={newCitaPrefill?.notas}
           prefillWaitlistId={newCitaPrefill?.waitlistId}
+          prefillReposoContext={newCitaPrefill?.reposoContext}
         />
       )}
       
@@ -4842,6 +4989,12 @@ export default function AgendaCalendar() {
           servicios={servicios}
           bloqueos={bloqueos}
           horarios={horarios}
+          // Fase 1: el panel hereda la jornada real de cada profesional y los
+          // cierres del salon que YA tiene cargados la rejilla. Sin esto el
+          // organizador proponia horas fuera del horario del trabajador y no
+          // avisaba de citas en dias cerrados.
+          horariosProfesional={horariosProf}
+          cierres={cierres}
           limites={limitesAgenda}
           negocioId={negocioId}
           isMobile={isMobile}
@@ -6586,6 +6739,10 @@ function DayTimeline({
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < hoursEnd; h++) HOURS.push(h);
   const ROW_H = 160;
+  // Ancho mínimo de cada columna de profesional en el timeline. Por debajo de
+  // este ancho la cita se deformaba (texto, precio, avatar se aplastaban). Con
+  // 200px cabe cómodamente y el contenedor hace scroll lateral si hace falta.
+  const MIN_COL_W = 200;
   const START_H = HORARIO_APERTURA.horas;
   // Reloj propio: al estar memoizado, DayTimeline no re-renderiza con el padre,
   // asi que la linea AHORA necesita su propio tick para seguir viva.
@@ -7344,24 +7501,28 @@ function DayTimeline({
           background: "#ffffff",
           border: `1px solid ${TOKENS.borderHi}`,
           borderRadius: 16,
-          overflowX: agendaFit ? "hidden" : "auto",
+          // Scroll lateral automático: las columnas mantienen un ancho mínimo
+          // cómodo (MIN_COL_W) y solo aparece scroll horizontal cuando no caben.
+          // Antes esto dependía de `agendaFit` (modo "Juntos"), pero el toggle
+          // ya no existe y el estado quedaba siempre en true, con overflow
+          // oculto => las citas se aplastaban con muchos profesionales.
+          overflowX: "auto",
           width: "100%",
           WebkitOverflowScrolling: "touch",
         }}
       >
         <div
           style={{
-            minWidth:
-              !agendaFit
-                ? `${(profesionales.length || 1) * 140 + 56}px`
-                : "100%",
+            // Ancho mínimo del lienzo: N columnas * MIN_COL_W + columna de
+            // horas (56px). Garantiza que la cita nunca se deforme.
+            minWidth: `${(profesionales.length || 1) * MIN_COL_W + 56}px`,
             position: "relative",
           }}
         >
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(140px, 1fr))`,
+              gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(${MIN_COL_W}px, 1fr))`,
               borderBottom: `1px solid ${TOKENS.borderHi}`,
               background: "#ffffff",
             }}
@@ -7649,7 +7810,7 @@ function DayTimeline({
                 key={h}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(140px, 1fr))`,
+                  gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(${MIN_COL_W}px, 1fr))`,
                   borderBottom: `1px solid rgba(0,0,0,0.04)`,
                   height: ROW_H,
                   boxSizing: "border-box",
@@ -8363,8 +8524,8 @@ function DayTimeline({
                                       left: 0,
                                       right: 0,
                                       height: esperaPx,
-                                      pointerEvents: "none",
-                                      zIndex: 1,
+                                      pointerEvents: "auto",
+                                      zIndex: 4,
                                       // Trama diagonal: el reposo se lee como "fase
                                       // distinta" aunque el bloque sea del color del
                                       // profesional (antes era un velo plano).
@@ -8386,42 +8547,26 @@ function DayTimeline({
                                       const gapTop = msToPx(ini - reposoIniMs);
                                       const gapH = msToPx(fin - ini);
                                       return (
-                                        <div
+                                        <ReposoFreeGapInteractive
                                           key={i}
-                                          style={{
-                                            position: "absolute",
-                                            top: gapTop,
-                                            left: 0,
-                                            right: 0,
-                                            height: gapH,
-                                            background:
-                                              "rgba(16,185,129,0.10)",
-                                            display: "flex",
-                                            alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
-                                            justifyContent: "center",
-                                            paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
+                                          ini={ini}
+                                          fin={fin}
+                                          gapMin={gapMin}
+                                          gapTop={gapTop}
+                                          gapH={gapH}
+                                          cita={cita}
+                                          clienteMap={clienteMap}
+                                          servicioMap={servicioMap}
+                                          onSelectReposo={({ horaStr, profId, reposoContext }) => {
+                                            if (onCreateSlot) {
+                                              onCreateSlot({
+                                                hora: horaStr,
+                                                profId,
+                                                reposoContext,
+                                              });
+                                            }
                                           }}
-                                        >
-                                          {gapH >= 15 && (
-                                            <span
-                                              style={{
-                                                padding: "2px 8px",
-                                                borderRadius: 999,
-                                                background: "#10b981",
-                                                fontSize: 9.5,
-                                                fontWeight: 700,
-                                                letterSpacing: 0.4,
-                                                textTransform: "uppercase",
-                                                color: "#ffffff",
-                                                whiteSpace: "nowrap",
-                                                boxShadow:
-                                                  "0 1px 3px rgba(0,0,0,0.15)",
-                                              }}
-                                            >
-                                              Hueco libre {gapMin}′
-                                            </span>
-                                          )}
-                                        </div>
+                                        />
                                       );
                                     })}
                                   </div>
@@ -10264,6 +10409,7 @@ function NewCitaModal({
   prefillServicioId,
   prefillNotas,
   prefillWaitlistId,
+  prefillReposoContext,
   negocioIdIni,
   userIdIni,
   clientesIni,
@@ -11664,6 +11810,161 @@ function NewCitaModal({
             padding: isMobileOrTablet ? "16px 20px" : "20px 24px",
           }}
         >
+          {/* Banner de ayuda de Reposo si la cita se abre desde un hueco de reposo */}
+          {prefillReposoContext && (
+            <div
+              style={{
+                marginBottom: 20,
+                padding: "14px 16px",
+                borderRadius: 14,
+                background: "linear-gradient(135deg, rgba(16,185,129,0.14) 0%, rgba(16,185,129,0.06) 100%)",
+                border: "1.5px solid rgba(16,185,129,0.35)",
+                boxShadow: "0 4px 16px rgba(16,185,129,0.10)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <div style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: "rgba(16,185,129,0.20)",
+                  display: "grid",
+                  placeItems: "center",
+                  color: "#059669",
+                  fontSize: 16,
+                  fontWeight: 800,
+                  flexShrink: 0,
+                }}>
+                  ⚡
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "#047857", marginBottom: 2 }}>
+                    Encajando cita en el reposo de {prefillReposoContext.hostClienteNombre}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.4 }}>
+                    {prefillReposoContext.hostServicioNombre} · Intervalo disponible:{" "}
+                    <strong style={{ color: TOKENS.text }}>
+                      {fmtHHMM(new Date(prefillReposoContext.reposoInicio))} - {fmtHHMM(new Date(prefillReposoContext.reposoFin))}
+                    </strong>{" "}
+                    ({prefillReposoContext.duracionReposoMin} min libres)
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de inicio rápido */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", paddingTop: 8, borderTop: "1px dashed rgba(16,185,129,0.25)" }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec }}>
+                  Inicio en reposo:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const hStr = fmtHHMM(new Date(prefillReposoContext.reposoInicio));
+                    setUseCustomHora(true);
+                    setHoraPersonalizada(hStr);
+                    setSelectedHora(hStr);
+                  }}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: 8,
+                    border: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(prefillReposoContext.reposoInicio))) || selectedHora === fmtHHMM(new Date(prefillReposoContext.reposoInicio))
+                      ? "1.5px solid #10b981"
+                      : `1px solid ${TOKENS.border}`,
+                    background: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(prefillReposoContext.reposoInicio))) || selectedHora === fmtHHMM(new Date(prefillReposoContext.reposoInicio))
+                      ? "rgba(16,185,129,0.22)"
+                      : TOKENS.bgCard,
+                    color: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(prefillReposoContext.reposoInicio))) || selectedHora === fmtHHMM(new Date(prefillReposoContext.reposoInicio))
+                      ? "#047857"
+                      : TOKENS.text,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  📍 Al principio ({fmtHHMM(new Date(prefillReposoContext.reposoInicio))})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const midMs = new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000;
+                    const hStr = fmtHHMM(new Date(midMs));
+                    setUseCustomHora(true);
+                    setHoraPersonalizada(hStr);
+                    setSelectedHora(hStr);
+                  }}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: 8,
+                    border: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))) || selectedHora === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))
+                      ? "1.5px solid #10b981"
+                      : `1px solid ${TOKENS.border}`,
+                    background: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))) || selectedHora === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))
+                      ? "rgba(16,185,129,0.22)"
+                      : TOKENS.bgCard,
+                    color: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))) || selectedHora === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))
+                      ? "#047857"
+                      : TOKENS.text,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  ⏳ En el medio ({fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))})
+                </button>
+              </div>
+
+              {/* Medidor de ajuste de duración y avisos */}
+              {(() => {
+                const srv = servicios.find((s: any) => s.id === selectedServicio);
+                if (!srv) return null;
+                const srvDur = (srv.duracion_activa_min || 0) + (srv.duracion_espera_min || 0) + (srv.duracion_activa_extra_min || 0);
+
+                let windowAvailMin = prefillReposoContext.duracionReposoMin;
+                const selectedHoraTxt = useCustomHora && horaPersonalizada ? horaPersonalizada : selectedHora;
+                if (selectedHoraTxt && selectedHoraTxt.includes(":")) {
+                  const [h, m] = selectedHoraTxt.split(":").map(Number);
+                  const selStart = new Date(prefillReposoContext.reposoInicio);
+                  selStart.setHours(h, m, 0, 0);
+                  const diffMs = new Date(prefillReposoContext.reposoFin).getTime() - selStart.getTime();
+                  windowAvailMin = Math.max(0, Math.round(diffMs / 60000));
+                }
+
+                const pct = windowAvailMin > 0 ? Math.min(100, Math.round((srvDur / windowAvailMin) * 100)) : 100;
+                const isOverflow = srvDur > windowAvailMin;
+                const overflowMin = srvDur - windowAvailMin;
+
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 4, paddingTop: 6, borderTop: "1px dashed rgba(16,185,129,0.25)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11.5 }}>
+                      <span style={{ fontWeight: 600, color: TOKENS.text }}>
+                        Duración servicio: <strong>{srvDur} min</strong> (Reposo disp: <strong>{windowAvailMin} min</strong>)
+                      </span>
+                      <span style={{ fontWeight: 700, color: isOverflow ? "#d97706" : "#059669" }}>
+                        {isOverflow ? `Sobrepasa +${overflowMin}′` : `${pct}% del hueco`}
+                      </span>
+                    </div>
+
+                    <div style={{ width: "100%", height: 7, borderRadius: 999, background: "rgba(0,0,0,0.08)", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: isOverflow ? "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)" : "linear-gradient(90deg, #10b981 0%, #059669 100%)", transition: "width 0.3s ease" }} />
+                    </div>
+
+                    <div style={{ fontSize: 11, fontWeight: 600, color: isOverflow ? "#b45309" : "#047857", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                      {isOverflow ? (
+                        <span>⚠️ Atención: El servicio dura {srvDur} min y se sobrepasa {overflowMin} min del reposo disponible desde las {selectedHoraTxt}. Se solapará parcialmente.</span>
+                      ) : (
+                        <span>✓ El servicio encaja perfectamente en este reposo (quedan {windowAvailMin - srvDur} min libres).</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
           {/* Reloj actual + hora elegida: referencia rapida al crear la cita */}
           <div
             style={{
