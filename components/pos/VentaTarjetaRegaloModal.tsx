@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 
 interface VentaTarjetaRegaloModalProps {
@@ -42,14 +43,16 @@ export function VentaTarjetaRegaloModal({ onClose, onSuccess }: VentaTarjetaRega
         const profile = await getUserProfile();
         if (!profile?.negocio_id) return;
 
-        const { data } = await supabase
+        const { data, error: fetchErr } = await supabase
           .from('clientes')
           .select('id, nombre, apellidos, telefono')
           .eq('negocio_id', profile.negocio_id)
           .order('nombre');
+        if (fetchErr) reportarError(fetchErr, { origen: 'app', tipo: 'operativo' });
         if (data) setClientes(data as ClienteOption[]);
       } catch (err) {
         console.error(err);
+        reportarError(err, { origen: 'app', tipo: 'excepcion' });
       } finally {
         setLoading(false);
       }
@@ -76,6 +79,7 @@ export function VentaTarjetaRegaloModal({ onClose, onSuccess }: VentaTarjetaRega
 
       onSuccess();
     } catch (err: unknown) {
+      reportarError(err, { origen: 'app', tipo: 'operativo' });
       setError(mensajeDeError(err, 'Error al vender la tarjeta regalo.'));
     } finally {
       setEnviando(false);

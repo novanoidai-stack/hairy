@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 
 interface VentaBonoModalProps {
@@ -36,8 +37,11 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
 
         if (resCli.data) setClientes(resCli.data);
         if (resSer.data) setServicios(resSer.data);
+        if (resCli.error) reportarError(resCli.error, { origen: 'app', tipo: 'operativo' });
+        if (resSer.error) reportarError(resSer.error, { origen: 'app', tipo: 'operativo' });
       } catch (err) {
         console.error(err);
+        reportarError(err, { origen: 'app', tipo: 'excepcion' });
       } finally {
         setLoading(false);
       }
@@ -48,8 +52,7 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
     setServicioId(sid);
     const srv = servicios.find(s => s.id === sid);
     if (srv && srv.precio) {
-      // Suggest a price (e.g., 5 sessions = 5 * price * 0.9 discount?) 
-      // For now, just leave it blank or let the user type, but it's helpful to show the base price.
+      // Suggest a price
     }
   };
 
@@ -77,6 +80,7 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
       
       onSuccess();
     } catch (err: any) {
+      reportarError(err, { origen: 'app', tipo: 'operativo' });
       setError(mensajeDeError(err, 'Error al vender el bono.'));
     } finally {
       setEnviando(false);
