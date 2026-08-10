@@ -2,6 +2,7 @@
 // Dos orígenes caen en la misma bandeja: el hilo de un presupuesto y el
 // formulario "Contactar con el salón" (/app/contacto/<slug>).
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 export type ConversacionOrigen = 'presupuesto' | 'contacto';
 export type ConversacionEstado = 'abierta' | 'resuelta';
@@ -60,7 +61,10 @@ export async function cargarConversaciones(
     .order('ultimo_mensaje_at', { ascending: false });
   if (opts.soloAbiertas) q = q.eq('estado', 'abierta');
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return (data || []) as unknown as Conversacion[];
 }
 
@@ -70,7 +74,10 @@ export async function contarSinLeer(negocioId: string): Promise<number> {
     .select('id', { count: 'exact', head: true })
     .eq('negocio_id', negocioId)
     .is('leido_at', null);
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return count || 0;
 }
 
@@ -80,17 +87,24 @@ export async function cargarMensajes(conversacionId: string): Promise<MensajeCon
     .select('*')
     .eq('conversacion_id', conversacionId)
     .order('created_at');
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return (data || []) as MensajeConversacion[];
 }
 
 export async function marcarLeida(conversacionId: string): Promise<void> {
-  await supabase.from('conversaciones').update({ leido_at: new Date().toISOString() }).eq('id', conversacionId);
+  const { error } = await supabase.from('conversaciones').update({ leido_at: new Date().toISOString() }).eq('id', conversacionId);
+  if (error) reportarError(error, { origen: 'app', tipo: 'operativo' });
 }
 
 export async function marcarEstado(conversacionId: string, estado: ConversacionEstado): Promise<void> {
   const { error } = await supabase.from('conversaciones').update({ estado }).eq('id', conversacionId);
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
 }
 
 // Inserta la respuesta del salón y dispara el envío por correo. No revierte el
@@ -104,13 +118,21 @@ export async function responderConversacion(conversacionId: string, cuerpo: stri
     .insert({ conversacion_id: conversacionId, autor: 'salon', tipo: 'mensaje', cuerpo: limpio })
     .select('id')
     .single();
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   const { data: fn, error: fnError } = await supabase.functions.invoke('responder-mensaje-bandeja', {
     body: { mensaje_id: data!.id as string },
   });
-  if (fnError) throw fnError;
+  if (fnError) {
+    reportarError(fnError, { origen: 'app', tipo: 'operativo' });
+    throw fnError;
+  }
   if (fn && (fn as { sent?: boolean }).sent === false) {
-    throw new Error((fn as { error?: string }).error || 'No se pudo enviar la respuesta por correo.');
+    const errObj = new Error((fn as { error?: string }).error || 'No se pudo enviar la respuesta por correo.');
+    reportarError(errObj, { origen: 'app', tipo: 'operativo' });
+    throw errObj;
   }
 }
 
@@ -123,7 +145,10 @@ export async function guardarBorradorConversacion(conversacionId: string, cuerpo
   const { error } = await supabase
     .from('mensajes_conversacion')
     .insert({ conversacion_id: conversacionId, autor: 'salon', tipo: 'mensaje', cuerpo: `[BORRADOR] ${limpio}` });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
 }
 
 // ── Páginas públicas (anónimas, vía RPC security definer) ──
@@ -136,7 +161,10 @@ export async function presupuestoEnviarMensajePublico(
   const { data, error } = await supabase.rpc('presupuesto_enviar_mensaje_publico', {
     p_token: token, p_tipo: tipo, p_cuerpo: cuerpo,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return data as { ok: boolean; motivo?: string; mensaje_id?: string };
 }
 
@@ -144,7 +172,10 @@ export async function negocioContactoPublico(slug: string): Promise<{
   ok: boolean; nombre?: string; logo_url?: string | null; color?: string; slug?: string; direccion?: string | null; telefono?: string | null;
 }> {
   const { data, error } = await supabase.rpc('negocio_contacto_publico', { p_slug: slug });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return data as { ok: boolean; nombre?: string; logo_url?: string | null; color?: string; slug?: string; direccion?: string | null; telefono?: string | null };
 }
 
@@ -155,7 +186,10 @@ export async function enviarMensajeContactoPublico(params: {
     p_slug: params.slug, p_nombre: params.nombre,
     p_telefono: params.telefono || null, p_email: params.email || null, p_cuerpo: params.cuerpo,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return data as { ok: boolean; motivo?: string; mensaje_id?: string };
 }
 
@@ -164,7 +198,7 @@ export async function enviarMensajeContactoPublico(params: {
 export async function notificarBandeja(mensajeId: string): Promise<void> {
   try {
     await supabase.functions.invoke('notificar-bandeja', { body: { mensaje_id: mensajeId } });
-  } catch {
-    // silencioso: el mensaje ya esta guardado, solo falla el aviso por correo
+  } catch (e) {
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
   }
 }
