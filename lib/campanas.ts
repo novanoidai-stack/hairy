@@ -6,6 +6,7 @@
 // campana_marcar_enviado(). Este módulo solo define audiencia, mensaje y encola.
 
 import { supabase } from '@/lib/supabase';
+import { reportarError } from '@/lib/reportarError';
 
 export type CampanaCanal = 'whatsapp' | 'email';
 export type CampanaEstado = 'borrador' | 'encolada' | 'enviando' | 'enviada' | 'cancelada';
@@ -54,7 +55,10 @@ export function personalizarPreview(mensaje: string, nombre: string): string {
 
 export async function contarSegmento(canal: CampanaCanal, seg: SegmentoCriterios): Promise<number> {
   const { data, error } = await supabase.rpc('campana_contar', { p_canal: canal, p_segmento: limpiarSegmento(seg) });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return Number(data ?? 0);
 }
 
@@ -64,16 +68,25 @@ export async function crearYEncolarCampana(
   const { data: creada, error: e1 } = await supabase.rpc('campana_crear', {
     p_nombre: nombre, p_canal: canal, p_mensaje: mensaje, p_segmento: limpiarSegmento(seg),
   });
-  if (e1) throw e1;
+  if (e1) {
+    reportarError(e1, { origen: 'app', tipo: 'operativo' });
+    throw e1;
+  }
   const id = (creada as Campana).id;
   const { data: encolada, error: e2 } = await supabase.rpc('campana_encolar', { p_id: id });
-  if (e2) throw e2;
+  if (e2) {
+    reportarError(e2, { origen: 'app', tipo: 'operativo' });
+    throw e2;
+  }
   return encolada as Campana;
 }
 
 export async function cancelarCampana(id: string): Promise<Campana> {
   const { data, error } = await supabase.rpc('campana_cancelar', { p_id: id });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return data as Campana;
 }
 
@@ -82,7 +95,10 @@ export async function listarCampanas(): Promise<Campana[]> {
     .from('campanas')
     .select('id, negocio_id, nombre, canal, mensaje, segmento, estado, total_destinatarios, created_at, encolada_en')
     .order('created_at', { ascending: false });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return (data ?? []) as Campana[];
 }
 
