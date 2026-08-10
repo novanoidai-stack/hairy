@@ -10,6 +10,7 @@ import {
   unirseListaEsperaPublica,
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
+import { reportarError } from '@/lib/reportarError';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
 import { PortalGrupoModal } from '@/components/portal/PortalGrupoModal.web';
@@ -246,10 +247,11 @@ export default function PortalReservaWeb() {
         const [data, res] = await Promise.all([getPortalInfo(slug), getResenasPublicas(slug)]);
         if (cancel) return;
         if (!data) { setNotFound(true); } else { setInfo(data); setResenas(res); }
-        // El fondo del portal viene dentro de portal_info (negocio.fondo_portal_url).
-        // anon no tiene SELECT sobre negocio_portal: todo pasa por la RPC.
-      } catch {
-        if (!cancel) setNotFound(true);
+      } catch (err) {
+        if (!cancel) {
+          setNotFound(true);
+          reportarError(err, { origen: 'portal', tipo: 'operativo' });
+        }
       } finally {
         if (!cancel) setLoading(false);
       }
