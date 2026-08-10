@@ -98,29 +98,6 @@ export async function getDisponibilidad(
   return (data as SlotDisponible[] | null) ?? [];
 }
 
-export interface SlotDisponibleExpress extends SlotDisponible {
-  error_msg: string | null;
-}
-
-// Búsqueda del primer hueco disponible para clientes con beneficio exprés.
-export async function getDisponibilidadExpress(
-  slug: string,
-  servicioId: string,
-  telefono: string,
-  profesionalId?: string | null,
-  dias = 21,
-): Promise<SlotDisponibleExpress[]> {
-  const { data, error } = await supabase.rpc('disponibilidad_express_publica', {
-    p_slug: slug,
-    p_servicio_id: servicioId,
-    p_telefono: telefono,
-    p_profesional_id: profesionalId ?? null,
-    p_dias: dias,
-  });
-  if (error) throw error;
-  return (data as SlotDisponibleExpress[] | null) ?? [];
-}
-
 // Dias (YYYY-MM-DD, zona del salon) con AL MENOS un hueco reservable en el horizonte.
 // De un solo viaje: el portal auto-selecciona el primer dia disponible y atenua el resto.
 export async function getDiasDisponibles(
@@ -154,25 +131,6 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_consentimiento_datos: args.consentimientoDatos ?? true,
     p_consiente_ia: args.consienteIa ?? false,
     p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
-  });
-  if (error) throw error;
-  return data as CrearCitaResult;
-}
-
-// Crea la cita express.
-export async function crearCitaPublicaExpress(args: CrearCitaArgs): Promise<CrearCitaResult> {
-  const { data, error } = await supabase.rpc('crear_cita_publica_express', {
-    p_slug: args.slug,
-    p_servicio_id: args.servicioId,
-    p_profesional_id: args.profesionalId,
-    p_inicio: args.inicioISO,
-    p_cliente_nombre: args.clienteNombre,
-    p_cliente_telefono: args.clienteTelefono,
-    p_cliente_email: args.clienteEmail ?? null,
-    p_notas: args.notas ?? null,
-    p_consentimiento_datos: args.consentimientoDatos ?? true,
-    p_consiente_ia: args.consienteIa ?? false,
-    p_captcha_token: args.captchaToken ?? null,
   });
   if (error) throw error;
   return data as CrearCitaResult;
@@ -223,22 +181,29 @@ export async function crearGrupoPublico(args: CrearGrupoArgs): Promise<CrearGrup
   return data as CrearGrupoResult;
 }
 
-// Inserta al cliente en la lista de espera con prioridad express
-export async function crearListaEsperaExpressPublica(args: {
+// Apunta al cliente a la lista de espera. Abierto a cualquiera (crea el cliente si no
+// existe); la prioridad la calcula el servidor a partir de su nivel de fidelidad.
+export async function unirseListaEsperaPublica(args: {
   slug: string;
-  servicioId: string;
   telefono: string;
+  nombre: string;
+  servicioId?: string | null;
   profesionalId?: string | null;
+  franja?: 'manana' | 'tarde' | 'cualquiera';
   desde?: string | null;
   hasta?: string | null;
+  consentimientoDatos?: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await supabase.rpc('lista_espera_express_publica', {
+  const { data, error } = await supabase.rpc('lista_espera_unirse_publica', {
     p_slug: args.slug,
-    p_servicio_id: args.servicioId,
     p_telefono: args.telefono,
+    p_cliente_nombre: args.nombre,
+    p_servicio_id: args.servicioId ?? null,
     p_profesional_id: args.profesionalId ?? null,
+    p_franja: args.franja ?? 'cualquiera',
     p_desde: args.desde ?? null,
     p_hasta: args.hasta ?? null,
+    p_consentimiento_datos: args.consentimientoDatos ?? true,
   });
   if (error) throw error;
   return data as { ok: boolean; error?: string };
