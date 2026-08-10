@@ -25,6 +25,7 @@
 import { supabase } from '@/lib/supabase';
 import { CITA_STATUS, CITA_CANAL } from '@/lib/constants';
 import { guardarPresupuesto } from '@/lib/presupuestos';
+import { reportarError } from '@/lib/reportarError';
 
 // --- Tipos ---
 
@@ -1358,6 +1359,7 @@ export async function deshacerAccion(accionId: string, userId: string): Promise<
 
     return { ok: true, mensaje: 'Accion deshecha correctamente.' };
   } catch (e) {
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, error: String(e) };
   }
 }
