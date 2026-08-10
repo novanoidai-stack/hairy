@@ -10,6 +10,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
+import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { startOfMonth, endOfMonth, format, parseISO, subMonths } from 'date-fns';
@@ -431,6 +432,7 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
 
     if (error) {
       console.error('Error cargando liquidaciones:', error);
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
       setLiquidaciones([]);
     } else if (data) {
       const liqus = (data as any).liquidaciones || [];
