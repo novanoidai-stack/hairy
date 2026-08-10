@@ -7,6 +7,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 
 export type TemaId =
   | 'datos_negocio'
@@ -486,6 +487,7 @@ export async function ejecutarAccion(
         return { ok: false, resumen: `Accion desconocida: ${tipo}` };
     }
   } catch (e) {
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return { ok: false, resumen: mensajeDeError(e, 'No se pudo guardar.') };
   }
 }
