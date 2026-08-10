@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
+import { reportarError } from '@/lib/reportarError';
 import { startOfMonth, endOfMonth, format, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -99,6 +100,8 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
 
     if (!error && data) {
       setGastos(data as Gasto[]);
+    } else if (error) {
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
     }
     setLoading(false);
   }
@@ -120,7 +123,8 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
 
     if (error) {
       console.error('Error guardando gasto:', error);
-      alert('Error guardando el gasto');
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      alert('Error guardando el gasto. El equipo técnico ha sido notificado.');
     } else {
       setModalOpen(false);
       setNuevoGasto({ categoria: 'otros', es_recurrente: false });
@@ -132,7 +136,11 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
   const handleBorrar = async (id: string) => {
     if (!confirm('¿Seguro que quieres borrar este gasto?')) return;
     const { error } = await supabase.from('gastos').delete().eq('id', id);
-    if (!error) {
+    if (error) {
+      console.error('Error borrando gasto:', error);
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      alert('Error al eliminar el gasto.');
+    } else {
       cargarGastos();
       if (onGastosChange) onGastosChange();
     }
