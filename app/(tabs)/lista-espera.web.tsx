@@ -101,6 +101,7 @@ interface AvisoEstado {
 interface Servicio { id: string; nombre: string; }
 interface Profesional { id: string; nombre: string; color: string; }
 interface Cliente { id: string; nombre: string; telefono: string | null; }
+interface Nivel { id: string; nombre: string; color: string; orden: number; }
 
 type FiltroEstado = 'activas' | 'esperando' | 'avisado' | 'todas';
 
@@ -118,6 +119,7 @@ function ListaEsperaScreen() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [niveles, setNiveles] = useState<Nivel[]>([]);
   const [filtro, setFiltro] = useState<FiltroEstado>('activas');
   const [showAdd, setShowAdd] = useState(false);
   // Sesion 8-B: estado de avisos por lista de espera
@@ -129,16 +131,18 @@ function ListaEsperaScreen() {
     if (profile && !can(profile, 'agenda.ver_todas')) { setAccessDenied(true); setLoading(false); return; }
     const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
     setNegocioId(nId);
-    const [le, srv, prof, cli] = await Promise.all([
+    const [le, srv, prof, cli, niv] = await Promise.all([
       supabase.from('lista_espera').select('*').eq('negocio_id', nId).order('prioridad', { ascending: false }).order('created_at', { ascending: true }),
       supabase.from('servicios').select('id, nombre').eq('negocio_id', nId),
       supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', nId).eq('activo', true),
       supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', nId).order('nombre').limit(500),
+      supabase.from('niveles_fidelizacion').select('id, nombre, color, orden').eq('negocio_id', nId).eq('activo', true).order('orden', { ascending: false }),
     ]);
     setItems(le.data ?? []);
     setServicios(srv.data ?? []);
     setProfesionales(prof.data ?? []);
     setClientes(cli.data ?? []);
+    setNiveles(niv.data ?? []);
 
     // Sesion 8-B: cargar estado de avisos (pendiente/enviado/fallido)
     // Nota: lista_espera_avisos tiene RLS desactivado proposito, solo service_role.
@@ -151,6 +155,15 @@ function ListaEsperaScreen() {
 
   const srvMap = useMemo(() => new Map(servicios.map(s => [s.id, s.nombre])), [servicios]);
   const profMap = useMemo(() => new Map(profesionales.map(p => [p.id, p])), [profesionales]);
+
+  const nivelParaPrioridad = useCallback((prioridad: number): Nivel | null => {
+    if (niveles.length === 0) return null;
+    const exacto = niveles.find(n => n.orden === prioridad);
+    if (exacto) return exacto;
+    // Fallback: el nivel de mayor orden que no supere la prioridad guardada.
+    const candidatos = niveles.filter(n => n.orden <= prioridad).sort((a, b) => b.orden - a.orden);
+    return candidatos[0] ?? null;
+  }, [niveles]);
 
   const visibles = useMemo(() => {
     if (filtro === 'todas') return items;
@@ -172,6 +185,12 @@ function ListaEsperaScreen() {
   const marcarResuelta = useCallback(async (item: ListaItem) => {
     await supabase.from('lista_espera').update({ estado: 'resuelta' }).eq('id', item.id);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, estado: 'resuelta' } : i));
+  }, []);
+
+  const ajustarPrioridad = useCallback(async (item: ListaItem, delta: number) => {
+    const nueva = Math.max(item.prioridad + delta, 0);
+    await supabase.from('lista_espera').update({ prioridad: nueva }).eq('id', item.id);
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, prioridad: nueva } : i));
   }, []);
 
   const quitar = useCallback(async (item: ListaItem) => {
@@ -282,6 +301,9 @@ function ListaEsperaScreen() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{item.nombre || 'Sin nombre'}</span>
                           <EstadoBadge estado={item.estado} />
+                          {(() => { const niv = nivelParaPrioridad(item.prioridad); return niv ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: niv.color + '22', color: niv.color }}>{niv.nombre}</span>
+                          ) : null; })()}
                         </div>
                         {item.telefono && (
                           <div style={{ fontSize: 12, color: T.textSec, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -365,6 +387,9 @@ function ListaEsperaScreen() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{item.nombre || 'Sin nombre'}</span>
                       <EstadoBadge estado={item.estado} />
+                      {(() => { const niv = nivelParaPrioridad(item.prioridad); return niv ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: niv.color + '22', color: niv.color }}>{niv.nombre}</span>
+                      ) : null; })()}
                     </div>
                     <div style={{ fontSize: 13, color: T.textSec, marginTop: 3 }}>
                       {item.servicio_id && srvMap.get(item.servicio_id) ? srvMap.get(item.servicio_id) : 'Cualquier servicio'}
@@ -384,6 +409,12 @@ function ListaEsperaScreen() {
                   </div>
                   {!resueltaOCancelada && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      <button className="le-btn" title="Subir prioridad" onClick={() => ajustarPrioridad(item, 1)} style={iconBtn(T.textSec)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
+                      </button>
+                      <button className="le-btn" title="Bajar prioridad" onClick={() => ajustarPrioridad(item, -1)} style={iconBtn(T.textSec)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                      </button>
                       <button className="le-btn" onClick={() => {
                         window.dispatchEvent(new CustomEvent('agenda-nueva-cita', { detail: { clienteId: item.cliente_id, servicioId: item.servicio_id, notas: item.nota, profId: item.profesional_id, waitlistId: item.id } }));
                         router.push('/(tabs)');
