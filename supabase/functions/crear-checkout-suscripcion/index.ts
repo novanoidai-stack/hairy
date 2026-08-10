@@ -166,6 +166,9 @@ Deno.serve(async (req) => {
       // Datos fiscales del salon: hacen falta para la factura que emite Mecha.
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
+      // Al reutilizar un customer existente, Stripe exige permiso explicito para
+      // actualizar sus datos cuando el checkout recoge direccion / ID fiscal.
+      customer_update: { name: 'auto', address: 'auto' },
     });
 
     if (!TAX_RATE_IVA) {
