@@ -61,7 +61,14 @@ export type TipoProblemaAgenda =
   // adelantandose. No tiene arreglo de un clic: es un aviso para ofrecerlo a la
   // lista de espera. Antes este caso no generaba ningun problema y por eso "el
   // organizador no avisaba de los huecos".
-  | 'hueco_vacio';
+  | 'hueco_vacio'
+  // Cita confirmada/pendiente que cae FUERA de la jornada del profesional
+  // (fuera de sus tramos de horarios_profesional) o DENTRO de un bloqueo
+  // (vacaciones/descanso/baja) o en un dia cerrado por cierres_negocio. Es la
+  // queja mas frecuente: "no avisa de que hay una cita en un tramo en el que el
+  // trabajador no trabaja". Aunque la cita se creara ANTES de que se pusiera el
+  // bloqueo, hay que avisar para poder reubicarla o avisar al cliente.
+  | 'fuera_jornada';
 
 // Cita de entrada: lo que ya pide CitaRetraso (fases + cliente/telefono/servicio
 // para las tarjetas) mas lo que este modulo necesita para agrupar y filtrar.
@@ -112,6 +119,12 @@ export interface ProblemaAgenda {
   // Por que esa hora y no otra. El tope de adelanto y la ganancia minima son
   // ajustes del salon, y sin explicarlos la propuesta parece arbitraria.
   porQue?: string;
+  // Fecha (YYYY-MM-DD, hora local del salon) del dia al que pertenece el
+  // problema. Lo rellena analizarAgendaRango al recorrer varios dias; con un
+  // solo dia (analizarAgendaDia) queda vacio y se asume "el dia analizado".
+  // Lo usa el panel multídia para agrupar ("Martes 12 · 3 problemas") y el
+  // boton "Enséñamelo" para navegar la rejilla al dia correcto.
+  fechaDia?: string;
 }
 
 // --- Prioridad: por donde empezar cuando hay varios problemas a la vez ---
@@ -121,6 +134,9 @@ export interface ProblemaAgenda {
 // al salon si no se toca nada:
 //
 //   1. Solape: dos clientas a la misma hora con la misma persona. Se rompe hoy.
+//   1b. Fuera de jornada: cita colocada en un tramo en el que el profesional no
+//       trabaja (o esta de vacaciones/baja). Casi tan urgente como un solape:
+//       hay que reubicarla o avisar al cliente.
 //   2. Retraso: la cadena se va detras; cuanto mas retraso, mas urgente.
 //   3. Hueco muerto / reposo desaprovechado: dinero parado que se puede
 //      recuperar adelantando a alguien.
@@ -130,6 +146,9 @@ export interface ProblemaAgenda {
 // un retraso de 40' pesa mas que uno de 5'.
 const PESO_TIPO: Record<TipoProblemaAgenda, number> = {
   solape: 4000,
+  // Fuera de jornada: pesa CASI como un solape. Es una cita mal puesta que ya
+  // esta comprometida con la clienta: hay que reubicarla o avisar cuanto antes.
+  fuera_jornada: 3800,
   retraso: 3000,
   hueco_muerto: 2000,
   reposo_desaprovechado: 1800,
@@ -228,6 +247,16 @@ export interface HorarioNegocio {
   cierre: string | null;
 }
 
+// Fila de cierres_negocio: fecha (date) en la que el salon entero esta cerrado
+// (festivo / vacaciones colectivas). A diferencia de bloqueos_profesional (por
+// trabajador), este cierra el dia para todos. El portal ya lo respeta; la
+// agenda interna solo lo pintaba. Ahora el organizador tambien lo tiene en
+// cuenta: si la fecha esta en cierres, ventanaDelDia devuelve jornada vacia.
+export interface CierreNegocio {
+  fecha: string; // 'YYYY-MM-DD'
+  motivo?: string | null;
+}
+
 export interface JornadaDia {
   aperturaMs: number;
   cierreMs: number;
@@ -269,6 +298,11 @@ export interface AnalisisAgendaOpts {
   // del SALON para todos y podia proponer adelantar una cita a una hora en la
   // que ese profesional no trabaja.
   horariosProfesional?: HorarioProfesional[];
+  // Cierres del salon (cierres_negocio: festivos / cierre completo). Una fecha
+  // cerrada aqui produce jornada vacia: no se proponen huecos y toda cita de
+  // ese dia queda marcada como fuera_jornada. Antes el organizador ignoraba
+  // esta tabla por completo.
+  cierres?: CierreNegocio[];
   // Techo de adelanto en minutos (ajuste del salon). Default: AGENDA_MAX_ADELANTO_MIN_DEFAULT.
   maxAdelantoMin?: number;
   // Margen minimo entre AHORA y la hora nueva: lo que la clienta necesita para
@@ -289,10 +323,26 @@ function horaSobreFecha(fechaRefIso: string, hhmm: string): number | null {
   return d.getTime();
 }
 
-// Ventana [apertura, cierre] del dia. Fallback a las constantes globales cuando no hay horario
-// util: sin fila, dia cerrado (apertura excepcional: mejor reorganizar que no ofrecer nada),
-// campos a NULL, formato invalido o cierre <= apertura.
-function ventanaDelDia(fechaRefIso: string, horarios?: HorarioNegocio[]): JornadaDia {
+// Ventana [apertura, cierre] del dia.
+// - Si la fecha esta en cierres (festivo / cierre del salon) -> jornada VACIA
+//   (apertura = cierre). Asi no se proponen huecos y detectarFueraJornada marca
+//   todas las citas del dia. Antes el organizador ignoraba cierres_negocio.
+// - Fallback a las constantes globales cuando no hay horario util: sin fila,
+//   campos a NULL, formato invalido o cierre <= apertura. La excepcion sigue
+//   siendo abierto=false: mejor reorganizar que no ofrecer nada, porque una
+//   apertura excepcional no debe dejar mudo al organizador (ver test
+//   'jornada: abierto=false con citas ese dia cae al fallback y sigue habiendo
+//   estrategias'). Un cierre EXPLICITO en cierres_negocio si bloquea.
+export function ventanaDelDia(fechaRefIso: string, horarios?: HorarioNegocio[], cierres?: CierreNegocio[]): JornadaDia {
+  const fechaYmd = fechaRefIso.substring(0, 10);
+  if (cierres && cierres.some((c) => c.fecha === fechaYmd)) {
+    // Dia cerrado por el salon: jornada vacia (apertura == cierre). Todas las
+    // citas de ese dia quedaran como fuera_jornada, y no se propone ningun
+    // hueco (no tiene sentido compactar en un dia que no se trabaja).
+    const t = new Date(fechaRefIso);
+    t.setHours(0, 0, 0, 0);
+    return { aperturaMs: t.getTime(), cierreMs: t.getTime() };
+  }
   const porDefecto = (): JornadaDia => {
     const a = new Date(fechaRefIso);
     a.setHours(HORARIO_APERTURA.horas, HORARIO_APERTURA.minutos, 0, 0);
@@ -308,6 +358,13 @@ function ventanaDelDia(fechaRefIso: string, horarios?: HorarioNegocio[]): Jornad
   const cierreMs = horaSobreFecha(fechaRefIso, fila.cierre);
   if (aperturaMs == null || cierreMs == null || cierreMs <= aperturaMs) return porDefecto();
   return { aperturaMs, cierreMs };
+}
+
+// ¿La fecha (ISO) del dia analizado esta cerrada por cierres_negocio?
+export function esCierreDelDia(fechaRefIso: string, cierres?: CierreNegocio[]): boolean {
+  if (!cierres || cierres.length === 0) return false;
+  const fechaYmd = fechaRefIso.substring(0, 10);
+  return cierres.some((c) => c.fecha === fechaYmd);
 }
 
 // Tramos trabajables de UN profesional en el dia de fechaRefIso.
@@ -664,6 +721,78 @@ function detectarHuecosVacios(
   return problemas;
 }
 
+// --- 5) Fuera de jornada: cita confirmada/pendiente que cae FUERA de los
+//        tramos del profesional (su horario laboral real) o DENTRO de un
+//        bloqueo (vacaciones/descanso/baja) o en un dia cerrado por el salon.
+//        Es el detector que faltaba: antes el organizador usaba tramosDelProfesional
+//        solo para BUSCAR huecos nuevos, no para auditar las citas ya colocadas,
+//        y por eso "no avisaba de citas en tramos en los que el trabajador no
+//        trabaja". Ahora lo hace, aunque la cita se haya creado antes del
+//        bloqueo (caso tipico: se pone vacaciones y ya habia una cita ese dia).
+//
+//        No trae estrategias (en Fase 1): es un AVISO para que el salon decida
+//        reubicarla a mano, proponer al cliente, o reasignar a otro profesional.
+//        Las estrategias de movimiento llegan con el motor multídia (Fase 2). ---
+function detectarFueraJornada(
+  citasProf: CitaOrganizar[],
+  // Tramos trabajables del profesional ese dia (horarios_profesional).
+  tramos: TramoJornada[],
+  // Bloqueos del profesional ese dia.
+  bloqueos: { inicio: string; fin: string }[],
+  // True si el dia esta cerrado por cierres_negocio (todo es fuera de jornada).
+  diaCerrado: boolean,
+): ProblemaAgenda[] {
+  if (citasProf.length === 0) return [];
+  const problemas: ProblemaAgenda[] = [];
+  const bloqueosMs = bloqueos.map((b) => [+new Date(b.inicio), +new Date(b.fin)] as [number, number]);
+
+  for (const c of citasProf) {
+    const f = fasesDe(c);
+    const ventanas = ventanasActivas(f); // [[ini,finA], [finE,fin]?]
+    // Razon del aviso: la primera que encontremos, para el texto.
+    let razon: string | null = null;
+    for (const v of ventanas) {
+      const [vIni, vFin] = v;
+      if (diaCerrado) {
+        razon = 'el salón está cerrado este día';
+        break;
+      }
+      // ¿Cae fuera de todos los tramos del profesional? Un tramo es
+      // [desdeMs, hastaMs]; la ventana de la cita debe caber COMPLETA dentro de
+      // alguno. Si solo un trozo sobresale, ya es fuera de jornada.
+      const dentroDeAlgunTramo = tramos.some((t) => vIni >= t.desdeMs && vFin <= t.hastaMs);
+      if (!dentroDeAlgunTramo) {
+        razon = 'cae fuera del horario del profesional';
+        break;
+      }
+      // ¿Cae dentro de un bloqueo (vacaciones/descanso/baja)?
+      const chocaBloqueo = bloqueosMs.some(([bIni, bFin]) => vIni < bFin && bFin > bIni && vFin > bIni);
+      if (chocaBloqueo) {
+        razon = 'el profesional tiene un bloqueo (vacaciones/descanso/baja)';
+        break;
+      }
+    }
+    if (!razon) continue;
+
+    problemas.push({
+      id: `fuera_jornada:${c.id}`,
+      tipo: 'fuera_jornada',
+      profesionalId: c.profesional_id,
+      profesionalNombre: '',
+      titulo: diaCerrado ? 'Cita en día cerrado' : 'Cita fuera de jornada',
+      descripcion: `${c.cliente ?? 'Una cita'} (${fmtFechaHora(c.inicio)}): ${razon}. Reubícala, propón otro día al cliente o asígnala a otro profesional.`,
+      citaIds: [c.id],
+      estrategias: [],
+      zona: zona(c.profesional_id, f.ini, f.fin),
+      accionCorta: diaCerrado ? 'Día cerrado' : 'Fuera de jornada',
+      porQue: diaCerrado
+        ? 'Este día está marcado como cierre del salón (festivo/vacaciones colectivas). Todas las citas de este día quedan fuera de jornada.'
+        : 'La cita se creó antes de que existiera este bloqueo/horario, o se movió a mano: el organizador comprueba la coherencia contra el horario real del profesional, no contra el momento de creación.',
+    });
+  }
+  return problemas;
+}
+
 // --- Orquestador: agrupa por profesional, prioriza retraso > solape > huecos,
 //     filtra al dia de ahoraMs y rellena el nombre del profesional. ---
 export function analizarAgendaDia(
@@ -712,8 +841,12 @@ export function analizarAgendaDia(
   const problemas: ProblemaAgenda[] = [];
   for (const [profId, citasProfSinOrdenar] of porProfesional) {
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
-    const jornadaSalon = ventanaDelDia(citasProf[0].inicio, opts?.horarios);
+    const jornadaSalon = ventanaDelDia(citasProf[0].inicio, opts?.horarios, opts?.cierres);
     const { aperturaMs, cierreMs } = jornadaSalon;
+    // ¿El dia esta cerrado por el salon (festivo / cierres_negocio)? Se calcula
+    // una sola vez por dia: lo usa detectarFueraJornada para etiquetar todas las
+    // citas como "dia cerrado" con un texto mas claro que "fuera de jornada".
+    const diaCerrado = esCierreDelDia(citasProf[0].inicio, opts?.cierres);
     // Jornada REAL del profesional. Sin esto se usaba la ventana del salon para
     // todos, y el organizador podia proponer una hora en la que esa persona no
     // trabaja.
@@ -729,6 +862,14 @@ export function analizarAgendaDia(
     // analizar los huecos en toda la pasada; ahora solo se excluyen las citas
     // concretas que ya tienen propuesta, para no dar dos ordenes sobre la misma.
     const comprometidas = new Set<string>();
+
+    // Fuera de jornada se detecta ANTES que nada: es una cita mal colocada que
+    // hay que avisar (y, en Fase 2, reubicar). Va antes que retraso/solape para
+    // que si una cita esta fuera de jornada Y ademas choca, se vean ambos (no
+    // se excluyen entre si: fuera_jornada no anade a `comprometidas`).
+    problemas.push(
+      ...detectarFueraJornada(citasProf, tramos, bloqueosPorProf.get(profId) ?? [], diaCerrado),
+    );
 
     // El retraso solo tiene sentido HOY: en un dia futuro nadie llega tarde
     // todavia, y mirando un dia pasado saldria todo retrasado.
@@ -789,6 +930,50 @@ export function analizarAgendaDia(
   return problemas
     .map((p) => ({ ...p, profesionalNombre: nombrePorId.get(p.profesionalId) ?? 'Profesional' }))
     .sort((a, b) => claveTemporal(a) - claveTemporal(b));
+}
+
+// --- Orquestador MULTÍDIA: recorre varios dias llamando a analizarAgendaDia y
+//     etiqueta cada problema con su fechaDia. Es la entrada del organizador
+//     "inteligente" (Fase 2): en vez de mirar solo el dia visible, mira toda la
+//     ventana (hoy + N dias) para poder proponer mover citas a otro dia, ver
+//     problemas futuros y avisar de citas fuera de jornada antes de que lleguen.
+//
+//     Mantiene el contrato de analizarAgendaDia: puro, sin BD, reutiliza las
+//     mismas opciones (horarios, bloqueos, cierres, limites). El unico añadido
+//     es el rango [desdeMs, hastaMs] y el etiquetado por fecha.
+//
+//     Cuidado con la zona horaria: se itera en dias LOCALES (medianoche a
+//     medianoche del salon), no en dias UTC. Un rango que cruce la madrugada
+//     española (UTC+1/+2) descuadraria los dias si se usase toISOString sin mas.
+export function analizarAgendaRango(
+  citas: CitaOrganizar[],
+  profesionales: { id: string; nombre: string; categoria?: string | null; activo?: boolean }[],
+  opts: AnalisisAgendaOpts & { desdeMs: number; hastaMs: number },
+): ProblemaAgenda[] {
+  const { desdeMs, hastaMs, ...optsDia } = opts;
+  const problemas: ProblemaAgenda[] = [];
+  // Iteracion dia a dia en hora local. Empezamos en la medianoche local de
+  // desdeMs y avanzamos 24h hasta pasarnos de hastaMs.
+  const inicioLocal = new Date(desdeMs);
+  inicioLocal.setHours(0, 0, 0, 0);
+  const finLocal = new Date(hastaMs);
+  finLocal.setHours(23, 59, 59, 999);
+
+  const cursor = new Date(inicioLocal);
+  // Limite de seguridad: nunca mas de 31 dias, para evitar un loop infinito si
+  // alguien llama con un rango absurdo.
+  let dias = 0;
+  while (cursor.getTime() <= finLocal.getTime() && dias < 31) {
+    const fechaYmd =
+      `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+    const delDia = analizarAgendaDia(citas, profesionales, { ...optsDia, diaMs: cursor.getTime() });
+    for (const p of delDia) {
+      problemas.push({ ...p, fechaDia: fechaYmd });
+    }
+    cursor.setDate(cursor.getDate() + 1);
+    dias++;
+  }
+  return problemas;
 }
 
 // --- Movimientos listos para chispaOps.ejecutarAccion({tipo:'optimizar_agenda'}):

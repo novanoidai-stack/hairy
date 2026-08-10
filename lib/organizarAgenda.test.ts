@@ -735,3 +735,120 @@ Deno.test('margen: a cero, deja de limitar', () => {
     'sin margen deberia poder adelantar mas',
   );
 });
+
+// --- Fuera de jornada (Fase 1): citas ya colocadas en tramos no laborables ---
+//
+// La queja central del usuario: "muchas veces ni siquiera te avisa de que hay
+// una cita dentro de un tramo en el que teóricamente el trabajador no está
+// trabajando". Estos tests fijan el comportamiento: el organizador ahora audita
+// las citas existentes contra el horario real del profesional, no solo busca
+// huecos nuevos.
+
+Deno.test('fuera_jornada: cita a las 14:30 con profesional 9-14 genera aviso', () => {
+  // Ana trabaja de 9 a 14. Hay una cita a las 14:30 (fuera de su jornada).
+  // Antes esto pasaba desapercibido: el organizador solo usaba el horario para
+  // BUSCAR huecos, no para auditar citas ya colocadas.
+  const citas = [cita('A', 'P1', 14, 30, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 14)],
+  });
+  const fj = problemas.find((p) => p.tipo === 'fuera_jornada');
+  assert(fj, 'debe avisar de que la cita de las 14:30 cae fuera de la 9-14');
+  assertEquals(fj!.citaIds, ['A']);
+  assertEquals(fj!.profesionalId, 'P1');
+  assert(/fuera del horario del profesional/.test(fj!.descripcion), `desc: ${fj!.descripcion}`);
+});
+
+Deno.test('fuera_jornada: una cita DENTRO del horario no genera aviso', () => {
+  // Caso control: cita a las 11:00, profesional 9-14. No debe avisar.
+  const citas = [cita('A', 'P1', 11, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 14)],
+  });
+  assert(!problemas.some((p) => p.tipo === 'fuera_jornada'), '11:00 está dentro de 9-14');
+});
+
+Deno.test('fuera_jornada: cita colocada en la pausa entre turnos avisa', () => {
+  // Dos turnos: 9-13 y 16-20. Una cita a las 14:00 cae en la comida (13-16).
+  const citas = [cita('A', 'P1', 14, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 13, 1), horarioProf('P1', 16, 20, 2)],
+  });
+  const fj = problemas.find((p) => p.tipo === 'fuera_jornada');
+  assert(fj, '14:00 está en la pausa de comida (13-16): debe avisar');
+});
+
+Deno.test('fuera_jornada: cita dentro de un bloqueo (vacaciones) avisa', () => {
+  // El caso tipico del usuario: se ponen vacaciones y ya habia una cita ese dia.
+  // Aunque la cita se creara ANTES del bloqueo, hay que avisar.
+  const citas = [cita('A', 'P1', 11, 0, 30)];
+  const bloqueos = [{ profesional_id: 'P1', inicio: iso(0, 0), fin: iso(23, 59) }];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    bloqueos,
+  });
+  const fj = problemas.find((p) => p.tipo === 'fuera_jornada');
+  assert(fj, 'la cita cae dentro de un bloqueo del profesional (vacaciones)');
+  assert(/bloqueo/.test(fj!.descripcion), `desc: ${fj!.descripcion}`);
+});
+
+Deno.test('fuera_jornada: sin horariosProfesional, una cita normal NO avisa (regresión)', () => {
+  // Sin horarios del profesional, no hay forma de saber si está fuera de jornada:
+  // el organizador cae a la ventana del salon. Una cita a las 11:00 dentro de
+  // 9-20 (default) no debe generar fuera_jornada. Esto fija que el nuevo detector
+  // no genere ruido cuando no hay datos de horario del profesional.
+  const citas = [cita('A', 'P1', 11, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(8, 0) });
+  assert(!problemas.some((p) => p.tipo === 'fuera_jornada'));
+});
+
+// --- Cierres del salon (cierres_negocio): el organizador ahora los respeta ---
+
+Deno.test('cierres: dia cerrado por cierres_negocio marca TODAS las citas como fuera_jornada', () => {
+  // El salón está cerrado el D (festivo). Hay dos citas ese día. Antes el
+  // organizador ignoraba cierres_negocio y trataba el día como laborable.
+  const citas = [
+    cita('A', 'P1', 10, 0, 30),
+    cita('B', 'P2', 12, 0, 30),
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    cierres: [{ fecha: D, motivo: 'Festivo' }],
+  });
+  const fjs = problemas.filter((p) => p.tipo === 'fuera_jornada');
+  assertEquals(fjs.length, 2, 'las dos citas del día cerrado deben avisar');
+  for (const fj of fjs) {
+    assert(/salón está cerrado/.test(fj!.descripcion), `desc: ${fj!.descripcion}`);
+  }
+  // Y no se proponen huecos en un día cerrado (no tiene sentido compactar).
+  assert(
+    !problemas.some((p) => p.tipo === 'hueco_muerto' || p.tipo === 'reposo_desaprovechado'),
+    'un día cerrado no debe proponer compactar huecos',
+  );
+});
+
+Deno.test('cierres: día NO cerrado no genera avisos espurios de cierre', () => {
+  // Cierre de otro día: el D no se ve afectado.
+  const citas = [cita('A', 'P1', 11, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    cierres: [{ fecha: '2026-07-09', motivo: 'Festivo otro día' }],
+  });
+  assert(!problemas.some((p) => p.tipo === 'fuera_jornada' && /salón está cerrado/.test(p.descripcion)));
+});
+
+Deno.test('cierres: respeta el horario del profesional también con cierre en otro día', () => {
+  // Combinación: hay cierres (de otros días) y horario de profesional. El
+  // organizador debe seguir respetando el horario del profesional para el día
+  // analizado. Cita a las 14:30 con prof 9-14 → fuera de jornada.
+  const citas = [cita('A', 'P1', 14, 30, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 14)],
+    cierres: [{ fecha: '2026-07-09', motivo: 'Otro día' }],
+  });
+  assert(problemas.some((p) => p.tipo === 'fuera_jornada'));
+});

@@ -10,6 +10,8 @@ import {
   prepararCitas,
   type ProblemaAgenda,
   type CitaOrganizar,
+  type HorarioProfesional,
+  type CierreNegocio,
 } from '@/lib/organizarAgenda';
 import type { EstrategiaRetraso, UpdateRetraso } from '@/lib/retrasos';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
@@ -65,6 +67,14 @@ export interface OrganizarAgendaPanelProps {
   servicios: { id: string; nombre: string; categoria_minima?: string | null; duracion_minima_min?: number | null }[];
   bloqueos?: { profesional_id: string; inicio: string; fin: string }[];
   horarios?: { dia_semana: number; abierto: boolean; apertura: string | null; cierre: string | null }[];
+  // Jornada real de cada profesional (horarios_profesional). Sin esto el panel
+  // usaba la ventana del SALON para todos y podia proponer horas en las que la
+  // persona no trabaja. El badge de la rejilla ya lo pasaba; el panel no, y por
+  // eso "el organizador no respeta los horarios del trabajador".
+  horariosProfesional?: HorarioProfesional[];
+  // Cierres del salon (festivos / cierres_negocio). Sin esto el panel no sabia
+  // que un dia esta cerrado y trataba las citas de ese dia como validas.
+  cierres?: CierreNegocio[];
   limites?: { maxAdelantoMin?: number; umbralHuecoMin?: number };
   negocioId: string;
   isMobile?: boolean;
@@ -83,6 +93,10 @@ function iconoTipo(tipo: ProblemaAgenda['tipo']) {
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
     case 'solape':
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>;
+    case 'fuera_jornada':
+      // Triangulo de advertencia: una cita mal colocada que el salon tiene que
+      // reubicar. Casi tan urgente como un solape (peso 3800 vs 4000).
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
     case 'hueco_vacio':
       // Verde, igual que la etiqueta "Hueco libre" de la rejilla: es una
       // oportunidad que llenar, no una averia que arreglar.
@@ -94,12 +108,13 @@ function iconoTipo(tipo: ProblemaAgenda['tipo']) {
 function fondoTipo(tipo: ProblemaAgenda['tipo']): string {
   if (tipo === 'retraso') return T.amberSoft;
   if (tipo === 'solape') return T.dangerSoft;
+  if (tipo === 'fuera_jornada') return T.dangerSoft;
   if (tipo === 'hueco_vacio') return T.successSoft;
   return T.primarySoft;
 }
 
 export default function OrganizarAgendaPanel({
-  citas, profesionales, clientes, servicios, bloqueos, horarios, limites, negocioId, isMobile,
+  citas, profesionales, clientes, servicios, bloqueos, horarios, horariosProfesional, cierres, limites, negocioId, isMobile,
   fechaVista, onClose, onAplicado, onEnsenar,
 }: OrganizarAgendaPanelProps) {
   const esDemoCompartida = IS_DEMO_MODE || negocioId === 'demo_salon_001';
@@ -144,10 +159,15 @@ export default function OrganizarAgendaPanel({
         diaMs,
         bloqueos,
         horarios,
+        // Fixes Fase 1: horario real del profesional + cierres del salon. Sin
+        // esto el panel divergia del badge de la rejilla y proponia horas en
+        // tramos no laborables o dias cerrados.
+        horariosProfesional,
+        cierres,
         maxAdelantoMin: limites?.maxAdelantoMin,
         umbralHuecoMin: limites?.umbralHuecoMin,
       }),
-    [citasHoy, profesionales, ahoraOverrideMs, diaMs, bloqueos, horarios, limites],
+    [citasHoy, profesionales, ahoraOverrideMs, diaMs, bloqueos, horarios, horariosProfesional, cierres, limites],
   );
   const pendientes = problemas.filter((p) => !resueltasDemo.has(p.id));
   // 'hueco_vacio' es informativo (sin estrategia): no entra en "Aplicar los N".

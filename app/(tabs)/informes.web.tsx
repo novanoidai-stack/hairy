@@ -5,6 +5,7 @@ import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection';
 import { GastosSection } from '@/components/informes/GastosSection';
 import { ControlHorarioSection } from '@/components/informes/ControlHorarioSection.web';
+import { ProductosVendidosSection } from '@/components/informes/ProductosVendidosSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE, CITA_STATUS } from '@/lib/constants';
@@ -191,6 +192,7 @@ const SECTION_INFO: Record<string, string> = {
   servicios: 'Ranking de servicios por numero de veces realizados e ingresos que generan en el periodo. Te dice que vende mas y que conviene priorizar.',
   retencion: 'Si el salon esta retiendo o no: cuantos clientes fidelizados tienes mes a mes, cada cuanto vuelven y que porcentaje de los nuevos acaba quedandose. Se calcula sobre 13 meses de historial, no sobre el periodo del filtro, porque un ciclo de visitas no cabe en una semana.',
   comisiones: 'Comisiones por profesional sobre la base SIN IVA (el IVA es de Hacienda, no del salon) y coste real de empresa con la cuota patronal. Puedes verlo con el porcentaje que tiene configurado cada uno o simular otro escenario para ver cuanto costaria antes de prometer nada.',
+  productos: 'Registro de productos vendidos (en cita o sueltos) del periodo: unidades, ingresos, top productos, ventas por profesional y por cliente. Es el libro de venta de productos.',
 };
 
 // ---------------------------------------------------------------------------
@@ -265,7 +267,7 @@ const TRAMOS_POR_DEFECTO = [
   { desde: 2000, hasta: null as number | null, porcentaje: 35 },
 ];
 
-type SeccionId = 'ocupacion' | 'noshows' | 'espera' | 'reposo' | 'ingresos' | 'servicios' | 'retencion' | 'comisiones';
+type SeccionId = 'ocupacion' | 'noshows' | 'espera' | 'reposo' | 'ingresos' | 'servicios' | 'retencion' | 'comisiones' | 'productos';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1441,7 +1443,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   <div class="foot">Informe generado por Mecha · gestión inteligente de salón · ${esc(generado)}</div>
 </body></html>`;
 
-    const win = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
+    // OJO: sin noopener/noreferrer a proposito. Con esas flags Chrome/Firefox
+    // devuelven win=null (spec WHATWG), asi que la ventana se abria en blanco y
+    // nunca llegabamos a escribirle el HTML ni a llamar a print().
+    const win = window.open('', '_blank', 'width=900,height=1100');
     if (!win) { window.alert('Activa las ventanas emergentes para descargar el informe en PDF.'); return; }
     win.document.open();
     win.document.write(html);
@@ -2979,6 +2984,15 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                 </div>
               </SectionBody>
             </div>
+            {/* Productos vendidos (libro de venta de productos del periodo) */}
+            <ProductosVendidosSection
+              negocioId={negocioId}
+              desde={desde}
+              hasta={hasta}
+              clientesMap={cltMap as unknown as Map<string, { nombre: string; telefono?: string }>}
+              profesionalesMap={profMap as unknown as Map<string, { nombre: string }>}
+            />
+
             {/* Gastos (fijos/variables) */}
             <GastosSection negocioId={negocioId} onGastosChange={cargar} />
 

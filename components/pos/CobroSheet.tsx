@@ -328,20 +328,25 @@ export function CobroSheet(props: CobroSheetProps) {
           if (rpcErr) throw rpcErr;
           onSuccess([data as string]);
         } else {
+          // Productos extra del ticket: se adjuntan al PRIMER cobro del lote
+          // para no duplicarlos en cada cita. Antes solo se enviaban con 1 cita
+          // (p_lineas_extra = [] en multi-cita), lo que hacía imposible cobrar
+          // "varias citas + productos" en un solo ticket desde Caja.
+          const lineasExtra = lineas.map((l) => ({
+            nombre: l.nombre,
+            precio_cents: Math.round(aEntero(l.precio) * 100),
+            cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
+            ref_id: (l as any).ref_id,
+            tipo: 'producto',
+          }));
           const resultados = await Promise.all(
-            props.citaIds.map((id) =>
+            props.citaIds.map((id, idx) =>
               supabase.rpc('crear_cobro_desde_cita', {
                 p_cita_id: id,
                 p_metodo: metodo,
                 p_propina_cents: propinaCents,
                 p_descuento_cents: descuentoCents,
-                p_lineas_extra: props.citaIds.length === 1 ? lineas.map((l) => ({
-                  nombre: l.nombre,
-                  precio_cents: Math.round(aEntero(l.precio) * 100),
-                  cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
-                  ref_id: (l as any).ref_id,
-                  tipo: 'producto'
-                })) : [],
+                p_lineas_extra: idx === 0 ? lineasExtra : [],
                 ...(metodo === 'mixto'
                   ? { p_efectivo_cents: efectivoSplitCents, p_datafono_cents: datafonoSplitCents }
                   : {}),

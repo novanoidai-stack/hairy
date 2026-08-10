@@ -137,6 +137,9 @@ function CajaScreen() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [showCobroModal, setShowCobroModal] = useState(false);
   const [showWalkin, setShowWalkin] = useState(false);
+  // Productos a adjuntar al cobro de citas (ticket unificado cita + productos).
+  // Se rellena desde el modal "Venta rápida" cuando hay citas seleccionadas.
+  const [lineasExtraCobro, setLineasExtraCobro] = useState<Array<{ nombre: string; precio: string; cantidad: string; ref_id?: string }>>([]);
   // Presupuestos aceptados pendientes de cobro (se cobran con el mismo motor).
   type PresupuestoCobrable = { id: string; numero: number | null; contacto_nombre: string | null; total_cents: number };
   const [presupuestosCobrables, setPresupuestosCobrables] = useState<PresupuestoCobrable[]>([]);
@@ -397,6 +400,7 @@ function CajaScreen() {
     const txt = cobroIds.length === 1 ? 'El cobro se ha efectuado correctamente.' : `Los ${cobroIds.length} cobros se han efectuado correctamente.`;
     setMensaje({ type: 'success', text: txt });
     setSelectedIds(new Set());
+    setLineasExtraCobro([]);
     setShowCobroModal(false);
     await cargarCitas(); // Recargar
     setTimeout(() => setMensaje(null), 4000);
@@ -1005,7 +1009,8 @@ function CajaScreen() {
           pendienteCents={seleccion.pendiente}
           senalCents={seleccion.totalSenas}
           titulo={`Cobrar ${seleccion.count} servicio${seleccion.count > 1 ? 's' : ''}${seleccion.clienteNombre ? ` · ${seleccion.clienteNombre}` : ''}`}
-          onClose={() => setShowCobroModal(false)}
+          lineasIniciales={lineasExtraCobro.length > 0 ? lineasExtraCobro : undefined}
+          onClose={() => { setShowCobroModal(false); setLineasExtraCobro([]); }}
           onSuccess={handleCobroSuccess}
         />
       )}
@@ -1053,7 +1058,11 @@ function CajaScreen() {
                 </h4>
                 <button onClick={() => { setShowVentaProductos(false); setCarrito([]); }} style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 20, cursor: 'pointer', padding: '0 4px' }}>×</button>
               </div>
-              <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Toca un producto para añadirlo. Rápido y sin complicaciones.</div>
+              <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>
+                {selectedIds.size > 0
+                  ? <>Tienes <b>{selectedIds.size} cita{selectedIds.size > 1 ? 's' : ''}</b> seleccionada{selectedIds.size > 1 ? 's' : ''}. Los productos se cobrarán <b>en el mismo ticket</b>.</>
+                  : 'Toca un producto para añadirlo. Rápido y sin complicaciones.'}
+              </div>
             </div>
 
             {/* Búsqueda + categorías (catálogos grandes) */}
@@ -1208,6 +1217,21 @@ function CajaScreen() {
                   <button
                     disabled={ventaEnviando}
                     onClick={async () => {
+                      // Si hay citas seleccionadas, cobramos todo junto en un
+                      // único ticket (citas + productos) vía CobroSheet. Si no,
+                      // venta suelta (walk-in) como antes.
+                      if (selectedIds.size > 0) {
+                        setLineasExtraCobro(carrito.map(c => ({
+                          nombre: c.nombre,
+                          precio: (c.precio_cents / 100).toString(),
+                          cantidad: String(c.cantidad),
+                          ref_id: c.id,
+                        })));
+                        setShowVentaProductos(false);
+                        setCarrito([]);
+                        setShowCobroModal(true);
+                        return;
+                      }
                       setVentaEnviando(true);
                       try {
                         const lineasPayload = carrito.map(c => ({
@@ -1244,7 +1268,7 @@ function CajaScreen() {
                     }}
                   >
                     <Icon name="check" size={16} color="#fff" />
-                    {ventaEnviando ? 'Cobrando...' : 'Cobrar'}
+                    {ventaEnviando ? 'Cobrando...' : (selectedIds.size > 0 ? `Cobrar todo junto (${selectedIds.size} cita${selectedIds.size > 1 ? 's' : ''} + productos)` : 'Cobrar')}
                   </button>
                 </div>
               </div>

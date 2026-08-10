@@ -152,7 +152,7 @@ interface Cliente {
   diasRecompra?: number;
 }
 
-type Tab = 'resumen' | 'notas' | 'color' | 'historial';
+type Tab = 'resumen' | 'notas' | 'color' | 'historial' | 'productos';
 
 function computeTag(visitas: number, gastado: number): TagValor {
   if (visitas > 10 || gastado > 500) return 'VIP';
@@ -1277,6 +1277,7 @@ function ClientesWeb() {
                 }} />}
                 {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />}
                 {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />}
+                {activeTab === 'productos' && <ProductosTab cliente={c} profesionales={profesionales} />}
               </div>
             ) : (
               // Modo expandido: todas las secciones a la vez en cuadricula
@@ -1333,6 +1334,11 @@ function ClientesWeb() {
                 {/* Fila 3: Historial completo */}
                 <Panel title="Historial completo" accent={TOKENS.success}>
                   <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />
+                </Panel>
+
+                {/* Fila 4: Productos comprados por el cliente */}
+                <Panel title="Productos comprados" accent={TOKENS.primary}>
+                  <ProductosTab cliente={c} profesionales={profesionales} />
                 </Panel>
               </div>
             )}
@@ -1479,6 +1485,7 @@ function Tabs({ active, onChange }: { active: Tab; onChange: (t: Tab) => void })
     { key: 'notas', label: 'Alergias' },
     { key: 'color', label: 'Color/Quimica' },
     { key: 'historial', label: 'Historial' },
+    { key: 'productos', label: 'Productos' },
   ];
   return (
     <div style={{ display: 'flex', gap: 4, padding: 3, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, marginBottom: 14 }}>
@@ -4385,6 +4392,191 @@ function Section({ title, children }: any) {
     <div style={{ marginBottom: 14 }}>
       <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>{title}</div>
       {children}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pestaña "Productos" de la ficha de cliente.
+//
+// Muestra el historial de productos que este cliente ha comprado, según el
+// libro de cobros (cobro_lineas tipo='producto' ligados a cobros del cliente).
+// Cada entrada indica: producto, cantidad, fecha, si fue "en cita" o "venta
+// suelta" y quién lo vendió. También un pequeño resumen (total gastado en
+// productos, unidades, última compra).
+//
+// Esto responde a la necesidad de "ver qué productos se llevó la última vez"
+// directamente en la ficha del cliente.
+// ─────────────────────────────────────────────────────────────────────────────
+function ProductosTab({ cliente, profesionales = [] }: { cliente: Cliente; profesionales?: any[] }) {
+  const [loading, setLoading] = useState(true);
+  const [cobros, setCobros] = useState<Array<{
+    id: string;
+    cobrado_at: string | null;
+    profesional_id: string | null;
+    cita_id: string | null;
+    lineas: Array<{ nombre: string; precio_cents: number; cantidad: number }>;
+  }>>([]);
+
+  useEffect(() => {
+    let cancelado = false;
+    async function cargar() {
+      if (!cliente.id) return;
+      setLoading(true);
+      try {
+        // 1. Cobros del cliente.
+        const { data: cobrosBase, error } = await supabase
+          .from('cobros')
+          .select('id, cobrado_at, profesional_id, cita_id')
+          .eq('cliente_id', cliente.id)
+          .eq('estado', 'completado')
+          .order('cobrado_at', { ascending: false })
+          .limit(200);
+        if (error) throw error;
+        if (!cobrosBase || cobrosBase.length === 0) {
+          if (!cancelado) setCobros([]);
+          return;
+        }
+        // 2. Líneas de producto de esos cobros.
+        const ids = cobrosBase.map((c: any) => c.id);
+        const { data: lineas, error: errL } = await supabase
+          .from('cobro_lineas')
+          .select('id, cobro_id, nombre, precio_cents, cantidad')
+          .in('cobro_id', ids)
+          .eq('tipo', 'producto')
+          .order('nombre', { ascending: true });
+        if (errL) throw errL;
+        const porCobro = new Map<string, Array<{ nombre: string; precio_cents: number; cantidad: number }>>();
+        for (const l of (lineas ?? [])) {
+          const arr = porCobro.get(l.cobro_id) ?? [];
+          arr.push({ nombre: l.nombre, precio_cents: l.precio_cents, cantidad: l.cantidad });
+          porCobro.set(l.cobro_id, arr);
+        }
+        const resultado = cobrosBase
+          .filter((c: any) => porCobro.has(c.id))
+          .map((c: any) => ({
+            id: c.id,
+            cobrado_at: c.cobrado_at,
+            profesional_id: c.profesional_id,
+            cita_id: c.cita_id,
+            lineas: porCobro.get(c.id) ?? [],
+          }));
+        if (!cancelado) setCobros(resultado);
+      } catch (err) {
+        console.error('Error cargando productos del cliente:', err);
+        if (!cancelado) setCobros([]);
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    }
+    cargar();
+    return () => { cancelado = true; };
+  }, [cliente.id]);
+
+  const resumen = (() => {
+    let unidades = 0;
+    let gastadoCents = 0;
+    let ultimaFecha: Date | null = null;
+    const porProducto = new Map<string, { nombre: string; unidades: number }>();
+    for (const cobro of cobros) {
+      for (const l of cobro.lineas) {
+        unidades += l.cantidad;
+        gastadoCents += l.precio_cents * l.cantidad;
+        const p = porProducto.get(l.nombre) ?? { nombre: l.nombre, unidades: 0 };
+        p.unidades += l.cantidad;
+        porProducto.set(l.nombre, p);
+      }
+      if (cobro.cobrado_at) {
+        const f = new Date(cobro.cobrado_at);
+        if (!ultimaFecha || f > ultimaFecha) ultimaFecha = f;
+      }
+    }
+    return {
+      unidades,
+      gastadoCents,
+      ultimaFecha,
+      favoritos: Array.from(porProducto.values()).sort((a, b) => b.unidades - a.unidades).slice(0, 3),
+    };
+  })();
+
+  if (loading) {
+    return <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '10px 0' }}>Cargando productos…</div>;
+  }
+  if (cobros.length === 0) {
+    return (
+      <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '10px 0' }}>
+        Este cliente todavía no tiene productos comprados registrados.
+        <br />
+        <span style={{ fontSize: 11, color: TOKENS.textTer }}>
+          Cuando vendas un producto desde Caja (suelto o en una cita), aparecerá aquí.
+        </span>
+      </div>
+    );
+  }
+
+  const profNombre = (id: string | null) => (id ? profesionales.find((p) => p.id === id)?.nombre : null) ?? null;
+  const fmtFecha = (iso: string | null) => {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return iso; }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Resumen */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ padding: '5px 10px', background: 'rgba(15,157,107,0.10)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.success }}>
+          {(resumen.gastadoCents / 100).toFixed(2)} € en productos
+        </div>
+        <div style={{ padding: '5px 10px', background: 'rgba(244,80,30,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.primaryHi }}>
+          {resumen.unidades} unidades
+        </div>
+        {resumen.ultimaFecha && (
+          <div style={{ padding: '5px 10px', background: TOKENS.bgCardHi, borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.textSec }}>
+            Última compra: {fmtFecha(resumen.ultimaFecha.toISOString())}
+          </div>
+        )}
+      </div>
+
+      {/* Favoritos */}
+      {resumen.favoritos.length > 0 && (
+        <div style={{ background: TOKENS.bgCardHi, borderRadius: 8, padding: '8px 10px' }}>
+          <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>Lo que más compra</div>
+          <div style={{ fontSize: 12, color: TOKENS.text, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {resumen.favoritos.map((f) => (
+              <span key={f.nombre} style={{ fontWeight: 600 }}>{f.nombre} <span style={{ color: TOKENS.textTer, fontWeight: 400 }}>×{f.unidades}</span></span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Historial detallado */}
+      <div style={{ border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: 'hidden' }}>
+        {cobros.map((cobro) => (
+          <div key={cobro.id} style={{ padding: '10px 12px', borderTop: '1px solid transparent', borderBottom: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: TOKENS.violet, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+                {fmtFecha(cobro.cobrado_at)}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: cobro.cita_id ? 'rgba(15,157,107,0.12)' : TOKENS.bgCardHi, color: cobro.cita_id ? TOKENS.success : TOKENS.textSec, fontWeight: 700 }}>
+                  {cobro.cita_id ? 'En cita' : 'Venta suelta'}
+                </span>
+                {profNombre(cobro.profesional_id) && (
+                  <span style={{ fontSize: 10, color: TOKENS.textSec }}>{profNombre(cobro.profesional_id)}</span>
+                )}
+              </div>
+            </div>
+            {cobro.lineas.map((l, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: TOKENS.text, padding: '2px 0' }}>
+                <span style={{ fontWeight: 600 }}>
+                  {l.nombre} <span style={{ color: TOKENS.textTer, fontWeight: 400 }}>×{l.cantidad}</span>
+                </span>
+                <span style={{ fontWeight: 700, color: TOKENS.success }}>{((l.precio_cents * l.cantidad) / 100).toFixed(2)} €</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
