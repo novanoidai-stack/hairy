@@ -151,7 +151,6 @@ export default function PortalReservaWeb() {
   const [slots, setSlots] = useState<SlotDisponible[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotSel, setSlotSel] = useState<SlotDisponible | null>(null);
-  const [isExpress, setIsExpress] = useState(false);
   const [diasDisp, setDiasDisp] = useState<Set<string>>(new Set());
   const [diasLoading, setDiasLoading] = useState(false);
 
@@ -167,9 +166,6 @@ export default function PortalReservaWeb() {
   const [resultado, setResultado] = useState<CrearCitaResult | null>(null);
   const [captchaReady, setCaptchaReady] = useState(false);
   const [analyticsConsent, setAnalyticsConsent] = useState(false);
-
-  // Expres extra states
-  const [eFranja, setEFranja] = useState('cualquiera');
 
   // Waitlist modal state
   const [showWlModal, setShowWlModal] = useState(false);
@@ -342,7 +338,7 @@ export default function PortalReservaWeb() {
   }, [step, slug, analyticsConsent, info]);
 
   const confirmar = useCallback(async () => {
-    if (!servicio || (!slotSel && !isExpress)) return;
+    if (!servicio || !slotSel) return;
     setError('');
     if (!nombre.trim()) { setError(t('err_nombre')); return; }
     if (telefono.trim().length < 6) { setError(t('err_tel')); return; }
@@ -355,70 +351,21 @@ export default function PortalReservaWeb() {
         try { captchaToken = await (window as any).grecaptcha.execute(SITE_KEY, { action: 'submit' }); } catch (e) { console.error(e); }
       }
 
-      if (isExpress) {
-        const disp = await getDisponibilidadExpress(slug, servicio.id, telefono.trim(), profId === ANY_PRO ? null : profId);
-        if (disp.length > 0 && disp[0].error_msg) {
-          setError(disp[0].error_msg); setEnviando(false); return;
-        }
-        if (disp.length > 0) {
-          const best = disp[0];
-          const r = await crearCitaPublicaExpress({
-            slug, servicioId: servicio.id, profesionalId: best.profesional_id, inicioISO: best.slot,
-            clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
-            clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
-            consentimientoDatos: consent, consienteIa: consentIa, captchaToken,
-          });
-          setResultado(r); setStep('confirmado');
-        } else {
-          const wl = await crearListaEsperaExpressPublica({
-            slug, servicioId: servicio.id, telefono: telefono.trim(), profesionalId: profId === ANY_PRO ? null : profId,
-          });
-          if (!wl.ok) { setError(wl.error || 'Error al solicitar cita exprés'); }
-          else {
-            setResultado({ cita_id: 'waitlist', cliente_id: '', estado: 'pendiente', deposito_requerido: false, deposito_importe: 0, inicio: '', fin: '' });
-            setStep('confirmado');
-          }
-        }
-      } else {
-        const r = await crearCitaPublica({
-          slug, servicioId: servicio.id, profesionalId: slotSel!.profesional_id, inicioISO: slotSel!.slot,
-          clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
-          clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
-          consentimientoDatos: consent, consienteIa: consentIa, captchaToken,
-        });
-        setResultado(r); setStep('confirmado');
-        if (analyticsConsent) {
-          AnalyticsEvents.bookingCompleted(r.cita_id, servicio.nombre, slotSel!.profesional_nombre, servicio.precio || 0, slug);
-        }
+      const r = await crearCitaPublica({
+        slug, servicioId: servicio.id, profesionalId: slotSel.profesional_id, inicioISO: slotSel.slot,
+        clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
+        clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
+        consentimientoDatos: consent, consienteIa: consentIa, captchaToken,
+      });
+      setResultado(r); setStep('confirmado');
+      if (analyticsConsent) {
+        AnalyticsEvents.bookingCompleted(r.cita_id, servicio.nombre, slotSel.profesional_nombre, servicio.precio || 0, slug);
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('err_generic');
       if (/ocupado|disponib|antelacion|horario/i.test(msg)) { setError(t('err_ocupado')); setStep('fecha'); } else { setError(msg); }
     } finally { setEnviando(false); }
-  }, [servicio, slotSel, isExpress, nombre, telefono, email, notas, consent, slug, t, captchaReady, profId, consentIa, analyticsConsent, info]);
-
-  const submitExpress = useCallback(async () => {
-    // Basic validation
-    if (!nombre.trim()) { setError('Escribe tu nombre.'); return; }
-    if (telefono.trim().length < 6) { setError('Escribe un teléfono válido.'); return; }
-    if (!consent) { setError('Acepta la política de privacidad para continuar.'); return; }
-    setEnviando(true);
-    try {
-      // Simulate backend request for express
-      const wl = await crearListaEsperaExpressPublica({
-        slug, servicioId: '', telefono: telefono.trim(), profesionalId: null,
-      });
-      if (!wl.ok) { setError(wl.error || 'Error al solicitar cita exprés'); }
-      else {
-        setResultado({ cita_id: 'waitlist-expres', cliente_id: '', estado: 'pendiente', deposito_requerido: false, deposito_importe: 0, inicio: '', fin: '' });
-        setStep('confirmado');
-      }
-    } catch(e: any) {
-      setError(e.message || 'Error');
-    } finally {
-      setEnviando(false);
-    }
-  }, [nombre, telefono, consent, slug]);
+  }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t, captchaReady, consentIa, analyticsConsent, info]);
 
   const submitReview = () => {
     if (!rPuntuacion) { setRError('Elige una valoración para el salón.'); return; }
@@ -434,7 +381,6 @@ export default function PortalReservaWeb() {
 
   function reiniciar() {
     setServicio(null); setProfId(ANY_PRO); setSlotSel(null); setDiasDisp(new Set());
-    setIsExpress(false);
     setNombre(''); setTelefono(''); setEmail(''); setNotas(''); setConsent(false); setConsentIa(false);
     setResultado(null); setError(''); setStep('servicio');
   }
@@ -487,12 +433,8 @@ export default function PortalReservaWeb() {
     </div>
   );
 
-  const isGuiada = !isExpress;
-  const isExpresMode = isExpress && !servicio; // purely express
-  const showForm = step !== 'confirmado' && isGuiada;
-  const showSuccess = step === 'confirmado' && isGuiada;
-  const showExpresForm = isExpresMode && step !== 'confirmado';
-  const showExpresSuccess = isExpresMode && step === 'confirmado';
+  const showForm = step !== 'confirmado';
+  const showSuccess = step === 'confirmado';
   const servicioElegido = !!servicio;
   const slotElegido = !!slotSel;
   const ctaDisabled = !(servicioElegido && slotElegido);
@@ -556,19 +498,13 @@ export default function PortalReservaWeb() {
       <div style={{ maxWidth: 1360, margin: '-30px auto 0', padding: isMobile ? '0 16px 40px' : '0 40px 56px', position: 'relative', zIndex: 2 }}>
         <div style={{ background: '#fffdfb', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 24, boxShadow: '0 24px 60px rgba(40,30,24,0.12)', padding: isMobile ? 20 : 32 }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
-            <div style={{ display: 'inline-flex', maxWidth: '100%', overflowX: 'auto', padding: 4, background: '#f6f1ea', borderRadius: 14, gap: 4 }}>
-              <button onClick={() => setIsExpress(false)} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isGuiada ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva guiada</button>
-              <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ flex: '0 0 auto', padding: '10px 20px', borderRadius: 11, border: 'none', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...(isExpresMode ? { background: '#fff', color: '#1c1814', boxShadow: '0 2px 8px rgba(40,30,24,0.10)' } : { background: 'transparent', color: '#5c5249' }) }}>Reserva exprés</button>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: '#736658', fontWeight: 600 }}>
               <Icon name="check" size={14} color="#0f9d6b" /> Confirmación inmediata · Sin registro
             </div>
           </div>
 
-          {/* RESERVA GUIADA */}
-          {isGuiada && (
-            <>
+          <>
               {showForm && (
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 32, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
@@ -764,8 +700,8 @@ export default function PortalReservaWeb() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> {servicio?.prepago ? 'Se requerirá señal de reserva' : 'Pago en el salón el día de la cita'}</div>
                       </div>
                     </div>
-                    <button onClick={() => { setIsExpress(true); setServicio(null); setStep('datos'); }} style={{ width: '100%', marginTop: 12, padding: '13px 14px', borderRadius: 14, border: `1px dashed ${T.primary}`, background: T.primarySoft, color: '#1c1814', fontSize: 13, fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                      <span style={{ minWidth: 0 }}>¿Tienes prisa? Reserva exprés en 10 segundos</span>
+                    <button onClick={() => { setWlNombre(nombre); setWlTelefono(telefono); setShowWlModal(true); }} style={{ width: '100%', marginTop: 12, padding: '13px 14px', borderRadius: 14, border: `1px dashed ${T.primary}`, background: T.primarySoft, color: '#1c1814', fontSize: 13, fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                      <span style={{ minWidth: 0 }}>¿No te encaja ninguna hora? Únete a la lista de espera</span>
                       <Icon name="chevronRight" size={16} color={T.primaryHi} />
                     </button>
                   </div>
@@ -795,73 +731,7 @@ export default function PortalReservaWeb() {
                   </div>
                 </div>
               )}
-            </>
-          )}
-
-          {/* RESERVA EXPRES */}
-          {isExpresMode && (
-            <>
-              {showExpresForm && (
-                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 36, alignItems: isMobile ? 'flex-start' : 'center' }}>
-                  <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 6 }}>Reserva exprés</div>
-                    <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 30, marginBottom: 10, lineHeight: 1.1 }}>Te buscamos hueco nosotros</div>
-                    <div style={{ fontSize: 14, color: '#5c5249', lineHeight: 1.55, marginBottom: 22, maxWidth: 400 }}><strong>Plazas muy limitadas.</strong> Ideal si tienes prisa: déjanos tus datos y te llamamos <strong>SÓLO</strong> si se libera algún hueco o cancelación. <strong>No asegura disponibilidad.</strong></div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>1</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Nos dejas tu nombre y teléfono</span></div>
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>2</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Revisamos la agenda y buscamos el primer hueco libre</span></div>
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}><span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 9, background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 800, flexShrink: 0 }}>3</span><span style={{ fontSize: 13.5, color: '#1c1814', paddingTop: 4 }}>Te llamamos para confirmar día y hora</span></div>
-                    </div>
-                    <button onClick={() => setIsExpress(false)} style={{ marginTop: 22, background: 'none', border: 'none', color: '#5c5249', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Prefiero elegir servicio y hora yo mismo</button>
-                  </div>
-                  <div style={{ width: isMobile ? '100%' : 380, flexShrink: 0, background: '#fbf6f0', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 18, padding: 26 }}>
-                    <label style={{ display: 'block', marginBottom: 14 }}>
-                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Tu nombre</span>
-                      <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre y apellido" style={inputStyle} />
-                    </label>
-                    <label style={{ display: 'block', marginBottom: 14 }}>
-                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Tu teléfono</span>
-                      <PhoneInput value={telefono} onChange={setTelefono} placeholder="600 000 000" />
-                    </label>
-                    <div style={{ marginBottom: 14 }}>
-                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>¿Alguna preferencia horaria? (opcional)</span>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        {[
-                          { key: 'cualquiera', label: 'Cuanto antes' },
-                          { key: 'manana', label: 'Mañana' },
-                          { key: 'tarde', label: 'Tarde' },
-                          { key: 'noche', label: 'Noche' },
-                        ].map(f => (
-                          <button key={f.key} onClick={() => setEFranja(f.key)} style={{ padding: '7px 13px', borderRadius: 999, border: '1.5px solid ' + (eFranja === f.key ? T.primary : T.border), background: eFranja === f.key ? T.primarySoft : '#fff', color: eFranja === f.key ? T.primaryHi : T.textSec, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{f.label}</button>
-                        ))}
-                      </div>
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 16, cursor: 'pointer' }}>
-                      <span onClick={() => setConsent(!consent)} style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {consent && <Icon name="check" size={14} color="#fff" />}
-                      </span>
-                      <span onClick={() => setConsent(!consent)} style={{ fontSize: 12, color: '#5c5249', lineHeight: 1.4 }}>Acepto la política de privacidad para que me contacten por esta cita.</span>
-                    </label>
-                    {error && <div style={errorStyleBox}>{error}</div>}
-                    <button onClick={submitExpress} disabled={enviando} style={{ width: '100%', padding: '14px 16px', borderRadius: 13, border: 'none', background: FIRE, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 26px rgba(0,0,0,0.18)' }}>{enviando ? 'Enviando...' : 'Solicitar hueco exprés'}</button>
-                  </div>
-                </div>
-              )}
-              {showExpresSuccess && (
-                <div style={{ textAlign: 'center', padding: '30px 0 10px' }}>
-                  <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                    <span style={{ position: 'absolute', width: 84, height: 84, borderRadius: '50%', background: T.primarySoft, animation: 'rpRing 1.8s ease-out infinite' }} />
-                    <span style={{ position: 'relative', display: 'inline-flex', width: 84, height: 84, borderRadius: '50%', background: '#fff', border: '1px solid rgba(40,30,24,0.08)', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(244,80,30,0.22)' }}>
-                      <Icon name="phone" size={34} color={T.primary} />
-                    </span>
-                  </div>
-                  <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 32, marginBottom: 10 }}>¡Perfecto, {nombre}!</div>
-                  <div style={{ maxWidth: 420, margin: '0 auto 22px', fontSize: 15, color: '#5c5249', lineHeight: 1.55 }}>Te llamamos al <b style={{ color: '#1c1814' }}>{telefono}</b> en cuanto tengamos un hueco libre — normalmente en menos de 30 minutos.</div>
-                  <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: 8, cursor: 'pointer' }}>Volver al inicio</button>
-                </div>
-              )}
-            </>
-          )}
+          </>
 
         </div>
 
