@@ -4,6 +4,7 @@ import { getUserProfile } from '@/lib/auth';
 import { can } from '@/lib/permissions';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { STextInput, NumberInput, SSelect } from '@/components/ui/SettingsAtoms';
 import {
   type Campana, type CampanaCanal, type SegmentoCriterios,
@@ -139,7 +140,11 @@ function CampanasScreen() {
     setContando(true);
     debounceRef.current = setTimeout(async () => {
       try { setConteo(await contarSegmento(canal, seg)); setError(null); }
-      catch (e) { setError(mensajeDeError(e, 'No se pudo contar el segmento.')); setConteo(null); }
+      catch (e) {
+        reportarError(e, { origen: 'app', tipo: 'operativo' });
+        setError(mensajeDeError(e, 'No se pudo contar el segmento.'));
+        setConteo(null);
+      }
       finally { setContando(false); }
     }, 400);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
@@ -174,6 +179,7 @@ function CampanasScreen() {
       setNombre(''); setMensaje(''); setSeg({});
       void cargarCampanas();
     } catch (e) {
+      reportarError(e, { origen: 'app', tipo: 'operativo' });
       setError(mensajeDeError(e, 'No se pudo encolar la campaña.'));
     } finally {
       setEncolando(false);
@@ -182,7 +188,10 @@ function CampanasScreen() {
 
   async function cancelar(id: string) {
     try { await cancelarCampana(id); void cargarCampanas(); }
-    catch (e) { setError(mensajeDeError(e, 'No se pudo cancelar.')); }
+    catch (e) {
+      reportarError(e, { origen: 'app', tipo: 'operativo' });
+      setError(mensajeDeError(e, 'No se pudo cancelar.'));
+    }
   }
 
   if (esGestor === false) {
