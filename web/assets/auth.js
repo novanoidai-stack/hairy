@@ -40,8 +40,26 @@
         p_hora_preferida: payload.hora_preferida,
         p_meta: payload.meta || {}
       });
+      if (res.error) {
+        client.rpc('registrar_error_cliente', {
+          p_mensaje: String(res.error.message || res.error),
+          p_ruta: (location.pathname + location.search).slice(0, 200),
+          p_pila: 'crear_solicitud_publica error',
+          p_origen: 'landing',
+          p_navegador: navigator.userAgent.slice(0, 200),
+          p_tipo: 'operativo'
+        }).then(function(){}, function(){});
+      }
       return { error: res.error || null };
     } catch (e) {
+      client.rpc('registrar_error_cliente', {
+        p_mensaje: String(e && e.message || e || 'Excepcion insertSolicitud landing'),
+        p_ruta: (location.pathname + location.search).slice(0, 200),
+        p_pila: String(e && e.stack || '').slice(0, 2000),
+        p_origen: 'landing',
+        p_navegador: navigator.userAgent.slice(0, 200),
+        p_tipo: 'excepcion'
+      }).then(function(){}, function(){});
       return { error: e };
     }
   }
