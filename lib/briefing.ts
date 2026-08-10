@@ -2,6 +2,7 @@
 // rankea segun la etapa de vida del salon. Determinista: la deteccion operativa la
 // hace el RPC agenda_briefing (SQL); aqui solo se fusiona y ordena.
 import { supabase } from '@/lib/supabase';
+import { reportarError } from '@/lib/reportarError';
 import { ONBOARDING_STEPS } from '@/lib/onboarding';
 import type { OnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 
@@ -22,7 +23,11 @@ export interface BriefingSignal {
 // El RPC deriva negocio/rol del auth.uid(); scope 'self' oculta las de negocio.
 export async function cargarSenalesOperativas(scope: 'all' | 'self'): Promise<BriefingSignal[]> {
   const { data, error } = await supabase.rpc('agenda_briefing', { p_scope: scope });
-  if (error || !Array.isArray(data)) return [];
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    return [];
+  }
+  if (!Array.isArray(data)) return [];
   return data as BriefingSignal[];
 }
 
@@ -31,7 +36,11 @@ export async function cargarSenalesOperativas(scope: 'all' | 'self'): Promise<Br
 export async function cargarClientesRecuperar(scope: 'all' | 'self'): Promise<BriefingSignal | null> {
   if (scope === 'self') return null;
   const { data, error } = await supabase.rpc('clientes_en_riesgo_fuga');
-  if (error || !Array.isArray(data) || data.length === 0) return null;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    return null;
+  }
+  if (!Array.isArray(data) || data.length === 0) return null;
   return {
     tipo: 'clientes_a_recuperar',
     familia: 'recuperar',
@@ -59,7 +68,11 @@ export async function cargarNoShowInminente(scope: 'all' | 'self'): Promise<Brie
     p_desde: inicio.toISOString(),
     p_hasta: fin.toISOString(),
   });
-  if (error || !Array.isArray(data) || data.length === 0) return null;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    return null;
+  }
+  if (!Array.isArray(data) || data.length === 0) return null;
   return {
     tipo: 'no_show_inminente',
     familia: 'operativa',
