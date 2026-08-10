@@ -304,6 +304,50 @@ const TAB_SECTIONS = [
   { name: 'Cuenta',        items: TABS.filter(t => t.section === 'Cuenta') },
 ];
 
+// Indice de conceptos por pestana para el buscador de Configuracion. No es el
+// nombre (ese ya se busca aparte): son los terminos y sinonimos que la gente
+// escribe para llegar a cada ajuste. Al anadir un ajuste importante a una
+// pestana, agrega aqui su palabra clave para que el buscador lo encuentre.
+const TAB_KEYWORDS: Record<string, string[]> = {
+  general: ['nombre del negocio', 'logo', 'direccion', 'telefono', 'email', 'tipo de salon', 'zona horaria', 'moneda', 'datos del salon'],
+  horarios: ['horario', 'apertura', 'cierre', 'dias', 'festivos', 'vacaciones', 'cierres', 'jornada', 'turnos'],
+  servicios: ['catalogo', 'precio', 'duracion', 'categorias', 'tarifa', 'lista de precios'],
+  agenda: ['calendario', 'intervalos', 'franjas', 'huecos', 'columnas', 'vista', 'reglas de agenda', 'reserva de tiempo'],
+  comisiones: ['comision', 'porcentaje', 'empleados', 'liquidacion', 'nomina', 'reparto'],
+  pagos: ['stripe', 'redsys', 'pasarela', 'tpv', 'datafono', 'tarjeta', 'iva', 'fiscalidad', 'verifactu', 'factura', 'propinas', 'senal', 'fianza', 'deposito', 'reembolso', 'devolucion', 'cobro', 'cobrar', 'conectar con stripe', 'cuenta bancaria', 'banco'],
+  presupuestos: ['presupuesto', 'cotizacion', 'validez', 'iva'],
+  plantillas: ['plantillas', 'mensajes', 'whatsapp', 'email', 'sms', 'texto predefinido'],
+  migracion_magica: ['migracion', 'importar', 'csv', 'excel', 'foto', 'migrar precios', 'migrar clientes', 'traspaso', 'importacion'],
+  notificaciones: ['recordatorio', 'aviso', 'confirmacion', 'whatsapp', 'email', 'sms', 'recordatorios'],
+  politicas: ['politica de cancelacion', 'cancelacion', 'rgpd', 'consentimiento', 'privacidad', 'terminos', 'proteccion de datos', 'no presentado', 'no show'],
+  reserva: ['portal', 'reserva online', 'enlace', 'slug', 'qr', 'directorio', 'marketplace', 'disponibilidad', 'captcha', 'coordenadas', 'direccion', 'mapa', 'fotos del local', 'resenas de google', 'buscador de salones', 'analytics'],
+  recompensas: ['fidelizacion', 'puntos', 'bonos', 'tarjeta de puntos', 'premios'],
+  referidos: ['referidos', 'invitar', 'codigo', 'amigos'],
+  accesos: ['roles', 'empleados', 'cuentas', 'invitar', 'permisos', 'staff', 'contrasena de empleado', 'trabajadores'],
+  cuenta: ['contrasena', 'email', 'plan', 'suscripcion', 'facturacion', 'cerrar sesion', 'eliminar cuenta', 'baja'],
+  soporte: ['soporte', 'ayuda', 'contacto', 'incidencia', 'problema'],
+};
+
+// Quita acentos y pasa a minusculas para que el buscador case "senal"/"señal".
+const normalizarBusqueda = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+// Subraya (acento fuego) la parte del texto que coincide con lo buscado.
+function resaltarCoincidencia(texto: string, q: string): ReactNode {
+  const query = q.trim();
+  if (!query) return texto;
+  const idx = texto.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return texto;
+  return (
+    <>
+      {texto.slice(0, idx)}
+      <span style={{ textDecoration: 'underline', textDecorationColor: '#f4501e', textUnderlineOffset: 2, color: '#c0260a', fontWeight: 700 }}>
+        {texto.slice(idx, idx + query.length)}
+      </span>
+      {texto.slice(idx + query.length)}
+    </>
+  );
+}
+
 const DAY_LABELS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
 
 const DEFAULT_CONFIG: ConfigState = {
@@ -545,11 +589,18 @@ export default function ConfiguracionWeb() {
   }, [config, savedConfig, diasHorario, savedDiasHorario, comisionesProf, savedComisionesProf]);
 
   const currentTab = TABS.find(t => t.id === tab);
-  // Buscador del menu de Configuracion: filtra las pestanas por su etiqueta.
-  const _qTab = buscarTab.trim().toLowerCase();
-  const seccionesFiltradas = _qTab
-    ? TAB_SECTIONS.map(s => ({ ...s, items: s.items.filter(t => t.label.toLowerCase().includes(_qTab)) })).filter(s => s.items.length > 0)
-    : TAB_SECTIONS;
+  // Buscador del menu de Configuracion: busca la palabra en el nombre de cada
+  // pestana y en sus conceptos clave (TAB_KEYWORDS), y devuelve en que pestanas
+  // aparece para el panel de resultados.
+  const _qTab = normalizarBusqueda(buscarTab.trim());
+  const resultadosBusqueda = _qTab
+    ? TABS.map((t) => {
+        const enNombre = normalizarBusqueda(t.label).includes(_qTab);
+        const coincidencias = (TAB_KEYWORDS[t.id] || []).filter((k) => normalizarBusqueda(k).includes(_qTab));
+        if (!enNombre && coincidencias.length === 0) return null;
+        return { tab: t, enNombre, termino: enNombre ? t.label : coincidencias[0] };
+      }).filter((r): r is { tab: TabDef; enNombre: boolean; termino: string } => r !== null)
+    : [];
 
   // ─── Load ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -1154,7 +1205,7 @@ export default function ConfiguracionWeb() {
             <input
               value={buscarTab}
               onChange={(e) => setBuscarTab(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && seccionesFiltradas[0]?.items[0]) setTab(seccionesFiltradas[0].items[0].id); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && resultadosBusqueda[0]) { setTab(resultadosBusqueda[0].tab.id); setBuscarTab(''); } }}
               placeholder="Buscar ajuste…"
               style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px 8px 30px', borderRadius: 9, border: '1px solid rgba(40,30,24,0.14)', background: '#fffdfb', color: '#1c1814', fontSize: 12.5, outline: 'none' }}
             />
@@ -1162,21 +1213,59 @@ export default function ConfiguracionWeb() {
               <SettingsIcon name="search" size={13} />
             </span>
           </div>
-          {seccionesFiltradas.length === 0 && (
-            <div style={{ fontSize: 12.5, color: T.textTertiary, padding: '8px 12px' }}>Sin resultados</div>
-          )}
-          {seccionesFiltradas.map((sec, sIdx) => (
-            <div key={sec.name}>
+          {_qTab ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{
                 fontSize: 9.5, letterSpacing: 1.6, color: T.textTertiary, fontWeight: 700,
-                textTransform: 'uppercase', padding: '8px 12px 4px',
-                marginTop: sIdx === 0 ? 0 : 14,
-              }}>{sec.name}</div>
-              {sec.items.map(t => (
-                <TabButton key={t.id} t={t} active={tab === t.id} demoActive={demoActionName !== null && tab === t.id} onClick={() => setTab(t.id)} />
+                textTransform: 'uppercase', padding: '4px 12px 8px',
+              }}>
+                {resultadosBusqueda.length > 0
+                  ? `Aparece en ${resultadosBusqueda.length} ${resultadosBusqueda.length === 1 ? 'pestana' : 'pestanas'}`
+                  : 'Sin resultados'}
+              </div>
+              {resultadosBusqueda.length === 0 && (
+                <div style={{ fontSize: 12, color: T.textTertiary, padding: '2px 12px 8px', lineHeight: 1.5 }}>
+                  No encontramos "{buscarTab.trim()}" en ninguna pestana. Prueba con otra palabra.
+                </div>
+              )}
+              {resultadosBusqueda.map((r) => (
+                <button
+                  key={r.tab.id}
+                  onClick={() => { setTab(r.tab.id); setBuscarTab(''); }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = T.bgCardHi; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
+                    padding: '8px 12px', borderRadius: 9, border: 'none', background: 'transparent',
+                    color: T.text, cursor: 'pointer', transition: 'background .12s ease',
+                  }}
+                >
+                  <span style={{ color: T.textSecondary, display: 'inline-flex', flexShrink: 0 }}>
+                    <SettingsIcon name={r.tab.icon} size={15} />
+                  </span>
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{resaltarCoincidencia(r.tab.label, buscarTab.trim())}</span>
+                    {!r.enNombre && r.termino && (
+                      <span style={{ fontSize: 11, color: T.textTertiary }}>coincide con {resaltarCoincidencia(r.termino, buscarTab.trim())}</span>
+                    )}
+                  </span>
+                </button>
               ))}
             </div>
-          ))}
+          ) : (
+            TAB_SECTIONS.map((sec, sIdx) => (
+              <div key={sec.name}>
+                <div style={{
+                  fontSize: 9.5, letterSpacing: 1.6, color: T.textTertiary, fontWeight: 700,
+                  textTransform: 'uppercase', padding: '8px 12px 4px',
+                  marginTop: sIdx === 0 ? 0 : 14,
+                }}>{sec.name}</div>
+                {sec.items.map(t => (
+                  <TabButton key={t.id} t={t} active={tab === t.id} demoActive={demoActionName !== null && tab === t.id} onClick={() => setTab(t.id)} />
+                ))}
+              </div>
+            ))
+          )}
 
           {/* Footer help card → abre la pagina de soporte */}
           <button
