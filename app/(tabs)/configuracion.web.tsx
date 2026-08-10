@@ -304,6 +304,61 @@ const TAB_SECTIONS = [
   { name: 'Cuenta',        items: TABS.filter(t => t.section === 'Cuenta') },
 ];
 
+// Indice de conceptos por pestana para el buscador de Configuracion. No es el
+// nombre (ese ya se busca aparte): son los terminos y sinonimos que la gente
+// escribe para llegar a cada ajuste. Al anadir un ajuste importante a una
+// pestana, agrega aqui su palabra clave para que el buscador lo encuentre.
+const TAB_KEYWORDS: Record<string, string[]> = {
+  general: ['nombre del negocio', 'logo', 'direccion', 'telefono', 'email', 'tipo de salon', 'zona horaria', 'moneda', 'datos del salon'],
+  horarios: ['horario', 'apertura', 'cierre', 'dias', 'festivos', 'vacaciones', 'cierres', 'jornada', 'turnos'],
+  servicios: ['catalogo', 'precio', 'duracion', 'categorias', 'tarifa', 'lista de precios'],
+  agenda: ['calendario', 'intervalos', 'franjas', 'huecos', 'columnas', 'vista', 'reglas de agenda', 'reserva de tiempo'],
+  comisiones: ['comision', 'porcentaje', 'empleados', 'liquidacion', 'nomina', 'reparto'],
+  pagos: ['stripe', 'redsys', 'pasarela', 'tpv', 'datafono', 'tarjeta', 'iva', 'fiscalidad', 'verifactu', 'factura', 'propinas', 'senal', 'fianza', 'deposito', 'reembolso', 'devolucion', 'cobro', 'cobrar', 'conectar con stripe', 'cuenta bancaria', 'banco'],
+  presupuestos: ['presupuesto', 'cotizacion', 'validez', 'iva'],
+  plantillas: ['plantillas', 'mensajes', 'whatsapp', 'email', 'sms', 'texto predefinido'],
+  migracion_magica: ['migracion', 'importar', 'csv', 'excel', 'foto', 'migrar precios', 'migrar clientes', 'traspaso', 'importacion'],
+  notificaciones: ['recordatorio', 'aviso', 'confirmacion', 'whatsapp', 'email', 'sms', 'recordatorios'],
+  politicas: ['politica de cancelacion', 'cancelacion', 'rgpd', 'consentimiento', 'privacidad', 'terminos', 'proteccion de datos', 'no presentado', 'no show'],
+  reserva: ['portal', 'reserva online', 'enlace', 'slug', 'qr', 'directorio', 'marketplace', 'disponibilidad', 'captcha', 'coordenadas', 'direccion', 'mapa', 'fotos del local', 'resenas de google', 'buscador de salones', 'analytics'],
+  recompensas: ['fidelizacion', 'puntos', 'bonos', 'tarjeta de puntos', 'premios'],
+  referidos: ['referidos', 'invitar', 'codigo', 'amigos'],
+  accesos: ['roles', 'empleados', 'cuentas', 'invitar', 'permisos', 'staff', 'contrasena de empleado', 'trabajadores'],
+  cuenta: ['contrasena', 'email', 'plan', 'suscripcion', 'facturacion', 'cerrar sesion', 'eliminar cuenta', 'baja'],
+  soporte: ['soporte', 'ayuda', 'contacto', 'incidencia', 'problema'],
+};
+
+// Quita acentos y pasa a minusculas para que el buscador case "senal"/"señal".
+const normalizarBusqueda = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+// Subraya (acento fuego) la parte del texto que coincide con lo buscado.
+function resaltarCoincidencia(texto: string, q: string): ReactNode {
+  const query = q.trim();
+  if (!query) return texto;
+  const idx = texto.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return texto;
+  return (
+    <>
+      {texto.slice(0, idx)}
+      <span style={{ textDecoration: 'underline', textDecorationColor: '#f4501e', textUnderlineOffset: 2, color: '#c0260a', fontWeight: 700 }}>
+        {texto.slice(idx, idx + query.length)}
+      </span>
+      {texto.slice(idx + query.length)}
+    </>
+  );
+}
+
+// Devuelve un trozo corto del texto centrado en la coincidencia, para mostrar
+// en el panel de resultados "coincide con …texto…".
+function extraerFragmento(texto: string, q: string): string {
+  const query = q.trim();
+  const idx = texto.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return texto.slice(0, 44).trim();
+  const ini = Math.max(0, idx - 18);
+  const fin = Math.min(texto.length, idx + query.length + 26);
+  return (ini > 0 ? '…' : '') + texto.slice(ini, fin).trim() + (fin < texto.length ? '…' : '');
+}
+
 const DAY_LABELS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
 
 const DEFAULT_CONFIG: ConfigState = {
@@ -375,6 +430,12 @@ export default function ConfiguracionWeb() {
   const { isMobile, isTablet } = useResponsive();
   const [tab, setTab] = useState<string | null>(null);
   const [buscarTab, setBuscarTab] = useState('');
+  // Palabra a subrayar DENTRO del contenido de la pestana (al abrir un resultado).
+  const [terminoResaltado, setTerminoResaltado] = useState('');
+  // Indice de texto real por pestana (se llena al ver cada pestana) para que el
+  // buscador encuentre cualquier palabra, no solo los conceptos de TAB_KEYWORDS.
+  const indiceTextoRef = useRef<Record<string, string>>({});
+  const [versionIndice, setVersionIndice] = useState(0);
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('configuracion');
   const router = useRouter();
@@ -427,6 +488,77 @@ export default function ConfiguracionWeb() {
     pick();
     return () => cancelAnimationFrame(raf);
   }, [demoActionName, tab]);
+
+  // Buscador (1/3): al arrancar, recupera el indice de texto ya aprendido.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem('mecha-cfg-indice');
+      if (raw) indiceTextoRef.current = JSON.parse(raw) || {};
+    } catch { /* localStorage no disponible */ }
+  }, []);
+
+  // Buscador (2/3): cada vez que se ve una pestana, guarda su texto real en el
+  // indice (incluido lo que carga async, via MutationObserver) para poder
+  // encontrar CUALQUIER palabra de esa pestana, no solo sus conceptos.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !tab) return;
+    const root = contentRef.current;
+    if (!root) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const capturar = () => {
+      const txt = (root.innerText || '').replace(/\s+/g, ' ').trim();
+      if (txt.length > 20 && indiceTextoRef.current[tab] !== txt) {
+        indiceTextoRef.current[tab] = txt;
+        try { window.localStorage.setItem('mecha-cfg-indice', JSON.stringify(indiceTextoRef.current)); } catch { /* ignore */ }
+        setVersionIndice((v) => v + 1);
+      }
+    };
+    capturar();
+    const obs = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(capturar, 180); });
+    obs.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => { obs.disconnect(); clearTimeout(timer); };
+  }, [tab]);
+
+  // Buscador (3/3): subraya la palabra buscada DENTRO del contenido de la
+  // pestana con la CSS Custom Highlight API (no toca el DOM -> no rompe React).
+  // Si el navegador no la soporta, simplemente no resalta (sin errores). Un
+  // observer re-aplica el resaltado cuando la pestana termina de cargar (async).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const cssApi = (window as unknown as { CSS?: { highlights?: Map<string, unknown> } }).CSS;
+    const HighlightCtor = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
+    if (!cssApi?.highlights || !HighlightCtor) return;
+    const term = terminoResaltado.trim();
+    const root = contentRef.current;
+    const aplicar = () => {
+      cssApi.highlights!.delete('cfg-busqueda');
+      if (!term || !contentRef.current) return;
+      const lower = term.toLowerCase();
+      const ranges: Range[] = [];
+      const walker = document.createTreeWalker(contentRef.current, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      while (node) {
+        const hay = (node.nodeValue || '').toLowerCase();
+        let idx = hay.indexOf(lower);
+        while (idx !== -1) {
+          const r = document.createRange();
+          r.setStart(node, idx);
+          r.setEnd(node, idx + term.length);
+          ranges.push(r);
+          idx = hay.indexOf(lower, idx + term.length);
+        }
+        node = walker.nextNode();
+      }
+      if (ranges.length) cssApi.highlights!.set('cfg-busqueda', new HighlightCtor(...ranges));
+    };
+    aplicar();
+    if (!term || !root) return () => { try { cssApi.highlights?.delete('cfg-busqueda'); } catch { /* ignore */ } };
+    let timer: ReturnType<typeof setTimeout>;
+    const obs = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(aplicar, 120); });
+    obs.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => { obs.disconnect(); clearTimeout(timer); try { cssApi.highlights?.delete('cfg-busqueda'); } catch { /* ignore */ } };
+  }, [tab, terminoResaltado]);
 
   useEffect(() => {
     if (!isMobile && tab === null) {
@@ -545,11 +677,23 @@ export default function ConfiguracionWeb() {
   }, [config, savedConfig, diasHorario, savedDiasHorario, comisionesProf, savedComisionesProf]);
 
   const currentTab = TABS.find(t => t.id === tab);
-  // Buscador del menu de Configuracion: filtra las pestanas por su etiqueta.
-  const _qTab = buscarTab.trim().toLowerCase();
-  const seccionesFiltradas = _qTab
-    ? TAB_SECTIONS.map(s => ({ ...s, items: s.items.filter(t => t.label.toLowerCase().includes(_qTab)) })).filter(s => s.items.length > 0)
-    : TAB_SECTIONS;
+  // Buscador del menu de Configuracion: busca la palabra en el nombre de cada
+  // pestana y en sus conceptos clave (TAB_KEYWORDS), y devuelve en que pestanas
+  // aparece para el panel de resultados.
+  const _qTab = normalizarBusqueda(buscarTab.trim());
+  // versionIndice fuerza el recalculo cuando el indice de texto crece.
+  void versionIndice;
+  const resultadosBusqueda = _qTab
+    ? TABS.map((t) => {
+        const enNombre = normalizarBusqueda(t.label).includes(_qTab);
+        const coincidencias = (TAB_KEYWORDS[t.id] || []).filter((k) => normalizarBusqueda(k).includes(_qTab));
+        const texto = indiceTextoRef.current[t.id] || '';
+        const enTexto = texto ? normalizarBusqueda(texto).includes(_qTab) : false;
+        if (!enNombre && coincidencias.length === 0 && !enTexto) return null;
+        const termino = enNombre ? t.label : (coincidencias[0] || extraerFragmento(texto, buscarTab.trim()));
+        return { tab: t, enNombre, termino };
+      }).filter((r): r is { tab: TabDef; enNombre: boolean; termino: string } => r !== null)
+    : [];
 
   // ─── Load ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -1154,7 +1298,7 @@ export default function ConfiguracionWeb() {
             <input
               value={buscarTab}
               onChange={(e) => setBuscarTab(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && seccionesFiltradas[0]?.items[0]) setTab(seccionesFiltradas[0].items[0].id); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && resultadosBusqueda[0]) { setTerminoResaltado(buscarTab.trim()); setTab(resultadosBusqueda[0].tab.id); setBuscarTab(''); } }}
               placeholder="Buscar ajuste…"
               style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px 8px 30px', borderRadius: 9, border: '1px solid rgba(40,30,24,0.14)', background: '#fffdfb', color: '#1c1814', fontSize: 12.5, outline: 'none' }}
             />
@@ -1162,21 +1306,59 @@ export default function ConfiguracionWeb() {
               <SettingsIcon name="search" size={13} />
             </span>
           </div>
-          {seccionesFiltradas.length === 0 && (
-            <div style={{ fontSize: 12.5, color: T.textTertiary, padding: '8px 12px' }}>Sin resultados</div>
-          )}
-          {seccionesFiltradas.map((sec, sIdx) => (
-            <div key={sec.name}>
+          {_qTab ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{
                 fontSize: 9.5, letterSpacing: 1.6, color: T.textTertiary, fontWeight: 700,
-                textTransform: 'uppercase', padding: '8px 12px 4px',
-                marginTop: sIdx === 0 ? 0 : 14,
-              }}>{sec.name}</div>
-              {sec.items.map(t => (
-                <TabButton key={t.id} t={t} active={tab === t.id} demoActive={demoActionName !== null && tab === t.id} onClick={() => setTab(t.id)} />
+                textTransform: 'uppercase', padding: '4px 12px 8px',
+              }}>
+                {resultadosBusqueda.length > 0
+                  ? `Aparece en ${resultadosBusqueda.length} ${resultadosBusqueda.length === 1 ? 'pestana' : 'pestanas'}`
+                  : 'Sin resultados'}
+              </div>
+              {resultadosBusqueda.length === 0 && (
+                <div style={{ fontSize: 12, color: T.textTertiary, padding: '2px 12px 8px', lineHeight: 1.5 }}>
+                  No encontramos "{buscarTab.trim()}" en ninguna pestana. Prueba con otra palabra.
+                </div>
+              )}
+              {resultadosBusqueda.map((r) => (
+                <button
+                  key={r.tab.id}
+                  onClick={() => { setTerminoResaltado(buscarTab.trim()); setTab(r.tab.id); setBuscarTab(''); }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = T.bgCardHi; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
+                    padding: '8px 12px', borderRadius: 9, border: 'none', background: 'transparent',
+                    color: T.text, cursor: 'pointer', transition: 'background .12s ease',
+                  }}
+                >
+                  <span style={{ color: T.textSecondary, display: 'inline-flex', flexShrink: 0 }}>
+                    <SettingsIcon name={r.tab.icon} size={15} />
+                  </span>
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{resaltarCoincidencia(r.tab.label, buscarTab.trim())}</span>
+                    {!r.enNombre && r.termino && (
+                      <span style={{ fontSize: 11, color: T.textTertiary }}>coincide con {resaltarCoincidencia(r.termino, buscarTab.trim())}</span>
+                    )}
+                  </span>
+                </button>
               ))}
             </div>
-          ))}
+          ) : (
+            TAB_SECTIONS.map((sec, sIdx) => (
+              <div key={sec.name}>
+                <div style={{
+                  fontSize: 9.5, letterSpacing: 1.6, color: T.textTertiary, fontWeight: 700,
+                  textTransform: 'uppercase', padding: '8px 12px 4px',
+                  marginTop: sIdx === 0 ? 0 : 14,
+                }}>{sec.name}</div>
+                {sec.items.map(t => (
+                  <TabButton key={t.id} t={t} active={tab === t.id} demoActive={demoActionName !== null && tab === t.id} onClick={() => { setTab(t.id); setTerminoResaltado(''); }} />
+                ))}
+              </div>
+            ))
+          )}
 
           {/* Footer help card → abre la pagina de soporte */}
           <button

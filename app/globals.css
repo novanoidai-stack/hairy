@@ -158,3 +158,13 @@ body, html {
 .text-primary-color {
   color: var(--color-primary);
 }
+
+/* Resaltado del buscador de Configuracion (CSS Custom Highlight API).
+   Subraya en acento fuego la palabra buscada dentro del contenido. */
+::highlight(cfg-busqueda) {
+  background-color: rgba(244, 80, 30, 0.16);
+  color: #c0260a;
+  text-decoration: underline;
+  text-decoration-color: #f4501e;
+  text-underline-offset: 2px;
+}
