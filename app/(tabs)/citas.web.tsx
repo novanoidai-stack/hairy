@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { reportarError } from '@/lib/reportarError';
 import { esConfirmada, esPendiente, esNoShow, esCompletada, esSinConfirmar48h, VENTANA_SIN_CONFIRMAR_MS } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
@@ -93,12 +94,18 @@ function CitasCRMScreen() {
         supabase.from('profesionales').select('id, nombre, color, activo, foto_perfil').eq('activo', true),
         supabase.from('categorias_servicio').select('id, nombre, color, icono'),
       ]);
+      if (cliRes.error) reportarError(cliRes.error, { origen: 'app', tipo: 'operativo' });
+      if (srvRes.error) reportarError(srvRes.error, { origen: 'app', tipo: 'operativo' });
+      if (profRes.error) reportarError(profRes.error, { origen: 'app', tipo: 'operativo' });
+      if (catRes.error) reportarError(catRes.error, { origen: 'app', tipo: 'operativo' });
+
       if (cliRes.data) setClientes(cliRes.data);
       if (srvRes.data) setServicios(srvRes.data);
       if (profRes.data) setProfesionales(profRes.data);
       if (catRes.data) setCategorias(catRes.data);
     } catch (e) {
       console.error(e);
+      reportarError(e, { origen: 'app', tipo: 'excepcion' });
     }
   }, []);
 
@@ -111,9 +118,6 @@ function CitasCRMScreen() {
         .order('inicio', { ascending: false });
 
       if (soloSinConfirmar) {
-        // Modo "Sin confirmar": misma ventana canonica que la campana de avisos y
-        // el banner de la agenda (proximas 48h, ver esSinConfirmar48h). Ignora el
-        // rango de fechas elegido para que las cifras cuadren entre pantallas.
         const now = new Date();
         q = q.gt('inicio', now.toISOString()).lte('inicio', new Date(now.getTime() + VENTANA_SIN_CONFIRMAR_MS).toISOString());
       } else if (dateRange !== 'todo') {
@@ -129,10 +133,15 @@ function CitasCRMScreen() {
       if (srvFilter !== 'todos') q = q.eq('servicio_id', srvFilter);
 
       q = q.limit(1000);
-      const { data } = await q;
-      if (data) setCitas(data as Cita[]);
+      const { data, error: citasErr } = await q;
+      if (citasErr) {
+        reportarError(citasErr, { origen: 'app', tipo: 'operativo' });
+      } else if (data) {
+        setCitas(data as Cita[]);
+      }
     } catch (e) {
       console.error(e);
+      reportarError(e, { origen: 'app', tipo: 'excepcion' });
     } finally {
       setLoading(false);
     }
