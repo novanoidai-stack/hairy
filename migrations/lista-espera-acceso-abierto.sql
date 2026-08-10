@@ -90,3 +90,12 @@ $function$;
 
 revoke all on function public.lista_espera_unirse_publica(text, text, text, uuid, uuid, text, date, date, boolean) from public;
 grant execute on function public.lista_espera_unirse_publica(text, text, text, uuid, uuid, text, date, date, boolean) to anon, authenticated;
+
+-- Limpieza: huerfanos tras eliminar el concepto de "cita expres" (auto-book +
+-- gate de elegibilidad). lista_espera_unirse_publica (arriba) los sustituye.
+drop function if exists public.lista_espera_express_publica(text, uuid, text, uuid, date, date);
+drop function if exists public.disponibilidad_express_publica(text, uuid, text, uuid, integer);
+drop function if exists public.crear_cita_publica_express(text, uuid, uuid, timestamptz, text, text, text, text, boolean, boolean, text);
+
+alter table public.niveles_fidelizacion drop column if exists acceso_express;
+alter table public.citas drop column if exists origen_express;

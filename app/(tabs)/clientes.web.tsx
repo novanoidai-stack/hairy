@@ -1084,8 +1084,8 @@ function ClientesWeb() {
                       </div>
                       {/* Fase D (D2): asignacion manual del nivel de fidelidad. Mismo patron que el
                           override de deposito de arriba: null = automatico (por visitas/gasto),
-                          cualquier otro valor lo fuerza a mano. Los beneficios del nivel
-                          (sin_deposito, acceso_express) se aplican igual que si lo hubiera ganado
+                          cualquier otro valor lo fuerza a mano. El beneficio del nivel
+                          (sin_deposito) se aplica igual que si lo hubiera ganado
                           por historial (ver obtener_nivel_cliente). */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                         <span title="Fuerza el nivel de fidelidad de este cliente en vez de calcularlo por su historial de visitas/gasto. Los beneficios del nivel (deposito, acceso a citas expres) se aplican igual." style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}>Nivel de fidelidad:</span>
