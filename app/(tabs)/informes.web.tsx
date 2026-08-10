@@ -7,6 +7,7 @@ import { GastosSection } from '@/components/informes/GastosSection';
 import { ControlHorarioSection } from '@/components/informes/ControlHorarioSection.web';
 import { ProductosVendidosSection } from '@/components/informes/ProductosVendidosSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
+import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE, CITA_STATUS } from '@/lib/constants';
 import { esCompletada, esConfirmada, esPendiente, esNoShow, esCancelada, esActiva } from '@/lib/citasMetrics';
@@ -465,6 +466,15 @@ function InformesScreen() {
         .order('inicio', { ascending: true })
         .limit(TOPE_HISTORICO),
     ]);
+
+    if (citaRes.error) reportarError(citaRes.error, { origen: 'app', tipo: 'operativo' });
+    if (profRes.error) reportarError(profRes.error, { origen: 'app', tipo: 'operativo' });
+    if (srvRes.error) reportarError(srvRes.error, { origen: 'app', tipo: 'operativo' });
+    if (cltRes.error) reportarError(cltRes.error, { origen: 'app', tipo: 'operativo' });
+    if (resRes.error) reportarError(resRes.error, { origen: 'app', tipo: 'operativo' });
+    if (cobRes.error) reportarError(cobRes.error, { origen: 'app', tipo: 'operativo' });
+    if (gastosRes.error) reportarError(gastosRes.error, { origen: 'app', tipo: 'operativo' });
+    if (histRes.error) reportarError(histRes.error, { origen: 'app', tipo: 'operativo' });
 
     const citasData = citaRes.data ?? [];
     setCitas(citasData);
