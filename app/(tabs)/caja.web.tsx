@@ -5,6 +5,7 @@ import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { format, parseISO, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { CobroSheet } from '@/components/pos/CobroSheet';
 import { VentaBonoModal } from '@/components/pos/VentaBonoModal';
@@ -334,8 +335,9 @@ function CajaScreen() {
         .order('nombre');
       if (prods) setProductosDisponibles(prods);
 
-    } catch (err) {
+      } catch (err) {
       console.error('Error cargando citas pendientes:', err);
+      reportarError(err, { origen: 'app', tipo: 'operativo' });
       setMensaje({ type: 'error', text: mensajeDeError(err) });
     } finally {
       setLoading(false);
