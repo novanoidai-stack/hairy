@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { descargarCSV } from '@/lib/exportadorUniversal';
 import {
   cargarTotales, cargarRegistro, listarCorrecciones, solicitarCorreccion,
@@ -129,6 +130,7 @@ export function RegistroJornada({
       setAsientos(asi);
       setCorrecciones(corr);
     } catch (err) {
+      reportarError(err, { origen: 'app', tipo: 'operativo' });
       setError(mensajeDeError(err));
     } finally {
       setLoading(false);
