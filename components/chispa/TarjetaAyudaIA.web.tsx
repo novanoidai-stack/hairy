@@ -229,12 +229,26 @@ export function TarjetaAyudaIA({
           {estado.tipo === 'listo' && (() => {
             const primero = estado.bloques[0];
             const hayTitular = !!primero && primero.tipo === 'texto' && primero.texto.trim().length > 0;
-            const resto = hayTitular ? estado.bloques.slice(1) : estado.bloques;
+            // El titular se renderiza con renderNegritas(), que NO entiende '\n' ni
+            // viñetas (solo **negrita** en linea): si un informe narrado entero
+            // (titular + varias viñetas) llega como un unico bloque 'texto', el
+            // navegador colapsaba todos los saltos de linea y se veia como un muro
+            // de texto. Solo la PRIMERA linea es titular de verdad; el resto (si lo
+            // hay) se trata como un bloque 'texto' mas y pasa por BloqueRenderer,
+            // que si sabe pintar viñetas en lineas separadas.
+            const primerTexto = hayTitular && primero.tipo === 'texto' ? primero.texto : '';
+            const saltoIdx = primerTexto.indexOf('\n');
+            const tituloLinea = saltoIdx === -1 ? primerTexto : primerTexto.slice(0, saltoIdx);
+            const restoDelPrimero = saltoIdx === -1 ? '' : primerTexto.slice(saltoIdx + 1).trim();
+            const resto = [
+              ...(restoDelPrimero ? [{ tipo: 'texto' as const, texto: restoDelPrimero }] : []),
+              ...(hayTitular ? estado.bloques.slice(1) : estado.bloques),
+            ];
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {hayTitular && primero.tipo === 'texto' && (
+                {hayTitular && (
                   <div style={{ fontSize: 14.5, fontWeight: 700, color: T.text, lineHeight: 1.35 }}>
-                    {renderNegritas(primero.texto)}
+                    {renderNegritas(tituloLinea)}
                   </div>
                 )}
                 {resto.map((b, i) => (

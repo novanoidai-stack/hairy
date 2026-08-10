@@ -686,9 +686,10 @@ const DESC_ACCION: Record<string, string> = {
 const CONTRATO_FORMATO =
   'FORMATO DE UN ANALISIS O CONSULTA DE DATOS (obligatorio, sin muro de texto): responde SIEMPRE en este orden:\n' +
   '1) TITULAR: una sola frase con el hallazgo, con el dato clave en **negrita** (bloque de texto corto).\n' +
-  '2) EL MEJOR BLOQUE VISUAL con cifras reales (kpi / barras / grafica / tabla / comparativa). Las cifras vienen SIEMPRE de una tool, nunca inventadas.\n' +
+  '2) EL MEJOR BLOQUE VISUAL con cifras reales (kpi / barras / grafica / tabla / comparativa) cuando la consulta sea sobre UNA metrica puntual. Las cifras vienen SIEMPRE de una tool, nunca inventadas.\n' +
   '3) Si procede, UNA accion o enlace de 1 clic (sugerir_enlace o una accion disponible).\n' +
-  'Ejemplo -> Usuario: "como va la semana". Respondes: texto "**Vas +12%** en ingresos frente a la semana pasada." + una comparativa de ingresos (semana actual vs anterior) + un enlace a Informes. NUNCA contestes una consulta de datos con un parrafo largo sin bloque visual.';
+  'Ejemplo (consulta puntual) -> Usuario: "como va la semana". Respondes: texto "**Vas +12%** en ingresos frente a la semana pasada." + una comparativa de ingresos (semana actual vs anterior) + un enlace a Informes. NUNCA contestes una consulta de datos con un parrafo largo sin bloque visual.\n' +
+  'INFORMES NARRADOS (varias metricas a la vez: "informe del mes", resumen de rendimiento, analisis de un profesional/periodo/valoraciones): el titular en **negrita** va seguido de VARIAS viñetas, UNA POR LINEA, cada una en un salto de linea REAL (\\n) empezando por "- " — NUNCA todas seguidas dentro del mismo parrafo separadas solo por guiones. Cada viñeta lleva su metrica clave en **negrita**. Esto SIGUE contando como "sin muro de texto": lo prohibido es un parrafo corrido sin estructura, no una lista bien separada por lineas.';
 
 export function buildSystemPrompt(
   hoyISO: string,
