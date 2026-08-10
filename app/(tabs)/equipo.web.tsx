@@ -6,6 +6,7 @@ import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { reportarError } from '@/lib/reportarError';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualEquipo } from '@/lib/manuals/equipo';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
@@ -303,7 +304,7 @@ export default function EquipoWeb() {
       const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [{ data: profsRaw }, { data: citsData }, { data: srvData }, { data: cfgRow }, { data: horSalon }] = await Promise.all([
+      const [resProfs, resCits, resSrv, resCfg, resHorSalon] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil, rol_acceso').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
@@ -317,6 +318,17 @@ export default function EquipoWeb() {
         supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre, pausa_inicio, pausa_fin')
           .eq('negocio_id', negocioId),
       ]);
+      if (resProfs.error) reportarError(resProfs.error, { origen: 'app', tipo: 'operativo' });
+      if (resCits.error) reportarError(resCits.error, { origen: 'app', tipo: 'operativo' });
+      if (resSrv.error) reportarError(resSrv.error, { origen: 'app', tipo: 'operativo' });
+      if (resHorSalon.error) reportarError(resHorSalon.error, { origen: 'app', tipo: 'operativo' });
+
+      const profsRaw = resProfs.data;
+      const citsData = resCits.data;
+      const srvData = resSrv.data;
+      const cfgRow = resCfg.data;
+      const horSalon = resHorSalon.data;
+
       setHorarioSalon(Object.fromEntries((horSalon ?? []).map((h: any) => [h.dia_semana, h])));
 
       // Limite de fichas de ESTE salon (lo sube Mecha desde su panel si hace falta).
