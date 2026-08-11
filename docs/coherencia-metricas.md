@@ -61,6 +61,35 @@ citas) vuelvan a divergir entre Mi Jornada, Caja, Informes, Equipo y Agenda.
 - **Equipo** muestra ingresos REALES cuando el profesional tiene cobros en el
   mes; si no, previstos por catálogo (etiqueta "INGRESOS (prev.)"). Las
   comisiones se calculan sobre esa misma base.
+- **RendimientoEquipo** (ranking, `components/equipo/RendimientoEquipo.web.tsx`):
+  el RPC `equipo_jornada_ranking` devuelve `ingresos_cents` (bruto, con propina)
+  y `propinas_cents` aparte; el componente ahora ordena y muestra el ingreso
+  **real** (`ingresos_cents − propinas_cents`) y la propina en línea aparte. La
+  comisión ya venía bien del RPC (calculada sobre `ingresos − propina`).
+
+## Verificación en producción (2026-08-12)
+
+Inspeccionados los RPC reales de la BD (proyecto Mecha) — confirman que la
+reconciliación client-side es correcta:
+
+- `mi_jornada_resumen`: `total_cents = sum(total_cents)` (bruto, **incluye
+  propina**) y `propinas_cents` aparte → la resta client-side es correcta. Su
+  comisión ya usa `(total − propina)` (mismo principio).
+- `equipo_jornada_ranking`: mismo patrón (`ingresos_cents` bruto + `propinas_cents`).
+- `crear_cobro_desde_cita`: ya inserta `p_lineas_extra` como `cobro_lineas`
+  tipo producto → el cambio de Caja (2A) los alimenta bien. Snapshot en
+  `supabase/snapshots/crear_cobro_desde_cita.sql`.
+
+Conclusión: **no fue necesario tocar ningún RPC de producción** para la
+coherencia; las páginas aplican la política "real = total − propina" al mostrar.
+
+## 2F (pendiente de aplicar, opcional)
+
+`supabase/migrations/20260812000000_cita_productos_cobro_linea_id.sql` añade
+`cita_productos.cobro_linea_id` (nullable, sin FK) y lo rellena desde
+`crear_cobro_desde_cita` para trazabilidad producto-usado ↔ producto-cobrado.
+**No aplicada** a producción: toca un RPC de cobro crítico y conviene probar el
+flujo de cobro en la app antes. Rollback documentado en el propio fichero.
 
 ## Tests
 

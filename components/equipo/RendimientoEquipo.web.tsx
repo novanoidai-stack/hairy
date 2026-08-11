@@ -25,6 +25,8 @@ interface ProfesionalRanking {
   horas: number;
   citas_completadas: number;
   ingresos_cents: number;
+  // Propinas del profesional en el periodo (van siempre aparte del ingreso real).
+  propinas_cents?: number;
   comision_cents: number;
   reposo_total_min: number;
   reposo_usado_min: number;
@@ -147,7 +149,8 @@ export function RendimientoEquipo({ isMobile = false }: { isMobile?: boolean }) 
   const ordenado = useMemo(() => {
     if (!ranking) return [];
     const arr = [...ranking];
-    if (orden === 'ingresos') arr.sort((a, b) => b.ingresos_cents - a.ingresos_cents);
+    // Ordenar por ingreso REAL (sin propina), misma definicion que Mi Jornada/Caja.
+    if (orden === 'ingresos') arr.sort((a, b) => (b.ingresos_cents - (b.propinas_cents ?? 0)) - (a.ingresos_cents - (a.propinas_cents ?? 0)));
     else if (orden === 'servicios') arr.sort((a, b) => b.citas_completadas - a.citas_completadas);
     else if (orden === 'horas') arr.sort((a, b) => b.horas - a.horas);
     else arr.sort((a, b) => {
@@ -248,7 +251,8 @@ export function RendimientoEquipo({ isMobile = false }: { isMobile?: boolean }) 
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{eur(p.ingresos_cents)}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{eur(p.ingresos_cents - (p.propinas_cents ?? 0))}</div>
+                    {(p.propinas_cents ?? 0) > 0 && <div style={{ fontSize: 11, color: '#d97706' }}>{eur(p.propinas_cents)} propinas</div>}
                     {p.comision_cents > 0 && <div style={{ fontSize: 11, color: T.primaryHi }}>{eur(p.comision_cents)} comisión</div>}
                   </div>
                 </div>
