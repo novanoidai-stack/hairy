@@ -83,13 +83,15 @@ reconciliación client-side es correcta:
 Conclusión: **no fue necesario tocar ningún RPC de producción** para la
 coherencia; las páginas aplican la política "real = total − propina" al mostrar.
 
-## 2F (pendiente de aplicar, opcional)
+## 2F (aplicada en producción)
 
 `supabase/migrations/20260812000000_cita_productos_cobro_linea_id.sql` añade
 `cita_productos.cobro_linea_id` (nullable, sin FK) y lo rellena desde
 `crear_cobro_desde_cita` para trazabilidad producto-usado ↔ producto-cobrado.
-**No aplicada** a producción: toca un RPC de cobro crítico y conviene probar el
-flujo de cobro en la app antes. Rollback documentado en el propio fichero.
+**Aplicada** en el proyecto Mecha el 2026-08-12: la función compila, conserva
+toda la lógica original y contiene el `UPDATE` de enlace. Pendiente: probar un
+cobro con productos en la app para confirmar que `cobro_linea_id` queda relleno.
+Rollback documentado en el propio fichero.
 
 ## Tests
 

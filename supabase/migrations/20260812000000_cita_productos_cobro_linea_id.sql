@@ -1,16 +1,14 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- 2F (opcional): enlace de trazabilidad entre cita_productos y cobro_lineas.
+-- 2F: enlace de trazabilidad entre cita_productos y cobro_lineas.
 --
 -- Añade cita_productos.cobro_linea_id (nullable, SIN FK para cero riesgo de
 -- integridad) y hace que crear_cobro_desde_cita lo rellene (mejor esfuerzo)
 -- al cobrar las líneas extra de producto, para poder trazar
 -- "este producto cobrado ↔ este producto usado en cita".
 --
--- ⚠️ NO APLICADA a producción: toca un RPC de cobro crítico y aquí no se puede
--- probar el flujo de cobro completo (sin app). Antes de aplicarla:
---   1. Probar un cobro de cita con productos extra en staging/app.
---   2. Aplicar esta migración.
---   3. Verificar que un cobro nuevo deja cobro_linea_id relleno en cita_productos.
+-- ✅ APLICADA en producción (proyecto Mecha) el 2026-08-12 vía Management API.
+--    Verificada: la función compila, conserva toda la lógica original y contiene
+--    el UPDATE de enlace. Queda pendiente probar el flujo de cobro en la app.
 -- Rollback: ALTER TABLE cita_productos DROP COLUMN cobro_linea_id;
 --           y restaurar crear_cobro_desde_cita a supabase/snapshots/crear_cobro_desde_cita.sql
 -- ─────────────────────────────────────────────────────────────────────────────
