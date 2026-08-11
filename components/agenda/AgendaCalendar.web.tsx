@@ -88,7 +88,11 @@ import {
   TAG_RESENO_SALON,
   TAG_RESENO_MECHA,
 } from "@/lib/constants";
-import { cuentaComoConfirmada, esCanceladaONoShow, esSinConfirmar48h } from "@/lib/citasMetrics";
+import {
+  cuentaComoConfirmada,
+  esCanceladaONoShow,
+  esSinConfirmar48h,
+} from "@/lib/citasMetrics";
 import { isTimeSlotOccupied } from "@/lib/utils/appointment";
 
 const ANIMATIONS = `
@@ -407,123 +411,128 @@ function fmtHHMM(d: Date): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-const ReposoFreeGapInteractive = memo(({
-  ini,
-  fin,
-  gapMin,
-  gapTop,
-  gapH,
-  cita,
-  clienteMap,
-  servicioMap,
-  onSelectReposo,
-}: {
-  ini: number;
-  fin: number;
-  gapMin: number;
-  gapTop: number;
-  gapH: number;
-  cita: any;
-  clienteMap: any;
-  servicioMap: any;
-  onSelectReposo: (info: {
-    horaStr: string;
-    profId: string;
-    reposoContext: any;
-  }) => void;
-}) => {
-  const [hovered, setHovered] = useState(false);
-  const iniDate = new Date(ini);
-  const finDate = new Date(fin);
-  const iniStr = fmtHHMM(iniDate);
-  const finStr = fmtHHMM(finDate);
-  const clienteNombre = clienteMap?.get(cita.cliente_id)?.nombre || "Clienta";
-  const servicioNombre = servicioMap?.get(cita.servicio_id)?.nombre || "Servicio";
+const ReposoFreeGapInteractive = memo(
+  ({
+    ini,
+    fin,
+    gapMin,
+    gapTop,
+    gapH,
+    cita,
+    clienteMap,
+    servicioMap,
+    onSelectReposo,
+  }: {
+    ini: number;
+    fin: number;
+    gapMin: number;
+    gapTop: number;
+    gapH: number;
+    cita: any;
+    clienteMap: any;
+    servicioMap: any;
+    onSelectReposo: (info: {
+      horaStr: string;
+      profId: string;
+      reposoContext: any;
+    }) => void;
+  }) => {
+    const [hovered, setHovered] = useState(false);
+    const iniDate = new Date(ini);
+    const finDate = new Date(fin);
+    const iniStr = fmtHHMM(iniDate);
+    const finStr = fmtHHMM(finDate);
+    const clienteNombre = clienteMap?.get(cita.cliente_id)?.nombre || "Clienta";
+    const servicioNombre =
+      servicioMap?.get(cita.servicio_id)?.nombre || "Servicio";
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    const ratio = gapH > 0 ? Math.max(0, Math.min(1, offsetY / gapH)) : 0;
-    const clickMs = ini + ratio * (fin - ini);
-    const clickDate = new Date(clickMs);
-    const mins = Math.floor(clickDate.getMinutes() / 5) * 5;
-    clickDate.setMinutes(mins, 0, 0);
-    const horaStr = fmtHHMM(clickDate);
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const ratio = gapH > 0 ? Math.max(0, Math.min(1, offsetY / gapH)) : 0;
+      const clickMs = ini + ratio * (fin - ini);
+      const clickDate = new Date(clickMs);
+      const mins = Math.floor(clickDate.getMinutes() / 5) * 5;
+      clickDate.setMinutes(mins, 0, 0);
+      const horaStr = fmtHHMM(clickDate);
 
-    onSelectReposo({
-      horaStr,
-      profId: cita.profesional_id,
-      reposoContext: {
-        hostCitaId: cita.id,
-        hostClienteNombre: clienteNombre,
-        hostServicioNombre: servicioNombre,
-        reposoInicio: iniDate,
-        reposoFin: finDate,
-        duracionReposoMin: gapMin,
-      },
-    });
-  };
+      onSelectReposo({
+        horaStr,
+        profId: cita.profesional_id,
+        reposoContext: {
+          hostCitaId: cita.id,
+          hostClienteNombre: clienteNombre,
+          hostServicioNombre: servicioNombre,
+          reposoInicio: iniDate,
+          reposoFin: finDate,
+          duracionReposoMin: gapMin,
+        },
+      });
+    };
 
-  return (
-    <div
-      onClick={handleClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      title={`Reposo de ${clienteNombre} (${iniStr} - ${finStr}, ${gapMin}′ libre) · Haz clic para crear cita en este reposo`}
-      style={{
-        position: "absolute",
-        top: gapTop,
-        left: 0,
-        right: 0,
-        height: gapH,
-        background: hovered ? "rgba(16,185,129,0.28)" : "rgba(16,185,129,0.10)",
-        boxShadow: hovered
-          ? "inset 0 0 12px rgba(16,185,129,0.50), 0 0 10px rgba(16,185,129,0.30)"
-          : "none",
-        border: hovered ? "1.5px solid #10b981" : "none",
-        borderRadius: hovered ? 6 : 0,
-        display: "flex",
-        alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
-        justifyContent: "center",
-        paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
-        cursor: "pointer",
-        zIndex: hovered ? 10 : 2,
-        transition: "all 0.15s ease",
-        pointerEvents: "auto",
-      }}
-    >
-      {gapH >= 15 && (
-        <span
-          style={{
-            padding: hovered ? "3px 10px" : "2px 8px",
-            borderRadius: 999,
-            background: hovered ? "#059669" : "#10b981",
-            fontSize: hovered ? 10 : 9.5,
-            fontWeight: 700,
-            letterSpacing: 0.4,
-            textTransform: "uppercase",
-            color: "#ffffff",
-            whiteSpace: "nowrap",
-            boxShadow: hovered
-              ? "0 2px 8px rgba(16,185,129,0.50)"
-              : "0 1px 3px rgba(0,0,0,0.15)",
-            transform: hovered ? "scale(1.05)" : "scale(1)",
-            transition: "all 0.15s ease",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
-          {hovered
-            ? `⚡ Creando en reposo ${iniStr}-${finStr}`
-            : `Hueco libre ${gapMin}′`}
-        </span>
-      )}
-    </div>
-  );
-});
+    return (
+      <div
+        onClick={handleClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        title={`Reposo de ${clienteNombre} (${iniStr} - ${finStr}, ${gapMin}′ libre) · Haz clic para crear cita en este reposo`}
+        style={{
+          position: "absolute",
+          top: gapTop,
+          left: 0,
+          right: 0,
+          height: gapH,
+          background: hovered
+            ? "rgba(16,185,129,0.28)"
+            : "rgba(16,185,129,0.10)",
+          boxShadow: hovered
+            ? "inset 0 0 12px rgba(16,185,129,0.50), 0 0 10px rgba(16,185,129,0.30)"
+            : "none",
+          border: hovered ? "1.5px solid #10b981" : "none",
+          borderRadius: hovered ? 6 : 0,
+          display: "flex",
+          alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
+          justifyContent: "center",
+          paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
+          cursor: "pointer",
+          zIndex: hovered ? 10 : 2,
+          transition: "all 0.15s ease",
+          pointerEvents: "auto",
+        }}
+      >
+        {gapH >= 15 && (
+          <span
+            style={{
+              padding: hovered ? "3px 10px" : "2px 8px",
+              borderRadius: 999,
+              background: hovered ? "#059669" : "#10b981",
+              fontSize: hovered ? 10 : 9.5,
+              fontWeight: 700,
+              letterSpacing: 0.4,
+              textTransform: "uppercase",
+              color: "#ffffff",
+              whiteSpace: "nowrap",
+              boxShadow: hovered
+                ? "0 2px 8px rgba(16,185,129,0.50)"
+                : "0 1px 3px rgba(0,0,0,0.15)",
+              transform: hovered ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.15s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            {hovered
+              ? `⚡ Creando en reposo ${iniStr}-${finStr}`
+              : `Hueco libre ${gapMin}′`}
+          </span>
+        )}
+      </div>
+    );
+  },
+);
 
 export default function AgendaCalendar() {
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
@@ -595,7 +604,11 @@ export default function AgendaCalendar() {
   const [undoBusy, setUndoBusy] = useState(false);
   const [undoError, setUndoError] = useState<string | null>(null);
   // Limites del organizador configurables por salon (undefined = usar los defaults).
-  const [limitesAgenda, setLimitesAgenda] = useState<{ maxAdelantoMin?: number; umbralHuecoMin?: number; margenReaccionMin?: number }>({});
+  const [limitesAgenda, setLimitesAgenda] = useState<{
+    maxAdelantoMin?: number;
+    umbralHuecoMin?: number;
+    margenReaccionMin?: number;
+  }>({});
   // Cierres del salon completo (festivos/vacaciones): la agenda pinta el dia cerrado.
   const [cierres, setCierres] = useState<
     { fecha: string; motivo: string | null }[]
@@ -635,7 +648,6 @@ export default function AgendaCalendar() {
 
   // userId (extracted explicitly for event tracking)
   const userId = userProfile?.id || "";
-
 
   const roleTheme = useMemo(() => {
     const role = userProfile?.role;
@@ -969,7 +981,8 @@ export default function AgendaCalendar() {
       if (e.detail?.text) mostrarToast(e.detail.text);
     };
     window.addEventListener("mecha-toast" as any, onToast as any);
-    return () => window.removeEventListener("mecha-toast" as any, onToast as any);
+    return () =>
+      window.removeEventListener("mecha-toast" as any, onToast as any);
   }, [mostrarToast]);
 
   // Puente chat->panel: mientras la Agenda esta montada, avisa a Chispa de que
@@ -1328,7 +1341,15 @@ export default function AgendaCalendar() {
     setShowEditCita(true);
   }, []);
   const dtCreateSlot = useCallback(
-    ({ hora, profId, reposoContext }: { hora: string; profId: string; reposoContext?: any }) => {
+    ({
+      hora,
+      profId,
+      reposoContext,
+    }: {
+      hora: string;
+      profId: string;
+      reposoContext?: any;
+    }) => {
       setNewCitaPrefill({ hora, profId, reposoContext });
       setShowNewCita(true);
     },
@@ -1348,7 +1369,10 @@ export default function AgendaCalendar() {
 
   // Aplica un lote de movimientos (deshacer o rehacer) usando el snapshot indicado.
   // Solo mueve marcas horarias y profesional: no toca estado, cobros ni notificaciones.
-  async function aplicarPasoAgenda(paso: PasoAgenda, sentido: "antes" | "despues") {
+  async function aplicarPasoAgenda(
+    paso: PasoAgenda,
+    sentido: "antes" | "despues",
+  ) {
     setUndoBusy(true);
     try {
       const profile = await getUserProfile();
@@ -1369,7 +1393,10 @@ export default function AgendaCalendar() {
           .eq("id", cambio.citaId);
         if (error) {
           setUndoError(
-            "No se ha podido " + (sentido === "antes" ? "deshacer" : "rehacer") + ": " + error.message,
+            "No se ha podido " +
+              (sentido === "antes" ? "deshacer" : "rehacer") +
+              ": " +
+              error.message,
           );
           setTimeout(() => setUndoError(null), 3000);
           return false;
@@ -1533,20 +1560,22 @@ export default function AgendaCalendar() {
   const problemasAgenda = useMemo<ProblemaAgenda[]>(() => {
     if (profesionales.length === 0 || citas.length === 0) return [];
     try {
-      return ordenarPorPrioridad(analizarAgendaDia(
-        prepararCitas(citas as any, clientes as any, servicios as any),
-        profesionales,
-        {
-          ahoraMs: ahoraOverrideMs,
-          diaMs: selectedDateObj.getTime(),
-          bloqueos,
-          horarios,
-          horariosProfesional: horariosProf,
-          maxAdelantoMin: limitesAgenda?.maxAdelantoMin,
-          umbralHuecoMin: limitesAgenda?.umbralHuecoMin,
-          margenReaccionMin: limitesAgenda?.margenReaccionMin,
-        },
-      ));
+      return ordenarPorPrioridad(
+        analizarAgendaDia(
+          prepararCitas(citas as any, clientes as any, servicios as any),
+          profesionales,
+          {
+            ahoraMs: ahoraOverrideMs,
+            diaMs: selectedDateObj.getTime(),
+            bloqueos,
+            horarios,
+            horariosProfesional: horariosProf,
+            maxAdelantoMin: limitesAgenda?.maxAdelantoMin,
+            umbralHuecoMin: limitesAgenda?.umbralHuecoMin,
+            margenReaccionMin: limitesAgenda?.margenReaccionMin,
+          },
+        ),
+      );
     } catch {
       // El badge nunca debe tumbar la agenda: sin analisis, sin badge.
       return [];
@@ -1569,7 +1598,16 @@ export default function AgendaCalendar() {
   // "profesional llega tarde": los dos producen cascadas que deben deshacerse
   // como UN paso (a medias dejarian la agenda peor de lo que estaba).
   const aplicarUpdatesEnAgenda = useCallback(
-    (updates: { id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string; profesional_id?: string }[]) => {
+    (
+      updates: {
+        id: string;
+        inicio: string;
+        fin: string;
+        fin_activa?: string;
+        fin_espera?: string;
+        profesional_id?: string;
+      }[],
+    ) => {
       const paso: PasoAgenda = [];
       for (const u of updates) {
         const orig = (citas as any[]).find((c) => c.id === u.id);
@@ -1655,7 +1693,11 @@ export default function AgendaCalendar() {
         `[data-mecha-zona="${problemaEnfocado}"]`,
       ) as HTMLElement | null;
       if (nodo) {
-        nodo.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+        nodo.scrollIntoView({
+          block: "center",
+          inline: "center",
+          behavior: "smooth",
+        });
         nodo.classList.add("mecha-pulse-focus");
         setTimeout(() => nodo.classList.remove("mecha-pulse-focus"), 5000);
       }
@@ -1953,7 +1995,9 @@ export default function AgendaCalendar() {
   const etiquetaPeriodoCorta =
     view === "week" ? "Semana" : view === "month" ? "Mes" : "Día";
   const irA = (cuando: "anterior" | "siguiente") =>
-    view === "week" ? `Ir a la semana ${cuando}` : `Ir al ${etiquetaPeriodo} ${cuando}`;
+    view === "week"
+      ? `Ir a la semana ${cuando}`
+      : `Ir al ${etiquetaPeriodo} ${cuando}`;
 
   if (loading)
     return (
@@ -1988,16 +2032,24 @@ export default function AgendaCalendar() {
   const barraControlesAgenda = (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         gap: 8,
         rowGap: 8,
-        flexWrap: 'wrap',
+        flexWrap: "wrap",
         minWidth: 0,
         marginLeft: isMobile ? 0 : 12,
       }}
     >
-      <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex",
+          background: TOKENS.bgCard,
+          border: `1px solid ${TOKENS.border}`,
+          borderRadius: 10,
+          overflow: "hidden",
+        }}
+      >
         {(["day", "week", "month"] as const).map((v) => (
           <button
             key={v}
@@ -2013,11 +2065,17 @@ export default function AgendaCalendar() {
               color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
               border: "none",
               cursor: "pointer",
-              borderRight: v !== "month" ? `1px solid ${TOKENS.border}` : "none",
+              borderRight:
+                v !== "month" ? `1px solid ${TOKENS.border}` : "none",
               transition: "all 0.2s ease",
             }}
-            onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = roleTheme.primarySoft; }}
-            onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = "transparent"; }}
+            onMouseEnter={(e) => {
+              if (view !== v)
+                e.currentTarget.style.background = roleTheme.primarySoft;
+            }}
+            onMouseLeave={(e) => {
+              if (view !== v) e.currentTarget.style.background = "transparent";
+            }}
           >
             {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
           </button>
@@ -2068,10 +2126,14 @@ export default function AgendaCalendar() {
           display: "flex",
           alignItems: "center",
           gap: 6,
-          transition: "all 0.2s ease"
+          transition: "all 0.2s ease",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.12)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.12)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
       >
         <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
         {problemasAgenda.length > 0 && (
@@ -2129,9 +2191,7 @@ export default function AgendaCalendar() {
           alignItems: "center",
           gap: 6,
           padding: "7px 12px",
-          background: ensenar
-            ? TOKENS.primary
-            : "rgba(244,80,30,0.12)",
+          background: ensenar ? TOKENS.primary : "rgba(244,80,30,0.12)",
           border: `1px solid ${ensenar ? TOKENS.primary : "rgba(244,80,30,0.45)"}`,
           borderRadius: 10,
           cursor: "pointer",
@@ -2145,14 +2205,8 @@ export default function AgendaCalendar() {
           transition: "all 0.15s ease",
         }}
       >
-        <Icon
-          name="zap"
-          size={13}
-          color={ensenar ? "#fff" : TOKENS.primary}
-        />
-        {!isMobile && (
-          <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>
-        )}
+        <Icon name="zap" size={13} color={ensenar ? "#fff" : TOKENS.primary} />
+        {!isMobile && <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>}
       </button>
       {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
           prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
@@ -2160,790 +2214,809 @@ export default function AgendaCalendar() {
       {/* El separador no pinta nada en movil, donde la barra ya
           va en varias filas y solo suma ruido. */}
       {!isMobile && (
-        <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
+        <div
+          style={{
+            width: 1,
+            height: 20,
+            background: TOKENS.border,
+            opacity: 0.5,
+            marginLeft: 4,
+            marginRight: 4,
+          }}
+        />
       )}
-    {/* Los dos filtros se reparten el ancho en movil (minWidth:0 para que
+      {/* Los dos filtros se reparten el ancho en movil (minWidth:0 para que
     de verdad puedan encogerse) en vez de forzar 120px cada uno. */}
-    <div style={{ position: "relative", minWidth: 0, flex: isMobile ? "1 1 120px" : undefined }}>
-    <button
-    onClick={() => {
-    setDropServicioOpen(!dropServicioOpen);
-    setDropEstadoOpen(false);
-    }}
-    onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
-    style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "7px 12px",
-    background:
-    filterServicio !== "todos"
-    ? "rgba(244,80,30,0.10)"
-    : TOKENS.bgCard,
-    border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-    borderRadius: 10,
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 600,
-    color:
-    filterServicio !== "todos"
-    ? TOKENS.primaryHi
-    : TOKENS.textSec,
-    transition: "all 0.2s ease",
-    minWidth: isMobile ? 0 : 120,
-    width: isMobile ? "100%" : undefined,
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.borderColor = TOKENS.primary;
-    }}
-    onMouseLeave={(e) => {
-    if (!dropServicioOpen)
-    e.currentTarget.style.borderColor =
-    filterServicio !== "todos"
-    ? "rgba(244,80,30,0.30)"
-    : TOKENS.border;
-    }}
-    >
-    <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    >
-    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-    <line x1="7" y1="7" x2="7.01" y2="7" />
-    </svg>
-    <span
-    style={{
-    flex: 1,
-    textAlign: "left",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    }}
-    >
-    {filterServicio === "todos"
-    ? "Servicio"
-    : servicios.find((s) => s.id === filterServicio)?.nombre ||
-    "Servicio"}
-    </span>
-    <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    style={{
-    transform: dropServicioOpen ? "rotate(180deg)" : "none",
-    transition: "transform 0.2s ease",
-    flexShrink: 0,
-    opacity: 0.5,
-    }}
-    >
-    <polyline points="6 9 12 15 18 9" />
-    </svg>
-    </button>
-    {dropServicioOpen && (
-    <div
-    style={{
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    marginTop: 4,
-    minWidth: 200,
-    maxHeight: 260,
-    overflowY: "auto",
-    background: TOKENS.bgCard,
-    border: `1px solid ${TOKENS.border}`,
-    borderRadius: 12,
-    boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-    zIndex: 200,
-    padding: 4,
-    animation: "fadeIn 0.15s ease",
-    }}
-    >
-    <div
-    onMouseDown={() => {
-    setFilterServicio("todos");
-    setDropServicioOpen(false);
-    }}
-    style={{
-    padding: "8px 12px",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: filterServicio === "todos" ? 700 : 500,
-    color:
-    filterServicio === "todos"
-      ? TOKENS.primaryHi
-      : TOKENS.textSec,
-    transition: "background 0.1s",
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-    }}
-    onMouseLeave={(e) => {
-    e.currentTarget.style.background = "transparent";
-    }}
-    >
-    Todos los servicios
-    </div>
-    {servicios.map((s) => (
-    <div
-    key={s.id}
-    onMouseDown={() => {
-    setFilterServicio(s.id);
-    setDropServicioOpen(false);
-    }}
-    style={{
-    padding: "8px 12px",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: filterServicio === s.id ? 700 : 500,
-    color:
-      filterServicio === s.id
-        ? TOKENS.primaryHi
-        : TOKENS.text,
-    transition: "background 0.1s",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-    }}
-    onMouseLeave={(e) => {
-    e.currentTarget.style.background = "transparent";
-    }}
-    >
-    <span>{s.nombre}</span>
-    {s.precio != null && (
-    <span style={{ fontSize: 10, color: TOKENS.textTer }}>
-      {s.precio}EUR
-    </span>
-    )}
-    </div>
-    ))}
-    </div>
-    )}
-    </div>
-
-
-    <div style={{ position: "relative", minWidth: 0, flex: isMobile ? "1 1 120px" : undefined }}>
-    <button
-    onClick={() => {
-    setDropEstadoOpen(!dropEstadoOpen);
-    setDropServicioOpen(false);
-    }}
-    onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
-    style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "7px 12px",
-    background:
-    filterEstado !== "todos"
-    ? "rgba(244,80,30,0.10)"
-    : TOKENS.bgCard,
-    border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-    borderRadius: 10,
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 600,
-    color:
-    filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
-    transition: "all 0.2s ease",
-    minWidth: isMobile ? 0 : 110,
-    width: isMobile ? "100%" : undefined,
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.borderColor = TOKENS.primary;
-    }}
-    onMouseLeave={(e) => {
-    if (!dropEstadoOpen)
-    e.currentTarget.style.borderColor =
-    filterEstado !== "todos"
-    ? "rgba(244,80,30,0.30)"
-    : TOKENS.border;
-    }}
-    >
-    <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    >
-    <circle cx="12" cy="12" r="10" />
-    <path d="M8 12l2.5 2.5L16 9" />
-    </svg>
-    <span style={{ flex: 1, textAlign: "left" }}>
-    {filterEstado === "todos"
-    ? "Estado"
-    : filterEstado === "no_presentada"
-    ? "No presentada"
-    : filterEstado.charAt(0).toUpperCase() +
-    filterEstado.slice(1)}
-    </span>
-    <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    style={{
-    transform: dropEstadoOpen ? "rotate(180deg)" : "none",
-    transition: "transform 0.2s ease",
-    flexShrink: 0,
-    opacity: 0.5,
-    }}
-    >
-    <polyline points="6 9 12 15 18 9" />
-    </svg>
-    </button>
-    {dropEstadoOpen &&
-    (() => {
-    const estados = [
-    {
-    value: "todos",
-    label: "Todos los estados",
-    dot: TOKENS.textTer,
-    },
-    {
-    value: CITA_STATUS.CONFIRMADA,
-    label: "Confirmada",
-    dot: TOKENS.primaryHi,
-    },
-    {
-    value: CITA_STATUS.COMPLETADA,
-    label: "Completada",
-    dot: "#22c55e",
-    },
-    {
-    value: CITA_STATUS.CANCELADA,
-    label: "Cancelada",
-    dot: "#ef4444",
-    },
-    {
-    value: CITA_STATUS.NO_PRESENTADA,
-    label: "No presentada",
-    dot: "#f59e0b",
-    },
-    ];
-    return (
-    <div
-    style={{
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    marginTop: 4,
-    minWidth: 180,
-    background: TOKENS.bgCard,
-    border: `1px solid ${TOKENS.border}`,
-    borderRadius: 12,
-    boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-    zIndex: 200,
-    padding: 4,
-    animation: "fadeIn 0.15s ease",
-    }}
-    >
-    {estados.map((e) => (
-    <div
-      key={e.value}
-      onMouseDown={() => {
-        setFilterEstado(e.value);
-        setDropEstadoOpen(false);
-      }}
-      style={{
-        padding: "8px 12px",
-        borderRadius: 8,
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: filterEstado === e.value ? 700 : 500,
-        color: filterEstado === e.value ? e.dot : TOKENS.text,
-        transition: "background 0.1s",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-      }}
-      onMouseEnter={(ev) => {
-        ev.currentTarget.style.background =
-          "rgba(244,80,30,0.08)";
-      }}
-      onMouseLeave={(ev) => {
-        ev.currentTarget.style.background = "transparent";
-      }}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 999,
-          background: e.dot,
-          flexShrink: 0,
-        }}
-      />
-      {e.label}
-    </div>
-    ))}
-    </div>
-    );
-    })()}
-    </div>
-
-
-    {(filterServicio !== "todos" || filterEstado !== "todos") && (
-    <button
-    onClick={() => {
-    setFilterServicio("todos");
-    setFilterEstado("todos");
-    }}
-    style={{
-    padding: "5px 10px",
-    fontSize: 11,
-    fontWeight: 600,
-    background: "rgba(239,68,68,0.08)",
-    border: "1px solid rgba(239,68,68,0.20)",
-    borderRadius: 8,
-    color: "#ef4444",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    animation: "fadeIn 0.2s ease",
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-    }}
-    onMouseLeave={(e) => {
-    e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-    }}
-    >
-    <svg
-    width="10"
-    height="10"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    >
-    <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-    Limpiar
-    </button>
-    )}
-
-
-
-    <div style={{ position: "relative" }}>
-    {!searchOpen ? (
-    <button
-    onClick={() => setSearchOpen(true)}
-    title="Buscar cita"
-    style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 36,
-    height: 36,
-    background: TOKENS.bgCard,
-    border: `1px solid ${TOKENS.border}`,
-    borderRadius: 10,
-    color: TOKENS.textSec,
-    cursor: "pointer",
-    transition: "all 0.2s ease"
-    }}
-    onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
-    onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textSec; }}
-    >
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-    </button>
-    ) : (
-    <>
-    <div
-    style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    background: TOKENS.bgCard,
-    border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
-    borderRadius: 10,
-    padding: "7px 12px",
-    transition: "all 0.25s ease",
-    width: searchOpen ? 280 : 36,
-    boxShadow: searchOpen
-    ? `0 0 0 3px rgba(244,80,30,0.10)`
-    : "none",
-    }}
-    >
-    <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
-    strokeWidth="2"
-    style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
-    >
-    <circle cx="11" cy="11" r="8" />
-    <path d="M21 21l-4.35-4.35" />
-    </svg>
-    <input
-    type="text"
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    onFocus={() => {
-    setSearchOpen(true);
-    setDropServicioOpen(false);
-    setDropEstadoOpen(false);
-    }}
-    onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-    placeholder={searchOpen ? "Buscar cita..." : ""}
-    style={{
-    border: "none",
-    outline: "none",
-    background: "transparent",
-    color: TOKENS.text,
-    fontSize: 12,
-    width: "100%",
-    }}
-    />
-    {searchQuery && (
-    <button
-    onClick={() => setSearchQuery("")}
-    style={{
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    color: TOKENS.textTer,
-    padding: 2,
-    display: "flex",
-    transition: "color 0.15s",
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.color = TOKENS.text;
-    }}
-    onMouseLeave={(e) => {
-    e.currentTarget.style.color = TOKENS.textTer;
-    }}
-    >
-    <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    >
-    <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-    </button>
-    )}
-    </div>
-    {searchOpen && searchResults.length > 0 && (
-    <div
-    onWheel={(e) => e.stopPropagation()}
-    onMouseDown={(e) => e.preventDefault()}
-    style={{
-    position: "absolute",
-    top: "100%",
-    right: 0,
-    marginTop: 6,
-    width: 360,
-    maxHeight: 340,
-    overflowY: "auto",
-    background: TOKENS.bgCard,
-    border: `1px solid ${TOKENS.border}`,
-    borderRadius: 14,
-    boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
-    zIndex: 200,
-    padding: 6,
-    animation: "slideInUp 0.2s ease",
-    overscrollBehavior: "contain",
-    }}
-    >
-    <div
-    style={{
-    padding: "6px 10px 8px",
-    fontSize: 10,
-    fontWeight: 600,
-    color: TOKENS.textTer,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    }}
-    >
-    {searchResults.length} resultado
-    {searchResults.length !== 1 ? "s" : ""}
-    </div>
-    {searchResults.map((c: any) => {
-    const cli = clientes.find(
-    (cl: any) => cl.id === c.cliente_id,
-    );
-    const srv = servicios.find(
-    (s: any) => s.id === c.servicio_id,
-    );
-    const prof = profesionales.find(
-    (p: any) => p.id === c.profesional_id,
-    );
-    const fecha = new Date(c.inicio);
-    return (
-    <div
-    key={c.id}
-    onMouseDown={() => {
-      const citaDate = new Date(c.inicio);
-      setSelectedDate(citaDate.getDate());
-      setCurrentMonth(
-        new Date(citaDate.getFullYear(), citaDate.getMonth()),
-      );
-      setView("day");
-      setSearchQuery("");
-    }}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      padding: "8px 10px",
-      borderRadius: 8,
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.background =
-        "rgba(244,80,30,0.08)";
-      e.currentTarget.style.transform = "none";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = "transparent";
-      e.currentTarget.style.transform = "none";
-    }}
-    >
-    <div
-      style={{
-        width: 4,
-        height: 32,
-        borderRadius: 2,
-        background: prof?.color || TOKENS.primary,
-        flexShrink: 0,
-      }}
-    />
-    <div style={{ flex: 1, minWidth: 0 }}>
       <div
         style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: TOKENS.text,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          position: "relative",
+          minWidth: 0,
+          flex: isMobile ? "1 1 120px" : undefined,
         }}
       >
-        {cli?.nombre || "Sin cliente"}
+        <button
+          onClick={() => {
+            setDropServicioOpen(!dropServicioOpen);
+            setDropEstadoOpen(false);
+          }}
+          onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "7px 12px",
+            background:
+              filterServicio !== "todos"
+                ? "rgba(244,80,30,0.10)"
+                : TOKENS.bgCard,
+            border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+            borderRadius: 10,
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+            color:
+              filterServicio !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
+            transition: "all 0.2s ease",
+            minWidth: isMobile ? 0 : 120,
+            width: isMobile ? "100%" : undefined,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = TOKENS.primary;
+          }}
+          onMouseLeave={(e) => {
+            if (!dropServicioOpen)
+              e.currentTarget.style.borderColor =
+                filterServicio !== "todos"
+                  ? "rgba(244,80,30,0.30)"
+                  : TOKENS.border;
+          }}
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
+          </svg>
+          <span
+            style={{
+              flex: 1,
+              textAlign: "left",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {filterServicio === "todos"
+              ? "Servicio"
+              : servicios.find((s) => s.id === filterServicio)?.nombre ||
+                "Servicio"}
+          </span>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            style={{
+              transform: dropServicioOpen ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s ease",
+              flexShrink: 0,
+              opacity: 0.5,
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        {dropServicioOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              marginTop: 4,
+              minWidth: 200,
+              maxHeight: 260,
+              overflowY: "auto",
+              background: TOKENS.bgCard,
+              border: `1px solid ${TOKENS.border}`,
+              borderRadius: 12,
+              boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+              zIndex: 200,
+              padding: 4,
+              animation: "fadeIn 0.15s ease",
+            }}
+          >
+            <div
+              onMouseDown={() => {
+                setFilterServicio("todos");
+                setDropServicioOpen(false);
+              }}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 8,
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: filterServicio === "todos" ? 700 : 500,
+                color:
+                  filterServicio === "todos"
+                    ? TOKENS.primaryHi
+                    : TOKENS.textSec,
+                transition: "background 0.1s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              Todos los servicios
+            </div>
+            {servicios.map((s) => (
+              <div
+                key={s.id}
+                onMouseDown={() => {
+                  setFilterServicio(s.id);
+                  setDropServicioOpen(false);
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: filterServicio === s.id ? 700 : 500,
+                  color:
+                    filterServicio === s.id ? TOKENS.primaryHi : TOKENS.text,
+                  transition: "background 0.1s",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <span>{s.nombre}</span>
+                {s.precio != null && (
+                  <span style={{ fontSize: 10, color: TOKENS.textTer }}>
+                    {s.precio}EUR
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      <div
-        style={{
-          fontSize: 10,
-          color: TOKENS.textTer,
-          marginTop: 1,
-        }}
-      >
-        {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
-      </div>
-    </div>
-    <div style={{ textAlign: "right", flexShrink: 0 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          color: TOKENS.textSec,
-        }}
-      >
-        {fecha.toLocaleDateString("es-ES", {
-          day: "numeric",
-          month: "short",
-        })}
-      </div>
-      <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-        {fecha.toLocaleTimeString("es-ES", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </div>
-    </div>
-    <button
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        setShowClienteHistorial(cli);
-      }}
-      style={{
-        padding: "4px 8px",
-        fontSize: 10,
-        fontWeight: 600,
-        background: "rgba(244,80,30,0.10)",
-        border: "1px solid rgba(244,80,30,0.25)",
-        borderRadius: 6,
-        color: TOKENS.primaryHi,
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-        transition: "all 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background =
-          "rgba(244,80,30,0.20)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background =
-          "rgba(244,80,30,0.10)";
-      }}
-    >
-      Historial
-    </button>
-    </div>
-    );
-    })}
-    </div>
-    )}
-    </>
-    )}
-    </div>
 
-    {/* Acceso rapido por profesional, junto a la lupa. Aisla la columna de un
+      <div
+        style={{
+          position: "relative",
+          minWidth: 0,
+          flex: isMobile ? "1 1 120px" : undefined,
+        }}
+      >
+        <button
+          onClick={() => {
+            setDropEstadoOpen(!dropEstadoOpen);
+            setDropServicioOpen(false);
+          }}
+          onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "7px 12px",
+            background:
+              filterEstado !== "todos" ? "rgba(244,80,30,0.10)" : TOKENS.bgCard,
+            border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+            borderRadius: 10,
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+            color: filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
+            transition: "all 0.2s ease",
+            minWidth: isMobile ? 0 : 110,
+            width: isMobile ? "100%" : undefined,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = TOKENS.primary;
+          }}
+          onMouseLeave={(e) => {
+            if (!dropEstadoOpen)
+              e.currentTarget.style.borderColor =
+                filterEstado !== "todos"
+                  ? "rgba(244,80,30,0.30)"
+                  : TOKENS.border;
+          }}
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12l2.5 2.5L16 9" />
+          </svg>
+          <span style={{ flex: 1, textAlign: "left" }}>
+            {filterEstado === "todos"
+              ? "Estado"
+              : filterEstado === "no_presentada"
+                ? "No presentada"
+                : filterEstado.charAt(0).toUpperCase() + filterEstado.slice(1)}
+          </span>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            style={{
+              transform: dropEstadoOpen ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s ease",
+              flexShrink: 0,
+              opacity: 0.5,
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        {dropEstadoOpen &&
+          (() => {
+            const estados = [
+              {
+                value: "todos",
+                label: "Todos los estados",
+                dot: TOKENS.textTer,
+              },
+              {
+                value: CITA_STATUS.CONFIRMADA,
+                label: "Confirmada",
+                dot: TOKENS.primaryHi,
+              },
+              {
+                value: CITA_STATUS.COMPLETADA,
+                label: "Completada",
+                dot: "#22c55e",
+              },
+              {
+                value: CITA_STATUS.CANCELADA,
+                label: "Cancelada",
+                dot: "#ef4444",
+              },
+              {
+                value: CITA_STATUS.NO_PRESENTADA,
+                label: "No presentada",
+                dot: "#f59e0b",
+              },
+            ];
+            return (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  marginTop: 4,
+                  minWidth: 180,
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 12,
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                  zIndex: 200,
+                  padding: 4,
+                  animation: "fadeIn 0.15s ease",
+                }}
+              >
+                {estados.map((e) => (
+                  <div
+                    key={e.value}
+                    onMouseDown={() => {
+                      setFilterEstado(e.value);
+                      setDropEstadoOpen(false);
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: filterEstado === e.value ? 700 : 500,
+                      color: filterEstado === e.value ? e.dot : TOKENS.text,
+                      transition: "background 0.1s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                    onMouseEnter={(ev) => {
+                      ev.currentTarget.style.background =
+                        "rgba(244,80,30,0.08)";
+                    }}
+                    onMouseLeave={(ev) => {
+                      ev.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: e.dot,
+                        flexShrink: 0,
+                      }}
+                    />
+                    {e.label}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+      </div>
+
+      {(filterServicio !== "todos" || filterEstado !== "todos") && (
+        <button
+          onClick={() => {
+            setFilterServicio("todos");
+            setFilterEstado("todos");
+          }}
+          style={{
+            padding: "5px 10px",
+            fontSize: 11,
+            fontWeight: 600,
+            background: "rgba(239,68,68,0.08)",
+            border: "1px solid rgba(239,68,68,0.20)",
+            borderRadius: 8,
+            color: "#ef4444",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            animation: "fadeIn 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+          }}
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+          Limpiar
+        </button>
+      )}
+
+      <div style={{ position: "relative" }}>
+        {!searchOpen ? (
+          <button
+            onClick={() => setSearchOpen(true)}
+            title="Buscar cita"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 36,
+              height: 36,
+              background: TOKENS.bgCard,
+              border: `1px solid ${TOKENS.border}`,
+              borderRadius: 10,
+              color: TOKENS.textSec,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = TOKENS.primary;
+              e.currentTarget.style.color = TOKENS.primaryHi;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = TOKENS.border;
+              e.currentTarget.style.color = TOKENS.textSec;
+            }}
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+        ) : (
+          <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: TOKENS.bgCard,
+                border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
+                borderRadius: 10,
+                padding: "7px 12px",
+                transition: "all 0.25s ease",
+                width: searchOpen ? 280 : 36,
+                boxShadow: searchOpen
+                  ? `0 0 0 3px rgba(244,80,30,0.10)`
+                  : "none",
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
+                strokeWidth="2"
+                style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  setSearchOpen(true);
+                  setDropServicioOpen(false);
+                  setDropEstadoOpen(false);
+                }}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
+                placeholder={searchOpen ? "Buscar cita..." : ""}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  color: TOKENS.text,
+                  fontSize: 12,
+                  width: "100%",
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: TOKENS.textTer,
+                    padding: 2,
+                    display: "flex",
+                    transition: "color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = TOKENS.text;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = TOKENS.textTer;
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {searchOpen && searchResults.length > 0 && (
+              <div
+                onWheel={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.preventDefault()}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: 6,
+                  width: 360,
+                  maxHeight: 340,
+                  overflowY: "auto",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 14,
+                  boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
+                  zIndex: 200,
+                  padding: 6,
+                  animation: "slideInUp 0.2s ease",
+                  overscrollBehavior: "contain",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "6px 10px 8px",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: TOKENS.textTer,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {searchResults.length} resultado
+                  {searchResults.length !== 1 ? "s" : ""}
+                </div>
+                {searchResults.map((c: any) => {
+                  const cli = clientes.find(
+                    (cl: any) => cl.id === c.cliente_id,
+                  );
+                  const srv = servicios.find(
+                    (s: any) => s.id === c.servicio_id,
+                  );
+                  const prof = profesionales.find(
+                    (p: any) => p.id === c.profesional_id,
+                  );
+                  const fecha = new Date(c.inicio);
+                  return (
+                    <div
+                      key={c.id}
+                      onMouseDown={() => {
+                        const citaDate = new Date(c.inicio);
+                        setSelectedDate(citaDate.getDate());
+                        setCurrentMonth(
+                          new Date(citaDate.getFullYear(), citaDate.getMonth()),
+                        );
+                        setView("day");
+                        setSearchQuery("");
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background =
+                          "rgba(244,80,30,0.08)";
+                        e.currentTarget.style.transform = "none";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.transform = "none";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 4,
+                          height: 32,
+                          borderRadius: 2,
+                          background: prof?.color || TOKENS.primary,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: TOKENS.text,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {cli?.nombre || "Sin cliente"}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: TOKENS.textTer,
+                            marginTop: 1,
+                          }}
+                        >
+                          {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: TOKENS.textSec,
+                          }}
+                        >
+                          {fecha.toLocaleDateString("es-ES", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </div>
+                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+                          {fecha.toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </div>
+                      <button
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          setShowClienteHistorial(cli);
+                        }}
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          background: "rgba(244,80,30,0.10)",
+                          border: "1px solid rgba(244,80,30,0.25)",
+                          borderRadius: 6,
+                          color: TOKENS.primaryHi,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(244,80,30,0.20)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(244,80,30,0.10)";
+                        }}
+                      >
+                        Historial
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Acceso rapido por profesional, junto a la lupa. Aisla la columna de un
     estilista sin tener que salir de pantalla completa para llegar al filtro
     del rail. Pulsar el que ya esta activo vuelve a "Todos". */}
-    {!isMobile && visibleProfs.length > 1 && (
-    <div
-    style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    paddingLeft: 8,
-    marginLeft: 4,
-    borderLeft: `1px solid ${TOKENS.border}`,
-    }}
-    >
-    <button
-    onClick={() => setSelectedProf("todos")}
-    title="Ver todos los profesionales"
-    aria-pressed={selectedProf === "todos"}
-    style={{
-    height: 28,
-    padding: "0 9px",
-    borderRadius: 999,
-    fontSize: 10.5,
-    fontWeight: 700,
-    letterSpacing: 0.3,
-    cursor: "pointer",
-    flexShrink: 0,
-    transition: "all 0.15s ease",
-    background:
-    selectedProf === "todos"
-    ? "rgba(244,80,30,0.12)"
-    : TOKENS.bgCard,
-    border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
-    color:
-    selectedProf === "todos"
-    ? TOKENS.primaryHi
-    : TOKENS.textTer,
-    }}
-    >
-    Todos
-    </button>
-    {visibleProfs.map((p) => {
-    const activo = selectedProf === p.id;
-    const ini =
-    (p.nombre || "?")
-    .split(/\s+/)
-    .map((w: string) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase() || "?";
-    const nCitas = citasHoy.filter(
-    (c: any) => c.profesional_id === p.id,
-    ).length;
-    return (
-    <button
-    key={p.id}
-    onClick={() =>
-    setSelectedProf(activo ? "todos" : p.id)
-    }
-    title={
-    activo
-      ? `${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy (pulsa para ver a todos)`
-      : `Ver solo la agenda de ${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy`
-    }
-    aria-label={`Ver solo la agenda de ${p.nombre}`}
-    aria-pressed={activo}
-    style={{
-    width: 28,
-    height: 28,
-    borderRadius: 999,
-    padding: 0,
-    overflow: "hidden",
-    flexShrink: 0,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: p.color,
-    border: `2px solid ${activo ? p.color : "transparent"}`,
-    boxShadow: activo
-      ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
-      : "0 1px 2px rgba(0,0,0,0.15)",
-    opacity: activo || selectedProf === "todos" ? 1 : 0.45,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    }}
-    onMouseEnter={(e) => {
-    e.currentTarget.style.opacity = "1";
-    e.currentTarget.style.transform = "scale(1.12)";
-    }}
-    onMouseLeave={(e) => {
-    e.currentTarget.style.opacity =
-      activo || selectedProf === "todos" ? "1" : "0.45";
-    e.currentTarget.style.transform = "scale(1)";
-    }}
-    >
-    {p.foto_perfil ? (
-    <img
-      src={p.foto_perfil}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-      }}
-    />
-    ) : (
-    <span
-      style={{
-        fontSize: 10,
-        fontWeight: 800,
-        color: "#ffffff",
-        lineHeight: 1,
-      }}
-    >
-      {ini}
-    </span>
-    )}
-    </button>
-    );
-    })}
-    </div>
-    )}
-
+      {!isMobile && visibleProfs.length > 1 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            paddingLeft: 8,
+            marginLeft: 4,
+            borderLeft: `1px solid ${TOKENS.border}`,
+          }}
+        >
+          <button
+            onClick={() => setSelectedProf("todos")}
+            title="Ver todos los profesionales"
+            aria-pressed={selectedProf === "todos"}
+            style={{
+              height: 28,
+              padding: "0 9px",
+              borderRadius: 999,
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "all 0.15s ease",
+              background:
+                selectedProf === "todos"
+                  ? "rgba(244,80,30,0.12)"
+                  : TOKENS.bgCard,
+              border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
+              color:
+                selectedProf === "todos" ? TOKENS.primaryHi : TOKENS.textTer,
+            }}
+          >
+            Todos
+          </button>
+          {visibleProfs.map((p) => {
+            const activo = selectedProf === p.id;
+            const ini =
+              (p.nombre || "?")
+                .split(/\s+/)
+                .map((w: string) => w[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join("")
+                .toUpperCase() || "?";
+            const nCitas = citasHoy.filter(
+              (c: any) => c.profesional_id === p.id,
+            ).length;
+            return (
+              <button
+                key={p.id}
+                onClick={() => setSelectedProf(activo ? "todos" : p.id)}
+                title={
+                  activo
+                    ? `${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy (pulsa para ver a todos)`
+                    : `Ver solo la agenda de ${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy`
+                }
+                aria-label={`Ver solo la agenda de ${p.nombre}`}
+                aria-pressed={activo}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 999,
+                  padding: 0,
+                  overflow: "hidden",
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: p.color,
+                  border: `2px solid ${activo ? p.color : "transparent"}`,
+                  boxShadow: activo
+                    ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
+                    : "0 1px 2px rgba(0,0,0,0.15)",
+                  opacity: activo || selectedProf === "todos" ? 1 : 0.45,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "scale(1.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity =
+                    activo || selectedProf === "todos" ? "1" : "0.45";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              >
+                {p.foto_perfil ? (
+                  <img
+                    src={p.foto_perfil}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: "#ffffff",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {ini}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 
@@ -3068,7 +3141,17 @@ export default function AgendaCalendar() {
               {/* Orden fijo de lectura; el texto sale de BLOQUEO_LABELS/BLOQUEO_COLORS
                   (misma fuente que pinta los bloques) para que no puedan desincronizarse
                   si se añade un tipo nuevo en un sitio y se olvida el otro. */}
-              {(["fuera_jornada", "salon_cerrado", "vacaciones", "baja", "formacion", "reunion", "descanso"] as const).map((tipo) => (
+              {(
+                [
+                  "fuera_jornada",
+                  "salon_cerrado",
+                  "vacaciones",
+                  "baja",
+                  "formacion",
+                  "reunion",
+                  "descanso",
+                ] as const
+              ).map((tipo) => (
                 <span
                   key={tipo}
                   style={{
@@ -3088,7 +3171,9 @@ export default function AgendaCalendar() {
                       flexShrink: 0,
                     }}
                   />
-                  {tipo === "salon_cerrado" ? "Salón cerrado / festivo" : BLOQUEO_LABELS[tipo]}
+                  {tipo === "salon_cerrado"
+                    ? "Salón cerrado / festivo"
+                    : BLOQUEO_LABELS[tipo]}
                 </span>
               ))}
             </div>
@@ -3252,24 +3337,28 @@ export default function AgendaCalendar() {
             onClick={alternarPantallaCompleta}
             title={
               pantallaCompletaActiva
-                ? (isMobile
-                    ? "Salir de pantalla completa (mostrar cabecera y filtros)"
-                    : "Salir de pantalla completa (mostrar profesionales, calendario y resumen)")
-                : (isMobile
-                    ? "Pantalla completa (ocultar cabecera y filtros)"
-                    : "Pantalla completa (ocultar el panel lateral)")
+                ? isMobile
+                  ? "Salir de pantalla completa (mostrar cabecera y filtros)"
+                  : "Salir de pantalla completa (mostrar profesionales, calendario y resumen)"
+                : isMobile
+                  ? "Pantalla completa (ocultar cabecera y filtros)"
+                  : "Pantalla completa (ocultar el panel lateral)"
             }
             aria-label={
-              pantallaCompletaActiva ? "Salir de pantalla completa" : "Pantalla completa"
+              pantallaCompletaActiva
+                ? "Salir de pantalla completa"
+                : "Pantalla completa"
             }
             aria-pressed={pantallaCompletaActiva}
             style={{
-              padding: isMobile ? "6px 10px" : (isTablet ? 7 : "7px 12px"),
+              padding: isMobile ? "6px 10px" : isTablet ? 7 : "7px 12px",
               background: pantallaCompletaActiva
                 ? roleTheme.primarySoft
                 : TOKENS.bgCard,
               border: `1px solid ${pantallaCompletaActiva ? roleTheme.primary + "40" : TOKENS.border}`,
-              color: pantallaCompletaActiva ? roleTheme.primaryHi : TOKENS.textSec,
+              color: pantallaCompletaActiva
+                ? roleTheme.primaryHi
+                : TOKENS.textSec,
               borderRadius: 9,
               cursor: "pointer",
               fontSize: 12.5,
@@ -3285,7 +3374,9 @@ export default function AgendaCalendar() {
             <Icon
               name={pantallaCompletaActiva ? "minimize" : "maximize"}
               size={15}
-              color={pantallaCompletaActiva ? roleTheme.primaryHi : TOKENS.textSec}
+              color={
+                pantallaCompletaActiva ? roleTheme.primaryHi : TOKENS.textSec
+              }
             />
             {/* La etiqueta larga solo cabe en escritorio; en movil/tablet manda el icono
                 (el estado tambien se lee por el color de fondo del boton). */}
@@ -3369,8 +3460,6 @@ export default function AgendaCalendar() {
           onCerrar={paginaManual.marcarVisto}
         />
       )}
-
-      
 
       {/* AlertBar: citas vencidas */}
       {citasVencidas.length > 0 &&
@@ -4001,15 +4090,19 @@ export default function AgendaCalendar() {
         >
           <div
             style={{
-            position: "sticky",
-            top: 0,
-            // La cabecera es pegajosa: cada pixel que ocupa se lo quita a la
-            // rejilla durante todo el scroll. En movil va al minimo.
-            padding: isMobile ? "8px 0 8px 0" : (isReallyCollapsed ? "20px 0 16px 0" : "24px 0 16px 0"),
-            marginBottom: isMobile ? 8 : 16,
-            background: TOKENS.bg,
-            zIndex: 100,
-            borderBottom: `1px solid ${TOKENS.borderHi}`,
+              position: "sticky",
+              top: 0,
+              // La cabecera es pegajosa: cada pixel que ocupa se lo quita a la
+              // rejilla durante todo el scroll. En movil va al minimo.
+              padding: isMobile
+                ? "8px 0 8px 0"
+                : isReallyCollapsed
+                  ? "20px 0 16px 0"
+                  : "24px 0 16px 0",
+              marginBottom: isMobile ? 8 : 16,
+              background: TOKENS.bg,
+              zIndex: 100,
+              borderBottom: `1px solid ${TOKENS.borderHi}`,
             }}
           >
             <>
@@ -4147,15 +4240,16 @@ export default function AgendaCalendar() {
                           textTransform: "capitalize",
                         }}
                       >
-                        {view === "month" ? 
-                          currentMonth.toLocaleDateString(LOCALE, { month: "long", year: "numeric" })
-                        :
-                          selectedDateObj.toLocaleDateString(LOCALE, {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "short",
-                          })
-                        }
+                        {view === "month"
+                          ? currentMonth.toLocaleDateString(LOCALE, {
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : selectedDateObj.toLocaleDateString(LOCALE, {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "short",
+                            })}
                       </h2>
                       {selectedDateObj.toDateString() ===
                         today.toDateString() && (
@@ -4171,7 +4265,6 @@ export default function AgendaCalendar() {
                       )}
 
                       {!isMobile && barraControlesAgenda}
-
                     </div>
                     {!movilFullscreen && (
                       <div
@@ -4298,7 +4391,6 @@ export default function AgendaCalendar() {
                       )}
                     </button>
                   )}
-
                 </div>
               </div>
 
@@ -4306,7 +4398,6 @@ export default function AgendaCalendar() {
                   pantalla completa se esconde (es lo que mas alto ocupa). */}
               {isMobile && !movilFullscreen && barraControlesAgenda}
 
-              
               {/* Selector de profesional en movil: la MISMA cuadricula de
                   avatares que en escritorio, en una tira que se desliza en
                   horizontal. Antes era una tarjeta de dos lineas con flechas
@@ -4388,7 +4479,8 @@ export default function AgendaCalendar() {
                           boxShadow: activo
                             ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
                             : "0 1px 2px rgba(0,0,0,0.15)",
-                          opacity: activo || selectedProf === "todos" ? 1 : 0.45,
+                          opacity:
+                            activo || selectedProf === "todos" ? 1 : 0.45,
                           cursor: "pointer",
                           transition: "opacity 0.15s ease",
                         }}
@@ -4539,7 +4631,6 @@ export default function AgendaCalendar() {
                   ))}
                 </div>
               )}
-
             </>
           </div>
           {view === "day" && (
@@ -4579,10 +4670,24 @@ export default function AgendaCalendar() {
                       overflow: "hidden",
                     }}
                   >
-                    {([
-                      { k: "prev", dis: profPage <= 0, icon: "chevronLeft", d: -1, t: "Profesionales anteriores" },
-                      { k: "next", dis: profPage >= profPageCount - 1, icon: "chevronRight", d: 1, t: "Siguientes profesionales" },
-                    ] as const).map((b) => (
+                    {(
+                      [
+                        {
+                          k: "prev",
+                          dis: profPage <= 0,
+                          icon: "chevronLeft",
+                          d: -1,
+                          t: "Profesionales anteriores",
+                        },
+                        {
+                          k: "next",
+                          dis: profPage >= profPageCount - 1,
+                          icon: "chevronRight",
+                          d: 1,
+                          t: "Siguientes profesionales",
+                        },
+                      ] as const
+                    ).map((b) => (
                       <button
                         key={b.k}
                         onClick={() =>
@@ -4597,7 +4702,9 @@ export default function AgendaCalendar() {
                           background: "transparent",
                           border: "none",
                           borderRight:
-                            b.k === "prev" ? `1px solid ${TOKENS.border}` : "none",
+                            b.k === "prev"
+                              ? `1px solid ${TOKENS.border}`
+                              : "none",
                           color: b.dis ? TOKENS.textTer : TOKENS.text,
                           cursor: b.dis ? "default" : "pointer",
                           opacity: b.dis ? 0.4 : 1,
@@ -4607,7 +4714,8 @@ export default function AgendaCalendar() {
                         }}
                         onMouseEnter={(e) => {
                           if (!b.dis)
-                            e.currentTarget.style.background = roleTheme.primarySoft;
+                            e.currentTarget.style.background =
+                              roleTheme.primarySoft;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
@@ -4806,7 +4914,6 @@ export default function AgendaCalendar() {
           prefillReposoContext={newCitaPrefill?.reposoContext}
         />
       )}
-      
 
       {undoError && (
         <div
@@ -5066,7 +5173,7 @@ export default function AgendaCalendar() {
               clienteId: selectedCitaEdit.cliente_id,
               servicioId: selectedCitaEdit.servicio_id,
               profId: selectedCitaEdit.profesional_id,
-              notas: selectedCitaEdit.notas || ""
+              notas: selectedCitaEdit.notas || "",
             });
             setShowNewCita(true);
           }}
@@ -5664,8 +5771,12 @@ export default function AgendaCalendar() {
               fin: c.fin,
               fin_activa: c.fin_activa,
               fin_espera: c.fin_espera,
-              cliente: clientes.find((cl: any) => cl.id === c.cliente_id)?.nombre ?? null,
-              servicio: servicios.find((s: any) => s.id === c.servicio_id)?.nombre ?? null,
+              cliente:
+                clientes.find((cl: any) => cl.id === c.cliente_id)?.nombre ??
+                null,
+              servicio:
+                servicios.find((s: any) => s.id === c.servicio_id)?.nombre ??
+                null,
             }));
             const ahora = Date.now();
             const primera = citasMapped
@@ -5675,7 +5786,11 @@ export default function AgendaCalendar() {
               setShowRetrasoProf(null);
               return;
             }
-            const ests = calcularEstrategiasRetraso(citasMapped as any, primera.id, minutos);
+            const ests = calcularEstrategiasRetraso(
+              citasMapped as any,
+              primera.id,
+              minutos,
+            );
             setRetrasoProf({
               minutos,
               estrategias: ests,
@@ -6769,10 +6884,10 @@ function DayTimeline({
     if (!grid) return;
     // Contenedor con scroll vertical mas cercano (la rejilla vive dentro de el).
     let cont: HTMLElement | null = grid.parentElement;
-    while (cont && cont.scrollHeight <= cont.clientHeight + 8) cont = cont.parentElement;
+    while (cont && cont.scrollHeight <= cont.clientHeight + 8)
+      cont = cont.parentElement;
     if (!cont) return;
-    const topAhora =
-      (now.getHours() - START_H + now.getMinutes() / 60) * ROW_H;
+    const topAhora = (now.getHours() - START_H + now.getMinutes() / 60) * ROW_H;
     // Un tercio por encima: se ve lo que acaba de pasar y lo que viene.
     cont.scrollTop = Math.max(0, topAhora - cont.clientHeight / 3);
     yaAutoScroll.current = true;
@@ -6949,7 +7064,10 @@ function DayTimeline({
           const repIni = new Date(hostRep.fin_activa).getTime();
           const repFin = new Date(hostRep.fin_espera).getTime();
           let startMs = fineMs;
-          if (startMs + activaMsDrag > repFin && repFin - activaMsDrag >= repIni)
+          if (
+            startMs + activaMsDrag > repFin &&
+            repFin - activaMsDrag >= repIni
+          )
             startMs = repFin - activaMsDrag;
           if (startMs < repIni) startMs = repIni;
           minutesFromStart = Math.round(
@@ -7024,8 +7142,12 @@ function DayTimeline({
       )
         return;
 
-      if (cita.encadenadoId && nuevoInicio.getTime() !== new Date(cita.inicio).getTime()) {
-        const confirmMsg = "Esta cita pertenece a un servicio encadenado. Si cambias su hora, puedes desincronizar la cadena. ¿Estás seguro de moverla?";
+      if (
+        cita.encadenadoId &&
+        nuevoInicio.getTime() !== new Date(cita.inicio).getTime()
+      ) {
+        const confirmMsg =
+          "Esta cita pertenece a un servicio encadenado. Si cambias su hora, puedes desincronizar la cadena. ¿Estás seguro de moverla?";
         if (!window.confirm(confirmMsg)) {
           return;
         }
@@ -7104,9 +7226,10 @@ function DayTimeline({
           (c: any) =>
             c.id !== cita.id &&
             c.profesional_id === targetProf.id &&
-            c.estado !== 'cancelada' &&
-            new Date(c.fin).getTime() <= nuevoInicio.getTime() + 25 * 60 * 1000 &&
-            new Date(c.fin).getTime() > nuevoInicio.getTime() - 45 * 60 * 1000
+            c.estado !== "cancelada" &&
+            new Date(c.fin).getTime() <=
+              nuevoInicio.getTime() + 25 * 60 * 1000 &&
+            new Date(c.fin).getTime() > nuevoInicio.getTime() - 45 * 60 * 1000,
         );
         if (prevCita) {
           const adjStart = new Date(prevCita.fin);
@@ -7114,8 +7237,23 @@ function DayTimeline({
           const adjFinEspera = new Date(adjFinActiva.getTime() + esperaMs);
           const adjFin = new Date(adjStart.getTime() + durMs);
           const fitsCleanly =
-            !isTimeSlotOccupied(adjStart, adjFinActiva, currentCitas, targetProf.id, cita.id) &&
-            !(activo2Ms > 0 && isTimeSlotOccupied(adjFinEspera, adjFin, currentCitas, targetProf.id, cita.id)) &&
+            !isTimeSlotOccupied(
+              adjStart,
+              adjFinActiva,
+              currentCitas,
+              targetProf.id,
+              cita.id,
+            ) &&
+            !(
+              activo2Ms > 0 &&
+              isTimeSlotOccupied(
+                adjFinEspera,
+                adjFin,
+                currentCitas,
+                targetProf.id,
+                cita.id,
+              )
+            ) &&
             adjFin <= limFin;
           if (fitsCleanly) {
             nuevoInicio = adjStart;
@@ -7181,8 +7319,12 @@ function DayTimeline({
                 payload: {
                   inicio: nuevoInicio.toISOString(),
                   fin: nuevoFin.toISOString(),
-                  fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
-                  fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
+                  fin_activa: cita.fin_activa
+                    ? nuevoFinActiva.toISOString()
+                    : null,
+                  fin_espera: cita.fin_espera
+                    ? nuevoFinEspera.toISOString()
+                    : null,
                   profesional_id: targetProf.id,
                 },
                 citaOrig: cita,
@@ -7366,15 +7508,11 @@ function DayTimeline({
         c._desbordaMin = mejor
           ? Math.max(
               0,
-              Math.round(
-                (cFin - new Date(mejor.fin_espera).getTime()) / 60000,
-              ),
+              Math.round((cFin - new Date(mejor.fin_espera).getTime()) / 60000),
             ) +
             Math.max(
               0,
-              Math.round(
-                (new Date(mejor.fin_activa).getTime() - cIni) / 60000,
-              ),
+              Math.round((new Date(mejor.fin_activa).getTime() - cIni) / 60000),
             )
           : 0;
       });
@@ -7482,9 +7620,12 @@ function DayTimeline({
   // horarios_profesional, 0=DOMINGO): hay que convertir el getDay() de JS.
   const { horarioSalonHoy, festivoHoy, salonCerradoTodoElDia } = useMemo(() => {
     const dbDiaNegocio = (selectedDateObj.getDay() + 6) % 7;
-    const hSalon = (horarios as any[]).find((h: any) => h.dia_semana === dbDiaNegocio);
-    const keyFecha = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedDateObj.getDate()).padStart(2, '0')}`;
-    const fest = (cierres as any[]).find((c: any) => c.fecha === keyFecha) || null;
+    const hSalon = (horarios as any[]).find(
+      (h: any) => h.dia_semana === dbDiaNegocio,
+    );
+    const keyFecha = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, "0")}-${String(selectedDateObj.getDate()).padStart(2, "0")}`;
+    const fest =
+      (cierres as any[]).find((c: any) => c.fecha === keyFecha) || null;
     return {
       horarioSalonHoy: hSalon,
       festivoHoy: fest,
@@ -7798,8 +7939,14 @@ function DayTimeline({
                           borderRadius: 4,
                         }}
                       >
-                        {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, "0")}:
-                        {String(dropSlot.minutesFromStart % 60).padStart(2, "0")}
+                        {String(
+                          START_H + Math.floor(dropSlot.minutesFromStart / 60),
+                        ).padStart(2, "0")}
+                        :
+                        {String(dropSlot.minutesFromStart % 60).padStart(
+                          2,
+                          "0",
+                        )}
                       </span>
                     </div>
                   </>
@@ -8026,20 +8173,28 @@ function DayTimeline({
                       dayStart.setHours(0, 0, 0, 0);
                       const dayEnd = new Date(selectedDateObj);
                       dayEnd.setHours(23, 59, 59, 999);
-                      
+
                       // OJO: esto leia `horarios` (negocio_horarios), que NO tiene
                       // profesional_id ni hora_fin, asi que profHorarios salia
                       // SIEMPRE vacio y la pausa de comida no se pinto nunca. La
                       // fuente correcta es horarios_profesional (horariosProf).
                       // dia_semana ahi es 0=DOMINGO, asi que getDay() vale tal cual.
                       const dbDia = selectedDateObj.getDay();
-                      const profHorarios = (horariosProf as any[]).filter((h: any) => h.profesional_id === prof.id && h.dia_semana === dbDia).sort((a: any, b: any) => (a.turno ?? 1) - (b.turno ?? 1));
+                      const profHorarios = (horariosProf as any[])
+                        .filter(
+                          (h: any) =>
+                            h.profesional_id === prof.id &&
+                            h.dia_semana === dbDia,
+                        )
+                        .sort(
+                          (a: any, b: any) => (a.turno ?? 1) - (b.turno ?? 1),
+                        );
 
                       // horarioSalonHoy/festivoHoy/salonCerradoTodoElDia vienen del
                       // useMemo de arriba (no dependen de `prof`, se calculan una
                       // sola vez para toda la rejilla).
                       const alDia = (hhmm: string) => {
-                        const [h, m] = String(hhmm).split(':').map(Number);
+                        const [h, m] = String(hhmm).split(":").map(Number);
                         const d = new Date(selectedDateObj);
                         d.setHours(h, m || 0, 0, 0);
                         return d;
@@ -8055,10 +8210,16 @@ function DayTimeline({
                           profesional_id: prof.id,
                           inicio: diaIni.toISOString(),
                           fin: diaFin.toISOString(),
-                          tipo: 'salon_cerrado',
-                          motivo: festivoHoy ? (festivoHoy.motivo || 'Festivo') : 'El salón no abre este día',
+                          tipo: "salon_cerrado",
+                          motivo: festivoHoy
+                            ? festivoHoy.motivo || "Festivo"
+                            : "El salón no abre este día",
                         });
-                      } else if (horarioSalonHoy && horarioSalonHoy.apertura && horarioSalonHoy.cierre) {
+                      } else if (
+                        horarioSalonHoy &&
+                        horarioSalonHoy.apertura &&
+                        horarioSalonHoy.cierre
+                      ) {
                         // Salon abierto pero con ventana mas estrecha que la rejilla
                         // (ej. abre a las 10 o cierra a las 18): marcar lo de fuera.
                         const rejillaIniSalon = new Date(selectedDateObj);
@@ -8073,7 +8234,7 @@ function DayTimeline({
                             profesional_id: prof.id,
                             inicio: rejillaIniSalon.toISOString(),
                             fin: abreSalon.toISOString(),
-                            tipo: 'salon_cerrado',
+                            tipo: "salon_cerrado",
                             motivo: `El salón abre a las ${String(horarioSalonHoy.apertura).slice(0, 5)}`,
                           });
                         }
@@ -8083,7 +8244,7 @@ function DayTimeline({
                             profesional_id: prof.id,
                             inicio: cierraSalon.toISOString(),
                             fin: rejillaFinSalon.toISOString(),
-                            tipo: 'salon_cerrado',
+                            tipo: "salon_cerrado",
                             motivo: `El salón cierra a las ${String(horarioSalonHoy.cierre).slice(0, 5)}`,
                           });
                         }
@@ -8092,12 +8253,14 @@ function DayTimeline({
                       if (profHorarios.length > 1) {
                         for (let i = 0; i < profHorarios.length - 1; i++) {
                           const h1 = profHorarios[i];
-                          const h2 = profHorarios[i+1];
+                          const h2 = profHorarios[i + 1];
                           const vStart = new Date(selectedDateObj);
-                          const [sH, sM] = h1.hora_fin.split(':').map(Number);
+                          const [sH, sM] = h1.hora_fin.split(":").map(Number);
                           vStart.setHours(sH, sM, 0, 0);
                           const vEnd = new Date(selectedDateObj);
-                          const [eH, eM] = h2.hora_inicio.split(':').map(Number);
+                          const [eH, eM] = h2.hora_inicio
+                            .split(":")
+                            .map(Number);
                           vEnd.setHours(eH, eM, 0, 0);
                           if (vEnd > vStart) {
                             virtualPauses.push({
@@ -8105,13 +8268,13 @@ function DayTimeline({
                               profesional_id: prof.id,
                               inicio: vStart.toISOString(),
                               fin: vEnd.toISOString(),
-                              tipo: 'descanso',
-                              motivo: 'Pausa de comida'
+                              tipo: "descanso",
+                              motivo: "Pausa de comida",
                             });
                           }
                         }
                       }
-                      
+
                       // Fuera de la jornada de ESTE profesional: antes de su
                       // primer turno y despues del ultimo. Es lo que hacia falta
                       // para ver de un vistazo que uno acaba a las 14:00 y otro a
@@ -8127,7 +8290,11 @@ function DayTimeline({
                         (h: any) => h.profesional_id === prof.id,
                       );
                       const fueraJornada: any[] = [];
-                      if (tieneAlgunHorario && profHorarios.length === 0 && !salonCerradoTodoElDia) {
+                      if (
+                        tieneAlgunHorario &&
+                        profHorarios.length === 0 &&
+                        !salonCerradoTodoElDia
+                      ) {
                         const rejillaIni = new Date(selectedDateObj);
                         rejillaIni.setHours(START_H, 0, 0, 0);
                         const rejillaFin = new Date(selectedDateObj);
@@ -8137,8 +8304,8 @@ function DayTimeline({
                           profesional_id: prof.id,
                           inicio: rejillaIni.toISOString(),
                           fin: rejillaFin.toISOString(),
-                          tipo: 'fuera_jornada',
-                          motivo: 'No trabaja este dia',
+                          tipo: "fuera_jornada",
+                          motivo: "No trabaja este dia",
                         });
                       }
                       if (profHorarios.length > 0 && !salonCerradoTodoElDia) {
@@ -8147,14 +8314,16 @@ function DayTimeline({
                         const rejillaFin = new Date(selectedDateObj);
                         rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
                         const entra = alDia(profHorarios[0].hora_inicio);
-                        const sale = alDia(profHorarios[profHorarios.length - 1].hora_fin);
+                        const sale = alDia(
+                          profHorarios[profHorarios.length - 1].hora_fin,
+                        );
                         if (entra > rejillaIni) {
                           fueraJornada.push({
                             id: `jornada-ini-${prof.id}`,
                             profesional_id: prof.id,
                             inicio: rejillaIni.toISOString(),
                             fin: entra.toISOString(),
-                            tipo: 'fuera_jornada',
+                            tipo: "fuera_jornada",
                             motivo: `Entra a las ${profHorarios[0].hora_inicio.slice(0, 5)}`,
                           });
                         }
@@ -8164,13 +8333,18 @@ function DayTimeline({
                             profesional_id: prof.id,
                             inicio: sale.toISOString(),
                             fin: rejillaFin.toISOString(),
-                            tipo: 'fuera_jornada',
+                            tipo: "fuera_jornada",
                             motivo: `Termina a las ${profHorarios[profHorarios.length - 1].hora_fin.slice(0, 5)}`,
                           });
                         }
                       }
 
-                      return [...(bloqueos as any[]), ...virtualPauses, ...fueraJornada, ...salonCerrado]
+                      return [
+                        ...(bloqueos as any[]),
+                        ...virtualPauses,
+                        ...fueraJornada,
+                        ...salonCerrado,
+                      ]
                         .filter((b: any) => {
                           if (b.profesional_id !== prof.id) return false;
                           return (
@@ -8178,81 +8352,81 @@ function DayTimeline({
                             new Date(b.fin) >= dayStart
                           );
                         })
-                      .map((b: any) => {
-                        const bloqueoDayStart = new Date(selectedDateObj);
-                        bloqueoDayStart.setHours(START_H, 0, 0, 0);
-                        const bloqueoDayEnd = new Date(selectedDateObj);
-                        bloqueoDayEnd.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-                        const bStart = new Date(
-                          Math.max(
-                            new Date(b.inicio).getTime(),
-                            bloqueoDayStart.getTime(),
-                          ),
-                        );
-                        const bEnd = new Date(
-                          Math.min(
-                            new Date(b.fin).getTime(),
-                            bloqueoDayEnd.getTime(),
-                          ),
-                        );
-                        const blockTop =
-                          (bStart.getHours() +
-                            bStart.getMinutes() / 60 -
-                            START_H) *
-                          ROW_H;
-                        const blockHeight =
-                          (bEnd.getHours() +
-                            bEnd.getMinutes() / 60 -
-                            (bStart.getHours() + bStart.getMinutes() / 60)) *
-                          ROW_H;
-                        if (blockHeight <= 0) return null;
-                        const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
-                        return (
-                          <div
-                            key={b.id}
-                            style={{
-                              position: "absolute",
-                              top: blockTop,
-                              left: 2,
-                              right: 2,
-                              height: blockHeight,
-                              background: `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
-                              backgroundColor: `${bColor}0a`,
-                              borderLeft: `3px solid ${bColor}99`,
-                              borderRadius: 6,
-                              pointerEvents: "none",
-                              zIndex: 1,
-                              padding: "4px 6px",
-                              overflow: "hidden",
-                            }}
-                          >
+                        .map((b: any) => {
+                          const bloqueoDayStart = new Date(selectedDateObj);
+                          bloqueoDayStart.setHours(START_H, 0, 0, 0);
+                          const bloqueoDayEnd = new Date(selectedDateObj);
+                          bloqueoDayEnd.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+                          const bStart = new Date(
+                            Math.max(
+                              new Date(b.inicio).getTime(),
+                              bloqueoDayStart.getTime(),
+                            ),
+                          );
+                          const bEnd = new Date(
+                            Math.min(
+                              new Date(b.fin).getTime(),
+                              bloqueoDayEnd.getTime(),
+                            ),
+                          );
+                          const blockTop =
+                            (bStart.getHours() +
+                              bStart.getMinutes() / 60 -
+                              START_H) *
+                            ROW_H;
+                          const blockHeight =
+                            (bEnd.getHours() +
+                              bEnd.getMinutes() / 60 -
+                              (bStart.getHours() + bStart.getMinutes() / 60)) *
+                            ROW_H;
+                          if (blockHeight <= 0) return null;
+                          const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
+                          return (
                             <div
+                              key={b.id}
                               style={{
-                                fontSize: 10,
-                                color: TOKENS.text,
-                                fontWeight: 700,
-                                whiteSpace: "nowrap",
+                                position: "absolute",
+                                top: blockTop,
+                                left: 2,
+                                right: 2,
+                                height: blockHeight,
+                                background: `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
+                                backgroundColor: `${bColor}0a`,
+                                borderLeft: `3px solid ${bColor}99`,
+                                borderRadius: 6,
+                                pointerEvents: "none",
+                                zIndex: 1,
+                                padding: "4px 6px",
+                                overflow: "hidden",
                               }}
                             >
-                              {BLOQUEO_LABELS[b.tipo] || b.tipo}
-                            </div>
-                            {b.motivo && blockHeight > 32 && (
                               <div
                                 style={{
-                                  fontSize: 9,
-                                  color: TOKENS.textSec,
-                                  marginTop: 1,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
+                                  fontSize: 10,
+                                  color: TOKENS.text,
+                                  fontWeight: 700,
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {b.motivo}
+                                {BLOQUEO_LABELS[b.tipo] || b.tipo}
                               </div>
-                            )}
-                          </div>
-                        );
-                      });
+                              {b.motivo && blockHeight > 32 && (
+                                <div
+                                  style={{
+                                    fontSize: 9,
+                                    color: TOKENS.textSec,
+                                    marginTop: 1,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {b.motivo}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        });
                     })()}
                     {[...profCitas]
                       .sort(
@@ -8379,7 +8553,7 @@ function DayTimeline({
                               zIndex: nested ? 15 : 10,
                               background: cancelada
                                 ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
-                                : (hasEspera && !nested)
+                                : hasEspera && !nested
                                   ? `linear-gradient(to bottom, ${actualCitaBg} 0px, ${actualCitaBg} ${activaPx}px, transparent ${activaPx}px, transparent ${activaPx + esperaPx}px, ${actualCitaBg} ${activaPx + esperaPx}px, ${actualCitaBg} 100%)`
                                   : actualCitaBg,
                               borderWidth: 1,
@@ -8395,7 +8569,14 @@ function DayTimeline({
                                   ? `2px solid #e0340e`
                                   : undefined,
                               borderRadius: height <= 32 ? 6 : 12,
-                              padding: (hasEspera && activaPx <= 45) ? "2px 4px" : height <= 16 ? "0px 4px" : height <= 32 ? "2px 4px" : "6px 8px",
+                              padding:
+                                hasEspera && activaPx <= 45
+                                  ? "2px 4px"
+                                  : height <= 16
+                                    ? "0px 4px"
+                                    : height <= 32
+                                      ? "2px 4px"
+                                      : "6px 8px",
                               overflow: "hidden",
                               cursor: isDragging ? "grabbing" : "grab",
                               display: "flex",
@@ -8499,8 +8680,10 @@ function DayTimeline({
                                       ] as [number, number],
                                   )
                                   .sort(
-                                    (a: [number, number], b: [number, number]) =>
-                                      a[0] - b[0],
+                                    (
+                                      a: [number, number],
+                                      b: [number, number],
+                                    ) => a[0] - b[0],
                                   );
                                 const libres: [number, number][] = [];
                                 let cursor = reposoIniMs;
@@ -8557,7 +8740,11 @@ function DayTimeline({
                                           cita={cita}
                                           clienteMap={clienteMap}
                                           servicioMap={servicioMap}
-                                          onSelectReposo={({ horaStr, profId, reposoContext }) => {
+                                          onSelectReposo={({
+                                            horaStr,
+                                            profId,
+                                            reposoContext,
+                                          }) => {
                                             if (onCreateSlot) {
                                               onCreateSlot({
                                                 hora: horaStr,
@@ -8601,359 +8788,426 @@ function DayTimeline({
                                   : { display: "contents" }
                               }
                             >
-                            {(() => {
-                              const narrow = height < 50;
-                              // Bloque bajo pero ancho (tipico de movil: una columna
-                              // de 290px y una cita de 20'). Apilar hora + nombre +
-                              // chip de servicio pide ~64px de contenido dentro de 41
-                              // utiles, asi que el servicio se cortaba. Por debajo de
-                              // 64px el servicio se pinta EN LINEA tras el nombre,
-                              // aprovechando el ancho que sobra.
-                              const bloqueBajo = height < 64;
-                              const nombreCliente =
-                                clienteMap?.get(cita.cliente_id)?.nombre || "-";
-                              const nombreServicio =
-                                servicioMap?.get(cita.servicio_id)?.nombre ||
-                                "";
-                              const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })}`;
-                              const timeStrCompact =
-                                totalLanes > 1 || height <= 32
-                                  ? start.toLocaleTimeString(LOCALE, {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })
-                                  : timeStr;
-                              const badgeColor = catColor || profColor;
-                              const catIconChip = cat?.icono
-                                ? getCategoryIcon(
-                                    cat.icono,
-                                    badgeColor,
-                                    narrow ? 11 : 12,
-                                  )
-                                : null;
-                              const iniciales =
-                                nombreCliente
-                                  .split(/\s+/)
-                                  .map((w: string) => w[0])
-                                  .filter(Boolean)
-                                  .slice(0, 2)
-                                  .join("")
-                                  .toUpperCase() || "·";
-                              // Avatar del estilista dentro del bloque: foto de
-                              // perfil si la tiene, iniciales sobre su color si no.
-                              const profIni =
-                                (prof?.nombre || "?")
-                                  .split(/\s+/)
-                                  .map((w: string) => w[0])
-                                  .filter(Boolean)
-                                  .slice(0, 2)
-                                  .join("")
-                                  .toUpperCase() || "?";
-                              const stylistAvatar = (
-                                <span
-                                  title={`Estilista: ${prof?.nombre || ""}`}
-                                  style={{
-                                    width: 18,
-                                    height: 18,
-                                    borderRadius: 999,
-                                    overflow: "hidden",
-                                    flexShrink: 0,
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    background: profColor,
-                                    border: "1.5px solid rgba(255,255,255,0.9)",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
-                                  }}
-                                >
-                                  {prof?.foto_perfil ? (
-                                    <img
-                                      src={prof.foto_perfil}
-                                      alt=""
-                                      // Perezosa: hay avatares antiguos sin comprimir
-                                      // (las subidas nuevas van a 400px) y no deben
-                                      // frenar el pintado de la rejilla de citas.
-                                      loading="lazy"
-                                      decoding="async"
-                                      style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover",
-                                      }}
-                                    />
-                                  ) : (
-                                    <span
-                                      style={{
-                                        fontSize: 8,
-                                        fontWeight: 800,
-                                        color: "#ffffff",
-                                        lineHeight: 1,
-                                      }}
-                                    >
-                                      {profIni}
-                                    </span>
-                                  )}
-                                </span>
-                              );
-                              const estrecho =
-                                totalLanes > 1 ||
-                                (selectedProf === "todos" &&
-                                  (profesionales?.length || 1) >= 2) ||
-                                (profesionales?.length || 1) >= 5;
-                              const isSmallOrNarrow = height <= 32 || estrecho;
-                              const identidad = isSmallOrNarrow ? iniciales : nombreCliente;
-
-                              const esCompletada =
-                                cita.estado === CITA_STATUS.COMPLETADA;
-                              const esNoShow =
-                                cita.estado === CITA_STATUS.NO_PRESENTADA;
-                              let icon: any = null;
-                              if (!cancelada && !esNoShow && completarManual) {
-                                if (esCompletada) {
-                                  icon = (
-                                    <div
-                                      title="Desmarcar completada"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleCompletada(cita.id, cita.estado);
-                                      }}
-                                      style={{
-                                        width: 44,
-                                        height: 44,
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
-                                        margin: "-14px",
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          width: 16,
-                                          height: 16,
-                                          borderRadius: 999,
-                                          background: "#0f9d6b",
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          color: "#fff",
-                                          flexShrink: 0,
-                                          transition: "all 0.15s ease",
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.background =
-                                            "#0c7d55";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.background =
-                                            "#0f9d6b";
-                                        }}
-                                      >
-                                        <svg
-                                          width="10"
-                                          height="10"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="3.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        >
-                                          <polyline points="20 6 9 17 4 12" />
-                                        </svg>
-                                      </div>
-                                    </div>
-                                  );
-                                } else {
-                                  icon = (
-                                    <div
-                                      title="Marcar como completada"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleCompletada(cita.id, cita.estado);
-                                      }}
-                                      style={{
-                                        width: 44,
-                                        height: 44,
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
-                                        margin: "-14px",
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          width: 16,
-                                          height: 16,
-                                          borderRadius: 999,
-                                          border: `2px solid ${TOKENS.borderHi}`,
-                                          background: "transparent",
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          flexShrink: 0,
-                                          transition: "all 0.15s ease",
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.borderColor =
-                                            "#0f9d6b";
-                                          e.currentTarget.style.background =
-                                            "rgba(15,157,107,0.15)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.borderColor =
-                                            TOKENS.borderHi;
-                                          e.currentTarget.style.background =
-                                            "transparent";
-                                        }}
-                                      />
-                                    </div>
-                                  );
-                                }
-                              }
-
-                              const chainBadge = isChained ? (
-                                <span
-                                  style={{
-                                    fontSize: 8,
-                                    fontWeight: 700,
-                                    background: "rgba(192,38,10,0.25)",
-                                    color: "#e0340e",
-                                    padding: "1px 5px",
-                                    borderRadius: 4,
-                                    flexShrink: 0,
-                                    letterSpacing: 0.3,
-                                  }}
-                                >
-                                  {chainPos}/{chainTotal}
-                                </span>
-                              ) : null;
-
-                              const addonsNames = (citaAddonsMap[cita.id] || [])
-                                .map((ca: any) => ca.service_addons?.nombre)
-                                .filter(Boolean);
-                              const addonsStr = addonsNames.length > 0 ? '+ ' + addonsNames.join(', ') : '';
-
-                              if (narrow || estrecho || height <= 32) {
-                                const effectiveLanes = nested
-                                  ? cita._nestedTotal || 1
-                                  : totalLanes;
-                                const superNarrow =
-                                  height <= 24 || effectiveLanes >= 3;
-                                const badgePx = superNarrow
-                                  ? 15
-                                  : estrecho
-                                    ? 24
-                                    : 18;
-                                 if (height <= 28) {
-                                   return (
-                                     <div
-                                       style={{
-                                         position: "relative",
-                                         zIndex: 6,
-                                         display: "flex",
-                                         alignItems: "center",
-                                         gap: 4,
-                                         overflow: "hidden",
-                                         height: "100%",
-                                         padding: "0 4px",
-                                         whiteSpace: "nowrap",
-                                       }}
-                                     >
-                                       <span
-                                         style={{
-                                           fontSize: 10,
-                                           fontWeight: 800,
-                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
-                                           flexShrink: 0,
-                                           fontVariantNumeric: "tabular-nums" as any,
-                                           lineHeight: 1,
-                                         }}
-                                       >
-                                         {timeStrCompact}
-                                       </span>
-                                       {chainBadge}
-                                       {stylistAvatar}
-                                       {icon}
-                                       <span
-                                         style={{
-                                           fontSize: 10,
-                                           fontWeight: 800,
-                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
-                                           overflow: "hidden",
-                                           textOverflow: "ellipsis",
-                                           whiteSpace: "nowrap",
-                                           lineHeight: 1,
-                                           flexShrink: 1,
-                                           minWidth: 0,
-                                           textDecoration: cancelada ? "line-through" : "none",
-                                         }}
-                                       >
-                                         {nombreCliente}
-                                       </span>
-                                       {nombreServicio && (
-                                         <span
-                                           style={{
-                                             fontSize: 9.5,
-                                             fontWeight: 700,
-                                             color: cancelada ? TOKENS.textTer : TOKENS.text,
-                                             background: cancelada ? "transparent" : TOKENS.bgCard,
-                                             border: cancelada ? "none" : `1px solid ${(catColor || profColor)}55`,
-                                             borderLeft: cancelada ? "none" : `2px solid ${catColor || profColor}`,
-                                             padding: "0 3px",
-                                             borderRadius: 3,
-                                             overflow: "hidden",
-                                             textOverflow: "ellipsis",
-                                             whiteSpace: "nowrap",
-                                             flexShrink: 2,
-                                             minWidth: 0,
-                                             lineHeight: 1,
-                                           }}
-                                         >
-                                           {nombreServicio}
-                                         </span>
-                                       )}
-                                     </div>
-                                   );
-                                 }
-                                return (
-                                  <div
+                              {(() => {
+                                const narrow = height < 50;
+                                // Bloque bajo pero ancho (tipico de movil: una columna
+                                // de 290px y una cita de 20'). Apilar hora + nombre +
+                                // chip de servicio pide ~64px de contenido dentro de 41
+                                // utiles, asi que el servicio se cortaba. Por debajo de
+                                // 64px el servicio se pinta EN LINEA tras el nombre,
+                                // aprovechando el ancho que sobra.
+                                const bloqueBajo = height < 64;
+                                const nombreCliente =
+                                  clienteMap?.get(cita.cliente_id)?.nombre ||
+                                  "-";
+                                const nombreServicio =
+                                  servicioMap?.get(cita.servicio_id)?.nombre ||
+                                  "";
+                                const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })}`;
+                                const timeStrCompact =
+                                  totalLanes > 1 || height <= 32
+                                    ? start.toLocaleTimeString(LOCALE, {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                    : timeStr;
+                                const badgeColor = catColor || profColor;
+                                const catIconChip = cat?.icono
+                                  ? getCategoryIcon(
+                                      cat.icono,
+                                      badgeColor,
+                                      narrow ? 11 : 12,
+                                    )
+                                  : null;
+                                const iniciales =
+                                  nombreCliente
+                                    .split(/\s+/)
+                                    .map((w: string) => w[0])
+                                    .filter(Boolean)
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase() || "·";
+                                // Avatar del estilista dentro del bloque: foto de
+                                // perfil si la tiene, iniciales sobre su color si no.
+                                const profIni =
+                                  (prof?.nombre || "?")
+                                    .split(/\s+/)
+                                    .map((w: string) => w[0])
+                                    .filter(Boolean)
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase() || "?";
+                                const stylistAvatar = (
+                                  <span
+                                    title={`Estilista: ${prof?.nombre || ""}`}
                                     style={{
-                                      position: "relative",
-                                      zIndex: 2,
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      alignItems: "flex-start",
-                                      justifyContent: "center",
-                                      gap: 1,
+                                      width: 18,
+                                      height: 18,
+                                      borderRadius: 999,
                                       overflow: "hidden",
-                                      height: "100%",
-                                      padding: "1px 4px",
+                                      flexShrink: 0,
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      background: profColor,
+                                      border:
+                                        "1.5px solid rgba(255,255,255,0.9)",
+                                      boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
                                     }}
                                   >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 4,
-                                      }}
-                                    >
-                                      {catIconChip && !superNarrow && (
-                                        <span
+                                    {prof?.foto_perfil ? (
+                                      <img
+                                        src={prof.foto_perfil}
+                                        alt=""
+                                        // Perezosa: hay avatares antiguos sin comprimir
+                                        // (las subidas nuevas van a 400px) y no deben
+                                        // frenar el pintado de la rejilla de citas.
+                                        loading="lazy"
+                                        decoding="async"
+                                        style={{
+                                          width: "100%",
+                                          height: "100%",
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                    ) : (
+                                      <span
+                                        style={{
+                                          fontSize: 8,
+                                          fontWeight: 800,
+                                          color: "#ffffff",
+                                          lineHeight: 1,
+                                        }}
+                                      >
+                                        {profIni}
+                                      </span>
+                                    )}
+                                  </span>
+                                );
+                                const estrecho =
+                                  totalLanes > 1 ||
+                                  (selectedProf === "todos" &&
+                                    (profesionales?.length || 1) >= 2) ||
+                                  (profesionales?.length || 1) >= 5;
+                                const isSmallOrNarrow =
+                                  height <= 32 || estrecho;
+                                const identidad = isSmallOrNarrow
+                                  ? iniciales
+                                  : nombreCliente;
+
+                                const esCompletada =
+                                  cita.estado === CITA_STATUS.COMPLETADA;
+                                const esNoShow =
+                                  cita.estado === CITA_STATUS.NO_PRESENTADA;
+                                let icon: any = null;
+                                if (
+                                  !cancelada &&
+                                  !esNoShow &&
+                                  completarManual
+                                ) {
+                                  if (esCompletada) {
+                                    icon = (
+                                      <div
+                                        title="Desmarcar completada"
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleCompletada(
+                                            cita.id,
+                                            cita.estado,
+                                          );
+                                        }}
+                                        style={{
+                                          width: 44,
+                                          height: 44,
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          cursor: "pointer",
+                                          margin: "-14px",
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        <div
                                           style={{
+                                            width: 16,
+                                            height: 16,
+                                            borderRadius: 999,
+                                            background: "#0f9d6b",
                                             display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "#fff",
                                             flexShrink: 0,
+                                            transition: "all 0.15s ease",
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.background =
+                                              "#0c7d55";
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.background =
+                                              "#0f9d6b";
                                           }}
                                         >
-                                          {catIconChip}
+                                          <svg
+                                            width="10"
+                                            height="10"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="3.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          >
+                                            <polyline points="20 6 9 17 4 12" />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                    );
+                                  } else {
+                                    icon = (
+                                      <div
+                                        title="Marcar como completada"
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleCompletada(
+                                            cita.id,
+                                            cita.estado,
+                                          );
+                                        }}
+                                        style={{
+                                          width: 44,
+                                          height: 44,
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          cursor: "pointer",
+                                          margin: "-14px",
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: 16,
+                                            height: 16,
+                                            borderRadius: 999,
+                                            border: `2px solid ${TOKENS.borderHi}`,
+                                            background: "transparent",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            flexShrink: 0,
+                                            transition: "all 0.15s ease",
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.borderColor =
+                                              "#0f9d6b";
+                                            e.currentTarget.style.background =
+                                              "rgba(15,157,107,0.15)";
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.borderColor =
+                                              TOKENS.borderHi;
+                                            e.currentTarget.style.background =
+                                              "transparent";
+                                          }}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                }
+
+                                const chainBadge = isChained ? (
+                                  <span
+                                    style={{
+                                      fontSize: 8,
+                                      fontWeight: 700,
+                                      background: "rgba(192,38,10,0.25)",
+                                      color: "#e0340e",
+                                      padding: "1px 5px",
+                                      borderRadius: 4,
+                                      flexShrink: 0,
+                                      letterSpacing: 0.3,
+                                    }}
+                                  >
+                                    {chainPos}/{chainTotal}
+                                  </span>
+                                ) : null;
+
+                                const addonsNames = (
+                                  citaAddonsMap[cita.id] || []
+                                )
+                                  .map((ca: any) => ca.service_addons?.nombre)
+                                  .filter(Boolean);
+                                const addonsStr =
+                                  addonsNames.length > 0
+                                    ? "+ " + addonsNames.join(", ")
+                                    : "";
+
+                                if (narrow || estrecho || height <= 32) {
+                                  const effectiveLanes = nested
+                                    ? cita._nestedTotal || 1
+                                    : totalLanes;
+                                  const superNarrow =
+                                    height <= 24 || effectiveLanes >= 3;
+                                  const badgePx = superNarrow
+                                    ? 15
+                                    : estrecho
+                                      ? 24
+                                      : 18;
+                                  if (height <= 28) {
+                                    return (
+                                      <div
+                                        style={{
+                                          position: "relative",
+                                          zIndex: 6,
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 4,
+                                          overflow: "hidden",
+                                          height: "100%",
+                                          padding: "0 4px",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            fontSize: 10,
+                                            fontWeight: 800,
+                                            color: cancelada
+                                              ? TOKENS.textTer
+                                              : TOKENS.text,
+                                            flexShrink: 0,
+                                            fontVariantNumeric:
+                                              "tabular-nums" as any,
+                                            lineHeight: 1,
+                                          }}
+                                        >
+                                          {timeStrCompact}
                                         </span>
-                                      )}
-                                      {!superNarrow && (
+                                        {chainBadge}
+                                        {stylistAvatar}
+                                        {icon}
+                                        <span
+                                          style={{
+                                            fontSize: 10,
+                                            fontWeight: 800,
+                                            color: cancelada
+                                              ? TOKENS.textTer
+                                              : TOKENS.text,
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                            lineHeight: 1,
+                                            flexShrink: 1,
+                                            minWidth: 0,
+                                            textDecoration: cancelada
+                                              ? "line-through"
+                                              : "none",
+                                          }}
+                                        >
+                                          {nombreCliente}
+                                        </span>
+                                        {nombreServicio && (
+                                          <span
+                                            style={{
+                                              fontSize: 9.5,
+                                              fontWeight: 700,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.text,
+                                              background: cancelada
+                                                ? "transparent"
+                                                : TOKENS.bgCard,
+                                              border: cancelada
+                                                ? "none"
+                                                : `1px solid ${catColor || profColor}55`,
+                                              borderLeft: cancelada
+                                                ? "none"
+                                                : `2px solid ${catColor || profColor}`,
+                                              padding: "0 3px",
+                                              borderRadius: 3,
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              whiteSpace: "nowrap",
+                                              flexShrink: 2,
+                                              minWidth: 0,
+                                              lineHeight: 1,
+                                            }}
+                                          >
+                                            {nombreServicio}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div
+                                      style={{
+                                        position: "relative",
+                                        zIndex: 2,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "flex-start",
+                                        justifyContent: "center",
+                                        gap: 1,
+                                        overflow: "hidden",
+                                        height: "100%",
+                                        padding: "1px 4px",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 4,
+                                        }}
+                                      >
+                                        {catIconChip && !superNarrow && (
+                                          <span
+                                            style={{
+                                              display: "inline-flex",
+                                              flexShrink: 0,
+                                            }}
+                                          >
+                                            {catIconChip}
+                                          </span>
+                                        )}
+                                        {!superNarrow && (
+                                          <span
+                                            style={{
+                                              fontSize: 10.5,
+                                              fontWeight: 800,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.text,
+                                              flexShrink: 0,
+                                              whiteSpace: "nowrap",
+                                              lineHeight: 1,
+                                              fontVariantNumeric:
+                                                "tabular-nums" as any,
+                                            }}
+                                          >
+                                            {timeStrCompact}
+                                          </span>
+                                        )}
+                                        {chainBadge}
+                                        {!superNarrow &&
+                                          height > 30 &&
+                                          stylistAvatar}
+                                        {icon}
+                                      </div>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 4,
+                                          maxWidth: "100%",
+                                          overflow: "hidden",
+                                        }}
+                                      >
                                         <span
                                           style={{
                                             fontSize: 10.5,
@@ -8961,299 +9215,338 @@ function DayTimeline({
                                             color: cancelada
                                               ? TOKENS.textTer
                                               : TOKENS.text,
-                                            flexShrink: 0,
-                                            whiteSpace: "nowrap",
-                                            lineHeight: 1,
-                                            fontVariantNumeric:
-                                              "tabular-nums" as any,
-                                          }}
-                                        >
-                                          {timeStrCompact}
-                                        </span>
-                                      )}
-                                      {chainBadge}
-                                      {!superNarrow && height > 30 && stylistAvatar}
-                                      {icon}
-                                    </div>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 4,
-                                        maxWidth: "100%",
-                                        overflow: "hidden",
-                                      }}
-                                    >
-                                      <span
-                                        style={{
-                                          fontSize: 10.5,
-                                          fontWeight: 800,
-                                          color: cancelada
-                                            ? TOKENS.textTer
-                                            : TOKENS.text,
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                          textDecoration: cancelada
-                                            ? "line-through"
-                                            : "none",
-                                        }}
-                                      >
-                                        {nombreCliente}
-                                      </span>
-                                      {nombreServicio && height > 32 && (
-                                        <span
-                                          style={{
-                                            fontSize: 10,
-                                            fontWeight: 700,
-                                            color: cancelada
-                                              ? TOKENS.textTer
-                                              : TOKENS.text,
-                                            background: cancelada
-                                              ? "transparent"
-                                              : TOKENS.bgCard,
-                                            border: cancelada
-                                              ? "none"
-                                              : `1px solid ${(catColor || profColor)}55`,
-                                            borderLeft: cancelada
-                                              ? "none"
-                                              : `2px solid ${catColor || profColor}`,
-                                            padding: "1px 4px",
-                                            borderRadius: 4,
-                                            boxShadow: cancelada ? "none" : "0 1px 2px rgba(0,0,0,0.08)",
                                             whiteSpace: "nowrap",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
-                                            maxWidth: "100%",
+                                            textDecoration: cancelada
+                                              ? "line-through"
+                                              : "none",
                                           }}
                                         >
-                                          {nombreServicio}
+                                          {nombreCliente}
                                         </span>
+                                        {nombreServicio && height > 32 && (
+                                          <span
+                                            style={{
+                                              fontSize: 10,
+                                              fontWeight: 700,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.text,
+                                              background: cancelada
+                                                ? "transparent"
+                                                : TOKENS.bgCard,
+                                              border: cancelada
+                                                ? "none"
+                                                : `1px solid ${catColor || profColor}55`,
+                                              borderLeft: cancelada
+                                                ? "none"
+                                                : `2px solid ${catColor || profColor}`,
+                                              padding: "1px 4px",
+                                              borderRadius: 4,
+                                              boxShadow: cancelada
+                                                ? "none"
+                                                : "0 1px 2px rgba(0,0,0,0.08)",
+                                              whiteSpace: "nowrap",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              maxWidth: "100%",
+                                            }}
+                                          >
+                                            {nombreServicio}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div
+                                    style={{
+                                      position: "relative",
+                                      zIndex: 6,
+                                      minWidth: 0,
+                                      display: "flex",
+                                      alignItems: "flex-start",
+                                      gap: 7,
+                                      height: "100%",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        flexShrink: 0,
+                                        width:
+                                          hasEspera && activaPx <= 45 ? 22 : 28,
+                                        height:
+                                          hasEspera && activaPx <= 45 ? 22 : 28,
+                                        borderRadius: 8,
+                                        background: cancelada
+                                          ? "#99999955"
+                                          : badgeColor,
+                                        display: "grid",
+                                        placeItems: "center",
+                                        color: "#fff",
+                                        fontSize: 11,
+                                        fontWeight: 800,
+                                        marginTop: 1,
+                                      }}
+                                      title={
+                                        catName
+                                          ? `${catName} · ${nombreCliente}`
+                                          : nombreCliente
+                                      }
+                                    >
+                                      {iniciales}
+                                    </span>
+                                    <div
+                                      style={{
+                                        flex: "0 0 auto",
+                                        minWidth: 0,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: height < 64 ? 0 : 1,
+                                        position: "relative",
+                                        zIndex: 6,
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "space-between",
+                                          gap: 6,
+                                        }}
+                                      >
+                                        {height > 24 && (
+                                          <span
+                                            style={{
+                                              fontSize:
+                                                hasEspera && activaPx <= 45
+                                                  ? 10.5
+                                                  : 12.5,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.text,
+                                              fontWeight: 800,
+                                              letterSpacing: -0.2,
+                                              whiteSpace: "nowrap",
+                                              fontVariantNumeric:
+                                                "tabular-nums" as any,
+                                            }}
+                                          >
+                                            {height <= 32
+                                              ? timeStrCompact
+                                              : timeStr}
+                                          </span>
+                                        )}
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 5,
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          {chainBadge}
+                                          {height > 30 && stylistAvatar}
+                                          {icon}
+                                        </div>
+                                      </div>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          gap: height < 30 ? 0 : 2,
+                                          width: "100%",
+                                          overflow: "hidden",
+                                        }}
+                                      >
+                                        <div
+                                          onMouseDown={(e) => {
+                                            if (onClienteHistorial)
+                                              e.stopPropagation();
+                                          }}
+                                          onClick={(e) => {
+                                            if (onClienteHistorial) {
+                                              e.stopPropagation();
+                                              const cli = clientes.find(
+                                                (cl: any) =>
+                                                  cl.id === cita.cliente_id,
+                                              );
+                                              if (cli) onClienteHistorial(cli);
+                                            }
+                                          }}
+                                          style={{
+                                            width: "fit-content",
+                                            maxWidth: "100%",
+                                            fontSize:
+                                              hasEspera && activaPx <= 45
+                                                ? 10.5
+                                                : height < 30
+                                                  ? 11
+                                                  : 12,
+                                            lineHeight:
+                                              height < 30 ? "1.1" : "1.2",
+                                            fontWeight: 800,
+                                            color: cancelada
+                                              ? TOKENS.textTer
+                                              : TOKENS.text,
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            textDecoration: cancelada
+                                              ? "line-through"
+                                              : "none",
+                                            cursor: onClienteHistorial
+                                              ? "pointer"
+                                              : "default",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 4,
+                                          }}
+                                          title="Ver historial de este cliente"
+                                        >
+                                          {identidad}
+                                          {cita.encadenadoId && !cancelada && (
+                                            <Icon
+                                              name="link"
+                                              size={12}
+                                              color={TOKENS.primary}
+                                            />
+                                          )}
+                                          {(cita.fin_activa ||
+                                            cita.fin_espera) &&
+                                            !cancelada && (
+                                              <Icon
+                                                name="coffee"
+                                                size={12}
+                                                color="#f59e0b"
+                                              />
+                                            )}
+                                          {/* Servicio en linea cuando no cabe su chip debajo. */}
+                                          {bloqueBajo &&
+                                            height > 32 &&
+                                            nombreServicio && (
+                                              <span
+                                                style={{
+                                                  fontWeight: 600,
+                                                  color: cancelada
+                                                    ? TOKENS.textTer
+                                                    : TOKENS.textSec,
+                                                  overflow: "hidden",
+                                                  textOverflow: "ellipsis",
+                                                  whiteSpace: "nowrap",
+                                                  minWidth: 0,
+                                                }}
+                                                title={nombreServicio}
+                                              >
+                                                · {nombreServicio}
+                                              </span>
+                                            )}
+                                        </div>
+                                        {height > 32 && !bloqueBajo && (
+                                          <div
+                                            style={{
+                                              background: cancelada
+                                                ? "transparent"
+                                                : TOKENS.bgCard,
+                                              border: cancelada
+                                                ? "none"
+                                                : `1px solid ${catColor || profColor}55`,
+                                              borderLeft: cancelada
+                                                ? "none"
+                                                : `3px solid ${catColor || profColor}`,
+                                              padding:
+                                                hasEspera && activaPx <= 45
+                                                  ? "1px 4px"
+                                                  : "2px 6px",
+                                              borderRadius: 6,
+                                              boxShadow: cancelada
+                                                ? "none"
+                                                : "0 1px 3px rgba(0,0,0,0.08)",
+                                              width: "fit-content",
+                                              maxWidth: "100%",
+                                              fontSize:
+                                                hasEspera && activaPx <= 45
+                                                  ? 9.5
+                                                  : 10.5,
+                                              fontWeight: 700,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.text,
+                                              whiteSpace: "normal",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: 4,
+                                              marginTop: 1,
+                                            }}
+                                          >
+                                            {catIconChip ? (
+                                              <span
+                                                style={{
+                                                  display: "inline-flex",
+                                                  flexShrink: 0,
+                                                  marginTop: 2,
+                                                }}
+                                                title={catName}
+                                              >
+                                                {catIconChip}
+                                              </span>
+                                            ) : (
+                                              catColor && (
+                                                <span
+                                                  style={{
+                                                    width: 6,
+                                                    height: 6,
+                                                    borderRadius: 999,
+                                                    background: catColor,
+                                                    flexShrink: 0,
+                                                    marginTop: 4,
+                                                  }}
+                                                  title={catName}
+                                                />
+                                              )
+                                            )}
+                                            <span
+                                              style={{
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                display: "-webkit-box",
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: "vertical",
+                                                wordBreak: "break-word",
+                                              }}
+                                            >
+                                              {nombreServicio ||
+                                                (cita.servicio_id
+                                                  ? "Servicio eliminado"
+                                                  : "Sin servicio")}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {addonsStr && height >= 64 && (
+                                        <div
+                                          style={{
+                                            fontSize: 9,
+                                            color: "#10b981",
+                                            fontWeight: 600,
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                          }}
+                                        >
+                                          {addonsStr}
+                                        </div>
                                       )}
                                     </div>
                                   </div>
                                 );
-                              }
-
-                              return (
-                                <div
-                                  style={{
-                                    position: "relative",
-                                    zIndex: 6,
-                                    minWidth: 0,
-                                    display: "flex",
-                                     alignItems: "flex-start",
-                                    gap: 7,
-                                    height: "100%",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      flexShrink: 0,
-                                      width: (hasEspera && activaPx <= 45) ? 22 : 28,
-                                      height: (hasEspera && activaPx <= 45) ? 22 : 28,
-                                      borderRadius: 8,
-                                      background: cancelada
-                                        ? "#99999955"
-                                        : badgeColor,
-                                      display: "grid",
-                                      placeItems: "center",
-                                      color: "#fff",
-                                      fontSize: 11,
-                                      fontWeight: 800,
-                                      marginTop: 1,
-                                    }}
-                                    title={
-                                      catName
-                                        ? `${catName} · ${nombreCliente}`
-                                        : nombreCliente
-                                    }
-                                  >
-                                    {iniciales}
-                                  </span>
-                                  <div
-                                    style={{
-                                      flex: "0 0 auto",
-                                      minWidth: 0,
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      gap: height < 64 ? 0 : 1,
-                                      position: "relative",
-                                      zIndex: 6,
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        gap: 6,
-                                      }}
-                                    >
-                                      {height > 24 && (
-                                        <span
-                                          style={{
-                                            fontSize: (hasEspera && activaPx <= 45) ? 10.5 : 12.5,
-                                            color: cancelada
-                                              ? TOKENS.textTer
-                                              : TOKENS.text,
-                                            fontWeight: 800,
-                                            letterSpacing: -0.2,
-                                            whiteSpace: "nowrap",
-                                            fontVariantNumeric:
-                                              "tabular-nums" as any,
-                                          }}
-                                        >
-                                          {height <= 32 ? timeStrCompact : timeStr}
-                                        </span>
-                                      )}
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 5,
-                                          flexShrink: 0,
-                                        }}
-                                      >
-                                        {chainBadge}
-                                        {height > 30 && stylistAvatar}
-                                        {icon}
-                                      </div>
-                                    </div>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: height < 30 ? 0 : 2,
-                                        width: "100%",
-                                        overflow: "hidden"
-                                      }}
-                                    >
-                                      <div
-                                        onMouseDown={(e) => {
-                                          if (onClienteHistorial) e.stopPropagation();
-                                        }}
-                                        onClick={(e) => {
-                                          if (onClienteHistorial) {
-                                            e.stopPropagation();
-                                            const cli = clientes.find((cl: any) => cl.id === cita.cliente_id);
-                                            if (cli) onClienteHistorial(cli);
-                                          }
-                                        }}
-                                        style={{
-                                          width: "fit-content",
-                                          maxWidth: "100%",
-                                          fontSize: (hasEspera && activaPx <= 45) ? 10.5 : height < 30 ? 11 : 12,
-                                          lineHeight: height < 30 ? "1.1" : "1.2",
-                                          fontWeight: 800,
-                                          color: cancelada ? TOKENS.textTer : TOKENS.text,
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                          textDecoration: cancelada ? "line-through" : "none",
-                                          cursor: onClienteHistorial ? "pointer" : "default",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 4,
-                                        }}
-                                        title="Ver historial de este cliente"
-                                      >
-                                        {identidad}
-                                        {cita.encadenadoId && !cancelada && (
-                                          <Icon name="link" size={12} color={TOKENS.primary} />
-                                        )}
-                                        {(cita.fin_activa || cita.fin_espera) && !cancelada && (
-                                          <Icon name="coffee" size={12} color="#f59e0b" />
-                                        )}
-                                        {/* Servicio en linea cuando no cabe su chip debajo. */}
-                                        {bloqueBajo && height > 32 && nombreServicio && (
-                                          <span
-                                            style={{
-                                              fontWeight: 600,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.textSec,
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                              whiteSpace: "nowrap",
-                                              minWidth: 0,
-                                            }}
-                                            title={nombreServicio}
-                                          >
-                                            · {nombreServicio}
-                                          </span>
-                                        )}
-                                      </div>
-                                      {height > 32 && !bloqueBajo && (
-                                        <div
-                                          style={{
-                                            background: cancelada ? "transparent" : TOKENS.bgCard,
-                                            border: cancelada
-                                              ? "none"
-                                              : `1px solid ${(catColor || profColor)}55`,
-                                            borderLeft: cancelada
-                                              ? "none"
-                                              : `3px solid ${catColor || profColor}`,
-                                            padding: (hasEspera && activaPx <= 45) ? "1px 4px" : "2px 6px",
-                                            borderRadius: 6,
-                                            boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
-                                            width: "fit-content",
-                                            maxWidth: "100%",
-                                            fontSize: (hasEspera && activaPx <= 45) ? 9.5 : 10.5,
-                                            fontWeight: 700,
-                                            color: cancelada ? TOKENS.textTer : TOKENS.text,
-                                            whiteSpace: "normal",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 4,
-                                            marginTop: 1,
-                                          }}
-                                        >
-                                          {catIconChip ? (
-                                            <span style={{ display: "inline-flex", flexShrink: 0, marginTop: 2 }} title={catName}>
-                                              {catIconChip}
-                                            </span>
-                                          ) : (
-                                            catColor && (
-                                              <span style={{ width: 6, height: 6, borderRadius: 999, background: catColor, flexShrink: 0, marginTop: 4 }} title={catName} />
-                                            )
-                                          )}
-                                          <span
-                                            style={{
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                              display: "-webkit-box",
-                                              WebkitLineClamp: 2,
-                                              WebkitBoxOrient: "vertical",
-                                              wordBreak: "break-word",
-                                            }}
-                                          >
-                                            {nombreServicio || (cita.servicio_id ? "Servicio eliminado" : "Sin servicio")}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    {addonsStr && height >= 64 && (
-                                      <div
-                                        style={{
-                                          fontSize: 9,
-                                          color: "#10b981",
-                                          fontWeight: 600,
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                        }}
-                                      >
-                                        {addonsStr}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })()}
+                              })()}
                             </div>
                           </div>
                         );
@@ -9277,7 +9570,8 @@ function DayTimeline({
                         const aY = (iso: string) => {
                           const d = new Date(iso);
                           return (
-                            (d.getHours() + d.getMinutes() / 60 - START_H) * ROW_H
+                            (d.getHours() + d.getMinutes() / 60 - START_H) *
+                            ROW_H
                           );
                         };
                         const zTop = aY(p.zona.desde);
@@ -9287,9 +9581,9 @@ function DayTimeline({
                         // ordenada). Los tres primeros se pintan fuerte; el resto
                         // se atenua para que la agenda no se emborrone cuando hay
                         // ocho avisos a la vez.
-                        const rango = (zonasResaltadas as ProblemaAgenda[]).findIndex(
-                          (x) => x.id === p.id,
-                        );
+                        const rango = (
+                          zonasResaltadas as ProblemaAgenda[]
+                        ).findIndex((x) => x.id === p.id);
                         const principal = rango >= 0 && rango < 3;
                         // Movimiento ENTRE profesionales: el destino es de otra
                         // persona. Se marca aparte porque es el cambio que mas
@@ -9298,10 +9592,11 @@ function DayTimeline({
                           !!p.zonaOrigen &&
                           p.zonaOrigen.profesionalId !== p.zona.profesionalId;
                         const colorDe = (id: string) =>
-                          (profesionales as any[]).find((x) => x.id === id)?.color ||
-                          TOKENS.primary;
+                          (profesionales as any[]).find((x) => x.id === id)
+                            ?.color || TOKENS.primary;
                         const nombreDe = (id: string) =>
-                          (profesionales as any[]).find((x) => x.id === id)?.nombre || "";
+                          (profesionales as any[]).find((x) => x.id === id)
+                            ?.nombre || "";
                         const tono = cambiaDeProfesional
                           ? colorDe(p.zona.profesionalId)
                           : p.tipo === "solape"
@@ -9313,7 +9608,9 @@ function DayTimeline({
                           ? colorDe(p.zonaOrigen!.profesionalId)
                           : tono;
                         const opacidad = principal ? 1 : 0.42;
-                        const oTop = p.zonaOrigen ? aY(p.zonaOrigen.desde) : null;
+                        const oTop = p.zonaOrigen
+                          ? aY(p.zonaOrigen.desde)
+                          : null;
                         const oH =
                           p.zonaOrigen && oTop != null
                             ? aY(p.zonaOrigen.hasta) - oTop
@@ -9338,7 +9635,10 @@ function DayTimeline({
                             ? zTop - oTop
                             : null;
                         return (
-                          <div key={`zona-${p.id}`} style={{ opacity: opacidad }}>
+                          <div
+                            key={`zona-${p.id}`}
+                            style={{ opacity: opacidad }}
+                          >
                             {/* Cita de origen: marco tenue, sin latido (el latido
                                 se reserva al destino, que es donde hay que mirar). */}
                             {oTop != null && oH > 0 && (
@@ -9396,7 +9696,8 @@ function DayTimeline({
                                     pointerEvents: "none",
                                     zIndex: 42,
                                     ["--viaje" as any]: `${viaje}px`,
-                                    animation: "viajeZona 2.4s ease-in-out infinite",
+                                    animation:
+                                      "viajeZona 2.4s ease-in-out infinite",
                                   } as React.CSSProperties
                                 }
                               />
@@ -9452,7 +9753,9 @@ function DayTimeline({
                                 borderRadius: 10,
                                 border: `2px dashed ${tono}`,
                                 background: `${tono}1f`,
-                                boxShadow: principal ? `0 0 0 3px ${tono}22` : "none",
+                                boxShadow: principal
+                                  ? `0 0 0 3px ${tono}22`
+                                  : "none",
                                 pointerEvents: "none",
                                 zIndex: 40,
                                 animation: principal
@@ -10091,8 +10394,12 @@ function DayListView({
     let lastTime = dayStart.getTime();
 
     sortedCitas.forEach((cita) => {
-      const citaStart = cita.inicio ? new Date(cita.inicio).getTime() : lastTime;
-      const citaEnd = cita.fin ? new Date(cita.fin).getTime() : citaStart + 15 * 60000;
+      const citaStart = cita.inicio
+        ? new Date(cita.inicio).getTime()
+        : lastTime;
+      const citaEnd = cita.fin
+        ? new Date(cita.fin).getTime()
+        : citaStart + 15 * 60000;
 
       if (!isNaN(citaStart) && !isNaN(citaEnd)) {
         if (citaStart - lastTime >= 15 * 60 * 1000) {
@@ -10533,12 +10840,15 @@ function NewCitaModal({
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState("");
   const [servicioSearch, setServicioSearch] = useState("");
-  const [historialClienteServicios, setHistorialClienteServicios] = useState<{top: string[], last: string[]}>({top: [], last: []});
+  const [historialClienteServicios, setHistorialClienteServicios] = useState<{
+    top: string[];
+    last: string[];
+  }>({ top: [], last: [] });
 
   // Buscar servicios más frecuentes del cliente
   useEffect(() => {
     let cancel = false;
-    setHistorialClienteServicios({top: [], last: []});
+    setHistorialClienteServicios({ top: [], last: [] });
     if (!selectedCliente) return;
     (async () => {
       let q = supabase
@@ -10551,7 +10861,7 @@ function NewCitaModal({
       if (negocioId) q = q.eq("negocio_id", negocioId);
       const { data } = await q;
       if (cancel || !data) return;
-      
+
       const counts: Record<string, number> = {};
       data.forEach((c: any) => {
         if (c.servicio_id) {
@@ -10562,9 +10872,11 @@ function NewCitaModal({
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
         .map(([id]) => id);
-      
-      const lastServices = Array.from(new Set(data.map((c: any) => c.servicio_id).filter(Boolean))).slice(0, 3) as string[];
-      
+
+      const lastServices = Array.from(
+        new Set(data.map((c: any) => c.servicio_id).filter(Boolean)),
+      ).slice(0, 3) as string[];
+
       setHistorialClienteServicios({ top: topServices, last: lastServices });
     })();
     return () => {
@@ -10974,7 +11286,7 @@ function NewCitaModal({
     let baseList = selectedProf ? serviciosFiltrados : servicios;
     if (servicioSearch.trim()) {
       baseList = baseList.filter((s: any) =>
-        norm(s?.nombre || "").includes(norm(servicioSearch))
+        norm(s?.nombre || "").includes(norm(servicioSearch)),
       );
     }
     const grupos = categorias
@@ -11355,14 +11667,12 @@ function NewCitaModal({
         for (let i = 0; i < citasInsertadas.length; i++) {
           const addons = addonsPerCita[i];
           if (addons.length > 0 && citasInsertadas[i]?.id) {
-            await supabase
-              .from("cita_addons")
-              .insert(
-                addons.map((aid: string) => ({
-                  cita_id: citasInsertadas[i].id,
-                  addon_id: aid,
-                })),
-              );
+            await supabase.from("cita_addons").insert(
+              addons.map((aid: string) => ({
+                cita_id: citasInsertadas[i].id,
+                addon_id: aid,
+              })),
+            );
           }
         }
       }
@@ -11458,14 +11768,12 @@ function NewCitaModal({
           if (serieInsertadas && addonsBase.length > 0) {
             for (const s of serieInsertadas) {
               if (s?.id)
-                await supabase
-                  .from("cita_addons")
-                  .insert(
-                    addonsBase.map((aid: string) => ({
-                      cita_id: s.id,
-                      addon_id: aid,
-                    })),
-                  );
+                await supabase.from("cita_addons").insert(
+                  addonsBase.map((aid: string) => ({
+                    cita_id: s.id,
+                    addon_id: aid,
+                  })),
+                );
             }
           }
           if (serieInsertadas)
@@ -11817,7 +12125,8 @@ function NewCitaModal({
                 marginBottom: 20,
                 padding: "14px 16px",
                 borderRadius: 14,
-                background: "linear-gradient(135deg, rgba(16,185,129,0.14) 0%, rgba(16,185,129,0.06) 100%)",
+                background:
+                  "linear-gradient(135deg, rgba(16,185,129,0.14) 0%, rgba(16,185,129,0.06) 100%)",
                 border: "1.5px solid rgba(16,185,129,0.35)",
                 boxShadow: "0 4px 16px rgba(16,185,129,0.10)",
                 display: "flex",
@@ -11825,29 +12134,49 @@ function NewCitaModal({
                 gap: 12,
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                <div style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 10,
-                  background: "rgba(16,185,129,0.20)",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "#059669",
-                  fontSize: 16,
-                  fontWeight: 800,
-                  flexShrink: 0,
-                }}>
+              <div
+                style={{ display: "flex", alignItems: "flex-start", gap: 10 }}
+              >
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: "rgba(16,185,129,0.20)",
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#059669",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    flexShrink: 0,
+                  }}
+                >
                   ⚡
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "#047857", marginBottom: 2 }}>
-                    Encajando cita en el reposo de {prefillReposoContext.hostClienteNombre}
+                  <div
+                    style={{
+                      fontSize: 13.5,
+                      fontWeight: 700,
+                      color: "#047857",
+                      marginBottom: 2,
+                    }}
+                  >
+                    Encajando cita en el reposo de{" "}
+                    {prefillReposoContext.hostClienteNombre}
                   </div>
-                  <div style={{ fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.4 }}>
-                    {prefillReposoContext.hostServicioNombre} · Intervalo disponible:{" "}
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: TOKENS.textSec,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {prefillReposoContext.hostServicioNombre} · Intervalo
+                    disponible:{" "}
                     <strong style={{ color: TOKENS.text }}>
-                      {fmtHHMM(new Date(prefillReposoContext.reposoInicio))} - {fmtHHMM(new Date(prefillReposoContext.reposoFin))}
+                      {fmtHHMM(new Date(prefillReposoContext.reposoInicio))} -{" "}
+                      {fmtHHMM(new Date(prefillReposoContext.reposoFin))}
                     </strong>{" "}
                     ({prefillReposoContext.duracionReposoMin} min libres)
                   </div>
@@ -11855,14 +12184,31 @@ function NewCitaModal({
               </div>
 
               {/* Botones de inicio rápido */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", paddingTop: 8, borderTop: "1px dashed rgba(16,185,129,0.25)" }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  paddingTop: 8,
+                  borderTop: "1px dashed rgba(16,185,129,0.25)",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: TOKENS.textSec,
+                  }}
+                >
                   Inicio en reposo:
                 </span>
                 <button
                   type="button"
                   onClick={() => {
-                    const hStr = fmtHHMM(new Date(prefillReposoContext.reposoInicio));
+                    const hStr = fmtHHMM(
+                      new Date(prefillReposoContext.reposoInicio),
+                    );
                     setUseCustomHora(true);
                     setHoraPersonalizada(hStr);
                     setSelectedHora(hStr);
@@ -11870,27 +12216,51 @@ function NewCitaModal({
                   style={{
                     padding: "5px 12px",
                     borderRadius: 8,
-                    border: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(prefillReposoContext.reposoInicio))) || selectedHora === fmtHHMM(new Date(prefillReposoContext.reposoInicio))
-                      ? "1.5px solid #10b981"
-                      : `1px solid ${TOKENS.border}`,
-                    background: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(prefillReposoContext.reposoInicio))) || selectedHora === fmtHHMM(new Date(prefillReposoContext.reposoInicio))
-                      ? "rgba(16,185,129,0.22)"
-                      : TOKENS.bgCard,
-                    color: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(prefillReposoContext.reposoInicio))) || selectedHora === fmtHHMM(new Date(prefillReposoContext.reposoInicio))
-                      ? "#047857"
-                      : TOKENS.text,
+                    border:
+                      (useCustomHora &&
+                        horaPersonalizada ===
+                          fmtHHMM(
+                            new Date(prefillReposoContext.reposoInicio),
+                          )) ||
+                      selectedHora ===
+                        fmtHHMM(new Date(prefillReposoContext.reposoInicio))
+                        ? "1.5px solid #10b981"
+                        : `1px solid ${TOKENS.border}`,
+                    background:
+                      (useCustomHora &&
+                        horaPersonalizada ===
+                          fmtHHMM(
+                            new Date(prefillReposoContext.reposoInicio),
+                          )) ||
+                      selectedHora ===
+                        fmtHHMM(new Date(prefillReposoContext.reposoInicio))
+                        ? "rgba(16,185,129,0.22)"
+                        : TOKENS.bgCard,
+                    color:
+                      (useCustomHora &&
+                        horaPersonalizada ===
+                          fmtHHMM(
+                            new Date(prefillReposoContext.reposoInicio),
+                          )) ||
+                      selectedHora ===
+                        fmtHHMM(new Date(prefillReposoContext.reposoInicio))
+                        ? "#047857"
+                        : TOKENS.text,
                     fontSize: 11.5,
                     fontWeight: 700,
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                   }}
                 >
-                  📍 Al principio ({fmtHHMM(new Date(prefillReposoContext.reposoInicio))})
+                  📍 Al principio (
+                  {fmtHHMM(new Date(prefillReposoContext.reposoInicio))})
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    const midMs = new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000;
+                    const midMs =
+                      new Date(prefillReposoContext.reposoInicio).getTime() +
+                      (prefillReposoContext.duracionReposoMin / 2) * 60000;
                     const hStr = fmtHHMM(new Date(midMs));
                     setUseCustomHora(true);
                     setHoraPersonalizada(hStr);
@@ -11899,65 +12269,207 @@ function NewCitaModal({
                   style={{
                     padding: "5px 12px",
                     borderRadius: 8,
-                    border: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))) || selectedHora === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))
-                      ? "1.5px solid #10b981"
-                      : `1px solid ${TOKENS.border}`,
-                    background: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))) || selectedHora === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))
-                      ? "rgba(16,185,129,0.22)"
-                      : TOKENS.bgCard,
-                    color: (useCustomHora && horaPersonalizada === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))) || selectedHora === fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))
-                      ? "#047857"
-                      : TOKENS.text,
+                    border:
+                      (useCustomHora &&
+                        horaPersonalizada ===
+                          fmtHHMM(
+                            new Date(
+                              new Date(
+                                prefillReposoContext.reposoInicio,
+                              ).getTime() +
+                                (prefillReposoContext.duracionReposoMin / 2) *
+                                  60000,
+                            ),
+                          )) ||
+                      selectedHora ===
+                        fmtHHMM(
+                          new Date(
+                            new Date(
+                              prefillReposoContext.reposoInicio,
+                            ).getTime() +
+                              (prefillReposoContext.duracionReposoMin / 2) *
+                                60000,
+                          ),
+                        )
+                        ? "1.5px solid #10b981"
+                        : `1px solid ${TOKENS.border}`,
+                    background:
+                      (useCustomHora &&
+                        horaPersonalizada ===
+                          fmtHHMM(
+                            new Date(
+                              new Date(
+                                prefillReposoContext.reposoInicio,
+                              ).getTime() +
+                                (prefillReposoContext.duracionReposoMin / 2) *
+                                  60000,
+                            ),
+                          )) ||
+                      selectedHora ===
+                        fmtHHMM(
+                          new Date(
+                            new Date(
+                              prefillReposoContext.reposoInicio,
+                            ).getTime() +
+                              (prefillReposoContext.duracionReposoMin / 2) *
+                                60000,
+                          ),
+                        )
+                        ? "rgba(16,185,129,0.22)"
+                        : TOKENS.bgCard,
+                    color:
+                      (useCustomHora &&
+                        horaPersonalizada ===
+                          fmtHHMM(
+                            new Date(
+                              new Date(
+                                prefillReposoContext.reposoInicio,
+                              ).getTime() +
+                                (prefillReposoContext.duracionReposoMin / 2) *
+                                  60000,
+                            ),
+                          )) ||
+                      selectedHora ===
+                        fmtHHMM(
+                          new Date(
+                            new Date(
+                              prefillReposoContext.reposoInicio,
+                            ).getTime() +
+                              (prefillReposoContext.duracionReposoMin / 2) *
+                                60000,
+                          ),
+                        )
+                        ? "#047857"
+                        : TOKENS.text,
                     fontSize: 11.5,
                     fontWeight: 700,
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                   }}
                 >
-                  ⏳ En el medio ({fmtHHMM(new Date(new Date(prefillReposoContext.reposoInicio).getTime() + (prefillReposoContext.duracionReposoMin / 2) * 60000))})
+                  ⏳ En el medio (
+                  {fmtHHMM(
+                    new Date(
+                      new Date(prefillReposoContext.reposoInicio).getTime() +
+                        (prefillReposoContext.duracionReposoMin / 2) * 60000,
+                    ),
+                  )}
+                  )
                 </button>
               </div>
 
               {/* Medidor de ajuste de duración y avisos */}
               {(() => {
-                const srv = servicios.find((s: any) => s.id === selectedServicio);
+                const srv = servicios.find(
+                  (s: any) => s.id === selectedServicio,
+                );
                 if (!srv) return null;
-                const srvDur = (srv.duracion_activa_min || 0) + (srv.duracion_espera_min || 0) + (srv.duracion_activa_extra_min || 0);
+                const srvDur =
+                  (srv.duracion_activa_min || 0) +
+                  (srv.duracion_espera_min || 0) +
+                  (srv.duracion_activa_extra_min || 0);
 
                 let windowAvailMin = prefillReposoContext.duracionReposoMin;
-                const selectedHoraTxt = useCustomHora && horaPersonalizada ? horaPersonalizada : selectedHora;
+                const selectedHoraTxt =
+                  useCustomHora && horaPersonalizada
+                    ? horaPersonalizada
+                    : selectedHora;
                 if (selectedHoraTxt && selectedHoraTxt.includes(":")) {
                   const [h, m] = selectedHoraTxt.split(":").map(Number);
                   const selStart = new Date(prefillReposoContext.reposoInicio);
                   selStart.setHours(h, m, 0, 0);
-                  const diffMs = new Date(prefillReposoContext.reposoFin).getTime() - selStart.getTime();
+                  const diffMs =
+                    new Date(prefillReposoContext.reposoFin).getTime() -
+                    selStart.getTime();
                   windowAvailMin = Math.max(0, Math.round(diffMs / 60000));
                 }
 
-                const pct = windowAvailMin > 0 ? Math.min(100, Math.round((srvDur / windowAvailMin) * 100)) : 100;
+                const pct =
+                  windowAvailMin > 0
+                    ? Math.min(100, Math.round((srvDur / windowAvailMin) * 100))
+                    : 100;
                 const isOverflow = srvDur > windowAvailMin;
                 const overflowMin = srvDur - windowAvailMin;
 
                 return (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 4, paddingTop: 6, borderTop: "1px dashed rgba(16,185,129,0.25)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11.5 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 5,
+                      marginTop: 4,
+                      paddingTop: 6,
+                      borderTop: "1px dashed rgba(16,185,129,0.25)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        fontSize: 11.5,
+                      }}
+                    >
                       <span style={{ fontWeight: 600, color: TOKENS.text }}>
-                        Duración servicio: <strong>{srvDur} min</strong> (Reposo disp: <strong>{windowAvailMin} min</strong>)
+                        Duración servicio: <strong>{srvDur} min</strong> (Reposo
+                        disp: <strong>{windowAvailMin} min</strong>)
                       </span>
-                      <span style={{ fontWeight: 700, color: isOverflow ? "#d97706" : "#059669" }}>
-                        {isOverflow ? `Sobrepasa +${overflowMin}′` : `${pct}% del hueco`}
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          color: isOverflow ? "#d97706" : "#059669",
+                        }}
+                      >
+                        {isOverflow
+                          ? `Sobrepasa +${overflowMin}′`
+                          : `${pct}% del hueco`}
                       </span>
                     </div>
 
-                    <div style={{ width: "100%", height: 7, borderRadius: 999, background: "rgba(0,0,0,0.08)", overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: isOverflow ? "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)" : "linear-gradient(90deg, #10b981 0%, #059669 100%)", transition: "width 0.3s ease" }} />
+                    <div
+                      style={{
+                        width: "100%",
+                        height: 7,
+                        borderRadius: 999,
+                        background: "rgba(0,0,0,0.08)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${pct}%`,
+                          height: "100%",
+                          borderRadius: 999,
+                          background: isOverflow
+                            ? "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)"
+                            : "linear-gradient(90deg, #10b981 0%, #059669 100%)",
+                          transition: "width 0.3s ease",
+                        }}
+                      />
                     </div>
 
-                    <div style={{ fontSize: 11, fontWeight: 600, color: isOverflow ? "#b45309" : "#047857", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: isOverflow ? "#b45309" : "#047857",
+                        marginTop: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
                       {isOverflow ? (
-                        <span>⚠️ Atención: El servicio dura {srvDur} min y se sobrepasa {overflowMin} min del reposo disponible desde las {selectedHoraTxt}. Se solapará parcialmente.</span>
+                        <span>
+                          ⚠️ Atención: El servicio dura {srvDur} min y se
+                          sobrepasa {overflowMin} min del reposo disponible
+                          desde las {selectedHoraTxt}. Se solapará parcialmente.
+                        </span>
                       ) : (
-                        <span>✓ El servicio encaja perfectamente en este reposo (quedan {windowAvailMin - srvDur} min libres).</span>
+                        <span>
+                          ✓ El servicio encaja perfectamente en este reposo
+                          (quedan {windowAvailMin - srvDur} min libres).
+                        </span>
                       )}
                     </div>
                   </div>
@@ -12646,7 +13158,7 @@ function NewCitaModal({
                 {visionError}
               </div>
             )}
-            
+
             <input
               type="text"
               placeholder="Buscar servicio..."
@@ -12675,13 +13187,31 @@ function NewCitaModal({
               }}
             />
 
-            {(historialClienteServicios.top.length > 0 || historialClienteServicios.last.length > 0) && (
-              <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+            {(historialClienteServicios.top.length > 0 ||
+              historialClienteServicios.last.length > 0) && (
+              <div
+                style={{
+                  marginBottom: 12,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                }}
+              >
                 {historialClienteServicios.last.length > 0 && (
                   <div>
-                    <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Últimos servicios</div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: TOKENS.textTer,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Últimos servicios
+                    </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {historialClienteServicios.last.map(sid => {
+                      {historialClienteServicios.last.map((sid) => {
                         const s = servicios.find((sv: any) => sv.id === sid);
                         if (!s) return null;
                         const sel = selectedServicio === s.id;
@@ -12692,7 +13222,9 @@ function NewCitaModal({
                             style={{
                               padding: "6px 12px",
                               borderRadius: 8,
-                              background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                              background: sel
+                                ? "rgba(244,80,30,0.18)"
+                                : TOKENS.bgCard,
                               border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
                               color: sel ? TOKENS.primaryHi : TOKENS.textSec,
                               fontSize: 11,
@@ -12703,16 +13235,26 @@ function NewCitaModal({
                           >
                             {s.nombre}
                           </button>
-                        )
+                        );
                       })}
                     </div>
                   </div>
                 )}
                 {historialClienteServicios.top.length > 0 && (
                   <div>
-                    <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Más habituales</div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: TOKENS.textTer,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Más habituales
+                    </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {historialClienteServicios.top.map(sid => {
+                      {historialClienteServicios.top.map((sid) => {
                         const s = servicios.find((sv: any) => sv.id === sid);
                         if (!s) return null;
                         const sel = selectedServicio === s.id;
@@ -12723,7 +13265,9 @@ function NewCitaModal({
                             style={{
                               padding: "6px 12px",
                               borderRadius: 8,
-                              background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                              background: sel
+                                ? "rgba(244,80,30,0.18)"
+                                : TOKENS.bgCard,
                               border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
                               color: sel ? TOKENS.primaryHi : TOKENS.textSec,
                               fontSize: 11,
@@ -12734,7 +13278,7 @@ function NewCitaModal({
                           >
                             {s.nombre}
                           </button>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -13239,8 +13783,7 @@ function NewCitaModal({
                     cFinActiva.getTime() + duracionActiva * 60000,
                   );
                   // Si encaja exacto en el límite, está permitido (<= cFinEspera).
-                  if (slotFinActiva > cFinEspera)
-                    return;
+                  if (slotFinActiva > cFinEspera) return;
                   const timeStr = `${String(cFinActiva.getHours()).padStart(2, "0")}:${String(cFinActiva.getMinutes()).padStart(2, "0")}`;
                   if (!slotsSet.has(timeStr)) extraSlots.push(timeStr);
                 });
@@ -13269,8 +13812,7 @@ function NewCitaModal({
                       cFinEspera.getTime() < cFin.getTime();
                     // La nueva activa debe terminar <= cFinEspera (puede tocar el límite exacto)
                     return (
-                      slotInicio >= cFinActiva &&
-                      slotFinActiva <= cFinEspera
+                      slotInicio >= cFinActiva && slotFinActiva <= cFinEspera
                     );
                   });
                   if (encajaEnReposo) reposaSlots.add(time);
@@ -13474,7 +14016,8 @@ function NewCitaModal({
                               gap: 1,
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "translateY(-1px)";
+                              e.currentTarget.style.transform =
+                                "translateY(-1px)";
                               if (!selected) {
                                 e.currentTarget.style.borderColor = esReposo
                                   ? "#f59e0b"
@@ -14396,44 +14939,124 @@ type SeccionCita =
 
 const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
   resumen: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </svg>
   ),
   cliente: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
     </svg>
   ),
   servicio: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15.5 14" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15.5 14" />
     </svg>
   ),
   color: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z" />
     </svg>
   ),
   notas: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M4 20l3.5-1L18 8.5a1.5 1.5 0 0 0 0-2.1l-.4-.4a1.5 1.5 0 0 0-2.1 0L5 16.5 4 20z" />
     </svg>
   ),
   pagos: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
     </svg>
   ),
   productos: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.3 7 12 12 20.7 7" /><line x1="12" y1="22" x2="12" y2="12" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.3 7 12 12 20.7 7" />
+      <line x1="12" y1="22" x2="12" y2="12" />
     </svg>
   ),
   historial: (c) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 16 14" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 16 14" />
     </svg>
   ),
 };
@@ -14573,8 +15196,7 @@ export function DetalleCitaModal({
         ? Math.max(
             5,
             Math.round(
-              (new Date(cita.fin).getTime() -
-                new Date(cita.inicio).getTime()) /
+              (new Date(cita.fin).getTime() - new Date(cita.inicio).getTime()) /
                 60000,
             ),
           )
@@ -14622,7 +15244,13 @@ export function DetalleCitaModal({
   const [previewState, setPreviewState] = useState<{
     profId?: string;
     minutos: number;
-    updates: Array<{ id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string }>;
+    updates: Array<{
+      id: string;
+      inicio: string;
+      fin: string;
+      fin_activa?: string;
+      fin_espera?: string;
+    }>;
     originalCitas?: any[];
   } | null>(null);
   const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
@@ -14635,11 +15263,15 @@ export function DetalleCitaModal({
   const [cobrada, setCobrada] = useState<boolean>(!!cita.cobrada);
   const [showCobro, setShowCobro] = useState(false);
   const [cobroSenalCents, setCobroSenalCents] = useState(0);
-  const [cobrarEncadenadoCompleto, setCobrarEncadenadoCompleto] = useState(true);
+  const [cobrarEncadenadoCompleto, setCobrarEncadenadoCompleto] =
+    useState(true);
 
   const chainSiblings = useMemo(() => {
     if (!cita.grupo_id || !allCitas) return [cita];
-    return allCitas.filter((c: any) => c.grupo_id === cita.grupo_id && c.estado !== CITA_STATUS.CANCELADA);
+    return allCitas.filter(
+      (c: any) =>
+        c.grupo_id === cita.grupo_id && c.estado !== CITA_STATUS.CANCELADA,
+    );
   }, [cita.grupo_id, allCitas]);
 
   // Inventario del salon (pestaña Productos)
@@ -14737,9 +15369,10 @@ export function DetalleCitaModal({
     if (cobrada) return;
     let cancel = false;
     (async () => {
-      const citaIds = cobrarEncadenadoCompleto && chainSiblings.length > 1
-        ? chainSiblings.map((c: any) => c.id)
-        : [cita.id];
+      const citaIds =
+        cobrarEncadenadoCompleto && chainSiblings.length > 1
+          ? chainSiblings.map((c: any) => c.id)
+          : [cita.id];
       const { data } = await supabase
         .from("pagos")
         .select("tipo, importe_cents, estado")
@@ -14916,9 +15549,12 @@ export function DetalleCitaModal({
     setGuardando(true);
     setErrMsg("");
     try {
-      const citaIds = chainSiblings.length > 1
-        ? chainSiblings.filter((c: any) => c.cliente_id === cita.cliente_id).map((c: any) => c.id)
-        : [cita.id];
+      const citaIds =
+        chainSiblings.length > 1
+          ? chainSiblings
+              .filter((c: any) => c.cliente_id === cita.cliente_id)
+              .map((c: any) => c.id)
+          : [cita.id];
 
       for (const cid of citaIds) {
         const { data, error } = await supabase.rpc("marcar_cita_no_show", {
@@ -15687,6 +16323,46 @@ export function DetalleCitaModal({
     }
   };
 
+  const handleRestaurar = async () => {
+    setGuardando(true);
+    try {
+      const payload: any = {
+        oculta_en_calendario: false,
+        estado: CITA_STATUS.PENDIENTE,
+        cancelado_por: null,
+        motivo_cancelacion: null,
+      };
+
+      const { error } = await supabase
+        .from("citas")
+        .update(payload)
+        .eq("id", cita.id);
+      if (error) throw error;
+
+      if (cita.grupo_id) {
+        await supabase
+          .from("citas")
+          .update(payload)
+          .eq("grupo_id", cita.grupo_id)
+          .eq("cliente_id", cita.cliente_id)
+          .neq("id", cita.id);
+      }
+
+      triggerRefresh();
+      onSaved?.({ ...cita, ...payload }) ?? onClose();
+      window.dispatchEvent(
+        new CustomEvent("mecha-toast", {
+          detail: { text: "Cita restaurada." },
+        }),
+      );
+    } catch (err) {
+      console.error("Error al restaurar cita:", err);
+      alert(mensajeDeError(err, "No se pudo restaurar la cita."));
+    } finally {
+      setGuardando(false);
+    }
+  };
+
   const asignarCandidato = async (candId: string) => {
     setAsignandoCand(candId);
     try {
@@ -15861,10 +16537,12 @@ export function DetalleCitaModal({
       (b: any) =>
         b.profesional_id === profId &&
         inicioDate.getTime() < new Date(b.fin).getTime() &&
-        chainFin.getTime() > new Date(b.inicio).getTime()
+        chainFin.getTime() > new Date(b.inicio).getTime(),
     );
     if (solapamientoBloqueo) {
-      alert("No se puede crear el servicio encadenado porque colisiona con un periodo bloqueante (ej. vacaciones) del profesional seleccionado.");
+      alert(
+        "No se puede crear el servicio encadenado porque colisiona con un periodo bloqueante (ej. vacaciones) del profesional seleccionado.",
+      );
       return;
     }
 
@@ -16218,7 +16896,10 @@ export function DetalleCitaModal({
                 flex: 1,
               }}
             >
-              <Avatar name={selectedCliente?.nombre} size={isMobileOrTablet ? 40 : 52} />
+              <Avatar
+                name={selectedCliente?.nombre}
+                size={isMobileOrTablet ? 40 : 52}
+              />
               <div style={{ minWidth: 0, flex: 1 }}>
                 {/* El rotulo "DETALLE DE CITA" sobra en movil: la hoja se acaba
                     de abrir desde la cita y el nombre ya dice de quien es. */}
@@ -16573,19 +17254,62 @@ export function DetalleCitaModal({
           })()}
 
           {/* Cuerpo maestro-detalle: rail de secciones + panel (estilo Booksy) */}
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: isMobileOrTablet ? "column" : "row" }}>
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: isMobileOrTablet ? "column" : "row",
+            }}
+          >
             {isMobileOrTablet ? (
               // Rail de secciones en hoja inferior: envuelve en dos filas en vez de
               // esconder la mitad tras un scroll lateral. Todas a la vista y a un toque.
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, rowGap: 4, padding: "10px 12px", borderBottom: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel, flexShrink: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 4,
+                  rowGap: 4,
+                  padding: "10px 12px",
+                  borderBottom: `1px solid ${TOKENS.border}`,
+                  background: TOKENS.bgPanel,
+                  flexShrink: 0,
+                }}
+              >
                 {RAIL_ITEMS.map((it) => (
-                  <SeccionRailItem key={it.id} id={it.id} label={it.labelCorto} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical={false} />
+                  <SeccionRailItem
+                    key={it.id}
+                    id={it.id}
+                    label={it.labelCorto}
+                    active={seccionActiva === it.id}
+                    onClick={() => setSeccionActiva(it.id)}
+                    vertical={false}
+                  />
                 ))}
               </div>
             ) : (
-              <div style={{ width: 220, flexShrink: 0, borderRight: `1px solid ${TOKENS.border}`, padding: "16px 10px 14px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto" }}>
+              <div
+                style={{
+                  width: 220,
+                  flexShrink: 0,
+                  borderRight: `1px solid ${TOKENS.border}`,
+                  padding: "16px 10px 14px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  overflowY: "auto",
+                }}
+              >
                 {RAIL_ITEMS.map((it) => (
-                  <SeccionRailItem key={it.id} id={it.id} label={it.label} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical />
+                  <SeccionRailItem
+                    key={it.id}
+                    id={it.id}
+                    label={it.label}
+                    active={seccionActiva === it.id}
+                    onClick={() => setSeccionActiva(it.id)}
+                    vertical
+                  />
                 ))}
                 {/* Resumen anclado abajo: reparte el alto del rail (antes quedaba
                     todo acumulado arriba con un vacio enorme debajo). */}
@@ -16599,7 +17323,9 @@ export function DetalleCitaModal({
                       gap: 9,
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
                       <span
                         style={{
                           width: 24,
@@ -16614,27 +17340,96 @@ export function DetalleCitaModal({
                         }}
                       >
                         {selectedProf?.foto_perfil ? (
-                          <img src={selectedProf.foto_perfil} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <img
+                            src={selectedProf.foto_perfil}
+                            alt=""
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
                         ) : (
-                          <span style={{ fontSize: 9, fontWeight: 800, color: "#fff" }}>
-                            {(selectedProf?.nombre || "?").split(/\s+/).map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                          <span
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 800,
+                              color: "#fff",
+                            }}
+                          >
+                            {(selectedProf?.nombre || "?")
+                              .split(/\s+/)
+                              .map((w: string) => w[0])
+                              .filter(Boolean)
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()}
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: TOKENS.text,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {selectedProf?.nombre || "Sin asignar"}
                       </span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>Duración</span>
-                      <span style={{ fontSize: 12.5, fontWeight: 800, color: TOKENS.text }}>{totalMin} min</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
+                      }}
+                    >
+                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>
+                        Duración
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          color: TOKENS.text,
+                        }}
+                      >
+                        {totalMin} min
+                      </span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>Precio</span>
-                      <span style={{ fontSize: 12.5, fontWeight: 800, color: TOKENS.primaryHi }}>{selectedServicio?.precio ?? 0} €</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
+                      }}
+                    >
+                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>
+                        Precio
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          color: TOKENS.primaryHi,
+                        }}
+                      >
+                        {selectedServicio?.precio ?? 0} €
+                      </span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>Estado</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>
+                        Estado
+                      </span>
                       <span
                         style={{
                           fontSize: 10.5,
@@ -16654,1430 +17449,1522 @@ export function DetalleCitaModal({
                 </div>
               </div>
             )}
-            <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 18, padding: isMobileOrTablet ? "18px 18px 24px" : "24px 32px 28px" }}>
-              {seccionActiva === "cliente" && (<>
-              {/* Cliente */}
-              <div
-                ref={(el) => {
-                  dCliRef.current = el;
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 6,
-                  }}
-                >
-                  <Label>Cliente</Label>
-                  {selectedCliente?.id && (
-                    <button
-                      type="button"
-                      className="m-btn-secondary"
-                      onClick={() => {
-                        onClose();
-                        router.push({
-                          pathname: "/(tabs)/clientes",
-                          params: { clienteId: selectedCliente.id },
-                        } as any);
-                      }}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 5,
-                        padding: "4px 9px",
-                        background: TOKENS.bgCard,
-                        border: `1px solid ${TOKENS.border}`,
-                        color: TOKENS.textSec,
-                        borderRadius: 6,
-                        cursor: "pointer",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: 0.6,
-                      }}
-                    >
-                      Ver ficha →
-                    </button>
-                  )}
-                </div>
-                <SearchDropdown
-                  open={openCli}
-                  setOpen={setOpenCli}
-                  q={qCli}
-                  setQ={setQCli}
-                  placeholder="Buscar cliente…"
-                  trigger={
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        minWidth: 0,
-                      }}
-                    >
-                      <Avatar name={selectedCliente?.nombre} size={28} />
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                          }}
-                        >
-                          {selectedCliente?.nombre}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            color: TOKENS.textTer,
-                            fontStyle: !selectedCliente?.telefono
-                              ? "italic"
-                              : "normal",
-                          }}
-                        >
-                          {selectedCliente?.telefono || "Sin teléfono"}
-                        </div>
-                      </div>
-                    </div>
-                  }
-                >
-                  {clientesFiltrados.map((c: any) => (
-                    <DropdownItem
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedCliente(c);
-                        setOpenCli(false);
-                        setQCli("");
-                      }}
-                      active={c.id === selectedCliente?.id}
-                    >
-                      <Avatar name={c.nombre} size={28} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                          }}
-                        >
-                          {c.nombre}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: TOKENS.textTer,
-                            fontStyle: !c.telefono ? "italic" : "normal",
-                          }}
-                        >
-                          {c.telefono || "Sin teléfono"}
-                        </div>
-                      </div>
-                    </DropdownItem>
-                  ))}
-                </SearchDropdown>
-
-
-              </div>
-
-              </>)}
-              {seccionActiva === "cliente" && (<>
-              {/* Historial del cliente (citas anteriores) */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Historial del cliente</div>
-                {clienteHistorial.length === 0 ? (
-                  <div style={{ fontSize: 13, color: TOKENS.textTer }}>Sin citas anteriores registradas.</div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {clienteHistorial.slice(0, histVisibles).map((c: any) => {
-                      const srv = servicios.find((s: any) => s.id === c.servicio_id);
-                      const pr = profesionales.find((p: any) => p.id === c.profesional_id);
-                      const d = new Date(c.inicio);
-                      return (
-                        <div
-                          key={c.id}
-                          style={{ display: "flex", alignItems: "center", gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: "8px 12px", transition: "border-color 0.15s ease, transform 0.15s ease" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = "none"; }}
-                        >
-                          <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec, minWidth: 64 }}>{d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "2-digit" })}</div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12.5, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{srv?.nombre || "Servicio"}</div>
-                            {pr?.nombre && <div style={{ fontSize: 11, color: TOKENS.textTer }}>{pr.nombre}</div>}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {(clienteHistorial.length > histVisibles ||
-                      histVisibles > HIST_PASO) && (
-                      <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
-                        {clienteHistorial.length > histVisibles && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setHistVisibles((v) => v + HIST_PASO)
-                            }
-                            style={{
-                              flex: 1,
-                              padding: "8px 12px",
-                              background: "rgba(244,80,30,0.08)",
-                              border: "1px solid rgba(244,80,30,0.35)",
-                              borderRadius: 9,
-                              color: TOKENS.primaryHi,
-                              fontSize: 12.5,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              transition: "background 0.15s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background =
-                                "rgba(244,80,30,0.14)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background =
-                                "rgba(244,80,30,0.08)";
-                            }}
-                          >
-                            Ver más ({clienteHistorial.length - histVisibles})
-                          </button>
-                        )}
-                        {histVisibles > HIST_PASO && (
-                          <button
-                            type="button"
-                            className="m-btn-secondary"
-                            onClick={() => setHistVisibles(HIST_PASO)}
-                            style={{
-                              flex: 1,
-                              padding: "8px 12px",
-                              background: TOKENS.bgCard,
-                              border: `1px solid ${TOKENS.border}`,
-                              borderRadius: 9,
-                              color: TOKENS.textSec,
-                              fontSize: 12.5,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Ver menos
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {/* Confirmacion del cliente */}
-              <div>
-                <Label>Confirmacion de asistencia (cliente)</Label>
-                <button
-                  type="button"
-                  onClick={toggleConfirma}
-                  disabled={togglingConfirma}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    background: confirmadaCliente
-                      ? "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(16,185,129,0.04))"
-                      : "linear-gradient(180deg, rgba(239,68,68,0.10), rgba(239,68,68,0.04))",
-                    border: `1.5px solid ${confirmadaCliente ? "rgba(16,185,129,0.45)" : "rgba(239,68,68,0.45)"}`,
-                    color: confirmadaCliente ? TOKENS.success : "#ef4444",
-                    cursor: togglingConfirma ? "wait" : "pointer",
-                    fontFamily: "inherit",
-                    textAlign: "left",
-                    transition:
-                      "transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease, border-color 0.15s ease",
-                    boxShadow: confirmadaCliente
-                      ? "0 4px 14px rgba(16,185,129,0.18)"
-                      : "0 4px 14px rgba(239,68,68,0.18)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!togglingConfirma) {
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                      e.currentTarget.style.boxShadow = confirmadaCliente
-                        ? "0 8px 22px rgba(16,185,129,0.30)"
-                        : "0 8px 22px rgba(239,68,68,0.30)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = confirmadaCliente
-                      ? "0 4px 14px rgba(16,185,129,0.18)"
-                      : "0 4px 14px rgba(239,68,68,0.18)";
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 999,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: confirmadaCliente
-                        ? "rgba(16,185,129,0.20)"
-                        : "rgba(239,68,68,0.20)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {confirmadaCliente ? (
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    ) : (
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="8" x2="12" y2="12" />
-                        <line x1="12" y1="16" x2="12.01" y2="16" />
-                      </svg>
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}
-                    >
-                      {confirmadaCliente
-                        ? "El cliente confirmo que asistira"
-                        : "El cliente aun no ha confirmado asistencia"}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: confirmadaCliente
-                          ? "rgba(16,185,129,0.80)"
-                          : "rgba(239,68,68,0.80)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {togglingConfirma
-                        ? "Guardando..."
-                        : confirmadaCliente
-                          ? "Toca para desmarcar (independiente del estado de la cita)"
-                          : "Toca para marcar que el cliente confirmo su asistencia"}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: 8,
-                      background: confirmadaCliente
-                        ? "rgba(16,185,129,0.20)"
-                        : "rgba(239,68,68,0.20)",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {confirmadaCliente ? "Desmarcar" : "Confirmar"}
-                  </div>
-                </button>
-              </div>
-
-              </>)}
-              {seccionActiva === "cliente" && (<>
-              {/* Seguimiento de resena (las resenas del portal son anonimas; marcado manual) */}
-              {selectedCliente?.id && (
-                <div>
-                  <Label>¿Ha dejado reseña?</Label>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    {[
-                      { tag: TAG_RESENO_SALON, label: "Salón" },
-                      { tag: TAG_RESENO_MECHA, label: "Mecha" },
-                    ].map(({ tag, label }) => {
-                      const has = clienteTags.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          type="button"
-                          className="m-chip"
-                          onClick={() => toggleResenaTag(tag)}
-                          disabled={savingResena}
-                          style={{
-                            flex: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                            padding: "11px 12px",
-                            borderRadius: 12,
-                            background: has
-                              ? "rgba(16,185,129,0.10)"
-                              : TOKENS.bgCard,
-                            border: `1.5px solid ${has ? "rgba(16,185,129,0.45)" : TOKENS.border}`,
-                            color: has ? TOKENS.success : TOKENS.textSec,
-                            cursor: savingResena ? "wait" : "pointer",
-                            fontFamily: "inherit",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            transition:
-                              "border-color 0.15s ease, background 0.15s ease",
-                          }}
-                        >
-                          {has && (
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Servicio */}
-              <div
-                ref={(el) => {
-                  dSrvRef.current = el;
-                }}
-              >
-                <Label>Servicio</Label>
-                <SearchDropdown
-                  open={openSrv}
-                  setOpen={setOpenSrv}
-                  q={qSrv}
-                  setQ={setQSrv}
-                  placeholder="Buscar servicio…"
-                  trigger={
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        minWidth: 0,
-                        flex: 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          background: selectedServicioColor
-                            ? `${selectedServicioColor}22`
-                            : TOKENS.primarySoft,
-                          color: selectedServicioColor || TOKENS.primaryHi,
-                          display: "grid",
-                          placeItems: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <IconClock />
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                          }}
-                        >
-                          {selectedServicio?.nombre}
-                        </div>
-                        <div style={{ fontSize: 11, color: TOKENS.textTer }}>
-                          {(selectedServicio?.duracion_activa_min ||
-                            selectedServicio?.duracion ||
-                            0) +
-                            (selectedServicio?.duracion_espera_min || 0) +
-                            (selectedServicio?.duracion_activa_extra_min ||
-                              0) || 0}{" "}
-                          min · {selectedServicio?.precio || 0} €
-                        </div>
-                      </div>
-                    </div>
-                  }
-                >
-                  {serviciosFiltrados.map((s: any) => (
-                    <DropdownItem
-                      key={s.id}
-                      onClick={() => {
-                        setSelectedServicio(s);
-                        setOpenSrv(false);
-                        setQSrv("");
-                        setActivo(s.duracion_activa_min || s.duracion || 30);
-                        setEspera(s.duracion_espera_min || 0);
-                        setActivo2(s.duracion_activa_extra_min || 0);
-                      }}
-                      active={s.id === selectedServicio?.id}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                          }}
-                        >
-                          {(() => {
-                            const cat = (categorias || []).find(
-                              (cc: any) => cc.id === s.categoria_id,
-                            );
-                            return cat ? (
-                              <span
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 99,
-                                  background: categoryColorHex(cat.color),
-                                  flexShrink: 0,
-                                }}
-                              />
-                            ) : null;
-                          })()}
-                          {s.nombre}
-                        </div>
-                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-                          {(s.duracion_activa_min || s.duracion || 0) +
-                            (s.duracion_espera_min || 0) +
-                            (s.duracion_activa_extra_min || 0) || 0}{" "}
-                          min
-                        </div>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: TOKENS.success,
-                        }}
-                      >
-                        {s.precio || 0} €
-                      </span>
-                    </DropdownItem>
-                  ))}
-                </SearchDropdown>
-
-                {/* Add-ons toggleables */}
-                {availableAddons.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 4,
-                      flexWrap: "wrap",
-                      marginTop: 6,
-                    }}
-                  >
-                    {availableAddons.map((addon: any) => {
-                      const active = citaAddons.some(
-                        (ca: any) => ca.addon_id === addon.id,
-                      );
-                      const loading = togglingAddon === addon.id;
-                      return (
-                        <button
-                          key={addon.id}
-                          onClick={() => toggleAddon(addon)}
-                          disabled={loading}
-                          onMouseEnter={(e) => {
-                            if (!active) {
-                              e.currentTarget.style.borderColor =
-                                "rgba(16,185,129,0.5)";
-                              e.currentTarget.style.background =
-                                "rgba(16,185,129,0.06)";
-                            }
-                            e.currentTarget.style.transform = "none";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!active) {
-                              e.currentTarget.style.borderColor = TOKENS.border;
-                              e.currentTarget.style.background = "transparent";
-                            }
-                            e.currentTarget.style.transform = "scale(1)";
-                          }}
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 600,
-                            padding: "3px 8px",
-                            borderRadius: 4,
-                            cursor: loading ? "wait" : "pointer",
-                            background: active
-                              ? "rgba(16,185,129,0.1)"
-                              : "transparent",
-                            color: active ? TOKENS.success : TOKENS.textSec,
-                            border: `1px solid ${active ? "rgba(16,185,129,0.25)" : TOKENS.border}`,
-                            opacity: loading ? 0.5 : 1,
-                            transition: "all 0.15s ease",
-                            transform: "scale(1)",
-                          }}
-                        >
-                          {active ? "+" : ""} {addon.nombre} (
-                          {addon.duracion_min}min · {addon.precio}EUR)
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* 5.5: Servicios encadenados info */}
-          {cita.grupo_id &&
-            allCitas &&
-            (() => {
-              const siblings = (allCitas as any[])
-                .filter((c: any) => c.grupo_id === cita.grupo_id)
-                .sort(
-                  (a: any, b: any) =>
-                    (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0),
-                );
-              if (siblings.length <= 1) return null;
-              return (
-                <div
-                  style={{
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(192,38,10,0.25)",
-                    background: "rgba(192,38,10,0.04)",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#e0340e",
-                      textTransform: "uppercase",
-                      letterSpacing: 1,
-                      marginBottom: 8,
-                    }}
-                  >
-                    Servicio encadenado ({siblings.length} servicios)
-                  </div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {siblings.map((sib: any, idx: number) => {
-                      const sibSrv = servicios.find(
-                        (s: any) => s.id === sib.servicio_id,
-                      );
-                      const sibProf = profesionales.find(
-                        (p: any) => p.id === sib.profesional_id,
-                      );
-                      const isCurrent = sib.id === cita.id;
-                      const sibInicio = new Date(sib.inicio);
-                      const sibFin = new Date(sib.fin);
-                      return (
-                        <button
-                          key={sib.id}
-                          type="button"
-                          onClick={() => {
-                            if (!isCurrent) onAbrirCita?.(sib);
-                          }}
-                          title={
-                            isCurrent
-                              ? "Estas viendo este servicio"
-                              : "Ver este servicio de la cadena"
-                          }
-                          style={{
-                            padding: "6px 10px",
-                            textAlign: "left",
-                            background: isCurrent
-                              ? "rgba(192,38,10,0.15)"
-                              : TOKENS.bgCard,
-                            border: `1px solid ${isCurrent ? "#e0340e" : TOKENS.border}`,
-                            borderRadius: 8,
-                            minWidth: 0,
-                            cursor: isCurrent ? "default" : "pointer",
-                            transition:
-                              "border-color 0.15s ease, transform 0.15s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            if (isCurrent) return;
-                            e.currentTarget.style.borderColor = "#e0340e";
-                            e.currentTarget.style.transform = "translateY(-1px)";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (isCurrent) return;
-                            e.currentTarget.style.borderColor = TOKENS.border;
-                            e.currentTarget.style.transform = "none";
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: isCurrent ? "#e0340e" : TOKENS.text,
-                            }}
-                          >
-                            {idx + 1}. {sibSrv?.nombre || "Servicio"}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 9,
-                              color: TOKENS.textTer,
-                              marginTop: 2,
-                            }}
-                          >
-                            {sibProf?.nombre?.split(" ")[0]} ·{" "}
-                            {sibInicio.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            -
-                            {sibFin.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-          </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Chain overlap detection */}
-          {chainOverlapInfo &&
-            (chainOverlapInfo.before || chainOverlapInfo.after) && (
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(239,68,68,0.25)",
-                  background: "rgba(239,68,68,0.04)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "#ef4444",
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    marginBottom: 8,
-                  }}
-                >
-                  Conflicto en cadena
-                </div>
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 6 }}
-                >
-                  {chainOverlapInfo.before &&
-                    chainOverlapInfo.beforeCita &&
-                    (() => {
-                      const prevSrv = servicios.find(
-                        (s: any) =>
-                          s.id === chainOverlapInfo.beforeCita.servicio_id,
-                      );
-                      const prevProf = profesionales.find(
-                        (p: any) =>
-                          p.id === chainOverlapInfo.beforeCita.profesional_id,
-                      );
-                      const prevFin = new Date(chainOverlapInfo.beforeCita.fin);
-                      const currentInicio = new Date(cita.inicio);
-                      const overlap =
-                        prevFin > currentInicio
-                          ? Math.round(
-                              (prevFin.getTime() - currentInicio.getTime()) /
-                                60000,
-                            )
-                          : 0;
-                      return (
-                        <div
-                          style={{
-                            padding: "8px 10px",
-                            background: TOKENS.bgCard,
-                            border: `1px solid #ef4444`,
-                            borderRadius: 6,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#ef4444",
-                            }}
-                          >
-                            Anterior finaliza tarde
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 10,
-                              color: TOKENS.text,
-                              marginTop: 4,
-                            }}
-                          >
-                            {prevSrv?.nombre} ({prevProf?.nombre?.split(" ")[0]}
-                            ) finaliza a{" "}
-                            {prevFin.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            - Solapamiento: {overlap} min
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  {chainOverlapInfo.after &&
-                    chainOverlapInfo.afterCita &&
-                    (() => {
-                      const nextSrv = servicios.find(
-                        (s: any) =>
-                          s.id === chainOverlapInfo.afterCita.servicio_id,
-                      );
-                      const nextProf = profesionales.find(
-                        (p: any) =>
-                          p.id === chainOverlapInfo.afterCita.profesional_id,
-                      );
-                      const nextInicio = new Date(
-                        chainOverlapInfo.afterCita.inicio,
-                      );
-                      const currentFin = new Date(cita.fin);
-                      const overlap =
-                        currentFin > nextInicio
-                          ? Math.round(
-                              (currentFin.getTime() - nextInicio.getTime()) /
-                                60000,
-                            )
-                          : 0;
-                      return (
-                        <div
-                          style={{
-                            padding: "8px 10px",
-                            background: TOKENS.bgCard,
-                            border: `1px solid #ef4444`,
-                            borderRadius: 6,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#ef4444",
-                            }}
-                          >
-                            Siguiente comienza temprano
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 10,
-                              color: TOKENS.text,
-                              marginTop: 4,
-                            }}
-                          >
-                            {nextSrv?.nombre} ({nextProf?.nombre?.split(" ")[0]}
-                            ) comienza a{" "}
-                            {nextInicio.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            - Solapamiento: {overlap} min
-                          </div>
-                        </div>
-                      );
-                    })()}
-                </div>
-              </div>
-            )}
-
-          </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Encadenar servicio */}
-          {estado === CITA_STATUS.CONFIRMADA && (
             <div
               style={{
-                padding: showChainForm ? "10px 0" : "0",
-                ...(showChainForm
-                  ? {}
-                  : { display: "flex", alignItems: "center", minHeight: 36 }),
+                flex: 1,
+                minWidth: 0,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 18,
+                padding: isMobileOrTablet ? "18px 18px 24px" : "24px 32px 28px",
               }}
             >
-              {!showChainForm ? (
-                <button
-                  onClick={() => {
-                    setShowChainForm(true);
-                    setChainServicioId(null);
-                    setChainProfId(null);
-                    setChainErr("");
-                  }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    alignSelf: "flex-start",
-                    background: "rgba(244,80,30,0.08)",
-                    border: "1px solid rgba(244,80,30,0.35)",
-                    borderRadius: 10,
-                    padding: "10px 16px",
-                    color: "#e0340e",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    transition: "background 0.15s ease, transform 0.15s ease",
-                    textAlign: "left",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.14)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                    e.currentTarget.style.transform = "none";
-                  }}
-                >
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Encadenar servicio
-                </button>
-              ) : (
-                <div
-                  style={{
-                    borderLeft: "3px solid #e0340e",
-                    paddingLeft: 14,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                  }}
-                >
+              {seccionActiva === "cliente" && (
+                <>
+                  {/* Cliente */}
                   <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                    ref={(el) => {
+                      dCliRef.current = el;
                     }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 6,
+                      }}
+                    >
+                      <Label>Cliente</Label>
+                      {selectedCliente?.id && (
+                        <button
+                          type="button"
+                          className="m-btn-secondary"
+                          onClick={() => {
+                            onClose();
+                            router.push({
+                              pathname: "/(tabs)/clientes",
+                              params: { clienteId: selectedCliente.id },
+                            } as any);
+                          }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "4px 9px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid ${TOKENS.border}`,
+                            color: TOKENS.textSec,
+                            borderRadius: 6,
+                            cursor: "pointer",
+                            fontSize: 10,
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.6,
+                          }}
+                        >
+                          Ver ficha →
+                        </button>
+                      )}
+                    </div>
+                    <SearchDropdown
+                      open={openCli}
+                      setOpen={setOpenCli}
+                      q={qCli}
+                      setQ={setQCli}
+                      placeholder="Buscar cliente…"
+                      trigger={
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            minWidth: 0,
+                          }}
+                        >
+                          <Avatar name={selectedCliente?.nombre} size={28} />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: TOKENS.text,
+                              }}
+                            >
+                              {selectedCliente?.nombre}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: TOKENS.textTer,
+                                fontStyle: !selectedCliente?.telefono
+                                  ? "italic"
+                                  : "normal",
+                              }}
+                            >
+                              {selectedCliente?.telefono || "Sin teléfono"}
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    >
+                      {clientesFiltrados.map((c: any) => (
+                        <DropdownItem
+                          key={c.id}
+                          onClick={() => {
+                            setSelectedCliente(c);
+                            setOpenCli(false);
+                            setQCli("");
+                          }}
+                          active={c.id === selectedCliente?.id}
+                        >
+                          <Avatar name={c.nombre} size={28} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: TOKENS.text,
+                              }}
+                            >
+                              {c.nombre}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 10,
+                                color: TOKENS.textTer,
+                                fontStyle: !c.telefono ? "italic" : "normal",
+                              }}
+                            >
+                              {c.telefono || "Sin teléfono"}
+                            </div>
+                          </div>
+                        </DropdownItem>
+                      ))}
+                    </SearchDropdown>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "cliente" && (
+                <>
+                  {/* Historial del cliente (citas anteriores) */}
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
                   >
                     <div
                       style={{
                         fontSize: 11,
                         fontWeight: 700,
-                        color: "#e0340e",
-                        textTransform: "uppercase",
-                        letterSpacing: 0.8,
-                      }}
-                    >
-                      Encadenar servicio
-                    </div>
-                    <button
-                      className="m-btn-icon"
-                      onClick={() => setShowChainForm(false)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: TOKENS.textTer,
-                        cursor: "pointer",
-                        fontSize: 16,
-                        lineHeight: 1,
-                      }}
-                    >
-                      x
-                    </button>
-                  </div>
-
-                  {/* Servicio */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: TOKENS.textTer,
                         letterSpacing: 0.6,
-                        marginBottom: 6,
+                        textTransform: "uppercase",
+                        color: TOKENS.textTer,
                       }}
                     >
-                      Servicio
+                      Historial del cliente
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {servicios.map((s: any) => (
-                        <button
-                          key={s.id}
-                          className="m-chip"
-                          onClick={() => {
-                            setChainServicioId(s.id);
-                            setChainErr("");
-                          }}
-                          style={{
-                            padding: "5px 10px",
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            border:
-                              chainServicioId === s.id
-                                ? "1px solid #e0340e"
-                                : `1px solid ${TOKENS.border}`,
-                            background:
-                              chainServicioId === s.id
-                                ? "rgba(192,38,10,0.15)"
-                                : TOKENS.bgCard,
-                            color:
-                              chainServicioId === s.id
-                                ? "#e0340e"
-                                : TOKENS.text,
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          {s.nombre}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Profesional */}
-                  {chainServicioId && (
-                    <div>
+                    {clienteHistorial.length === 0 ? (
+                      <div style={{ fontSize: 13, color: TOKENS.textTer }}>
+                        Sin citas anteriores registradas.
+                      </div>
+                    ) : (
                       <div
                         style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          color: TOKENS.textTer,
-                          letterSpacing: 0.6,
-                          marginBottom: 6,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 6,
                         }}
                       >
-                        Profesional
-                      </div>
-                      <div
-                        style={{ display: "flex", flexWrap: "wrap", gap: 5 }}
-                      >
-                        {profesionales.map((p: any) => (
-                          <button
-                            key={p.id}
-                            className="m-chip"
-                            onClick={() => {
-                              setChainProfId(p.id);
-                              setChainErr("");
-                            }}
-                            style={{
-                              padding: "5px 10px",
-                              borderRadius: 6,
-                              fontSize: 11,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              border:
-                                chainProfId === p.id
-                                  ? `1px solid ${p.color || "#e0340e"}`
-                                  : `1px solid ${TOKENS.border}`,
-                              background:
-                                chainProfId === p.id
-                                  ? `${p.color || "#e0340e"}22`
-                                  : TOKENS.bgCard,
-                              color:
-                                chainProfId === p.id
-                                  ? p.color || "#e0340e"
-                                  : TOKENS.text,
-                              transition: "all 0.15s",
-                            }}
+                        {clienteHistorial
+                          .slice(0, histVisibles)
+                          .map((c: any) => {
+                            const srv = servicios.find(
+                              (s: any) => s.id === c.servicio_id,
+                            );
+                            const pr = profesionales.find(
+                              (p: any) => p.id === c.profesional_id,
+                            );
+                            const d = new Date(c.inicio);
+                            return (
+                              <div
+                                key={c.id}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 10,
+                                  background: TOKENS.bgCard,
+                                  border: `1px solid ${TOKENS.border}`,
+                                  borderRadius: 10,
+                                  padding: "8px 12px",
+                                  transition:
+                                    "border-color 0.15s ease, transform 0.15s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor =
+                                    TOKENS.primary;
+                                  e.currentTarget.style.transform =
+                                    "translateY(-1px)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.borderColor =
+                                    TOKENS.border;
+                                  e.currentTarget.style.transform = "none";
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: TOKENS.textSec,
+                                    minWidth: 64,
+                                  }}
+                                >
+                                  {d.toLocaleDateString("es-ES", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "2-digit",
+                                  })}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      fontSize: 12.5,
+                                      color: TOKENS.text,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                    }}
+                                  >
+                                    {srv?.nombre || "Servicio"}
+                                  </div>
+                                  {pr?.nombre && (
+                                    <div
+                                      style={{
+                                        fontSize: 11,
+                                        color: TOKENS.textTer,
+                                      }}
+                                    >
+                                      {pr.nombre}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        {(clienteHistorial.length > histVisibles ||
+                          histVisibles > HIST_PASO) && (
+                          <div
+                            style={{ display: "flex", gap: 8, marginTop: 2 }}
                           >
-                            {p.nombre}
-                          </button>
-                        ))}
+                            {clienteHistorial.length > histVisibles && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setHistVisibles((v) => v + HIST_PASO)
+                                }
+                                style={{
+                                  flex: 1,
+                                  padding: "8px 12px",
+                                  background: "rgba(244,80,30,0.08)",
+                                  border: "1px solid rgba(244,80,30,0.35)",
+                                  borderRadius: 9,
+                                  color: TOKENS.primaryHi,
+                                  fontSize: 12.5,
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                  transition: "background 0.15s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background =
+                                    "rgba(244,80,30,0.14)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background =
+                                    "rgba(244,80,30,0.08)";
+                                }}
+                              >
+                                Ver más (
+                                {clienteHistorial.length - histVisibles})
+                              </button>
+                            )}
+                            {histVisibles > HIST_PASO && (
+                              <button
+                                type="button"
+                                className="m-btn-secondary"
+                                onClick={() => setHistVisibles(HIST_PASO)}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px 12px",
+                                  background: TOKENS.bgCard,
+                                  border: `1px solid ${TOKENS.border}`,
+                                  borderRadius: 9,
+                                  color: TOKENS.textSec,
+                                  fontSize: 12.5,
+                                  fontWeight: 600,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Ver menos
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Preview de horario */}
-                  {chainTimingPreview && chainProfId && (
-                    <div
-                      style={{
-                        padding: "8px 10px",
-                        background: "rgba(192,38,10,0.06)",
-                        borderRadius: 6,
-                        border: `1px solid rgba(192,38,10,0.15)`,
-                      }}
-                    >
-                      <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-                        {chainTimingPreview.inicio.toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        -{" "}
-                        {chainTimingPreview.fin.toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        ({chainTimingPreview.durTotal} min) ·{" "}
-                        {chainTimingPreview.precio}
-                      </div>
-                    </div>
-                  )}
-
-                  {chainErr && (
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: TOKENS.danger,
-                        padding: "6px 10px",
-                        background: `${TOKENS.danger}15`,
-                        borderRadius: 6,
-                        border: `1px solid ${TOKENS.danger}44`,
-                      }}
-                    >
-                      {chainErr}
-                    </div>
-                  )}
-
-                  {/* Botones */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    <button
-                      className="m-btn-secondary"
-                      onClick={() => setShowChainForm(false)}
-                      style={{
-                        padding: "6px 14px",
-                        background: TOKENS.bgCard,
-                        border: `1px solid ${TOKENS.border}`,
-                        color: TOKENS.textSec,
-                        borderRadius: 6,
-                        cursor: "pointer",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      className="m-btn-primary"
-                      onClick={handleEncadenar}
-                      disabled={
-                        !chainServicioId || !chainProfId || chainGuardando
-                      }
-                      style={{
-                        padding: "6px 14px",
-                        background:
-                          !chainServicioId || !chainProfId || chainGuardando
-                            ? "rgba(192,38,10,0.3)"
-                            : "linear-gradient(180deg,#9b8afb 0%,#c0260a 100%)",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 6,
-                        cursor:
-                          !chainServicioId || !chainProfId || chainGuardando
-                            ? "not-allowed"
-                            : "pointer",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {chainGuardando ? "..." : "Encadenar"}
-                    </button>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Profesional */}
-              <div>
-                <Label>Profesional</Label>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 6,
-                    flexWrap: "wrap",
-                    minWidth: 0,
-                  }}
-                >
-                  {profesionales.map((p: any) => {
-                    const sel = p.id === selectedProf?.id;
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => setSelectedProf(p)}
+                  {/* Confirmacion del cliente */}
+                  <div>
+                    <Label>Confirmacion de asistencia (cliente)</Label>
+                    <button
+                      type="button"
+                      onClick={toggleConfirma}
+                      disabled={togglingConfirma}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        padding: "12px 14px",
+                        borderRadius: 12,
+                        background: confirmadaCliente
+                          ? "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(16,185,129,0.04))"
+                          : "linear-gradient(180deg, rgba(239,68,68,0.10), rgba(239,68,68,0.04))",
+                        border: `1.5px solid ${confirmadaCliente ? "rgba(16,185,129,0.45)" : "rgba(239,68,68,0.45)"}`,
+                        color: confirmadaCliente ? TOKENS.success : "#ef4444",
+                        cursor: togglingConfirma ? "wait" : "pointer",
+                        fontFamily: "inherit",
+                        textAlign: "left",
+                        transition:
+                          "transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease, border-color 0.15s ease",
+                        boxShadow: confirmadaCliente
+                          ? "0 4px 14px rgba(16,185,129,0.18)"
+                          : "0 4px 14px rgba(239,68,68,0.18)",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!togglingConfirma) {
+                          e.currentTarget.style.transform = "translateY(-1px)";
+                          e.currentTarget.style.boxShadow = confirmadaCliente
+                            ? "0 8px 22px rgba(16,185,129,0.30)"
+                            : "0 8px 22px rgba(239,68,68,0.30)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = confirmadaCliente
+                          ? "0 4px 14px rgba(16,185,129,0.18)"
+                          : "0 4px 14px rgba(239,68,68,0.18)";
+                      }}
+                    >
+                      <div
                         style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 999,
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: 7,
-                          padding: "7px 11px",
-                          borderRadius: 999,
-                          background: sel
-                            ? `${p.color}22`
-                            : "rgba(148,163,184,0.06)",
-                          border: `1px solid ${sel ? `${p.color}66` : TOKENS.border}`,
-                          color: sel ? p.color : TOKENS.textSec,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
+                          justifyContent: "center",
+                          background: confirmadaCliente
+                            ? "rgba(16,185,129,0.20)"
+                            : "rgba(239,68,68,0.20)",
+                          flexShrink: 0,
                         }}
-                        onMouseEnter={(e) => {
-                          if (!sel) {
-                            e.currentTarget.style.borderColor = p.color;
-                            e.currentTarget.style.background = `${p.color}10`;
-                          }
+                      >
+                        {confirmadaCliente ? (
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        ) : (
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 700,
+                            marginBottom: 2,
+                          }}
+                        >
+                          {confirmadaCliente
+                            ? "El cliente confirmo que asistira"
+                            : "El cliente aun no ha confirmado asistencia"}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: confirmadaCliente
+                              ? "rgba(16,185,129,0.80)"
+                              : "rgba(239,68,68,0.80)",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {togglingConfirma
+                            ? "Guardando..."
+                            : confirmadaCliente
+                              ? "Toca para desmarcar (independiente del estado de la cita)"
+                              : "Toca para marcar que el cliente confirmo su asistencia"}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: 8,
+                          background: confirmadaCliente
+                            ? "rgba(16,185,129,0.20)"
+                            : "rgba(239,68,68,0.20)",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: 0.5,
+                          textTransform: "uppercase",
+                          flexShrink: 0,
                         }}
-                        onMouseLeave={(e) => {
-                          if (!sel) {
-                            e.currentTarget.style.borderColor = TOKENS.border;
-                            e.currentTarget.style.background =
-                              "rgba(148,163,184,0.06)";
-                          }
+                      >
+                        {confirmadaCliente ? "Desmarcar" : "Confirmar"}
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "cliente" && (
+                <>
+                  {/* Seguimiento de resena (las resenas del portal son anonimas; marcado manual) */}
+                  {selectedCliente?.id && (
+                    <div>
+                      <Label>¿Ha dejado reseña?</Label>
+                      <div style={{ display: "flex", gap: 10 }}>
+                        {[
+                          { tag: TAG_RESENO_SALON, label: "Salón" },
+                          { tag: TAG_RESENO_MECHA, label: "Mecha" },
+                        ].map(({ tag, label }) => {
+                          const has = clienteTags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              className="m-chip"
+                              onClick={() => toggleResenaTag(tag)}
+                              disabled={savingResena}
+                              style={{
+                                flex: 1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                padding: "11px 12px",
+                                borderRadius: 12,
+                                background: has
+                                  ? "rgba(16,185,129,0.10)"
+                                  : TOKENS.bgCard,
+                                border: `1.5px solid ${has ? "rgba(16,185,129,0.45)" : TOKENS.border}`,
+                                color: has ? TOKENS.success : TOKENS.textSec,
+                                cursor: savingResena ? "wait" : "pointer",
+                                fontFamily: "inherit",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                transition:
+                                  "border-color 0.15s ease, background 0.15s ease",
+                              }}
+                            >
+                              {has && (
+                                <svg
+                                  width="15"
+                                  height="15"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Servicio */}
+                  <div
+                    ref={(el) => {
+                      dSrvRef.current = el;
+                    }}
+                  >
+                    <Label>Servicio</Label>
+                    <SearchDropdown
+                      open={openSrv}
+                      setOpen={setOpenSrv}
+                      q={qSrv}
+                      setQ={setQSrv}
+                      placeholder="Buscar servicio…"
+                      trigger={
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            minWidth: 0,
+                            flex: 1,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 8,
+                              background: selectedServicioColor
+                                ? `${selectedServicioColor}22`
+                                : TOKENS.primarySoft,
+                              color: selectedServicioColor || TOKENS.primaryHi,
+                              display: "grid",
+                              placeItems: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <IconClock />
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: TOKENS.text,
+                              }}
+                            >
+                              {selectedServicio?.nombre}
+                            </div>
+                            <div
+                              style={{ fontSize: 11, color: TOKENS.textTer }}
+                            >
+                              {(selectedServicio?.duracion_activa_min ||
+                                selectedServicio?.duracion ||
+                                0) +
+                                (selectedServicio?.duracion_espera_min || 0) +
+                                (selectedServicio?.duracion_activa_extra_min ||
+                                  0) || 0}{" "}
+                              min · {selectedServicio?.precio || 0} €
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    >
+                      {serviciosFiltrados.map((s: any) => (
+                        <DropdownItem
+                          key={s.id}
+                          onClick={() => {
+                            setSelectedServicio(s);
+                            setOpenSrv(false);
+                            setQSrv("");
+                            setActivo(
+                              s.duracion_activa_min || s.duracion || 30,
+                            );
+                            setEspera(s.duracion_espera_min || 0);
+                            setActivo2(s.duracion_activa_extra_min || 0);
+                          }}
+                          active={s.id === selectedServicio?.id}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: TOKENS.text,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                              }}
+                            >
+                              {(() => {
+                                const cat = (categorias || []).find(
+                                  (cc: any) => cc.id === s.categoria_id,
+                                );
+                                return cat ? (
+                                  <span
+                                    style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: 99,
+                                      background: categoryColorHex(cat.color),
+                                      flexShrink: 0,
+                                    }}
+                                  />
+                                ) : null;
+                              })()}
+                              {s.nombre}
+                            </div>
+                            <div
+                              style={{ fontSize: 10, color: TOKENS.textTer }}
+                            >
+                              {(s.duracion_activa_min || s.duracion || 0) +
+                                (s.duracion_espera_min || 0) +
+                                (s.duracion_activa_extra_min || 0) || 0}{" "}
+                              min
+                            </div>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: TOKENS.success,
+                            }}
+                          >
+                            {s.precio || 0} €
+                          </span>
+                        </DropdownItem>
+                      ))}
+                    </SearchDropdown>
+
+                    {/* Add-ons toggleables */}
+                    {availableAddons.length > 0 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 4,
+                          flexWrap: "wrap",
+                          marginTop: 6,
+                        }}
+                      >
+                        {availableAddons.map((addon: any) => {
+                          const active = citaAddons.some(
+                            (ca: any) => ca.addon_id === addon.id,
+                          );
+                          const loading = togglingAddon === addon.id;
+                          return (
+                            <button
+                              key={addon.id}
+                              onClick={() => toggleAddon(addon)}
+                              disabled={loading}
+                              onMouseEnter={(e) => {
+                                if (!active) {
+                                  e.currentTarget.style.borderColor =
+                                    "rgba(16,185,129,0.5)";
+                                  e.currentTarget.style.background =
+                                    "rgba(16,185,129,0.06)";
+                                }
+                                e.currentTarget.style.transform = "none";
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!active) {
+                                  e.currentTarget.style.borderColor =
+                                    TOKENS.border;
+                                  e.currentTarget.style.background =
+                                    "transparent";
+                                }
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                padding: "3px 8px",
+                                borderRadius: 4,
+                                cursor: loading ? "wait" : "pointer",
+                                background: active
+                                  ? "rgba(16,185,129,0.1)"
+                                  : "transparent",
+                                color: active ? TOKENS.success : TOKENS.textSec,
+                                border: `1px solid ${active ? "rgba(16,185,129,0.25)" : TOKENS.border}`,
+                                opacity: loading ? 0.5 : 1,
+                                transition: "all 0.15s ease",
+                                transform: "scale(1)",
+                              }}
+                            >
+                              {active ? "+" : ""} {addon.nombre} (
+                              {addon.duracion_min}min · {addon.precio}EUR)
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* 5.5: Servicios encadenados info */}
+                  {cita.grupo_id &&
+                    allCitas &&
+                    (() => {
+                      const siblings = (allCitas as any[])
+                        .filter((c: any) => c.grupo_id === cita.grupo_id)
+                        .sort(
+                          (a: any, b: any) =>
+                            (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0),
+                        );
+                      if (siblings.length <= 1) return null;
+                      return (
+                        <div
+                          style={{
+                            padding: "12px 14px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(192,38,10,0.25)",
+                            background: "rgba(192,38,10,0.04)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: "#e0340e",
+                              textTransform: "uppercase",
+                              letterSpacing: 1,
+                              marginBottom: 8,
+                            }}
+                          >
+                            Servicio encadenado ({siblings.length} servicios)
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 6,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {siblings.map((sib: any, idx: number) => {
+                              const sibSrv = servicios.find(
+                                (s: any) => s.id === sib.servicio_id,
+                              );
+                              const sibProf = profesionales.find(
+                                (p: any) => p.id === sib.profesional_id,
+                              );
+                              const isCurrent = sib.id === cita.id;
+                              const sibInicio = new Date(sib.inicio);
+                              const sibFin = new Date(sib.fin);
+                              return (
+                                <button
+                                  key={sib.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (!isCurrent) onAbrirCita?.(sib);
+                                  }}
+                                  title={
+                                    isCurrent
+                                      ? "Estas viendo este servicio"
+                                      : "Ver este servicio de la cadena"
+                                  }
+                                  style={{
+                                    padding: "6px 10px",
+                                    textAlign: "left",
+                                    background: isCurrent
+                                      ? "rgba(192,38,10,0.15)"
+                                      : TOKENS.bgCard,
+                                    border: `1px solid ${isCurrent ? "#e0340e" : TOKENS.border}`,
+                                    borderRadius: 8,
+                                    minWidth: 0,
+                                    cursor: isCurrent ? "default" : "pointer",
+                                    transition:
+                                      "border-color 0.15s ease, transform 0.15s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (isCurrent) return;
+                                    e.currentTarget.style.borderColor =
+                                      "#e0340e";
+                                    e.currentTarget.style.transform =
+                                      "translateY(-1px)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (isCurrent) return;
+                                    e.currentTarget.style.borderColor =
+                                      TOKENS.border;
+                                    e.currentTarget.style.transform = "none";
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: 11,
+                                      fontWeight: 600,
+                                      color: isCurrent
+                                        ? "#e0340e"
+                                        : TOKENS.text,
+                                    }}
+                                  >
+                                    {idx + 1}. {sibSrv?.nombre || "Servicio"}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: 9,
+                                      color: TOKENS.textTer,
+                                      marginTop: 2,
+                                    }}
+                                  >
+                                    {sibProf?.nombre?.split(" ")[0]} ·{" "}
+                                    {sibInicio.toLocaleTimeString("es-ES", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                    -
+                                    {sibFin.toLocaleTimeString("es-ES", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Chain overlap detection */}
+                  {chainOverlapInfo &&
+                    (chainOverlapInfo.before || chainOverlapInfo.after) && (
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: 12,
+                          border: "1px solid rgba(239,68,68,0.25)",
+                          background: "rgba(239,68,68,0.04)",
                         }}
                       >
                         <div
                           style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 999,
-                            background: p.color,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: "#ef4444",
+                            textTransform: "uppercase",
+                            letterSpacing: 1,
+                            marginBottom: 8,
                           }}
-                        />
-                        {p.nombre.split(" ")[0]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              </>)}
-              {seccionActiva === "color" && (<>
-              {/* Aviso de alergias del cliente */}
-              {(() => {
-                const alergiasTexto = (selectedCliente?.alergias ?? "").trim();
-                if (!alergiasTexto) return null;
-                return (
-                  <div
-                    className="m-pulse-red"
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 8,
-                      padding: 12,
-                      background: "rgba(239,68,68,0.10)",
-                      border: "1px solid rgba(239,68,68,0.40)",
-                      borderRadius: 10,
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        color: "#ef4444",
-                        flexShrink: 0,
-                        marginTop: 1,
-                      }}
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="8" x2="12" y2="12" />
-                        <line x1="12" y1="16" x2="12.01" y2="16" />
-                      </svg>
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#ef4444",
-                          letterSpacing: 0.4,
-                          textTransform: "uppercase",
-                          marginBottom: 2,
-                        }}
-                      >
-                        Alergias registradas
+                        >
+                          Conflicto en cadena
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 6,
+                          }}
+                        >
+                          {chainOverlapInfo.before &&
+                            chainOverlapInfo.beforeCita &&
+                            (() => {
+                              const prevSrv = servicios.find(
+                                (s: any) =>
+                                  s.id ===
+                                  chainOverlapInfo.beforeCita.servicio_id,
+                              );
+                              const prevProf = profesionales.find(
+                                (p: any) =>
+                                  p.id ===
+                                  chainOverlapInfo.beforeCita.profesional_id,
+                              );
+                              const prevFin = new Date(
+                                chainOverlapInfo.beforeCita.fin,
+                              );
+                              const currentInicio = new Date(cita.inicio);
+                              const overlap =
+                                prevFin > currentInicio
+                                  ? Math.round(
+                                      (prevFin.getTime() -
+                                        currentInicio.getTime()) /
+                                        60000,
+                                    )
+                                  : 0;
+                              return (
+                                <div
+                                  style={{
+                                    padding: "8px 10px",
+                                    background: TOKENS.bgCard,
+                                    border: `1px solid #ef4444`,
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: 11,
+                                      fontWeight: 600,
+                                      color: "#ef4444",
+                                    }}
+                                  >
+                                    Anterior finaliza tarde
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: 10,
+                                      color: TOKENS.text,
+                                      marginTop: 4,
+                                    }}
+                                  >
+                                    {prevSrv?.nombre} (
+                                    {prevProf?.nombre?.split(" ")[0]}) finaliza
+                                    a{" "}
+                                    {prevFin.toLocaleTimeString("es-ES", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}{" "}
+                                    - Solapamiento: {overlap} min
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          {chainOverlapInfo.after &&
+                            chainOverlapInfo.afterCita &&
+                            (() => {
+                              const nextSrv = servicios.find(
+                                (s: any) =>
+                                  s.id ===
+                                  chainOverlapInfo.afterCita.servicio_id,
+                              );
+                              const nextProf = profesionales.find(
+                                (p: any) =>
+                                  p.id ===
+                                  chainOverlapInfo.afterCita.profesional_id,
+                              );
+                              const nextInicio = new Date(
+                                chainOverlapInfo.afterCita.inicio,
+                              );
+                              const currentFin = new Date(cita.fin);
+                              const overlap =
+                                currentFin > nextInicio
+                                  ? Math.round(
+                                      (currentFin.getTime() -
+                                        nextInicio.getTime()) /
+                                        60000,
+                                    )
+                                  : 0;
+                              return (
+                                <div
+                                  style={{
+                                    padding: "8px 10px",
+                                    background: TOKENS.bgCard,
+                                    border: `1px solid #ef4444`,
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: 11,
+                                      fontWeight: 600,
+                                      color: "#ef4444",
+                                    }}
+                                  >
+                                    Siguiente comienza temprano
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: 10,
+                                      color: TOKENS.text,
+                                      marginTop: 4,
+                                    }}
+                                  >
+                                    {nextSrv?.nombre} (
+                                    {nextProf?.nombre?.split(" ")[0]}) comienza
+                                    a{" "}
+                                    {nextInicio.toLocaleTimeString("es-ES", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}{" "}
+                                    - Solapamiento: {overlap} min
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                        </div>
                       </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#ef4444",
-                          lineHeight: 1.4,
-                          whiteSpace: "pre-wrap" as any,
-                        }}
-                      >
-                        {alergiasTexto}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              </>)}
-              {seccionActiva === "color" && (<>
-              {/* Alergias de la cita */}
-              <div>
-                <Label>Alergias</Label>
-                <textarea
-                  value={notasCita}
-                  onChange={(e) => setNotasCita(e.target.value)}
-                  placeholder="Alergias o reacciones a tener en cuenta para esta cita…"
-                  rows={4}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "10px 12px",
-                    background: TOKENS.bgCard,
-                    border: `1px solid ${TOKENS.border}`,
-                    borderRadius: 10,
-                    color: TOKENS.text,
-                    fontSize: 13,
-                    fontFamily: "inherit",
-                    outline: "none",
-                    resize: "vertical",
-                  }}
-                />
-              </div>
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Estado */}
-              <div
-                ref={(el) => {
-                  dEstRef.current = el;
-                }}
-              >
-                <Label>Estado</Label>
-                <div style={{ position: "relative" }}>
-                  <button
-                    className="m-row-hover"
-                    onClick={() => setOpenEst(!openEst)}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      cursor: "pointer",
-                      color: TOKENS.text,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          background: meta.color,
-                        }}
-                      />
-                      {meta.label}
-                    </span>
-                    <span
-                      style={{
-                        transform: openEst ? "rotate(180deg)" : "none",
-                        transition: "transform 0.15s",
-                        display: "flex",
-                        alignItems: "center",
-                        color: TOKENS.textTer,
-                      }}
-                    >
-                      <IconChevronDown />
-                    </span>
-                  </button>
-                  {openEst && (
+                    )}
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Encadenar servicio */}
+                  {estado === CITA_STATUS.CONFIRMADA && (
                     <div
                       style={{
-                        position: "absolute",
-                        top: "calc(100% + 4px)",
-                        left: 0,
-                        right: 0,
-                        zIndex: 30,
-                        background: TOKENS.bgPanel,
-                        border: `1px solid ${TOKENS.borderHi}`,
-                        borderRadius: 10,
-                        boxShadow: "0 14px 40px rgba(0,0,0,0.5)",
-                        padding: 4,
+                        padding: showChainForm ? "10px 0" : "0",
+                        ...(showChainForm
+                          ? {}
+                          : {
+                              display: "flex",
+                              alignItems: "center",
+                              minHeight: 36,
+                            }),
                       }}
                     >
-                      {Object.entries(estadoMeta).map(([k, m]: any) => (
+                      {!showChainForm ? (
                         <button
-                          key={k}
-                          onClick={async () => {
-                            setEstado(k);
-                            setOpenEst(false);
-                            await supabase
-                              .from("citas")
-                              .update({ estado: k })
-                              .eq("id", cita.id);
-                            triggerRefresh();
+                          onClick={() => {
+                            setShowChainForm(true);
+                            setChainServicioId(null);
+                            setChainProfId(null);
+                            setChainErr("");
                           }}
                           style={{
-                            width: "100%",
-                            display: "flex",
+                            display: "inline-flex",
                             alignItems: "center",
                             gap: 8,
-                            padding: "8px 10px",
-                            borderRadius: 7,
-                            background:
-                              estado === k ? TOKENS.primarySoft : "transparent",
-                            border: "none",
-                            color: TOKENS.text,
-                            fontSize: 12,
-                            fontWeight: 500,
+                            alignSelf: "flex-start",
+                            background: "rgba(244,80,30,0.08)",
+                            border: "1px solid rgba(244,80,30,0.35)",
+                            borderRadius: 10,
+                            padding: "10px 16px",
+                            color: "#e0340e",
+                            fontSize: 13,
+                            fontWeight: 700,
                             cursor: "pointer",
+                            transition:
+                              "background 0.15s ease, transform 0.15s ease",
                             textAlign: "left",
-                            transition: "background 0.2s ease",
                           }}
                           onMouseEnter={(e) => {
-                            if (estado !== k) {
-                              e.currentTarget.style.background =
-                                "rgba(244,80,30,0.06)";
-                            }
+                            e.currentTarget.style.background =
+                              "rgba(244,80,30,0.14)";
+                            e.currentTarget.style.transform =
+                              "translateY(-1px)";
                           }}
                           onMouseLeave={(e) => {
-                            if (estado !== k) {
-                              e.currentTarget.style.background = "transparent";
-                            }
+                            e.currentTarget.style.background =
+                              "rgba(244,80,30,0.08)";
+                            e.currentTarget.style.transform = "none";
+                          }}
+                        >
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.4"
+                            strokeLinecap="round"
+                          >
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                          Encadenar servicio
+                        </button>
+                      ) : (
+                        <div
+                          style={{
+                            borderLeft: "3px solid #e0340e",
+                            paddingLeft: 14,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 10,
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#e0340e",
+                                textTransform: "uppercase",
+                                letterSpacing: 0.8,
+                              }}
+                            >
+                              Encadenar servicio
+                            </div>
+                            <button
+                              className="m-btn-icon"
+                              onClick={() => setShowChainForm(false)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: TOKENS.textTer,
+                                cursor: "pointer",
+                                fontSize: 16,
+                                lineHeight: 1,
+                              }}
+                            >
+                              x
+                            </button>
+                          </div>
+
+                          {/* Servicio */}
+                          <div>
+                            <div
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: TOKENS.textTer,
+                                letterSpacing: 0.6,
+                                marginBottom: 6,
+                              }}
+                            >
+                              Servicio
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 5,
+                              }}
+                            >
+                              {servicios.map((s: any) => (
+                                <button
+                                  key={s.id}
+                                  className="m-chip"
+                                  onClick={() => {
+                                    setChainServicioId(s.id);
+                                    setChainErr("");
+                                  }}
+                                  style={{
+                                    padding: "5px 10px",
+                                    borderRadius: 6,
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                    border:
+                                      chainServicioId === s.id
+                                        ? "1px solid #e0340e"
+                                        : `1px solid ${TOKENS.border}`,
+                                    background:
+                                      chainServicioId === s.id
+                                        ? "rgba(192,38,10,0.15)"
+                                        : TOKENS.bgCard,
+                                    color:
+                                      chainServicioId === s.id
+                                        ? "#e0340e"
+                                        : TOKENS.text,
+                                    transition: "all 0.15s",
+                                  }}
+                                >
+                                  {s.nombre}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Profesional */}
+                          {chainServicioId && (
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  color: TOKENS.textTer,
+                                  letterSpacing: 0.6,
+                                  marginBottom: 6,
+                                }}
+                              >
+                                Profesional
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: 5,
+                                }}
+                              >
+                                {profesionales.map((p: any) => (
+                                  <button
+                                    key={p.id}
+                                    className="m-chip"
+                                    onClick={() => {
+                                      setChainProfId(p.id);
+                                      setChainErr("");
+                                    }}
+                                    style={{
+                                      padding: "5px 10px",
+                                      borderRadius: 6,
+                                      fontSize: 11,
+                                      fontWeight: 600,
+                                      cursor: "pointer",
+                                      border:
+                                        chainProfId === p.id
+                                          ? `1px solid ${p.color || "#e0340e"}`
+                                          : `1px solid ${TOKENS.border}`,
+                                      background:
+                                        chainProfId === p.id
+                                          ? `${p.color || "#e0340e"}22`
+                                          : TOKENS.bgCard,
+                                      color:
+                                        chainProfId === p.id
+                                          ? p.color || "#e0340e"
+                                          : TOKENS.text,
+                                      transition: "all 0.15s",
+                                    }}
+                                  >
+                                    {p.nombre}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Preview de horario */}
+                          {chainTimingPreview && chainProfId && (
+                            <div
+                              style={{
+                                padding: "8px 10px",
+                                background: "rgba(192,38,10,0.06)",
+                                borderRadius: 6,
+                                border: `1px solid rgba(192,38,10,0.15)`,
+                              }}
+                            >
+                              <div
+                                style={{ fontSize: 10, color: TOKENS.textTer }}
+                              >
+                                {chainTimingPreview.inicio.toLocaleTimeString(
+                                  "es-ES",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )}{" "}
+                                -{" "}
+                                {chainTimingPreview.fin.toLocaleTimeString(
+                                  "es-ES",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )}{" "}
+                                ({chainTimingPreview.durTotal} min) ·{" "}
+                                {chainTimingPreview.precio}
+                              </div>
+                            </div>
+                          )}
+
+                          {chainErr && (
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: TOKENS.danger,
+                                padding: "6px 10px",
+                                background: `${TOKENS.danger}15`,
+                                borderRadius: 6,
+                                border: `1px solid ${TOKENS.danger}44`,
+                              }}
+                            >
+                              {chainErr}
+                            </div>
+                          )}
+
+                          {/* Botones */}
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 8,
+                              justifyContent: "flex-end",
+                            }}
+                          >
+                            <button
+                              className="m-btn-secondary"
+                              onClick={() => setShowChainForm(false)}
+                              style={{
+                                padding: "6px 14px",
+                                background: TOKENS.bgCard,
+                                border: `1px solid ${TOKENS.border}`,
+                                color: TOKENS.textSec,
+                                borderRadius: 6,
+                                cursor: "pointer",
+                                fontSize: 11,
+                                fontWeight: 600,
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              className="m-btn-primary"
+                              onClick={handleEncadenar}
+                              disabled={
+                                !chainServicioId ||
+                                !chainProfId ||
+                                chainGuardando
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                background:
+                                  !chainServicioId ||
+                                  !chainProfId ||
+                                  chainGuardando
+                                    ? "rgba(192,38,10,0.3)"
+                                    : "linear-gradient(180deg,#9b8afb 0%,#c0260a 100%)",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 6,
+                                cursor:
+                                  !chainServicioId ||
+                                  !chainProfId ||
+                                  chainGuardando
+                                    ? "not-allowed"
+                                    : "pointer",
+                                fontSize: 11,
+                                fontWeight: 600,
+                              }}
+                            >
+                              {chainGuardando ? "..." : "Encadenar"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Profesional */}
+                  <div>
+                    <Label>Profesional</Label>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 6,
+                        flexWrap: "wrap",
+                        minWidth: 0,
+                      }}
+                    >
+                      {profesionales.map((p: any) => {
+                        const sel = p.id === selectedProf?.id;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => setSelectedProf(p)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 7,
+                              padding: "7px 11px",
+                              borderRadius: 999,
+                              background: sel
+                                ? `${p.color}22`
+                                : "rgba(148,163,184,0.06)",
+                              border: `1px solid ${sel ? `${p.color}66` : TOKENS.border}`,
+                              color: sel ? p.color : TOKENS.textSec,
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!sel) {
+                                e.currentTarget.style.borderColor = p.color;
+                                e.currentTarget.style.background = `${p.color}10`;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!sel) {
+                                e.currentTarget.style.borderColor =
+                                  TOKENS.border;
+                                e.currentTarget.style.background =
+                                  "rgba(148,163,184,0.06)";
+                              }
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: 999,
+                                background: p.color,
+                              }}
+                            />
+                            {p.nombre.split(" ")[0]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "color" && (
+                <>
+                  {/* Aviso de alergias del cliente */}
+                  {(() => {
+                    const alergiasTexto = (
+                      selectedCliente?.alergias ?? ""
+                    ).trim();
+                    if (!alergiasTexto) return null;
+                    return (
+                      <div
+                        className="m-pulse-red"
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 8,
+                          padding: 12,
+                          background: "rgba(239,68,68,0.10)",
+                          border: "1px solid rgba(239,68,68,0.40)",
+                          borderRadius: 10,
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            color: "#ef4444",
+                            flexShrink: 0,
+                            marginTop: 1,
+                          }}
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#ef4444",
+                              letterSpacing: 0.4,
+                              textTransform: "uppercase",
+                              marginBottom: 2,
+                            }}
+                          >
+                            Alergias registradas
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: "#ef4444",
+                              lineHeight: 1.4,
+                              whiteSpace: "pre-wrap" as any,
+                            }}
+                          >
+                            {alergiasTexto}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
+              {seccionActiva === "color" && (
+                <>
+                  {/* Alergias de la cita */}
+                  <div>
+                    <Label>Alergias</Label>
+                    <textarea
+                      value={notasCita}
+                      onChange={(e) => setNotasCita(e.target.value)}
+                      placeholder="Alergias o reacciones a tener en cuenta para esta cita…"
+                      rows={4}
+                      style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "10px 12px",
+                        background: TOKENS.bgCard,
+                        border: `1px solid ${TOKENS.border}`,
+                        borderRadius: 10,
+                        color: TOKENS.text,
+                        fontSize: 13,
+                        fontFamily: "inherit",
+                        outline: "none",
+                        resize: "vertical",
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Estado */}
+                  <div
+                    ref={(el) => {
+                      dEstRef.current = el;
+                    }}
+                  >
+                    <Label>Estado</Label>
+                    <div style={{ position: "relative" }}>
+                      <button
+                        className="m-row-hover"
+                        onClick={() => setOpenEst(!openEst)}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px 12px",
+                          borderRadius: 10,
+                          background: TOKENS.bgCard,
+                          border: `1px solid ${TOKENS.border}`,
+                          cursor: "pointer",
+                          color: TOKENS.text,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 8,
                           }}
                         >
                           <span
@@ -18085,993 +18972,1378 @@ export function DetalleCitaModal({
                               width: 8,
                               height: 8,
                               borderRadius: 999,
-                              background: m.color,
+                              background: meta.color,
                             }}
                           />
-                          <span style={{ flex: 1 }}>{m.label}</span>
-                          {estado === k && <IconCheck />}
-                        </button>
-                      ))}
+                          {meta.label}
+                        </span>
+                        <span
+                          style={{
+                            transform: openEst ? "rotate(180deg)" : "none",
+                            transition: "transform 0.15s",
+                            display: "flex",
+                            alignItems: "center",
+                            color: TOKENS.textTer,
+                          }}
+                        >
+                          <IconChevronDown />
+                        </span>
+                      </button>
+                      {openEst && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "calc(100% + 4px)",
+                            left: 0,
+                            right: 0,
+                            zIndex: 30,
+                            background: TOKENS.bgPanel,
+                            border: `1px solid ${TOKENS.borderHi}`,
+                            borderRadius: 10,
+                            boxShadow: "0 14px 40px rgba(0,0,0,0.5)",
+                            padding: 4,
+                          }}
+                        >
+                          {Object.entries(estadoMeta).map(([k, m]: any) => (
+                            <button
+                              key={k}
+                              onClick={async () => {
+                                setEstado(k);
+                                setOpenEst(false);
+                                await supabase
+                                  .from("citas")
+                                  .update({ estado: k })
+                                  .eq("id", cita.id);
+                                triggerRefresh();
+                              }}
+                              style={{
+                                width: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "8px 10px",
+                                borderRadius: 7,
+                                background:
+                                  estado === k
+                                    ? TOKENS.primarySoft
+                                    : "transparent",
+                                border: "none",
+                                color: TOKENS.text,
+                                fontSize: 12,
+                                fontWeight: 500,
+                                cursor: "pointer",
+                                textAlign: "left",
+                                transition: "background 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (estado !== k) {
+                                  e.currentTarget.style.background =
+                                    "rgba(244,80,30,0.06)";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (estado !== k) {
+                                  e.currentTarget.style.background =
+                                    "transparent";
+                                }
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: 999,
+                                  background: m.color,
+                                }}
+                              />
+                              <span style={{ flex: 1 }}>{m.label}</span>
+                              {estado === k && <IconCheck />}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Resumen */}
+                  <div
+                    style={{
+                      padding: 14,
+                      borderRadius: 12,
+                      background: "rgba(16,185,129,0.06)",
+                      border: "1px solid rgba(16,185,129,0.25)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 10,
+                          letterSpacing: 1.5,
+                          color: TOKENS.textTer,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Resumen
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 22,
+                          fontWeight: 700,
+                          color: "#10b981",
+                        }}
+                      >
+                        {selectedServicio?.precio || 0} €
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gap: 6,
+                      }}
+                    >
+                      <SummaryCell
+                        label="Activo 1"
+                        value={`${activo}m`}
+                        color={TOKENS.primary}
+                      />
+                      <SummaryCell
+                        label="Espera"
+                        value={`${espera}m`}
+                        color="#f59e0b"
+                      />
+                      <SummaryCell
+                        label="Activo 2"
+                        value={`${activo2}m`}
+                        color={TOKENS.primary}
+                      />
+                      <SummaryCell
+                        label="Total"
+                        value={`${totalMin}m`}
+                        color="#10b981"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Intervalo y duracion GRANDES: lo primero que se ve, se actualiza en vivo. */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      background: `linear-gradient(135deg, ${TOKENS.primarySoft}, rgba(148,163,184,0.05))`,
+                      border: `1px solid ${TOKENS.primary}30`,
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          letterSpacing: 1.2,
+                          textTransform: "uppercase",
+                          color: TOKENS.textTer,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Horario
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 27,
+                          fontWeight: 800,
+                          color: TOKENS.text,
+                          letterSpacing: -0.5,
+                          fontVariantNumeric: "tabular-nums",
+                          lineHeight: 1.1,
+                          marginTop: 2,
+                        }}
+                      >
+                        {fmtHora(inicioLive)}{" "}
+                        <span
+                          style={{ color: TOKENS.textTer, fontWeight: 700 }}
+                        >
+                          –
+                        </span>{" "}
+                        {fmtHora(finLive)}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: TOKENS.textSec,
+                          marginTop: 3,
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {fechaEditada.toLocaleDateString(LOCALE, {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                        })}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        textAlign: "center",
+                        padding: "9px 15px",
+                        borderRadius: 12,
+                        background: TOKENS.bgPanel,
+                        border: `1px solid ${TOKENS.border}`,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 22,
+                          fontWeight: 800,
+                          color: TOKENS.primary,
+                          lineHeight: 1,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        {durTexto}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 9.5,
+                          letterSpacing: 0.8,
+                          textTransform: "uppercase",
+                          color: TOKENS.textTer,
+                          fontWeight: 700,
+                          marginTop: 3,
+                        }}
+                      >
+                        Duración
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Fecha */}
+                  <div>
+                    <Label>Fecha</Label>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        background: TOKENS.bgCard,
+                        border: `1px solid ${TOKENS.border}`,
+                      }}
+                    >
+                      <TimeBtn onClick={() => adjustFecha(-1)} />
+                      <div
+                        onClick={() =>
+                          dateInputRef.current?.showPicker?.() ??
+                          dateInputRef.current?.click()
+                        }
+                        style={{
+                          flex: 1,
+                          textAlign: "center",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: TOKENS.text,
+                          cursor: "pointer",
+                          userSelect: "none",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {fechaEditada.toLocaleDateString(LOCALE, {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </div>
+                      <TimeBtn onClick={() => adjustFecha(1)} plus />
+                      <input
+                        ref={dateInputRef}
+                        type="date"
+                        value={`${fechaEditada.getFullYear()}-${String(fechaEditada.getMonth() + 1).padStart(2, "0")}-${String(fechaEditada.getDate()).padStart(2, "0")}`}
+                        onChange={(e) =>
+                          e.target.value &&
+                          setFechaEditada(
+                            new Date(e.target.value + "T12:00:00"),
+                          )
+                        }
+                        style={{
+                          position: "absolute",
+                          opacity: 0,
+                          pointerEvents: "none",
+                          width: 0,
+                          height: 0,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Hora */}
+                  <div>
+                    <Label>Hora</Label>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        background: TOKENS.bgCard,
+                        border: `1px solid ${TOKENS.border}`,
+                      }}
+                    >
+                      <TimeBtn onClick={() => adjustHora(-1, 0)} />
+                      <TimeNumBox value={horaEditada.split(":")[0]} label="h" />
+                      <TimeBtn onClick={() => adjustHora(1, 0)} plus />
+                      <span
+                        style={{
+                          color: TOKENS.textTer,
+                          fontSize: 17,
+                          fontWeight: 700,
+                          margin: "0 2px",
+                        }}
+                      >
+                        :
+                      </span>
+                      <TimeBtn onClick={() => adjustHora(0, -5)} />
+                      <TimeNumBox
+                        value={horaEditada.split(":")[1]}
+                        label="min"
+                      />
+                      <TimeBtn onClick={() => adjustHora(0, 5)} plus />
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "servicio" && (
+                <>
+                  {/* Secuencia */}
+                  <div
+                    ref={(el) => {
+                      dSeqRef.current = el;
+                    }}
+                    style={{
+                      padding: 12,
+                      borderRadius: 12,
+                      background: "rgba(148,163,184,0.04)",
+                      border: `1px solid ${TOKENS.border}`,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <Label>Secuencia de la cita</Label>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: TOKENS.textSec,
+                          fontWeight: 400,
+                        }}
+                      >
+                        activo → espera → activo
+                      </span>
+                    </div>
+
+                    <SequenceBar
+                      activo={activo}
+                      espera={espera}
+                      activo2={activo2}
+                      primary={TOKENS.primary}
+                      warning="#f59e0b"
+                      inicioTxt={fmtHora(inicioLive)}
+                      finTxt={fmtHora(finLive)}
+                    />
+
+                    <div ref={dSeqActRef}>
+                      <TimeSlider
+                        label="1 · Tiempo activo"
+                        hint="Aplicación del servicio"
+                        value={activo}
+                        setValue={setActivo}
+                        min={5}
+                        max={240}
+                        step={1}
+                        color={TOKENS.primary}
+                        chips={[15, 30, 45, 60, 90, 120]}
+                        rango={`${fmtHora(inicioLive)} – ${fmtHora(finActiva1Live)}`}
+                      />
+                    </div>
+
+                    <div style={{ height: 12 }} />
+
+                    <div ref={dSeqRepRef}>
+                      <TimeSlider
+                        label="2 · Tiempo de reposo"
+                        hint="Tiempo de reposo (ej. tinte procesando). Pon 0 si no hay."
+                        value={espera}
+                        setValue={setEspera}
+                        min={0}
+                        max={120}
+                        step={1}
+                        color="#f59e0b"
+                        chips={[0, 15, 30, 45, 60]}
+                        rango={
+                          espera > 0
+                            ? `${fmtHora(finActiva1Live)} – ${fmtHora(finEsperaLive)}`
+                            : undefined
+                        }
+                      />
+                    </div>
+
+                    <div style={{ height: 12 }} />
+
+                    <div ref={dSeqAct2Ref}>
+                      <TimeSlider
+                        label="3 · Segundo tiempo activo"
+                        hint="Trabajo posterior al reposo (lavado, peinado…). 0 si no aplica."
+                        value={activo2}
+                        setValue={setActivo2}
+                        min={0}
+                        max={120}
+                        step={1}
+                        color={TOKENS.primary}
+                        chips={[0, 15, 30, 45, 60]}
+                        rango={
+                          activo2 > 0
+                            ? `${fmtHora(finEsperaLive)} – ${fmtHora(finLive)}`
+                            : undefined
+                        }
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              {seccionActiva === "color" && (
+                <>
+                  {/* Fórmula de color / química */}
+                  <div
+                    ref={(el) => {
+                      dFormRef.current = el;
+                    }}
+                    style={{
+                      padding: 12,
+                      borderRadius: 12,
+                      background: showFormula
+                        ? "rgba(192,38,10,0.06)"
+                        : "rgba(148,163,184,0.04)",
+                      border: `1px solid ${showFormula ? "rgba(192,38,10,0.30)" : TOKENS.border}`,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="m-row-hover"
+                      onClick={() => setShowFormula((v) => !v)}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: 0,
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: TOKENS.text,
+                        textAlign: "left",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 7,
+                          background: "rgba(192,38,10,0.14)",
+                          color: "#c0260a",
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                        </svg>
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: TOKENS.text,
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          Fórmula de color / química
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: TOKENS.textSec,
+                            marginTop: 2,
+                          }}
+                        >
+                          {hasFormula
+                            ? "Fórmula registrada"
+                            : "Opcional · producto, tono, tiempo, resultado"}
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          transform: showFormula ? "rotate(180deg)" : "none",
+                          transition: "transform 0.15s",
+                          color: TOKENS.textTer,
+                          display: "flex",
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </span>
+                    </button>
+
+                    {showFormula && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 10,
+                          marginTop: 12,
+                        }}
+                      >
+                        <FormulaInput
+                          label="Producto"
+                          value={formulaProducto}
+                          onChange={setFormulaProducto}
+                          placeholder="Ej. Wella Koleston 7/0"
+                        />
+                        <FormulaInput
+                          label="Tono / mezcla"
+                          value={formulaTono}
+                          onChange={setFormulaTono}
+                          placeholder="Ej. Rubio medio + 9% oxidante 30 vol"
+                        />
+                        <FormulaInput
+                          label="Tiempo de aplicación (min)"
+                          value={formulaTiempo}
+                          onChange={setFormulaTiempo}
+                          placeholder="35"
+                          inputMode="numeric"
+                        />
+                        <FormulaInput
+                          label="Resultado"
+                          value={formulaResultado}
+                          onChange={setFormulaResultado}
+                          placeholder="Cómo quedó (cobertura, tono final…)"
+                          multiline
+                        />
+                        <FormulaInput
+                          label="Notas adicionales"
+                          value={formulaNotas}
+                          onChange={setFormulaNotas}
+                          placeholder="Observaciones específicas"
+                          multiline
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              {seccionActiva === "historial" && (
+                <>
+                  {historial.length === 0 && (
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: TOKENS.textTer,
+                        padding: "8px 2px",
+                      }}
+                    >
+                      Sin cambios registrados todavia.
                     </div>
                   )}
-                </div>
-              </div>
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Resumen */}
-              <div
-                style={{
-                  padding: 14,
-                  borderRadius: 12,
-                  background: "rgba(16,185,129,0.06)",
-                  border: "1px solid rgba(16,185,129,0.25)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 8,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: 1.5,
-                      color: TOKENS.textTer,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Resumen
-                  </span>
-                  <span
-                    style={{ fontSize: 22, fontWeight: 700, color: "#10b981" }}
-                  >
-                    {selectedServicio?.precio || 0} €
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 6,
-                  }}
-                >
-                  <SummaryCell
-                    label="Activo 1"
-                    value={`${activo}m`}
-                    color={TOKENS.primary}
-                  />
-                  <SummaryCell
-                    label="Espera"
-                    value={`${espera}m`}
-                    color="#f59e0b"
-                  />
-                  <SummaryCell
-                    label="Activo 2"
-                    value={`${activo2}m`}
-                    color={TOKENS.primary}
-                  />
-                  <SummaryCell
-                    label="Total"
-                    value={`${totalMin}m`}
-                    color="#10b981"
-                  />
-                </div>
-              </div>
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Intervalo y duracion GRANDES: lo primero que se ve, se actualiza en vivo. */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: "14px 16px",
-                  borderRadius: 14,
-                  background: `linear-gradient(135deg, ${TOKENS.primarySoft}, rgba(148,163,184,0.05))`,
-                  border: `1px solid ${TOKENS.primary}30`,
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: 1.2,
-                      textTransform: "uppercase",
-                      color: TOKENS.textTer,
-                      fontWeight: 700,
-                    }}
-                  >
-                    Horario
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 27,
-                      fontWeight: 800,
-                      color: TOKENS.text,
-                      letterSpacing: -0.5,
-                      fontVariantNumeric: "tabular-nums",
-                      lineHeight: 1.1,
-                      marginTop: 2,
-                    }}
-                  >
-                    {fmtHora(inicioLive)}{" "}
-                    <span style={{ color: TOKENS.textTer, fontWeight: 700 }}>
-                      –
-                    </span>{" "}
-                    {fmtHora(finLive)}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: TOKENS.textSec,
-                      marginTop: 3,
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {fechaEditada.toLocaleDateString(LOCALE, {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                    })}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    flexShrink: 0,
-                    textAlign: "center",
-                    padding: "9px 15px",
-                    borderRadius: 12,
-                    background: TOKENS.bgPanel,
-                    border: `1px solid ${TOKENS.border}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 800,
-                      color: TOKENS.primary,
-                      lineHeight: 1,
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {durTexto}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 9.5,
-                      letterSpacing: 0.8,
-                      textTransform: "uppercase",
-                      color: TOKENS.textTer,
-                      fontWeight: 700,
-                      marginTop: 3,
-                    }}
-                  >
-                    Duración
-                  </div>
-                </div>
-              </div>
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Fecha */}
-              <div>
-                <Label>Fecha</Label>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "8px 10px",
-                    borderRadius: 10,
-                    background: TOKENS.bgCard,
-                    border: `1px solid ${TOKENS.border}`,
-                  }}
-                >
-                  <TimeBtn onClick={() => adjustFecha(-1)} />
-                  <div
-                    onClick={() =>
-                      dateInputRef.current?.showPicker?.() ??
-                      dateInputRef.current?.click()
-                    }
-                    style={{
-                      flex: 1,
-                      textAlign: "center",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: TOKENS.text,
-                      cursor: "pointer",
-                      userSelect: "none",
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {fechaEditada.toLocaleDateString(LOCALE, {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </div>
-                  <TimeBtn onClick={() => adjustFecha(1)} plus />
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    value={`${fechaEditada.getFullYear()}-${String(fechaEditada.getMonth() + 1).padStart(2, "0")}-${String(fechaEditada.getDate()).padStart(2, "0")}`}
-                    onChange={(e) =>
-                      e.target.value &&
-                      setFechaEditada(new Date(e.target.value + "T12:00:00"))
-                    }
-                    style={{
-                      position: "absolute",
-                      opacity: 0,
-                      pointerEvents: "none",
-                      width: 0,
-                      height: 0,
-                    }}
-                  />
-                </div>
-              </div>
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Hora */}
-              <div>
-                <Label>Hora</Label>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "8px 10px",
-                    borderRadius: 10,
-                    background: TOKENS.bgCard,
-                    border: `1px solid ${TOKENS.border}`,
-                  }}
-                >
-                  <TimeBtn onClick={() => adjustHora(-1, 0)} />
-                  <TimeNumBox value={horaEditada.split(":")[0]} label="h" />
-                  <TimeBtn onClick={() => adjustHora(1, 0)} plus />
-                  <span
-                    style={{
-                      color: TOKENS.textTer,
-                      fontSize: 17,
-                      fontWeight: 700,
-                      margin: "0 2px",
-                    }}
-                  >
-                    :
-                  </span>
-                  <TimeBtn onClick={() => adjustHora(0, -5)} />
-                  <TimeNumBox value={horaEditada.split(":")[1]} label="min" />
-                  <TimeBtn onClick={() => adjustHora(0, 5)} plus />
-                </div>
-              </div>
-
-              </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Secuencia */}
-              <div
-                ref={(el) => {
-                  dSeqRef.current = el;
-                }}
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "rgba(148,163,184,0.04)",
-                  border: `1px solid ${TOKENS.border}`,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 10,
-                  }}
-                >
-                  <Label>Secuencia de la cita</Label>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: TOKENS.textSec,
-                      fontWeight: 400,
-                    }}
-                  >
-                    activo → espera → activo
-                  </span>
-                </div>
-
-                <SequenceBar
-                  activo={activo}
-                  espera={espera}
-                  activo2={activo2}
-                  primary={TOKENS.primary}
-                  warning="#f59e0b"
-                  inicioTxt={fmtHora(inicioLive)}
-                  finTxt={fmtHora(finLive)}
-                />
-
-                <div ref={dSeqActRef}>
-                  <TimeSlider
-                    label="1 · Tiempo activo"
-                    hint="Aplicación del servicio"
-                    value={activo}
-                    setValue={setActivo}
-                    min={5}
-                    max={240}
-                    step={1}
-                    color={TOKENS.primary}
-                    chips={[15, 30, 45, 60, 90, 120]}
-                    rango={`${fmtHora(inicioLive)} – ${fmtHora(finActiva1Live)}`}
-                  />
-                </div>
-
-                <div style={{ height: 12 }} />
-
-                <div ref={dSeqRepRef}>
-                  <TimeSlider
-                    label="2 · Tiempo de reposo"
-                    hint="Tiempo de reposo (ej. tinte procesando). Pon 0 si no hay."
-                    value={espera}
-                    setValue={setEspera}
-                    min={0}
-                    max={120}
-                    step={1}
-                    color="#f59e0b"
-                    chips={[0, 15, 30, 45, 60]}
-                    rango={
-                      espera > 0
-                        ? `${fmtHora(finActiva1Live)} – ${fmtHora(finEsperaLive)}`
-                        : undefined
-                    }
-                  />
-                </div>
-
-                <div style={{ height: 12 }} />
-
-                <div ref={dSeqAct2Ref}>
-                  <TimeSlider
-                    label="3 · Segundo tiempo activo"
-                    hint="Trabajo posterior al reposo (lavado, peinado…). 0 si no aplica."
-                    value={activo2}
-                    setValue={setActivo2}
-                    min={0}
-                    max={120}
-                    step={1}
-                    color={TOKENS.primary}
-                    chips={[0, 15, 30, 45, 60]}
-                    rango={
-                      activo2 > 0
-                        ? `${fmtHora(finEsperaLive)} – ${fmtHora(finLive)}`
-                        : undefined
-                    }
-                  />
-                </div>
-              </div>
-
-              </>)}
-              {seccionActiva === "color" && (<>
-              {/* Fórmula de color / química */}
-              <div
-                ref={(el) => {
-                  dFormRef.current = el;
-                }}
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  background: showFormula
-                    ? "rgba(192,38,10,0.06)"
-                    : "rgba(148,163,184,0.04)",
-                  border: `1px solid ${showFormula ? "rgba(192,38,10,0.30)" : TOKENS.border}`,
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <button
-                  type="button"
-                  className="m-row-hover"
-                  onClick={() => setShowFormula((v) => !v)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: 0,
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    color: TOKENS.text,
-                    textAlign: "left",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 7,
-                      background: "rgba(192,38,10,0.14)",
-                      color: "#c0260a",
-                      display: "grid",
-                      placeItems: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-                    </svg>
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: TOKENS.text,
-                        letterSpacing: 0.3,
-                      }}
-                    >
-                      Fórmula de color / química
+                  {/* Historial de cambios */}
+                  {historial.length > 0 && (
+                    <div style={{ padding: "0 32px 12px" }}>
+                      <div
+                        style={{
+                          background: showHistorial
+                            ? "rgba(59,130,246,0.06)"
+                            : "rgba(148,163,184,0.04)",
+                          border: `1px solid ${showHistorial ? "rgba(59,130,246,0.30)" : TOKENS.border}`,
+                          borderRadius: 10,
+                          overflow: "hidden",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            userSelect: "none",
+                          }}
+                          onClick={() => setShowHistorial((v) => !v)}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="rgba(59,130,246,0.7)"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: TOKENS.textSec,
+                              }}
+                            >
+                              Historial de cambios
+                            </span>
+                            <span
+                              style={{ fontSize: 11, color: TOKENS.textTer }}
+                            >
+                              ({historial.length})
+                            </span>
+                          </div>
+                          <span
+                            style={{
+                              transform: showHistorial
+                                ? "rotate(180deg)"
+                                : "none",
+                              transition: "transform 0.15s",
+                              color: TOKENS.textTer,
+                              display: "flex",
+                            }}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </span>
+                        </div>
+                        {showHistorial && (
+                          <div
+                            style={{
+                              padding: "0 14px 12px",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 6,
+                            }}
+                          >
+                            {historial.map((h: any, i: number) => {
+                              const fecha = new Date(h.created_at);
+                              const hh = String(fecha.getHours()).padStart(
+                                2,
+                                "0",
+                              );
+                              const mm = String(fecha.getMinutes()).padStart(
+                                2,
+                                "0",
+                              );
+                              const dd = String(fecha.getDate()).padStart(
+                                2,
+                                "0",
+                              );
+                              const mo = String(fecha.getMonth() + 1).padStart(
+                                2,
+                                "0",
+                              );
+                              const campoLabel: Record<string, string> = {
+                                inicio: "Hora inicio",
+                                fin: "Hora fin",
+                                profesional_id: "Profesional",
+                                estado: "Estado",
+                                cierre_salon: "Cierre salon",
+                              };
+                              const label = campoLabel[h.campo] || h.campo;
+                              return (
+                                <div
+                                  key={i}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: 8,
+                                    padding: "6px 8px",
+                                    background: "rgba(148,163,184,0.05)",
+                                    borderRadius: 6,
+                                    fontSize: 11,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      color: TOKENS.textTer,
+                                      whiteSpace: "nowrap",
+                                      minWidth: 70,
+                                    }}
+                                  >
+                                    {dd}/{mo} {hh}:{mm}
+                                  </span>
+                                  <span
+                                    style={{
+                                      color: TOKENS.textSec,
+                                      fontWeight: 600,
+                                      minWidth: 80,
+                                    }}
+                                  >
+                                    {label}
+                                  </span>
+                                  <span
+                                    style={{ color: TOKENS.textTer, flex: 1 }}
+                                  >
+                                    {h.valor_anterior && (
+                                      <span>{h.valor_anterior}</span>
+                                    )}
+                                    {h.valor_anterior && h.valor_nuevo && (
+                                      <span
+                                        style={{
+                                          margin: "0 4px",
+                                          color: TOKENS.textTer,
+                                        }}
+                                      >
+                                        {"->"}
+                                      </span>
+                                    )}
+                                    {h.valor_nuevo && (
+                                      <span style={{ color: TOKENS.text }}>
+                                        {h.valor_nuevo}
+                                      </span>
+                                    )}
+                                    {h.motivo && (
+                                      <span
+                                        style={{
+                                          marginLeft: 6,
+                                          color: "rgba(59,130,246,0.7)",
+                                          fontStyle: "italic",
+                                        }}
+                                      >
+                                        ({h.motivo})
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: TOKENS.textSec,
-                        marginTop: 2,
-                      }}
-                    >
-                      {hasFormula
-                        ? "Fórmula registrada"
-                        : "Opcional · producto, tono, tiempo, resultado"}
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      transform: showFormula ? "rotate(180deg)" : "none",
-                      transition: "transform 0.15s",
-                      color: TOKENS.textTer,
-                      display: "flex",
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </span>
-                </button>
-
-                {showFormula && (
+                  )}
+                </>
+              )}
+              {seccionActiva === "productos" && (
+                <>
                   <div
                     style={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: 10,
-                      marginTop: 12,
+                      gap: 12,
                     }}
                   >
-                    <FormulaInput
-                      label="Producto"
-                      value={formulaProducto}
-                      onChange={setFormulaProducto}
-                      placeholder="Ej. Wella Koleston 7/0"
-                    />
-                    <FormulaInput
-                      label="Tono / mezcla"
-                      value={formulaTono}
-                      onChange={setFormulaTono}
-                      placeholder="Ej. Rubio medio + 9% oxidante 30 vol"
-                    />
-                    <FormulaInput
-                      label="Tiempo de aplicación (min)"
-                      value={formulaTiempo}
-                      onChange={setFormulaTiempo}
-                      placeholder="35"
-                      inputMode="numeric"
-                    />
-                    <FormulaInput
-                      label="Resultado"
-                      value={formulaResultado}
-                      onChange={setFormulaResultado}
-                      placeholder="Cómo quedó (cobertura, tono final…)"
-                      multiline
-                    />
-                    <FormulaInput
-                      label="Notas adicionales"
-                      value={formulaNotas}
-                      onChange={setFormulaNotas}
-                      placeholder="Observaciones específicas"
-                      multiline
-                    />
-                  </div>
-                )}
-              </div>
-            </>)}
-            {seccionActiva === "historial" && (<>
-            {historial.length === 0 && (
-              <div style={{ fontSize: 13, color: TOKENS.textTer, padding: "8px 2px" }}>Sin cambios registrados todavia.</div>
-            )}
-            {/* Historial de cambios */}
-        {historial.length > 0 && (
-          <div style={{ padding: "0 32px 12px" }}>
-            <div
-              style={{
-                background: showHistorial
-                  ? "rgba(59,130,246,0.06)"
-                  : "rgba(148,163,184,0.04)",
-                border: `1px solid ${showHistorial ? "rgba(59,130,246,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                overflow: "hidden",
-                transition: "all 0.2s",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "10px 14px",
-                  cursor: "pointer",
-                  userSelect: "none",
-                }}
-                onClick={() => setShowHistorial((v) => !v)}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="rgba(59,130,246,0.7)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: TOKENS.textSec,
-                    }}
-                  >
-                    Historial de cambios
-                  </span>
-                  <span style={{ fontSize: 11, color: TOKENS.textTer }}>
-                    ({historial.length})
-                  </span>
-                </div>
-                <span
-                  style={{
-                    transform: showHistorial ? "rotate(180deg)" : "none",
-                    transition: "transform 0.15s",
-                    color: TOKENS.textTer,
-                    display: "flex",
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </span>
-              </div>
-              {showHistorial && (
-                <div
-                  style={{
-                    padding: "0 14px 12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 6,
-                  }}
-                >
-                  {historial.map((h: any, i: number) => {
-                    const fecha = new Date(h.created_at);
-                    const hh = String(fecha.getHours()).padStart(2, "0");
-                    const mm = String(fecha.getMinutes()).padStart(2, "0");
-                    const dd = String(fecha.getDate()).padStart(2, "0");
-                    const mo = String(fecha.getMonth() + 1).padStart(2, "0");
-                    const campoLabel: Record<string, string> = {
-                      inicio: "Hora inicio",
-                      fin: "Hora fin",
-                      profesional_id: "Profesional",
-                      estado: "Estado",
-                      cierre_salon: "Cierre salon",
-                    };
-                    const label = campoLabel[h.campo] || h.campo;
-                    return (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: 0.6,
+                        textTransform: "uppercase",
+                        color: TOKENS.textTer,
+                      }}
+                    >
+                      Inventario del salón
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: TOKENS.textSec,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Haz clic en un producto para añadirlo a esta cita. Su
+                      precio se suma al total del cobro (lo verás en la pestaña{" "}
+                      <span style={{ fontWeight: 700, color: TOKENS.text }}>
+                        Pagos
+                      </span>
+                      ).
+                    </div>
+                    {productosCita.length > 0 && (
                       <div
-                        key={i}
                         style={{
                           display: "flex",
-                          alignItems: "flex-start",
-                          gap: 8,
-                          padding: "6px 8px",
-                          background: "rgba(148,163,184,0.05)",
-                          borderRadius: 6,
-                          fontSize: 11,
+                          flexDirection: "column",
+                          gap: 6,
+                          padding: 10,
+                          borderRadius: 12,
+                          background: "rgba(244,80,30,0.06)",
+                          border: `1px solid ${TOKENS.primary}40`,
                         }}
                       >
-                        <span
+                        <div
                           style={{
-                            color: TOKENS.textTer,
-                            whiteSpace: "nowrap",
-                            minWidth: 70,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: 0.5,
+                            textTransform: "uppercase",
+                            color: TOKENS.primaryHi,
                           }}
                         >
-                          {dd}/{mo} {hh}:{mm}
-                        </span>
-                        <span
-                          style={{
-                            color: TOKENS.textSec,
-                            fontWeight: 600,
-                            minWidth: 80,
-                          }}
-                        >
-                          {label}
-                        </span>
-                        <span style={{ color: TOKENS.textTer, flex: 1 }}>
-                          {h.valor_anterior && <span>{h.valor_anterior}</span>}
-                          {h.valor_anterior && h.valor_nuevo && (
-                            <span
-                              style={{ margin: "0 4px", color: TOKENS.textTer }}
-                            >
-                              {"->"}
-                            </span>
-                          )}
-                          {h.valor_nuevo && (
-                            <span style={{ color: TOKENS.text }}>
-                              {h.valor_nuevo}
-                            </span>
-                          )}
-                          {h.motivo && (
+                          Usados en esta cita
+                        </div>
+                        {productosCita.map((p) => (
+                          <div
+                            key={p.id}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              background: TOKENS.bgCard,
+                              border: `1px solid ${TOKENS.border}`,
+                              borderRadius: 8,
+                              padding: "7px 10px",
+                            }}
+                          >
                             <span
                               style={{
-                                marginLeft: 6,
-                                color: "rgba(59,130,246,0.7)",
-                                fontStyle: "italic",
+                                flex: 1,
+                                minWidth: 0,
+                                fontSize: 12.5,
+                                color: TOKENS.text,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
                               }}
                             >
-                              ({h.motivo})
+                              {p.nombre}
                             </span>
-                          )}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-            </>)}
-            {seccionActiva === "productos" && (<>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Inventario del salón</div>
-                <div style={{ fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5 }}>
-                  Haz clic en un producto para añadirlo a esta cita. Su precio se
-                  suma al total del cobro (lo verás en la pestaña <span style={{ fontWeight: 700, color: TOKENS.text }}>Pagos</span>).
-                </div>
-                {productosCita.length > 0 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 10, borderRadius: 12, background: "rgba(244,80,30,0.06)", border: `1px solid ${TOKENS.primary}40` }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: TOKENS.primaryHi }}>Usados en esta cita</div>
-                    {productosCita.map((p) => (
-                      <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, padding: "7px 10px" }}>
-                        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec }}>x{p.cantidad}</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, minWidth: 58, textAlign: "right" }}>{(p.precio * p.cantidad).toFixed(2)} €</span>
-                        <button
-                          type="button"
-                          className="m-btn-icon"
-                          onClick={() => quitarProductoCita(p.id)}
-                          title="Quitar uno"
-                          style={{ background: "none", border: "none", color: TOKENS.danger, cursor: "pointer", fontSize: 15, fontWeight: 700, padding: "0 4px", lineHeight: 1 }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2 }}>
-                      <span style={{ fontSize: 12, color: TOKENS.textSec }}>Suma productos</span>
-                      <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.primaryHi }}>{totalProductosCita.toFixed(2)} €</span>
-                    </div>
-                  </div>
-                )}
-                {inventarioProductos.length === 0 ? (
-                  <div style={{ fontSize: 13, color: TOKENS.textTer, padding: "8px 2px" }}>No hay productos en el inventario todavía.</div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {inventarioProductos.map((p: any) => {
-                      const enCita = productosCita.find((x) => x.id === p.id);
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => addProductoCita(p)}
-                          title="Añadir a la cita"
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: TOKENS.textSec,
+                              }}
+                            >
+                              x{p.cantidad}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: TOKENS.text,
+                                minWidth: 58,
+                                textAlign: "right",
+                              }}
+                            >
+                              {(p.precio * p.cantidad).toFixed(2)} €
+                            </span>
+                            <button
+                              type="button"
+                              className="m-btn-icon"
+                              onClick={() => quitarProductoCita(p.id)}
+                              title="Quitar uno"
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: TOKENS.danger,
+                                cursor: "pointer",
+                                fontSize: 15,
+                                fontWeight: 700,
+                                padding: "0 4px",
+                                lineHeight: 1,
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        <div
                           style={{
                             display: "flex",
+                            justifyContent: "space-between",
                             alignItems: "center",
-                            gap: 10,
-                            width: "100%",
-                            textAlign: "left",
-                            background: TOKENS.bgCard,
-                            border: `1px solid ${enCita ? TOKENS.primary : TOKENS.border}`,
-                            borderRadius: 10,
-                            padding: "10px 12px",
-                            cursor: "pointer",
-                            transition: "border-color 0.15s ease, transform 0.15s ease, background 0.15s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = TOKENS.primary;
-                            e.currentTarget.style.transform = "translateY(-1px)";
-                            e.currentTarget.style.background = "rgba(244,80,30,0.05)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = enCita ? TOKENS.primary : TOKENS.border;
-                            e.currentTarget.style.transform = "none";
-                            e.currentTarget.style.background = TOKENS.bgCard;
+                            marginTop: 2,
                           }}
                         >
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
-                            {(() => {
-                              const stock = p.inventario?.[0]?.unidades ?? 0;
-                              const bajo = stock <= (p.stock_minimo ?? 0);
-                              return (
-                                <div style={{ fontSize: 11, color: bajo ? TOKENS.danger : TOKENS.textTer, marginTop: 2, fontWeight: bajo ? 700 : 400 }}>
-                                  Stock: {stock}{bajo ? " · bajo" : ""}
+                          <span style={{ fontSize: 12, color: TOKENS.textSec }}>
+                            Suma productos
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 13.5,
+                              fontWeight: 800,
+                              color: TOKENS.primaryHi,
+                            }}
+                          >
+                            {totalProductosCita.toFixed(2)} €
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {inventarioProductos.length === 0 ? (
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: TOKENS.textTer,
+                          padding: "8px 2px",
+                        }}
+                      >
+                        No hay productos en el inventario todavía.
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 6,
+                        }}
+                      >
+                        {inventarioProductos.map((p: any) => {
+                          const enCita = productosCita.find(
+                            (x) => x.id === p.id,
+                          );
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => addProductoCita(p)}
+                              title="Añadir a la cita"
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                width: "100%",
+                                textAlign: "left",
+                                background: TOKENS.bgCard,
+                                border: `1px solid ${enCita ? TOKENS.primary : TOKENS.border}`,
+                                borderRadius: 10,
+                                padding: "10px 12px",
+                                cursor: "pointer",
+                                transition:
+                                  "border-color 0.15s ease, transform 0.15s ease, background 0.15s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor =
+                                  TOKENS.primary;
+                                e.currentTarget.style.transform =
+                                  "translateY(-1px)";
+                                e.currentTarget.style.background =
+                                  "rgba(244,80,30,0.05)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = enCita
+                                  ? TOKENS.primary
+                                  : TOKENS.border;
+                                e.currentTarget.style.transform = "none";
+                                e.currentTarget.style.background =
+                                  TOKENS.bgCard;
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: TOKENS.text,
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                >
+                                  {p.nombre}
                                 </div>
-                              );
-                            })()}
-                          </div>
-                          {enCita && (
-                            <span style={{ fontSize: 11, fontWeight: 800, color: TOKENS.primaryHi, background: "rgba(244,80,30,0.12)", borderRadius: 999, padding: "2px 8px" }}>x{enCita.cantidad}</span>
-                          )}
-                          <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, flexShrink: 0 }}>{(Number(p.precio_cents ?? 0) / 100).toFixed(2)} €</div>
-                        </button>
-                      );
-                    })}
+                                {(() => {
+                                  const stock =
+                                    p.inventario?.[0]?.unidades ?? 0;
+                                  const bajo = stock <= (p.stock_minimo ?? 0);
+                                  return (
+                                    <div
+                                      style={{
+                                        fontSize: 11,
+                                        color: bajo
+                                          ? TOKENS.danger
+                                          : TOKENS.textTer,
+                                        marginTop: 2,
+                                        fontWeight: bajo ? 700 : 400,
+                                      }}
+                                    >
+                                      Stock: {stock}
+                                      {bajo ? " · bajo" : ""}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                              {enCita && (
+                                <span
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    color: TOKENS.primaryHi,
+                                    background: "rgba(244,80,30,0.12)",
+                                    borderRadius: 999,
+                                    padding: "2px 8px",
+                                  }}
+                                >
+                                  x{enCita.cantidad}
+                                </span>
+                              )}
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  color: TOKENS.text,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {(Number(p.precio_cents ?? 0) / 100).toFixed(2)}{" "}
+                                €
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              </>)}
-            {seccionActiva === "pagos" && (<>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Cobros y pagos</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {holdPagoId && (
-              <>
-                <button
-                  onClick={() => gestionarFianza("capturar")}
-                  disabled={guardando}
-                  onMouseEnter={(e) => {
-                    if (!guardando) {
-                      e.currentTarget.style.filter = "brightness(1.05)";
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.filter = "none";
-                    e.currentTarget.style.transform = "none";
-                  }}
-                  title="Cobrar la fianza retenida (penalizacion por no presentarse)."
-                  style={{
-                    padding: "9px 14px",
-                    background: "rgba(226,59,52,0.10)",
-                    color: "#b91c1c",
-                    border: "1px solid rgba(226,59,52,0.5)",
-                    borderRadius: 8,
-                    cursor: guardando ? "not-allowed" : "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    transition: "filter 0.16s ease, transform 0.16s ease",
-                  }}
-                >
-                  Capturar fianza
-                </button>
-                <button
-                  onClick={() => gestionarFianza("liberar")}
-                  disabled={guardando}
-                  onMouseEnter={(e) => {
-                    if (!guardando) {
-                      e.currentTarget.style.filter = "brightness(1.05)";
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.filter = "none";
-                    e.currentTarget.style.transform = "none";
-                  }}
-                  title="Liberar la retencion (el cliente asistio, no se cobra)."
-                  style={{
-                    padding: "9px 14px",
-                    background: TOKENS.bgCard,
-                    color: TOKENS.text,
-                    border: `1px solid ${TOKENS.border}`,
-                    borderRadius: 8,
-                    cursor: guardando ? "not-allowed" : "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    transition: "filter 0.16s ease, transform 0.16s ease",
-                  }}
-                >
-                  Liberar fianza
-                </button>
-              </>
-            )}
-            {cobrada && (
-              <button
-                onClick={anularCobro}
-                disabled={guardando}
-                onMouseEnter={(e) => {
-                  if (!guardando) {
-                    e.currentTarget.style.filter = "brightness(1.05)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.filter = "none";
-                  e.currentTarget.style.transform = "none";
-                }}
-                title="Anular este cobro (efectivo/datafono). La cita vuelve a estar sin cobrar."
-                style={{
-                  padding: "9px 14px",
-                  background: TOKENS.bgCard,
-                  color: "#b91c1c",
-                  border: "1px solid rgba(226,59,52,0.5)",
-                  borderRadius: 8,
-                  cursor: guardando ? "not-allowed" : "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  transition: "filter 0.16s ease, transform 0.16s ease",
-                }}
-              >
-                Anular cobro
-              </button>
-            )}
-            {puedeMarcarNoShow && (
-              <button
-                className="m-btn-warn"
-                onClick={marcarNoShow}
-                disabled={guardando}
-                title="Registrar que la clienta no acudio a su cita. Se usa para el riesgo de no-show (tono neutro, solo el equipo lo ve)."
-                style={{
-                  padding: "9px 14px",
-                  background: "rgba(245,158,11,0.10)",
-                  color: "#b45309",
-                  border: "1px solid rgba(245,158,11,0.55)",
-                  borderRadius: 8,
-                  cursor: guardando ? "not-allowed" : "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                No se presentó
-              </button>
-            )}
-            {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
-              <div style={{ width: "100%" }}>
-                {chainSiblings.length > 1 && (
-                  <label
+                </>
+              )}
+              {seccionActiva === "pagos" && (
+                <>
+                  <div
                     style={{
                       display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 12,
-                      padding: "10px 14px",
-                      background: "rgba(244,80,30,0.06)",
-                      border: "1px solid rgba(244,80,30,0.2)",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: TOKENS.text,
+                      flexDirection: "column",
+                      alignItems: "stretch",
+                      gap: 12,
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={cobrarEncadenadoCompleto}
-                      onChange={(e) => setCobrarEncadenadoCompleto(e.target.checked)}
-                      style={{ width: 16, height: 16, accentColor: TOKENS.primary }}
-                    />
-                    Cobrar todo el servicio encadenado junto ({chainSiblings.length} servicios)
-                  </label>
-                )}
-                {(() => {
-                  const baseCents = cobrarEncadenadoCompleto && chainSiblings.length > 1
-                    ? chainSiblings.reduce((sum: number, sibling: any) => {
-                        const srv = servicios.find((s: any) => s.id === sibling.servicio_id);
-                        return sum + Math.round((srv?.precio ?? 0) * 100);
-                      }, 0)
-                    : Math.round(
-                        Number(selectedServicio?.precio ?? servicio?.precio ?? 0) * 100
-                      );
-
-                  const pendienteCents = Math.max(0, baseCents - cobroSenalCents);
-                  const citaIdsToCharge = cobrarEncadenadoCompleto && chainSiblings.length > 1
-                    ? chainSiblings.map((c: any) => c.id)
-                    : [cita.id];
-
-                  return (
-                    <CobroSheet
-                      mode="cita"
-                      inline
-                      citaIds={citaIdsToCharge}
-                      lineasIniciales={productosCita.map((p) => ({
-                        nombre: p.nombre,
-                        precio: String(p.precio),
-                        cantidad: String(p.cantidad),
-                        ref_id: p.id,
-                      }))}
-                      pendienteCents={pendienteCents}
-                      senalCents={cobroSenalCents}
-                      subtitulo={cobrarEncadenadoCompleto && chainSiblings.length > 1
-                        ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
-                        : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
-                      }
-                      subtituloColor={selectedServicioColor ?? undefined}
-                      onClose={() => {}}
-                      onSuccess={(cobroIds) => {
-                        setCobrada(true);
-                        onSaved?.({
-                          id: cita.id,
-                          cobrada: true,
-                          cobro_id: cobroIds[0],
-                        });
-                        window.dispatchEvent(new CustomEvent("mecha-toast", { detail: { text: "El cobro se ha efectuado correctamente." } }));
-                        triggerRefresh?.();
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: 0.6,
+                        textTransform: "uppercase",
+                        color: TOKENS.textTer,
                       }}
-                    />
-                  );
-                })()}
-              </div>
-            )}
-            {cobrada && (
-              <span
-                style={{
-                  padding: "7px 12px",
-                  background: "rgba(22,163,74,0.12)",
-                  color: "#16a34a",
-                  border: "1px solid rgba(22,163,74,0.4)",
-                  borderRadius: 8,
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <IconCheck /> Cobrada
-              </span>
-            )}
+                    >
+                      Cobros y pagos
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                      {holdPagoId && (
+                        <>
+                          <button
+                            onClick={() => gestionarFianza("capturar")}
+                            disabled={guardando}
+                            onMouseEnter={(e) => {
+                              if (!guardando) {
+                                e.currentTarget.style.filter =
+                                  "brightness(1.05)";
+                                e.currentTarget.style.transform =
+                                  "translateY(-1px)";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.filter = "none";
+                              e.currentTarget.style.transform = "none";
+                            }}
+                            title="Cobrar la fianza retenida (penalizacion por no presentarse)."
+                            style={{
+                              padding: "9px 14px",
+                              background: "rgba(226,59,52,0.10)",
+                              color: "#b91c1c",
+                              border: "1px solid rgba(226,59,52,0.5)",
+                              borderRadius: 8,
+                              cursor: guardando ? "not-allowed" : "pointer",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              transition:
+                                "filter 0.16s ease, transform 0.16s ease",
+                            }}
+                          >
+                            Capturar fianza
+                          </button>
+                          <button
+                            onClick={() => gestionarFianza("liberar")}
+                            disabled={guardando}
+                            onMouseEnter={(e) => {
+                              if (!guardando) {
+                                e.currentTarget.style.filter =
+                                  "brightness(1.05)";
+                                e.currentTarget.style.transform =
+                                  "translateY(-1px)";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.filter = "none";
+                              e.currentTarget.style.transform = "none";
+                            }}
+                            title="Liberar la retencion (el cliente asistio, no se cobra)."
+                            style={{
+                              padding: "9px 14px",
+                              background: TOKENS.bgCard,
+                              color: TOKENS.text,
+                              border: `1px solid ${TOKENS.border}`,
+                              borderRadius: 8,
+                              cursor: guardando ? "not-allowed" : "pointer",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              transition:
+                                "filter 0.16s ease, transform 0.16s ease",
+                            }}
+                          >
+                            Liberar fianza
+                          </button>
+                        </>
+                      )}
+                      {cobrada && (
+                        <button
+                          onClick={anularCobro}
+                          disabled={guardando}
+                          onMouseEnter={(e) => {
+                            if (!guardando) {
+                              e.currentTarget.style.filter = "brightness(1.05)";
+                              e.currentTarget.style.transform =
+                                "translateY(-1px)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.filter = "none";
+                            e.currentTarget.style.transform = "none";
+                          }}
+                          title="Anular este cobro (efectivo/datafono). La cita vuelve a estar sin cobrar."
+                          style={{
+                            padding: "9px 14px",
+                            background: TOKENS.bgCard,
+                            color: "#b91c1c",
+                            border: "1px solid rgba(226,59,52,0.5)",
+                            borderRadius: 8,
+                            cursor: guardando ? "not-allowed" : "pointer",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            transition:
+                              "filter 0.16s ease, transform 0.16s ease",
+                          }}
+                        >
+                          Anular cobro
+                        </button>
+                      )}
+                      {puedeMarcarNoShow && (
+                        <button
+                          className="m-btn-warn"
+                          onClick={marcarNoShow}
+                          disabled={guardando}
+                          title="Registrar que la clienta no acudio a su cita. Se usa para el riesgo de no-show (tono neutro, solo el equipo lo ve)."
+                          style={{
+                            padding: "9px 14px",
+                            background: "rgba(245,158,11,0.10)",
+                            color: "#b45309",
+                            border: "1px solid rgba(245,158,11,0.55)",
+                            borderRadius: 8,
+                            cursor: guardando ? "not-allowed" : "pointer",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          No se presentó
+                        </button>
+                      )}
+                      {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
+                        <div style={{ width: "100%" }}>
+                          {chainSiblings.length > 1 && (
+                            <label
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                marginBottom: 12,
+                                padding: "10px 14px",
+                                background: "rgba(244,80,30,0.06)",
+                                border: "1px solid rgba(244,80,30,0.2)",
+                                borderRadius: 8,
+                                cursor: "pointer",
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: TOKENS.text,
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={cobrarEncadenadoCompleto}
+                                onChange={(e) =>
+                                  setCobrarEncadenadoCompleto(e.target.checked)
+                                }
+                                style={{
+                                  width: 16,
+                                  height: 16,
+                                  accentColor: TOKENS.primary,
+                                }}
+                              />
+                              Cobrar todo el servicio encadenado junto (
+                              {chainSiblings.length} servicios)
+                            </label>
+                          )}
+                          {(() => {
+                            const baseCents =
+                              cobrarEncadenadoCompleto &&
+                              chainSiblings.length > 1
+                                ? chainSiblings.reduce(
+                                    (sum: number, sibling: any) => {
+                                      const srv = servicios.find(
+                                        (s: any) =>
+                                          s.id === sibling.servicio_id,
+                                      );
+                                      return (
+                                        sum +
+                                        Math.round((srv?.precio ?? 0) * 100)
+                                      );
+                                    },
+                                    0,
+                                  )
+                                : Math.round(
+                                    Number(
+                                      selectedServicio?.precio ??
+                                        servicio?.precio ??
+                                        0,
+                                    ) * 100,
+                                  );
 
-                </div>
-              </div>
-            </>)}
+                            const pendienteCents = Math.max(
+                              0,
+                              baseCents - cobroSenalCents,
+                            );
+                            const citaIdsToCharge =
+                              cobrarEncadenadoCompleto &&
+                              chainSiblings.length > 1
+                                ? chainSiblings.map((c: any) => c.id)
+                                : [cita.id];
+
+                            return (
+                              <CobroSheet
+                                mode="cita"
+                                inline
+                                citaIds={citaIdsToCharge}
+                                lineasIniciales={productosCita.map((p) => ({
+                                  nombre: p.nombre,
+                                  precio: String(p.precio),
+                                  cantidad: String(p.cantidad),
+                                  ref_id: p.id,
+                                }))}
+                                pendienteCents={pendienteCents}
+                                senalCents={cobroSenalCents}
+                                subtitulo={
+                                  cobrarEncadenadoCompleto &&
+                                  chainSiblings.length > 1
+                                    ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
+                                    : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
+                                }
+                                subtituloColor={
+                                  selectedServicioColor ?? undefined
+                                }
+                                onClose={() => {}}
+                                onSuccess={(cobroIds: string[]) => {
+                                  setCobrada(true);
+                                  citaIdsToCharge.forEach((cId: string) => {
+                                    onSaved?.({
+                                      id: cId,
+                                      cobrada: true,
+                                      cobro_id: cobroIds[0],
+                                    });
+                                  });
+                                  window.dispatchEvent(
+                                    new CustomEvent("mecha-toast", {
+                                      detail: {
+                                        text: "Cobro efectuado correctamente.",
+                                      },
+                                    }),
+                                  );
+                                  triggerRefresh?.();
+                                }}
+                              />
+                            );
+                          })()}
+                        </div>
+                      )}
+                      {cobrada && (
+                        <span
+                          style={{
+                            padding: "7px 12px",
+                            background: "rgba(22,163,74,0.12)",
+                            color: "#16a34a",
+                            border: "1px solid rgba(22,163,74,0.4)",
+                            borderRadius: 8,
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <IconCheck /> Cobrada
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -19206,23 +20478,23 @@ export function DetalleCitaModal({
           ) : null}
           <div style={{ display: "flex", gap: 8 }}>
             {onDuplicate && (
-            <button
-              className="m-btn-secondary"
-              onClick={onDuplicate}
-              disabled={guardando}
-              style={{
-                padding: "9px 18px",
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                color: TOKENS.text,
-                borderRadius: 8,
-                cursor: guardando ? "not-allowed" : "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
-              Duplicar cita
-            </button>
+              <button
+                className="m-btn-secondary"
+                onClick={onDuplicate}
+                disabled={guardando}
+                style={{
+                  padding: "9px 18px",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  color: TOKENS.text,
+                  borderRadius: 8,
+                  cursor: guardando ? "not-allowed" : "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                Duplicar cita
+              </button>
             )}
             <button
               className="m-btn-secondary"
@@ -19298,27 +20570,33 @@ export function DetalleCitaModal({
       {/* Modal de cobro (POS-0/1): motor compartido con Caja, ver components/pos/CobroSheet */}
       {showCobro &&
         (() => {
-          const baseCents = cobrarEncadenadoCompleto && chainSiblings.length > 1
-            ? chainSiblings.reduce((sum: number, sibling: any) => {
-                const srv = servicios.find((s: any) => s.id === sibling.servicio_id);
-                return sum + Math.round((srv?.precio ?? 0) * 100);
-              }, 0)
-            : Math.round(
-                Number(selectedServicio?.precio ?? servicio?.precio ?? 0) * 100,
-              );
+          const baseCents =
+            cobrarEncadenadoCompleto && chainSiblings.length > 1
+              ? chainSiblings.reduce((sum: number, sibling: any) => {
+                  const srv = servicios.find(
+                    (s: any) => s.id === sibling.servicio_id,
+                  );
+                  return sum + Math.round((srv?.precio ?? 0) * 100);
+                }, 0)
+              : Math.round(
+                  Number(selectedServicio?.precio ?? servicio?.precio ?? 0) *
+                    100,
+                );
           const pendienteCents = Math.max(0, baseCents - cobroSenalCents);
-          const citaIdsToCharge = cobrarEncadenadoCompleto && chainSiblings.length > 1
-            ? chainSiblings.map((c: any) => c.id)
-            : [cita.id];
+          const citaIdsToCharge =
+            cobrarEncadenadoCompleto && chainSiblings.length > 1
+              ? chainSiblings.map((c: any) => c.id)
+              : [cita.id];
           return (
             <CobroSheet
               mode="cita"
               citaIds={citaIdsToCharge}
               pendienteCents={pendienteCents}
               senalCents={cobroSenalCents}
-              subtitulo={cobrarEncadenadoCompleto && chainSiblings.length > 1
-                ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
-                : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
+              subtitulo={
+                cobrarEncadenadoCompleto && chainSiblings.length > 1
+                  ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
+                  : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
               }
               subtituloColor={selectedServicioColor ?? undefined}
               onClose={() => setShowCobro(false)}
@@ -19330,13 +20608,16 @@ export function DetalleCitaModal({
                   cobrada: true,
                   cobro_id: cobroIds[0],
                 });
-                window.dispatchEvent(new CustomEvent("mecha-toast", { detail: { text: "El cobro se ha efectuado correctamente." } }));
+                window.dispatchEvent(
+                  new CustomEvent("mecha-toast", {
+                    detail: { text: "El cobro se ha efectuado correctamente." },
+                  }),
+                );
                 triggerRefresh?.();
               }}
             />
           );
         })()}
-
 
       {/* Estrategias de retraso (Sesion 4): Chispa ofrece 2-3 formas de resolverlo */}
       {estrategiasRetraso && (
@@ -19524,6 +20805,30 @@ export function DetalleCitaModal({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {cita.estado === CITA_STATUS.CANCELADA && (
+        <div
+          style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}
+        >
+          <button
+            className="m-btn-primary"
+            onClick={handleRestaurar}
+            disabled={guardando}
+            style={{
+              padding: "8px 16px",
+              background: TOKENS.success,
+              border: "none",
+              borderRadius: 8,
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: guardando ? "not-allowed" : "pointer",
+            }}
+          >
+            {guardando ? "..." : "Restaurar cita"}
+          </button>
         </div>
       )}
 
@@ -20889,13 +22194,25 @@ function WeekView({
                             }}
                           >
                             {c.estado === "Confirmada" && (
-                              <Icon name="check" size={10} color={TOKENS.success} />
+                              <Icon
+                                name="check"
+                                size={10}
+                                color={TOKENS.success}
+                              />
                             )}
                             {cli?.tag === "VIP" && (
-                              <Icon name="star" size={10} color={TOKENS.warning} />
+                              <Icon
+                                name="star"
+                                size={10}
+                                color={TOKENS.warning}
+                              />
                             )}
                             {cli?.tag === "Habitual" && (
-                              <Icon name="star" size={10} color={TOKENS.primary} />
+                              <Icon
+                                name="star"
+                                size={10}
+                                color={TOKENS.primary}
+                              />
                             )}
                           </div>
                           <span
@@ -20907,13 +22224,19 @@ function WeekView({
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
-                              textDecoration: cancel ? "line-through" : "underline",
-                              textDecorationColor: cancel ? "inherit" : "rgba(244,80,30,0.4)",
+                              textDecoration: cancel
+                                ? "line-through"
+                                : "underline",
+                              textDecorationColor: cancel
+                                ? "inherit"
+                                : "rgba(244,80,30,0.4)",
                               textUnderlineOffset: 2,
                               minWidth: 0,
                             }}
                           >
-                            {dayCitas.length > 5 ? (iniciales || "?") : (cli?.nombre || "Sin cliente")}
+                            {dayCitas.length > 5
+                              ? iniciales || "?"
+                              : cli?.nombre || "Sin cliente"}
                           </span>
                         </div>
 
@@ -21158,8 +22481,13 @@ function MonthView({
 
           // Cierre del salon: primero el que el salon ha configurado de verdad
           // (cierres_negocio) y, si no, unas vacaciones puestas como bloqueo.
-          const cerradoPorCierre = Object.prototype.hasOwnProperty.call(cierrePorDia, d);
-          const festivo = cerradoPorCierre ? (cierrePorDia[d] || "Cerrado") : null;
+          const cerradoPorCierre = Object.prototype.hasOwnProperty.call(
+            cierrePorDia,
+            d,
+          );
+          const festivo = cerradoPorCierre
+            ? cierrePorDia[d] || "Cerrado"
+            : null;
           const cumplesDia = cumplesPorDia[d] || [];
           const birthday = cumplesDia.length
             ? cumplesDia.length === 1
@@ -21167,10 +22495,17 @@ function MonthView({
               : `${cumplesDia.length} cumpleaños`
             : null;
 
-          const isClosed = cerradoPorCierre || (bloqueos || []).some((b: any) => {
-             const bDate = new Date(b.inicio || b.dia);
-             return b.tipo === "vacaciones" && bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === d;
-          });
+          const isClosed =
+            cerradoPorCierre ||
+            (bloqueos || []).some((b: any) => {
+              const bDate = new Date(b.inicio || b.dia);
+              return (
+                b.tipo === "vacaciones" &&
+                bDate.getFullYear() === year &&
+                bDate.getMonth() === month &&
+                bDate.getDate() === d
+              );
+            });
 
           // "Dia lleno" depende de cuanta gente trabaja: 12 citas son una
           // barbaridad para una persona y poca cosa para un equipo de cuatro.
@@ -21178,21 +22513,19 @@ function MonthView({
           // llegaba a rojo y en un salon de una persona casi todos lo eran.
           const ratio = Math.min(1, total / maxCitasDia);
           let satColor = TOKENS.success;
-          if(ratio > 0.5) satColor = TOKENS.warning;
-          if(ratio > 0.8) satColor = TOKENS.danger;
+          if (ratio > 0.5) satColor = TOKENS.warning;
+          if (ratio > 0.8) satColor = TOKENS.danger;
 
           // Un punto por cita, agrupados por profesional y repartidos en varias
           // filas: asi el hueco de la celda se aprovecha entero y el volumen del
           // dia se lee de un vistazo. Antes cabian 12 en una linea y a partir de
           // ahi solo ponia un "+", con lo que 16 y 40 citas se veian igual.
-          const puntos = dayCitas
-            .slice()
-            .sort((a: any, b: any) => {
-              const oa = ordenProf[a.profesional_id] ?? 99;
-              const ob = ordenProf[b.profesional_id] ?? 99;
-              if (oa !== ob) return oa - ob;
-              return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
-            });
+          const puntos = dayCitas.slice().sort((a: any, b: any) => {
+            const oa = ordenProf[a.profesional_id] ?? 99;
+            const ob = ordenProf[b.profesional_id] ?? 99;
+            if (oa !== ob) return oa - ob;
+            return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
+          });
           const MAX_PUNTOS = isMobile ? 9 : 30;
           const puntosVisibles = puntos.slice(0, MAX_PUNTOS);
           const puntosOcultos = total - puntosVisibles.length;
@@ -21212,11 +22545,11 @@ function MonthView({
             <div
               key={i}
               onClick={(e) => {
-                  if((e.target as any).closest(".m-birthday-link")) {
-                      e.stopPropagation();
-                      return;
-                  }
-                  onSelectDay(new Date(year, month, d));
+                if ((e.target as any).closest(".m-birthday-link")) {
+                  e.stopPropagation();
+                  return;
+                }
+                onSelectDay(new Date(year, month, d));
               }}
               style={{
                 background: isClosed
@@ -21237,7 +22570,7 @@ function MonthView({
                 transition: "border-color 0.15s, transform 0.15s",
                 position: "relative",
                 overflow: "hidden",
-                opacity: isClosed ? 0.6 : 1
+                opacity: isClosed ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = TOKENS.primary;
@@ -21251,7 +22584,18 @@ function MonthView({
               }}
             >
               {isClosed && (
-                 <div style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: TOKENS.textSec, opacity: 0.5, transform: "translateY(-50%)" }} />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 0,
+                    width: "100%",
+                    height: 2,
+                    background: TOKENS.textSec,
+                    opacity: 0.5,
+                    transform: "translateY(-50%)",
+                  }}
+                />
               )}
               <div
                 style={{
@@ -21279,31 +22623,80 @@ function MonthView({
                       : {
                           fontSize: isMobile ? 12.5 : 14,
                           fontWeight: 600,
-                          color: isClosed ? TOKENS.textTer : (weekendCol ? TOKENS.textSec : TOKENS.text),
-                          textDecoration: isClosed ? "line-through" : "none"
+                          color: isClosed
+                            ? TOKENS.textTer
+                            : weekendCol
+                              ? TOKENS.textSec
+                              : TOKENS.text,
+                          textDecoration: isClosed ? "line-through" : "none",
                         }
                   }
                 >
                   {d}
                 </span>
                 {!isMobile && festivo && (
-                    <span style={{ fontSize: 9, color: TOKENS.danger, fontWeight: 700, padding: "2px 4px", background: "rgba(239,68,68,0.1)", borderRadius: 6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "65%" }} title={festivo}>
-                        {festivo}
-                    </span>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      color: TOKENS.danger,
+                      fontWeight: 700,
+                      padding: "2px 4px",
+                      background: "rgba(239,68,68,0.1)",
+                      borderRadius: 6,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: "65%",
+                    }}
+                    title={festivo}
+                  >
+                    {festivo}
+                  </span>
                 )}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
-                  {!isMobile && birthday && (
-                     <div
-                       className="m-birthday-link"
-                       title={`Cumpleaños: ${cumplesDia.join(", ")}`}
-                       style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", maxWidth: "90%" }}
-                     >
-                         <Icon name="gift" size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
-                         <span style={{ fontSize: 9, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{birthday}</span>
-                     </div>
-                  )}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  marginTop: 4,
+                }}
+              >
+                {!isMobile && birthday && (
+                  <div
+                    className="m-birthday-link"
+                    title={`Cumpleaños: ${cumplesDia.join(", ")}`}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "rgba(139,92,246,0.1)",
+                      padding: "2px 4px",
+                      borderRadius: 4,
+                      color: "#8b5cf6",
+                      maxWidth: "90%",
+                    }}
+                  >
+                    <Icon
+                      name="gift"
+                      size={10}
+                      color="#8b5cf6"
+                      style={{ flexShrink: 0 }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {birthday}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div
@@ -21331,35 +22724,48 @@ function MonthView({
               </div>
 
               {total > 0 && !isClosed && (
-                  <div
-                    style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: isMobile ? 3 : 4, marginTop: 4 }}
-                    title={
-                      puntosPorCarga
-                        ? `${total} cita${total !== 1 ? "s" : ""} · el color dice como de lleno esta el dia`
-                        : `${total} cita${total !== 1 ? "s" : ""} · un punto por cita, agrupados por profesional`
-                    }
-                  >
-                     {puntosVisibles.map((c: any, idx: number) => (
-                        <div
-                          key={c.id ?? idx}
-                          style={{
-                            width: isMobile ? 5 : 6,
-                            height: isMobile ? 5 : 6,
-                            background: puntosPorCarga
-                              ? satColor
-                              : (colorProf[c.profesional_id] || satColor),
-                            borderRadius: "50%",
-                            opacity: 0.9,
-                            flexShrink: 0,
-                          }}
-                        />
-                     ))}
-                     {puntosOcultos > 0 && (
-                       <span style={{ fontSize: 9, fontWeight: 800, color: TOKENS.textSec, lineHeight: `${isMobile ? 5 : 6}px` }}>
-                         +{puntosOcultos}
-                       </span>
-                     )}
-                  </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: isMobile ? 3 : 4,
+                    marginTop: 4,
+                  }}
+                  title={
+                    puntosPorCarga
+                      ? `${total} cita${total !== 1 ? "s" : ""} · el color dice como de lleno esta el dia`
+                      : `${total} cita${total !== 1 ? "s" : ""} · un punto por cita, agrupados por profesional`
+                  }
+                >
+                  {puntosVisibles.map((c: any, idx: number) => (
+                    <div
+                      key={c.id ?? idx}
+                      style={{
+                        width: isMobile ? 5 : 6,
+                        height: isMobile ? 5 : 6,
+                        background: puntosPorCarga
+                          ? satColor
+                          : colorProf[c.profesional_id] || satColor,
+                        borderRadius: "50%",
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                    />
+                  ))}
+                  {puntosOcultos > 0 && (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: TOKENS.textSec,
+                        lineHeight: `${isMobile ? 5 : 6}px`,
+                      }}
+                    >
+                      +{puntosOcultos}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           );
