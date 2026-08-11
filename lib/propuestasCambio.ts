@@ -9,6 +9,7 @@
 // lista_espera_avisos con template 'propuesta_cambio_cita' y el workflow de n8n
 // la drena, igual que ya hace con los avisos de lista de espera.
 import { supabase } from '@/lib/supabase';
+import { reportarError } from '@/lib/reportarError';
 
 export interface ResultadoPropuesta {
   ok: boolean;
@@ -35,8 +36,14 @@ export async function proponerCambioCita(
     p_inicio_propuesto: inicioPropuestoISO,
     p_margen_reaccion_min: margenReaccionMin,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    return { ok: false, error: error.message };
+  }
   const r = (data ?? {}) as any;
+  if (r && r.ok === false && r.error) {
+    reportarError(new Error(r.error), { origen: 'app', tipo: 'operativo' });
+  }
   return {
     ok: !!r.ok,
     error: r.error,
