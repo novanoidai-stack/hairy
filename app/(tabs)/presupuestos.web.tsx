@@ -82,7 +82,14 @@ function EstadoChip({ estado, advertencia }: { estado: PresupuestoEstado, advert
 
 interface Salon { nombre: string; color: string; direccion: string | null; telefono: string | null; slug: string | null; }
 interface Prof { id: string; nombre: string; }
-interface Serv { id: string; nombre: string; precio: number; duracion_activa_min: number | null; }
+interface Serv {
+  id: string;
+  nombre: string;
+  precio: number;
+  duracion_activa_min: number | null;
+  categoria_id?: string | null;
+  categorias_servicio?: any;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EDITOR (modal)
@@ -119,6 +126,24 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
   const [busy, setBusy] = useState<null | 'guardar' | 'pdf' | 'email'>(null);
   const [error, setError] = useState('');
   const [servicioSelectorOpen, setServicioSelectorOpen] = useState(false);
+  const [busquedaServicio, setBusquedaServicio] = useState('');
+
+  const serviciosFiltrados = useMemo(() => {
+    if (!busquedaServicio.trim()) return servicios;
+    const q = busquedaServicio.toLowerCase().trim();
+    return servicios.filter(s => s.nombre.toLowerCase().includes(q));
+  }, [servicios, busquedaServicio]);
+
+  const serviciosPorCategoria = useMemo(() => {
+    const groups: Record<string, Serv[]> = {};
+    for (const s of serviciosFiltrados) {
+      const catObj = Array.isArray(s.categorias_servicio) ? s.categorias_servicio[0] : s.categorias_servicio;
+      const catNombre = catObj?.nombre || 'Servicios';
+      if (!groups[catNombre]) groups[catNombre] = [];
+      groups[catNombre].push(s);
+    }
+    return groups;
+  }, [serviciosFiltrados]);
 
   // IA para sugerencias de upsell
   const { generar: generarUpsell, bloques: chispaBloques } = useChispaSugerencia();
@@ -355,21 +380,49 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
           <Icon name="doc" size={15} color={T.textSec} /> Añadir desde servicios
         </button>
 
-        {/* Selector de servicios */}
+        {/* Selector de servicios con lupa de búsqueda e ítems agrupados por categoría */}
         {servicioSelectorOpen && (
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12, marginBottom: 14, maxHeight: 240, overflowY: 'auto' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.textTer, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.4 }}>Selecciona un servicio</div>
-            {servicios.length === 0 ? (
-              <div style={{ fontSize: 13, color: T.textSec, textAlign: 'center', padding: 16 }}>No hay servicios activos</div>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12, marginBottom: 14, maxHeight: 300, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.4 }}>Selecciona un servicio</div>
+              <span style={{ fontSize: 11, color: T.textTer }}>{serviciosFiltrados.length} servicio{serviciosFiltrados.length !== 1 ? 's' : ''}</span>
+            </div>
+
+            {/* Lupa de búsqueda por nombre */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: '6px 10px', marginBottom: 12 }}>
+              <Icon name="search" size={14} color={T.textSec} />
+              <input
+                type="text"
+                placeholder="Buscar servicio por nombre..."
+                value={busquedaServicio}
+                onChange={e => setBusquedaServicio(e.target.value)}
+                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12.5, color: T.text, width: '100%' }}
+              />
+              {busquedaServicio ? (
+                <button onClick={() => setBusquedaServicio('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: T.textSec, padding: 0 }}>×</button>
+              ) : null}
+            </div>
+
+            {serviciosFiltrados.length === 0 ? (
+              <div style={{ fontSize: 13, color: T.textSec, textAlign: 'center', padding: 16 }}>No se encontraron servicios</div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {servicios.map(s => (
-                  <div key={s.id} onClick={() => addServicio(s)} className="p-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 7, cursor: 'pointer' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: T.text }}>{s.nombre}</div>
-                      <div style={{ fontSize: 11.5, color: T.textSec }}>{s.duracion_activa_min || 0} min</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {Object.entries(serviciosPorCategoria).map(([catNombre, list]) => (
+                  <div key={catNombre}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, fontWeight: 700, color: T.primary, background: T.primarySoft, padding: '3px 8px', borderRadius: 4, width: 'fit-content' }}>
+                      {catNombre}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T.primary }}>{eur(s.precio)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {list.map(s => (
+                        <div key={s.id} onClick={() => addServicio(s)} className="p-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 7, cursor: 'pointer' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: T.text }}>{s.nombre}</div>
+                            <div style={{ fontSize: 11.5, color: T.textSec }}>{s.duracion_activa_min || 0} min</div>
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: T.primary }}>{eur(s.precio)}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -461,7 +514,7 @@ function PresupuestosScreen() {
       const [{ data: pres }, { data: profs }, { data: srvs }, { data: portal }, concs] = await Promise.all([
         supabase.from('presupuestos').select('*').eq('negocio_id', p.negocio_id).order('created_at', { ascending: false }),
         supabase.from('profesionales').select('id, nombre').eq('negocio_id', p.negocio_id).eq('activo', true).order('nombre'),
-        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min').eq('negocio_id', p.negocio_id).eq('activo', true).order('nombre'),
+        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, categoria_id, categorias_servicio(nombre, color)').eq('negocio_id', p.negocio_id).eq('activo', true).order('nombre'),
         supabase.from('negocio_portal').select('nombre_publico, color_acento, direccion, telefono, slug').eq('negocio_id', p.negocio_id).maybeSingle(),
         cargarConceptos(p.negocio_id),
       ]);

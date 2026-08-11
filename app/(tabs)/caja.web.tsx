@@ -260,12 +260,98 @@ function CajaScreen() {
     };
   }, [citas, selectedIds]);
 
+  // Filtros de fecha y búsqueda para Citas Pendientes de Cobro
+  const [filtroFechaPendientes, setFiltroFechaPendientes] = useState<
+    "todas" | "hoy" | "ayer" | "semana" | "mes" | "rango"
+  >("todas");
+  const [fechaDesdePendientes, setFechaDesdePendientes] = useState<string>("");
+  const [fechaHastaPendientes, setFechaHastaPendientes] = useState<string>("");
+  const [busquedaPendientes, setBusquedaPendientes] = useState<string>("");
+
+  // Citas filtradas según el rango de fecha y búsqueda elegidos
+  const citasFiltradas = useMemo(() => {
+    return citas.filter((c) => {
+      // Filtro por fecha
+      if (filtroFechaPendientes === "hoy") {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date();
+        end.setHours(23, 59, 59, 999);
+        const d = new Date(c.hora_inicio);
+        if (d < start || d > end) return false;
+      } else if (filtroFechaPendientes === "ayer") {
+        const start = new Date();
+        start.setDate(start.getDate() - 1);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date();
+        end.setDate(end.getDate() - 1);
+        end.setHours(23, 59, 59, 999);
+        const d = new Date(c.hora_inicio);
+        if (d < start || d > end) return false;
+      } else if (filtroFechaPendientes === "semana") {
+        const now = new Date();
+        const day = now.getDay() || 7;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - (day - 1));
+        monday.setHours(0, 0, 0, 0);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+        const d = new Date(c.hora_inicio);
+        if (d < monday || d > sunday) return false;
+      } else if (filtroFechaPendientes === "mes") {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        const end = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+          999,
+        );
+        const d = new Date(c.hora_inicio);
+        if (d < start || d > end) return false;
+      } else if (filtroFechaPendientes === "rango") {
+        const d = new Date(c.hora_inicio);
+        if (fechaDesdePendientes) {
+          const start = new Date(fechaDesdePendientes);
+          start.setHours(0, 0, 0, 0);
+          if (d < start) return false;
+        }
+        if (fechaHastaPendientes) {
+          const end = new Date(fechaHastaPendientes);
+          end.setHours(23, 59, 59, 999);
+          if (d > end) return false;
+        }
+      }
+
+      // Filtro por búsqueda de texto
+      if (busquedaPendientes.trim()) {
+        const q = busquedaPendientes.toLowerCase().trim();
+        const cliMatch = (c.cliente_nombre || "").toLowerCase().includes(q);
+        const srvMatch = (c.servicio_nombre || "").toLowerCase().includes(q);
+        const profMatch = (c.profesional_nombre || "").toLowerCase().includes(q);
+        if (!cliMatch && !srvMatch && !profMatch) return false;
+      }
+
+      return true;
+    });
+  }, [
+    citas,
+    filtroFechaPendientes,
+    fechaDesdePendientes,
+    fechaHastaPendientes,
+    busquedaPendientes,
+  ]);
+
   // Conceptos: agrupa las citas pendientes por cliente (servicios encadenados de un
   // mismo cliente caen juntos). Sin cliente -> concepto propio (no se agrupan anonimos).
   const conceptos = useMemo(() => {
     const map = new Map<string, CitaPendiente[]>();
     const orden: string[] = [];
-    for (const c of citas) {
+    for (const c of citasFiltradas) {
       const key = c.grupo_id
         ? `grupo:${c.grupo_id}`
         : c.cliente_id
@@ -296,7 +382,7 @@ function CajaScreen() {
         totalSenas: items.reduce((s, i) => s + i.sena_pagada, 0),
       };
     });
-  }, [citas]);
+  }, [citasFiltradas]);
 
   const contarSeleccionados = (items: CitaPendiente[]) =>
     items.filter((i) => selectedIds.has(i.id)).length;
@@ -364,8 +450,7 @@ function CajaScreen() {
         .eq("negocio_id", profile.negocio_id)
         .eq("cobrada", false)
         .in("estado", ["completada", "finalizada", "confirmada"])
-        .lt("inicio", tomorrowStart)
-        .order("inicio", { ascending: true });
+        .order("inicio", { ascending: false });
 
       if (error) throw error;
 
@@ -1292,8 +1377,211 @@ function CajaScreen() {
         )}
 
         {/* Lista de citas pendientes de cobro — solo propietario/dirección */}
+        {canSeeAll && (
+          <div
+            style={{
+              background: T.card,
+              border: `1px solid ${T.border}`,
+              borderRadius: 14,
+              padding: "14px 16px",
+              marginBottom: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 10,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Icon name="calendar" size={18} color={T.primary} />
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: T.text,
+                  }}
+                >
+                  Filtrar Cobros Pendientes
+                </span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: T.textTer,
+                    background: T.bg,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    border: `1px solid ${T.border}`,
+                  }}
+                >
+                  {citasFiltradas.length} cita{citasFiltradas.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+
+              {/* Buscador de texto */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: T.bg,
+                  border: `1px solid ${T.border}`,
+                  borderRadius: 8,
+                  padding: "6px 12px",
+                  minWidth: 200,
+                }}
+              >
+                <Icon name="search" size={14} color={T.textSec} />
+                <input
+                  type="text"
+                  placeholder="Buscar cliente, servicio..."
+                  value={busquedaPendientes}
+                  onChange={(e) => setBusquedaPendientes(e.target.value)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    outline: "none",
+                    color: T.text,
+                    fontSize: 13,
+                    width: "100%",
+                  }}
+                />
+                {busquedaPendientes ? (
+                  <button
+                    onClick={() => setBusquedaPendientes("")}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      cursor: "pointer",
+                      color: T.textSec,
+                      padding: 0,
+                    }}
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Chips de filtro de fecha */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                { id: "todas", label: "Todas las fechas" },
+                { id: "hoy", label: "Hoy" },
+                { id: "ayer", label: "Ayer" },
+                { id: "semana", label: "Esta semana" },
+                { id: "mes", label: "Este mes" },
+                { id: "rango", label: "Personalizado" },
+              ].map((f) => {
+                const active = filtroFechaPendientes === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() =>
+                      setFiltroFechaPendientes(f.id as any)
+                    }
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: 20,
+                      fontSize: 12.5,
+                      fontWeight: active ? 700 : 500,
+                      background: active ? T.primary : T.bg,
+                      color: active ? "#ffffff" : T.textSec,
+                      border: `1px solid ${active ? T.primary : T.border}`,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Selector de rango de fechas personalizado */}
+            {filtroFechaPendientes === "rango" && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginTop: 4,
+                  paddingTop: 8,
+                  borderTop: `1px dashed ${T.border}`,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 12, color: T.textSec }}>Desde:</span>
+                  <input
+                    type="date"
+                    value={fechaDesdePendientes}
+                    onChange={(e) => setFechaDesdePendientes(e.target.value)}
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      border: `1px solid ${T.border}`,
+                      background: T.bg,
+                      color: T.text,
+                      fontSize: 12.5,
+                    }}
+                  />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 12, color: T.textSec }}>Hasta:</span>
+                  <input
+                    type="date"
+                    value={fechaHastaPendientes}
+                    onChange={(e) => setFechaHastaPendientes(e.target.value)}
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      border: `1px solid ${T.border}`,
+                      background: T.bg,
+                      color: T.text,
+                      fontSize: 12.5,
+                    }}
+                  />
+                </div>
+                {(fechaDesdePendientes || fechaHastaPendientes) ? (
+                  <button
+                    onClick={() => {
+                      setFechaDesdePendientes("");
+                      setFechaHastaPendientes("");
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: T.primary,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Limpiar rango
+                  </button>
+                ) : null}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lista de citas pendientes de cobro — solo propietario/dirección */}
         {canSeeAll &&
-          (citas.length === 0 ? (
+          (conceptos.length === 0 ? (
             <div
               style={{
                 textAlign: "center",
@@ -1312,7 +1600,7 @@ function CajaScreen() {
                   margin: 0,
                 }}
               >
-                No hay citas pendientes de cobro hoy
+                No hay citas pendientes de cobro para el filtro seleccionado
               </p>
               <p
                 style={{
@@ -1322,7 +1610,7 @@ function CajaScreen() {
                   margin: 0,
                 }}
               >
-                Las citas que completes aparecerán aquí para cobrarlas
+                Prueba a cambiar el rango de fecha o el filtro de búsqueda
               </p>
             </div>
           ) : (

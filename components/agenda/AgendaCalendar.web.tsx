@@ -5403,13 +5403,30 @@ export default function AgendaCalendar() {
           );
 
           async function marcarNoShow() {
+            let idsToUpdate = [c.id];
+            const citaAny = c as any;
+            if (citaAny.grupo_id && citaAny.cliente_id && citas) {
+              const chain = citas
+                .filter(
+                  (x: any) =>
+                    x.grupo_id === citaAny.grupo_id && x.cliente_id === citaAny.cliente_id,
+                )
+                .sort(
+                  (a: any, b: any) =>
+                    (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
+                    new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+                );
+              if (chain.length > 0 && chain[0].id === c.id) {
+                idsToUpdate = chain.map((x: any) => x.id);
+              }
+            }
             await supabase
               .from("citas")
               .update({ estado: "no_presentada" })
-              .eq("id", c.id);
+              .in("id", idsToUpdate);
             setCitas((prev) =>
               prev.map((x) =>
-                x.id === c.id ? { ...x, estado: "no_presentada" } : x,
+                idsToUpdate.includes(x.id) ? { ...x, estado: "no_presentada" } : x,
               ),
             );
             // Fianza en modo hold: si el negocio captura en auto, capturar la retencion (no-op si no hay hold).
@@ -5423,13 +5440,30 @@ export default function AgendaCalendar() {
           }
 
           async function marcarCompletada() {
+            let idsToUpdate = [c.id];
+            const citaAny = c as any;
+            if (citaAny.grupo_id && citaAny.cliente_id && citas) {
+              const chain = citas
+                .filter(
+                  (x: any) =>
+                    x.grupo_id === citaAny.grupo_id && x.cliente_id === citaAny.cliente_id,
+                )
+                .sort(
+                  (a: any, b: any) =>
+                    (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
+                    new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+                );
+              if (chain.length > 0 && chain[0].id === c.id) {
+                idsToUpdate = chain.map((x: any) => x.id);
+              }
+            }
             await supabase
               .from("citas")
               .update({ estado: CITA_STATUS.COMPLETADA })
-              .eq("id", c.id);
+              .in("id", idsToUpdate);
             setCitas((prev) =>
               prev.map((x) =>
-                x.id === c.id ? { ...x, estado: CITA_STATUS.COMPLETADA } : x,
+                idsToUpdate.includes(x.id) ? { ...x, estado: CITA_STATUS.COMPLETADA } : x,
               ),
             );
             setShowClientaTarde(null);
@@ -6898,11 +6932,31 @@ function DayTimeline({
       estadoActual === CITA_STATUS.COMPLETADA
         ? CITA_STATUS.CONFIRMADA
         : CITA_STATUS.COMPLETADA;
+    let idsToUpdate = [citaId];
+    const citaObj = (citas || []).find((x: any) => x.id === citaId);
+    if (citaObj && citaObj.grupo_id && citaObj.cliente_id) {
+      const chain = (citas || [])
+        .filter(
+          (x: any) =>
+            x.grupo_id === citaObj.grupo_id &&
+            x.cliente_id === citaObj.cliente_id,
+        )
+        .sort(
+          (a: any, b: any) =>
+            (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
+            new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+        );
+      if (chain.length > 0 && chain[0].id === citaId) {
+        idsToUpdate = chain.map((x: any) => x.id);
+      }
+    }
     await supabase
       .from("citas")
       .update({ estado: nuevoEstado })
-      .eq("id", citaId);
-    onCitaUpdated?.({ id: citaId, estado: nuevoEstado });
+      .in("id", idsToUpdate);
+    idsToUpdate.forEach((id) => {
+      onCitaUpdated?.({ id, estado: nuevoEstado });
+    });
   }
 
   // ---- DRAG & DROP ----
@@ -19010,10 +19064,29 @@ export function DetalleCitaModal({
                               onClick={async () => {
                                 setEstado(k);
                                 setOpenEst(false);
+                                let idsToUpdate = [cita.id];
+                                if (cita.grupo_id && cita.cliente_id && allCitas) {
+                                  const chain = [...allCitas]
+                                    .filter(
+                                      (x: any) =>
+                                        x.grupo_id === cita.grupo_id &&
+                                        x.cliente_id === cita.cliente_id,
+                                    )
+                                    .sort(
+                                      (a: any, b: any) =>
+                                        (a.orden_en_grupo ?? 0) -
+                                          (b.orden_en_grupo ?? 0) ||
+                                        new Date(a.inicio).getTime() -
+                                          new Date(b.inicio).getTime(),
+                                    );
+                                  if (chain.length > 0 && chain[0].id === cita.id) {
+                                    idsToUpdate = chain.map((x: any) => x.id);
+                                  }
+                                }
                                 await supabase
                                   .from("citas")
                                   .update({ estado: k })
-                                  .eq("id", cita.id);
+                                  .in("id", idsToUpdate);
                                 triggerRefresh();
                               }}
                               style={{

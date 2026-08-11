@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía de Capacidades y Configuración de Hairy OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090b10;
+      --surface: #121620;
+      --surface-card: #1a202c;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-bright: rgba(244, 80, 30, 0.35);
+      --primary: #f4501e;
+      --primary-glow: rgba(244, 80, 30, 0.25);
+      --primary-gradient: linear-gradient(135deg, #f4501e 0%, #ff7a50 100%);
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-green: #10b981;
+      --text: #f8fafc;
+      --text-sec: #94a3b8;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(244, 80, 30, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    header {
+      padding: 60px 24px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+    }
+
+    .badge-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(244, 80, 30, 0.12);
+      border: 1px solid rgba(244, 80, 30, 0.3);
+      color: #ff7a50;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(244, 80, 30, 0.15);
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h1 span {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.hero-sub {
+      font-size: 18px;
+      color: var(--text-sec);
+      max-width: 760px;
+      margin: 0 auto 32px;
+    }
+
+    .controls-container {
+      max-width: 1200px;
+      margin: 0 auto 36px;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .search-box {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 14px 20px 14px 48px;
+      border-radius: 14px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sec);
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tab-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .tab-chip:hover {
+      background: var(--surface-card);
+      color: #fff;
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .tab-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .grid-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-bright);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+      background: rgba(244, 80, 30, 0.12);
+      color: var(--primary);
+      border: 1px solid rgba(244, 80, 30, 0.2);
+    }
+
+    .card.accent-blue .card-icon { background: rgba(6, 182, 212, 0.12); color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.2); }
+    .card.accent-purple .card-icon { background: rgba(139, 92, 246, 0.12); color: var(--accent-purple); border-color: rgba(139, 92, 246, 0.2); }
+    .card.accent-green .card-icon { background: rgba(16, 185, 129, 0.12); color: var(--accent-green); border-color: rgba(16, 185, 129, 0.2); }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-sec);
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: #e2e8f0;
+    }
+
+    .feature-item svg {
+      width: 16px;
+      height: 16px;
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .badge-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      align-self: flex-start;
+      margin-bottom: 12px;
+    }
+
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-sec);
+      font-size: 14px;
+    }
+
+    footer span { color: var(--primary); font-weight: 700; }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 32px; }
+      .grid-container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO SECTION -->
+  <header>
+    <div class="badge-hero">⚡ Hairy Operating System</div>
+    <h1>Todo lo que tu Salón puede <span>Configurar y Hacer</span></h1>
+    <p class="hero-sub">Mapa completo e interactivo de capacidades operativas, reglas de negocio, automatizaciones de agenda y herramientas de cobro diseñadas para salones de belleza.</p>
+  </header>
+
+  <!-- CONTROLES -->
+  <div class="controls-container">
+    <div class="search-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="searchInput" placeholder="Buscar funcionalidad (ej. pausas de comer, fianza, WhatsApp, comisiones)..." onkeyup="filterCards()">
+    </div>
+
+    <div class="category-tabs">
+      <button class="tab-chip active" onclick="filterCategory('all', this)">Todas las Áreas</button>
+      <button class="tab-chip" onclick="filterCategory('agenda', this)">📅 Agenda & Pausas</button>
+      <button class="tab-chip" onclick="filterCategory('equipo', this)">👥 Equipo & Turnos</button>
+      <button class="tab-chip" onclick="filterCategory('caja', this)">💳 Caja & Tarjetas</button>
+      <button class="tab-chip" onclick="filterCategory('servicios', this)">✂️ Servicios & Reposo</button>
+      <button class="tab-chip" onclick="filterCategory('marketing', this)">💬 WhatsApp & Fidelización</button>
+    </div>
+  </div>
+
+  <!-- GRID PRINCIPAL -->
+  <div class="grid-container" id="cardsGrid">
+
+    <!-- CARD 1: EQUIPO Y PAUSAS -->
+    <div class="card accent-purple" data-category="equipo agenda">
+      <div class="badge-tag">EQUIPO Y JORNADAS</div>
+      <div class="card-icon">👥</div>
+      <div class="card-title">Turnos, Horarios y Pausas de Comida</div>
+      <div class="card-desc">Control integral de la jornada laboral de cada profesional con bloqueos automáticos de descanso.</div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Pausas de Comer Ajustables:</b> Definición de tramos de comida (ej. 14:00-15:30) con bloqueo automático de reservas.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Turnos Semanales Individuales:</b> Horario de entrada/salida único por cada día de la semana.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Fichaje Digital en Vivo (Mi Jornada):</b> Registro de entradas, salidas y descansos en tiempo real.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Comisiones personalizadas:</b> % por servicios realizados y % por ventas de productos de catálogo.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CARD 2: SERVICIOS Y TIEMPOS MUERTOS -->
+    <div class="card" data-category="servicios agenda">
+      <div class="badge-tag">SERVICIOS Y TIEMPOS</div>
+      <div class="card-icon">✂️</div>
+      <div class="card-title">Tiempos Muertos Productivos & Encadenado</div>
+      <div class="card-desc">Optimización de agenda aprovechando fases de reposo y encadenamiento multiprofesional.</div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Desglose en 3 Fases:</b> Fase Activa (trabajo), Fase de Reposo (exposición sin estilista) y Limpieza.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Solapamiento Inteligente:</b> Libre al estilista en agenda durante la fase de tinte/secado.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Propagación de Estados Encadenados:</b> Si se marca No-Show en la 1ª cita, las siguientes del grupo se actualizan solas.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CARD 3: CAJA Y TARJETA GUARDADA -->
+    <div class="card accent-green" data-category="caja">
+      <div class="badge-tag">CAJA Y PAGOS</div>
+      <div class="card-icon">💳</div>
+      <div class="card-title">Tarjeta en Ficha & Cobro a Posteriori</div>
+      <div class="card-desc">Sistema seguro de cobros diferidos off-session y filtros avanzados de pendientes.</div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Guardado de Tarjeta (Card on File):</b> Alta de tarjeta segura vía Web, QR en recepción o Link de WhatsApp.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Cobro a Posteriori Seguro:</b> Ejecución de cobros pendientes o no-shows con 1 clic sin presencia física.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Filtros de Fechas en Caja:</b> Chips rápidos (Hoy, Ayer, Esta Semana, Este Mes, Personalizado) y buscador.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Normativa VeriFactu / Ley Antifraude:</b> Hash criptográfico en tickets y código QR de Hacienda.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CARD 4: PRESUPUESTOS CON LUPA -->
+    <div class="card accent-blue" data-category="caja servicios">
+      <div class="badge-tag">PRESUPUESTOS</div>
+      <div class="card-icon">📋</div>
+      <div class="card-title">Cotizaciones con Buscador & Categorías</div>
+      <div class="card-desc">Elaboración de presupuestos profesionales con selección rápida de servicios.</div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Lupa de Búsqueda de Servicios:</b> Filtrado instantáneo por nombre en el desplegable de edición.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Agrupación por Categorías:</b> Servicios ordenados con distintivos de color (Peluquería, Color, Estética...).</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Cobro Directo en Caja:</b> Presupuestos aceptados cobrables con 1 clic en el motor de caja.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CARD 5: COMUNICACIONES Y WHATSAPP -->
+    <div class="card accent-purple" data-category="marketing">
+      <div class="badge-tag">AUTOMATIZACIÓN</div>
+      <div class="card-icon">💬</div>
+      <div class="card-title">Notificaciones & WhatsApp Automático</div>
+      <div class="card-desc">Reducción drástica de ausencias mediante avisos y confirmaciones automáticas.</div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Recordatorios por WhatsApp:</b> Envíos automáticos a las 24h y 2h previas a la cita.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Captación de Reseñas en Google:</b> Mensaje post-visita invitando a valorar el salón en Google Maps.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Plantillas Dinámicas:</b> Personalización con etiquetas ({nombre}, {servicio}, {hora}).</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CARD 6: FIDELIZACIÓN Y PUNTOS -->
+    <div class="card accent-green" data-category="marketing">
+      <div class="badge-tag">FIDELIZACIÓN</div>
+      <div class="card-icon">⭐</div>
+      <div class="card-title">Puntos, Recompensas y Referidos</div>
+      <div class="card-desc">Fidelización de clientes con programas de puntos automáticos y bonos.</div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Puntos por Euro Gastado:</b> Acumulación automática de puntos canjeables por premios.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Bonos Multisesión:</b> Venta y gestión de paquetes de 5 o 10 sesiones con descuento.</span>
+        </li>
+        <li class="feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span><b>Programa "Invita a un Amigo":</b> Premios dobles para el cliente actual y el recomendado.</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--text-sec);
+    font-size: 14px;
+  }
+
+  <footer>
+    <p>Hairy OS — Diseñado para hacer crecer tu Salón con <span>Inteligencia Operativa</span>.</p>
+  </footer>
+
+  <script>
+    function filterCards() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(q)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function filterCategory(cat, el) {
+      document.querySelectorAll('.tab-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-category').includes(cat)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
