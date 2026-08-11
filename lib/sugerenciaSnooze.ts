@@ -4,6 +4,7 @@
 // de forma persistente (cross-dispositivo) y con RGPD (borrable con la memoria).
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { reportarError } from '@/lib/reportarError';
 
 const HORAS_DEFECTO = 24;
 const PREFIJO = 'snooze:';
@@ -23,7 +24,11 @@ export async function sugerenciasSilenciadas(): Promise<Set<string>> {
     .eq('usuario_id', p.id)
     .eq('tipo', 'hecho')
     .like('clave', `${PREFIJO}%`);
-  if (error || !Array.isArray(data)) return vacio;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    return vacio;
+  }
+  if (!Array.isArray(data)) return vacio;
 
   const ahora = Date.now();
   const set = new Set<string>();
@@ -40,7 +45,7 @@ export async function silenciarSugerencia(clave: string, horas = HORAS_DEFECTO):
   const p = await getUserProfile();
   if (!p?.negocio_id || !p?.id) return;
   const hasta = new Date(Date.now() + horas * 3600000).toISOString();
-  await supabase.from('chispa_memoria').upsert(
+  const { error } = await supabase.from('chispa_memoria').upsert(
     {
       negocio_id: p.negocio_id,
       usuario_id: p.id,
@@ -51,4 +56,7 @@ export async function silenciarSugerencia(clave: string, horas = HORAS_DEFECTO):
     },
     { onConflict: 'negocio_id,tipo,clave,usuario_id' },
   );
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+  }
 }
