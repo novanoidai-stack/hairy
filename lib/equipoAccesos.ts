@@ -16,6 +16,7 @@
 // `crear-acceso-empleado` (invitar / reenviar / revocar).
 
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 export type EstadoCuenta = 'activa' | 'pendiente';
 
@@ -96,6 +97,7 @@ export function avisoDeAcceso(data: { aviso?: string | null } | null | undefined
 export async function cargarCuentasEquipo(): Promise<{ cuentas: CuentaEquipo[]; error: string | null }> {
   const { data, error } = await supabase.rpc('equipo_cuentas');
   if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
     const clave = (error.message || '').match(/[a-z_]+/)?.[0] ?? '';
     return { cuentas: [], error: mensaje(clave) };
   }
@@ -115,6 +117,7 @@ async function llamarEdge(body: Record<string, unknown>): Promise<{ ok: boolean;
     } catch { /* cuerpo no JSON: nos quedamos con el mensaje generico */ }
   }
   if (error || resp?.error) {
+    if (error) reportarError(error, { origen: 'app', tipo: 'operativo' });
     let msg = mensaje(resp?.error);
     if (msg === 'No se pudo completar la operación.' && error) {
       msg = `${msg} Detalles: ${error.message || 'Error de conexión'}`;
