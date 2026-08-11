@@ -13,6 +13,7 @@
  * representacion legal y de la Inspeccion de Trabajo.
  */
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 export type TipoMarca = 'entrada' | 'salida' | 'pausa_inicio' | 'pausa_fin';
 export type Modalidad = 'presencial' | 'remoto';
@@ -190,8 +191,15 @@ export function nombreMes(ref: Date): string {
 // ── Llamadas ─────────────────────────────────────────────────────────────────
 
 function desempaquetar<T>(data: any, error: any, vacio: T): T {
-  if (error) throw error;
-  if (data && data.ok === false && data.error) throw new Error(data.error);
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
+  if (data && data.ok === false && data.error) {
+    const errObj = new Error(data.error);
+    reportarError(errObj, { origen: 'app', tipo: 'operativo' });
+    throw errObj;
+  }
   return (data as T) ?? vacio;
 }
 
@@ -207,7 +215,10 @@ export async function fichar(
     p_origen: opts.origen ?? 'app',
     p_dispositivo: typeof navigator !== 'undefined' ? navigator.userAgent : null,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return data as any;
 }
 
@@ -247,7 +258,10 @@ export async function cargarRegistro(
 
 export async function cargarConfigJornada(): Promise<ConfigJornada> {
   const { data, error } = await supabase.rpc('jornada_config');
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return (data as ConfigJornada) ?? {
     exigir_fichaje: false, bloquear: false, jornada_semanal: 40, zona: 'Europe/Madrid',
   };
@@ -271,7 +285,10 @@ export async function solicitarCorreccion(args: {
     p_marcado_at: args.marcadoAt ?? null,
     p_modalidad: args.modalidad ?? 'presencial',
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return data as any;
 }
 
@@ -284,7 +301,10 @@ export async function resolverCorreccion(
   const { data, error } = await supabase.rpc('resolver_correccion_jornada', {
     p_id: id, p_aprobar: aprobar, p_nota: nota ?? null, p_profesional_id: profesionalId ?? null,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return data as any;
 }
 
@@ -303,7 +323,10 @@ export async function verificarIntegridad(): Promise<{
   primer_asiento_alterado?: number | null; verificado_at?: string;
 }> {
   const { data, error } = await supabase.rpc('jornada_verificar_integridad');
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    throw error;
+  }
   return data as any;
 }
 
