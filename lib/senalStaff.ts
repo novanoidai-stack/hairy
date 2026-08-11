@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { reportarError } from '@/lib/reportarError';
 
 // Depositos dinamicos en reservas del staff (Entregable 2).
 // Si el salon tiene `depositoStaffExigir` activo y el cliente elegido debe senal (segun su
@@ -19,14 +20,22 @@ export async function resolverSenalStaff(
 ): Promise<SenalStaffOverrides | null> {
   if (!clienteId || !servicioId) return null;
 
-  const { data: cfg } = await supabase
+  const { data: cfg, error: e1 } = await supabase
     .from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle();
+  if (e1) {
+    reportarError(e1, { origen: 'app', tipo: 'operativo' });
+    return null;
+  }
   if (!cfg?.config?.depositoStaffExigir) return null;
 
-  const { data: cents } = await supabase.rpc('deposito_dinamico_cents', {
+  const { data: cents, error: e2 } = await supabase.rpc('deposito_dinamico_cents', {
     p_cliente_id: clienteId,
     p_servicio_id: servicioId,
   });
+  if (e2) {
+    reportarError(e2, { origen: 'app', tipo: 'operativo' });
+    return null;
+  }
   const c = Number(cents) || 0;
   if (c <= 0) return null;
 
