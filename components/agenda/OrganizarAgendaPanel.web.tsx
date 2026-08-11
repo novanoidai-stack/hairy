@@ -14,7 +14,9 @@ import {
   type HorarioProfesional,
   type CierreNegocio,
 } from '@/lib/organizarAgenda';
-import type { EstrategiaRetraso, UpdateRetraso } from '@/lib/retrasos';
+import { toUpdate, type EstrategiaRetraso, type UpdateRetraso } from '@/lib/retrasos';
+import { evaluarTodas, type MotorOpts } from '@/lib/organizador/motorPropuestas';
+import type { MovimientoCandidato, PropuestasCita } from '@/lib/organizador/__types';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
 
 // Panel "Organizar mi agenda" (Sesion 5, PLAN-IA-CHISPA-V2-REDISENO.md): analiza
@@ -114,6 +116,24 @@ function fondoTipo(tipo: ProblemaAgenda['tipo']): string {
   return T.primarySoft;
 }
 
+// Fase 2 — motor de propuestas. Un candidato es "directamente aplicable" si NO
+// cambia de dia ni de profesional (compactar / aprovechar reposo): el salon se
+// reorganiza a si mismo, igual que las estrategias existentes, y no afecta a la
+// cita de la clienta. Los que cambian dia/profesional (cambiar_dia /
+// cambiar_trabajador) SI la afectan y, por decision de diseno, NO se aplican en
+// caliente: se muestran como sugerencia y su aplicacion queda para "Proponer al
+// cliente" (Fase 3).
+function esDirecto(c: MovimientoCandidato): boolean {
+  return c.tipo === 'compactar' || c.tipo === 'aprovechar_reposo';
+}
+// YYYY-MM-DD en hora local del salon. Mismo patron que el inline de
+// aplicarEstrategia, pero reutilizable: el motor opera sobre cualquier dia del
+// rango (semana), asi que la fecha de la accion sale del destino del movimiento.
+function fechaIsoLocal(ms: number): string {
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function OrganizarAgendaPanel({
   citas, profesionales, clientes, servicios, bloqueos, horarios, horariosProfesional, cierres, limites, negocioId, isMobile,
   fechaVista, onClose, onAplicado, onEnsenar,
@@ -201,9 +221,74 @@ export default function OrganizarAgendaPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [citasHoy, profesionales, ahoraOverrideMs, diaMs, bloqueos, horarios, horariosProfesional, cierres, limites, vista, latidoTick],
   );
+
+  // Fase 2 — motor de propuestas. Para cada cita movible evalua miles de
+  // movimientos (deltas de 15 min, cambio de trabajador, cambio de dia +/-7) y
+  // los puntua. Es lo que el usuario pide con "deberias de poder evaluar miles
+  // de posibles cambios". Comparte deps con `problemas` (mismo `ahora`, mismo
+  // latido de 75 s) para que detector y motor no diverjan.
+  const propuestasPorCita = useMemo(() => {
+    if (!citasHoy.length) return new Map<string, PropuestasCita>();
+    const ahora = ahoraOverrideMs ?? Date.now();
+    let desdeMs: number;
+    let hastaMs: number;
+    if (vista === 'semana') {
+      const d = new Date(ahora); d.setHours(0, 0, 0, 0);
+      desdeMs = +d;
+      const h = new Date(d); h.setDate(h.getDate() + 7);
+      hastaMs = +h;
+    } else {
+      const d = fechaVista ? new Date(fechaVista) : new Date();
+      d.setHours(0, 0, 0, 0);
+      desdeMs = +d;
+      const h = new Date(d); h.setDate(h.getDate() + 1);
+      hastaMs = +h;
+    }
+    const motorOpts: MotorOpts = {
+      ahoraMs: ahora, desdeMs, hastaMs,
+      horarios, horariosProfesional, cierres, bloqueos,
+      profesionales, maxAdelantoMin: limites?.maxAdelantoMin, umbralHuecoMin: limites?.umbralHuecoMin,
+    };
+    const lista = evaluarTodas(citasHoy, motorOpts);
+    return new Map(lista.map((p) => [p.citaId, p] as const));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citasHoy, profesionales, ahoraOverrideMs, fechaVista, bloqueos, horarios, horariosProfesional, cierres, limites, vista, latidoTick]);
+
   const pendientes = problemas.filter((p) => !resueltasDemo.has(p.id));
-  // 'hueco_vacio' es informativo (sin estrategia): no entra en "Aplicar los N".
-  const aplicables = pendientes.filter((p) => p.estrategias.length > 0);
+
+  // Que accion tendria cada problema: una estrategia (camino historico) o, si no
+  // la hay (p.ej. fuera_jornada sin hueco mismo dia), el mejor candidato DIRECTO
+  // del motor. Null = no hay nada aplicable de un clic (p.ej. hueco_vacio puro).
+  // Asi el "Aplicar los N" tambien resuelve lo que el motor encuentre.
+  const resolverProblema = (
+    p: ProblemaAgenda,
+  ): { kind: 'estrategia'; estrategia: EstrategiaRetraso } | { kind: 'motor'; cita: CitaOrganizar; cand: MovimientoCandidato } | null => {
+    const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0];
+    if (recomendada) return { kind: 'estrategia', estrategia: recomendada };
+    const citaPrincipal = p.citaIds
+      .map((id) => citasPorId.get(id))
+      .find((c): c is CitaOrganizar => !!c && propuestasPorCita.has(c.id));
+    const cand = citaPrincipal ? propuestasPorCita.get(citaPrincipal.id)!.candidatos.find(esDirecto) : undefined;
+    if (citaPrincipal && cand) return { kind: 'motor', cita: citaPrincipal, cand };
+    return null;
+  };
+  const aplicables = pendientes.filter((p) => resolverProblema(p) !== null);
+
+  // Oportunidades del motor: citas SIN problema donde aun cabe compactar/ganar
+  // minutos. Es la prueba visible de que el organizador "evalua miles de
+  // posibilidades" incluso en un dia sin retrasos ni solapes.
+  const oportunidades = useMemo(() => {
+    const enProblema = new Set(problemas.flatMap((p) => p.citaIds));
+    const out: { cita: CitaOrganizar; cand: MovimientoCandidato }[] = [];
+    for (const [id, prop] of propuestasPorCita) {
+      if (enProblema.has(id)) continue;
+      const cita = citasPorId.get(id);
+      const cand = prop.candidatos.find(esDirecto);
+      if (cita && cand) out.push({ cita, cand });
+    }
+    return out.sort((a, b) => b.cand.score - a.cand.score).slice(0, 6);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propuestasPorCita, citasPorId, problemas]);
   const esHoy = !fechaVista || new Date().toDateString() === fechaVista.toDateString();
   const cuandoTxt = esHoy
     ? 'hoy'
@@ -250,12 +335,64 @@ export default function OrganizarAgendaPanel({
     await aplicarEstrategia(problema, recomendada);
   }
 
+  // Aplica un candidato DIRECTO del motor (compactar / aprovechar reposo; mismo
+  // dia y mismo profesional). Mismo camino de escritura que las estrategias
+  // (accion 'optimizar_agenda') => misma auditoria en citas_historial y misma
+  // reversibilidad. `estadoId` es la clave del spinner: el id del problema en las
+  // tarjetas, o el id de la cita en las oportunidades.
+  async function aplicarCandidato(estadoId: string, cita: CitaOrganizar, cand: MovimientoCandidato) {
+    setError('');
+    setAplicandoId(estadoId);
+    try {
+      if (esDemoCompartida) {
+        await new Promise((r) => setTimeout(r, 350)); // da tiempo a ver "Aplicando..."
+        setResueltasDemo((prev) => new Set(prev).add(estadoId));
+        setAvisoDemo('Hecho (demostracion). En tu cuenta esto se aplicaria de verdad; en la demo no se guardan cambios.');
+        return true;
+      }
+      if (!userId) {
+        setError('No se pudo obtener tu perfil de usuario.');
+        return false;
+      }
+      const f = cand.fases;
+      const mov = {
+        cita_id: cita.id,
+        nuevo_inicio: new Date(f.ini).toISOString(),
+        nuevo_fin: new Date(f.fin).toISOString(),
+        nuevo_fin_activa: cita.fin_activa ? new Date(f.finA).toISOString() : undefined,
+        nuevo_fin_espera: cita.fin_espera ? new Date(f.finE).toISOString() : undefined,
+        nuevo_profesional_id: cand.cambioTrabajador ? cand.profesionalId : undefined,
+        cliente_nombre: cita.cliente ?? '',
+      };
+      const res = await ejecutarAccion(
+        { tipo: 'optimizar_agenda', negocio_id: negocioId, fecha: fechaIsoLocal(f.ini), movimientos: [mov], resumen: `Motor: ${cand.razonScore}` },
+        userId,
+      );
+      if (!res.ok) {
+        setError(res.error);
+        return false;
+      }
+      onAplicado([toUpdate(cita, f)]);
+      return true;
+    } finally {
+      setAplicandoId(null);
+    }
+  }
+
+  // Dispatch unificado: resuelve si el problema se ataca con estrategia o con el
+  // motor, y lo aplica. Lo usa tanto el boton de tarjeta como "Aplicar los N".
+  async function aplicarResolver(problema: ProblemaAgenda) {
+    const r = resolverProblema(problema);
+    if (!r) return false;
+    if (r.kind === 'estrategia') return aplicarEstrategia(problema, r.estrategia);
+    return aplicarCandidato(problema.id, r.cita, r.cand);
+  }
+
   async function aplicarTodos() {
     setAplicandoTodo(true);
     setError('');
     for (const p of aplicables) {
-      const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0];
-      const ok = await aplicarEstrategia(p, recomendada);
+      const ok = await aplicarResolver(p);
       if (!ok) break; // se detiene y muestra el error; lo ya aplicado queda aplicado
     }
     setAplicandoTodo(false);
@@ -286,6 +423,12 @@ export default function OrganizarAgendaPanel({
                   ? `Tu agenda de ${vista === 'semana' ? 'la semana' : cuandoTxt} esta en orden`
                   : `${pendientes.length} problema${pendientes.length > 1 ? 's' : ''} detectado${pendientes.length > 1 ? 's' : ''} ${vista === 'semana' ? 'esta semana' : cuandoTxt}`}
               </div>
+              {propuestasPorCita.size > 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5, padding: '3px 9px', borderRadius: 999, background: T.primarySoft, color: T.primaryHi, fontSize: 11, fontWeight: 700, alignSelf: 'flex-start' }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+                  Motor activo · {propuestasPorCita.size} cita{propuestasPorCita.size > 1 ? 's' : ''} analizadas
+                </div>
+              )}
             </div>
           </div>
           <button onClick={onClose} aria-label="Cerrar" style={{ padding: 6, background: 'transparent', border: 'none', color: T.textTer, cursor: 'pointer', flexShrink: 0 }}>
@@ -326,7 +469,7 @@ export default function OrganizarAgendaPanel({
             <div style={{ padding: '10px 12px', borderRadius: 10, background: T.successSoft, color: T.success, fontSize: 13, marginBottom: 12 }}>{avisoDemo}</div>
           )}
 
-          {pendientes.length === 0 ? (
+          {pendientes.length === 0 && oportunidades.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 10px', textAlign: 'center' }}>
               <span style={{ display: 'inline-flex', width: 40, height: 40, borderRadius: 999, background: T.successSoft, alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -371,6 +514,16 @@ export default function OrganizarAgendaPanel({
                   }
                   for (const p of g.problemas) {
                     const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0] ?? null;
+                    // Fase 2: propuesta del motor para la cita principal del problema.
+                    // 'directo' = compactar/reposo mismo dia (aplicable ya); 'cruzado'
+                    // = cambia dia/profesional (solo sugerencia: Fase 3 lo aplicara
+                    // via "Proponer al cliente", no en caliente).
+                    const citaPrincipal = p.citaIds
+                      .map((id) => citasPorId.get(id))
+                      .find((c): c is CitaOrganizar => !!c && propuestasPorCita.has(c.id));
+                    const candProp = citaPrincipal ? propuestasPorCita.get(citaPrincipal.id) : undefined;
+                    const motorDirecto = !recomendada ? candProp?.candidatos.find(esDirecto) : undefined;
+                    const motorCruzado = candProp?.candidatos.find((c) => c.tipo === 'cambiar_dia' || c.tipo === 'cambiar_trabajador');
                     const aplicandoEsta = aplicandoId === p.id;
                     elems.push((
                   <div key={p.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -382,9 +535,11 @@ export default function OrganizarAgendaPanel({
                       <span style={{ fontSize: 11, fontWeight: 700, color: T.textTer, whiteSpace: 'nowrap' }}>{p.profesionalNombre}</span>
                     </div>
                     <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45, marginLeft: 34 }}>{p.descripcion}</div>
-                    {recomendada && (
+                    {recomendada ? (
                       <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {recomendada.resumen}</div>
-                    )}
+                    ) : motorDirecto ? (
+                      <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {motorDirecto.razonScore}</div>
+                    ) : null}
                     {/* Por que esa hora y no otra. Sin esto la propuesta parece un
                         capricho ("¿por que a las 14:30 y no a las 14:00?"): casi
                         siempre la respuesta es el tope de adelanto del salon. */}
@@ -405,6 +560,18 @@ export default function OrganizarAgendaPanel({
                         >
                           {aplicandoEsta ? 'Aplicando...' : 'Aplicar'}
                         </button>
+                      ) : motorDirecto && citaPrincipal ? (
+                        <button
+                          onClick={() => aplicarCandidato(p.id, citaPrincipal, motorDirecto)}
+                          disabled={bloqueado}
+                          style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: aplicandoEsta ? T.primarySoft : FIRE, color: aplicandoEsta ? T.primaryHi : '#fff', fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado && !aplicandoEsta ? 0.5 : 1 }}
+                        >
+                          {aplicandoEsta ? 'Aplicando...' : 'Aplicar'}
+                        </button>
+                      ) : motorCruzado ? (
+                        <span style={{ padding: '7px 0', fontSize: 11.5, color: T.textTer, fontWeight: 600, lineHeight: 1.4 }}>
+                          El motor no encuentra hueco hoy. {motorCruzado.razonScore} — requiere avisar al cliente (próxima fase).
+                        </span>
                       ) : (
                         <span style={{ padding: '7px 0', fontSize: 11.5, color: T.textTer, fontWeight: 600 }}>
                           Nada que mover: es un aviso para llenarlo tu.
@@ -428,12 +595,49 @@ export default function OrganizarAgendaPanel({
                         </button>
                       )}
                     </div>
+                    {recomendada && motorCruzado && (
+                      <div style={{ fontSize: 11.5, color: T.textTer, lineHeight: 1.4, marginLeft: 34 }}>
+                        El motor también ve: {motorCruzado.razonScore} (requiere avisar al cliente).
+                      </div>
+                    )}
                   </div>
                     ));
                   }
                   return elems;
                 });
               })()}
+              {oportunidades.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: pendientes.length > 0 ? 6 : 0 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 800, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.4, paddingLeft: 2 }}>
+                    Oportunidades del motor · {oportunidades.length}
+                  </div>
+                  {oportunidades.map(({ cita, cand }) => {
+                    const prof = profesionales.find((pp) => pp.id === cita.profesional_id);
+                    const aplicandoEsta = aplicandoId === cita.id;
+                    return (
+                      <div key={`op-${cita.id}`} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ display: 'inline-flex', width: 26, height: 26, borderRadius: 8, background: T.primarySoft, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={T.primaryHi} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+                          </span>
+                          <span style={{ fontSize: 13.5, fontWeight: 800, color: T.text, flex: 1, minWidth: 0 }}>{cita.cliente || 'Cita'}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: T.textTer, whiteSpace: 'nowrap' }}>{prof?.nombre ?? ''}</span>
+                        </div>
+                        <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {cand.razonScore}</div>
+                        <div style={{ display: 'flex', gap: 8, marginLeft: 34, marginTop: 2 }}>
+                          <button
+                            onClick={() => aplicarCandidato(cita.id, cita, cand)}
+                            disabled={bloqueado}
+                            style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: aplicandoEsta ? T.primarySoft : FIRE, color: aplicandoEsta ? T.primaryHi : '#fff', fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado && !aplicandoEsta ? 0.5 : 1 }}
+                          >
+                            {aplicandoEsta ? 'Aplicando...' : 'Aplicar'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
