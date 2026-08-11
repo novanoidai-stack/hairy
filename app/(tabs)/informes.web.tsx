@@ -1874,53 +1874,89 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                 {/* ============================================================= */}
                 {/* 9.10: Dashboard KPIs                                          */}
             {/* ============================================================= */}
-            {/* minmax(0,1fr): sin el minimo 0 las tarjetas no encogen por debajo
-                de su contenido y la columna derecha se sale de la pantalla en movil */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: isMobile ? 14 : 24 }}>
-              {[
-                { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
-                { label: hayCobros ? 'Ingresos (estim.)' : 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
-                ...(hayCobros ? [
-                  { label: 'Cobrado (real)', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.primary, bg: TOKENS.primarySoft },
-                  { label: 'Margen (aprox)', value: `${fmtEur(margenAproximado)} EUR`, icon: 'trendingUp', color: TOKENS.success, bg: TOKENS.successSoft }
-                ] : []),
-                { label: 'Citas/profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}`, icon: 'barChart', color: TOKENS.cyan, bg: TOKENS.cyanSoft },
-                { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})`, icon: 'alertTriangle', color: TOKENS.danger, bg: TOKENS.dangerSoft },
-                { label: 'Tiempo espera medio', value: `${Math.round(esperaData.avgGlobal)} min`, icon: 'clock', color: TOKENS.warning, bg: TOKENS.warningSoft },
-                { label: 'Reposo aprovechado', value: fmtPct(reposoData.pctGlobal), icon: 'zap', color: TOKENS.violet, bg: TOKENS.violetSoft },
-                { label: 'Clientes activos', value: retencionData.clientesActivos, icon: 'users', color: TOKENS.primary, bg: TOKENS.primarySoft },
-                { label: 'Vuelven cada', value: frecuencia.global.intervalos > 0 ? `${Math.round(frecuencia.global.medianaDias)} dias` : 'Sin datos', icon: 'heart', color: TOKENS.rose, bg: TOKENS.roseSoft },
-                { label: 'Valoración media', value: resenas.length > 0 ? `${ratingMedia} ★ (${resenas.length})` : 'Sin valorar', icon: 'star', color: TOKENS.amber, bg: TOKENS.amberSoft },
-              ].map((kpi, i) => (
-                <div key={kpi.label} className="kpi-card" style={{
-                  padding: isMobile ? '12px 12px' : '16px 18px', borderRadius: 14, background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`, animationDelay: `${i * 60}ms`,
-                  display: 'flex', flexDirection: 'column', gap: 8, cursor: 'default',
-                  transition: 'all 0.2s ease', minWidth: 0,
-                }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = kpi.color + '44'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: kpi.bg,
-                    }}>
-                      <Icon name={kpi.icon} size={16} color={kpi.color} />
+            <div style={{ marginBottom: isMobile ? 14 : 24 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.textSec, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rendimiento Global</div>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
+                {[
+                  { label: hayCobros ? 'Ingresos (estim.)' : 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
+                  ...(hayCobros ? [
+                    { label: 'Cobrado (real)', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.primary, bg: TOKENS.primarySoft },
+                    { label: 'Margen (aprox)', value: `${fmtEur(margenAproximado)} EUR`, icon: 'trendingUp', color: TOKENS.success, bg: TOKENS.successSoft }
+                  ] : []),
+                  { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
+                  { label: 'Citas/profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}`, icon: 'barChart', color: TOKENS.cyan, bg: TOKENS.cyanSoft },
+                  { label: 'Clientes activos', value: retencionData.clientesActivos, icon: 'users', color: TOKENS.primary, bg: TOKENS.primarySoft },
+                ].map((kpi, i) => (
+                  <div key={kpi.label} className="kpi-card" style={{
+                    padding: isMobile ? '12px 12px' : '16px 18px', borderRadius: 14, background: TOKENS.bgCard,
+                    border: `1px solid ${TOKENS.border}`, animationDelay: `${i * 60}ms`,
+                    display: 'flex', flexDirection: 'column', gap: 8, cursor: 'default',
+                    transition: 'all 0.2s ease', minWidth: 0,
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = kpi.color + '44'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: kpi.bg,
+                      }}>
+                        <Icon name={kpi.icon} size={16} color={kpi.color} />
+                      </div>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
+                        <span style={isMobile
+                          ? { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, flex: 1, lineHeight: 1.25 }
+                          : { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }
+                        } title={kpi.label}>{kpi.label}</span>
+                        {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
+                      </span>
                     </div>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
-                      <span style={isMobile
-                        ? { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, flex: 1, lineHeight: 1.25 }
-                        : { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }
-                      } title={kpi.label}>{kpi.label}</span>
-                      {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
-                    </span>
+                    <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TOKENS.text, animation: 'countUp 0.6s ease both', animationDelay: `${i * 60 + 200}ms` }}>
+                      {kpi.value}
+                    </div>
                   </div>
-                  <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TOKENS.text, animation: 'countUp 0.6s ease both', animationDelay: `${i * 60 + 200}ms` }}>
-                    {kpi.value}
+                ))}
+              </div>
+
+              <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.textSec, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Calidad y Eficiencia</div>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14 }}>
+                {[
+                  { label: 'Valoración media', value: resenas.length > 0 ? `${ratingMedia} ★ (${resenas.length})` : 'Sin valorar', icon: 'star', color: TOKENS.amber, bg: TOKENS.amberSoft },
+                  { label: 'Vuelven cada', value: frecuencia.global.intervalos > 0 ? `${Math.round(frecuencia.global.medianaDias)} dias` : 'Sin datos', icon: 'heart', color: TOKENS.rose, bg: TOKENS.roseSoft },
+                  { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})`, icon: 'alertTriangle', color: TOKENS.danger, bg: TOKENS.dangerSoft },
+                  { label: 'Tiempo espera medio', value: `${Math.round(esperaData.avgGlobal)} min`, icon: 'clock', color: TOKENS.warning, bg: TOKENS.warningSoft },
+                  { label: 'Reposo aprovechado', value: fmtPct(reposoData.pctGlobal), icon: 'zap', color: TOKENS.violet, bg: TOKENS.violetSoft },
+                ].map((kpi, i) => (
+                  <div key={kpi.label} className="kpi-card" style={{
+                    padding: isMobile ? '12px 12px' : '16px 18px', borderRadius: 14, background: TOKENS.bgCard,
+                    border: `1px solid ${TOKENS.border}`, animationDelay: `${(i + 5) * 60}ms`,
+                    display: 'flex', flexDirection: 'column', gap: 8, cursor: 'default',
+                    transition: 'all 0.2s ease', minWidth: 0,
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = kpi.color + '44'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: kpi.bg,
+                      }}>
+                        <Icon name={kpi.icon} size={16} color={kpi.color} />
+                      </div>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
+                        <span style={isMobile
+                          ? { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, flex: 1, lineHeight: 1.25 }
+                          : { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }
+                        } title={kpi.label}>{kpi.label}</span>
+                        {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TOKENS.text, animation: 'countUp 0.6s ease both', animationDelay: `${(i + 5) * 60 + 200}ms` }}>
+                      {kpi.value}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* ============================================================= */}

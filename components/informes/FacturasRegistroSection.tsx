@@ -25,7 +25,15 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
 
         const { data } = await supabase
           .from('cobros')
-          .select('id, cobrado_at, total_cents, metodo, estado')
+          .select(`
+            id, cobrado_at, total_cents, metodo, estado,
+            cita_id,
+            citas (
+              id, inicio,
+              clientes ( nombre ),
+              servicios ( nombre )
+            )
+          `)
           .eq('negocio_id', negocioId)
           .eq('estado', 'completado')
           .gte('cobrado_at', desde.toISOString())
@@ -93,45 +101,56 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
         </button>
       </div>
 
-      <div style={{ padding: 24, overflowX: 'auto' }}>
+      <div style={{ padding: 24, overflowX: 'auto', maxHeight: 600, overflowY: 'auto' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>Cargando facturas...</div>
         ) : facturas.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>No hay facturas en este periodo.</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
-            <thead>
+            <thead style={{ position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
               <tr style={{ borderBottom: `2px solid ${T.borderHi}` }}>
                 <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Fecha y Hora</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Cita / Cliente</th>
                 <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Método</th>
                 <th style={{ textAlign: 'right', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Importe</th>
                 <th style={{ textAlign: 'right', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {facturas.map((f) => (
-                <tr key={f.id} style={{ borderBottom: `1px solid ${T.border}` }}>
-                  <td style={{ padding: '12px 8px', color: T.text }}>
-                    {f.cobrado_at ? format(parseISO(f.cobrado_at), "dd MMM yyyy - HH:mm", { locale: es }) : 'N/A'}
-                  </td>
-                  <td style={{ padding: '12px 8px', color: T.text, textTransform: 'capitalize' }}>
-                    {f.metodo}
-                  </td>
-                  <td style={{ padding: '12px 8px', color: T.text, textAlign: 'right', fontWeight: 600 }}>
-                    {((f.total_cents || 0) / 100).toFixed(2)} €
-                  </td>
-                  <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                    <button 
-                      onClick={() => setSelectedTicket(f)}
-                      style={{
-                        background: 'transparent', color: T.primary, border: `1px solid ${T.borderHi}`, padding: '6px 12px',
-                        borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                      }}>
-                      Ver Ticket
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {facturas.map((f) => {
+                const cita = f.citas;
+                const clienteNombre = cita?.clientes?.nombre || 'Walk-in / Sin cliente';
+                const servicioNombre = cita?.servicios?.nombre || 'Ticket rápido';
+                
+                return (
+                  <tr key={f.id} style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <td style={{ padding: '12px 8px', color: T.text }}>
+                      {f.cobrado_at ? format(parseISO(f.cobrado_at), "dd MMM yyyy - HH:mm", { locale: es }) : 'N/A'}
+                    </td>
+                    <td style={{ padding: '12px 8px', color: T.text }}>
+                      <div style={{ fontWeight: 600 }}>{clienteNombre}</div>
+                      <div style={{ fontSize: 12, color: T.textSec }}>{servicioNombre}</div>
+                    </td>
+                    <td style={{ padding: '12px 8px', color: T.text, textTransform: 'capitalize' }}>
+                      {f.metodo}
+                    </td>
+                    <td style={{ padding: '12px 8px', color: T.text, textAlign: 'right', fontWeight: 600 }}>
+                      {((f.total_cents || 0) / 100).toFixed(2)} €
+                    </td>
+                    <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                      <button 
+                        onClick={() => setSelectedTicket(f)}
+                        style={{
+                          background: 'transparent', color: T.primary, border: `1px solid ${T.borderHi}`, padding: '6px 12px',
+                          borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer'
+                        }}>
+                        Ver Ticket
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -153,6 +172,29 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
                 {selectedTicket.cobrado_at ? format(parseISO(selectedTicket.cobrado_at), "dd/MM/yyyy HH:mm", { locale: es }) : ''}
               </div>
             </div>
+
+            {/* Nueva Información de Cliente y Cita */}
+            <div style={{ width: '100%', padding: '0 0 16px', marginBottom: 16, borderBottom: '1px solid #eee' }}>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Cliente</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 12 }}>
+                {selectedTicket.citas?.clientes?.nombre || 'Walk-in / Venta directa'}
+              </div>
+              
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Servicio</div>
+              <div style={{ fontSize: 14, color: '#444', marginBottom: 12 }}>
+                {selectedTicket.citas?.servicios?.nombre || 'Productos / Ticket rápido'}
+              </div>
+
+              {selectedTicket.citas?.inicio && (
+                <>
+                  <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Fecha Cita Original</div>
+                  <div style={{ fontSize: 14, color: '#444' }}>
+                    {format(parseISO(selectedTicket.citas.inicio), "dd MMM yyyy - HH:mm", { locale: es })}
+                  </div>
+                </>
+              )}
+            </div>
+
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
               <span style={{ color: '#333', fontWeight: 600 }}>TOTAL</span>
               <span style={{ color: '#333', fontWeight: 700, fontSize: 18 }}>{((selectedTicket.total_cents || 0) / 100).toFixed(2)} €</span>

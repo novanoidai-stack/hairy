@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Carlos Ocaña</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1A365D;
+            --secondary: #2B6CB0;
+            --accent: #E2E8F0;
+            --bg-sidebar: #F7FAFC;
+            --text-main: #2D3748;
+            --text-light: #4A5568;
+            --white: #FFFFFF;
+        }
+        @page { size: A4; margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--white);
+            color: var(--text-main);
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            position: relative;
+        }
+        .cv-container { width: 100%; height: 100%; display: flex; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 35%;
+            background-color: var(--bg-sidebar);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-right: 1px solid #E2E8F0;
+        }
+        .profile-img-container { text-align: center; margin-bottom: 2px; }
+        .profile-img {
+            width: 130px; height: 130px; border-radius: 50%;
+            object-fit: cover; border: 3px solid var(--primary);
+            margin: 0 auto;
+        }
+        .sidebar-section h3 {
+            color: var(--white); background-color: var(--primary);
+            font-size: 0.9rem; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 8px;
+            padding: 4px 8px; border-radius: 4px;
+        }
+        .contact-info, .skills-list, .languages-list, .hobbies-list {
+            display: flex; flex-direction: column; gap: 5px;
+            font-size: 0.8rem; color: var(--text-light);
+        }
+        strong { color: var(--text-main); }
+        .skills-list li strong { display: block; }
+        
+        .education-item { margin-bottom: 8px; }
+        .edu-title { font-weight: 700; color: var(--text-main); font-size: 0.85rem; }
+        .edu-subtitle { font-size: 0.8rem; color: var(--text-light); }
+
+        /* Main Content */
+        .main-content {
+            width: 65%;
+            padding: 30px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .header h1 { font-size: 1.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; line-height: 1.1; }
+        .header h2 { font-size: 0.95rem; color: var(--secondary); font-weight: 600; }
+        
+        .main-section h3 {
+            color: var(--white); background-color: var(--secondary);
+            font-size: 0.95rem; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 10px;
+            padding: 4px 8px; border-radius: 4px;
+        }
+        .about-text { font-size: 0.82rem; line-height: 1.5; color: var(--text-main); text-align: justify; }
+        
+        .experience-item { margin-bottom: 10px; }
+        .exp-title { font-weight: 700; color: var(--text-main); font-size: 0.88rem; }
+        .exp-desc { font-size: 0.82rem; color: var(--text-light); line-height: 1.4;}
+        .exp-desc-list { list-style-type: disc; margin-left: 20px; font-size: 0.82rem; color: var(--text-light); margin-top: 3px; }
+        .exp-desc-list li { margin-bottom: 2px; }
+        
+        .compact-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 15px;
+            font-size: 0.82rem;
+            color: var(--text-light);
+            list-style-type: none;
+        }
+        .compact-list li::before {
+            content: "•";
+            color: var(--secondary);
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-container">
+        <!-- Columna Izquierda -->
+        <div class="sidebar">
+            <div class="profile-img-container">
+                <img src="file:///C:/Users/carli/OneDrive/Escritorio/Personal/foto_carlos.jpg" alt="Carlos Ocaña" class="profile-img">
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Contacto</h3>
+                <div class="contact-info">
+                    <span><strong>Origen:</strong> Madrid</span>
+                    <span><strong>Residencia:</strong> Valencia / Alcoy, España</span>
+                    <span><strong>Teléfono:</strong> +34 690 79 29 75</span>
+                    <span><strong>Correo:</strong> carlitosocanamartinez<br>@gmail.com</span>
+                    <span><strong>Disponibilidad:</strong> Fines de semana, horarios flexibles o trabajo remoto</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Conocimientos</h3>
+                <ul class="skills-list">
+                    <li><strong>Hostelería y Cocina:</strong>
+                        <ul style="margin-left: 15px; list-style-type: circle;">
+                            <li>Dinámica de office (lavaplatos)</li>
+                            <li>Preparación rápida de platos</li>
+                            <li>Atención al cliente y sala</li>
+                            <li>Seguridad alimentaria (Caducidad)</li>
+                        </ul>
+                    </li>
+                    <li style="margin-top: 8px;"><strong>Conocimientos Técnicos:</strong>
+                        <ul style="margin-left: 15px; list-style-type: circle;">
+                            <li>Lenguajes de programación</li>
+                            <li>Webs, Software y Diseño</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Idiomas</h3>
+                <ul class="languages-list">
+                    <li><strong>Español:</strong> Nativo</li>
+                    <li><strong>Inglés:</strong> Nivel Alto (B2 fluido)</li>
+                    <li><strong>Francés:</strong> Conversacional</li>
+                    <li><strong>Valenciano:</strong> Básico</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Hábitos y Gustos</h3>
+                <ul class="hobbies-list">
+                    <li><strong>Cocina & Gastronomía:</strong> Me encanta cocinar.</li>
+                    <li><strong>Baloncesto:</strong> Competición en equipo.</li>
+                    <li><strong>Gimnasio & Calistenia:</strong> Entrenamiento diario.</li>
+                    <li><strong>Aprendizaje Rápido:</strong> Asimilación veloz de conceptos.</li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Formación y Cursos</h3>
+                <div class="education-item">
+                    <div class="edu-title">Grado en Ing. en IA — UPV</div>
+                    <div class="edu-subtitle">2025 - En curso</div>
+                </div>
+                <div class="education-item">
+                    <div class="edu-title">Liceo Francés</div>
+                    <div class="edu-subtitle">Baloncesto competitivo.</div>
+                </div>
+                <div class="education-item" style="margin-top: 5px;">
+                    <div class="edu-title">Cursos Adicionales:</div>
+                    <ul style="margin-left: 15px; font-size: 0.8rem; color: #4A5568;">
+                        <li>Automatización de procesos</li>
+                        <li>Agencias de IA</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Carlos Ocaña Martínez</h1>
+                <h2>19 Años | Ayudante de Cocina / Office | Estudiante UPV</h2>
+            </div>
+
+            <div class="main-section">
+                <h3>Sobre Mí</h3>
+                <p class="about-text">
+                    Soy un estudiante universitario proactivo y con gran facilidad para asimilar tareas rápidamente. Disfruto trabajando en equipo, poseo un excelente trato de cara al público y me apasiona la gastronomía. Busco un empleo en Alcoy (como ayudante de cocina o lavaplatos) que pueda compaginar con mis estudios, donde aportar energía y resistencia física. Además, <strong>actualmente me estoy formando de manera activa en el control de caducidades, la dinámica del office y la preparación rápida de platos</strong> para ser de máxima utilidad desde el primer día.
+                </p>
+            </div>
+
+            <div class="main-section">
+                <h3>Experiencia en Hostelería</h3>
+                
+                <div class="experience-item">
+                    <div class="exp-title">Ayudante de Cocina y Office</div>
+                    <div class="exp-desc">Campamento (Trabajo temporal)</div>
+                    <ul class="exp-desc-list">
+                        <li>Trabajé durante un corto periodo de tiempo dando soporte en la preparación de comidas.</li>
+                        <li>Ayudé en las labores básicas de office y mantenimiento del menaje del campamento.</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="exp-title">Camarero de Apoyo</div>
+                    <div class="exp-desc">Bar local (En mi pueblo)</div>
+                    <ul class="exp-desc-list">
+                        <li>Trabajé ayudando de camarero de forma puntual siempre que el local me necesitaba.</li>
+                        <li>Atención cercana al cliente, servicio en sala y soporte en las labores generales del bar.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="main-section">
+                <h3>Ventas, Voluntariado y Emprendimiento</h3>
+                
+                <div class="experience-item">
+                    <div class="exp-title">Cruz Roja Española & Voluntariado Deportivo</div>
+                    <div class="exp-desc">Atención directa al público (venta de boletos benéficos) y logística física en carreras benéficas. Trabajo en equipo bajo presión.</div>
+                </div>
+
+                <div class="experience-item">
+                    <div class="exp-title">Novanoid AI & Comercial de Software</div>
+                    <div class="exp-desc">Desarrollo y venta directa de software a empresas (OmniControl, Proyecto Mecha). Altas dotes de comunicación, responsabilidad y análisis.</div>
+                </div>
+            </div>
+            
+            <div class="main-section">
+                <h3>Proyectos Académicos y Personales</h3>
+                
+                <div class="experience-item">
+                    <div class="exp-title">Proyectos de la UPV:</div>
+                    <ul class="compact-list">
+                        <li>Clasificador de Aves (IA)</li>
+                        <li>Arquitectura de Computadores (RISC-V)</li>
+                        <li>Análisis de Datos</li>
+                    </ul>
+                </div>
+                
+                <div class="experience-item">
+                    <div class="exp-title">Proyectos Personales:</div>
+                    <ul class="compact-list">
+                        <li>Desarrollo de Videojuegos</li>
+                        <li>Edición de Vídeo</li>
+                        <li>Montaje de PC</li>
+                    </ul>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>
