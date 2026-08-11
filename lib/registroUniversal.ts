@@ -10,6 +10,7 @@ export type AccionRegistroUniversal = {
 };
 
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
+import { reportarError } from '@/lib/reportarError';
 
 export async function registrarEventoIA(evento: Omit<AccionRegistroUniversal, 'id' | 'cuando'>) {
   const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
@@ -43,8 +44,10 @@ export async function registrarEventoIA(evento: Omit<AccionRegistroUniversal, 'i
 
     if (error) {
       console.error('[Registro Universal IA] Error insertando evento:', error);
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
     }
   } catch (err) {
     console.error('[Registro Universal IA] Exception:', err);
+    reportarError(err, { origen: 'app', tipo: 'operativo' });
   }
 }
