@@ -16,7 +16,6 @@ import { manualCaja } from '@/lib/manuals/caja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { HistorialFacturasModal } from '@/components/pos/HistorialFacturasModal';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { elegirCandidatoUpsell } from '@/lib/upsellCandidato';
@@ -160,7 +159,6 @@ function CajaScreen() {
   type ProductoVenta = { id: string; nombre: string; precio_cents: number; categoria: string | null };
   type CarritoItem = ProductoVenta & { cantidad: number };
   const [showVentaProductos, setShowVentaProductos] = useState(false);
-  const [showHistorialFacturas, setShowHistorialFacturas] = useState(false);
   const [showVentaBono, setShowVentaBono] = useState(false);
   const [showVentaTarjetaRegalo, setShowVentaTarjetaRegalo] = useState(false);
   const [productosDisponibles, setProductosDisponibles] = useState<ProductoVenta[]>([]);
@@ -539,14 +537,6 @@ function CajaScreen() {
               >
                 <Icon name="gift" size={15} color={T.primary} />
                 Vender tarjeta regalo
-              </button>
-              <button
-                onClick={() => setShowHistorialFacturas(true)}
-                className="ca-btn"
-                style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
-              >
-                <Icon name="calendar" size={15} color={T.primary} />
-                Historial de Facturas
               </button>
             </>
           )}

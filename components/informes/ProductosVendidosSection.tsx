@@ -71,6 +71,7 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [cobros, setCobros] = useState<CobroConLineas[]>([]);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelado = false;
@@ -310,42 +311,62 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
                   const cliente = cobro.cliente_id ? clientesMap?.get(cobro.cliente_id) : null;
                   const prof = cobro.profesional_id ? profesionalesMap?.get(cobro.profesional_id) : null;
                   const esEnCita = !!cobro.cita_id;
+                  const isExpanded = expandedRow === `${cobro.id}-${idx}`;
                   return (
                     <div key={`${cobro.id}-${idx}`} style={{
-                      display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr 70px' : '2fr 1.4fr 1fr 1fr 80px',
-                      padding: '9px 12px', fontSize: 12, color: TOKENS.text,
                       borderTop: idx === 0 ? `1px solid ${TOKENS.border}` : 'none',
-                      gap: 8, alignItems: 'center',
                     }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {l.nombre} <span style={{ color: TOKENS.textTer, fontWeight: 400 }}>×{l.cantidad}</span>
+                      <div 
+                        onClick={() => setExpandedRow(isExpanded ? null : `${cobro.id}-${idx}`)}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: isMobile ? '1fr 70px' : '2fr 1.4fr 1fr 1fr 80px',
+                          padding: '9px 12px', fontSize: 12, color: TOKENS.text,
+                          gap: 8, alignItems: 'center', cursor: 'pointer',
+                          background: isExpanded ? 'rgba(244,80,30,0.03)' : 'transparent',
+                        }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {l.nombre} <span style={{ color: TOKENS.textTer, fontWeight: 400 }}>×{l.cantidad}</span>
+                          </div>
+                          {isMobile && (
+                            <div style={{ fontSize: 10.5, color: TOKENS.textTer, marginTop: 1 }}>
+                              {cliente?.nombre ?? 'Sin cliente'}
+                              {esEnCita ? ' · en cita' : ' · suelto'}
+                            </div>
+                          )}
                         </div>
-                        {isMobile && (
-                          <div style={{ fontSize: 10.5, color: TOKENS.textTer, marginTop: 1 }}>
-                            {cliente?.nombre ?? 'Sin cliente'}
-                            {esEnCita ? ' · en cita' : ' · suelto'}
+                        {!isMobile && (
+                          <div style={{ color: TOKENS.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {cliente?.nombre ?? '—'}
+                            <span style={{ color: TOKENS.textTer, fontSize: 10.5 }}> {esEnCita ? '(en cita)' : '(suelto)'}</span>
                           </div>
                         )}
+                        {!isMobile && (
+                          <div style={{ color: TOKENS.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {prof?.nombre ?? '—'}
+                          </div>
+                        )}
+                        <div style={{ color: TOKENS.textTer, fontSize: isMobile ? 10.5 : 11 }}>
+                          {cobro.cobrado_at ? format(parseISO(cobro.cobrado_at), isMobile ? 'd MMM' : 'd MMM HH:mm', { locale: es }) : '—'}
+                        </div>
+                        <div style={{ textAlign: 'right', fontWeight: 700, color: TOKENS.success }}>
+                          {fmtEur(l.precio_cents * l.cantidad)} €
+                        </div>
                       </div>
-                      {!isMobile && (
-                        <div style={{ color: TOKENS.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {cliente?.nombre ?? '—'}
-                          <span style={{ color: TOKENS.textTer, fontSize: 10.5 }}> {esEnCita ? '(en cita)' : '(suelto)'}</span>
+                      
+                      {isExpanded && (
+                        <div style={{ padding: '12px', background: TOKENS.bgPanel, borderTop: `1px dashed ${TOKENS.borderHi}`, fontSize: 12, color: TOKENS.textSec, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div><strong>Vendido por:</strong> {prof?.nombre ?? 'No especificado'}</div>
+                          <div><strong>Comprado por:</strong> {cliente?.nombre ?? 'Cliente genérico'}</div>
+                          {esEnCita ? (
+                            <div><strong>Contexto:</strong> Venta cruzada durante una cita. <span style={{ color: TOKENS.textTer, fontSize: 10 }}>(Ref cita: {cobro.cita_id?.substring(0, 8)})</span></div>
+                          ) : (
+                            <div><strong>Contexto:</strong> Venta directa (walk-in).</div>
+                          )}
+                          <div><strong>Fecha exacta:</strong> {cobro.cobrado_at ? format(parseISO(cobro.cobrado_at), "dd/MM/yyyy 'a las' HH:mm:ss") : '—'}</div>
                         </div>
                       )}
-                      {!isMobile && (
-                        <div style={{ color: TOKENS.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {prof?.nombre ?? '—'}
-                        </div>
-                      )}
-                      <div style={{ color: TOKENS.textTer, fontSize: isMobile ? 10.5 : 11 }}>
-                        {cobro.cobrado_at ? format(parseISO(cobro.cobrado_at), isMobile ? 'd MMM' : 'd MMM HH:mm', { locale: es }) : '—'}
-                      </div>
-                      <div style={{ textAlign: 'right', fontWeight: 700, color: TOKENS.success }}>
-                        {fmtEur(l.precio_cents * l.cantidad)} €
-                      </div>
                     </div>
                   );
                 })

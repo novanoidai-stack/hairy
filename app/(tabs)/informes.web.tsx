@@ -6,6 +6,7 @@ import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection
 import { GastosSection } from '@/components/informes/GastosSection';
 import { ControlHorarioSection } from '@/components/informes/ControlHorarioSection.web';
 import { ProductosVendidosSection } from '@/components/informes/ProductosVendidosSection';
+import { FacturasRegistroSection } from '@/components/informes/FacturasRegistroSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -235,7 +236,7 @@ interface Cliente {
   telefono?: string;
 }
 
-type Periodo = 'hoy' | 'semana' | 'mes' | '3meses' | 'anio' | 'anio_h1' | 'anio_h2' | 'anio_h4';
+type Periodo = 'hoy' | 'semana' | 'mes' | '3meses' | 'anio' | 'anio_h1' | 'anio_h2' | 'anio_h4' | 'personalizado';
 
 /**
  * Grano del eje X para cada periodo. Antes habia DOS filtros de tiempo peleando:
@@ -251,6 +252,7 @@ function granularidadDe(p: Periodo): Granularidad {
     case 'mes': return 'dia';
     case '3meses': return 'semana';
     case 'anio': case 'anio_h1': case 'anio_h2': case 'anio_h4': return 'mes';
+    case 'personalizado': return 'dia';
   }
 }
 
@@ -273,7 +275,7 @@ type SeccionId = 'ocupacion' | 'noshows' | 'espera' | 'reposo' | 'ingresos' | 's
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-function getRango(p: Periodo): { desde: Date; hasta: Date } {
+function getRango(p: Periodo, customInicio?: Date, customFin?: Date): { desde: Date; hasta: Date } {
   const now = new Date();
   switch (p) {
     case 'hoy':
@@ -292,6 +294,8 @@ function getRango(p: Periodo): { desde: Date; hasta: Date } {
       return { desde: new Date(now.getFullYear() - 2, 0, 1), hasta: new Date(now.getFullYear() - 2, 11, 31) };
     case 'anio_h4':
       return { desde: new Date(now.getFullYear() - 4, 0, 1), hasta: new Date(now.getFullYear() - 4, 11, 31) };
+    case 'personalizado':
+      return { desde: customInicio ? startOfDay(customInicio) : startOfDay(now), hasta: customFin ? endOfDay(customFin) : endOfDay(now) };
   }
 }
 
@@ -361,6 +365,9 @@ function InformesScreen() {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [periodo, setPeriodo] = useState<Periodo>('mes');
+  const [customInicio, setCustomInicio] = useState<Date>(startOfMonth(new Date()));
+  const [customFin, setCustomFin] = useState<Date>(endOfMonth(new Date()));
+  const [viewMode, setViewMode] = useState<'informes' | 'registros'>('informes');
   const [negocioId, setNegocioId] = useState('');
   // Demo guiada: enfocar los botones de descarga (PDF/CSV) cuando la guia lo pide.
   const [demoExport, setDemoExport] = useState(false);
@@ -419,7 +426,7 @@ function InformesScreen() {
     const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
     setNegocioId(nId);
 
-    const { desde, hasta } = getRango(periodo);
+    const { desde, hasta } = getRango(periodo, customInicio, customFin);
 
     const [citaRes, profRes, srvRes, cltRes, resRes, cobRes, gastosRes, histRes] = await Promise.all([
       supabase
@@ -499,7 +506,7 @@ function InformesScreen() {
   const srvMap = useMemo(() => new Map(servicios.map(s => [s.id, s])), [servicios]);
   const cltMap = useMemo(() => new Map(clientes.map(c => [c.id, c])), [clientes]);
 
-  const { desde, hasta } = useMemo(() => getRango(periodo), [periodo]);
+  const { desde, hasta } = useMemo(() => getRango(periodo, customInicio, customFin), [periodo, customInicio, customFin]);
 
   // El grano del eje X lo manda el periodo elegido arriba: no hay segundo selector.
   const granularidad = useMemo(() => granularidadDe(periodo), [periodo]);
@@ -1698,8 +1705,21 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
         flexWrap: 'wrap', gap: isMobile ? 10 : 12,
       }}>
         <div>
-          <h1 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 700, color: TOKENS.text, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-            Informes
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', background: TOKENS.bgCard, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}` }}>
+              <button
+                onClick={() => setViewMode('informes')}
+                style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: viewMode === 'informes' ? 600 : 400, background: viewMode === 'informes' ? TOKENS.primary : 'transparent', color: viewMode === 'informes' ? '#fff' : TOKENS.textSec, transition: 'all 0.2s ease' }}
+              >
+                Análisis Visual
+              </button>
+              <button
+                onClick={() => setViewMode('registros')}
+                style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: viewMode === 'registros' ? 600 : 400, background: viewMode === 'registros' ? TOKENS.primary : 'transparent', color: viewMode === 'registros' ? '#fff' : TOKENS.textSec, transition: 'all 0.2s ease' }}
+              >
+                Registros Legales
+              </button>
+            </div>
             <button
               onClick={() => setShowManualPanel(true)}
               className="m-btn-icon"
@@ -1713,7 +1733,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
               </svg>
             </button>
             <AvisosBell mode="header" />
-          </h1>
+          </div>
           <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2 }}>
             {periodoLabel}
             {citasRecortado && (
@@ -1762,6 +1782,30 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
               ]}
               width={140}
             />
+          )}
+
+          {periodo === 'personalizado' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input 
+                type="date" 
+                value={format(customInicio, 'yyyy-MM-dd')}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val) setCustomInicio(parseISO(val));
+                }}
+                style={{ padding: '6px 10px', borderRadius: 8, border: `1px solid ${TOKENS.borderHi}`, fontSize: 12, outline: 'none' }}
+              />
+              <span style={{ fontSize: 12, color: TOKENS.textSec }}>a</span>
+              <input 
+                type="date" 
+                value={format(customFin, 'yyyy-MM-dd')}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val) setCustomFin(parseISO(val));
+                }}
+                style={{ padding: '6px 10px', borderRadius: 8, border: `1px solid ${TOKENS.borderHi}`, fontSize: 12, outline: 'none' }}
+              />
+            </div>
           )}
 
           <div ref={(el) => { exportRef.current = el; }} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1825,8 +1869,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
           </div>
         ) : (
           <>
-            {/* ============================================================= */}
-            {/* 9.10: Dashboard KPIs                                          */}
+            {viewMode === 'informes' && (
+              <>
+                {/* ============================================================= */}
+                {/* 9.10: Dashboard KPIs                                          */}
             {/* ============================================================= */}
             {/* minmax(0,1fr): sin el minimo 0 las tarjetas no encogen por debajo
                 de su contenido y la columna derecha se sale de la pantalla en movil */}
@@ -2994,26 +3040,30 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                 </div>
               </SectionBody>
             </div>
-            {/* Productos vendidos (libro de venta de productos del periodo) */}
-            <ProductosVendidosSection
-              negocioId={negocioId}
-              desde={desde}
-              hasta={hasta}
-              clientesMap={cltMap as unknown as Map<string, { nombre: string; telefono?: string }>}
-              profesionalesMap={profMap as unknown as Map<string, { nombre: string }>}
-            />
-
-            {/* Gastos (fijos/variables) */}
-            <GastosSection negocioId={negocioId} onGastosChange={cargar} />
 
             {/* Liquidaciones persistentes (generar, marcar pagada, exportar) */}
             <LiquidacionesSection negocioId={negocioId} />
-
-            {/* Control horario: registro de jornada del equipo (art. 34.9 ET) */}
-            <ControlHorarioSection
-              profesionales={profsActivos.map((p) => ({ id: p.id, nombre: p.nombre }))}
-              isMobile={isMobile}
-            />
+          </>
+        )}
+            {viewMode === 'registros' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 16 }}>
+                <FacturasRegistroSection negocioId={negocioId} desde={desde} hasta={hasta} />
+                <GastosSection negocioId={negocioId} onGastosChange={cargar} customInicio={desde.toISOString()} customFin={hasta.toISOString()} />
+                <ProductosVendidosSection
+                  negocioId={negocioId}
+                  desde={desde}
+                  hasta={hasta}
+                  clientesMap={cltMap as unknown as Map<string, { nombre: string; telefono?: string }>}
+                  profesionalesMap={profMap as unknown as Map<string, { nombre: string }>}
+                />
+                <ControlHorarioSection
+                  profesionales={profsActivos.map((p) => ({ id: p.id, nombre: p.nombre }))}
+                  isMobile={isMobile}
+                  customInicio={desde.toISOString()}
+                  customFin={hasta.toISOString()}
+                />
+              </div>
+            )}
           </>
         )}
       </div>

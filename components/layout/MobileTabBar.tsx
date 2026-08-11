@@ -40,7 +40,7 @@ const MORE: NavItem[] = [
   { name: 'campanas', label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone', route: '/(tabs)/campanas', cap: 'informes.ver' },
   { name: 'equipo', label: 'Equipo', labelKey: 'nav_equipo', icon: 'person', route: '/(tabs)/equipo', cap: 'equipo.ver' },
   { name: 'inventario', label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube', route: '/(tabs)/inventario' },
-  { name: 'informes', label: 'Informes', labelKey: 'nav_informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },
+  { name: 'informes', label: 'Informes y Registros', labelKey: 'nav_informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },
   { name: 'configuracion', label: 'Ajustes', labelKey: 'nav_configuracion', icon: 'settings', route: '/(tabs)/configuracion', cap: 'config.ver' },
 ];
 

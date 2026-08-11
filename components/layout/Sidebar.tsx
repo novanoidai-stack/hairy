@@ -50,7 +50,7 @@ const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: st
   { label: 'Equipo', labelKey: 'nav_equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver', group: 'Gestión' },
   { label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario', group: 'Gestión' },
   { label: 'Reseñas', labelKey: 'nav_resenas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas', group: 'Análisis' },
-  { label: 'Informes', labelKey: 'nav_informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver', group: 'Análisis' },
+  { label: 'Informes y Registros', labelKey: 'nav_informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver', group: 'Análisis' },
   { label: 'Ayuda & Manuales', labelKey: 'nav_ayuda', icon: 'help-buoy-outline', activeIcon: 'help-buoy', href: '/(tabs)/ayuda', group: 'Análisis' },
 ];
 

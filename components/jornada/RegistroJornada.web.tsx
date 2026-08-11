@@ -42,6 +42,9 @@ export interface RegistroJornadaProps {
    *  fichar en la misma pantalla: si no, la tabla se queda con lo de antes). */
   recargarToken?: string | number;
   isMobile?: boolean;
+  /** Rango de fechas personalizado (ignora el selector de mes interno si se proveen). */
+  customDesde?: string;
+  customHasta?: string;
 }
 
 const card: React.CSSProperties = {
@@ -98,7 +101,7 @@ function Stat({ label, valor, sub, color = T.text }: {
 }
 
 export function RegistroJornada({
-  alcance, salon, profesionales, profesionalInicial, miProfesionalId, recargarToken, isMobile = false,
+  alcance, salon, profesionales, profesionalInicial, miProfesionalId, recargarToken, isMobile = false, customDesde, customHasta
 }: RegistroJornadaProps) {
   const [mesRef, setMesRef] = useState(() => new Date());
   const [profFiltro, setProfFiltro] = useState<string>(profesionalInicial ?? '');
@@ -113,7 +116,12 @@ export function RegistroJornada({
   const [integridad, setIntegridad] = useState<string | null>(null);
   const [modal, setModal] = useState<null | { asiento?: AsientoJornada }>(null);
 
-  const { desde, hasta } = useMemo(() => rangoMes(mesRef), [mesRef]);
+  const { desde, hasta } = useMemo(() => {
+    if (customDesde && customHasta) {
+      return { desde: customDesde, hasta: customHasta };
+    }
+    return rangoMes(mesRef);
+  }, [mesRef, customDesde, customHasta]);
   const esCentro = alcance === 'centro';
   const profArg = esCentro ? (profFiltro || null) : (miProfesionalId ?? null);
 
@@ -232,11 +240,20 @@ export function RegistroJornada({
       {/* Barra de periodo + filtro + descargas */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Boton onClick={mesAnterior}>‹</Boton>
-          <div style={{ fontSize: 15, fontWeight: 700, color: T.text, minWidth: 150, textAlign: 'center' }}>
-            {nombrePeriodo}
-          </div>
-          <Boton onClick={mesSiguiente} disabled={esMesActual}>›</Boton>
+          {!(customDesde && customHasta) && (
+            <>
+              <Boton onClick={mesAnterior}>‹</Boton>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, minWidth: 150, textAlign: 'center' }}>
+                {nombrePeriodo}
+              </div>
+              <Boton onClick={mesSiguiente} disabled={esMesActual}>›</Boton>
+            </>
+          )}
+          {(customDesde && customHasta) && (
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.text, minWidth: 150, textAlign: 'center' }}>
+              Rango personalizado
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>

@@ -51,12 +51,23 @@ interface Gasto {
   es_recurrente: boolean;
 }
 
-export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { negocioId?: string, onGastosChange?: () => void }) {
+export function GastosSection({ 
+  negocioId: propNegocioId, 
+  onGastosChange,
+  customInicio,
+  customFin 
+}: { 
+  negocioId?: string, 
+  onGastosChange?: () => void,
+  customInicio?: string | null,
+  customFin?: string | null 
+}) {
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [negocioId, setNegocioId] = useState(propNegocioId || '');
   const [mesSeleccionado, setMesSeleccionado] = useState<Date>(new Date());
   const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   
   // Form modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,7 +84,7 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
     if (negocioId) {
       cargarGastos();
     }
-  }, [negocioId, mesSeleccionado]);
+  }, [negocioId, mesSeleccionado, customInicio, customFin]);
 
   async function cargarNegocio() {
     try {
@@ -87,8 +98,8 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
 
   async function cargarGastos() {
     setLoading(true);
-    const desde = startOfMonth(mesSeleccionado).toISOString();
-    const hasta = endOfMonth(mesSeleccionado).toISOString();
+    const desde = customInicio ? customInicio : startOfMonth(mesSeleccionado).toISOString();
+    const hasta = customFin ? customFin : endOfMonth(mesSeleccionado).toISOString();
     
     const { data, error } = await supabase
       .from('gastos')
@@ -153,7 +164,9 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
     return { value: d, label: format(d, "MMMM yyyy", { locale: es }) };
   });
 
-  const periodoLabel = `${format(startOfMonth(mesSeleccionado), 'd MMM', { locale: es })} - ${format(endOfMonth(mesSeleccionado), 'd MMM yyyy', { locale: es })}`;
+  const periodoLabel = customInicio && customFin 
+    ? `${format(parseISO(customInicio), 'd MMM yyyy', { locale: es })} - ${format(parseISO(customFin), 'd MMM yyyy', { locale: es })}`
+    : `${format(startOfMonth(mesSeleccionado), 'd MMM', { locale: es })} - ${format(endOfMonth(mesSeleccionado), 'd MMM yyyy', { locale: es })}`;
   const totalMes = gastos.reduce((acc, g) => acc + g.importe_cents, 0);
 
   return (
@@ -191,23 +204,25 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
           border: `1px solid ${TOKENS.border}`, borderTop: 'none',
         }}>
           {/* Selector de mes */}
-          <div style={{ display: 'flex', gap: 4, background: TOKENS.bgPanel, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, overflowX: 'auto', marginBottom: 16 }}>
-            {meses.slice(0, 6).map(m => (
-              <button
-                key={m.label}
-                onClick={() => setMesSeleccionado(m.value)}
-                style={{
-                  padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  fontSize: isMobile ? 11.5 : 12, fontWeight: startOfMonth(mesSeleccionado).getTime() === startOfMonth(m.value).getTime() ? 600 : 400,
-                  background: startOfMonth(mesSeleccionado).getTime() === startOfMonth(m.value).getTime() ? TOKENS.dangerSoft : 'transparent',
-                  color: startOfMonth(mesSeleccionado).getTime() === startOfMonth(m.value).getTime() ? TOKENS.danger : TOKENS.textSec,
-                  transition: 'all 0.2s ease', whiteSpace: 'nowrap'
-                }}
-              >
-                {m.label.charAt(0).toUpperCase() + m.label.slice(1)}
-              </button>
-            ))}
-          </div>
+          {!(customInicio && customFin) && (
+            <div style={{ display: 'flex', gap: 4, background: TOKENS.bgPanel, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, overflowX: 'auto', marginBottom: 16 }}>
+              {meses.slice(0, 6).map(m => (
+                <button
+                  key={m.label}
+                  onClick={() => setMesSeleccionado(m.value)}
+                  style={{
+                    padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                    fontSize: isMobile ? 11.5 : 12, fontWeight: startOfMonth(mesSeleccionado).getTime() === startOfMonth(m.value).getTime() ? 600 : 400,
+                    background: startOfMonth(mesSeleccionado).getTime() === startOfMonth(m.value).getTime() ? TOKENS.dangerSoft : 'transparent',
+                    color: startOfMonth(mesSeleccionado).getTime() === startOfMonth(m.value).getTime() ? TOKENS.danger : TOKENS.textSec,
+                    transition: 'all 0.2s ease', whiteSpace: 'nowrap'
+                  }}
+                >
+                  {m.label.charAt(0).toUpperCase() + m.label.slice(1)}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div style={{ marginBottom: 16, padding: 14, borderRadius: 12, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}` }}>
             <div style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Total de Gastos</div>
@@ -223,24 +238,42 @@ export function GastosSection({ negocioId: propNegocioId, onGastosChange }: { ne
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {gastos.map(g => (
-                <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderRadius: 10, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.text }}>{g.concepto}</div>
-                    <div style={{ fontSize: 12, color: TOKENS.textSec, display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
-                      <span style={{ padding: '2px 6px', background: TOKENS.bg, borderRadius: 4, textTransform: 'capitalize' }}>{g.categoria}</span>
-                      <span>{format(parseISO(g.fecha), 'd MMM yyyy', { locale: es })}</span>
-                      {g.es_recurrente && <span style={{ color: TOKENS.warning }}>• Recurrente</span>}
+              {gastos.map(g => {
+                const isExpanded = expandedId === g.id;
+                return (
+                  <div key={g.id} style={{ display: 'flex', flexDirection: 'column', borderRadius: 10, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel, overflow: 'hidden' }}>
+                    <div 
+                      onClick={() => setExpandedId(isExpanded ? null : g.id)}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, cursor: 'pointer' }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.text }}>{g.concepto}</div>
+                        <div style={{ fontSize: 12, color: TOKENS.textSec, display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                          <span style={{ padding: '2px 6px', background: TOKENS.bg, borderRadius: 4, textTransform: 'capitalize' }}>{g.categoria}</span>
+                          <span>{format(parseISO(g.fecha), 'd MMM yyyy', { locale: es })}</span>
+                          {g.es_recurrente && <span style={{ color: TOKENS.warning }}>• Recurrente</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TOKENS.danger }}>{fmtEur(g.importe_cents)} €</div>
+                      </div>
                     </div>
+                    
+                    {isExpanded && (
+                      <div style={{ borderTop: `1px dashed ${TOKENS.border}`, padding: '12px 14px', background: TOKENS.bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ fontSize: 12, color: TOKENS.textSec }}>
+                          <strong>ID:</strong> {g.id}
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => handleBorrar(g.id)} style={{ padding: '6px 12px', background: TOKENS.dangerSoft, color: TOKENS.danger, border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="trash" size={14} color={TOKENS.danger} /> Eliminar gasto
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: TOKENS.danger }}>{fmtEur(g.importe_cents)} €</div>
-                    <button onClick={() => handleBorrar(g.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: TOKENS.textTer }}>
-                      <Icon name="trash" size={16} color={TOKENS.textTer} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

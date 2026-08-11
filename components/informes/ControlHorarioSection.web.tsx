@@ -26,9 +26,11 @@ const TOKENS = {
 export interface ControlHorarioSectionProps {
   profesionales: Array<{ id: string; nombre: string }>;
   isMobile?: boolean;
+  customInicio?: string | null;
+  customFin?: string | null;
 }
 
-export function ControlHorarioSection({ profesionales, isMobile = false }: ControlHorarioSectionProps) {
+export function ControlHorarioSection({ profesionales, isMobile = false, customInicio, customFin }: ControlHorarioSectionProps) {
   const [salon, setSalon] = useState<{ nombre?: string | null }>({});
   const [config, setConfig] = useState<ConfigJornada | null>(null);
 
@@ -86,6 +88,8 @@ export function ControlHorarioSection({ profesionales, isMobile = false }: Contr
           salon={salon}
           profesionales={profesionales}
           isMobile={isMobile}
+          customDesde={customInicio ?? undefined}
+          customHasta={customFin ?? undefined}
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import qrcode from 'qrcode-generator';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -285,10 +285,14 @@ export function CobroSheet(props: CobroSheetProps) {
       });
   };
 
+  const enviandoRef = useRef(false);
+
   const confirmar = async () => {
+    if (enviandoRef.current) return;
     if (isWalkin && lineas.length === 0) { setError('Añade al menos una línea.'); return; }
     if (totalCents <= 0 && !usarBono && trAplicadoCents <= 0) { setError('El total debe ser mayor que 0.'); return; }
     setError('');
+    enviandoRef.current = true;
     setEnviando(true);
     try {
       if (props.mode === 'walkin') {
@@ -371,17 +375,22 @@ export function CobroSheet(props: CobroSheetProps) {
           setCobroCompletado(true);
         }
       }
-    } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo registrar el cobro.'));
+    } catch (err: any) {
+      setError(mensajeDeError(err, 'No se pudo registrar el cobro.') + ` (Code: ${err?.code || 'N/A'})`);
     } finally {
+      enviandoRef.current = false;
       setEnviando(false);
     }
   };
 
+  const qrBusyRef = useRef(false);
+
   const generarQr = async () => {
+    if (qrBusyRef.current) return;
     if (props.mode !== 'cita' || props.citaIds.length !== 1) return;
     if (totalCents <= 0) { setError('El total debe ser mayor que 0.'); return; }
     setError('');
+    qrBusyRef.current = true;
     setQrBusy(true);
     try {
       const { data, error: rpcErr } = await supabase.rpc('iniciar_cobro_online', {
@@ -399,6 +408,7 @@ export function CobroSheet(props: CobroSheetProps) {
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo generar el QR de cobro.'));
     } finally {
+      qrBusyRef.current = false;
       setQrBusy(false);
     }
   };
