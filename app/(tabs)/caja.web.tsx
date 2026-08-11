@@ -6,6 +6,7 @@ import { format, parseISO, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { mensajeDeError } from "@/lib/errores";
 import { reportarError } from "@/lib/reportarError";
+import { ingresosRealesCents, propinasCents } from "@/lib/metricasNegocio";
 import { useResponsive } from "@/lib/hooks/useResponsive";
 import { CobroSheet } from "@/components/pos/CobroSheet";
 import { VentaBonoModal } from "@/components/pos/VentaBonoModal";
@@ -171,6 +172,12 @@ function CajaScreen() {
   // Productos a adjuntar al cobro de citas (ticket unificado cita + productos).
   // Se rellena desde el modal "Venta rápida" cuando hay citas seleccionadas.
   const [lineasExtraCobro, setLineasExtraCobro] = useState<
+    Array<{ nombre: string; precio: string; cantidad: string; ref_id?: string }>
+  >([]);
+  // Productos consumidos en las citas seleccionadas (tabla cita_productos).
+  // Se cargan al abrir el cobro y entran como líneas iniciales del ticket,
+  // para que su precio se cobre junto al servicio.
+  const [lineasProductosCita, setLineasProductosCita] = useState<
     Array<{ nombre: string; precio: string; cantidad: string; ref_id?: string }>
   >([]);
   // Presupuestos aceptados pendientes de cobro (se cobran con el mismo motor).
@@ -507,7 +514,9 @@ function CajaScreen() {
       const cr = cobrosData || [];
       setCobrosHoy(cr);
       setArqueo({
-        total: cr.reduce((s: number, r: any) => s + (r.total_cents || 0), 0),
+        // total = ingresos reales SIN propina (la propina va en su propio campo,
+        // para que "Cobrado hoy" no la duplique con la tarjeta "Propinas").
+        total: ingresosRealesCents(cr),
         efectivo: cr.reduce(
           (s: number, r: any) => s + (r.efectivo_cents || 0),
           0,
@@ -516,10 +525,7 @@ function CajaScreen() {
           (s: number, r: any) => s + (r.datafono_cents || 0),
           0,
         ),
-        propinas: cr.reduce(
-          (s: number, r: any) => s + (r.propina_cents || 0),
-          0,
-        ),
+        propinas: propinasCents(cr),
         count: cr.length,
       });
 
@@ -612,6 +618,34 @@ function CajaScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [upsellCandidato?.id, citaUpsell?.id]);
 
+  // Abrir el cobro de las citas seleccionadas cargando antes los productos
+  // consumidos en ellas (cita_productos) para que entren como líneas del ticket.
+  const abrirCobroCitas = useCallback(async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) {
+      setLineasProductosCita([]);
+      setShowCobroModal(true);
+      return;
+    }
+    try {
+      const { data } = await supabase
+        .from("cita_productos")
+        .select("producto_id, nombre, precio_cents, cantidad")
+        .in("cita_id", ids);
+      setLineasProductosCita(
+        (data ?? []).map((r: any) => ({
+          nombre: r.nombre,
+          precio: String(Number(r.precio_cents ?? 0) / 100),
+          cantidad: String(r.cantidad ?? 1),
+          ref_id: r.producto_id ?? undefined,
+        })),
+      );
+    } catch {
+      setLineasProductosCita([]);
+    }
+    setShowCobroModal(true);
+  }, [selectedIds]);
+
   // Tras cobrar con exito desde el CobroSheet: recargar, avisar, cerrar.
   const handleCobroSuccess = async (cobroIds: string[]) => {
     const txt =
@@ -621,6 +655,7 @@ function CajaScreen() {
     setMensaje({ type: "success", text: txt });
     setSelectedIds(new Set());
     setLineasExtraCobro([]);
+    setLineasProductosCita([]);
     setShowCobroModal(false);
     await cargarCitas(); // Recargar
     setTimeout(() => setMensaje(null), 4000);
@@ -1297,7 +1332,7 @@ function CajaScreen() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowCobroModal(true)}
+                  onClick={abrirCobroCitas}
                   className="ca-btn"
                   style={{
                     padding: "10px 20px",
@@ -2157,11 +2192,14 @@ function CajaScreen() {
           senalCents={seleccion.totalSenas}
           titulo={`Cobrar ${seleccion.count} servicio${seleccion.count > 1 ? "s" : ""}${seleccion.clienteNombre ? ` · ${seleccion.clienteNombre}` : ""}`}
           lineasIniciales={
-            lineasExtraCobro.length > 0 ? lineasExtraCobro : undefined
+            lineasProductosCita.length > 0 || lineasExtraCobro.length > 0
+              ? [...lineasProductosCita, ...lineasExtraCobro]
+              : undefined
           }
           onClose={() => {
             setShowCobroModal(false);
             setLineasExtraCobro([]);
+            setLineasProductosCita([]);
           }}
           onSuccess={handleCobroSuccess}
         />
@@ -2724,7 +2762,7 @@ function CajaScreen() {
                         );
                         setShowVentaProductos(false);
                         setCarrito([]);
-                        setShowCobroModal(true);
+                        await abrirCobroCitas();
                         return;
                       }
                       setVentaEnviando(true);

@@ -90,6 +90,7 @@ import {
 } from "@/lib/constants";
 import {
   cuentaComoConfirmada,
+  esActiva,
   esCanceladaONoShow,
   esSinConfirmar48h,
 } from "@/lib/citasMetrics";
@@ -1780,7 +1781,10 @@ export default function AgendaCalendar() {
     return result;
   }, [citasHoy, selectedProf, filterServicio, filterEstado]);
 
-  const totalCitasHoy = citasHoy.length;
+  // Citas de hoy REALES (ni canceladas ni no-show). Es la base del KPI "HOY" y
+  // del "de N hoy" de Confirmadas, para que no cuenten lo que ya no va a pasar.
+  const citasActivasHoy = useMemo(() => citasHoy.filter(esActiva), [citasHoy]);
+  const totalActivasHoy = citasActivasHoy.length;
 
   // 8.4: buscador global
   const searchResults = useMemo(() => {
@@ -4035,7 +4039,7 @@ export default function AgendaCalendar() {
                   <div style={{ animation: "slideInUp 0.5s ease 0.1s both" }}>
                     <StatCard
                       label="HOY"
-                      value={totalCitasHoy}
+                      value={totalActivasHoy}
                       sub="citas"
                       tone={TOKENS.primary}
                       onClick={() => setShowStatsModal("hoy")}
@@ -4045,7 +4049,7 @@ export default function AgendaCalendar() {
                     <StatCard
                       label="CONFIRMADAS"
                       value={confirmadasHoy}
-                      sub={`de ${totalCitasHoy} hoy`}
+                      sub={`de ${totalActivasHoy} hoy`}
                       tone={TOKENS.success}
                       onClick={() => setShowStatsModal("confirmadas")}
                     />
@@ -4274,7 +4278,7 @@ export default function AgendaCalendar() {
                           marginTop: 2,
                         }}
                       >
-                        {totalCitasHoy} citas · {confirmadasHoy} confirmadas
+                        {totalActivasHoy} citas · {confirmadasHoy} confirmadas
                       </div>
                     )}
                   </div>

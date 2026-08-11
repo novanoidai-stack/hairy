@@ -12,6 +12,7 @@ import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE, CITA_STATUS } from '@/lib/constants';
 import { esCompletada, esConfirmada, esPendiente, esNoShow, esCancelada, esActiva } from '@/lib/citasMetrics';
+import { ingresosRealesCents, propinasCents } from '@/lib/metricasNegocio';
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subMonths,
   differenceInMinutes, differenceInDays, format, parseISO, isValid,
@@ -568,9 +569,11 @@ function InformesScreen() {
   const totalIngresos = useMemo(() => {
     return activas.reduce((sum, c) => sum + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
   }, [activas, srvMap]);
-  // Cobrado REAL del periodo (libro de cobros). Si el negocio usa el POS, esta es la
-  // cifra autoritativa; si no, queda en 0 y se sigue mostrando solo el estimado.
-  const totalCobrado = useMemo(() => cobros.reduce((s, c) => s + (c.total_cents || 0), 0) / 100, [cobros]);
+  // Cobrado REAL del periodo (libro de cobros), SIN propina (la propina va
+  // siempre aparte, en totalPropinas). Si el negocio usa el POS, esta es la
+  // cifra autoritativa; si no, queda en 0 y se sigue mostrando solo el previsto.
+  const totalCobrado = useMemo(() => ingresosRealesCents(cobros) / 100, [cobros]);
+  const totalPropinas = useMemo(() => propinasCents(cobros) / 100, [cobros]);
   const hayCobros = cobros.length > 0;
   
   const totalGastos = useMemo(() => gastos.reduce((s, g) => s + (g.importe_cents || 0), 0) / 100, [gastos]);
@@ -825,7 +828,7 @@ function InformesScreen() {
       const real = profCobros.length > 0;
       const ingresos = real
         // total_cents ya viene neto de descuento y señal.
-        ? profCobros.reduce((s, c) => s + ((c.total_cents || 0) - (c.propina_cents || 0)), 0) / 100
+        ? ingresosRealesCents(profCobros) / 100
         : profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
       return {
         profId: p.id,
@@ -1234,7 +1237,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
     // KPIs resumen
     const kpis = [
       { label: 'Citas totales', value: String(totalCitas) },
-      { label: 'Ingresos', value: `${fmtEur(totalIngresos)} €` },
+      { label: hayCobros ? 'Ingresos (real)' : 'Ingresos (previsto)', value: `${fmtEur(hayCobros ? totalCobrado : totalIngresos)} €` },
       { label: 'Citas / profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}` },
       { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})` },
       { label: 'Espera media', value: `${Math.round(esperaData.avgGlobal)} min` },
@@ -1408,7 +1411,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   </section>
 
   <section>
-    <h2>Ingresos · ${esc(fmtEur(totalIngresos))} €</h2>
+    <h2>Ingresos · ${esc(fmtEur(hayCobros ? totalCobrado : totalIngresos))} €${hayCobros && totalPropinas > 0 ? ` (propinas: ${esc(fmtEur(totalPropinas))} € aparte)` : ''}</h2>
     <div class="cols3">
       <div>
         <div class="coltitle">Por profesional</div>
@@ -1878,9 +1881,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
               <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.textSec, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rendimiento Global</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
                 {[
-                  { label: hayCobros ? 'Ingresos (estim.)' : 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
+                  { label: hayCobros ? 'Ingresos' : 'Ingresos (previsto)', value: `${fmtEur(hayCobros ? totalCobrado : totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
                   ...(hayCobros ? [
-                    { label: 'Cobrado (real)', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.primary, bg: TOKENS.primarySoft },
+                    { label: 'Previsto (catálogo)', value: `${fmtEur(totalIngresos)} EUR`, icon: 'trendingUp', color: TOKENS.textTer, bg: TOKENS.bgCard },
+                    { label: 'Propinas', value: `${fmtEur(totalPropinas)} EUR`, icon: 'dollar', color: '#d97706', bg: TOKENS.warningSoft },
                     { label: 'Margen (aprox)', value: `${fmtEur(margenAproximado)} EUR`, icon: 'trendingUp', color: TOKENS.success, bg: TOKENS.successSoft }
                   ] : []),
                   { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
@@ -2215,7 +2219,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {/* 9.5: Ingresos                                                 */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader id="ingresos" icon="dollar" iconColor={TOKENS.success} title="Ingresos" subtitle={`Total: ${fmtEur(totalIngresos)} EUR`} />
+              <SectionHeader id="ingresos" icon="dollar" iconColor={TOKENS.success} title="Ingresos" subtitle={hayCobros ? `Total: ${fmtEur(totalCobrado)} EUR · Propinas: ${fmtEur(totalPropinas)} EUR` : `Total previsto: ${fmtEur(totalIngresos)} EUR`} />
               <SectionBody id="ingresos">
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
                   <button onClick={exportIngresos} style={{
@@ -2298,7 +2302,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     <Icon name="dollar" size={15} color={TOKENS.primary} />
                     <div>
                       <div style={{ fontSize: 13.5, fontWeight: 700, color: TOKENS.text }}>Caja diaria (cobrado real)</div>
-                      <div style={{ fontSize: 11.5, color: TOKENS.textTer }}>Lo cobrado de verdad en el periodo, día a día · Total {fmtEur(totalCobrado)} EUR</div>
+                      <div style={{ fontSize: 11.5, color: TOKENS.textTer }}>Lo cobrado de verdad en el periodo, día a día · Total {fmtEur(totalCobrado)} EUR{totalPropinas > 0 ? ` (propinas: ${fmtEur(totalPropinas)} EUR aparte)` : ''}</div>
                     </div>
                   </div>
                   <button onClick={exportCajaDiaria} style={{

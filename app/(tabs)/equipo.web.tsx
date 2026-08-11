@@ -13,6 +13,7 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { roleOf } from '@/lib/permissions';
+import { ingresosRealesCents } from '@/lib/metricasNegocio';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
@@ -91,6 +92,8 @@ interface Profesional {
   ocupacion?: number;
   dayPcts?: number[];
   ingresos?: number;
+  // true si los ingresos vienen de cobros reales; false si son previsto por catalogo.
+  real?: boolean;
   ticketMedio?: number;
   comisionesDevengadas?: number;
   clientesUnicos?: number;
@@ -304,7 +307,7 @@ export default function EquipoWeb() {
       const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [resProfs, resCits, resSrv, resCfg, resHorSalon] = await Promise.all([
+      const [resProfs, resCits, resSrv, resCfg, resHorSalon, resCob] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil, rol_acceso').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
@@ -317,6 +320,13 @@ export default function EquipoWeb() {
         // sale de lo que abre el local, que es la incoherencia tipica.
         supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre, pausa_inicio, pausa_fin')
           .eq('negocio_id', negocioId),
+        // Cobros reales del mes para calcular ingresos por profesional igual que
+        // Mi Jornada/Caja (libro de caja, sin propina). Se fechan por cobrado_at.
+        supabase.from('cobros').select('profesional_id, total_cents, propina_cents, estado')
+          .eq('negocio_id', negocioId)
+          .eq('estado', 'completado')
+          .gte('cobrado_at', mesInicio)
+          .lte('cobrado_at', mesFin),
       ]);
       if (resProfs.error) reportarError(resProfs.error, { origen: 'app', tipo: 'operativo' });
       if (resCits.error) reportarError(resCits.error, { origen: 'app', tipo: 'operativo' });
@@ -328,6 +338,15 @@ export default function EquipoWeb() {
       const srvData = resSrv.data;
       const cfgRow = resCfg.data;
       const horSalon = resHorSalon.data;
+      // Cobros del mes agrupados por profesional.
+      const cobrosPorProf = new Map<string, any[]>();
+      (resCob.data ?? []).forEach((c: any) => {
+        const pid = c.profesional_id;
+        if (!pid) return;
+        const arr = cobrosPorProf.get(pid) ?? [];
+        arr.push(c);
+        cobrosPorProf.set(pid, arr);
+      });
 
       setHorarioSalon(Object.fromEntries((horSalon ?? []).map((h: any) => [h.dia_semana, h])));
 
@@ -356,14 +375,19 @@ export default function EquipoWeb() {
 
         const ocupacion = totalCitas > 0 ? Math.round((citas / totalCitas) * 100) : 0;
 
-        // Metricas
-        const ingresos = profCitas.reduce((sum: number, c: any) => sum + (srvMap[c.servicio_id] ?? 0), 0);
+        // Metricas: ingresos REALES (cobros sin propina) cuando el profesional
+        // tiene cobros en el mes; si no, previsto por catalogo. Asi cuadra con
+        // Mi Jornada y Caja (misma definicion de ingreso).
+        const profCobros = cobrosPorProf.get(p.id) ?? [];
+        const real = profCobros.length > 0;
+        const catalogo = profCitas.reduce((sum: number, c: any) => sum + (srvMap[c.servicio_id] ?? 0), 0);
+        const ingresos = real ? ingresosRealesCents(profCobros) / 100 : catalogo;
         const ticketMedio = citas > 0 ? Math.round(ingresos / citas) : 0;
         const comisionPct = p.comision_pct ?? 0;
         const comisionesDevengadas = Math.round(ingresos * comisionPct / 100);
         const clientesUnicos = new Set(profCitas.map((c: any) => c.cliente_id).filter(Boolean)).size;
 
-        return { ...p, citas, dayPcts, ocupacion, ingresos, ticketMedio, comisionesDevengadas, clientesUnicos, exp: '' };
+        return { ...p, citas, dayPcts, ocupacion, ingresos, real, ticketMedio, comisionesDevengadas, clientesUnicos, exp: '' };
       });
 
       const myProfs = isProf ? enriched.filter(p => p.profile_id === profile?.id) : enriched;
@@ -911,7 +935,7 @@ export default function EquipoWeb() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTop: `1px solid ${TOKENS.border}` }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                       <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{p.activo ? `${p.ingresos ?? 0}€` : '—'}</span>
-                      <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 600, letterSpacing: 0.5 }}>INGRESOS</span>
+                      <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 600, letterSpacing: 0.5 }}>{p.real === false ? 'INGRESOS (prev.)' : 'INGRESOS'}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                       <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{p.activo ? (p.clientesUnicos ?? 0) : '—'}</span>

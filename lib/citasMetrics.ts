@@ -27,6 +27,15 @@ export const esActiva = (c: ConEstado) => esPendiente(c) || esConfirmada(c) || e
 // del rail de la agenda.
 export const esCanceladaONoShow = (c: ConEstado) => esCancelada(c) || esNoShow(c);
 
+// --- Visibilidad en calendario (politica pendiente de aplicar uniformemente) ---
+// Una cita oculta_en_calendario no se muestra en la rejilla de la Agenda. Como
+// hoy el flag se pone junto a estado='cancelada', las metricas basadas en
+// esActiva ya excluyen esas citas. Este predicado existe como hook por si se
+// decide excluir tambien las ocultas MANUALES (no canceladas) en Informes,
+// Citas y Mi Jornada. Ver docs/coherencia-metricas.md (politica pendiente).
+type CitaOculta = ConEstado & { oculta_en_calendario?: boolean | null };
+export const citaVisible = (c: CitaOculta) => !c.oculta_en_calendario;
+
 // --- "Sin confirmar" (definicion canonica compartida) ---
 // Una cita cuenta como "sin confirmar" si el salon la tiene confirmada pero el
 // cliente aun no ha respondido, no esta oculta del calendario y empieza en las

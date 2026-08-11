@@ -1,0 +1,13 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/"
+  },
+  "exclude": [
+    "node_modules/",
+    "ui-references/",
+    "web/",
+    ".expo/",
+    "supabase/functions/",
+    "lib/chispaOps.test.ts"
+  ]
+}

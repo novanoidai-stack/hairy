@@ -216,6 +216,13 @@ function MiJornadaScreen() {
   const [error, setError] = useState<string | null>(null);
   const [periodo, setPeriodo] = useState<Periodo>('hoy');
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  // Ingresos REALES = total cobrado SIN propina (esta va siempre aparte). El RPC
+  // devuelve total_cents y propinas_cents por separado; aqui aplicamos la misma
+  // politica de coherencia que Caja/Informes para que "Cobrado" cuadre entre
+  // pantallas y la propina no se mezcle en el total principal.
+  const cobroRealCents = (resumen?.total_cents ?? 0) - (resumen?.propinas_cents ?? 0);
+  const cobrosCount = resumen?.cobros_count ?? 0;
+  const ticketMedioRealCents = cobrosCount > 0 ? Math.round(cobroRealCents / cobrosCount) : 0;
   const [nuevaResena, setNuevaResena] = useState<{ id: string; puntuacion: number; comentario: string | null } | null>(null);
   const [estadoJornada, setEstadoJornada] = useState<JornadaEstado | null>(null);
   const [identidadRol, setIdentidadRol] = useState<string | null>(null);
@@ -801,9 +808,9 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 <MetricRow icon="clock" label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} color="#e08a00" />
                 {verImportes && (
                   <>
-                    <MetricRow icon="cash" label="Cobrado" value={eur(resumen?.total_cents)} sub={`${resumen?.cobros_count ?? 0} cobro${(resumen?.cobros_count ?? 0) === 1 ? '' : 's'}`} color={T.success} />
-                    <MetricRow icon="star" label="Propinas" value={eur(resumen?.propinas_cents)} sub="incluidas en cobros" color="#d97706" />
-                    <MetricRow icon="info" label="Ticket medio" value={eur(resumen?.ticket_medio_cents)} sub="por cobro" color="#0891b2" />
+                    <MetricRow icon="cash" label="Cobrado" value={eur(cobroRealCents)} sub={`${cobrosCount} cobro${cobrosCount === 1 ? '' : 's'}`} color={T.success} />
+                    <MetricRow icon="star" label="Propinas" value={eur(resumen?.propinas_cents)} sub="aparte del cobrado" color="#d97706" />
+                    <MetricRow icon="info" label="Ticket medio" value={eur(ticketMedioRealCents)} sub="por cobro" color="#0891b2" />
                   </>
                 )}
                 {verComision && (
@@ -817,9 +824,9 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 <StatBox label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} />
                 {verImportes && (
                   <>
-                    <StatBox label="Cobrado" value={eur(resumen?.total_cents)} sub={`${resumen?.cobros_count ?? 0} cobro${(resumen?.cobros_count ?? 0) === 1 ? '' : 's'}`} accent={T.text} />
-                    <StatBox label="Propinas" value={eur(resumen?.propinas_cents)} sub="incluidas en cobros" accent={T.success} />
-                    <StatBox label="Ticket medio" value={eur(resumen?.ticket_medio_cents)} sub="por cobro" />
+                    <StatBox label="Cobrado" value={eur(cobroRealCents)} sub={`${cobrosCount} cobro${cobrosCount === 1 ? '' : 's'}`} accent={T.text} />
+                    <StatBox label="Propinas" value={eur(resumen?.propinas_cents)} sub="aparte del cobrado" accent={T.success} />
+                    <StatBox label="Ticket medio" value={eur(ticketMedioRealCents)} sub="por cobro" />
                   </>
                 )}
                 {verComision && (

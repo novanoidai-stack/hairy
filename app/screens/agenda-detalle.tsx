@@ -215,6 +215,9 @@ export default function AgendaDetalleScreen() {
         {/* Formula de color */}
         <FormulaSection cita={cita} onSave={guardarFormula} actualizando={actualizando} />
 
+        {/* Productos utilizados/vendidos en esta cita */}
+        <ProductosCitaSection citaId={cita.id} />
+
         {/* CU-AG-05: cancelar cita (solo si esta confirmada) */}
         {cita.estado === CITA_STATUS.CONFIRMADA && (
           <TouchableOpacity
@@ -822,6 +825,93 @@ function DuracionStep({ label, value, onChange, min, c }: {
         >
           <TText style={{ fontSize: fontSize.md, color: c.textSecondary, lineHeight: 20 }}>+</TText>
         </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ProductosCitaSection: productos utilizados y vendidos en esta cita.
+//
+// Lee cita_productos (stock consumido durante la cita) y cobro_lineas
+// tipo='producto' de los cobros completados ligados a la cita. Hasta ahora no
+// se mostraban en el detalle de staff, así que no había forma de ver qué
+// productos se usaron o vendieron en cada cita desde aquí.
+// ─────────────────────────────────────────────────────────────────────────────
+function ProductosCitaSection({ citaId }: { citaId: string }) {
+  const { c } = useTheme();
+  type ItemProd = { nombre: string; cantidad: number; precio_cents: number; origen: 'cita' | 'venta' };
+  const [items, setItems] = useState<ItemProd[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelado = false;
+    async function cargar() {
+      setLoading(true);
+      try {
+        // Productos consumidos en la cita (tabla cita_productos).
+        const { data: cp } = await supabase
+          .from('cita_productos')
+          .select('nombre, cantidad, precio_cents')
+          .eq('cita_id', citaId);
+        const enCita: ItemProd[] = (cp ?? []).map((r: any) => ({
+          nombre: r.nombre,
+          cantidad: r.cantidad,
+          precio_cents: Number(r.precio_cents ?? 0),
+          origen: 'cita',
+        }));
+        // Productos cobrados ligados a la cita (cobro_lineas tipo producto).
+        const { data: cobros } = await supabase
+          .from('cobros')
+          .select('id')
+          .eq('cita_id', citaId)
+          .eq('estado', 'completado');
+        let vendidos: ItemProd[] = [];
+        if (cobros && cobros.length > 0) {
+          const { data: ll } = await supabase
+            .from('cobro_lineas')
+            .select('nombre, cantidad, precio_cents')
+            .in('cobro_id', cobros.map((x: any) => x.id))
+            .eq('tipo', 'producto');
+          vendidos = (ll ?? []).map((r: any) => ({
+            nombre: r.nombre,
+            cantidad: r.cantidad,
+            precio_cents: Number(r.precio_cents ?? 0),
+            origen: 'venta',
+          }));
+        }
+        if (!cancelado) setItems([...enCita, ...vendidos]);
+      } catch {
+        if (!cancelado) setItems([]);
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    }
+    cargar();
+    return () => { cancelado = true; };
+  }, [citaId]);
+
+  if (loading || items.length === 0) return null;
+  const total = items.reduce((sum, it) => sum + it.precio_cents * it.cantidad, 0);
+
+  return (
+    <View style={[s.card, { backgroundColor: c.surface, borderColor: c.border, padding: spacing.md }]}>
+      <TText style={[s.sectionTitle, { color: c.textSecondary, marginBottom: spacing.sm }]}>Productos</TText>
+      {items.map((it, i) => (
+        <View key={`${it.origen}-${i}`} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name={it.origen === 'cita' ? 'cube-outline' : 'pricetag-outline'} size={15} color={c.textSecondary} />
+            <TText style={{ fontSize: fontSize.sm, color: c.text }}>{it.cantidad}× {it.nombre}</TText>
+          </View>
+          <TText style={{ fontSize: fontSize.sm, color: c.textSecondary }}>
+            {((it.precio_cents * it.cantidad) / 100).toFixed(2)}€
+          </TText>
+        </View>
+      ))}
+      <Divider />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 }}>
+        <TText style={{ fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: c.text }}>Total productos</TText>
+        <TText style={{ fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: c.text }}>{(total / 100).toFixed(2)}€</TText>
       </View>
     </View>
   );
