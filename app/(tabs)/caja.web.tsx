@@ -95,6 +95,8 @@ interface CitaPendiente {
   categoria_color: string | null;
   sena_pagada: number; // señal ya pagada
   total_pendiente: number; // lo que falta cobrar
+  grupo_id: string | null;
+  orden_en_grupo: number | null;
 }
 
 // Registros descargables (CSV) — como el modo gestor de novanoidai.
@@ -193,12 +195,17 @@ function CajaScreen() {
     const map = new Map<string, CitaPendiente[]>();
     const orden: string[] = [];
     for (const c of citas) {
-      const key = c.cliente_id ? `cli:${c.cliente_id}` : `solo:${c.id}`;
+      const key = c.grupo_id ? `grupo:${c.grupo_id}` : (c.cliente_id ? `cli:${c.cliente_id}` : `solo:${c.id}`);
       if (!map.has(key)) { map.set(key, []); orden.push(key); }
       map.get(key)!.push(c);
     }
     return orden.map((key) => {
       const items = map.get(key)!;
+      if (key.startsWith('grupo:')) {
+        items.sort((a, b) => (a.orden_en_grupo || 0) - (b.orden_en_grupo || 0));
+      } else {
+        items.sort((a, b) => new Date(a.hora_inicio).getTime() - new Date(b.hora_inicio).getTime());
+      }
       return {
         key,
         cliente_nombre: items[0].cliente_nombre,
@@ -256,7 +263,9 @@ function CajaScreen() {
           profesionales (nombre),
           servicio_id,
           servicios (nombre, precio, categorias_servicio (color)),
-          pagos (tipo, importe_cents, estado)
+          pagos (tipo, importe_cents, estado),
+          grupo_id,
+          orden_en_grupo
         `)
         .eq('negocio_id', profile.negocio_id)
         .eq('cobrada', false)
@@ -289,6 +298,8 @@ function CajaScreen() {
           categoria_color: catToken ? categoryColorHex(catToken) : null,
           sena_pagada: sena,
           total_pendiente: Math.max(0, precioCents - sena),
+          grupo_id: cita.grupo_id || null,
+          orden_en_grupo: cita.orden_en_grupo || null,
         };
       });
 
@@ -877,7 +888,7 @@ function CajaScreen() {
                         {concepto.cliente_nombre || 'Sin cliente'}
                       </span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: T.primary, padding: '2px 8px', background: T.primarySoft, borderRadius: 6 }}>
-                        {concepto.items.length} servicios
+                        {concepto.key.startsWith('grupo:') ? `Servicio encadenado (${concepto.items.length})` : `${concepto.items.length} servicios`}
                       </span>
                     </div>
                     <div style={{ fontSize: 13, color: T.textSec, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>

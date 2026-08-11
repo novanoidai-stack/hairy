@@ -14635,6 +14635,13 @@ export function DetalleCitaModal({
   const [cobrada, setCobrada] = useState<boolean>(!!cita.cobrada);
   const [showCobro, setShowCobro] = useState(false);
   const [cobroSenalCents, setCobroSenalCents] = useState(0);
+  const [cobrarEncadenadoCompleto, setCobrarEncadenadoCompleto] = useState(true);
+
+  const chainSiblings = useMemo(() => {
+    if (!cita.grupo_id || !allCitas) return [cita];
+    return allCitas.filter((c: any) => c.grupo_id === cita.grupo_id && c.estado !== CITA_STATUS.CANCELADA);
+  }, [cita.grupo_id, allCitas]);
+
   // Inventario del salon (pestaña Productos)
   const [inventarioProductos, setInventarioProductos] = useState<any[]>([]);
   // Productos gastados en esta cita: persistidos en cita_productos. Al anadir
@@ -14730,10 +14737,13 @@ export function DetalleCitaModal({
     if (cobrada) return;
     let cancel = false;
     (async () => {
+      const citaIds = cobrarEncadenadoCompleto && chainSiblings.length > 1
+        ? chainSiblings.map((c: any) => c.id)
+        : [cita.id];
       const { data } = await supabase
         .from("pagos")
         .select("tipo, importe_cents, estado")
-        .eq("cita_id", cita.id);
+        .in("cita_id", citaIds);
       if (cancel) return;
       const senal = (data || [])
         .filter(
@@ -14747,7 +14757,7 @@ export function DetalleCitaModal({
     return () => {
       cancel = true;
     };
-  }, [cita.id, cobrada]);
+  }, [cita.id, cobrada, cobrarEncadenadoCompleto, chainSiblings]);
   // Historial del cliente (citas anteriores) para la pestaña Cliente.
   // Se muestran de 3 en 3; al cerrar la ficha el modal se desmonta y el
   // contador vuelve solo a 3.
@@ -14906,38 +14916,47 @@ export function DetalleCitaModal({
     setGuardando(true);
     setErrMsg("");
     try {
-      const { data, error } = await supabase.rpc("marcar_cita_no_show", {
-        p_cita_id: cita.id,
-      });
-      const res = (data ?? {}) as {
-        ok?: boolean;
-        error?: string;
-        hold_pago_id?: string | null;
-        capturar_auto?: boolean;
-      };
-      if (error || !res.ok) {
-        const map: Record<string, string> = {
-          no_autorizado: "No tienes permiso para marcar ausencias.",
-          cita_futura: "La cita aun no ha pasado.",
-          estado_no_valido:
-            "Solo se puede marcar en citas confirmadas o completadas.",
+      const citaIds = chainSiblings.length > 1
+        ? chainSiblings.filter((c: any) => c.cliente_id === cita.cliente_id).map((c: any) => c.id)
+        : [cita.id];
+
+      for (const cid of citaIds) {
+        const { data, error } = await supabase.rpc("marcar_cita_no_show", {
+          p_cita_id: cid,
+        });
+        const res = (data ?? {}) as {
+          ok?: boolean;
+          error?: string;
+          hold_pago_id?: string | null;
+          capturar_auto?: boolean;
         };
-        setErrMsg(
-          error?.message ||
-            map[res.error ?? ""] ||
-            "No se pudo marcar la ausencia.",
-        );
-        setGuardando(false);
-        return;
-      }
-      // Fianza en modo hold: si el negocio captura en auto y hay retencion, capturarla ahora.
-      if (res.capturar_auto && res.hold_pago_id) {
-        try {
-          await supabase.functions.invoke("capturar-hold", {
-            body: { pago_id: res.hold_pago_id },
-          });
-        } catch {
-          /* no bloquear el no-show */
+        if (error || !res.ok) {
+          if (cid === cita.id) {
+            const map: Record<string, string> = {
+              no_autorizado: "No tienes permiso para marcar ausencias.",
+              cita_futura: "La cita aun no ha pasado.",
+              estado_no_valido:
+                "Solo se puede marcar en citas confirmadas o completadas.",
+            };
+            setErrMsg(
+              error?.message ||
+                map[res.error ?? ""] ||
+                "No se pudo marcar la ausencia.",
+            );
+            setGuardando(false);
+            return;
+          }
+        } else {
+          // Fianza en modo hold: si el negocio captura en auto y hay retencion, capturarla ahora.
+          if (res.capturar_auto && res.hold_pago_id) {
+            try {
+              await supabase.functions.invoke("capturar-hold", {
+                body: { pago_id: res.hold_pago_id },
+              });
+            } catch {
+              /* no bloquear el no-show */
+            }
+          }
         }
       }
       onSaved?.();
@@ -15608,6 +15627,7 @@ export function DetalleCitaModal({
           .from("citas")
           .update(payload)
           .eq("grupo_id", cita.grupo_id)
+          .eq("cliente_id", cita.cliente_id)
           .neq("id", cita.id);
       }
       // Serie recurrente: si se pidio "y las siguientes", cancela las futuras de la serie.
@@ -18955,20 +18975,52 @@ export function DetalleCitaModal({
             )}
             {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
               <div style={{ width: "100%" }}>
+                {chainSiblings.length > 1 && (
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 12,
+                      padding: "10px 14px",
+                      background: "rgba(244,80,30,0.06)",
+                      border: "1px solid rgba(244,80,30,0.2)",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: TOKENS.text,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={cobrarEncadenadoCompleto}
+                      onChange={(e) => setCobrarEncadenadoCompleto(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: TOKENS.primary }}
+                    />
+                    Cobrar todo el servicio encadenado junto ({chainSiblings.length} servicios)
+                  </label>
+                )}
                 {(() => {
-                  const baseCents = Math.round(
-                    Number(selectedServicio?.precio ?? servicio?.precio ?? 0) *
-                      100,
-                  );
-                  const pendienteCents = Math.max(
-                    0,
-                    baseCents - cobroSenalCents,
-                  );
+                  const baseCents = cobrarEncadenadoCompleto && chainSiblings.length > 1
+                    ? chainSiblings.reduce((sum: number, sibling: any) => {
+                        const srv = servicios.find((s: any) => s.id === sibling.servicio_id);
+                        return sum + Math.round((srv?.precio ?? 0) * 100);
+                      }, 0)
+                    : Math.round(
+                        Number(selectedServicio?.precio ?? servicio?.precio ?? 0) * 100
+                      );
+
+                  const pendienteCents = Math.max(0, baseCents - cobroSenalCents);
+                  const citaIdsToCharge = cobrarEncadenadoCompleto && chainSiblings.length > 1
+                    ? chainSiblings.map((c: any) => c.id)
+                    : [cita.id];
+
                   return (
                     <CobroSheet
                       mode="cita"
                       inline
-                      citaIds={[cita.id]}
+                      citaIds={citaIdsToCharge}
                       lineasIniciales={productosCita.map((p) => ({
                         nombre: p.nombre,
                         precio: String(p.precio),
@@ -18977,7 +19029,10 @@ export function DetalleCitaModal({
                       }))}
                       pendienteCents={pendienteCents}
                       senalCents={cobroSenalCents}
-                      subtitulo={`${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`}
+                      subtitulo={cobrarEncadenadoCompleto && chainSiblings.length > 1
+                        ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
+                        : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
+                      }
                       subtituloColor={selectedServicioColor ?? undefined}
                       onClose={() => {}}
                       onSuccess={(cobroIds) => {
@@ -19243,17 +19298,28 @@ export function DetalleCitaModal({
       {/* Modal de cobro (POS-0/1): motor compartido con Caja, ver components/pos/CobroSheet */}
       {showCobro &&
         (() => {
-          const baseCents = Math.round(
-            Number(selectedServicio?.precio ?? servicio?.precio ?? 0) * 100,
-          );
+          const baseCents = cobrarEncadenadoCompleto && chainSiblings.length > 1
+            ? chainSiblings.reduce((sum: number, sibling: any) => {
+                const srv = servicios.find((s: any) => s.id === sibling.servicio_id);
+                return sum + Math.round((srv?.precio ?? 0) * 100);
+              }, 0)
+            : Math.round(
+                Number(selectedServicio?.precio ?? servicio?.precio ?? 0) * 100,
+              );
           const pendienteCents = Math.max(0, baseCents - cobroSenalCents);
+          const citaIdsToCharge = cobrarEncadenadoCompleto && chainSiblings.length > 1
+            ? chainSiblings.map((c: any) => c.id)
+            : [cita.id];
           return (
             <CobroSheet
               mode="cita"
-              citaIds={[cita.id]}
+              citaIds={citaIdsToCharge}
               pendienteCents={pendienteCents}
               senalCents={cobroSenalCents}
-              subtitulo={`${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`}
+              subtitulo={cobrarEncadenadoCompleto && chainSiblings.length > 1
+                ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
+                : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
+              }
               subtituloColor={selectedServicioColor ?? undefined}
               onClose={() => setShowCobro(false)}
               onSuccess={(cobroIds) => {
