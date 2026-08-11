@@ -28,7 +28,7 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
           .select(`
             id, cobrado_at, total_cents, metodo, estado,
             cita_id,
-            citas (
+            citas!cobros_cita_id_fkey (
               id, inicio,
               clientes ( nombre ),
               servicios ( nombre )
