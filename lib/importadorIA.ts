@@ -1,6 +1,7 @@
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { extractDocumentContent } from '@/lib/documentExtractor';
 import { CATEGORY_COLOR_TOKENS } from '@/lib/categoryColors';
+import { reportarError } from '@/lib/reportarError';
 
 export interface ExtractedServicio {
   idTemp: string;
@@ -323,6 +324,7 @@ export async function ejecutarImportacionTarifas(
             .single();
 
           if (catErr) {
+            reportarError(catErr, { origen: 'app', tipo: 'operativo' });
             errores.push(`Categoría "${catNombre}": ${catErr.message}`);
           } else if (newCat) {
             catMap.set(key, newCat.id);
@@ -351,6 +353,7 @@ export async function ejecutarImportacionTarifas(
       }, { onConflict: 'negocio_id,nombre' });
 
       if (srvErr) {
+        reportarError(srvErr, { origen: 'app', tipo: 'operativo' });
         errores.push(`Servicio "${s.nombre}": ${srvErr.message}`);
       } else if (s.yaExiste) {
         actualizadas++;
@@ -367,6 +370,7 @@ export async function ejecutarImportacionTarifas(
       errores,
     };
   } catch (e: any) {
+    reportarError(e, { origen: 'app', tipo: 'operativo' });
     return {
       ok: false,
       creadas: 0,
