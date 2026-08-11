@@ -24,17 +24,18 @@ export interface ResultadoPropuesta {
  * Propone al cliente adelantar su cita. No mueve nada todavia.
  *
  * @param margenReaccionMin minutos que como minimo deben quedar entre AHORA y la
- *   hora nueva, para que le de tiempo a leer el aviso y contestar.
+ *   hora nueva, para que le de tiempo a leer el aviso y contestar. Opcional: si
+ *   se omite, la RPC aplica su default (120 min).
  */
 export async function proponerCambioCita(
   citaId: string,
   inicioPropuestoISO: string,
-  margenReaccionMin: number,
+  margenReaccionMin?: number,
 ): Promise<ResultadoPropuesta> {
   const { data, error } = await supabase.rpc('proponer_cambio_cita', {
     p_cita_id: citaId,
     p_inicio_propuesto: inicioPropuestoISO,
-    p_margen_reaccion_min: margenReaccionMin,
+    p_margen_reaccion_min: margenReaccionMin ?? 120,
   });
   if (error) {
     reportarError(error, { origen: 'app', tipo: 'operativo' });

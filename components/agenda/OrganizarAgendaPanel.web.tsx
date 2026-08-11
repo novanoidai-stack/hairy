@@ -17,6 +17,7 @@ import {
 import { toUpdate, type EstrategiaRetraso, type UpdateRetraso } from '@/lib/retrasos';
 import { evaluarTodas, type MotorOpts } from '@/lib/organizador/motorPropuestas';
 import type { MovimientoCandidato, PropuestasCita } from '@/lib/organizador/__types';
+import { proponerCambioCita, avisoRiesgoPropuesta } from '@/lib/propuestasCambio';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
 
 // Panel "Organizar mi agenda" (Sesion 5, PLAN-IA-CHISPA-V2-REDISENO.md): analiza
@@ -78,7 +79,7 @@ export interface OrganizarAgendaPanelProps {
   // Cierres del salon (festivos / cierres_negocio). Sin esto el panel no sabia
   // que un dia esta cerrado y trataba las citas de ese dia como validas.
   cierres?: CierreNegocio[];
-  limites?: { maxAdelantoMin?: number; umbralHuecoMin?: number };
+  limites?: { maxAdelantoMin?: number; umbralHuecoMin?: number; margenReaccionMin?: number };
   negocioId: string;
   isMobile?: boolean;
   // Dia que se esta viendo en la agenda. Sin esto el panel analizaba siempre HOY
@@ -398,6 +399,42 @@ export default function OrganizarAgendaPanel({
     setAplicandoTodo(false);
   }
 
+  // Fase 3 — Proponer al cliente un ADELANTO en vez de aplicarlo en caliente.
+  // Reutiliza proponer_cambio_cita (RPC existente): envia WhatsApp, retiene el
+  // hueco con reserva_temporal y NO mueve la cita hasta que la clienta conteste
+  // en /app/cita/[id]?propuesta=... . La RPC solo admite horas ANTERIORES a la
+  // actual de la cita, por eso el boton solo aparece cuando el candidato del
+  // motor es anterior (el caller ya lo garantiza; aqui no se revalida).
+  async function proponerAlCliente(estadoId: string, cita: CitaOrganizar, cand: MovimientoCandidato) {
+    setError('');
+    setAvisoDemo('');
+    setAplicandoId(estadoId);
+    try {
+      if (esDemoCompartida) {
+        await new Promise((r) => setTimeout(r, 350));
+        setAvisoDemo('Hecho (demostracion). En tu cuenta se enviaria el WhatsApp y se reservaria el hueco hasta que conteste.');
+        return;
+      }
+      if (!userId) {
+        setError('No se pudo obtener tu perfil de usuario.');
+        return;
+      }
+      const inicioPropuesto = new Date(cand.fases.ini).toISOString();
+      const res = await proponerCambioCita(cita.id, inicioPropuesto, limites?.margenReaccionMin);
+      if (!res.ok) {
+        setError(
+          res.sinTelefono
+            ? 'Esta clienta no tiene telefono en ficha: no se le puede avisar por WhatsApp.'
+            : (res.error || 'No se pudo proponer el cambio. Quiza la hora ya no es valida.'),
+        );
+        return;
+      }
+      setAvisoDemo(`Propuesta enviada por WhatsApp. ${avisoRiesgoPropuesta(res.expiraAt)}`);
+    } finally {
+      setAplicandoId(null);
+    }
+  }
+
   const bloqueado = aplicandoTodo || aplicandoId !== null;
 
   return (
@@ -577,6 +614,19 @@ export default function OrganizarAgendaPanel({
                           Nada que mover: es un aviso para llenarlo tu.
                         </span>
                       )}
+                      {/* Proponer al cliente: solo cuando hay candidato directo del
+                          motor (mismo dia/profesional) Y es un adelanto (la RPC
+                          proponer_cambio_cita rechaza horas posteriores). Es la
+                          alternativa "pregunta antes de mover" al Aplicar en frio. */}
+                      {motorDirecto && citaPrincipal && motorDirecto.fases.ini < +new Date(citaPrincipal.inicio) && (
+                        <button
+                          onClick={() => proponerAlCliente(p.id, citaPrincipal, motorDirecto)}
+                          disabled={bloqueado}
+                          style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primaryHi}`, background: 'transparent', color: T.primaryHi, fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado ? 0.5 : 1 }}
+                        >
+                          Proponer al cliente
+                        </button>
+                      )}
                       {onEnsenar && (
                         <button
                           onClick={() => onEnsenar(p)}
@@ -624,7 +674,7 @@ export default function OrganizarAgendaPanel({
                           <span style={{ fontSize: 11, fontWeight: 700, color: T.textTer, whiteSpace: 'nowrap' }}>{prof?.nombre ?? ''}</span>
                         </div>
                         <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {cand.razonScore}</div>
-                        <div style={{ display: 'flex', gap: 8, marginLeft: 34, marginTop: 2 }}>
+                        <div style={{ display: 'flex', gap: 8, marginLeft: 34, marginTop: 2, flexWrap: 'wrap' }}>
                           <button
                             onClick={() => aplicarCandidato(cita.id, cita, cand)}
                             disabled={bloqueado}
@@ -632,6 +682,15 @@ export default function OrganizarAgendaPanel({
                           >
                             {aplicandoEsta ? 'Aplicando...' : 'Aplicar'}
                           </button>
+                          {cand.fases.ini < +new Date(cita.inicio) && (
+                            <button
+                              onClick={() => proponerAlCliente(cita.id, cita, cand)}
+                              disabled={bloqueado}
+                              style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primaryHi}`, background: 'transparent', color: T.primaryHi, fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado ? 0.5 : 1 }}
+                            >
+                              Proponer al cliente
+                            </button>
+                          )}
                         </div>
                       </div>
                     );

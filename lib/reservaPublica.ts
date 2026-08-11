@@ -392,6 +392,40 @@ export async function confirmarCitaOferta(citaId: string, telefono: string): Pro
   return data as ConfirmarOfertaResult;
 }
 
+export interface ResponderPropuestaResult {
+  ok: boolean;
+  // true = el cliente acepto y la cita se adelanto; false = la rechazo.
+  aceptada?: boolean;
+  // Nuevo inicio (ISO) cuando se acepta. Sirve para confirmarle la nueva hora.
+  inicio?: string;
+  // Mensaje en español listo para mostrar si la propuesta no se pudo resolver
+  // (telefono que no casa, expirada, o la cita subyacente ya se movio).
+  error?: string;
+  // Estado de la propuesta si fallo (caducada, cancelada...). Informativo.
+  estado?: string;
+}
+
+// Responde a una propuesta de cambio de hora (citas_propuestas_cambio) hecha por
+// el salon desde el organizador. Anon-callable como el resto del portal: la
+// prueba de propiedad es el telefono (normalizar_telefono), igual que en
+// confirmar_cita_oferta. Si acepta, la RPC adelanta la cita y libera el hueco
+// retenido (bloqueos_profesional.tipo='reserva_temporal').
+export async function responderPropuestaCambio(args: {
+  slug: string;
+  propuestaId: string;
+  telefono: string;
+  acepta: boolean;
+}): Promise<ResponderPropuestaResult> {
+  const { data, error } = await supabase.rpc('responder_propuesta_cambio', {
+    p_slug: args.slug,
+    p_propuesta_id: args.propuestaId,
+    p_telefono: args.telefono,
+    p_acepta: args.acepta,
+  });
+  if (error) throw error;
+  return (data ?? {}) as ResponderPropuestaResult;
+}
+
 export interface CancelarCitaResult {
   ok: boolean;
   cita_id: string;

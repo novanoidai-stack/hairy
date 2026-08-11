@@ -615,6 +615,21 @@ export default function AgendaCalendar() {
     { fecha: string; motivo: string | null }[]
   >([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
+  // Propuestas de cambio de cita PENDIENTES (citas_propuestas_cambio). Cada una
+  // retiene un hueco (bloqueos_profesional.tipo='reserva_temporal') a la espera
+  // de que la clienta confirme el adelanto por WhatsApp. Sin cargarlas, la
+  // rejilla no sabia que una cita tiene un cambio propuesto (sin badge) y el
+  // hueco retenido se pintaba con el gris por defecto al no existir la entrada
+  // 'reserva_temporal' en BLOQUEO_COLORS. Es el bug "no se ve que esta pendiente
+  // de confirmarse".
+  const [propuestas, setPropuestas] = useState<any[]>([]);
+  const propuestaPorCitaId = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const p of propuestas) {
+      if (p && p.estado === "pendiente" && p.cita_id) m.set(p.cita_id, p);
+    }
+    return m;
+  }, [propuestas]);
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
   const [hideCitasVencidas, setHideCitasVencidas] = useState(false);
   useEffect(() => {
@@ -1044,6 +1059,7 @@ export default function AgendaCalendar() {
           cierreResult,
           horarioResult,
           horarioProfResult,
+          propuestasResult,
         ] = await Promise.all([
           supabase
             .from("profesionales")
@@ -1119,6 +1135,14 @@ export default function AgendaCalendar() {
           supabase
             .from("horarios_profesional")
             .select("profesional_id, dia_semana, hora_inicio, hora_fin, turno"),
+          // Propuestas de cambio de cita pendientes (Fase 3): alimentan el badge
+          // "Cambio propuesto" en la cita original y pintan el hueco retenido
+          // (reserva_temporal) en violeta en vez del gris por defecto. RLS deja
+          // leer solo las del propio negocio (propuestas_read_own_negocio).
+          supabase
+            .from("citas_propuestas_cambio")
+            .select("*")
+            .eq("negocio_id", negocioId),
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
@@ -1147,6 +1171,7 @@ export default function AgendaCalendar() {
         setHorarios(horarioResult.data ?? []);
         setHorariosProf((horarioProfResult as any)?.data ?? []);
         setCierres((cierreResult as any)?.data ?? []);
+        setPropuestas((propuestasResult as any)?.data ?? []);
         const addonMap: Record<string, any[]> = {};
         for (const row of addonsResult.data ?? []) {
           if (!addonMap[row.cita_id]) addonMap[row.cita_id] = [];
@@ -3154,6 +3179,7 @@ export default function AgendaCalendar() {
                   "formacion",
                   "reunion",
                   "descanso",
+                  "reserva_temporal",
                 ] as const
               ).map((tipo) => (
                 <span
@@ -4787,6 +4813,7 @@ export default function AgendaCalendar() {
                   agendaFit={agendaFit}
                   zonasResaltadas={zonasResaltadas}
                   horariosProf={horariosProf}
+                  propuestaPorCitaId={propuestaPorCitaId}
                 />
               )}
             </>
@@ -6818,6 +6845,11 @@ const BLOQUEO_COLORS: Record<string, string> = {
   baja: "#e23b34",
   formacion: "#c0260a",
   descanso: "#e08a00",
+  // Reserva temporal: hueco retenido mientras una clienta decide si acepta un
+  // cambio propuesto (citas_propuestas_cambio). Violeta, deliberadamente
+  // distinto de cualquier bloqueo de persona, para que se vea que es un hueco
+  // "con nombre" esperando confirmacion, no un tramo no laborable.
+  reserva_temporal: "#7c3aed",
 };
 const BLOQUEO_LABELS: Record<string, string> = {
   fuera_jornada: "Fuera de jornada",
@@ -6827,6 +6859,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
   baja: "Baja",
   formacion: "Formación",
   descanso: "Descanso",
+  reserva_temporal: "Hueco reservado",
 };
 
 // Memoizado: no re-renderiza la agenda entera cuando el padre cambia estado
@@ -6865,6 +6898,9 @@ function DayTimeline({
   agendaFit = true,
   // Zonas a resaltar en modo "Enseñamelo" (ProblemaAgenda[]). Vacio = nada.
   zonasResaltadas = [],
+  // Map cita_id -> propuesta de cambio pendiente (Fase 3). Pinta el badge
+  // "Cambio propuesto HH:MM" en la cita original.
+  propuestaPorCitaId = new Map(),
 }: any) {
   const { isMobile, isTablet } = useResponsive();
   // Rango horario base = apertura..cierre. Si alguna cita del día seleccionado
@@ -8712,6 +8748,39 @@ function DayTimeline({
                                 +{cita._desbordaMin}′
                               </span>
                             )}
+                            {/* Fase 3: esta cita tiene un cambio de hora
+                                propuesto a la clienta (pendiente de que confirme
+                                por WhatsApp). Sin el badge, el salon no ve que
+                                hay un adelanto sobre la mesa y puede mover la
+                                cita por debajo. Violeta, mismo idioma que el
+                                bloque reserva_temporal que retiene el hueco. */}
+                            {propuestaPorCitaId.has(cita.id) && !cancelada && (() => {
+                              const prop = propuestaPorCitaId.get(cita.id);
+                              const hhmm = new Date(prop.inicio_propuesto).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+                              return (
+                                <span
+                                  title={`Cambio propuesto a las ${hhmm} — pendiente de confirmación del cliente`}
+                                  style={{
+                                    position: "absolute",
+                                    bottom: 2,
+                                    left: 2,
+                                    zIndex: 8,
+                                    padding: "1px 6px",
+                                    borderRadius: 999,
+                                    background: "#7c3aed",
+                                    color: "#fff",
+                                    fontSize: 8.5,
+                                    fontWeight: 800,
+                                    lineHeight: 1.5,
+                                    whiteSpace: "nowrap",
+                                    pointerEvents: "none",
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                                  }}
+                                >
+                                  ↻ {hhmm}
+                                </span>
+                              );
+                            })()}
                             {hasEspera &&
                               !cancelada &&
                               (() => {

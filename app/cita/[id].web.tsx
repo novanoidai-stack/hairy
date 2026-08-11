@@ -4,6 +4,7 @@ import { MechaMark } from '@/components/ui/MechaMark';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import {
   getCitaPublica, cancelarCitaPublica, modificarCitaPublica, confirmarCitaOferta,
+  responderPropuestaCambio,
   getDiasDisponibles, getDisponibilidad, actualizarConsentimientoIa,
   type CitaPublica, type SlotDisponible,
 } from '@/lib/reservaPublica';
@@ -100,18 +101,24 @@ function diaClaveLocal(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-type Step = 'phone' | 'view' | 'confirmCancel' | 'reschedule' | 'cancelled' | 'rescheduled' | 'confirmedOffer';
+type Step = 'phone' | 'view' | 'confirmCancel' | 'reschedule' | 'cancelled' | 'rescheduled' | 'confirmedOffer' | 'propuestaConfirm' | 'propuestaDone';
 
 export default function GestionCitaWeb() {
-  const params = useLocalSearchParams<{ id: string; s?: string }>();
+  const params = useLocalSearchParams<{ id: string; s?: string; propuesta?: string }>();
   const citaId = String(params.id || '');
   const slug = String(params.s || '');
+  // Fase 3: enlace de propuesta de cambio de hora. Cuando llega por
+  // ?propuesta=<uuid>, la pagina se vuelve una pantalla de Aceptar/Rechazar el
+  // adelanto propuesto por el salon, en vez del flujo normal de gestion.
+  const propuestaId = String(params.propuesta || '');
 
   const [step, setStep] = useState<Step>('phone');
   const [tel, setTel] = useState('');
   const [cita, setCita] = useState<CitaPublica | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  // Resultado de responder a una propuesta (pantalla propuestaDone).
+  const [propuestaResultado, setPropuestaResultado] = useState<{ aceptada: boolean; inicio?: string } | null>(null);
 
   // Reagendar
   const [dias, setDias] = useState<string[]>([]);
@@ -131,14 +138,16 @@ export default function GestionCitaWeb() {
         setErr('No encontramos ninguna cita con ese teléfono. Usa el mismo número con el que reservaste.');
       } else {
         setCita(c);
-        setStep('view');
+        // Si entro por un enlace de propuesta, tras verificar el telefono voy a
+        // la pantalla de Aceptar/Rechazar en vez de la gestion normal.
+        setStep(propuestaId ? 'propuestaConfirm' : 'view');
       }
     } catch {
       setErr('No se pudo cargar la cita. Inténtalo de nuevo en un momento.');
     } finally {
       setBusy(false);
     }
-  }, [slug, citaId, tel]);
+  }, [slug, citaId, tel, propuestaId]);
 
   const confirmarCancelar = useCallback(async () => {
     if (!cita) return;
@@ -236,6 +245,33 @@ export default function GestionCitaWeb() {
     }
   }, [cita, citaId, tel]);
 
+  // Fase 3 — responder a una propuesta de cambio de hora. El salon propone un
+  // adelanto desde el organizador; la clienta lo acepta o rechaza desde este
+  // enlace (?propuesta=<uuid>). Si acepta, la RPC mueve la cita y devuelve la
+  // nueva hora; si el telefono no casa o expiró, se le explica sin filtrar
+  // datos. Mismo telefono-como-prueba que el resto del portal.
+  const responderPropuesta = useCallback(async (acepta: boolean) => {
+    if (!cita || !propuestaId) return;
+    setErr(''); setBusy(true);
+    try {
+      const r = await responderPropuestaCambio({ slug, propuestaId, telefono: tel.trim(), acepta });
+      if (r.ok && r.aceptada) {
+        if (r.inicio) setCita({ ...cita, inicio: r.inicio });
+        setPropuestaResultado({ aceptada: true, inicio: r.inicio });
+        setStep('propuestaDone');
+      } else if (r.ok && r.aceptada === false) {
+        setPropuestaResultado({ aceptada: false });
+        setStep('propuestaDone');
+      } else {
+        setErr(r.error || 'No se ha podido procesar esta propuesta. Quizá ya ha expirado.');
+      }
+    } catch {
+      setErr('No se pudo procesar ahora. Inténtalo de nuevo en un momento.');
+    } finally {
+      setBusy(false);
+    }
+  }, [cita, propuestaId, slug, tel]);
+
   const diasView = useMemo(() => dias.map(d => {
     const dt = new Date(d + 'T12:00:00');
     return {
@@ -276,7 +312,7 @@ export default function GestionCitaWeb() {
       )}
 
       {/* PASO — Telefono */}
-      {enlaceValido && step === 'phone' && (
+      {enlaceValido && !propuestaId && step === 'phone' && (
         <Panel>
           <div className="gc-step">
             <H titulo="Gestiona tu cita" sub="Introduce tu teléfono para ver, cambiar o cancelar tu cita." />
@@ -285,6 +321,23 @@ export default function GestionCitaWeb() {
             {err && <ErrBox msg={err} />}
             <button className="gc-cta" onClick={cargarCita} disabled={busy || tel.length < 8} style={{ ...primaryBtn, opacity: busy || tel.length < 8 ? 0.6 : 1 }}>
               {busy ? 'Buscando…' : 'Ver mi cita'}
+            </button>
+          </div>
+        </Panel>
+      )}
+
+      {/* PASO — Telefono (propuesta de cambio). Mismo input, otro copy: aqui no
+          vamos a gestionar la cita, sino a confirmar o rechazar el adelanto que
+          propone el salon. El telefono sigue siendo la prueba de propiedad. */}
+      {enlaceValido && propuestaId && step === 'phone' && (
+        <Panel>
+          <div className="gc-step">
+            <H titulo="El salón te propone un cambio" sub="Introduce tu teléfono para confirmar o rechazar el adelanto de hora que te han propuesto por WhatsApp." />
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: T.textSec, marginBottom: 7 }}>Tu teléfono</label>
+            <PhoneInput value={tel} onChange={(e164) => setTel(e164)} placeholder="600 000 000" autoFocus />
+            {err && <ErrBox msg={err} />}
+            <button className="gc-cta" onClick={cargarCita} disabled={busy || tel.length < 8} style={{ ...primaryBtn, opacity: busy || tel.length < 8 ? 0.6 : 1 }}>
+              {busy ? 'Comprobando…' : 'Continuar'}
             </button>
           </div>
         </Panel>
@@ -454,6 +507,41 @@ export default function GestionCitaWeb() {
           <Exito titulo="Cita confirmada" sub={`Te esperamos el ${fmtFechaLarga(cita.inicio)} a las ${fmtHora(cita.inicio)}. El hueco es tuyo.`}>
             <CitaCard cita={cita} />
           </Exito>
+        </Panel>
+      )}
+
+      {/* PASO — Confirmar propuesta de cambio (Fase 3). La clienta ve su cita
+          actual y decide si acepta el adelanto. No mostramos la hora nueva aqui
+          porque la propuesta no se puede leer de forma anonima; la RPC la
+          devuelve al aceptar y la enseñamos en el paso siguiente. */}
+      {step === 'propuestaConfirm' && cita && (
+        <Panel>
+          <div className="gc-step">
+            <H titulo="¿Adelantamos tu cita?" sub="Tu salón te propone venir antes. Si aceptas, movemos tu cita a la nueva hora; si no, se queda exactamente como está." />
+            <CitaCard cita={cita} />
+            {err && <ErrBox msg={err} />}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+              <button className="gc-cta" onClick={() => responderPropuesta(true)} disabled={busy} style={{ ...primaryBtn, opacity: busy ? 0.6 : 1 }}>
+                {busy ? 'Procesando…' : 'Sí, adelantar mi cita'}
+              </button>
+              <button className="gc-ghost" onClick={() => responderPropuesta(false)} disabled={busy} style={ghostBtn(T.textSec)}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}><Icon name="x" size={16} color={T.textSec} /> No, dejarla como está</span>
+              </button>
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      {/* PASO — Propuesta resuelta (Fase 3). */}
+      {step === 'propuestaDone' && cita && propuestaResultado && (
+        <Panel>
+          {propuestaResultado.aceptada ? (
+            <Exito titulo="Cita adelantada" sub={`Tu cita es ahora el ${fmtFechaLarga(propuestaResultado.inicio ?? cita.inicio)} a las ${fmtHora(propuestaResultado.inicio ?? cita.inicio)}. Te lo confirmamos por WhatsApp.`}>
+              <CitaCard cita={{ ...cita, inicio: propuestaResultado.inicio ?? cita.inicio }} />
+            </Exito>
+          ) : (
+            <Exito titulo="Cita sin cambios" sub="Has rechazado el cambio. Tu cita sigue como estaba; el hueco queda libre para alguien más." />
+          )}
         </Panel>
       )}
     </Shell>

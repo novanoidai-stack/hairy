@@ -894,7 +894,7 @@ export async function ejecutarAccion(
         // el comportamiento previo (fin_activa = fin) para no romper ese camino.
         let exito = 0;
         for (const mov of a.movimientos) {
-          const { data: prev } = await supabase.from('citas').select('inicio, profesional_id').eq('id', mov.cita_id).maybeSingle();
+          const { data: prev } = await supabase.from('citas').select('inicio, fin, fin_activa, fin_espera, profesional_id, servicio_id, negocio_id').eq('id', mov.cita_id).maybeSingle();
           const patch: Record<string, string | boolean> = {
             inicio: mov.nuevo_inicio,
             fin: mov.nuevo_fin,
@@ -913,6 +913,28 @@ export async function ejecutarAccion(
               cambios.push({ campo: 'profesional_id', anterior: (prev?.profesional_id as string) ?? null, nuevo: mov.nuevo_profesional_id });
             }
             await registrarHistorialIA(a.negocio_id, mov.cita_id, cambios, 'Reorganizada por Chispa');
+            // Fase 3 — ofrecer el hueco que deja la cita en su posicion vieja a
+            // la lista de espera. Best-effort: si la RPC no esta desplegada aun
+            // (migracion organizador-revisar-hueco-lista-espera.sql pendiente de
+            // aplicar) o el matching esta inactivo / sin candidatos, PostgREST
+            // devuelve error y lo ignoramos. Nunca debe romper el movimiento, que
+            // ya se ha aplicado y auditado arriba.
+            if (prev?.inicio && prev?.negocio_id) {
+              const { error: rerr } = await supabase.rpc('revisar_hueco_lista_espera', {
+                p_origen_cita_id: mov.cita_id,
+                p_negocio_id: prev.negocio_id,
+                p_servicio_id: prev.servicio_id ?? null,
+                p_profesional_id: prev.profesional_id ?? null,
+                p_slot_inicio: prev.inicio,
+                p_slot_fin: prev.fin ?? null,
+                p_slot_fin_activa: prev.fin_activa ?? null,
+                p_slot_fin_espera: prev.fin_espera ?? null,
+              });
+              if (rerr) {
+                // RPC ausente o no-op silencioso: no es un error del movimiento.
+                void rerr;
+              }
+            }
           }
         }
         // Registrar accion reversible (optimizar → volver a marcas previas)
