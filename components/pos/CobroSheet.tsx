@@ -81,6 +81,8 @@ export function CobroSheet(props: CobroSheetProps) {
   const [descuento, setDescuento] = useState('');
   const [propina, setPropina] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [cobroCompletado, setCobroCompletado] = useState(false);
+  const [ultimoCobroIds, setUltimoCobroIds] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [bonoDisponible, setBonoDisponible] = useState<any>(null);
   const [usarBono, setUsarBono] = useState(false);
@@ -306,7 +308,8 @@ export function CobroSheet(props: CobroSheetProps) {
         if (rpcErr) throw rpcErr;
         const cobroId = data as string;
         await aplicarTarjetaRegalo(cobroId);
-        onSuccess([cobroId]);
+        setUltimoCobroIds([cobroId]);
+        setCobroCompletado(true);
       } else if (props.mode === 'presupuesto') {
         const { data, error: rpcErr } = await supabase.rpc('crear_cobro_desde_presupuesto', {
           p_presupuesto_id: props.presupuestoId,
@@ -317,7 +320,8 @@ export function CobroSheet(props: CobroSheetProps) {
         if (rpcErr) throw rpcErr;
         const cobroId = data as string;
         await aplicarTarjetaRegalo(cobroId);
-        onSuccess([cobroId]);
+        setUltimoCobroIds([cobroId]);
+        setCobroCompletado(true);
       } else {
         if (usarBono && bonoDisponible && props.citaIds.length === 1) {
           const { data, error: rpcErr } = await supabase.rpc('consumir_bono_cita', {
@@ -326,7 +330,8 @@ export function CobroSheet(props: CobroSheetProps) {
             p_propina_cents: propinaCents
           });
           if (rpcErr) throw rpcErr;
-          onSuccess([data as string]);
+          setUltimoCobroIds([data as string]);
+          setCobroCompletado(true);
         } else {
           // Productos extra del ticket: se adjuntan al PRIMER cobro del lote
           // para no duplicarlos en cada cita. Antes solo se enviaban con 1 cita
@@ -362,7 +367,8 @@ export function CobroSheet(props: CobroSheetProps) {
           const cobroIds = resultados.map((r) => r.data as string);
           // Aplicar tarjeta regalo al primer cobro (si hay multiples citas)
           if (cobroIds.length > 0) await aplicarTarjetaRegalo(cobroIds[0]);
-          onSuccess(cobroIds);
+          setUltimoCobroIds(cobroIds);
+          setCobroCompletado(true);
         }
       }
     } catch (err) {
@@ -405,6 +411,41 @@ export function CobroSheet(props: CobroSheetProps) {
     } catch { /* clipboard no disponible */ }
   };
 
+  // ─────────────────────────────────────────────────────────────────────────────────
+  // RENDER PANTALLA DE EXITO (Factura Generada)
+  // ─────────────────────────────────────────────────────────────────────────────────
+  if (cobroCompletado) {
+    return (
+      <div style={{ position: 'relative', flex: 1, padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', textAlign: 'center', overflow: 'hidden' }}>
+        <style>{`
+          @keyframes checkPop {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
+        <div style={{ width: 80, height: 80, borderRadius: 40, background: T.successSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, animation: 'checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 style={{ fontSize: 24, fontWeight: 700, color: T.text, margin: '0 0 12px' }}>Cobro efectuado correctamente</h2>
+        <p style={{ fontSize: 15, color: T.textSec, maxWidth: 300, margin: '0 0 32px', lineHeight: 1.5 }}>
+          Se ha generado y firmado el ticket electrónico inalterable asociado a esta operación.
+        </p>
+        <button
+          onClick={() => {
+            onSuccess(ultimoCobroIds);
+          }}
+          style={{ width: '100%', maxWidth: 300, padding: 14, background: T.primary, color: '#fff', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', marginBottom: 12 }}
+        >
+          Cerrar y continuar
+        </button>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────────
+  // RENDER FORMULARIO
+  // ─────────────────────────────────────────────────────────────────────────────────
   const titulo = props.mode === 'cita'
     ? (props.titulo || `Cobrar ${props.citaIds.length} cita${props.citaIds.length > 1 ? 's' : ''}`)
     : props.mode === 'presupuesto'
