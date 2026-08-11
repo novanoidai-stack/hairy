@@ -65,9 +65,19 @@ function Icon({ name, size = 16, color = T.text }: { name: string; size?: number
   }} />;
 }
 
-function EstadoChip({ estado }: { estado: PresupuestoEstado }) {
+function EstadoChip({ estado, advertencia }: { estado: PresupuestoEstado, advertencia?: string }) {
   const m = ESTADO_META[estado];
-  return <span style={{ fontSize: 11, fontWeight: 700, color: m.color, background: m.bg, padding: '3px 9px', borderRadius: 999 }}>{m.label}</span>;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ fontSize: 11, fontWeight: 700, color: m.color, background: m.bg, padding: '3px 9px', borderRadius: 999 }}>{m.label}</span>
+      {advertencia && (
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#d97706', background: '#fef3c7', padding: '3px 9px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="sparkles" size={10} color="#d97706" />
+          {advertencia}
+        </span>
+      )}
+    </div>
+  );
 }
 
 interface Salon { nombre: string; color: string; direccion: string | null; telefono: string | null; slug: string | null; }
@@ -864,7 +874,7 @@ function PresupuestosScreen() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: T.textTer }}>P-{p.numero}</span>
                       <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>{p.contacto_nombre || 'Sin nombre'}</span>
-                      <EstadoChip estado={p.estado} />
+                      <EstadoChip estado={p.estado} advertencia={tocaSeguimiento ? 'Sin respuesta' : undefined} />
                     </div>
                     <div style={{ fontSize: 12.5, color: T.textSec }}>
                       {p.titulo ? `${p.titulo} · ` : ''}{format(parseISO(p.created_at), "d MMM yyyy", { locale: es })}

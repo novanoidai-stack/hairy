@@ -176,6 +176,11 @@ export function proponerMovimientosCita(
     fasesPorProf.set(c.profesional_id, arr);
   }
 
+  // ¿La cita esta fuera de jornada en su posicion actual? Se calcula una sola
+  // vez y lo usa addCandidato para dar bonus a cualquier reubicacion valida.
+  const ctxActualPre = ctxPara(profActualId, new Date(propia.ini).toISOString());
+  const enJornadaActual = fasesEnJornada(propia, ctxActualPre.tramos, ctxActualPre.bloqueosMs);
+
   const addCandidato = (
     nuevoInicioMs: number,
     pid: string,
@@ -195,41 +200,71 @@ export function proponerMovimientosCita(
 
     const cambioDia = fechaYmd !== diaActualYmd;
     const cambioTrabajador = pid !== profActualId;
-    const gananciaMin = Math.round((propia.ini - nuevoInicioMs) / MIN);
     const umbralMin = umbralMs / MIN;
 
     // ---- Score ----
+    // El score mide "cuanto mejor queda el dia si aplico esto". Hay dos regimenes:
+    //  - COMPACTAR (mismo dia, mismo trabajador): la ganancia es lineal en min
+    //    adelantados. Cada minuto adelantado suma 1; retrasar resta.
+    //  - REUBICAR (cambio de dia o de trabajador): la "ganancia" no es lineal
+    //    (mover al dia siguiente son -960 min lineales, absurdo). Aqui lo que
+    //    cuenta es: (a) dejar la cita DENTRO de jornada si ahora esta fuera, y
+    //    (b) cuanto de antes cae dentro del dia destino. Por eso el score de
+    //    reubicacion se mide contra la APERTURA del dia destino, no contra el
+    //    inicio original.
     let score = 0;
     const razones: string[] = [];
-    // Compactacion: cada minuto adelantado suma 1; cada minuto retrasado resta.
-    score += gananciaMin;
-    if (gananciaMin < 0) {
-      score += Math.abs(gananciaMin) * (PENAL_RETRASO - 1); // retraso neto negativo
-      razones.push(`retrasa ${Math.abs(gananciaMin)} min`);
-    } else if (gananciaMin >= umbralMin) {
-      razones.push(`compacta ${gananciaMin} min`);
-    } else if (gananciaMin > 0) {
-      // Micro-movimiento por debajo del umbral: penaliza para que NO supere al
-      // "quedarse donde esta". Es el requisito del usuario: "si mueves una cita
-      // un poquito, no te lo propongo". Restamos el umbral para que solo gane
-      // si compensa de verdad.
-      score -= umbralMin;
-      razones.push(`micro-movimiento de ${gananciaMin} min (por debajo del umbral ${Math.round(umbralMin)})`);
-    }
-    // Bonus por aprovechar reposo de otra cita.
+    // Bonus por aprovechar reposo de otra cita (aplica a ambos regimenes).
     const enReposo = obstaculos.some((o) => o.finE > o.finA && nuevoInicioMs >= o.finA && nuevoInicioMs < o.finE);
     if (enReposo) {
       score += BONUS_REPOSO;
       razones.push('aprovecha un reposo libre');
     }
-    // Penalizaciones estructurales.
-    if (cambioDia) {
-      score -= PENAL_CAMBIO_DIA;
-      razones.push('cambia de día (requiere avisar al cliente)');
-    }
-    if (cambioTrabajador) {
-      score -= PENAL_CAMBIO_TRABAJADOR;
-      razones.push('cambia de profesional');
+
+    let gananciaMin: number;
+    if (cambioDia || cambioTrabajador) {
+      // Regimen REUBICAR. La cita va a otro dia/trabajador: lo que importa es
+      // colocar lo antes posible dentro del dia destino (mas manana = mas
+      // compacto), mas un bonus grande si la cita estaba fuera de jornada.
+      const ctxDest = ctxPara(pid, new Date(nuevoInicioMs).toISOString());
+      const tempranoEnElDia = Math.round((nuevoInicioMs - ctxDest.salon.aperturaMs) / MIN);
+      // Cuanto mas cerca de la apertura, mayor score (negativo si va despues).
+      score -= tempranoEnElDia;
+      if (!enJornadaActual) {
+        // Estaba fuera de jornada: cualquier reubicacion valida es una mejora
+        // enorme. Esto hace que el motor SI proponga "mover al dia siguiente"
+        // para una cita mal colocada.
+        score += 2000;
+        razones.push('saca la cita de un tramo no laborable');
+      }
+      if (cambioDia) {
+        score -= PENAL_CAMBIO_DIA;
+        razones.push('cambia de día (requiere avisar al cliente)');
+      }
+      if (cambioTrabajador) {
+        score -= PENAL_CAMBIO_TRABAJADOR;
+        razones.push('cambia de profesional');
+      }
+      // Para la UI: ganancia "aproximada" (no lineal). Reportamos 0 porque no
+      // adelanta compactando, reubica.
+      gananciaMin = enReposo ? BONUS_REPOSO : 0;
+      razones.push(`coloca a las ${new Date(nuevoInicioMs).getHours()}:${String(new Date(nuevoInicioMs).getMinutes()).padStart(2, '0')}`);
+    } else {
+      // Regimen COMPACTAR: mismo dia, mismo trabajador.
+      gananciaMin = Math.round((propia.ini - nuevoInicioMs) / MIN);
+      score += gananciaMin;
+      if (gananciaMin < 0) {
+        score += Math.abs(gananciaMin) * (PENAL_RETRASO - 1);
+        razones.push(`retrasa ${Math.abs(gananciaMin)} min`);
+      } else if (gananciaMin >= umbralMin) {
+        razones.push(`compacta ${gananciaMin} min`);
+      } else if (gananciaMin > 0) {
+        // Micro-movimiento por debajo del umbral: penaliza para que NO supere
+        // al "quedarse donde esta". Es el requisito del usuario: "si mueves una
+        // cita un poquito, no te lo propongo".
+        score -= umbralMin;
+        razones.push(`micro-movimiento de ${gananciaMin} min (por debajo del umbral ${Math.round(umbralMin)})`);
+      }
     }
 
     candidatos.push({
@@ -301,7 +336,6 @@ export function proponerMovimientosCita(
   // candidato valido (dentro de jornada) lo supera, aunque tenga penalizacion
   // por cambio de dia/trabajador. Asi el motor SI propone reubicar una cita
   // mal puesta al dia siguiente.
-  const enJornadaActual = fasesEnJornada(propia, ctxActual.tramos, ctxActual.bloqueosMs);
   const scoreActual = enJornadaActual
     ? 0
     : -(PENAL_CAMBIO_DIA + PENAL_CAMBIO_TRABAJADOR + 1000); // fuera de jornada: gravísimo

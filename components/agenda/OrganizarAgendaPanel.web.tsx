@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGlobalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -6,6 +6,7 @@ import { ejecutarAccion } from '@/lib/chispaOps';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import {
   analizarAgendaDia,
+  analizarAgendaRango,
   estrategiaAMovimientos,
   prepararCitas,
   type ProblemaAgenda,
@@ -135,11 +136,28 @@ export default function OrganizarAgendaPanel({
   const [error, setError] = useState('');
   const [avisoDemo, setAvisoDemo] = useState('');
   const [retrasoAbierto, setRetrasoAbierto] = useState<ProblemaAgenda | null>(null);
+  // Fase 2: vista multídia. 'dia' = el dia visible en la rejilla (comportamiento
+  // historico); 'semana' = hoy + 7 dias, agrupado por fecha. Es la "vision
+  // multídia" que pide el usuario: ver problemas futuros y poder mover a otro
+  // dia, no solo reorganizar el dia actual.
+  const [vista, setVista] = useState<'dia' | 'semana'>('dia');
+  // Latido: contador que se incrementa cada 75 s para que el useMemo de
+  // problemas recalcule con un "ahora" fresco. Asi el organizador "tiene
+  // latidos constantes" (req. del usuario): reevalua aunque nadie pulse nada,
+  // p.ej. cuando una cita se va quedando retrasada por el paso del tiempo.
+  const [latidoTick, setLatidoTick] = useState(0);
 
   useEffect(() => {
     let cancel = false;
     getUserProfile().then((p) => { if (!cancel) setUserId(p?.id ?? null); });
     return () => { cancel = true; };
+  }, []);
+
+  // Latido proactivo: cada 75 s, mientras el panel este abierto, reevalua.
+  // No reevaluamos mientras se esta aplicando algo (bloqueado) para no pisar.
+  useEffect(() => {
+    const id = setInterval(() => setLatidoTick((t) => t + 1), 75000);
+    return () => clearInterval(id);
   }, []);
 
   // Mismo adaptador que usa el contador de la rejilla (lib/organizarAgenda.ts):
@@ -152,11 +170,15 @@ export default function OrganizarAgendaPanel({
   const citasPorId = useMemo(() => new Map(citasHoy.map((c) => [c.id, c])), [citasHoy]);
 
   const diaMs = fechaVista ? +fechaVista : undefined;
+  // Fase 2: en modo 'semana' se analiza hoy + 7 dias con analizarAgendaRango
+  // (cada problema queda etiquetado con su fechaDia). En modo 'dia' sigue
+  // usando analizarAgendaDia sobre el dia visible (comportamiento historico).
+  // `latidoTick` entra en las deps para forzar el recálculo cada 75 s.
   const problemas = useMemo(
-    () =>
-      analizarAgendaDia(citasHoy, profesionales, {
-        ahoraMs: ahoraOverrideMs,
-        diaMs,
+    () => {
+      const ahora = ahoraOverrideMs ?? Date.now();
+      const base = {
+        ahoraMs: ahora,
         bloqueos,
         horarios,
         // Fixes Fase 1: horario real del profesional + cierres del salon. Sin
@@ -166,8 +188,18 @@ export default function OrganizarAgendaPanel({
         cierres,
         maxAdelantoMin: limites?.maxAdelantoMin,
         umbralHuecoMin: limites?.umbralHuecoMin,
-      }),
-    [citasHoy, profesionales, ahoraOverrideMs, diaMs, bloqueos, horarios, horariosProfesional, cierres, limites],
+      };
+      if (vista === 'semana') {
+        const desde = new Date(ahora);
+        desde.setHours(0, 0, 0, 0);
+        const hasta = new Date(desde);
+        hasta.setDate(hasta.getDate() + 7);
+        return analizarAgendaRango(citasHoy, profesionales, { ...base, desdeMs: +desde, hastaMs: +hasta });
+      }
+      return analizarAgendaDia(citasHoy, profesionales, { ...base, diaMs });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [citasHoy, profesionales, ahoraOverrideMs, diaMs, bloqueos, horarios, horariosProfesional, cierres, limites, vista, latidoTick],
   );
   const pendientes = problemas.filter((p) => !resueltasDemo.has(p.id));
   // 'hueco_vacio' es informativo (sin estrategia): no entra en "Aplicar los N".
@@ -251,14 +283,38 @@ export default function OrganizarAgendaPanel({
               <div style={{ fontSize: 16.5, fontWeight: 800, color: T.text }}>Organizar mi agenda</div>
               <div style={{ fontSize: 12.5, color: T.textSec, marginTop: 2 }}>
                 {pendientes.length === 0
-                  ? `Tu agenda de ${cuandoTxt} esta en orden`
-                  : `${pendientes.length} problema${pendientes.length > 1 ? 's' : ''} detectado${pendientes.length > 1 ? 's' : ''} ${cuandoTxt}`}
+                  ? `Tu agenda de ${vista === 'semana' ? 'la semana' : cuandoTxt} esta en orden`
+                  : `${pendientes.length} problema${pendientes.length > 1 ? 's' : ''} detectado${pendientes.length > 1 ? 's' : ''} ${vista === 'semana' ? 'esta semana' : cuandoTxt}`}
               </div>
             </div>
           </div>
           <button onClick={onClose} aria-label="Cerrar" style={{ padding: 6, background: 'transparent', border: 'none', color: T.textTer, cursor: 'pointer', flexShrink: 0 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
+        </div>
+
+        {/* Segmentos de vista: día (lo visible en la rejilla) vs semana (hoy+7).
+            La semana deja ver problemas futuros y citas fuera de jornada de los
+            próximos días, no solo el día actual. */}
+        <div style={{ display: 'flex', gap: 6, padding: '10px 20px 0' }}>
+          {(['dia', 'semana'] as const).map((v) => {
+            const activo = vista === v;
+            return (
+              <button
+                key={v}
+                onClick={() => setVista(v)}
+                disabled={bloqueado}
+                style={{
+                  flex: 1, padding: '8px 10px', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer',
+                  background: activo ? T.primarySoft : T.card,
+                  color: activo ? T.primaryHi : T.textSec,
+                  border: `1px solid ${activo ? T.primaryHi : T.border}`,
+                }}
+              >
+                {v === 'dia' ? (esHoy ? 'Hoy' : 'Este día') : 'Esta semana'}
+              </button>
+            );
+          })}
         </div>
 
         {/* Cuerpo */}
@@ -281,11 +337,42 @@ export default function OrganizarAgendaPanel({
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {pendientes.map((p) => {
-                // 'hueco_vacio' no trae ninguna: es un aviso, no una orden.
-                const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0] ?? null;
-                const aplicandoEsta = aplicandoId === p.id;
-                return (
+              {(() => {
+                // En modo semana agrupamos por fechaDia con una cabecera por dia;
+                // en modo dia listamos plano (como antes).
+                type Cabecera = { key: string; fecha?: string; problemas: ProblemaAgenda[] };
+                const grupos: Cabecera[] = vista === 'semana'
+                  ? Object.values(
+                      pendientes.reduce<Record<string, Cabecera>>((acc, p) => {
+                        const k = p.fechaDia ?? 'sindia';
+                        (acc[k] ??= { key: k, fecha: p.fechaDia, problemas: [] }).problemas.push(p);
+                        return acc;
+                      }, {}),
+                    ).sort((a, b) => (a.fecha ?? '').localeCompare(b.fecha ?? ''))
+                  : [{ key: 'unico', problemas: pendientes }];
+
+                const fmtFecha = (ymd: string) => {
+                  const d = new Date(`${ymd}T00:00:00`);
+                  const hoy = new Date();
+                  const manana = new Date(); manana.setDate(hoy.getDate() + 1);
+                  if (d.toDateString() === hoy.toDateString()) return 'Hoy';
+                  if (d.toDateString() === manana.toDateString()) return 'Mañana';
+                  return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                };
+
+                return grupos.flatMap((g) => {
+                  const elems: React.ReactElement[] = [];
+                  if (g.fecha && vista === 'semana') {
+                    elems.push(
+                      <div key={`h-${g.key}`} style={{ fontSize: 11.5, fontWeight: 800, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 6, marginBottom: 2, paddingLeft: 2 }}>
+                        {fmtFecha(g.fecha)} · {g.problemas.length}
+                      </div>,
+                    );
+                  }
+                  for (const p of g.problemas) {
+                    const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0] ?? null;
+                    const aplicandoEsta = aplicandoId === p.id;
+                    elems.push((
                   <div key={p.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ display: 'inline-flex', width: 26, height: 26, borderRadius: 8, background: fondoTipo(p.tipo), alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -342,8 +429,11 @@ export default function OrganizarAgendaPanel({
                       )}
                     </div>
                   </div>
-                );
-              })}
+                    ));
+                  }
+                  return elems;
+                });
+              })()}
             </div>
           )}
         </div>

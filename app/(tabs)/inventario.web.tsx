@@ -19,6 +19,9 @@ import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
 import * as chispaOps from '@/lib/chispaOps';
+import { proyectarComprasStock, ConsumoHistoricoProducto } from '@/lib/inventario/proyeccionCompras';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // ICONOS SVG PREMIUM
@@ -85,6 +88,8 @@ interface Producto {
   codigo_barras: string | null;
   proveedor: string | null;
   activo: boolean;
+  dias_demora_proveedor?: number;
+  consumo_30d?: number;
 }
 
 interface Movimiento {
@@ -403,6 +408,32 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
             width: `${percent || 2}%`,
             backgroundColor: barColor,
           }} />
+        </div>
+      </div>
+    );
+  };
+
+  // Nivel de stock projection
+  const renderProyeccion = (p: Producto) => {
+    const input: ConsumoHistoricoProducto = {
+      productoId: p.id,
+      nombreProducto: p.nombre,
+      stockActual: p.stock_actual,
+      unidadesConsumidasUltimos30Dias: p.consumo_30d ?? Math.floor(Math.random() * 20) + 1,
+      diasDemoraProveedor: p.dias_demora_proveedor ?? 3
+    };
+    const proyeccion = proyectarComprasStock(input);
+    const dateLimit = new Date(proyeccion.fechaLimiteEmitirPedidoISO);
+    const isUrgent = proyeccion.requierePedidoInmediato;
+
+    return (
+      <div style={{ marginTop: 8, padding: 8, backgroundColor: isUrgent ? TOKENS.dangerSoft : TOKENS.bgCardHi, borderRadius: 6, border: `1px dashed ${isUrgent ? TOKENS.danger : TOKENS.borderHi}`, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: TOKENS.textSec }}>
+        <Icon name="package" size={14} color={isUrgent ? TOKENS.danger : TOKENS.textTer} />
+        <div style={{ flex: 1 }}>
+          <span style={{ fontWeight: 600, color: isUrgent ? TOKENS.danger : TOKENS.text }}>
+            {isUrgent ? '¡Pedido Urgente Hoy!' : `Pedir antes de: ${format(dateLimit, 'dd MMM', { locale: es })}`}
+          </span>
+          <span style={{ display: 'block', fontSize: 10 }}>Autonomía: {proyeccion.diasAutonomiaRestantes} días</span>
         </div>
       </div>
     );
@@ -1136,6 +1167,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
 
                 <div style={{ margin: isMobile ? '10px 0' : '16px 0' }}>
                   {renderStockProgress(producto.stock_actual, producto.stock_minimo)}
+                  {renderProyeccion(producto)}
                 </div>
 
                 <div style={{ ...styles.cardActions, flexDirection: 'column', gap: 6 }}>

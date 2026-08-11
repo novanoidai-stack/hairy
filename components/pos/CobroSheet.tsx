@@ -684,15 +684,30 @@ export function CobroSheet(props: CobroSheetProps) {
               <button onClick={confirmar} disabled={enviando}
                 onMouseEnter={(e) => { if (!enviando) { e.currentTarget.style.filter = 'brightness(1.08)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
                 onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'none'; }}
-                style={{ padding: '9px 20px', background: enviando ? T.textTer : `linear-gradient(180deg, ${T.success}, #15803d)`, color: '#fff', border: 'none', borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: enviando ? 0.7 : 1, boxShadow: enviando ? 'none' : '0 6px 16px rgba(15,157,107,0.28)', transition: 'filter 0.16s ease, transform 0.16s ease' }}>
-                {enviando ? 'Cobrando…' : 'Confirmar cobro'}
+                style={{ padding: '9px 20px', background: enviando ? T.textTer : `linear-gradient(180deg, ${T.success}, #15803d)`, color: '#fff', border: 'none', borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: enviando ? 0.7 : 1, boxShadow: enviando ? 'none' : '0 6px 16px rgba(15,157,107,0.28)', transition: 'filter 0.16s ease, transform 0.16s ease', position: 'relative', overflow: 'hidden' }}>
+                {enviando ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animation: 'spin 1s linear infinite' }}><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                    Firmando Ticket VeriFactu...
+                  </span>
+                ) : 'Confirmar cobro'}
               </button>
             </div>
 
             {props.mode === 'cita' && props.citaIds.length === 1 && (
-              <button onClick={generarQr} disabled={qrBusy || enviando} style={{ width: '100%', marginTop: 10, padding: '11px 0', background: T.bgCard, border: `1px dashed ${T.borderHi}`, color: T.primary, borderRadius: 10, cursor: qrBusy ? 'not-allowed' : 'pointer', fontSize: 12.5, fontWeight: 700, opacity: qrBusy ? 0.7 : 1 }}>
-                {qrBusy ? 'Generando QR…' : 'Cobrar con QR (Bizum · tarjeta · Apple/Google Pay)'}
-              </button>
+              <div style={{ marginTop: 14 }}>
+                <button onClick={generarQr} disabled={qrBusy || enviando} 
+                  style={{ width: '100%', padding: '12px 0', background: 'linear-gradient(to right, #004481, #005ce6)', border: 'none', color: '#fff', borderRadius: 10, cursor: qrBusy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, opacity: qrBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(0, 68, 129, 0.3)', transition: 'transform 0.15s ease' }}
+                  onMouseEnter={(e) => { if (!qrBusy) e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'none' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  {qrBusy ? 'Generando sesión segura...' : 'Cobrar vía Pasarela TPV (Redsys)'}
+                </button>
+                <div style={{ fontSize: 10, color: T.textTer, textAlign: 'center', marginTop: 6, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Conexión cifrada a servidor de pagos
+                </div>
+              </div>
             )}
 
             <p style={{ fontSize: 11, color: T.textTer, marginTop: 12, margin: '12px 0 0', textAlign: 'center' }}>
