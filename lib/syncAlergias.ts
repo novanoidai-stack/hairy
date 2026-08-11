@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 // Sincroniza alergias escritas en una cita hacia la ficha del cliente.
 // Anade el texto al campo alergias del cliente si no esta ya presente
@@ -8,11 +9,16 @@ export async function syncAlergiasACliente(clienteId: string | null | undefined,
   const texto = (alergiaTexto ?? '').trim();
   if (!texto) return;
 
-  const { data: cliente } = await supabase
+  const { data: cliente, error: e1 } = await supabase
     .from('clientes')
     .select('alergias')
     .eq('id', clienteId)
     .maybeSingle();
+
+  if (e1) {
+    reportarError(e1, { origen: 'app', tipo: 'operativo' });
+    return;
+  }
 
   if (!cliente) return;
 
@@ -23,5 +29,8 @@ export async function syncAlergiasACliente(clienteId: string | null | undefined,
 
   const nuevoNotas = actualNotas ? `${actualNotas}\n${texto}` : texto;
 
-  await supabase.from('clientes').update({ alergias: nuevoNotas }).eq('id', clienteId);
+  const { error: e2 } = await supabase.from('clientes').update({ alergias: nuevoNotas }).eq('id', clienteId);
+  if (e2) {
+    reportarError(e2, { origen: 'app', tipo: 'operativo' });
+  }
 }
