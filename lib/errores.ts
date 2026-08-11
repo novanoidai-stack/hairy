@@ -158,7 +158,11 @@ function resolverMensaje(e: ErrLike, fallback: string): string {
   }
 
   switch (code) {
-    case '23505': return `Ya existe un registro con ${etiqueta(columnaDe(e))}. Usa uno distinto.`;
+    case '23505': {
+      const col = columnaDe(e);
+      if (col === 'cita_id' || col === 'cobros_cita_id_key') return 'Esta cita ya ha sido cobrada.';
+      return `Ya existe un registro con ${etiqueta(col)}. Usa uno distinto.`;
+    }
     case '23503': return 'No se puede: este dato esta vinculado a otros (por ejemplo, citas). Quita primero esa relacion.';
     case '23502': return `Falta rellenar ${etiqueta(columnaDe(e))}.`;
     case '23514': return `El valor de ${etiqueta(columnaDe(e))} no es valido.`;
@@ -171,7 +175,11 @@ function resolverMensaje(e: ErrLike, fallback: string): string {
 
   // Por texto (cuando no llega code fiable)
   if (/permission denied|row-level security|violates row-level/i.test(msg)) return 'No tienes permisos para hacer esto.';
-  if (/duplicate key|already exists/i.test(msg)) return `Ya existe un registro con ${etiqueta(columnaDe(e))}.`;
+  if (/duplicate key|already exists/i.test(msg)) {
+    const col = columnaDe(e);
+    if (col === 'cita_id' || col === 'cobros_cita_id_key') return 'Esta cita ya ha sido cobrada.';
+    return `Ya existe un registro con ${etiqueta(col)}.`;
+  }
   if (/violates not-null|null value in column/i.test(msg)) return `Falta rellenar ${etiqueta(columnaDe(e))}.`;
   if (/violates check constraint/i.test(msg)) return `El valor de ${etiqueta(columnaDe(e))} no es valido.`;
   if (/violates foreign key/i.test(msg)) return 'No se puede: este dato esta vinculado a otros (por ejemplo, citas).';
