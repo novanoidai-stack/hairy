@@ -190,7 +190,10 @@ export async function crearGrupoPublico(args: CrearGrupoArgs): Promise<CrearGrup
     p_consentimiento_datos: args.consentimientoDatos ?? true,
     p_captcha_token: args.captchaToken ?? null,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return data as CrearGrupoResult;
 }
 
@@ -218,7 +221,10 @@ export async function unirseListaEsperaPublica(args: {
     p_hasta: args.hasta ?? null,
     p_consentimiento_datos: args.consentimientoDatos ?? true,
   });
-  if (error) throw error;
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
   return data as { ok: boolean; error?: string };
 }
 
