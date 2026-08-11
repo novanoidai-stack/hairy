@@ -191,7 +191,8 @@ function resolverMensaje(e: ErrLike, fallback: string): string {
   // Si el mensaje ya viene en español legible (tipico de RPC con raise), usarlo.
   if (msg && msg.length < 180 && /[áéíóúñ¿¡]| no | el | la | ya /i.test(msg)) return msg;
 
-  return fallback;
+  // PARCHE TEMPORAL PARA DEPUB: Mostrar el error crudo si llegamos al fallback
+  return `${fallback} (Detalles: ${code || 'Sin codigo'} - ${msg || 'Sin msj'} - ${e.details || ''})`;
 }
 
 /**
