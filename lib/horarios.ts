@@ -4,6 +4,7 @@
 // RN-EQ-020: la agenda solo permite citas dentro del horario laboral.
 
 import { supabase } from './supabase';
+import { reportarError } from './reportarError';
 
 export interface Franja {
   hora_inicio: string; // 'HH:MM' o 'HH:MM:SS'
@@ -18,11 +19,16 @@ function horaAMin(h: string): number {
 
 // Carga las franjas (turnos) del profesional para un dia (0=Dom .. 6=Sab).
 export async function franjasDelDia(profesionalId: string, diaSemana: number): Promise<Franja[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('horarios_profesional')
     .select('hora_inicio, hora_fin, turno')
     .eq('profesional_id', profesionalId)
     .eq('dia_semana', diaSemana);
+
+  if (error) {
+    reportarError(error, { origen: 'app', tipo: 'operativo' });
+    return [];
+  }
   return (data as Franja[]) ?? [];
 }
 
