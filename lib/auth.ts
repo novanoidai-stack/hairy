@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { can, roleOf } from './permissions';
 import { identidadActiva, suscribirIdentidad } from './identidadActiva';
+import { reportarError } from './reportarError';
 
 export interface UserProfile {
   id: string;
@@ -81,11 +82,15 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   const promise = (async () => {
     const user = await getUser();
     if (!user) return null;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
+    if (error) {
+      reportarError(error, { origen: 'app', tipo: 'operativo' });
+      return null;
+    }
     return conIdentidadActiva((data as UserProfile | null) ?? null);
   })();
   profileCache = { at: now, promise };
