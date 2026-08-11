@@ -1,8 +1,10 @@
 -- Organizador: revisar hueco liberado contra la lista de espera (Fase 3).
 -- ============================================================================
--- DRAFT — PENDIENTE DE APLICAR EN REMOTO via Supabase MCP / dashboard SQL.
--- No se puede aplicar con la service_role (exec_sql fue eliminado por security
--- hardening); necesita MCP o el password de BD. Aplicar y validar a mano.
+-- APLICADA en remoto (Mecha / vtrggiogjrhqtwbhbgia) el 2026-08-12 via Supabase
+-- Management API (POST /v1/projects/{ref}/database/query) con access token.
+-- Verificada: security definer, grants a authenticated/service_role, smoke-test
+-- OK (select ... devuelve {"ok":true,"motivo":"sin_servicio_o_profesional",
+-- "avisados":0}). Es llamada por chispaOps tras cada movimiento optimizar_agenda.
 -- ============================================================================
 --
 -- MOTIVO. Cuando el organizador MUEVE una cita (accion 'optimizar_agenda'),

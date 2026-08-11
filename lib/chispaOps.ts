@@ -914,11 +914,11 @@ export async function ejecutarAccion(
             }
             await registrarHistorialIA(a.negocio_id, mov.cita_id, cambios, 'Reorganizada por Chispa');
             // Fase 3 — ofrecer el hueco que deja la cita en su posicion vieja a
-            // la lista de espera. Best-effort: si la RPC no esta desplegada aun
-            // (migracion organizador-revisar-hueco-lista-espera.sql pendiente de
-            // aplicar) o el matching esta inactivo / sin candidatos, PostgREST
-            // devuelve error y lo ignoramos. Nunca debe romper el movimiento, que
-            // ya se ha aplicado y auditado arriba.
+            // la lista de espera (RPC revisar_hueco_lista_espera, aplicada en
+            // remoto 2026-08-12). Best-effort: si el matching esta inactivo o no
+            // hay candidatos, la RPC devuelve {avisados:0} y no pasa nada; ante
+            // cualquier error de PostgREST lo tragamos. Nunca debe romper el
+            // movimiento, que ya se ha aplicado y auditado arriba.
             if (prev?.inicio && prev?.negocio_id) {
               const { error: rerr } = await supabase.rpc('revisar_hueco_lista_espera', {
                 p_origen_cita_id: mov.cita_id,
