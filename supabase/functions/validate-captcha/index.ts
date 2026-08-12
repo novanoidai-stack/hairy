@@ -1,108 +1,77 @@
-// Edge function: Validar token de reCAPTCHA v3
-// POST /functions/v1/validate-captcha
-// Body: { token: string }
-// Returns: { valid: boolean, score: number, error?: string }
-
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+// Edge function: validate-captcha (Cloudflare Turnstile)
+//
+// Verifica el token de Turnstile CONTRA Cloudflare (server-side, con el secreto)
+// y, si es valido, emite un token de UN SOLO USO en public.captcha_tokens que los
+// RPCs publicos consumen (consumir_captcha_token). Asi la comprobacion deja de ser
+// de navegador (saltable llamando al RPC directo) y exige prueba emitida por el
+// servidor.
+//
+// POST { token: string, contexto?: 'cita'|'resena'|'solicitud' }
+// -> 200 { ok: true, captcha_token: uuid } | { ok: false, error }
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const RECAPTCHA_SECRET_KEY = Deno.env.get('RECAPTCHA_SECRET_KEY') || '';
+const SECRET = Deno.env.get('TURNSTILE_SECRET_KEY') ?? '';
+const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
 
-// Antes esta funcion solo respondia {valid, score} al navegador y no dejaba
-// rastro, asi que llamar a crear_cita_publica directamente con la clave anonima
-// —que es publica— se saltaba el captcha entero. Ahora, cuando Google da el
-// token por bueno, se deja constancia en la BD y el RPC la consume (un solo uso,
-// caduca a los 5 min). Ver migrations/p1-020-rate-limit-y-captcha-exigible.sql.
-const admin = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-);
-
-interface ValidateRequest {
-  token: string;
+const ORIGENES = ['https://www.mechaa.es', 'https://mechaa.es', 'https://hairy-two.vercel.app', 'https://www.novanoidai.com'];
+function esOrigenPermitido(o: string): boolean {
+  if (ORIGENES.includes(o)) return true;
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
 }
-
-interface ValidateResponse {
-  valid: boolean;
-  score?: number;
-  error?: string;
+function cors(req: Request) {
+  const o = req.headers.get('origin') || '';
+  return {
+    'Access-Control-Allow-Origin': esOrigenPermitido(o) ? o : ORIGENES[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-forwarded-for',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
 }
+const json = (b: unknown, status: number, req: Request) =>
+  new Response(JSON.stringify(b), { status, headers: { ...cors(req), 'Content-Type': 'application/json' } });
 
-serve(async (req) => {
-  // Solo POST permitido
-  if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ valid: false, error: 'Method not allowed' }),
-      { status: 405, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(req) });
+  if (req.method !== 'POST') return json({ ok: false, error: 'method_not_allowed' }, 405, req);
+  if (!SECRET) return json({ ok: false, error: 'captcha_no_configurado' }, 500, req);
 
+  let body: { token?: string; contexto?: string };
   try {
-    const { token }: ValidateRequest = await req.json();
-
-    // Validar que se envio el token
-    if (!token || typeof token !== 'string' || token.trim() === '') {
-      return new Response(
-        JSON.stringify({ valid: false, error: 'TOKEN_MISSING' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Validar con Google API
-    const validateURL = 'https://www.google.com/recaptcha/api/siteverify';
-    const params = new URLSearchParams();
-    params.append('secret', RECAPTCHA_SECRET_KEY);
-    params.append('response', token);
-
-    const googleResponse = await fetch(validateURL, {
-      method: 'POST',
-      body: params,
-    });
-
-    const googleData = await googleResponse.json();
-
-    if (!googleData.success) {
-      return new Response(
-        JSON.stringify({
-          valid: false,
-          error: 'CAPTCHA_INVALID',
-          details: googleData['error-codes'] || [],
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Score threshold: 0.5 (ajustable)
-    const score = googleData.score || 0;
-    const SCORE_THRESHOLD = 0.5;
-
-    const isValid = score >= SCORE_THRESHOLD;
-
-    // Constancia para que el RPC pueda comprobarlo. Solo si el token es bueno.
-    // Si esto falla NO se tumba la respuesta: el navegador ya tiene su veredicto
-    // y, mientras captcha_exigido siga en false, la reserva no depende de ello.
-    if (isValid) {
-      const { error } = await admin.rpc('registrar_captcha_validado', {
-        p_token: token,
-        p_score: score,
-      });
-      if (error) console.error('registrar_captcha_validado fallo:', error.message);
-    }
-
-    return new Response(
-      JSON.stringify({
-        valid: isValid,
-        score: score,
-        error: isValid ? undefined : 'SCORE_TOO_LOW',
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Error validating CAPTCHA:', error);
-    return new Response(
-      JSON.stringify({ valid: false, error: 'INTERNAL_ERROR' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    body = await req.json();
+  } catch {
+    return json({ ok: false, error: 'bad_json' }, 400, req);
   }
+  const token = (body.token || '').trim();
+  if (!token) return json({ ok: false, error: 'token_missing' }, 400, req);
+  const contexto = ['cita', 'resena', 'solicitud'].includes(body.contexto || '') ? body.contexto! : 'general';
+
+  // Verificar con Cloudflare Turnstile.
+  const form = new URLSearchParams();
+  form.append('secret', SECRET);
+  form.append('response', token);
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+  if (ip) form.append('remoteip', ip);
+
+  let data: { success?: boolean; 'error-codes'?: string[] };
+  try {
+    const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: form });
+    data = await resp.json();
+  } catch {
+    return json({ ok: false, error: 'servicio_no_disponible' }, 502, req);
+  }
+  if (!data.success) {
+    return json({ ok: false, error: 'captcha_invalido', codes: data['error-codes'] || [] }, 200, req);
+  }
+
+  // Emitir token de un solo uso (lo consume el RPC publico).
+  const { data: row, error } = await admin
+    .from('captcha_tokens')
+    .insert({ contexto })
+    .select('id')
+    .single();
+  if (error || !row) {
+    console.error('captcha_tokens insert fallo:', error?.message);
+    return json({ ok: false, error: 'token_no_emitido' }, 500, req);
+  }
+  return json({ ok: true, captcha_token: row.id }, 200, req);
 });
