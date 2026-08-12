@@ -56,6 +56,7 @@ if (html.includes('mecha-splash')) {
 
 const headInject = `
     <meta name="theme-color" content="#f4501e" />
+    <meta name="robots" content="noindex, nofollow" />
     <link rel="preconnect" href="https://vtrggiogjrhqtwbhbgia.supabase.co" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

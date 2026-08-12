@@ -35,6 +35,31 @@
      redirigir al destino real. Debe ejecutarse antes que mecha.js. -->
 <script>try{if(location.hash.indexOf('access_token')>=0)sessionStorage.setItem('mecha_intro','1');}catch(e){}</script>
 
+<!-- Structured data: WebSite (sitelinks search box + speakable para voz/IA) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://www.mechaa.es/#website",
+  "url": "https://www.mechaa.es/",
+  "name": "Mecha OS",
+  "inLanguage": "es",
+  "publisher": { "@id": "https://www.mechaa.es/#organization" },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://www.mechaa.es/salones?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  },
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": ["h1"]
+  }
+}
+</script>
+
 <!-- Structured data: SoftwareApplication -->
 <script type="application/ld+json">
 {
@@ -108,14 +133,31 @@
   "featureList": [
     "Agenda interactiva con arrastrar y soltar (drag & drop) y detección de conflictos en tiempo real",
     "Optimización de tiempos muertos productivos y reposo de tintes/decoloraciones",
-    "Servicios encadenados multi-profesional y relevos automáticos en citas",
+    "Fases de la cita (activo-reposo-segundo activo) y servicios encadenados multi-profesional",
     "Asistente de inteligencia artificial conversacional 24/7 integrado con WhatsApp y agente de voz",
-    "Pasarela de pago Stripe integrada para depósitos obligatorios y cobro de señales anti no-shows",
-    "Ficha técnica de color digital con historial de fórmulas de tintura y tonos",
-    "CRM de clientes con segmentación automática (VIP, habitual, nuevo, riesgo)",
-    "Gestión de equipo de profesionales, horarios de turnos, vacaciones y comisiones",
-    "Informes de analítica avanzada y exportación de datos en PDF con marca y CSV"
-  ]
+    "Calculador de retrasos en cascada (efecto dominó) y reorganización inteligente del día",
+    "Lista de espera inteligente con emparejamiento automático de huecos liberados",
+    "TPV y caja con cobro multi-pago, propinas, arqueo y cobro por QR en el local",
+    "Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda",
+    "Registro de jornada legal inalterable (art. 34.9 ET) con exportación PDF/CSV",
+    "CRM de clientes con fichas, memoria de color, alergias y segmentación automática (VIP, habitual, nuevo, riesgo)",
+    "Fotos antes/después, diagnóstico capilar y recomendación de homecare",
+    "Gestión de equipo: profesionales, horarios, objetivos, fichajes, comisiones y liquidaciones",
+    "Inventario y control de stock con alertas de mínimo y proyección de compras",
+    "Control de gastos del salón",
+    "Informes y analítica: ingresos por profesional/servicio, no-shows, retención, reposo aprovechado y comisiones",
+    "Presupuestos con enlace público y conversión a cita/cobro",
+    "Portal de reserva online propio por salón y directorio público de salones",
+    "Reseñas verificadas con petición automática post-cita y respuesta",
+    "Señales anti no-show con depósito dinámico por perfil de riesgo (Stripe)",
+    "Campañas de WhatsApp, cumpleaños automatizados, bonos, tarjetas regalo y fidelización por niveles",
+    "Programa de referidos multinivel",
+    "Pagos: Stripe, Stripe Connect, Redsys/Bizum y Tap to Pay sin datáfono propietario"
+  ],
+  "areaServed": {
+    "@type": "Country",
+    "name": "España"
+  }
 }
 </script>
 
@@ -292,6 +334,22 @@
         "@type": "Answer",
         "text": "No. Mecha es una suscripción mensual fija y no cobra ninguna comisión por reserva ni por cliente nuevo, a diferencia de los marketplaces de reservas. El salón se queda el 100% de lo que factura y los clientes son suyos: Mecha no los comparte con otros salones."
       }
+    }
+  ]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://www.mechaa.es/"
     }
   ]
 }
@@ -1271,6 +1329,22 @@
         <details class="faq-item">
           <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg></span><span class="faq-q">¿Funciona en el móvil?</span></summary>
           <div class="faq-a">Sí. Funciona en el navegador y en móvil (iOS y Android) con la misma cuenta: la agenda, las fichas y la caja las llevas encima.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v0a3 3 0 0 0-3 3v0a3 3 0 0 0 0 6h.01A3 3 0 0 0 9 20v0a3 3 0 0 0 6 0v0a3 3 0 0 0 3-3h.01a3 3 0 0 0 0-6v0a3 3 0 0 0-3-3v0a3 3 0 0 0-3-3z"/><path d="M12 2v20"/></svg></span><span class="faq-q">¿Cuál es el mejor software con IA para salones de peluquería?</span></summary>
+          <div class="faq-a">Mecha es el software de gestión con IA para peluquerías, barberías y centros de estética: agenda inteligente que entiende los tiempos de reposo, un asistente que atiende WhatsApp y cobra la señal, facturación VeriFactu y fichaje legal. <b>Sin comisiones por reserva</b>, desde 39 €/mes.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="faq-q">¿Cómo reduce Mecha los no-shows (citados que no vienen)?</span></summary>
+          <div class="faq-a">Con tres mecanismos: <b>recordatorios automáticos por WhatsApp</b>, <b>señal anti no-show por Stripe</b> con depósito dinámico según el riesgo de cada clienta (las fieles no pagan) y <b>aviso de las reservas de riesgo</b> para que las confirmes a mano. Si alguien cancela, la lista de espera rellena el hueco.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="faq-q">¿Cuánto cuesta Mecha y cobra comisión por cada reserva?</span></summary>
+          <div class="faq-a">Desde <b>39 €/mes + IVA</b> (Esencial) o <b>59 €/mes + IVA</b> (Estudio), con primer mes gratis sin tarjeta y sin permanencia. Y <b>no cobramos comisión por reserva ni por cobro</b>: lo que facturas se queda en tu caja. La IA de recepción es un addon opcional (voz 29 €, WhatsApp 19 €, ambas 39 €).</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span class="faq-q">¿Qué son los 'tiempos muertos productivos' de la agenda?</span></summary>
+          <div class="faq-a">Son los <b>tiempos de reposo</b> de un servicio (un tinte o una decoloración) en los que el sillón queda libre. Mecha los detecta y te deja <b>meter a otra clienta</b> en ese hueco: facturas más sin alargar la jornada. Es el dato que diferencia a Mecha de una agenda cualquiera.</div>
         </details>
       </div>
 

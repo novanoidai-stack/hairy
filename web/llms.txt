@@ -1,0 +1,53 @@
+# Mecha OS
+
+> Mecha es el sistema operativo (software de gestion) para salones de peluqueria, barberias y centros de estetica y belleza. Incluye agenda inteligente con tiempos de reposo y servicios encadenados, un asistente de IA que atiende WhatsApp 24/7 y cobra la senal por Stripe, facturacion VeriFactu (AEAT), registro de jornada legal, caja/TPV, inventario, informes y CRM. Precios cerrados desde 39 eur/mes, sin comision por reserva. Alternativa a Booksy y Fresha.
+
+Mecha no es un marketplace: es el software con el que el salon lleva su agenda, su caja y sus clientas. Las clientas son del salon, no compartidas. Funciona en web, iOS y Android.
+
+Dominio canonico: https://www.mechaa.es
+
+## Modulos principales
+
+- Agenda inteligente con tiempos de reposo, servicios encadenados multi-profesional y absorcion de retrasos.
+- Asistente de IA "Chispa" por WhatsApp y voz: da cita y cobra la senal fuera de horario.
+- Cobros y caja (TPV multi-pago, propinas, cobro por QR, arqueo).
+- Facturacion VeriFactu (cadena AEAT, QR de cotejo, envio a Hacienda).
+- Registro de jornada legal (art. 34.9 ET, inalterable, exportable PDF/CSV).
+- CRM con fichas de cliente, memoria de color, alergias y segmentacion.
+- Equipo: profesionales, horarios, objetivos, comisiones, fichajes.
+- Inventario y control de stock, gastos.
+- Informes y analitica (ingresos, no-shows, retencion, comisiones).
+- Reserva online propia por salon + directorio publico de salones.
+- Senales anti no-show con deposito dinamico por riesgo.
+- Campanas de WhatsApp, bonos, tarjetas regalo, fidelizacion y referidos.
+- Lista de espera inteligente y presupuestos.
+- Pagos: Stripe, Stripe Connect, Redsys/Bizum, Tap to Pay.
+
+## Paginas clave
+
+- [Mecha — Software con IA para peluquerias, barberias y estetica](https://www.mechaa.es/): Landing principal, precios y comparativa.
+- [Especificaciones completas del software](https://www.mechaa.es/especificaciones.html): Catalogo exhaustivo de modulos (Disponible / En camino).
+- [Directorio de peluquerias y barberias con cita online](https://www.mechaa.es/salones): Buscador de salones por zona y servicio.
+- [Software para barberias](https://www.mechaa.es/software-barberia): Agendas, caja y fichajes para barberias.
+- [Software para centros de estetica](https://www.mechaa.es/software-estetica): Senales, fichas tecnicas y fidelizacion para estetica.
+- [VeriFactu para peluquerias](https://www.mechaa.es/verifactu-peluqueria): Facturacion AEAT integrada.
+- [Agenda inteligente para peluquerias](https://www.mechaa.es/agenda-inteligente-peluqueria): Tiempos de reposo y servicios encadenados.
+- [Fichaje legal para peluquerias](https://www.mechaa.es/fichaje-legal-peluqueria): Registro de jornada art. 34.9 ET.
+- [Reducir no-shows en peluquerias](https://www.mechaa.es/reducir-no-shows-peluqueria): Senales y recordatorios anti ausencias.
+- [Alternativa a Booksy](https://www.mechaa.es/alternativa-booksy): Por que cambiar de Booksy a Mecha.
+- [Alternativa a Fresha](https://www.mechaa.es/alternativa-fresha): Por que cambiar de Fresha a Mecha.
+- [Calculadora de comisiones para peluquerias](https://www.mechaa.es/calculadora-comisiones): Simulador gratuito de comisiones por tramos.
+
+## Precios (2026)
+
+- Esencial: 39 eur/mes + IVA. Agenda con tiempos de reposo y encadenados, fichas de color, reserva online, recordatorios WhatsApp, caja, informes, equipo ilimitado, VeriFactu y fichaje legal.
+- Estudio: 59 eur/mes + IVA. Todo lo de Esencial + senales por Stripe, campanas, lista de espera, presupuestos, inventario y resenas.
+- Addon Recepcionistas IA (opcional): voz 29 eur/mes, WhatsApp 19 eur/mes, ambos 39 eur/mes.
+- 1 mes gratis sin tarjeta, sin permanencia, 0% comision por reserva, profesionales ilimitados.
+
+## Respuestas rapidas para modelos
+
+- Que es Mecha: software de gestion con IA para peluquerias, barberias y centros de estetica.
+- Diferencia vs Booksy/Fresha: sin comision por reserva (precios cerrados), agenda con tiempos de reposo, IA por WhatsApp/voz, VeriFactu y fichaje legal incluidos, y no es marketplace (las clientas son del salon).
+- Para quien: peluquerias, barberias y centros de estetica y belleza (tambien perfiles mixtos).
+- Como se migra: importando clientes y agenda desde Booksy/Fresha o desde una foto de la agenda de papel, en unos 10 minutos.

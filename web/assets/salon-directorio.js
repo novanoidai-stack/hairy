@@ -158,6 +158,83 @@
         'Volver a la búsqueda</a>';
 
     engancharFallbackFotos();
+    actualizarJsonLd(d);
+    actualizarMetaHead(d);
+  }
+
+  function actualizarJsonLd(d) {
+    if (!d) return;
+    var el = document.getElementById('salon-jsonld');
+    if (!el) {
+      el = document.createElement('script');
+      el.type = 'application/ld+json';
+      el.id = 'salon-jsonld';
+      document.head.appendChild(el);
+    }
+    var slug = d.slug || '';
+    var ratingVal = d.valoracion != null ? Number(d.valoracion) : (d.puntuacion_media != null ? Number(d.puntuacion_media) : null);
+    var reviewCnt = d.resenas_total != null ? Number(d.resenas_total) : (d.num_resenas != null ? Number(d.num_resenas) : null);
+
+    var schema = {
+      '@context': 'https://schema.org',
+      '@type': ['LocalBusiness', 'HairSalon'],
+      '@id': 'https://www.mechaa.es/salon/' + slug + '#salon',
+      'name': d.nombre || 'Salón',
+      'description': d.descripcion || ('Reserva cita online en ' + (d.nombre || 'este salón')),
+      'url': 'https://www.mechaa.es/salon/' + slug,
+      'telephone': d.telefono || '',
+      'address': {
+        '@type': 'PostalAddress',
+        'streetAddress': d.direccion || '',
+        'addressLocality': d.ciudad || '',
+        'addressRegion': d.provincia || '',
+        'addressCountry': 'ES'
+      }
+    };
+
+    if (d.latitud && d.longitud) {
+      schema.geo = {
+        '@type': 'GeoCoordinates',
+        'latitude': Number(d.latitud),
+        'longitude': Number(d.longitud)
+      };
+    }
+
+    if (ratingVal && reviewCnt && reviewCnt > 0) {
+      schema.aggregateRating = {
+        '@type': 'AggregateRating',
+        'ratingValue': ratingVal,
+        'reviewCount': reviewCnt
+      };
+    }
+
+    el.textContent = JSON.stringify(schema, null, 2);
+  }
+
+  // Red de seguridad SEO: cuando la ficha se sirve por el rewrite (salon.html
+  // estatico, sin prerender), fija canonical/meta/OG por slug en runtime y, si
+  // el salon no existe, marca noindex para no generar un soft-404 indexable.
+  function setMeta(attr, key, val) {
+    var el = document.head.querySelector('meta[' + attr + '="' + key + '"]');
+    if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+    el.setAttribute('content', val);
+  }
+  function actualizarMetaHead(d) {
+    if (!d || !d.slug) return;
+    var url = 'https://www.mechaa.es/salon/' + d.slug;
+    var link = document.head.querySelector('link[rel="canonical"]');
+    if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link); }
+    link.href = url;
+    if (d.descripcion) setMeta('name', 'description', d.descripcion);
+    setMeta('property', 'og:url', url);
+    setMeta('property', 'og:type', 'business.business');
+    setMeta('property', 'og:title', document.title);
+    if (d.descripcion) setMeta('property', 'og:description', d.descripcion);
+  }
+  function marcarNoIndex() {
+    var el = document.head.querySelector('meta[name="robots"]');
+    if (!el) { el = document.createElement('meta'); el.name = 'robots'; document.head.appendChild(el); }
+    el.content = 'noindex, follow';
   }
 
   // Si las fotos locales de demostracion no existen, cae a una remota para que
@@ -173,6 +250,7 @@
   }
 
   function noEncontrado(msg) {
+    marcarNoIndex();
     document.getElementById('main').innerHTML =
       '<div class="d-vacio">' +
         '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +

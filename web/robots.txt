@@ -14,7 +14,10 @@ Disallow: /restablecer.html
 # servidos desde el servidor — es la base del directorio SEO del mes 2-3.
 Disallow: /app/
 
-# Las paginas con noindex (demo, acceso, legales, directorio) NO se bloquean
-# aqui a proposito: hay que dejar que Google las rastree para que lea su noindex.
+# Las paginas del directorio marketplace (/salones y /salon/*), las landings de
+# nicho/modulo/comparativa (/software-barberia, /verifactu-peluqueria,
+# /alternativa-booksy, ...), las paginas de ciudad (/peluquerias-en-*) y el
+# manifiesto para LLMs (/llms.txt) son publicas e indexables.
+# Las paginas de staff/administracion y la SPA interna de software permanecen desindexadas/bloqueadas.
 
 Sitemap: https://www.mechaa.es/sitemap.xml

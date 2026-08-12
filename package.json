@@ -6,7 +6,10 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "build:web": "expo export -p web --output-dir web/app && node scripts/postbuild-web.mjs",
+    "build:web": "expo export -p web --output-dir web/app && node scripts/postbuild-web.mjs && node scripts/generate-seo.mjs && node scripts/generate-sitemap.mjs",
+    "generate:seo": "node scripts/generate-seo.mjs",
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "postbuild": "node scripts/generate-sitemap.mjs",
     "serve:web": "node scripts/serve-web.mjs",
     "web:local": "npm run build:web && node scripts/serve-web.mjs"
   },
