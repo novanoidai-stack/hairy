@@ -17,6 +17,10 @@ import { PortalGrupoModal } from '@/components/portal/PortalGrupoModal.web';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { barrasDistribucion, subNotas } from '@/lib/portalResenas';
 
+// Cloudflare Turnstile (captcha). Site key publica y global (un dominio); el
+// secreto vive en Supabase (TURNSTILE_SECRET_KEY) y lo usa validate-captcha.
+const TURNSTILE_SITE_KEY = '0x4AAAAAAEN33iLdZO1Ao1bD';
+
 const T = PORTAL_TOKENS;
 const FIRE = FIRE_GRADIENT;
 const SERIF = SANS_SERIF;
@@ -195,6 +199,8 @@ export default function PortalReservaWeb() {
   const [consent, setConsent] = useState(false);
   const [consentFallo, setConsentFallo] = useState(false);
   const consentRef = useRef<HTMLLabelElement>(null);
+  const turnstileWidgetId = useRef<string | null>(null);
+  const resolverCaptcha = useRef<((token: string) => void) | null>(null);
   const exitoRef = useRef<HTMLDivElement>(null);
   const [consentIa, setConsentIa] = useState(false);
 
@@ -287,17 +293,46 @@ export default function PortalReservaWeb() {
     }
   }, [actionParam, info]);
 
+  // Carga Turnstile y renderiza un widget en modo 'execute' (invisible salvo que
+  // Cloudflare pida interaccion): al enviar se resuelve on-demand y se cambia por
+  // un token de servidor via validate-captcha.
   useEffect(() => {
-    const SITE_KEY = (info?.negocio as any)?.captcha_site_key;
-    if (typeof window === 'undefined' || !SITE_KEY) { setCaptchaReady(false); return; }
-    if ((window as any).grecaptcha) { setCaptchaReady(true); return; }
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
-    script.async = true;
-    script.onload = () => setCaptchaReady(true);
-    script.onerror = () => setCaptchaReady(false);
-    document.head.appendChild(script);
-  }, [info]);
+    if (typeof window === 'undefined') return;
+    let cancelado = false;
+    const contenedor = document.createElement('div');
+    contenedor.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999';
+    document.body.appendChild(contenedor);
+    const renderWidget = () => {
+      if (cancelado) return;
+      const ts = (window as any).turnstile;
+      if (!ts) { setCaptchaReady(false); return; }
+      try {
+        turnstileWidgetId.current = ts.render(contenedor, {
+          sitekey: TURNSTILE_SITE_KEY,
+          execution: 'execute',
+          appearance: 'interaction-only',
+          callback: (token: string) => { const cb = resolverCaptcha.current; resolverCaptcha.current = null; cb?.(token); },
+          'error-callback': () => { const cb = resolverCaptcha.current; resolverCaptcha.current = null; cb?.(''); },
+        });
+        setCaptchaReady(true);
+      } catch (e) { console.error('turnstile render', e); setCaptchaReady(false); }
+    };
+    if ((window as any).turnstile) {
+      renderWidget();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.onload = renderWidget;
+      script.onerror = () => setCaptchaReady(false);
+      document.head.appendChild(script);
+    }
+    return () => {
+      cancelado = true;
+      try { if (turnstileWidgetId.current) (window as any).turnstile?.remove(turnstileWidgetId.current); } catch { /* ignore */ }
+      contenedor.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!servicio) return;
@@ -368,6 +403,31 @@ export default function PortalReservaWeb() {
     AnalyticsEvents.stepView(step, slug);
   }, [step, slug, analyticsConsent, info]);
 
+  // Resuelve Turnstile (execute) y lo cambia por un token de servidor de un solo
+  // uso (validate-captcha). Devuelve undefined si no hay captcha o falla: el RPC
+  // decide si lo exige, asi un salon sin captcha configurado no se bloquea.
+  const obtenerCaptchaToken = useCallback(async (): Promise<string | undefined> => {
+    if (typeof window === 'undefined') return undefined;
+    const ts = (window as any).turnstile;
+    if (!captchaReady || !ts || !turnstileWidgetId.current) return undefined;
+    let turnstileToken = '';
+    try {
+      turnstileToken = await new Promise<string>((resolve) => {
+        resolverCaptcha.current = resolve;
+        try { ts.execute(turnstileWidgetId.current); } catch { resolve(''); }
+        setTimeout(() => { if (resolverCaptcha.current) { resolverCaptcha.current = null; resolve(''); } }, 8000);
+      });
+    } catch { return undefined; }
+    try { ts.reset(turnstileWidgetId.current); } catch { /* ignore */ }
+    if (!turnstileToken) return undefined;
+    try {
+      const { data } = await supabase.functions.invoke('validate-captcha', { body: { token: turnstileToken, contexto: 'cita' } });
+      const d = data as { ok?: boolean; captcha_token?: string } | null;
+      if (d?.ok && d.captcha_token) return d.captcha_token;
+    } catch (e) { console.error('validate-captcha', e); }
+    return undefined;
+  }, [captchaReady]);
+
   const confirmar = useCallback(async () => {
     if (!servicio || !slotSel) return;
     setError('');
@@ -382,11 +442,7 @@ export default function PortalReservaWeb() {
     setConsentFallo(false);
     setEnviando(true);
     try {
-      let captchaToken: string | undefined;
-      const SITE_KEY = (info?.negocio as any)?.captcha_site_key;
-      if (captchaReady && SITE_KEY && (window as any).grecaptcha) {
-        try { captchaToken = await (window as any).grecaptcha.execute(SITE_KEY, { action: 'submit' }); } catch (e) { console.error(e); }
-      }
+      const captchaToken = await obtenerCaptchaToken();
 
       const r = await crearCitaPublica({
         slug, servicioId: servicio.id, profesionalId: slotSel.profesional_id, inicioISO: slotSel.slot,
@@ -405,7 +461,7 @@ export default function PortalReservaWeb() {
       const msg = e instanceof Error ? e.message : t('err_generic');
       if (/ocupado|disponib|antelacion|horario/i.test(msg)) { setError(t('err_ocupado')); setStep('fecha'); } else { setError(msg); }
     } finally { setEnviando(false); }
-  }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t, captchaReady, consentIa, analyticsConsent, info]);
+  }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t, consentIa, analyticsConsent, obtenerCaptchaToken]);
 
   // El publico del portal es el cliente final, no el salon: "atras" debe devolverle
   // al marketplace (de donde suele venir), nunca a la landing comercial de Mecha.
