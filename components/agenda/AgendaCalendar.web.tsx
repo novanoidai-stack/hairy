@@ -7027,6 +7027,7 @@ function DayTimeline({
   const [dragAusencia, setDragAusencia] = useState<{
     profNombre: string;
     horaTxt: string;
+    motivo: string;
     payload: any;
     citaOrig: any;
   } | null>(null);
@@ -7259,32 +7260,32 @@ function DayTimeline({
         ? new Date(cita.fin).getTime() - new Date(cita.fin_espera).getTime()
         : 0;
 
-      // Verificar si choca con ausencias del profesional (vacaciones, bajas, etc.)
-      // Evita solapar "primer tiempo activo" o "segundo tiempo activo" con bloqueos
-      const b1 = bloqueos.some(
-        (b: any) =>
-          b.profesional_id === targetProf.id &&
-          new Date(b.inicio) < nuevoFinActiva &&
-          new Date(b.fin) > nuevoInicio,
-      );
-      const b2 =
-        activo2Ms > 0 &&
-        bloqueos.some(
+      // Verificar si choca con un bloqueo del profesional (descanso, vacaciones,
+      // bajas, etc.). NO se bloquea: se avisa y el gestor decide si la coloca
+      // igual (feedback del cliente: un descanso no debe impedir mover la cita).
+      const bloqueoChoca = (rango: [Date, Date]) =>
+        bloqueos.find(
           (b: any) =>
             b.profesional_id === targetProf.id &&
-            new Date(b.inicio) < nuevoFin &&
-            new Date(b.fin) > nuevoFinEspera,
+            new Date(b.inicio) < rango[1] &&
+            new Date(b.fin) > rango[0],
         );
+      const bloqueoB1 = bloqueoChoca([nuevoInicio, nuevoFinActiva]);
+      const bloqueoB2 =
+        activo2Ms > 0 ? bloqueoChoca([nuevoFinEspera, nuevoFin]) : undefined;
 
-      if (b1 || b2) {
-        // No bloquear: preguntar. El gestor puede querer mover igualmente (turno
-        // extra, ausencia que se cancela, etc.). Se aplica el mismo payload de mover.
+      if (bloqueoB1 || bloqueoB2) {
+        // Aviso NO bloqueante: capturamos el bloqueo concreto (para decir si es
+        // descanso, vacaciones...) y dejamos colocar la cita asumiendo el aviso.
+        const bloqueo = bloqueoB1 || bloqueoB2;
         setDragAusencia({
           profNombre: targetProf.nombre,
           horaTxt: nuevoInicio.toLocaleTimeString("es-ES", {
             hour: "2-digit",
             minute: "2-digit",
           }),
+          motivo:
+            bloqueo?.motivo || BLOQUEO_LABELS[bloqueo?.tipo] || "un bloqueo",
           payload: {
             inicio: nuevoInicio.toISOString(),
             fin: nuevoFin.toISOString(),
@@ -10357,9 +10358,9 @@ function DayTimeline({
           >
             <div
               style={{
-                background: "#fef2f2",
+                background: "#fffbeb",
                 padding: "18px 24px",
-                borderBottom: `1px solid #fee2e2`,
+                borderBottom: `1px solid #fef3c7`,
               }}
             >
               <div
@@ -10367,7 +10368,7 @@ function DayTimeline({
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  color: TOKENS.danger,
+                  color: "#b26a00",
                 }}
               >
                 <svg
@@ -10380,18 +10381,18 @@ function DayTimeline({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <div
                   style={{
                     fontSize: 15.5,
                     fontWeight: 800,
-                    color: TOKENS.danger,
+                    color: "#b26a00",
                   }}
                 >
-                  Ausencia Detectada
+                  Esa franja tiene {dragAusencia.motivo.toLowerCase()}
                 </div>
               </div>
             </div>
@@ -10403,13 +10404,10 @@ function DayTimeline({
                 lineHeight: 1.5,
               }}
             >
-              A las{" "}
-              <b style={{ color: TOKENS.danger }}>{dragAusencia.horaTxt}</b>,{" "}
-              {dragAusencia.profNombre?.split(" ")[0]} figura con vacaciones o
-              un bloqueo.
-              <br />
-              <br />
-              No puedes agendar citas durante este periodo.
+              A las <b style={{ color: TOKENS.text }}>{dragAusencia.horaTxt}</b>{" "}
+              {dragAusencia.profNombre?.split(" ")[0]} tiene{" "}
+              <b>{dragAusencia.motivo.toLowerCase()}</b>. Es solo un aviso: si
+              quieres, colocas la cita ahí igualmente.
             </div>
             <div
               style={{
@@ -10417,23 +10415,84 @@ function DayTimeline({
                 background: TOKENS.bgCard,
                 borderTop: `1px solid ${TOKENS.border}`,
                 display: "flex",
-                justifyContent: "flex-end",
+                gap: 10,
               }}
             >
               <button
-                onClick={() => setDragAusencia(null)}
+                onClick={() => !aplicandoAusencia && setDragAusencia(null)}
+                disabled={aplicandoAusencia}
                 style={{
-                  padding: "8px 18px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  background: TOKENS.danger,
-                  color: "#fff",
-                  border: "none",
-                  cursor: "pointer",
+                  flex: 1,
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `1.5px solid ${TOKENS.border}`,
+                  background: TOKENS.bgCard,
+                  color: TOKENS.textSec,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: aplicandoAusencia ? "default" : "pointer",
                 }}
               >
-                Entendido
+                Cancelar
+              </button>
+              <button
+                disabled={aplicandoAusencia}
+                onClick={async () => {
+                  const a = dragAusencia;
+                  setAplicandoAusencia(true);
+                  try {
+                    const { error } = await supabase
+                      .from("citas")
+                      .update(a.payload)
+                      .eq("id", a.citaOrig.id);
+                    if (!error) {
+                      onCitaUpdated?.({ id: a.citaOrig.id, ...a.payload });
+                      onMovimientoCita?.([
+                        {
+                          citaId: a.citaOrig.id,
+                          antes: snapshotDe(a.citaOrig),
+                          despues: snapshotDe({ ...a.citaOrig, ...a.payload }),
+                        },
+                      ]);
+                      const profile = await getUserProfile();
+                      const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+                      const cambios: { campo: string; anterior: string; nuevo: string }[] = [
+                        { campo: "inicio", anterior: a.citaOrig.inicio, nuevo: a.payload.inicio },
+                        { campo: "fin", anterior: a.citaOrig.fin, nuevo: a.payload.fin },
+                      ];
+                      if (a.payload.profesional_id !== a.citaOrig.profesional_id) {
+                        cambios.push({
+                          campo: "profesional_id",
+                          anterior: a.citaOrig.profesional_id,
+                          nuevo: a.payload.profesional_id,
+                        });
+                      }
+                      registrarHistorial(
+                        a.citaOrig.id,
+                        nId,
+                        cambios,
+                        `Reagendado sobre ${a.motivo} (drag & drop, aviso aceptado)`,
+                      );
+                    }
+                    setDragAusencia(null);
+                  } finally {
+                    setAplicandoAusencia(false);
+                  }
+                }}
+                style={{
+                  flex: 1.6,
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: TOKENS.fireGradient,
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  cursor: aplicandoAusencia ? "default" : "pointer",
+                  opacity: aplicandoAusencia ? 0.7 : 1,
+                }}
+              >
+                {aplicandoAusencia ? "Colocando…" : "Mover igualmente"}
               </button>
             </div>
           </div>
