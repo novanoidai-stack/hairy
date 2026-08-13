@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { suscribirIdentidad } from './identidadActiva';
 
 interface CalendarContextType {
   refreshTrigger: number;
@@ -13,6 +14,12 @@ export function CalendarProvider({ children }: { children: React.ReactNode }) {
   const triggerRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
   };
+
+  // Puente identidad -> refresco global. Cuando alguien cambia de persona en el
+  // mostrador ("¿Quién eres?"), todo lo que depende de quién eres (mi jornada,
+  // agenda, clientes...) tiene que recargar. Sin esto, las pantallas seguían
+  // mostrando al profesional anterior hasta que refrescabas a mano.
+  useEffect(() => suscribirIdentidad(() => setRefreshTrigger((p) => p + 1)), []);
 
   return (
     <CalendarContext.Provider value={{ refreshTrigger, triggerRefresh }}>

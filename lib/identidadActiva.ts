@@ -17,8 +17,6 @@
 // 'individual', el de por defecto). Esta escrito tal cual en la pantalla de
 // staff que enciende el modo, para que nadie lo venda como lo que no es.
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 export type RolAcceso = 'owner' | 'admin' | 'recepcion' | 'employee';
 
 export interface IdentidadActiva {
@@ -37,10 +35,12 @@ export interface EstadoAccesoSalon {
   tienePin: boolean;
 }
 
-const CLAVE = 'mecha_identidad_activa';
-
-// Caduca sola: si la tablet se queda encendida toda la noche, por la mañana
-// vuelve a preguntar quien eres en vez de dar por hecho que sigue el de ayer.
+// La identidad NO se persiste entre sesiones. Antes se guardaba en AsyncStorage
+// hasta 14 h y, al reabrir el software, la puerta "¿Quién eres?" se la saltaba
+// (era el "a veces no pregunta"). Ahora vive solo en memoria: la puerta sale
+// SIEMPRE que se abre el software y, una vez elegida la persona, se mantiene
+// durante la sesión. La caducidad de abajo solo aplica si la tablet queda
+// abierta muchas horas seguidas sin recargar: entonces vuelve a preguntar.
 export const CADUCIDAD_MS = 14 * 60 * 60 * 1000; // 14 horas
 
 let cache: IdentidadActiva | null = null;
@@ -72,14 +72,10 @@ export function identidadCargada(): boolean {
 }
 
 export async function cargarIdentidad(): Promise<IdentidadActiva | null> {
-  try {
-    const crudo = await AsyncStorage.getItem(CLAVE);
-    const guardada = crudo ? (JSON.parse(crudo) as IdentidadActiva) : null;
-    cache = guardada && !haCaducado(guardada) ? guardada : null;
-    if (guardada && !cache) await AsyncStorage.removeItem(CLAVE);
-  } catch {
-    cache = null;
-  }
+  // No restaura nada de disco: al arrancar, el módulo empieza sin cache y la
+  // puerta sale siempre. Dentro de la sesión respeta lo elegido en memoria.
+  // (Se mantiene async para no romper a quien la awaited.)
+  if (cache && haCaducado(cache)) cache = null;
   cargada = true;
   avisar();
   return cache;
@@ -87,13 +83,11 @@ export async function cargarIdentidad(): Promise<IdentidadActiva | null> {
 
 export async function elegirIdentidad(i: Omit<IdentidadActiva, 'desde'>): Promise<void> {
   cache = { ...i, desde: Date.now() };
-  try { await AsyncStorage.setItem(CLAVE, JSON.stringify(cache)); } catch { /* modo privado */ }
   avisar();
 }
 
 export async function soltarIdentidad(): Promise<void> {
   cache = null;
-  try { await AsyncStorage.removeItem(CLAVE); } catch { /* modo privado */ }
   avisar();
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, roleLabel } from '@/lib/auth';
 import { identidadActiva } from '@/lib/identidadActiva';
+import { useCalendarRefresh } from '@/lib/calendarContext';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { format, parseISO, startOfDay, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -210,6 +211,9 @@ function MetricRow({ icon, label, value, sub, color = T.primary }: { icon: strin
 
 function MiJornadaScreen() {
   const { isMobile } = useResponsive();
+  // Al cambiar de profesional en el mostrador, recarga mi jornada con la nueva
+  // persona (el puente identidad->refreshTrigger de CalendarContext lo dispara).
+  const { refreshTrigger } = useCalendarRefresh();
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('mi-jornada');
   const [loading, setLoading] = useState(true);
@@ -381,7 +385,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
     }
   }, []);
 
-  useEffect(() => { cargar(periodo); }, [periodo, cargar]);
+  useEffect(() => { cargar(periodo); }, [periodo, cargar, refreshTrigger]);
 
   const cargarIntercambios = useCallback(async () => {
     try {

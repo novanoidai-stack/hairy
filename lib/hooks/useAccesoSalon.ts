@@ -5,6 +5,7 @@
 // chip de la barra que permite cambiar de persona sin cerrar sesion.
 
 import { useCallback, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import {
@@ -16,6 +17,22 @@ import {
   type EstadoAccesoSalon,
   type IdentidadActiva,
 } from '@/lib/identidadActiva';
+
+// Recordamos el último modo de acceso conocido en este dispositivo. Si la RPC
+// acceso_salon_estado falla un instante (red, arranque en frío), sin esto el
+// modo caería a 'individual' y la puerta "¿Quién eres?" desaparecería en un
+// salón compartido, dejando entrar sin preguntar. Con el respaldo, usa lo último
+// que sí supimos.
+const CLAVE_ESTADO = 'mecha_estado_acceso';
+async function leerEstadoPersistido(): Promise<EstadoAccesoSalon | null> {
+  try {
+    const v = await AsyncStorage.getItem(CLAVE_ESTADO);
+    return v ? (JSON.parse(v) as EstadoAccesoSalon) : null;
+  } catch { return null; }
+}
+async function guardarEstadoPersistido(e: EstadoAccesoSalon): Promise<void> {
+  try { await AsyncStorage.setItem(CLAVE_ESTADO, JSON.stringify(e)); } catch { /* modo privado */ }
+}
 
 export interface FichaElegible {
   id: string;
@@ -72,10 +89,21 @@ export function useAccesoSalon(): AccesoSalon {
         setEmail(perfil?.email ?? null);
 
         const datos = (estadoRpc.data ?? null) as { modo?: string; tiene_pin?: boolean } | null;
-        // Si la consulta falla no inventamos: se queda en 'individual', que es
-        // el comportamiento de siempre y no deja a nadie fuera del software.
-        const modo = datos?.modo === 'compartido' ? 'compartido' : 'individual';
-        setEstado({ modo, tienePin: datos?.tiene_pin === true });
+        let modo: 'individual' | 'compartido';
+        let tienePin: boolean;
+        if (datos) {
+          modo = datos.modo === 'compartido' ? 'compartido' : 'individual';
+          tienePin = datos.tiene_pin === true;
+          guardarEstadoPersistido({ modo, tienePin }).catch(() => {});
+        } else {
+          // La consulta falló (red, arranque en frío): no inventamos 'individual'
+          // sin más, que haría desaparecer la puerta en un salón compartido.
+          // Usamos el último estado conocido de este dispositivo.
+          const persistido = await leerEstadoPersistido();
+          modo = persistido?.modo ?? 'individual';
+          tienePin = persistido?.tienePin ?? false;
+        }
+        setEstado({ modo, tienePin });
 
         if (modo === 'compartido' && perfil?.negocio_id) {
           const { data } = await supabase
