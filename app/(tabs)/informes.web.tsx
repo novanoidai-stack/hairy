@@ -175,7 +175,7 @@ const ANIMATIONS = `
 // Explicaciones de cada KPI del dashboard (clave = label de la tarjeta).
 const KPI_INFO: Record<string, string> = {
   'Citas totales': 'Numero total de citas registradas en el periodo elegido (semana, mes, 3 meses o ano). Es la foto global de actividad del salon.',
-  'Ingresos': 'Suma del precio de los servicios de las citas completadas en el periodo. No cuenta no-shows ni canceladas: es tu facturacion real estimada.',
+  'Ingresos': 'Dinero REALMENTE cobrado en el periodo (libro de caja), sin contar la propina (va aparte). No es una estimacion del catalogo: solo lo que se ha cobrado de verdad.',
   'Citas/profesional': 'Media de citas por profesional activo en el periodo (total de citas dividido entre profesionales). Muestra como se reparte la carga del equipo.',
   'No-shows': 'Clientes que no se presentaron. El porcentaje es sobre el total de citas del periodo. Si sube, conviene reforzar los recordatorios.',
   'Tiempo espera medio': 'Minutos medios que un cliente espera desde que llega hasta que empieza su servicio, calculado con las marcas de tiempo de cada cita. Cuanto mas bajo, mejor.',
@@ -211,6 +211,8 @@ interface Cita {
   profesional_id: string;
   servicio_id?: string;
   cliente_id?: string;
+  /** true si la cita ya tiene cobro registrado en el POS. */
+  cobrada?: boolean | null;
 }
 
 interface Profesional {
@@ -389,7 +391,10 @@ function InformesScreen() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
-  const [cobros, setCobros] = useState<{ total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number; profesional_id?: string | null }[]>([]);
+  const [cobros, setCobros] = useState<{ id: string; total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number; profesional_id?: string | null; cliente_id?: string | null }[]>([]);
+  // Lineas de los cobros del periodo (para el desglose por servicio REAL).
+  // cobro_lineas no tiene negocio_id: se filtra por cobro_id al cargar.
+  const [cobroLineas, setCobroLineas] = useState<{ cobro_id: string; tipo: string; ref_id: string | null; precio_cents: number; cantidad: number }[]>([]);
   const [gastos, setGastos] = useState<{ importe_cents: number }[]>([]);
   // Historico de visitas cumplidas de los ultimos 13 meses. Hace falta aparte de
   // `citas` porque la fidelizacion NO se puede medir dentro del periodo del
@@ -432,7 +437,7 @@ function InformesScreen() {
     const [citaRes, profRes, srvRes, cltRes, resRes, cobRes, gastosRes, histRes] = await Promise.all([
       supabase
         .from('citas')
-        .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
+        .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, cobrada')
         .eq('negocio_id', nId)
         .gte('inicio', desde.toISOString())
         .lte('inicio', hasta.toISOString())
@@ -448,10 +453,11 @@ function InformesScreen() {
         .gte('created_at', desde.toISOString())
         .lte('created_at', hasta.toISOString()),
       // Cobros reales del periodo (libro de caja): para comparar estimado vs cobrado
-      // y para comisiones reales por profesional.
+      // y para comisiones reales por profesional. id+cliente_id para unir lineas y
+      // desglose por cliente; son los ingresos REALES (no estimacion de catalogo).
       supabase
         .from('cobros')
-        .select('total_cents, cobrado_at, efectivo_cents, datafono_cents, propina_cents, profesional_id')
+        .select('id, total_cents, cobrado_at, efectivo_cents, datafono_cents, propina_cents, profesional_id, cliente_id')
         .eq('negocio_id', nId)
         .eq('estado', 'completado')
         .gte('cobrado_at', desde.toISOString())
@@ -492,6 +498,20 @@ function InformesScreen() {
     setClientes(cltRes.data ?? []);
     setResenas(resRes.data ?? []);
     setCobros(cobRes.data ?? []);
+    // Lineas de cobro del periodo: imprescindibles para el desglose de ingresos
+    // por servicio REAL. cobro_lineas no tiene negocio_id ni fecha, asi que se
+    // filtra por los cobro_id recien cargados. Depende del resultado de cobros.
+    const cobrosIds = (cobRes.data ?? []).map(c => c.id).filter(Boolean);
+    if (cobrosIds.length > 0) {
+      const { data: lin, error: errLin } = await supabase
+        .from('cobro_lineas')
+        .select('cobro_id, tipo, ref_id, precio_cents, cantidad')
+        .in('cobro_id', cobrosIds);
+      if (errLin) reportarError(errLin, { origen: 'app', tipo: 'operativo' });
+      setCobroLineas((lin ?? []) as { cobro_id: string; tipo: string; ref_id: string | null; precio_cents: number; cantidad: number }[]);
+    } else {
+      setCobroLineas([]);
+    }
     setGastos(gastosRes.data ?? []);
     const hist = histRes.data ?? [];
     setHistorico(hist);
@@ -558,6 +578,9 @@ function InformesScreen() {
   const profsActivos = useMemo(() => profesionales.filter(p => p.activo), [profesionales]);
 
   const completadas = useMemo(() => citas.filter(esCompletada), [citas]);
+  // Alerta operativa (no es dinero): citas cuyo servicio SI se presto (completadas)
+  // pero no figuran como cobradas en el POS. Ayuda a no dejar trabajos sin cobrar.
+  const citasSinCobrar = useMemo(() => completadas.filter(c => !c.cobrada).length, [completadas]);
   const confirmadas = useMemo(() => citas.filter(esConfirmada), [citas]);
   const pendientes = useMemo(() => citas.filter(esPendiente), [citas]);
   const noShows = useMemo(() => citas.filter(esNoShow), [citas]);
@@ -732,21 +755,28 @@ function InformesScreen() {
     return { porProf, pctGlobal, globalTotal, globalUsed };
   }, [activas]);
 
-  // -- 9.5: Ingresos --
+  // -- 9.5: Ingresos (SIEMPRE reales: cobros + cobro_lineas, nunca catalogo) --
   const ingresosData = useMemo(() => {
     const porProf: Record<string, number> = {};
-    const porServicio: Record<string, number> = {};
     const porCliente: Record<string, number> = {};
 
-    activas.forEach(c => {
-      const precio = srvMap.get(c.servicio_id ?? '')?.precio || 0;
-      porProf[c.profesional_id] = (porProf[c.profesional_id] || 0) + precio;
-      if (c.servicio_id) porServicio[c.servicio_id] = (porServicio[c.servicio_id] || 0) + precio;
-      if (c.cliente_id) porCliente[c.cliente_id] = (porCliente[c.cliente_id] || 0) + precio;
+    // Por profesional y por cliente: cobros reales netos de propina.
+    cobros.forEach(c => {
+      const neto = ((c.total_cents || 0) - (c.propina_cents || 0)) / 100;
+      if (c.profesional_id) porProf[c.profesional_id] = (porProf[c.profesional_id] || 0) + neto;
+      if (c.cliente_id) porCliente[c.cliente_id] = (porCliente[c.cliente_id] || 0) + neto;
     });
 
-    return { porProf, porServicio, porCliente, total: totalIngresos };
-  }, [activas, srvMap, totalIngresos]);
+    // Por servicio: desde las lineas de cobro reales (tipo 'servicio'). Cobros no
+    // lleva servicio_id; cobro_lineas es la fuente de verdad de que servicio se vendio.
+    const porServicio: Record<string, number> = {};
+    cobroLineas.forEach(l => {
+      if (l.tipo !== 'servicio' || !l.ref_id) return;
+      porServicio[l.ref_id] = (porServicio[l.ref_id] || 0) + ((l.precio_cents || 0) * (l.cantidad || 1)) / 100;
+    });
+
+    return { porProf, porServicio, porCliente, total: totalCobrado };
+  }, [cobros, cobroLineas, totalCobrado]);
 
   // -- 9.6: Servicios top + combinaciones --
   const serviciosData = useMemo(() => {
@@ -818,18 +848,15 @@ function InformesScreen() {
   }, [activas]);
 
   // -- 9.8: Comisiones --
-  // Lo que ha facturado cada profesional en el periodo. Real cuando tiene cobros
-  // (libro de caja, sin la propina porque esa es integra suya); si no, estimado
-  // por catalogo — mismo patron que totalIngresos vs totalCobrado mas arriba.
+  // Lo que ha facturado cada profesional en el periodo: SIEMPRE real (libro de
+  // caja, sin la propina porque esa es integra suya). Sin cobros → 0 (no se
+  // estima con el catalogo: los ingresos son solo dinero realmente cobrado).
   const facturacionPorProf = useMemo(() => {
     return profsActivos.map(p => {
       const profCitas = activas.filter(c => c.profesional_id === p.id);
       const profCobros = cobros.filter(c => c.profesional_id === p.id);
       const real = profCobros.length > 0;
-      const ingresos = real
-        // total_cents ya viene neto de descuento y señal.
-        ? ingresosRealesCents(profCobros) / 100
-        : profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
+      const ingresos = ingresosRealesCents(profCobros) / 100;
       return {
         profId: p.id,
         nombre: p.nombre,
@@ -841,7 +868,7 @@ function InformesScreen() {
         real,
       };
     }).sort((a, b) => b.ingresos - a.ingresos);
-  }, [profsActivos, activas, cobros, srvMap]);
+  }, [profsActivos, activas, cobros]);
 
   /**
    * Calcula las comisiones con el motor COMPARTIDO con la calculadora publica
@@ -958,19 +985,27 @@ function InformesScreen() {
     descargarCSV(`informe_completo_${periodo}.csv`, headers, rows);
   }, [citas, profMap, srvMap, cltMap, periodo]);
 
-  // Totales de caja del periodo (efectivo, tarjeta/datáfono, propinas, IVA estimado 21%).
+  // Totales de caja del periodo (efectivo, tarjeta/datáfono, propinas, IVA operativo).
+  //
+  // El IVA de aqui es ORIENTATIVO, NO fiscal: aplica un 21% plano porque hoy las
+  // lineas de cobro (cobro_lineas) no guardan el tipo de IVA de cada concepto, asi
+  // que no se puede desglosar base/cuota por tipo real. Sirve para hacerse una idea
+  // de lo que no es tuyo, no para liquidar con Hacienda (eso sale del ticket fiscal).
+  // La propina queda FUERA de la base: no es contraprestacion del servicio.
   const cajaTotales = useMemo(() => {
     const total = cobros.reduce((s, c) => s + (c.total_cents || 0), 0);
     const efectivo = cobros.reduce((s, c) => s + (c.efectivo_cents || 0), 0);
     const datafono = cobros.reduce((s, c) => s + (c.datafono_cents || 0), 0);
     const propina = cobros.reduce((s, c) => s + (c.propina_cents || 0), 0);
-    const iva = Math.round(total * 21 / 121); // IVA estimado (operativo, NO fiscal)
+    const iva = Math.round((total - propina) * 21 / 121);
     return { total, efectivo, datafono, propina, iva };
   }, [cobros]);
 
-  // Caja diaria: registro descargable de lo cobrado de verdad, día a día (con IVA estim.).
+  // Caja diaria: registro descargable de lo cobrado de verdad, día a día. El IVA
+  // que se exporta es el operativo (21% plano sin propinas), NO el fiscal: mismo
+  // criterio y misma advertencia que la tarjeta de arriba.
   const exportCajaDiaria = useCallback(() => {
-    const headers = ['Fecha', 'Cobros', 'Total (EUR)', 'Efectivo (EUR)', 'Datafono (EUR)', 'Propinas (EUR)', 'IVA estim. 21% (EUR)'];
+    const headers = ['Fecha', 'Cobros', 'Total (EUR)', 'Efectivo (EUR)', 'Datafono (EUR)', 'Propinas (EUR)', 'IVA operativo no fiscal (EUR)'];
     const rows = cajaPorDia.map(d => [
       format(parseISO(d.fecha), 'dd/MM/yyyy'),
       String(d.n),
@@ -978,7 +1013,7 @@ function InformesScreen() {
       (d.efectivo / 100).toFixed(2),
       (d.datafono / 100).toFixed(2),
       (d.propina / 100).toFixed(2),
-      (Math.round(d.total * 21 / 121) / 100).toFixed(2),
+      (Math.round((d.total - d.propina) * 21 / 121) / 100).toFixed(2),
     ]);
     rows.push(['TOTAL', String(cobros.length), (cajaTotales.total / 100).toFixed(2), (cajaTotales.efectivo / 100).toFixed(2), (cajaTotales.datafono / 100).toFixed(2), (cajaTotales.propina / 100).toFixed(2), (cajaTotales.iva / 100).toFixed(2)]);
     descargarCSV(`caja_diaria_${periodo}.csv`, headers, rows);
@@ -1164,11 +1199,12 @@ function InformesScreen() {
   const resumenInformeDeterminista = useMemo(() => {
     const partes = [
       `${totalCitas} citas`,
-      hayCobros ? `${fmtEur(totalCobrado)} EUR cobrados` : `${fmtEur(totalIngresos)} EUR estimados`,
+      // Ingresos = solo cobros reales (libro de caja). Nunca estimacion.
+      `${fmtEur(totalCobrado)} EUR cobrados`,
     ];
     if (noShows.length > 0) partes.push(`${noShows.length} no-shows (${fmtPct(tasaNoShow)})`);
     return `${periodoLabel}: ${partes.join(' · ')}.`;
-  }, [periodoLabel, totalCitas, hayCobros, totalCobrado, totalIngresos, noShows.length, tasaNoShow]);
+  }, [periodoLabel, totalCitas, totalCobrado, noShows.length, tasaNoShow]);
 
   const analizarInformeIA = () => {
     setAccionEstadoInformeIA('pendiente');
@@ -1192,7 +1228,7 @@ Informes, no solo ingresos. Sigue este orden EXACTO:
 2) En cuanto termines esas llamadas, tu SIGUIENTE respuesta (sin mas llamadas a tools) tiene que ser el INFORME,
    interpretando estas cifras YA CALCULADAS de TODAS las secciones (no inventes otras):
    - Citas y ocupacion: ${totalCitas} citas, ocupacion media ${Math.round(ocupacionGlobal * 10) / 10} citas/profesional.
-   - Ingresos: ${hayCobros ? `${totalCobrado.toFixed(2)}€ cobrados de verdad` : `${totalIngresos.toFixed(2)}€ estimados (aun sin cobros registrados)`}.
+   - Ingresos: ${totalCobrado.toFixed(2)}€ cobrados de verdad${hayCobros ? '' : ' (aun sin cobros registrados en el periodo)'}.
    - No-shows: ${noShows.length} (${Math.round(tasaNoShow)}%).
    - Espera media entre citas: ${Math.round(esperaData.avgGlobal)} min.
    - Reposo aprovechado (tintes/mechas): ${fmtPct(reposoData.pctGlobal)}.
@@ -1237,7 +1273,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
     // KPIs resumen
     const kpis = [
       { label: 'Citas totales', value: String(totalCitas) },
-      { label: hayCobros ? 'Ingresos (real)' : 'Ingresos (previsto)', value: `${fmtEur(hayCobros ? totalCobrado : totalIngresos)} €` },
+      { label: 'Ingresos (cobrado)', value: `${fmtEur(totalCobrado)} €` },
       { label: 'Citas / profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}` },
       { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})` },
       { label: 'Espera media', value: `${Math.round(esperaData.avgGlobal)} min` },
@@ -1411,7 +1447,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   </section>
 
   <section>
-    <h2>Ingresos · ${esc(fmtEur(hayCobros ? totalCobrado : totalIngresos))} €${hayCobros && totalPropinas > 0 ? ` (propinas: ${esc(fmtEur(totalPropinas))} € aparte)` : ''}</h2>
+    <h2>Ingresos · ${esc(fmtEur(totalCobrado))} €${totalPropinas > 0 ? ` (propinas: ${esc(fmtEur(totalPropinas))} € aparte)` : ''}</h2>
     <div class="cols3">
       <div>
         <div class="coltitle">Por profesional</div>
@@ -1531,13 +1567,21 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
       const g = agruparFecha(d);
       if (!map.has(g)) map.set(g, { fecha: d, ingresos: 0, citas: 0 }); // Usamos el primer dia del grupo
     });
+    // Ingresos REALES por dia de cobro (cobrado_at), netos de propina. Antes esto
+    // estimaba con el precio del catalogo sobre las citas activas: ahora solo suma
+    // lo cobrado de verdad (mismo criterio que el resto de la pagina).
+    cobros.forEach(c => {
+      if (!c.cobrado_at) return;
+      const b = map.get(agruparFecha(parseISO(c.cobrado_at)));
+      if (b) b.ingresos += ((c.total_cents || 0) - (c.propina_cents || 0)) / 100;
+    });
+    // Actividad (citas) por dia de inicio: es un conteo de citas, no de dinero.
     activas.forEach(c => {
-      const key = agruparFecha(parseISO(c.inicio));
-      const b = map.get(key);
-      if (b) { b.ingresos += srvMap.get(c.servicio_id ?? '')?.precio || 0; b.citas += 1; }
+      const b = map.get(agruparFecha(parseISO(c.inicio)));
+      if (b) { b.citas += 1; }
     });
     return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-  }, [activas, srvMap, momentosDelPeriodo, agruparFecha]);
+  }, [cobros, activas, momentosDelPeriodo, agruparFecha]);
 
   const noShowEvolucionData = useMemo(() => {
     const dias = momentosDelPeriodo();
@@ -1881,11 +1925,17 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
               <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.textSec, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rendimiento Global</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
                 {[
-                  { label: hayCobros ? 'Ingresos' : 'Ingresos (previsto)', value: `${fmtEur(hayCobros ? totalCobrado : totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
+                  // Ingresos = SOLO cobros reales (libro de caja). Nunca estimacion.
+                  { label: 'Ingresos', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
+                  // Previsto del catalogo: referencia, claramente etiquetado (no es ingreso).
+                  { label: 'Previsto (catálogo)', value: `${fmtEur(totalIngresos)} EUR`, icon: 'trendingUp', color: TOKENS.textTer, bg: TOKENS.bgCard },
                   ...(hayCobros ? [
-                    { label: 'Previsto (catálogo)', value: `${fmtEur(totalIngresos)} EUR`, icon: 'trendingUp', color: TOKENS.textTer, bg: TOKENS.bgCard },
                     { label: 'Propinas', value: `${fmtEur(totalPropinas)} EUR`, icon: 'dollar', color: '#d97706', bg: TOKENS.warningSoft },
                     { label: 'Margen (aprox)', value: `${fmtEur(margenAproximado)} EUR`, icon: 'trendingUp', color: TOKENS.success, bg: TOKENS.successSoft }
+                  ] : []),
+                  // Alerta operativa: trabajos completados sin cobro registrado.
+                  ...(citasSinCobrar > 0 ? [
+                    { label: 'Citas sin cobrar', value: citasSinCobrar, icon: 'alertTriangle', color: TOKENS.warning, bg: TOKENS.warningSoft }
                   ] : []),
                   { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
                   { label: 'Citas/profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}`, icon: 'barChart', color: TOKENS.cyan, bg: TOKENS.cyanSoft },
@@ -2322,13 +2372,19 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     { label: 'Efectivo', value: cajaTotales.efectivo, color: TOKENS.success },
                     { label: 'Tarjeta / datáfono', value: cajaTotales.datafono, color: TOKENS.primary },
                     { label: 'Propinas', value: cajaTotales.propina, color: TOKENS.text },
-                    { label: 'IVA estim. (21%)', value: cajaTotales.iva, color: TOKENS.textSec },
+                    { label: 'IVA operativo (no fiscal)', value: cajaTotales.iva, color: TOKENS.textSec },
                   ].map((k) => (
                     <div key={k.label} style={{ background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '10px 12px' }}>
                       <div style={{ fontSize: 10.5, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>{k.label}</div>
                       <div style={{ fontSize: 17, fontWeight: 700, color: k.color, marginTop: 3 }}>{fmtEur(k.value / 100)} €</div>
                     </div>
                   ))}
+                </div>
+
+                <div style={{ fontSize: 11, color: TOKENS.textTer, marginBottom: 14, lineHeight: 1.5 }}>
+                  El IVA es orientativo (21% plano sobre lo cobrado, sin contar propinas): sirve para hacerte
+                  una idea de lo que no es tuyo, no para liquidar con Hacienda. La cifra fiscal sale del ticket
+                  de cada cobro, en Registros legales.
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
@@ -2341,7 +2397,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                         <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Efectivo</th>
                         <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Datáfono</th>
                         <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Propinas</th>
-                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>IVA estim.</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>IVA operativo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2353,7 +2409,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                           <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.efectivo / 100)} €</td>
                           <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.datafono / 100)} €</td>
                           <td style={{ padding: '7px 8px', color: TOKENS.success, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.propina / 100)} €</td>
-                          <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(Math.round(d.total * 21 / 121) / 100)} €</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(Math.round((d.total - d.propina) * 21 / 121) / 100)} €</td>
                         </tr>
                       ))}
                       <tr>
