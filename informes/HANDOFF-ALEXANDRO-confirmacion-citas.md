@@ -30,6 +30,23 @@ default dejan de dispararse solas. **Ninguna da error: simplemente no salta.**
      flujo**, para no llenar la app de avisos de citas que ni siquiera han
      recibido mensaje.
 
+### Lo que YA he arreglado yo (no lo toques)
+
+Barrí todas las funciones de BD que miraban `estado = 'confirmada'`. Estas dos
+eran ciclo de vida de la agenda y ya están corregidas
+(`migrations/citas-pendiente-ciclo-vida.sql`):
+
+- **`autocompletar_citas`**: ahora completa también las `pendiente` que ya han
+  pasado. Sin esto se quedaban colgadas para siempre y nunca llegaban a
+  `completada`, así que tampoco se pedía nunca la reseña.
+- **`marcar_cita_no_show`**: ahora acepta `pendiente` (antes devolvía
+  `estado_no_valido`, justo en el caso más típico de no-show).
+
+Y buena noticia: **el portal público ya estaba bien**. `disponibilidad_publica`,
+`crear_cita_publica`, `portal_dias_disponibles`, `modificar/cancelar_cita_publica`,
+`citas_de_cliente` y `proponer_cambio_cita` ya usaban `in ('pendiente','confirmada')`.
+No hay riesgo de doble reserva desde el portal.
+
 ## Y el hueco de fondo
 
 **No existe ningún camino por el que la clienta confirme desde WhatsApp.** El

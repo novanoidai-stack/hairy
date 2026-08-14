@@ -7,6 +7,7 @@ import { GastosSection } from '@/components/informes/GastosSection';
 import { ControlHorarioSection } from '@/components/informes/ControlHorarioSection.web';
 import { ProductosVendidosSection } from '@/components/informes/ProductosVendidosSection';
 import { FacturasRegistroSection } from '@/components/informes/FacturasRegistroSection';
+import { AuditoriaSection } from '@/components/informes/AuditoriaSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -3157,6 +3158,13 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   isMobile={isMobile}
                   customInicio={desde.toISOString()}
                   customFin={hasta.toISOString()}
+                />
+                {/* Quien toco que: cierra el circulo de los otros registros. */}
+                <AuditoriaSection
+                  desde={desde}
+                  hasta={hasta}
+                  clientesMap={cltMap as unknown as Map<string, { nombre: string }>}
+                  profesionalesMap={profMap as unknown as Map<string, { nombre: string }>}
                 />
               </div>
             )}
