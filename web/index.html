@@ -162,7 +162,7 @@
 </script>
 
 <!-- Structured data: Product & Reviews -->
-<script type="application/ld+json">
+<script type="application/ld+json" id="product-jsonld">
 {
   "@context": "https://schema.org",
   "@type": "Product",
@@ -2124,6 +2124,75 @@ window.MECHA_CHAT = [
       sendMessage();
     });
   }
+})();
+</script>
+
+<!-- ============ PRODUCT JSON-LD: AGGREGATE RATING FROM REAL REVIEWS ============ -->
+<script>
+(function(){
+  var api = window.MechaAPI;
+  if (!api || !api.client) return;
+
+  api.client.from('resenas')
+    .select('mecha_puntuacion, mecha_comentario, autor_nombre, created_at')
+    .not('mecha_puntuacion', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(50)
+    .then(function(res) {
+      if (res.error || !res.data || res.data.length === 0) return;
+
+      var reviews = res.data;
+      var total = reviews.length;
+      var sum = 0;
+      reviews.forEach(function(r) { sum += r.mecha_puntuacion; });
+      var avg = (sum / total).toFixed(1);
+
+      // Update the Product JSON-LD
+      var el = document.getElementById('product-jsonld');
+      if (!el) return;
+
+      try {
+        var schema = JSON.parse(el.textContent);
+
+        // aggregateRating — always add if we have reviews
+        schema.aggregateRating = {
+          '@type': 'AggregateRating',
+          ratingValue: avg,
+          bestRating: '5',
+          worstRating: '1',
+          reviewCount: total
+        };
+
+        // review — pick up to 5 most recent with comments
+        var withComment = reviews.filter(function(r) {
+          return r.mecha_comentario && r.mecha_comentario.trim().length > 10;
+        }).slice(0, 5);
+
+        if (withComment.length > 0) {
+          schema.review = withComment.map(function(r) {
+            return {
+              '@type': 'Review',
+              author: {
+                '@type': 'Person',
+                name: r.autor_nombre || 'Cliente verificado'
+              },
+              datePublished: r.created_at ? r.created_at.substring(0, 10) : undefined,
+              reviewRating: {
+                '@type': 'Rating',
+                ratingValue: String(r.mecha_puntuacion),
+                bestRating: '5',
+                worstRating: '1'
+              },
+              reviewBody: r.mecha_comentario.trim()
+            };
+          });
+        }
+
+        el.textContent = JSON.stringify(schema);
+      } catch(e) {
+        // Silently fail — the static Product schema remains valid
+      }
+    });
 })();
 </script>
 
