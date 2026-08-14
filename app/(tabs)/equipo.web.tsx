@@ -3,7 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
-import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
+import { NEGOCIO_ID_FALLBACK, CITA_STATUS_ACTIVOS } from '@/lib/constants';
+import { esActiva } from '@/lib/citasMetrics';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { reportarError } from '@/lib/reportarError';
@@ -357,7 +358,10 @@ export default function EquipoWeb() {
       const srvMap: Record<string, number> = {};
       (srvData ?? []).forEach((s: any) => { srvMap[s.id] = s.precio ?? 0; });
 
-      const confirmedCitas = (citsData ?? []).filter((c: any) => c.estado === 'confirmada' || c.estado === 'completada');
+      // Actividad real del equipo = mismo criterio que Informes (esActiva, que
+      // incluye las pendientes). Contando solo confirmadas, con las citas
+      // naciendo en pendiente, el equipo aparecia medio vacio.
+      const confirmedCitas = (citsData ?? []).filter((c: any) => esActiva(c));
       const totalCitas = confirmedCitas.length;
 
       const enriched = (profs ?? []).map((p) => {
@@ -2601,7 +2605,9 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
       .from('citas')
       .select('id, profesional_id, inicio, fin, cliente:clientes(nombre), servicio:servicios(nombre)')
       .eq('negocio_id', negocioId)
-      .eq('estado', 'confirmada')
+      // Una cita pendiente tambien choca con unas vacaciones o una baja: si no
+      // se cuenta, se bloquea el hueco sin avisar de que habia clienta dentro.
+      .in('estado', CITA_STATUS_ACTIVOS)
       .in('profesional_id', profsSeleccionados)
       .gte('fin', minInicio)
       .lte('inicio', maxFin);

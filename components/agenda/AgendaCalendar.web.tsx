@@ -83,6 +83,9 @@ import {
   INTERVALO_MINUTOS,
   CITA_CARD_DETAILS_MIN_HEIGHT,
   CITA_STATUS,
+  CITA_STATUS_BLOQUEAN_SOLAPE,
+  bloqueaSolape,
+  sinCarrilPropio,
   LOCALE,
   OCUPACION_MAX_PER_MES,
   TAG_RESENO_SALON,
@@ -95,6 +98,7 @@ import {
   esSinConfirmar48h,
 } from "@/lib/citasMetrics";
 import { isTimeSlotOccupied } from "@/lib/utils/appointment";
+import { ESTADO_CITA_UI, metaEstadoCita } from "@/lib/citasEstadoUi";
 
 const ANIMATIONS = `
   input::placeholder, textarea::placeholder {
@@ -1073,7 +1077,10 @@ export default function AgendaCalendar() {
               const { data, error } = await supabase
                 .from("citas")
                 .select(
-                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id",
+                  // cobrada/cobro_id son imprescindibles: sin ellos el detalle de
+                  // la cita no sabe que ya se cobro y ofrece cobrarla otra vez
+                  // hasta que se refresca a mano.
+                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id, cobrada, cobro_id",
                 )
                 .eq("negocio_id", negocioId)
                 .eq("oculta_en_calendario", false)
@@ -1329,7 +1336,9 @@ export default function AgendaCalendar() {
       const ahora = new Date();
       const hoyStr = ahora.toDateString();
       const vencidas = citas.filter((c) => {
-        if (c.estado !== "confirmada") return false;
+        // Pendiente cuenta: una cita que se ha pasado sin confirmar es
+        // justamente la que hay que resolver (completar o marcar no-show).
+        if (!bloqueaSolape(c.estado)) return false;
         const inicio = new Date(c.inicio);
         return inicio < ahora && inicio.toDateString() === hoyStr;
       });
@@ -5826,7 +5835,10 @@ export default function AgendaCalendar() {
           if (!prof) return null;
           const citasProf = citasHoy.filter(
             (c) =>
-              c.profesional_id === showRetrasoProf && c.estado === "confirmada",
+              c.profesional_id === showRetrasoProf &&
+              // Si vamos con retraso hay que mover TODA la cola del dia, no solo
+              // lo confirmado: las pendientes tambien ocupan su hora.
+              bloqueaSolape(c.estado),
           );
 
           function retrasarTodas(minutos: number) {
@@ -6903,6 +6915,9 @@ function DayTimeline({
   propuestaPorCitaId = new Map(),
 }: any) {
   const { isMobile, isTablet } = useResponsive();
+  // Para recargar la rejilla cuando al soltar una cita descubrimos que el hueco
+  // ya no esta libre (la foto local se habia quedado vieja).
+  const { triggerRefresh } = useCalendarRefresh();
   // Rango horario base = apertura..cierre. Si alguna cita del día seleccionado
   // termina DESPUÉS del cierre (overtime, p.ej. 17:45-21:20 con cierre 20:00),
   // ampliamos el rango hasta cubrirla. Sin esto, la cita rebasa la última fila
@@ -7507,6 +7522,42 @@ function DayTimeline({
         fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
         profesional_id: targetProf.id,
       };
+
+      // Ultimo control contra la BD antes de guardar. Todo lo de arriba se ha
+      // decidido con `currentCitas`, que es una FOTO local: si mientras se
+      // arrastraba entro una cita en ese hueco (otro dispositivo, el portal
+      // publico o el agente de WhatsApp), el array no se ha enterado y estariamos
+      // colocando la cita encima de una real.
+      const { data: choque } = await supabase
+        .from("citas")
+        .select("id, inicio, fin_activa, fin_espera, fin")
+        .eq("profesional_id", targetProf.id)
+        .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
+        .neq("id", cita.id)
+        .lt("inicio", nuevoFin.toISOString())
+        .gt("fin", nuevoInicio.toISOString());
+      // Solo cuentan las fases ACTIVAS: caer dentro del reposo de otra cita es
+      // justamente lo que se quiere permitir (citas encajadas).
+      const pisaOtraCita = (choque || []).some((c: any) => {
+        const ci = new Date(c.inicio).getTime();
+        const cfa = new Date(c.fin_activa ?? c.fin).getTime();
+        const cfe = c.fin_espera ? new Date(c.fin_espera).getTime() : null;
+        const cf = new Date(c.fin).getTime();
+        const ini = nuevoInicio.getTime();
+        const finAct = nuevoFinActiva.getTime();
+        if (ci < finAct && cfa > ini) return true;
+        if (cfe !== null && cf > cfe && cfe < finAct && cf > ini) return true;
+        return false;
+      });
+      if (pisaOtraCita) {
+        setDragError(
+          "Ese hueco lo acaba de ocupar otra cita. Se ha recargado la agenda.",
+        );
+        setTimeout(() => setDragError(null), 3500);
+        triggerRefresh();
+        return;
+      }
+
       const { error } = await supabase
         .from("citas")
         .update(payload)
@@ -7569,7 +7620,7 @@ function DayTimeline({
       // partiera la columna: ese era el bug de "se me va a la derecha".
       // Se elige el host con el que MAS se solapa, por si hay varios reposos.
       profCitas.forEach((c: any) => {
-        if (c.estado === CITA_STATUS.CANCELADA) {
+        if (sinCarrilPropio(c.estado)) {
           c._nested = false;
           c._hostId = null;
           c._desbordaMin = 0;
@@ -7581,7 +7632,9 @@ function DayTimeline({
         let mejorSolape = 0;
         for (const h of profCitas) {
           if (h.id === c.id) continue;
-          if (h.estado === CITA_STATUS.CANCELADA) continue;
+          // Una cita cancelada o con no-show no tiene reposo que aprovechar:
+          // su cliente no esta, asi que no puede alojar a nadie dentro.
+          if (sinCarrilPropio(h.estado)) continue;
           if (!h.fin_activa || !h.fin_espera) continue;
           const rIni = new Date(h.fin_activa).getTime();
           const rFin = new Date(h.fin_espera).getTime();
@@ -7613,7 +7666,23 @@ function DayTimeline({
       });
 
       // Lanes/solapes SOLO entre las citas normales (las anidadas van encima).
-      const normales = profCitas.filter((c: any) => !c._nested);
+      //
+      // Las canceladas y los no-shows quedan FUERA del reparto: no compiten por
+      // espacio, porque su hueco esta libre de verdad. Si entraran, una cita
+      // cancelada partiria la columna en dos y las citas vivas se pintarian
+      // estrechas y "al lado" de un hueco que ya no existe. Normalmente ni se
+      // ven (se ocultan al cancelar), pero el repartidor no debe depender de eso.
+      const compitePorCarril = (c: any) =>
+        !c._nested && !sinCarrilPropio(c.estado);
+      const normales = profCitas.filter(compitePorCarril);
+      // Ancho completo explicito para las que no reparten (el render usa
+      // `?? 0` / `?? 1`, pero dejarlo escrito evita sorpresas si eso cambia).
+      profCitas
+        .filter((c: any) => !c._nested && !compitePorCarril(c))
+        .forEach((c: any) => {
+          c._lane = 0;
+          c._totalLanes = 1;
+        });
       normales.sort(
         (a: any, b: any) =>
           new Date(a.inicio).getTime() - new Date(b.inicio).getTime() ||
@@ -8575,16 +8644,23 @@ function DayTimeline({
                           : nested
                             ? "#ffffff"
                             : citaBg;
+                        // El borde habla del ESTADO, y usa el mismo lenguaje de
+                        // color que el badge y el detalle (lib/citasEstadoUi).
+                        // Antes `confirmada` se pintaba naranja aqui y verde en
+                        // el badge de la misma cita. Ahora `pendiente` sale
+                        // ambar, que es justo lo que interesa localizar de un
+                        // vistazo: lo que todavia falta por confirmar.
+                        const bordeEstado =
+                          cita.estado === CITA_STATUS.PENDIENTE ||
+                          cita.estado === CITA_STATUS.CONFIRMADA
+                            ? ESTADO_CITA_UI[cita.estado].color
+                            : null;
                         const actualCitaBorder = nested
                           ? "rgba(34,197,94,0.45)"
-                          : cita.estado === "confirmada"
-                            ? "#fb923c"
-                            : citaBorder;
+                          : (bordeEstado ?? citaBorder);
                         const actualCitaBorderHover = nested
                           ? "rgba(34,197,94,0.85)"
-                          : cita.estado === "confirmada"
-                            ? "#ea580c"
-                            : citaBorderHover;
+                          : (bordeEstado ?? citaBorderHover);
                         const actualCitaShadow = nested
                           ? "0 6px 16px rgba(40,30,24,0.16), 0 1px 3px rgba(40,30,24,0.08)"
                           : citaShadow;
@@ -10503,33 +10579,7 @@ function DayTimeline({
 }
 
 function CitaEstadoBadge({ estado }: { estado: string }) {
-  const map: Record<string, { label: string; color: string; soft: string }> = {
-    confirmada: {
-      label: "Confirmada",
-      color: TOKENS.success,
-      soft: "rgba(15,157,107,0.12)",
-    },
-    completada: {
-      label: "Completada",
-      color: "#22c55e",
-      soft: "rgba(34,197,94,0.12)",
-    },
-    cancelada: {
-      label: "Cancelada",
-      color: TOKENS.danger,
-      soft: "rgba(226,59,52,0.12)",
-    },
-    no_presentada: {
-      label: "No presentada",
-      color: "#f59e0b",
-      soft: "rgba(245,158,11,0.15)",
-    },
-  };
-  const m = map[estado] || {
-    label: estado,
-    color: TOKENS.textTer,
-    soft: TOKENS.border,
-  };
+  const m = metaEstadoCita(estado);
   return (
     <span
       style={{
@@ -11264,7 +11314,10 @@ function NewCitaModal({
           .eq("negocio_id", negocioId)
           .gte("inicio", `${todayStr}T00:00:00`)
           .lt("inicio", `${tomorrowStr}T00:00:00`)
-          .eq("estado", CITA_STATUS.CONFIRMADA),
+          // El organizador tiene que ver el dia como es: una cita pendiente
+          // ocupa sitio igual que una confirmada, y si no la cuenta propone
+          // mover gente a huecos que en realidad estan pillados.
+          .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE),
         supabase
           .from("duraciones_profesional")
           .select(
@@ -11676,7 +11729,10 @@ function NewCitaModal({
           fin: confirmed.fin.toISOString(),
           fin_activa: confirmed.finActiva.toISOString(),
           fin_espera: confirmed.finEspera.toISOString(),
-          estado: CITA_STATUS.CONFIRMADA,
+          // Las citas nacen PENDIENTE: apuntarla no es lo mismo que tenerla
+          // confirmada por la clienta. Confirmar sigue siendo un paso manual,
+          // y asi el salon ve de un vistazo (ambar) lo que le falta por cerrar.
+          estado: CITA_STATUS.PENDIENTE,
           canal: "manual",
           creado_por: userId,
           ...(grupoId && { grupo_id: grupoId, orden_en_grupo: ordenIdx }),
@@ -11696,7 +11752,9 @@ function NewCitaModal({
           fin: fin!.toISOString(),
           fin_activa: finActiva!.toISOString(),
           fin_espera: finEspera!.toISOString(),
-          estado: CITA_STATUS.CONFIRMADA,
+          // Nace pendiente (ver arriba). Si el salon exige senal, el bloque de
+          // deposito de mas abajo pisa este estado con el suyo.
+          estado: CITA_STATUS.PENDIENTE,
           canal: "manual",
           creado_por: userId,
           ...(grupoId && { grupo_id: grupoId, orden_en_grupo: ordenIdx }),
@@ -11773,12 +11831,15 @@ function NewCitaModal({
           return;
         }
 
-        // Check overlap contra DB (ambas fases activas)
+        // Check overlap contra DB (ambas fases activas).
+        // Cuentan todas las que ocupan hueco, no solo las confirmadas: si aqui
+        // se ignoran las `pendiente` se dejan crear citas encima y luego salen
+        // pintadas en dos columnas (ver CITA_STATUS_BLOQUEAN_SOLAPE).
         const { data: candidatas } = await supabase
           .from("citas")
           .select("id, inicio, fin_activa, fin_espera, fin")
           .eq("profesional_id", cita.profesional_id)
-          .eq("estado", CITA_STATUS.CONFIRMADA)
+          .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
           .lt("inicio", cita.fin)
           .gt("fin", cita.inicio);
 
@@ -11912,12 +11973,12 @@ function NewCitaModal({
             continue;
           }
 
-          // Solape activa-activa contra citas confirmadas en DB
+          // Solape activa-activa contra las citas que ocupan hueco en DB
           const { data: cand } = await supabase
             .from("citas")
             .select("inicio, fin_activa, fin_espera, fin")
             .eq("profesional_id", base.profesional_id)
-            .eq("estado", CITA_STATUS.CONFIRMADA)
+            .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
             .lt("inicio", oFin.toISOString())
             .gt("fin", oInicio.toISOString());
           const choca = (cand || []).some((c: any) => {
@@ -11939,7 +12000,8 @@ function NewCitaModal({
             fin: oFin.toISOString(),
             fin_activa: oFinActiva.toISOString(),
             fin_espera: oFinEspera.toISOString(),
-            estado: CITA_STATUS.CONFIRMADA,
+            // Las repeticiones de la serie nacen pendiente igual que la base.
+            estado: CITA_STATUS.PENDIENTE,
             canal: "manual",
             creado_por: userId,
             serie_id: serieId,
@@ -15447,7 +15509,6 @@ export function DetalleCitaModal({
   const [aplicandoRetraso, setAplicandoRetraso] = useState(false);
   // --- Cobro (POS-0/1): motor compartido con Caja, ver components/pos/CobroSheet. ---
   const [cobrada, setCobrada] = useState<boolean>(!!cita.cobrada);
-  const [showCobro, setShowCobro] = useState(false);
   const [cobroSenalCents, setCobroSenalCents] = useState(0);
   const [cobrarEncadenadoCompleto, setCobrarEncadenadoCompleto] =
     useState(true);
@@ -15728,7 +15789,11 @@ export function DetalleCitaModal({
   const citaPasada = new Date(cita.inicio) < new Date();
   const puedeMarcarNoShow =
     citaPasada &&
-    (cita.estado === "confirmada" || cita.estado === "completada");
+    // Pendiente es el caso mas tipico de no-show: la clienta nunca llego a
+    // confirmar y ademas no aparecio. Sin esto no habia forma de marcarlo.
+    (cita.estado === CITA_STATUS.PENDIENTE ||
+      cita.estado === CITA_STATUS.CONFIRMADA ||
+      cita.estado === CITA_STATUS.COMPLETADA);
 
   async function marcarNoShow() {
     if (guardando) return;
@@ -16775,7 +16840,8 @@ export function DetalleCitaModal({
         fin: chainFin.toISOString(),
         fin_activa: chainFinActiva.toISOString(),
         fin_espera: chainFinEspera.toISOString(),
-        estado: CITA_STATUS.CONFIRMADA,
+        // El servicio encadenado nace pendiente como cualquier otra cita.
+        estado: CITA_STATUS.PENDIENTE,
         canal: "manual",
         creado_por: userId,
         grupo_id: grupoId,
@@ -16803,12 +16869,13 @@ export function DetalleCitaModal({
         chainInicio.getTime() + durActiva * 60000,
       );
 
-      // Validate overlap (broad fetch, filter both active phases)
+      // Validate overlap (broad fetch, filter both active phases).
+      // Mismo criterio que el alta simple: cuenta todo lo que ocupa hueco.
       const { data: potentialOverlaps } = await supabase
         .from("citas")
         .select("id, inicio, fin_activa, fin_espera, fin")
         .eq("profesional_id", chainProfId)
-        .eq("estado", CITA_STATUS.CONFIRMADA)
+        .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
         .lt("inicio", chainFinActiva.toISOString())
         .gt("fin", chainInicio.toISOString());
       const solapadas = (potentialOverlaps || []).filter((c: any) =>
@@ -16877,41 +16944,11 @@ export function DetalleCitaModal({
     };
   })();
 
-  const estadoMeta: any = {
-    pendiente: {
-      label: "Pendiente",
-      color: "#e08a00",
-      soft: "rgba(224,138,0,0.16)",
-    },
-    [CITA_STATUS.CONFIRMADA]: {
-      label: "Confirmada",
-      color: TOKENS.success,
-      soft: `rgba(16,185,129,0.12)`,
-    },
-    [CITA_STATUS.COMPLETADA]: {
-      label: "Completada",
-      color: "#22c55e",
-      soft: "rgba(34,197,94,0.12)",
-    },
-    [CITA_STATUS.CANCELADA]: {
-      label: "Cancelada",
-      color: TOKENS.danger,
-      soft: "rgba(239,68,68,0.12)",
-    },
-    [CITA_STATUS.NO_PRESENTADA]: {
-      label: "No presentada",
-      color: "#ef4444",
-      soft: "rgba(239,68,68,0.15)",
-    },
-  };
-  // La cita puede traer un estado que este mapa no conoce (lo escribe la capa de IA
-  // o una version anterior). Sin fallback, meta.color/meta.label reventaba la vista
-  // (pantalla en blanco) al abrir el detalle. Mostramos el estado en crudo, neutro.
-  const meta = estadoMeta[estado] || {
-    label: estado || "Sin estado",
-    color: TOKENS.textSec,
-    soft: "rgba(148,163,184,0.12)",
-  };
+  const estadoMeta = ESTADO_CITA_UI;
+  // metaEstadoCita ya trae el fallback neutro para estados desconocidos (los
+  // escribe la capa de IA o una version anterior): sin el, leer .color/.label de
+  // undefined dejaba el detalle en blanco.
+  const meta = metaEstadoCita(estado);
 
   const serviciosFiltrados = servicios.filter((s: any) =>
     norm(s.nombre).includes(norm(qSrv)),
@@ -20424,7 +20461,34 @@ export function DetalleCitaModal({
                           No se presentó
                         </button>
                       )}
-                      {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
+                      {/* Por que no se puede cobrar. Antes el cobro simplemente
+                          desaparecia sin decir nada y parecia un fallo. */}
+                      {!cobrada &&
+                        (cita.estado === CITA_STATUS.CANCELADA ||
+                          cita.estado === CITA_STATUS.NO_PRESENTADA) && (
+                          <div
+                            style={{
+                              width: "100%",
+                              padding: "10px 12px",
+                              borderRadius: 8,
+                              background: TOKENS.warningSoft,
+                              border: `1px solid ${TOKENS.warning}33`,
+                              color: TOKENS.text,
+                              fontSize: 12.5,
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            No se puede cobrar:{" "}
+                            {cita.estado === CITA_STATUS.CANCELADA
+                              ? "la cita está cancelada"
+                              : "la clienta no se presentó"}
+                            . Cambia el estado de la cita para habilitar el
+                            cobro.
+                          </div>
+                        )}
+                      {!cobrada &&
+                        cita.estado !== CITA_STATUS.CANCELADA &&
+                        cita.estado !== CITA_STATUS.NO_PRESENTADA && (
                         <div style={{ width: "100%" }}>
                           {chainSiblings.length > 1 && (
                             <label
@@ -20784,58 +20848,6 @@ export function DetalleCitaModal({
           </div>
         </div>
       </div>
-
-      {/* Modal de cobro (POS-0/1): motor compartido con Caja, ver components/pos/CobroSheet */}
-      {showCobro &&
-        (() => {
-          const baseCents =
-            cobrarEncadenadoCompleto && chainSiblings.length > 1
-              ? chainSiblings.reduce((sum: number, sibling: any) => {
-                  const srv = servicios.find(
-                    (s: any) => s.id === sibling.servicio_id,
-                  );
-                  return sum + Math.round((srv?.precio ?? 0) * 100);
-                }, 0)
-              : Math.round(
-                  Number(selectedServicio?.precio ?? servicio?.precio ?? 0) *
-                    100,
-                );
-          const pendienteCents = Math.max(0, baseCents - cobroSenalCents);
-          const citaIdsToCharge =
-            cobrarEncadenadoCompleto && chainSiblings.length > 1
-              ? chainSiblings.map((c: any) => c.id)
-              : [cita.id];
-          return (
-            <CobroSheet
-              mode="cita"
-              citaIds={citaIdsToCharge}
-              pendienteCents={pendienteCents}
-              senalCents={cobroSenalCents}
-              subtitulo={
-                cobrarEncadenadoCompleto && chainSiblings.length > 1
-                  ? `${selectedCliente?.nombre || "Cliente"} · Servicio encadenado (${chainSiblings.length})`
-                  : `${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`
-              }
-              subtituloColor={selectedServicioColor ?? undefined}
-              onClose={() => setShowCobro(false)}
-              onSuccess={(cobroIds) => {
-                setCobrada(true);
-                setShowCobro(false);
-                onSaved?.({
-                  id: cita.id,
-                  cobrada: true,
-                  cobro_id: cobroIds[0],
-                });
-                window.dispatchEvent(
-                  new CustomEvent("mecha-toast", {
-                    detail: { text: "El cobro se ha efectuado correctamente." },
-                  }),
-                );
-                triggerRefresh?.();
-              }}
-            />
-          );
-        })()}
 
       {/* Estrategias de retraso (Sesion 4): Chispa ofrece 2-3 formas de resolverlo */}
       {estrategiasRetraso && (
@@ -23011,12 +23023,7 @@ function ClienteHistorialModal({
       );
   }, [citas, cliente.id]);
 
-  const estadoColors: Record<string, { bg: string; color: string }> = {
-    confirmada: { bg: "rgba(244,80,30,0.12)", color: TOKENS.primaryHi },
-    completada: { bg: "rgba(34,197,94,0.12)", color: "#22c55e" },
-    cancelada: { bg: "rgba(239,68,68,0.12)", color: "#ef4444" },
-    no_presentada: { bg: "rgba(245,158,11,0.12)", color: "#f59e0b" },
-  };
+  // Mismo lenguaje de color que el badge y el detalle (lib/citasEstadoUi).
 
   return (
     <div
@@ -23176,7 +23183,9 @@ function ClienteHistorialModal({
             const srv = servicioMap.get(c.servicio_id);
             const prof = profesionalMap.get(c.profesional_id);
             const fecha = new Date(c.inicio);
-            const est = estadoColors[c.estado] || estadoColors.confirmada;
+            // Antes el fallback era el color de "confirmada", asi que un estado
+            // sin color propio (p.ej. pendiente) se pintaba como confirmado.
+            const est = metaEstadoCita(c.estado);
             return (
               <div
                 key={c.id}
@@ -23240,7 +23249,7 @@ function ClienteHistorialModal({
                     fontWeight: 700,
                     padding: "3px 7px",
                     borderRadius: 4,
-                    background: est.bg,
+                    background: est.soft,
                     color: est.color,
                     textTransform: "uppercase",
                   }}

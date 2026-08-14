@@ -50,9 +50,50 @@ export const CITA_STATUS_TERMINALES: CitaStatus[] = [
   CITA_STATUS.NO_PRESENTADA,
 ];
 
+// Citas VIVAS para filtrar en consultas SQL (`.in('estado', ...)`).
+//
+// Tiene que decir lo mismo que el predicado `esActiva` de lib/citasMetrics, que
+// ya cuenta las pendientes. Antes esta lista solo traia `confirmada` y las dos
+// se contradecian pese a llamarse igual. Con las citas naciendo en `pendiente`
+// eso dejaba de ser un detalle: la "proxima cita" de una clienta salia vacia y
+// los huecos libres del dia daban por libre un hueco ya reservado.
+// (`completada` se anade en el sitio que la necesite, como Mi jornada.)
 export const CITA_STATUS_ACTIVOS: CitaStatus[] = [
+  CITA_STATUS.PENDIENTE,
   CITA_STATUS.CONFIRMADA,
 ];
+
+// Estados que OCUPAN hueco: con una cita asi encima, no se puede poner otra.
+//
+// Es la fuente unica para TODOS los chequeos de solape (alta simple, encadenado,
+// serie recurrente y analisis del dia). Antes cada sitio comprobaba a mano
+// `estado = 'confirmada'`, con lo que una cita `pendiente` era INVISIBLE para la
+// validacion: se dejaba crear otra encima y luego el repartidor de columnas las
+// pintaba en paralelo. Ese era el bug de la "doble columna".
+//
+// Entran `pendiente` (aun sin confirmar, pero el hueco ya es suyo) y `confirmada`.
+// NO entran `cancelada` ni `no_presentada`: ahi el hueco vuelve a estar libre de
+// verdad. Tampoco `completada`, a proposito: apuntar a posteriori un trabajo ya
+// hecho es un flujo real del mostrador y no debe chocar consigo mismo.
+export const CITA_STATUS_BLOQUEAN_SOLAPE: CitaStatus[] = [
+  CITA_STATUS.PENDIENTE,
+  CITA_STATUS.CONFIRMADA,
+];
+
+// Estados que NO se pintan como columna propia en la rejilla: no compiten por
+// espacio con las citas vivas (una cancelada no debe partir el dia en dos).
+export const CITA_STATUS_SIN_LANE: CitaStatus[] = [
+  CITA_STATUS.CANCELADA,
+  CITA_STATUS.NO_PRESENTADA,
+];
+
+// Versiones en forma de predicado: el `estado` que llega de la BD es un `string`
+// suelto, asi que estas evitan tener que castear en cada punto de uso.
+export const bloqueaSolape = (estado?: string | null): boolean =>
+  (CITA_STATUS_BLOQUEAN_SOLAPE as string[]).includes(estado ?? '');
+
+export const sinCarrilPropio = (estado?: string | null): boolean =>
+  (CITA_STATUS_SIN_LANE as string[]).includes(estado ?? '');
 
 export const CITA_CANAL = {
   MANUAL: 'manual',

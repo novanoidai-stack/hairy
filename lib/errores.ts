@@ -69,6 +69,8 @@ function columnaDe(e: ErrLike): string | undefined {
 // crudo con guiones bajos llega a la UI.
 const CODIGOS: Record<string, string> = {
   cita_ya_cobrada: 'Esta cita ya esta cobrada.',
+  cita_no_cobrable: 'No se puede cobrar una cita cancelada o con no-show. Cambia el estado de la cita para poder cobrarla.',
+  motivo_requerido: 'Escribe el motivo: queda registrado junto a la operacion.',
   cita_no_encontrada: 'No se encuentra la cita.',
   cita_not_found: 'No se encuentra la cita.',
   cita_futura: 'La cita aun no ha pasado.',

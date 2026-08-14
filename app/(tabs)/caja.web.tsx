@@ -456,7 +456,10 @@ function CajaScreen() {
         )
         .eq("negocio_id", profile.negocio_id)
         .eq("cobrada", false)
-        .in("estado", ["completada", "finalizada", "confirmada"])
+        // "pendiente" tiene que estar: las citas nacen en ese estado, y sin el
+        // una cita recien apuntada no aparecia aqui y no habia forma de cobrarla
+        // desde Caja hasta confirmarla a mano.
+        .in("estado", ["pendiente", "completada", "finalizada", "confirmada"])
         .order("inicio", { ascending: false });
 
       if (error) throw error;
