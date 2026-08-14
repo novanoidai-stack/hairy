@@ -1,9 +1,23 @@
-import { useEffect, useState } from 'react';
+// Registro de tickets de venta.
+//
+// ANTES ESTO MENTIA: pintaba un QR que apuntaba a una URL inventada de la AEAT y
+// un "hash" fabricado en el navegador con el id del cobro y Date.now() (o sea,
+// que cambiaba en cada render), presentado como "Firma VeriFactu". Ahora todo lo
+// que se ve sale de la tabla `tickets_verifactu`: numero de serie correlativo y
+// huella SHA-256 encadenada con el ticket anterior, calculada en el servidor.
+//
+// Lo que sigue SIN ser: una factura remitida a la AEAT. No hay alta en VeriFactu
+// ni QR de verificacion oficial. Es un registro interno inalterable, y la
+// pantalla lo dice tal cual (regla 5 de CLAUDE.md: sin claims falsos).
+
+import { useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/lib/supabase';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
-import qrcode from 'qrcode-generator';
+import { useResponsive } from '@/lib/hooks/useResponsive';
+import { mensajeDeError } from '@/lib/errores';
+import { generarTicketPdf, descargarBlob } from '@/lib/caja/ticketPdf';
 
 interface Props {
   negocioId: string;
@@ -11,210 +25,530 @@ interface Props {
   hasta: Date;
 }
 
+interface TicketRow {
+  cobro_id: string;
+  cobrado_at: string | null;
+  total_cents: number;
+  propina_cents: number;
+  descuento_cents: number;
+  metodo: string;
+  cliente: string | null;
+  servicio: string | null;
+  // Del ticket (puede faltar si la emision fallo)
+  serie: string | null;
+  numero: number | null;
+  numero_factura: string | null;
+  hash: string | null;
+  hash_anterior: string | null;
+  fecha_emision: string | null;
+  reconstruido: boolean;
+}
+
+interface Emisor {
+  razon_social: string | null;
+  nif: string | null;
+  direccion_fiscal: string | null;
+  cp_fiscal: string | null;
+  poblacion_fiscal: string | null;
+  nombre_publico: string | null;
+  telefono: string | null;
+}
+
+const IVA_PCT = 21;
+const eur = (c: number) => (c / 100).toFixed(2);
+
 export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
-  const [facturas, setFacturas] = useState<any[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [error, setError] = useState('');
+  const [filas, setFilas] = useState<TicketRow[]>([]);
+  const [emisor, setEmisor] = useState<Emisor | null>(null);
+  const [lineasPorCobro, setLineasPorCobro] = useState<Record<string, any[]>>({});
+  const [selected, setSelected] = useState<TicketRow | null>(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [generando, setGenerando] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
     (async () => {
+      if (!negocioId) return;
       setLoading(true);
+      setError('');
       try {
-        if (!negocioId) return;
-
-        const { data } = await supabase
-          .from('cobros')
-          .select(`
-            id, cobrado_at, total_cents, metodo, estado,
-            cita_id,
-            citas!cobros_cita_id_fkey (
-              id, inicio,
-              clientes ( nombre ),
-              servicios ( nombre )
+        const [cobrosRes, emisorRes] = await Promise.all([
+          supabase
+            .from('cobros')
+            .select(
+              `id, cobrado_at, total_cents, propina_cents, descuento_cents, metodo, estado,
+               citas!cobros_cita_id_fkey ( clientes ( nombre ), servicios ( nombre ) )`,
             )
-          `)
-          .eq('negocio_id', negocioId)
-          .eq('estado', 'completado')
-          .gte('cobrado_at', desde.toISOString())
-          .lte('cobrado_at', hasta.toISOString())
-          .order('cobrado_at', { ascending: false })
-          .limit(1000);
-        
-        if (data && !cancelado) setFacturas(data);
+            .eq('negocio_id', negocioId)
+            .eq('estado', 'completado')
+            .gte('cobrado_at', desde.toISOString())
+            .lte('cobrado_at', hasta.toISOString())
+            .order('cobrado_at', { ascending: false })
+            .limit(1000),
+          supabase
+            .from('negocio_portal')
+            .select('razon_social, nif, direccion_fiscal, cp_fiscal, poblacion_fiscal, nombre_publico, telefono')
+            .eq('negocio_id', negocioId)
+            .maybeSingle(),
+        ]);
+        if (cobrosRes.error) throw cobrosRes.error;
+        if (cancelado) return;
+        setEmisor((emisorRes.data as Emisor) ?? null);
+
+        const cobros = cobrosRes.data ?? [];
+        const ids = cobros.map((c: any) => c.id);
+
+        // Tickets y lineas de esos cobros. Se piden aparte porque
+        // tickets_verifactu y cobro_lineas no cuelgan de `cobros` por FK
+        // navegable desde PostgREST en este esquema.
+        const [ticketsRes, lineasRes] = await Promise.all([
+          ids.length
+            ? supabase
+                .from('tickets_verifactu')
+                .select('cobro_id, serie, numero, hash, hash_anterior, fecha_emision, payload')
+                .in('cobro_id', ids)
+            : Promise.resolve({ data: [], error: null } as any),
+          ids.length
+            ? supabase
+                .from('cobro_lineas')
+                .select('cobro_id, tipo, nombre, precio_cents, cantidad')
+                .in('cobro_id', ids)
+            : Promise.resolve({ data: [], error: null } as any),
+        ]);
+        if (cancelado) return;
+
+        const ticketPorCobro = new Map<string, any>();
+        ((ticketsRes as any).data ?? []).forEach((t: any) => ticketPorCobro.set(t.cobro_id, t));
+
+        const porCobro: Record<string, any[]> = {};
+        ((lineasRes as any).data ?? []).forEach((l: any) => {
+          (porCobro[l.cobro_id] ||= []).push(l);
+        });
+        setLineasPorCobro(porCobro);
+
+        setFilas(
+          cobros.map((c: any) => {
+            const t = ticketPorCobro.get(c.id);
+            const cita = Array.isArray(c.citas) ? c.citas[0] : c.citas;
+            return {
+              cobro_id: c.id,
+              cobrado_at: c.cobrado_at,
+              total_cents: c.total_cents ?? 0,
+              propina_cents: c.propina_cents ?? 0,
+              descuento_cents: c.descuento_cents ?? 0,
+              metodo: c.metodo ?? '',
+              cliente: cita?.clientes?.nombre ?? null,
+              servicio: cita?.servicios?.nombre ?? null,
+              serie: t?.serie ?? null,
+              numero: t?.numero ?? null,
+              numero_factura: t?.payload?.numero_factura ?? null,
+              hash: t?.hash ?? null,
+              hash_anterior: t?.hash_anterior ?? null,
+              fecha_emision: t?.fecha_emision ?? null,
+              reconstruido: t?.payload?.backfill === true,
+            };
+          }),
+        );
       } catch (err) {
-        console.error(err);
+        if (!cancelado) setError(mensajeDeError(err, 'No se pudieron cargar los tickets.'));
       } finally {
         if (!cancelado) setLoading(false);
       }
     })();
-    return () => { cancelado = true; };
+    return () => {
+      cancelado = true;
+    };
   }, [negocioId, desde.toISOString(), hasta.toISOString()]);
 
-  // Genera un QR de simulacion
-  const generateQR = (cobroId: string) => {
+  const filtradas = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    if (!q) return filas;
+    return filas.filter((f) =>
+      [f.numero_factura, f.cliente, f.servicio, f.metodo, f.hash]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q)),
+    );
+  }, [filas, busqueda]);
+
+  const sinTicket = useMemo(() => filas.filter((f) => !f.hash).length, [filas]);
+  const razonEmisor = emisor?.razon_social || emisor?.nombre_publico || 'Tu salon';
+  const faltanDatosFiscales = !emisor?.nif || !emisor?.razon_social;
+
+  const descargarCSV = () => {
+    let csv = 'Numero,Fecha,Cliente,Metodo,Importe EUR,Huella\n';
+    filtradas.forEach((f) => {
+      const fecha = f.cobrado_at ? format(parseISO(f.cobrado_at), 'yyyy-MM-dd HH:mm:ss') : '';
+      csv += `"${f.numero_factura ?? ''}","${fecha}","${(f.cliente ?? '').replace(/"/g, "'")}","${f.metodo}","${eur(f.total_cents)}","${f.hash ?? ''}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    descargarBlob(blob, `tickets_${format(desde, 'yyyy-MM-dd')}_${format(hasta, 'yyyy-MM-dd')}.csv`);
+  };
+
+  const descargarPdf = async (f: TicketRow) => {
+    setGenerando(true);
     try {
-      const qr = qrcode(0, 'M');
-      qr.addData(`https://aeat.es/verifactu?id=${cobroId}`);
-      qr.make();
-      return qr.createSvgTag({ cellSize: 3, margin: 0, scalable: true });
-    } catch {
-      return '';
+      const lineas = (lineasPorCobro[f.cobro_id] ?? []).map((l: any) => ({
+        nombre: l.nombre || (l.tipo === 'servicio' ? 'Servicio' : 'Producto'),
+        precio_cents: l.precio_cents ?? 0,
+        cantidad: l.cantidad ?? 1,
+      }));
+      const blob = await generarTicketPdf({
+        razonSocial: razonEmisor,
+        nif: emisor?.nif ?? null,
+        direccionFiscal: emisor?.direccion_fiscal,
+        cpFiscal: emisor?.cp_fiscal,
+        poblacionFiscal: emisor?.poblacion_fiscal,
+        telefono: emisor?.telefono,
+        color: T.primary,
+        numeroFactura: f.numero_factura ?? 'sin numero',
+        fechaEmision: f.fecha_emision
+          ? parseISO(f.fecha_emision)
+          : f.cobrado_at
+            ? parseISO(f.cobrado_at)
+            : new Date(),
+        clienteNombre: f.cliente,
+        lineas: lineas.length
+          ? lineas
+          : [{ nombre: f.servicio || 'Venta', precio_cents: f.total_cents, cantidad: 1 }],
+        totalCents: f.total_cents,
+        propinaCents: f.propina_cents,
+        descuentoCents: f.descuento_cents,
+        metodo: f.metodo,
+        hash: f.hash ?? '(sin registro)',
+        hashAnterior: f.hash_anterior,
+        reconstruido: f.reconstruido,
+      });
+      descargarBlob(blob, `ticket_${f.numero_factura ?? f.cobro_id.slice(0, 8)}.pdf`);
+    } catch (err) {
+      setError(mensajeDeError(err, 'No se pudo generar el PDF del ticket.'));
+    } finally {
+      setGenerando(false);
     }
   };
 
-  const hashSimulado = (id: string) => {
-    return 'VF-' + id.substring(0, 8).toUpperCase() + '-' + Date.now().toString(16).toUpperCase();
-  };
-
-  const descargarCSV = () => {
-    let csv = 'Fecha,Método,Importe EUR,Ticket ID\n';
-    facturas.forEach(f => {
-      const fecha = f.cobrado_at ? format(parseISO(f.cobrado_at), "yyyy-MM-dd HH:mm:ss") : '';
-      const importe = ((f.total_cents || 0) / 100).toFixed(2);
-      csv += `"${fecha}","${f.metodo}","${importe}","${f.id}"\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `facturas_${format(desde, 'yyyy-MM-dd')}_${format(hasta, 'yyyy-MM-dd')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const btn: React.CSSProperties = {
+    padding: '8px 16px',
+    background: T.primarySoft,
+    color: T.primary,
+    border: 'none',
+    borderRadius: 8,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
   };
 
   return (
     <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: `1px solid ${T.border}` }}>
-      <div style={{ padding: '24px', borderBottom: `1px solid ${T.borderHi}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
-             Facturas y Tickets (VeriFactu)
-          </h2>
+      <div
+        style={{
+          padding: isMobile ? 16 : 24,
+          borderBottom: `1px solid ${T.borderHi}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.text }}>Tickets de venta</h2>
           <p style={{ margin: '4px 0 0', fontSize: 14, color: T.textSec }}>
-            Registro inalterable de todos los cobros procesados.
+            Cada cobro deja un ticket numerado con una huella encadenada al anterior: si se alterase
+            uno, la cadena deja de cuadrar.
           </p>
         </div>
-        <button onClick={descargarCSV} style={{ padding: '8px 16px', background: T.primarySoft, color: T.primary, border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <button onClick={descargarCSV} style={btn}>
           Exportar CSV
         </button>
       </div>
 
-      <div style={{ padding: 24, overflowX: 'auto', maxHeight: 600, overflowY: 'auto' }}>
+      {/* Avisos honestos, antes de la tabla */}
+      <div style={{ padding: isMobile ? '12px 16px 0' : '16px 24px 0', display: 'grid', gap: 8 }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: T.textSec,
+            background: T.bg,
+            border: `1px solid ${T.border}`,
+            borderRadius: 8,
+            padding: '10px 12px',
+            lineHeight: 1.5,
+          }}
+        >
+          Registro interno inalterable. <strong>No se envía a la AEAT</strong>: no es una factura
+          dada de alta en VeriFactu. Sirve como libro de tickets propio y como prueba de que no se
+          ha tocado nada a posteriori.
+        </div>
+        {faltanDatosFiscales && (
+          <div
+            style={{
+              fontSize: 12,
+              color: T.text,
+              background: T.warningSoft,
+              border: `1px solid ${T.warning}33`,
+              borderRadius: 8,
+              padding: '10px 12px',
+              lineHeight: 1.5,
+            }}
+          >
+            Faltan los datos fiscales del salón (razón social y NIF), así que los tickets salen sin
+            emisor. Complétalos en Ajustes para que el PDF quede presentable.
+          </div>
+        )}
+        {sinTicket > 0 && (
+          <div
+            style={{
+              fontSize: 12,
+              color: T.text,
+              background: T.warningSoft,
+              border: `1px solid ${T.warning}33`,
+              borderRadius: 8,
+              padding: '10px 12px',
+              lineHeight: 1.5,
+            }}
+          >
+            {sinTicket} {sinTicket === 1 ? 'cobro no tiene' : 'cobros no tienen'} ticket emitido.
+          </div>
+        )}
+        <input
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar por numero, cliente, servicio o huella"
+          style={{
+            padding: '9px 12px',
+            borderRadius: 8,
+            border: `1px solid ${T.border}`,
+            fontSize: 13,
+            color: T.text,
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      <div style={{ padding: isMobile ? 16 : 24, overflowX: 'auto', maxHeight: 600, overflowY: 'auto' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>Cargando facturas...</div>
-        ) : facturas.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>No hay facturas en este periodo.</div>
+          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>Cargando tickets...</div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', padding: 40, color: T.danger }}>{error}</div>
+        ) : filtradas.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>
+            {filas.length === 0 ? 'No hay cobros en este periodo.' : 'Ningun ticket coincide con la busqueda.'}
+          </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
             <thead style={{ position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
               <tr style={{ borderBottom: `2px solid ${T.borderHi}` }}>
-                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Fecha y Hora</th>
-                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Cita / Cliente</th>
-                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Método</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Numero</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Fecha</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Cliente</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Metodo</th>
                 <th style={{ textAlign: 'right', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Importe</th>
-                <th style={{ textAlign: 'right', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Acciones</th>
+                <th style={{ textAlign: 'right', padding: '12px 8px', color: T.textSec, fontWeight: 600 }}>Ticket</th>
               </tr>
             </thead>
             <tbody>
-              {facturas.map((f) => {
-                const cita = f.citas;
-                const clienteNombre = cita?.clientes?.nombre || 'Walk-in / Sin cliente';
-                const servicioNombre = cita?.servicios?.nombre || 'Ticket rápido';
-                
-                return (
-                  <tr key={f.id} style={{ borderBottom: `1px solid ${T.border}` }}>
-                    <td style={{ padding: '12px 8px', color: T.text }}>
-                      {f.cobrado_at ? format(parseISO(f.cobrado_at), "dd MMM yyyy - HH:mm", { locale: es }) : 'N/A'}
-                    </td>
-                    <td style={{ padding: '12px 8px', color: T.text }}>
-                      <div style={{ fontWeight: 600 }}>{clienteNombre}</div>
-                      <div style={{ fontSize: 12, color: T.textSec }}>{servicioNombre}</div>
-                    </td>
-                    <td style={{ padding: '12px 8px', color: T.text, textTransform: 'capitalize' }}>
-                      {f.metodo}
-                    </td>
-                    <td style={{ padding: '12px 8px', color: T.text, textAlign: 'right', fontWeight: 600 }}>
-                      {((f.total_cents || 0) / 100).toFixed(2)} €
-                    </td>
-                    <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                      <button 
-                        onClick={() => setSelectedTicket(f)}
-                        style={{
-                          background: 'transparent', color: T.primary, border: `1px solid ${T.borderHi}`, padding: '6px 12px',
-                          borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                        }}>
-                        Ver Ticket
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filtradas.map((f) => (
+                <tr key={f.cobro_id} style={{ borderBottom: `1px solid ${T.border}` }}>
+                  <td style={{ padding: '12px 8px', color: T.text, fontWeight: 600 }}>
+                    {f.numero_factura ?? <span style={{ color: T.warning }}>sin emitir</span>}
+                    {f.reconstruido && (
+                      <div style={{ fontSize: 10, color: T.textTer, fontWeight: 500 }}>reconstruido</div>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 8px', color: T.text }}>
+                    {f.cobrado_at ? format(parseISO(f.cobrado_at), 'dd MMM yyyy - HH:mm', { locale: es }) : '-'}
+                  </td>
+                  <td style={{ padding: '12px 8px', color: T.text }}>
+                    <div style={{ fontWeight: 600 }}>{f.cliente ?? 'Venta directa'}</div>
+                    <div style={{ fontSize: 12, color: T.textSec }}>{f.servicio ?? 'Productos'}</div>
+                  </td>
+                  <td style={{ padding: '12px 8px', color: T.text, textTransform: 'capitalize' }}>{f.metodo}</td>
+                  <td style={{ padding: '12px 8px', color: T.text, textAlign: 'right', fontWeight: 600 }}>
+                    {eur(f.total_cents)} €
+                  </td>
+                  <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                    <button
+                      onClick={() => setSelected(f)}
+                      style={{
+                        background: 'transparent',
+                        color: T.primary,
+                        border: `1px solid ${T.borderHi}`,
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Ver
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Modal Interno: Ver Ticket (Simulado) */}
-      {selectedTicket && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }} onClick={() => setSelectedTicket(null)}>
-          <div style={{
-            background: '#fff', width: 340, padding: 32, borderRadius: 12,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center'
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{ width: '100%', borderBottom: '1px dashed #ccc', paddingBottom: 16, marginBottom: 16, textAlign: 'center' }}>
-              <h3 style={{ margin: '0 0 8px', fontSize: 18, color: '#333' }}>Ticket de Venta</h3>
-              <div style={{ fontSize: 13, color: '#666' }}>
-                {selectedTicket.cobrado_at ? format(parseISO(selectedTicket.cobrado_at), "dd/MM/yyyy HH:mm", { locale: es }) : ''}
-              </div>
-            </div>
-
-            {/* Nueva Información de Cliente y Cita */}
-            <div style={{ width: '100%', padding: '0 0 16px', marginBottom: 16, borderBottom: '1px solid #eee' }}>
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Cliente</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 12 }}>
-                {selectedTicket.citas?.clientes?.nombre || 'Walk-in / Venta directa'}
-              </div>
-              
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Servicio</div>
-              <div style={{ fontSize: 14, color: '#444', marginBottom: 12 }}>
-                {selectedTicket.citas?.servicios?.nombre || 'Productos / Ticket rápido'}
-              </div>
-
-              {selectedTicket.citas?.inicio && (
-                <>
-                  <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Fecha Cita Original</div>
-                  <div style={{ fontSize: 14, color: '#444' }}>
-                    {format(parseISO(selectedTicket.citas.inicio), "dd MMM yyyy - HH:mm", { locale: es })}
-                  </div>
-                </>
+      {selected && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setSelected(null)}
+        >
+          <div
+            style={{
+              background: '#fff',
+              width: 360,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: 28,
+              borderRadius: 12,
+              boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Emisor */}
+            <div style={{ textAlign: 'center', borderBottom: '1px dashed #ccc', paddingBottom: 14, marginBottom: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{razonEmisor}</div>
+              {emisor?.nif && <div style={{ fontSize: 12, color: T.textSec }}>NIF: {emisor.nif}</div>}
+              {(emisor?.direccion_fiscal || emisor?.poblacion_fiscal) && (
+                <div style={{ fontSize: 12, color: T.textSec }}>
+                  {[emisor?.direccion_fiscal, [emisor?.cp_fiscal, emisor?.poblacion_fiscal].filter(Boolean).join(' ')]
+                    .filter(Boolean)
+                    .join(', ')}
+                </div>
               )}
             </div>
 
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
-              <span style={{ color: '#333', fontWeight: 600 }}>TOTAL</span>
-              <span style={{ color: '#333', fontWeight: 700, fontSize: 18 }}>{((selectedTicket.total_cents || 0) / 100).toFixed(2)} €</span>
-            </div>
-            
-            <div style={{ width: '100%', padding: 16, background: '#f8f9fa', borderRadius: 8, border: '1px solid #e9ecef', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#555', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Firma VeriFactu
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                {selected.numero_factura ?? 'Sin numero'}
               </div>
-              <div style={{ width: 120, height: 120, background: '#fff', padding: 8, borderRadius: 8, marginBottom: 12 }} 
-                   dangerouslySetInnerHTML={{ __html: generateQR(selectedTicket.id) }} />
-              <div style={{ fontSize: 10, color: '#888', wordBreak: 'break-all', textAlign: 'center' }}>
-                Hash: {hashSimulado(selectedTicket.id)}
+              <div style={{ fontSize: 12, color: T.textSec }}>
+                {selected.cobrado_at ? format(parseISO(selected.cobrado_at), 'dd/MM/yyyy HH:mm') : ''}
               </div>
             </div>
 
-            <button onClick={() => setSelectedTicket(null)} style={{ marginTop: 24, padding: '10px 0', width: '100%', background: '#eee', color: '#333', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
-              Cerrar
-            </button>
+            {selected.cliente && (
+              <div style={{ fontSize: 13, color: T.textSec, marginBottom: 12 }}>Cliente: {selected.cliente}</div>
+            )}
+
+            {/* Lineas */}
+            <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 10, marginBottom: 10 }}>
+              {(lineasPorCobro[selected.cobro_id] ?? []).map((l: any, i: number) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 5 }}>
+                  <span style={{ color: T.text }}>
+                    {(l.cantidad ?? 1) > 1 ? `${l.cantidad}x ` : ''}
+                    {l.nombre}
+                  </span>
+                  <span style={{ color: T.text }}>{eur((l.precio_cents ?? 0) * (l.cantidad ?? 1))} €</span>
+                </div>
+              ))}
+              {(lineasPorCobro[selected.cobro_id] ?? []).length === 0 && (
+                <div style={{ fontSize: 12, color: T.textTer }}>Sin desglose de lineas.</div>
+              )}
+            </div>
+
+            {/* Importes */}
+            {(() => {
+              const baseConIva = Math.max(0, selected.total_cents - selected.propina_cents);
+              const cuota = Math.round((baseConIva * IVA_PCT) / (100 + IVA_PCT));
+              const fila = (k: string, v: string, bold = false) => (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: bold ? 15 : 12.5, marginBottom: 5 }}>
+                  <span style={{ color: bold ? T.text : T.textSec, fontWeight: bold ? 700 : 500 }}>{k}</span>
+                  <span style={{ color: bold ? T.text : T.textSec, fontWeight: bold ? 700 : 500 }}>{v}</span>
+                </div>
+              );
+              return (
+                <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 10, marginBottom: 14 }}>
+                  {selected.descuento_cents > 0 && fila('Descuento', `-${eur(selected.descuento_cents)} €`)}
+                  {selected.propina_cents > 0 && fila('Propina', `${eur(selected.propina_cents)} €`)}
+                  {fila('Base imponible (orient.)', `${eur(baseConIva - cuota)} €`)}
+                  {fila(`IVA ${IVA_PCT}% (orient.)`, `${eur(cuota)} €`)}
+                  {fila('TOTAL', `${eur(selected.total_cents)} €`, true)}
+                  {fila('Forma de pago', selected.metodo)}
+                </div>
+              );
+            })()}
+
+            {/* Huella */}
+            <div style={{ padding: 12, background: T.bg, borderRadius: 8, border: `1px solid ${T.border}` }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 6 }}>
+                Registro interno inalterable
+              </div>
+              {selected.hash ? (
+                <>
+                  <div style={{ fontSize: 10, color: T.textSec, wordBreak: 'break-all', marginBottom: 4 }}>
+                    Huella: {selected.hash}
+                  </div>
+                  {selected.hash_anterior && (
+                    <div style={{ fontSize: 10, color: T.textTer, wordBreak: 'break-all' }}>
+                      Enlaza con: {selected.hash_anterior}
+                    </div>
+                  )}
+                  {selected.reconstruido && (
+                    <div style={{ fontSize: 10.5, color: T.warning, marginTop: 6 }}>
+                      Huella reconstruida después del cobro: este ticket no se emitió en el momento.
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ fontSize: 11, color: T.warning }}>Este cobro no tiene ticket emitido.</div>
+              )}
+              <div style={{ fontSize: 10, color: T.textTer, marginTop: 8, lineHeight: 1.5 }}>
+                Documento sin valor fiscal: no se ha remitido a la AEAT.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+              <button
+                onClick={() => descargarPdf(selected)}
+                disabled={generando}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  background: T.primary,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  cursor: generando ? 'default' : 'pointer',
+                }}
+              >
+                {generando ? 'Generando...' : 'Descargar PDF'}
+              </button>
+              <button
+                onClick={() => setSelected(null)}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  background: '#eee',
+                  color: '#333',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

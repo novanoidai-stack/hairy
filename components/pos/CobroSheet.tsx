@@ -739,7 +739,11 @@ export function CobroSheet(props: CobroSheetProps) {
                 {enviando ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animation: 'spin 1s linear infinite' }}><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-                    Firmando Ticket VeriFactu...
+                    {/* No se "firma VeriFactu" nada: el cobro se registra y el
+                        servidor emite un ticket con huella encadenada. Decir
+                        VeriFactu aqui era prometer un alta en la AEAT que no
+                        ocurre (regla 5 de CLAUDE.md: sin claims falsos). */}
+                    Registrando el cobro...
                   </span>
                 ) : 'Confirmar cobro'}
               </button>
@@ -753,7 +757,11 @@ export function CobroSheet(props: CobroSheetProps) {
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'none' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                  {qrBusy ? 'Generando sesión segura...' : 'Cobrar vía Pasarela TPV (Redsys)'}
+                  {/* Neutro a proposito: la pasarela real depende de lo que
+                      tenga configurado el salon (Stripe por defecto, Redsys si
+                      lo activa en Ajustes). Poner "Redsys" aqui era mentir a
+                      todos los que van por Stripe. */}
+                  {qrBusy ? 'Generando enlace seguro...' : 'Cobrar con enlace de pago (QR)'}
                 </button>
                 <div style={{ fontSize: 10, color: T.textTer, textAlign: 'center', marginTop: 6, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Conexión cifrada a servidor de pagos

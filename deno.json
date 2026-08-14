@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/"
+    "test": "deno test --allow-read --sloppy-imports --no-check --node-modules-dir=auto lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts"
   },
   "exclude": [
     "node_modules/",
