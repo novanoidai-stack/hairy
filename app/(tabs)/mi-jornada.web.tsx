@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, roleLabel } from '@/lib/auth';
-import { identidadActiva } from '@/lib/identidadActiva';
+import { identidadActiva, useIdentidadActiva } from '@/lib/identidadActiva';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { format, parseISO, startOfDay, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns';
@@ -211,9 +211,13 @@ function MetricRow({ icon, label, value, sub, color = T.primary }: { icon: strin
 
 function MiJornadaScreen() {
   const { isMobile } = useResponsive();
-  // Al cambiar de profesional en el mostrador, recarga mi jornada con la nueva
-  // persona (el puente identidad->refreshTrigger de CalendarContext lo dispara).
   const { refreshTrigger } = useCalendarRefresh();
+  // Identidad ACTUAL de forma reactiva: al elegir/cambiar de profesional en el
+  // mostrador (o al fichar entrada con la nueva persona) este valor cambia y
+  // dispara el recargado de abajo. Sin esto, la pantalla seguia mostrando al
+  // profesional anterior hasta que refrescabas a mano.
+  const identidad = useIdentidadActiva();
+  const identidadProfesionalId = identidad?.profesionalId ?? null;
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('mi-jornada');
   const [loading, setLoading] = useState(true);
@@ -324,11 +328,22 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
     }
   };
 
+  // Al cambiar de profesional en el mostrador se dispara una recarga por soltar
+  // la identidad anterior (queda en null un instante) y otra por elegir la
+  // nueva: son dos llamadas async independientes y no hay garantia de que
+  // resuelvan en orden. Sin este guardia, si la primera (la del hueco vacio)
+  // tarda mas que la segunda, su resultado llega el ultimo y pisa los datos
+  // correctos del profesional nuevo con los del hueco intermedio.
+  const cargarSeqRef = useRef(0);
+
   const cargar = useCallback(async (per: Periodo) => {
+    const seq = ++cargarSeqRef.current;
+    const esVigente = () => seq === cargarSeqRef.current;
     setLoading(true);
     setError(null);
     try {
       const profile = await getUserProfile();
+      if (!esVigente()) return;
       if (!profile?.negocio_id) { setLoading(false); return; }
       setUserId(profile.id || '');
       setSalonNombre(profile.nombre_negocio || profile.negocio_id);
@@ -339,8 +354,10 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
       // suya y no la del navegador, y las pausas se descuentan igual que en el
       // registro legal.
       const identidadFichajes = identidadActiva(profile.negocio_id);
+      const estadoJornadaNueva = await cargarEstadoJornada(identidadFichajes?.profesionalId ?? null);
+      if (!esVigente()) return;
       setIdentidadRol(identidadFichajes?.rol ?? null);
-      setEstadoJornada(await cargarEstadoJornada(identidadFichajes?.profesionalId ?? null));
+      setEstadoJornada(estadoJornadaNueva);
       const [d, h] = rangoDe(per);
       // En un salon con un solo correo la cuenta es la del jefe, asi que la
       // ficha hay que decirla: es la persona que se identifico en la tablet.
@@ -351,8 +368,10 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
         p_profesional_id: identidadActiva(profile.negocio_id)?.profesionalId ?? null,
       });
       if (rpcErr) throw rpcErr;
+      if (!esVigente()) return;
       setResumen(data as Resumen);
       const { data: objRes } = await supabase.rpc('mis_objetivos_progreso');
+      if (!esVigente()) return;
       setMisObjetivos(((objRes as any)?.objetivos as MiObjetivo[]) || []);
       const profId = (data as Resumen)?.profesional?.id;
       if (profId) {
@@ -364,28 +383,31 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           .gte('fin', new Date(Date.now() - 30 * 86400000).toISOString())
           .order('inicio', { ascending: true })
           .limit(20);
+        if (!esVigente()) return;
         setAusencias(ausData ?? []);
       }
-      
+
       const hace48h = new Date(Date.now() - 48 * 3600000).toISOString();
       let qRes = supabase.from('resenas').select('id, puntuacion, comentario').eq('negocio_id', profile.negocio_id).gte('created_at', hace48h).order('created_at', { ascending: false }).limit(1);
       const pId = identidadActiva(profile.negocio_id)?.profesionalId;
       if (pId) qRes = qRes.eq('profesional_id', pId);
       const { data: resData } = await qRes;
+      if (!esVigente()) return;
       if (resData && resData.length > 0 && resData[0].puntuacion >= 4) {
         setNuevaResena(resData[0]);
       } else {
         setNuevaResena(null);
       }
     } catch (err) {
+      if (!esVigente()) return;
       console.error('Error cargando Mi jornada:', err);
       setError(mensajeDeError(err));
     } finally {
-      setLoading(false);
+      if (esVigente()) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { cargar(periodo); }, [periodo, cargar, refreshTrigger]);
+  useEffect(() => { cargar(periodo); }, [periodo, cargar, refreshTrigger, identidadProfesionalId]);
 
   const cargarIntercambios = useCallback(async () => {
     try {

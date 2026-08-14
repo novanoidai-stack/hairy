@@ -17,6 +17,8 @@
 // 'individual', el de por defecto). Esta escrito tal cual en la pantalla de
 // staff que enciende el modo, para que nadie lo venda como lo que no es.
 
+import { useEffect, useState } from 'react';
+
 export type RolAcceso = 'owner' | 'admin' | 'recepcion' | 'employee';
 
 export interface IdentidadActiva {
@@ -94,6 +96,19 @@ export async function soltarIdentidad(): Promise<void> {
 export function suscribirIdentidad(f: (i: IdentidadActiva | null) => void): () => void {
   oyentes.add(f);
   return () => { oyentes.delete(f); };
+}
+
+// Hook reactivo: devuelve la identidad activa Y re-renderiza cuando cambia (al
+// elegir/soltar persona en el mostrador). Pensado para que pantallas como
+// Mi jornada dependan de `profesionalId` y recarguen sus datos al cambiar de
+// profesional, sin esperar a que el usuario refresque a mano.
+export function useIdentidadActiva(): IdentidadActiva | null {
+  const [identidad, setIdentidad] = useState<IdentidadActiva | null>(cache);
+  useEffect(() => {
+    setIdentidad(cache);
+    return suscribirIdentidad(setIdentidad);
+  }, []);
+  return identidad && !haCaducado(identidad) ? identidad : null;
 }
 
 // --- Textos, para que el selector y la app digan lo mismo ---
