@@ -261,6 +261,8 @@ const Icon = ({ name, size = 24, color = "#f8fafc" }: any) => {
 
     sparkle: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
     mic: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/></svg>`,
+    eye: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    eyeOff: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61A18.15 18.15 0 0 0 2 11s3.5 7 10 7a9 9 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`,
     calendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
   };
   return (
@@ -555,6 +557,8 @@ export default function AgendaCalendar() {
     new Date(today.getFullYear(), today.getMonth()),
   );
   const [view, setView] = useState<"day" | "week" | "month">("day");
+  // Repasar lo cancelado: apagado por defecto (el dia se lee mejor sin ruido).
+  const [verCanceladas, setVerCanceladas] = useState(false);
   const [loading, setLoading] = useState(true);
   // Ventana de citas cargada (arranque rapido): en vez de traer TODAS las citas
   // del negocio (miles en un salon real), se carga -60/+120 dias alrededor del
@@ -1074,7 +1078,7 @@ export default function AgendaCalendar() {
             let from = 0;
             const step = 1000;
             while (true) {
-              const { data, error } = await supabase
+              let q = supabase
                 .from("citas")
                 .select(
                   // cobrada/cobro_id son imprescindibles: sin ellos el detalle de
@@ -1082,8 +1086,11 @@ export default function AgendaCalendar() {
                   // hasta que se refresca a mano.
                   "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id, cobrada, cobro_id",
                 )
-                .eq("negocio_id", negocioId)
-                .eq("oculta_en_calendario", false)
+                .eq("negocio_id", negocioId);
+              // Las canceladas se ocultan por defecto (es lo que quiere ver el
+              // salon), pero con el interruptor de la barra se pueden repasar.
+              if (!verCanceladas) q = q.eq("oculta_en_calendario", false);
+              const { data, error } = await q
                 .gte("inicio", desdeW.toISOString())
                 .lte("inicio", hastaW.toISOString())
                 .range(from, from + step - 1);
@@ -1192,7 +1199,9 @@ export default function AgendaCalendar() {
       }
     }
     cargar();
-  }, [refreshTrigger]);
+    // verCanceladas entra en las dependencias porque cambia la CONSULTA (las
+    // ocultas se filtran en servidor), no solo lo que se pinta.
+  }, [refreshTrigger, verCanceladas]);
 
   // Demo guiada: la guia de demo.html pide abrir paneles reales (nueva cita,
   // notificaciones) via CustomEvent reemitido por _layout. Cerramos lo anterior
@@ -2139,6 +2148,37 @@ export default function AgendaCalendar() {
       >
         <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
         {!isMobile && "Hoy"}
+      </button>
+      {/* Repasar lo cancelado sin ensuciar el dia a diario. */}
+      <button
+        className="m-btn-secondary"
+        onClick={() => setVerCanceladas((v) => !v)}
+        title={
+          verCanceladas
+            ? "Ocultar las citas canceladas"
+            : "Ver tambien las citas canceladas"
+        }
+        aria-pressed={verCanceladas}
+        style={{
+          padding: isMobile ? "6px 10px" : "8px 14px",
+          background: verCanceladas ? TOKENS.dangerSoft : TOKENS.bgCard,
+          border: `1px solid ${verCanceladas ? TOKENS.danger : TOKENS.border}`,
+          color: verCanceladas ? TOKENS.danger : TOKENS.text,
+          borderRadius: 10,
+          cursor: "pointer",
+          fontSize: isMobile ? 12 : 13,
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <Icon
+          name={verCanceladas ? "eye" : "eyeOff"}
+          size={isMobile ? 12 : 14}
+          color={verCanceladas ? TOKENS.danger : TOKENS.text}
+        />
+        {!isMobile && "Canceladas"}
       </button>
       {/* Organizar: abre el panel que APLICA los arreglos. El badge
           cuenta los problemas del dia visible, como las notificaciones. */}
@@ -15515,11 +15555,52 @@ export function DetalleCitaModal({
 
   const chainSiblings = useMemo(() => {
     if (!cita.grupo_id || !allCitas) return [cita];
+    // Fuera tambien los no-shows, no solo las canceladas: un tramo al que la
+    // clienta no vino no se cobra ni se arrastra con el resto de la cadena.
     return allCitas.filter(
-      (c: any) =>
-        c.grupo_id === cita.grupo_id && c.estado !== CITA_STATUS.CANCELADA,
+      (c: any) => c.grupo_id === cita.grupo_id && !sinCarrilPropio(c.estado),
     );
   }, [cita.grupo_id, allCitas]);
+
+  // A que citas afecta un cambio de estado.
+  //
+  // En un servicio encadenado (color + corte + peinado son tramos de la MISMA
+  // visita), tocar el estado del PRIMER tramo arrastra a toda la cadena: si la
+  // clienta no viene, no viene a ninguno. Tocar un tramo intermedio afecta solo
+  // a ese, porque puede pasar que se haga el color y se deje el peinado.
+  const idsParaEstado = useCallback((): string[] => {
+    if (!cita.grupo_id || !cita.cliente_id || !allCitas) return [cita.id];
+    const cadena = [...allCitas]
+      .filter(
+        (x: any) =>
+          x.grupo_id === cita.grupo_id && x.cliente_id === cita.cliente_id,
+      )
+      .sort(
+        (a: any, b: any) =>
+          (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
+          new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+      );
+    if (cadena.length > 0 && cadena[0].id === cita.id) {
+      return cadena.map((x: any) => x.id);
+    }
+    return [cita.id];
+  }, [cita.id, cita.grupo_id, cita.cliente_id, allCitas]);
+
+  // Punto UNICO por el que pasa cualquier cambio de estado, para que el menu de
+  // estado y el boton de Guardar se comporten igual. Antes solo el menu hacia
+  // cascade y guardar desde la ficha dejaba el resto de la cadena descolgado.
+  const aplicarEstadoCita = useCallback(
+    async (nuevoEstado: string): Promise<string[]> => {
+      const ids = idsParaEstado();
+      const { error } = await supabase
+        .from("citas")
+        .update({ estado: nuevoEstado })
+        .in("id", ids);
+      if (error) throw error;
+      return ids;
+    },
+    [idsParaEstado],
+  );
 
   // Inventario del salon (pestaña Productos)
   const [inventarioProductos, setInventarioProductos] = useState<any[]>([]);
@@ -16367,6 +16448,13 @@ export function DetalleCitaModal({
         .update(updatedFields)
         .eq("id", cita.id);
       if (error) throw error;
+
+      // Si aqui se ha cambiado el estado, tiene que arrastrar a la cadena igual
+      // que si se hubiera cambiado desde el menu de estado. Antes guardar desde
+      // la ficha dejaba el resto de los tramos con el estado viejo.
+      if (estado !== cita.estado) {
+        await aplicarEstadoCita(estado);
+      }
 
       // Registrar historial de cambios relevantes
       const profile = await getUserProfile();
@@ -19244,31 +19332,32 @@ export function DetalleCitaModal({
                             <button
                               key={k}
                               onClick={async () => {
-                                setEstado(k);
                                 setOpenEst(false);
-                                let idsToUpdate = [cita.id];
-                                if (cita.grupo_id && cita.cliente_id && allCitas) {
-                                  const chain = [...allCitas]
-                                    .filter(
-                                      (x: any) =>
-                                        x.grupo_id === cita.grupo_id &&
-                                        x.cliente_id === cita.cliente_id,
-                                    )
-                                    .sort(
-                                      (a: any, b: any) =>
-                                        (a.orden_en_grupo ?? 0) -
-                                          (b.orden_en_grupo ?? 0) ||
-                                        new Date(a.inicio).getTime() -
-                                          new Date(b.inicio).getTime(),
-                                    );
-                                  if (chain.length > 0 && chain[0].id === cita.id) {
-                                    idsToUpdate = chain.map((x: any) => x.id);
-                                  }
+                                // Cancelar NO es cambiar un campo mas. Ademas de
+                                // dejar la cita en cancelada hay que ocultarla del
+                                // calendario, guardar quien cancela y por que,
+                                // arrastrar a los servicios encadenados y ofrecer
+                                // el hueco a la lista de espera. Todo eso vive en
+                                // el modal de cancelacion. Antes, cancelar desde
+                                // aqui dejaba la cita a medias: marcada como
+                                // cancelada pero visible, sin motivo y sin liberar
+                                // el hueco para nadie.
+                                if (k === CITA_STATUS.CANCELADA) {
+                                  setShowCancelModal(true);
+                                  return;
                                 }
-                                await supabase
-                                  .from("citas")
-                                  .update({ estado: k })
-                                  .in("id", idsToUpdate);
+                                setEstado(k);
+                                try {
+                                  await aplicarEstadoCita(k);
+                                } catch (err) {
+                                  alert(
+                                    mensajeDeError(
+                                      err,
+                                      "No se pudo cambiar el estado de la cita.",
+                                    ),
+                                  );
+                                  setEstado(cita.estado);
+                                }
                                 triggerRefresh();
                               }}
                               style={{
@@ -20890,8 +20979,9 @@ export function DetalleCitaModal({
               Cancelar cita
             </div>
             <div style={{ fontSize: 13, color: TOKENS.textSec }}>
-              La cita desaparecera del calendario pero se conservara en el
-              historial.
+              La cita desaparecera del calendario, pero no se borra: puedes
+              volver a verla con el boton «Canceladas» de la barra de arriba, y
+              desde ahi restaurarla.
             </div>
 
             {cita.serie_id && (
