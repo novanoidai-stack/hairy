@@ -15834,21 +15834,34 @@ export function DetalleCitaModal({
 
   async function anularCobro() {
     if (guardando) return;
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm("¿Anular este cobro? La cita volvera a estar sin cobrar.")
-    )
-      return;
+    // Anular un cobro mueve dinero del libro de caja: el servidor exige un motivo
+    // y lo guarda en el registro de auditoria, asi que hay que pedirlo aqui.
+    let motivo = "";
+    if (typeof window !== "undefined") {
+      const respuesta = window.prompt(
+        "¿Por que se anula este cobro? El motivo queda registrado y la cita volvera a estar sin cobrar.",
+        "",
+      );
+      if (respuesta === null) return; // Cancelado.
+      motivo = respuesta.trim();
+      if (motivo.length < 3) {
+        setErrMsg("Escribe el motivo de la anulacion (minimo 3 caracteres).");
+        return;
+      }
+    }
     setGuardando(true);
     setErrMsg("");
     try {
       const { data, error } = await supabase.rpc("anular_cobro", {
         p_cita_id: cita.id,
+        p_motivo: motivo,
       });
       const res = (data ?? {}) as { ok?: boolean; error?: string };
       if (error || !res.ok) {
         const map: Record<string, string> = {
-          no_autorizado: "No tienes permiso para anular cobros.",
+          no_autorizado:
+            "Solo el propietario o la direccion pueden anular cobros.",
+          motivo_requerido: "Hace falta un motivo para anular el cobro.",
           cobro_no_encontrado: "No se encuentra el cobro.",
           usa_reembolso:
             "Este cobro es online: anulalo con Reembolsar en Caja.",
