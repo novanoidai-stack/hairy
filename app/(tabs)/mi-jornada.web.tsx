@@ -1172,12 +1172,16 @@ function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
       const profile = await getUserProfile();
       if (!profile) throw new Error('No auth');
       const dbMotivo = `[PENDIENTE] ${motivo}${notas ? ' - ' + notas : ''}`;
+      // El CHECK de bloqueos_profesional solo admite: vacaciones, formacion,
+      // descanso, baja, otro, reserva_temporal. 'ausencia' no existe y hacia
+      // fallar el insert en silencio de UI (la solicitud nunca se guardaba).
+      const tipoBloqueo = motivo === 'Vacaciones' ? 'vacaciones' : motivo === 'Baja Médica' ? 'baja' : 'otro';
       const { error: err } = await supabase.from('bloqueos_profesional').insert({
         negocio_id: profile.negocio_id,
         profesional_id: profile.id,
         inicio: `${inicio}T00:00:00`,
         fin: `${fin}T23:59:59`,
-        tipo: 'ausencia',
+        tipo: tipoBloqueo,
         motivo: dbMotivo
       });
       if (err) throw err;

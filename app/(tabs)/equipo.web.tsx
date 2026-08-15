@@ -2453,6 +2453,10 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   const [paso, setPaso] = useState(0);
   const [conflictos, setConflictos] = useState<any[]>([]);
   const [accionesConflicto, setAccionesConflicto] = useState<Record<string, 'cancelar' | 'mantener'>>({});
+  // El insert puede fallar en BD (p. ej. tipo fuera del CHECK de
+  // bloqueos_profesional). Antes el catch se lo tragaba y el bloqueo
+  // "no aparecia" sin explicacion; ahora se muestra el motivo.
+  const [errorCreacion, setErrorCreacion] = useState('');
   // Bloqueos NO recurrentes: en vez de un rango continuo fecha-inicio -> fecha-fin,
   // se eligen dias sueltos haciendo clic en el mini calendario (pueden ser
   // discontinuos, ej. "todos los lunes de este mes que quiera librar").
@@ -2631,6 +2635,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
 
   async function ejecutarCreacion() {
     setLoading(true);
+    setErrorCreacion('');
     try {
       for (const [citaId, accion] of Object.entries(accionesConflicto)) {
         if (accion === 'cancelar') {
@@ -2704,8 +2709,13 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
         }
       }
       onCreated();
-    } catch {
+    } catch (e: any) {
       setLoading(false);
+      setErrorCreacion(
+        e?.message
+          ? `No se pudo crear el bloqueo: ${e.message}`
+          : 'No se pudo crear el bloqueo. Revisa los datos e inténtalo de nuevo.'
+      );
     }
   }
 
@@ -3218,6 +3228,11 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
         </div>
 
         {/* Botones */}
+        {errorCreacion && (
+          <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(226,59,52,0.1)', border: '1px solid rgba(226,59,52,0.35)', color: '#e23b34', fontSize: 13, fontWeight: 600 }}>
+            {errorCreacion}
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button
             onClick={onClose}

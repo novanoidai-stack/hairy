@@ -1,8 +1,26 @@
 -- =====================================================================
--- MIGRATION: Integrate POS Checkout (Walk-in) with Inventory Stock
--- Decrements stock units and logs movements on product checkout.
+-- FIX: error 42804 "column 'ref_id' is of type uuid but expression is
+-- of type text" al registrar cobros.
+--
+-- Causa raiz (verificado contra el error en vivo del 2026-08-14):
+--   1) crear_cobro_walkin (desplegada desde pos-cobro-walkin-inventory.sql)
+--      declara `v_ref_id text` y lo inserta en cobro_lineas.ref_id (uuid)
+--      SIN cast en el INSERT de lineas. PL/pgSQL no convierte text->uuid
+--      implicitamente -> TODO cobro rapido falla (error de tipos, no de
+--      valor: falla aunque la linea no lleve producto). El mismo archivo
+--      ya hacia v_ref_id::uuid en inventario/movimientos; era un olvido
+--      en el INSERT de la linea.
+--   2) vender_bono (sesion14) tenia el mismo patron: v_profesional_id
+--      text -> cobros.profesional_id (uuid) y v_bono_id::text ->
+--      cobro_lineas.ref_id (uuid).
+--
+-- Este archivo redefine ambas funciones ya corregidas. Idempotente.
+-- Aplicar en remoto via Management API (helper .zcode/tmp/apply_migration.mjs)
+-- o pegando en el SQL Editor de Supabase Studio.
 -- =====================================================================
 
+-- 1) crear_cobro_walkin corregida (unica linea que cambia vs la desplegada:
+--    v_ref_id -> v_ref_id::uuid en el INSERT de cobro_lineas)
 create or replace function public.crear_cobro_walkin(
   p_lineas jsonb,
   p_metodo text,
@@ -111,3 +129,74 @@ $function$;
 
 revoke all on function public.crear_cobro_walkin(jsonb,text,integer,integer,uuid,uuid) from public, anon;
 grant execute on function public.crear_cobro_walkin(jsonb,text,integer,integer,uuid,uuid) to authenticated;
+
+-- 2) Seguro idempotente: el CHECK de cobro_lineas.tipo debe admitir 'bono'
+--    (lo ensancha sesion14; si ya esta aplicado, no hace nada).
+do $$
+begin
+  alter table public.cobro_lineas drop constraint if exists cobro_lineas_tipo_check;
+  alter table public.cobro_lineas add constraint cobro_lineas_tipo_check
+    check (tipo in ('servicio','producto','suplemento','bono'));
+exception
+  when others then null;
+end $$;
+
+-- 3) vender_bono corregida (v_profesional_id uuid; ref_id sin ::text)
+create or replace function public.vender_bono(
+  p_cliente_id uuid,
+  p_servicio_id text,
+  p_sesiones integer,
+  p_precio_cents integer,
+  p_metodo text
+) returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_caller_negocio text;
+  v_bono_id uuid;
+  v_cobro_id uuid;
+  v_nombre_servicio text;
+  v_profesional_id uuid;
+begin
+  select negocio_id into v_caller_negocio from public.profiles where id = auth.uid();
+  if v_caller_negocio is null then raise exception 'sin_perfil'; end if;
+
+  select nombre into v_nombre_servicio from public.servicios where id = p_servicio_id and negocio_id = v_caller_negocio;
+  if not found then raise exception 'servicio_no_encontrado'; end if;
+
+  if p_metodo not in ('efectivo','datafono','online','bizum','mixto') then raise exception 'metodo_invalido'; end if;
+
+  -- Create the bono
+  insert into public.bonos (
+    negocio_id, cliente_id, servicio_id,
+    sesiones_totales, sesiones_disponibles, precio_cents
+  ) values (
+    v_caller_negocio, p_cliente_id, p_servicio_id,
+    p_sesiones, p_sesiones, p_precio_cents
+  ) returning id into v_bono_id;
+
+  -- Get current user as profesional
+  select id into v_profesional_id from public.profesionales where user_id = auth.uid() limit 1;
+
+  -- Create cobro
+  insert into public.cobros (
+    negocio_id, cliente_id, profesional_id,
+    total_cents, propina_cents, descuento_cents, metodo,
+    efectivo_cents, datafono_cents, online_cents, origen, estado
+  ) values (
+    v_caller_negocio, p_cliente_id, v_profesional_id,
+    p_precio_cents, 0, 0, p_metodo,
+    case when p_metodo = 'efectivo' then p_precio_cents else 0 end,
+    case when p_metodo = 'datafono' then p_precio_cents else 0 end,
+    0, 'manual', 'completado'
+  ) returning id into v_cobro_id;
+
+  -- Create cobro linea
+  insert into public.cobro_lineas (cobro_id, tipo, ref_id, nombre, precio_cents, cantidad)
+  values (v_cobro_id, 'bono', v_bono_id, 'Bono ' || p_sesiones || 'x ' || coalesce(v_nombre_servicio, 'Servicio'), p_precio_cents, 1);
+
+  return v_bono_id;
+end;
+$$;

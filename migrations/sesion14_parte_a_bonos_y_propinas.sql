@@ -67,7 +67,7 @@ declare
   v_bono_id uuid;
   v_cobro_id uuid;
   v_nombre_servicio text;
-  v_profesional_id text;
+  v_profesional_id uuid;
 begin
   select negocio_id into v_caller_negocio from public.profiles where id = auth.uid();
   if v_caller_negocio is null then raise exception 'sin_perfil'; end if;
@@ -104,7 +104,7 @@ begin
 
   -- Create cobro linea
   insert into public.cobro_lineas (cobro_id, tipo, ref_id, nombre, precio_cents, cantidad)
-  values (v_cobro_id, 'bono', v_bono_id::text, 'Bono ' || p_sesiones || 'x ' || coalesce(v_nombre_servicio, 'Servicio'), p_precio_cents, 1);
+  values (v_cobro_id, 'bono', v_bono_id, 'Bono ' || p_sesiones || 'x ' || coalesce(v_nombre_servicio, 'Servicio'), p_precio_cents, 1);
 
   return v_bono_id;
 end;
