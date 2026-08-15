@@ -1593,6 +1593,39 @@ export default function AgendaCalendar() {
     [profesionales],
   );
 
+  // Tipos de bloqueo que de verdad aparecen en el dia seleccionado (bloqueos de
+  // BD + salon cerrado + fuera de jornada + pausas virtuales). La leyenda de
+  // la rejilla pinta solo estos: con los 8 tipos fijos la barra ensuciaba la
+  // cabecera mostrando leyendas de cosas que no existen ese dia.
+  const bloqueoTiposHoy = useMemo(() => {
+    const tipos = new Set<string>();
+    const dayStart = new Date(selectedDateObj);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(selectedDateObj);
+    dayEnd.setHours(23, 59, 59, 999);
+    for (const b of bloqueos as any[]) {
+      if (
+        new Date(b.inicio) <= dayEnd &&
+        new Date(b.fin) >= dayStart &&
+        b.tipo
+      ) {
+        tipos.add(b.tipo);
+      }
+    }
+    if (cierreHoy) tipos.add("salon_cerrado");
+    const dbDia = selectedDateObj.getDay();
+    for (const p of profesionales) {
+      const filasProf = (horariosProf as any[]).filter(
+        (h: any) => h.profesional_id === p.id,
+      );
+      if (filasProf.length > 0) tipos.add("fuera_jornada");
+      if (filasProf.filter((h: any) => h.dia_semana === dbDia).length > 1) {
+        tipos.add("descanso");
+      }
+    }
+    return tipos;
+  }, [bloqueos, selectedDateObj, cierreHoy, profesionales, horariosProf]);
+
   // Analisis del dia VISIBLE (retrasos, solapes, huecos aprovechables y huecos
   // vacios). Alimenta dos cosas: el contador del boton de organizar (badge, como
   // las notificaciones) y el resalte del modo "Enseñamelo". Es el MISMO calculo
@@ -3207,18 +3240,20 @@ export default function AgendaCalendar() {
               a simple vista si una franja atenuada era "fuera de turno de esta
               persona" o "el salon entero cerrado" — colores parecidos, motivos
               muy distintos. */}
-          {view === "day" && (
+          {view === "day" && bloqueoTiposHoy.size > 0 && (
             <div
               style={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: 10,
+                gap: isMobile ? 6 : 10,
                 marginTop: 6,
               }}
             >
               {/* Orden fijo de lectura; el texto sale de BLOQUEO_LABELS/BLOQUEO_COLORS
                   (misma fuente que pinta los bloques) para que no puedan desincronizarse
-                  si se añade un tipo nuevo en un sitio y se olvida el otro. */}
+                  si se añade un tipo nuevo en un sitio y se olvida el otro.
+                  Solo se listan los tipos presentes ese dia (bloqueoTiposHoy):
+                  la version con los 8 fijos ensuciaba la cabecera en movil. */}
               {(
                 [
                   "fuera_jornada",
@@ -3230,31 +3265,34 @@ export default function AgendaCalendar() {
                   "descanso",
                   "reserva_temporal",
                 ] as const
-              ).map((tipo) => (
-                <span
-                  key={tipo}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    fontSize: 10.5,
-                    color: TOKENS.textSecondary,
-                  }}
-                >
+              )
+                .filter((tipo) => bloqueoTiposHoy.has(tipo))
+                .map((tipo) => (
                   <span
+                    key={tipo}
                     style={{
-                      width: 7,
-                      height: 7,
-                      borderRadius: 2,
-                      background: BLOQUEO_COLORS[tipo],
-                      flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      fontSize: isMobile ? 9.5 : 10.5,
+                      color: TOKENS.textSecondary,
+                      whiteSpace: "nowrap",
                     }}
-                  />
-                  {tipo === "salon_cerrado"
-                    ? "Salón cerrado / festivo"
-                    : BLOQUEO_LABELS[tipo]}
-                </span>
-              ))}
+                  >
+                    <span
+                      style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: 2,
+                        background: BLOQUEO_COLORS[tipo],
+                        flexShrink: 0,
+                      }}
+                    />
+                    {tipo === "salon_cerrado"
+                      ? "Salón cerrado / festivo"
+                      : BLOQUEO_LABELS[tipo]}
+                  </span>
+                ))}
             </div>
           )}
         </div>
@@ -8557,7 +8595,27 @@ function DayTimeline({
                             new Date(b.fin) >= dayStart
                           );
                         })
-                        .map((b: any) => {
+                        .sort(
+                          (a: any, b: any) =>
+                            new Date(a.inicio).getTime() -
+                            new Date(b.inicio).getTime(),
+                        )
+                        .map((b: any, idx: number, arr: any[]) => {
+                          // Cuando dos bloqueos cubren el mismo tramo (ej.
+                          // vacaciones + salon cerrado por festivo) sus
+                          // etiquetas caian en la misma Y y se solapaban los
+                          // nombres. Se escalona: cada bloque solapado empuja
+                          // su etiqueta (y su motivo) una fila hacia abajo.
+                          const bIniMs = new Date(b.inicio).getTime();
+                          const bFinMs = new Date(b.fin).getTime();
+                          const labelRow = arr
+                            .slice(0, idx)
+                            .filter(
+                              (o: any) =>
+                                new Date(o.inicio).getTime() < bFinMs &&
+                                new Date(o.fin).getTime() > bIniMs,
+                            ).length;
+                          const labelOffset = labelRow * 14;
                           const bloqueoDayStart = new Date(selectedDateObj);
                           bloqueoDayStart.setHours(START_H, 0, 0, 0);
                           const bloqueoDayEnd = new Date(selectedDateObj);
@@ -8586,6 +8644,11 @@ function DayTimeline({
                             ROW_H;
                           if (blockHeight <= 0) return null;
                           const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
+                          // Si el desplazamiento deja la etiqueta fuera del
+                          // bloque, no se pinta (mejor sin nombre que un
+                          // nombre montado encima de otro).
+                          const cabeEtiqueta =
+                            blockHeight > labelOffset + 16;
                           return (
                             <div
                               key={b.id}
@@ -8600,35 +8663,43 @@ function DayTimeline({
                                 borderLeft: `3px solid ${bColor}99`,
                                 borderRadius: 6,
                                 pointerEvents: "none",
-                                zIndex: 1,
+                                zIndex: 1 + labelRow,
                                 padding: "4px 6px",
                                 overflow: "hidden",
                               }}
                             >
-                              <div
-                                style={{
-                                  fontSize: 10,
-                                  color: TOKENS.text,
-                                  fontWeight: 700,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {BLOQUEO_LABELS[b.tipo] || b.tipo}
-                              </div>
-                              {b.motivo && blockHeight > 32 && (
+                              {cabeEtiqueta && (
                                 <div
                                   style={{
-                                    fontSize: 9,
-                                    color: TOKENS.textSec,
-                                    marginTop: 1,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
+                                    fontSize: 10,
+                                    color: TOKENS.text,
+                                    fontWeight: 700,
                                     whiteSpace: "nowrap",
+                                    marginTop: labelOffset,
+                                    background: `${bColor}26`,
+                                    borderRadius: 4,
+                                    padding: "1px 4px",
+                                    width: "fit-content",
                                   }}
                                 >
-                                  {b.motivo}
+                                  {BLOQUEO_LABELS[b.tipo] || b.tipo}
                                 </div>
                               )}
+                              {b.motivo &&
+                                blockHeight > labelOffset + 32 && (
+                                  <div
+                                    style={{
+                                      fontSize: 9,
+                                      color: TOKENS.textSec,
+                                      marginTop: 1,
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    {b.motivo}
+                                  </div>
+                                )}
                             </div>
                           );
                         });
