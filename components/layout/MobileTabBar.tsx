@@ -125,6 +125,23 @@ export function MobileTabBar({ state }: TabBarProps) {
       >
         <Ionicons name={(active ? item.icon : `${item.icon}-outline`) as any} size={23} color={color} />
         <TText style={[s.tabLabel, { color }]} numberOfLines={1}>{t(item.labelKey) || item.label}</TText>
+        {/* Pill fuego bajo el tab activo (fx kit): refuerza dónde estás sin gritar */}
+        {active && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 2,
+              width: 16,
+              height: 3,
+              borderRadius: 3,
+              backgroundColor: tokens.primary,
+              shadowColor: tokens.primary,
+              shadowOpacity: 0.6,
+              shadowRadius: 6,
+              shadowOffset: { width: 0, height: 0 },
+            }}
+          />
+        )}
       </TouchableOpacity>
     );
   };

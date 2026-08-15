@@ -405,3 +405,22 @@ body.directorio {
 .d-modal-msg { margin: 12px 0 0; font-size: 13px; line-height: 1.5; }
 .d-modal-msg.err { color: var(--d-danger); }
 .d-modal-msg.ok { color: var(--d-ok); }
+
+/* ============================================================
+   FX KIT (portado de Magic UI/Aceternity, adaptado al directorio)
+   Spotlight que sigue el raton + borde fuego al hover en las
+   tarjetas de salon. Solo desktop: en touch no hay puntero.
+   ============================================================ */
+.d-res { position: relative; overflow: hidden; }
+.d-res::before {
+  content: ""; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .3s var(--d-ease); pointer-events: none;
+  background: radial-gradient(260px circle at var(--mx,50%) var(--my,50%),
+    rgba(244,80,30,.08), transparent 65%);
+}
+.d-res:hover::before { opacity: 1; }
+.d-res:hover { border-color: rgba(244,80,30,.35); }
+@media (hover:hover) and (pointer:fine) {
+  .d-res { background-image: none; }
+}
+@media (prefers-reduced-motion:reduce) { .d-res::before { display: none; } }

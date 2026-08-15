@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mecha · Diseño B — Aurora fuego</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="favicon.svg" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<link rel="stylesheet" href="assets/mecha-fx.css" />
+<style>
+  .demo-hero{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:120px 26px 70px;position:relative}
+  .demo-hero h1{font-size:clamp(38px,6vw,70px);max-width:880px;margin:0 0 22px;font-family:var(--serif);font-style:italic;font-weight:400}
+  .demo-hero p{font-size:clamp(16px,2.2vw,20px);color:var(--text-sec);max-width:620px;margin:0 auto 34px}
+  .demo-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+  .btn-soft{color:#fff;background:rgba(255,138,61,.14);border:1px solid rgba(255,138,61,.45);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .btn-soft:hover{background:rgba(255,138,61,.24);border-color:rgba(255,206,74,.7);transform:translateY(-2px)}
+  .fx-navline .brand{color:var(--text)}
+  .fx-navline .nav-l{display:flex;gap:22px}
+  .demo-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;
+    max-width:1020px;margin:90px auto 0;padding:0 26px}
+  .demo-cards .fx-border{padding:26px;text-align:left}
+  .demo-cards h3{font-size:19px;margin:0 0 8px}
+  .demo-cards p{font-size:14.5px;color:var(--text-sec);margin:0}
+  .demo-tag{position:fixed;bottom:16px;left:16px;z-index:950;font-size:12px;color:var(--text-ter);
+    background:rgba(11,16,32,.6);border:1px solid var(--border);border-radius:999px;padding:6px 12px;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  @media (max-width:820px){.fx-navline{padding:12px 16px}.fx-navline .nav-l{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#e0340e"/><stop offset=".5" stop-color="#ff7a2e"/><stop offset="1" stop-color="#ffcf4a"/>
+  </linearGradient>
+  <symbol id="mecha-mark" viewBox="0 0 40 40">
+    <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)"/>
+    <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92"/>
+  </symbol>
+</defs></svg>
+
+<div class="bg" style="background:#05070f"></div>
+<div class="fx-progress"></div>
+
+<!-- NAV: barra fina con línea de luz -->
+<nav class="fx-navline" aria-label="Principal">
+  <a class="brand" href="#hero">
+    <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark"/></svg>
+    <span class="brand-name">Mecha</span>
+  </a>
+  <div class="nav-l">
+    <a href="#hero">Inicio</a><a href="#ventajas">Ventajas</a><a href="#precios">Precios</a><a href="#faq">FAQ</a>
+  </div>
+  <a href="#" class="btn btn-primary fx-btn">Ver demo gratis</a>
+</nav>
+
+<main style="position:relative">
+  <div class="fx-aurora" aria-hidden="true"></div>
+  <section class="demo-hero" id="hero">
+    <span class="eyebrow center" style="margin-bottom:16px">Diseño B · Aurora fuego</span>
+    <div data-fx-blur>
+      <h1 class="fx-blur-in">El teléfono ya no te interrumpe.<br/>Tu salón <span class="fx-shiny">sigue reservando</span>.</h1>
+      <p class="fx-blur-in">Aurora cálida difusa, tipografía serif elegante, navbar fina con línea luminosa y tarjetas con borde-gradiente animado.</p>
+      <div class="demo-actions fx-blur-in">
+        <a href="#" class="btn btn-primary btn-lg fx-btn">Ver demo gratis</a>
+        <a href="#" class="btn btn-soft btn-lg fx-btn">Ver cómo funciona</a>
+      </div>
+    </div>
+
+    <div class="demo-cards" id="ventajas">
+      <div class="fx-border"><h3>Asistente de WhatsApp</h3><p>Atiende, agenda y cobra señales mientras tú cortas.</p></div>
+      <div class="fx-border"><h3>Agenda que entiende reposos</h3><p>Tiempos muertos productivos, superposiciones y equipo.</p></div>
+      <div class="fx-border"><h3>Caja e informes</h3><p>Todo lo que facturas es tuyo: sin comisiones.</p></div>
+    </div>
+  </section>
+</main>
+
+<div class="demo-tag">Diseño B — aurora + navbar luminosa + borde animado (fx kit)</div>
+<script src="assets/mecha-fx.js" defer></script>
+</body>
+</html>

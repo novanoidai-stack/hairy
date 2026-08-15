@@ -250,6 +250,14 @@ export function Sidebar() {
             collapsed && s.navItemCollapsed,
             isActive && s.navItemActive,
             isActive && { backgroundColor: gSoft, borderColor: gBorder },
+            // Glow suave del color del sector en el item activo (fx kit):
+            // react-native-web lo traduce a box-shadow.
+            isActive && {
+              shadowColor: gColor,
+              shadowOpacity: 0.3,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 3 },
+            },
             !isActive && hoveredIdx === idx && s.navItemHovered,
             isPrincipal && !collapsed && s.navItemPrincipal,
             isPrincipal && !collapsed && isActive && { backgroundColor: gSoft, borderColor: gBorder },

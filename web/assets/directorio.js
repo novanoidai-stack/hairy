@@ -325,3 +325,15 @@
     });
   });
 })();
+
+// FX kit: spotlight que sigue al raton en las tarjetas (.d-res).
+(function(){
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+  document.addEventListener('pointermove', function(e){
+    var el = e.target.closest ? e.target.closest('.d-res') : null;
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100)+'%');
+    el.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
+  }, { passive: true });
+})();
