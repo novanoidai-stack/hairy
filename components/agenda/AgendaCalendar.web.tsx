@@ -4870,6 +4870,7 @@ export default function AgendaCalendar() {
           {view === "week" && (
             <WeekView
               citas={citas}
+              bloqueos={bloqueos}
               profesionales={visibleProfs}
               servicios={servicios}
               clientes={clientes}
@@ -15604,6 +15605,11 @@ export function DetalleCitaModal({
 
   // Inventario del salon (pestaña Productos)
   const [inventarioProductos, setInventarioProductos] = useState<any[]>([]);
+  // Buscador y categorias del rail de productos. Con un inventario de verdad
+  // (decenas de referencias) una lista plana no sirve: hay que poder encontrar
+  // el bote concreto sin bajar scrolleando. Mismo patron que la venta en Caja.
+  const [prodBusqueda, setProdBusqueda] = useState("");
+  const [prodCategoria, setProdCategoria] = useState("todas");
   // Productos gastados en esta cita: persistidos en cita_productos. Al anadir
   // se descuenta stock (RPC atomica) y su precio entra en el cobro.
   const [productosCita, setProductosCita] = useState<
@@ -15615,7 +15621,8 @@ export function DetalleCitaModal({
     // precio_cents (no "precio") y el stock vive en inventario.unidades
     const { data } = await supabase
       .from("productos")
-      .select("id, nombre, precio_cents, stock_minimo, inventario(unidades)")
+      // categoria hace falta para los chips de filtro del rail.
+      .select("id, nombre, categoria, precio_cents, stock_minimo, inventario(unidades)")
       .eq("negocio_id", prof.negocio_id)
       .eq("activo", true)
       .order("nombre");
@@ -15692,6 +15699,26 @@ export function DetalleCitaModal({
     (s, p) => s + p.precio * p.cantidad,
     0,
   );
+
+  // Categorias presentes en el inventario (solo se ofrecen las que existen).
+  const categoriasProducto = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          inventarioProductos.map((p: any) => p.categoria || "general"),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [inventarioProductos],
+  );
+  const productosFiltrados = useMemo(() => {
+    const q = prodBusqueda.trim().toLowerCase();
+    return inventarioProductos.filter(
+      (p: any) =>
+        (prodCategoria === "todas" ||
+          (p.categoria || "general") === prodCategoria) &&
+        (!q || (p.nombre || "").toLowerCase().includes(q)),
+    );
+  }, [inventarioProductos, prodBusqueda, prodCategoria]);
   // Señal ya pagada: para que el cobro inline (pestaña Pagos) descuente bien.
   useEffect(() => {
     if (cobrada) return;
@@ -20281,6 +20308,65 @@ export function DetalleCitaModal({
                         </div>
                       </div>
                     )}
+                    {/* Buscador + categorias: sin esto, con un inventario real
+                        hay que bajar scrolleando hasta dar con el producto. */}
+                    {inventarioProductos.length > 4 && (
+                      <div style={{ marginBottom: 10 }}>
+                        <input
+                          type="text"
+                          value={prodBusqueda}
+                          onChange={(e) => setProdBusqueda(e.target.value)}
+                          placeholder="Buscar producto..."
+                          style={{
+                            width: "100%",
+                            padding: "8px 10px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid ${TOKENS.border}`,
+                            borderRadius: 8,
+                            color: TOKENS.text,
+                            fontSize: 13,
+                            boxSizing: "border-box",
+                          }}
+                        />
+                        {categoriasProducto.length > 1 && (
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 6,
+                              overflowX: "auto",
+                              marginTop: 8,
+                            }}
+                          >
+                            {["todas", ...categoriasProducto].map((cat) => {
+                              const on = prodCategoria === cat;
+                              return (
+                                <button
+                                  key={cat}
+                                  type="button"
+                                  onClick={() => setProdCategoria(cat)}
+                                  style={{
+                                    flexShrink: 0,
+                                    padding: "5px 12px",
+                                    borderRadius: 99,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    background: on
+                                      ? TOKENS.primarySoft
+                                      : TOKENS.bgCard,
+                                    border: `1px solid ${on ? TOKENS.primary : TOKENS.border}`,
+                                    color: on ? TOKENS.primaryHi : TOKENS.textSec,
+                                    textTransform: "capitalize",
+                                  }}
+                                >
+                                  {cat}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {inventarioProductos.length === 0 ? (
                       <div
                         style={{
@@ -20291,6 +20377,16 @@ export function DetalleCitaModal({
                       >
                         No hay productos en el inventario todavía.
                       </div>
+                    ) : productosFiltrados.length === 0 ? (
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: TOKENS.textTer,
+                          padding: "8px 2px",
+                        }}
+                      >
+                        Ningún producto coincide con la búsqueda.
+                      </div>
                     ) : (
                       <div
                         style={{
@@ -20299,7 +20395,7 @@ export function DetalleCitaModal({
                           gap: 6,
                         }}
                       >
-                        {inventarioProductos.map((p: any) => {
+                        {productosFiltrados.map((p: any) => {
                           const enCita = productosCita.find(
                             (x) => x.id === p.id,
                           );
@@ -22094,6 +22190,7 @@ function Pill({ children, color, soft }: any) {
 // =============================================
 function WeekView({
   citas,
+  bloqueos = [],
   profesionales,
   servicios,
   clientes,
@@ -22209,6 +22306,42 @@ function WeekView({
               (a: any, b: any) =>
                 new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
             );
+          // Descansos/bloqueos del dia (mismo solape que usa la rejilla
+          // diaria): un bloqueo que abarca varios dias aparece cada dia.
+          const dayStartW = new Date(d);
+          dayStartW.setHours(0, 0, 0, 0);
+          const dayEndW = new Date(d);
+          dayEndW.setHours(23, 59, 59, 999);
+          const dayBloqueos = (bloqueos as any[])
+            .filter(
+              (b: any) =>
+                (selectedProf === "todos" ||
+                  b.profesional_id === selectedProf) &&
+                new Date(b.inicio) <= dayEndW &&
+                new Date(b.fin) >= dayStartW,
+            )
+            .slice()
+            .sort(
+              (a: any, b: any) =>
+                new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+            );
+          // Citas y bloqueos intercalados por hora, para que un descanso
+          // no quede "escondido" al final de la columna del dia.
+          const dayItems = [
+            ...dayCitas.map((c: any) => ({
+              kind: "cita" as const,
+              inicio: c.inicio,
+              c,
+            })),
+            ...dayBloqueos.map((b: any) => ({
+              kind: "bloqueo" as const,
+              inicio: b.inicio,
+              b,
+            })),
+          ].sort(
+            (a: any, b: any) =>
+              new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+          );
           const isToday = key === todayStr;
           const isWeekend = i >= 5;
           return (
@@ -22314,7 +22447,7 @@ function WeekView({
                   transition: "background 0.2s",
                 }}
               >
-                {dayCitas.length === 0 ? (
+                {dayItems.length === 0 ? (
                   <div
                     style={{
                       flex: 1,
@@ -22329,7 +22462,90 @@ function WeekView({
                     Sin citas
                   </div>
                 ) : (
-                  dayCitas.map((c: any) => {
+                  dayItems.map((item: any) => {
+                    // Tarjeta de descanso/bloqueo: misma franja rayada que la
+                    // rejilla diaria, adaptada a lista. No es interactiva.
+                    if (item.kind === "bloqueo") {
+                      const b = item.b;
+                      const profBlq = profesionales.find(
+                        (p: any) => p.id === b.profesional_id,
+                      );
+                      const blqColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
+                      const hIni = new Date(b.inicio).toLocaleTimeString(
+                        "es-ES",
+                        { hour: "2-digit", minute: "2-digit" },
+                      );
+                      const hFin = new Date(b.fin).toLocaleTimeString(
+                        "es-ES",
+                        { hour: "2-digit", minute: "2-digit" },
+                      );
+                      return (
+                        <div
+                          key={`blq-${b.id}`}
+                          style={{
+                            width: "100%",
+                            padding: "6px 8px",
+                            borderRadius: 8,
+                            background: `repeating-linear-gradient(45deg, ${blqColor}14, ${blqColor}14 4px, transparent 4px, transparent 10px)`,
+                            backgroundColor: `${blqColor}0a`,
+                            border: `1px solid ${TOKENS.border}`,
+                            borderLeft: `3.5px solid ${blqColor}99`,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                              minWidth: 0,
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                color: TOKENS.textSec,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {hIni}–{hFin}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                color: blqColor,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {BLOQUEO_LABELS[b.tipo] || b.tipo}
+                            </span>
+                          </div>
+                          {(profBlq?.nombre || b.motivo) && (
+                            <div
+                              style={{
+                                fontSize: 10,
+                                color: TOKENS.textTer,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {[profBlq?.nombre, b.motivo]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    const c = item.c;
                     const cli = clientes.find(
                       (cl: any) => cl.id === c.cliente_id,
                     );

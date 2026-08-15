@@ -142,6 +142,12 @@ export function CobroSheet(props: CobroSheetProps) {
   const [lineaPrecio, setLineaPrecio] = useState('');
   const [profesionalId, setProfesionalId] = useState('');
   const [profesionales, setProfesionales] = useState<Array<{ id: string; nombre: string }>>([]);
+  // Cliente en la venta suelta: opcional, pero sin el la venta queda anonima y
+  // no hay forma de saber quien compro que (ni de contarlo en su ficha ni en el
+  // registro de productos vendidos). El RPC ya aceptaba p_cliente_id; era el
+  // formulario el que nunca lo mandaba.
+  const [clienteId, setClienteId] = useState('');
+  const [clientes, setClientes] = useState<Array<{ id: string; nombre: string }>>([]);
 
   const [productos, setProductos] = useState<Array<{ id: string; nombre: string; categoria: string; precio: number }>>([]);
   const [productoPickerOpen, setProductoPickerOpen] = useState(false);
@@ -165,6 +171,17 @@ export function CobroSheet(props: CobroSheetProps) {
       const identidad = identidadActiva(profile.negocio_id);
       if (identidad?.profesionalId && (data ?? []).some((p) => p.id === identidad.profesionalId)) {
         setProfesionalId((prev) => prev || identidad.profesionalId!);
+      }
+      // Solo hace falta en la venta suelta: en el cobro de una cita el cliente
+      // ya viene dado por la propia cita.
+      if (props.mode === 'walkin') {
+        const { data: clis } = await supabase
+          .from('clientes')
+          .select('id, nombre')
+          .eq('negocio_id', profile.negocio_id)
+          .order('nombre')
+          .limit(500);
+        setClientes(clis ?? []);
       }
       const { data: prods } = await supabase
         .from('productos')
@@ -308,6 +325,7 @@ export function CobroSheet(props: CobroSheetProps) {
           p_propina_cents: propinaCents,
           p_descuento_cents: descuentoCents,
           p_profesional_id: profesionalId || null,
+          p_cliente_id: clienteId || null,
         });
         if (rpcErr) throw rpcErr;
         const cobroId = data as string;
@@ -600,6 +618,18 @@ export function CobroSheet(props: CobroSheetProps) {
                   <option value="">Sin profesional asignado</option>
                   {profesionales.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
                 </select>
+
+                <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 14, marginBottom: 8 }}>Cliente (opcional)</div>
+                <select
+                  value={clienteId} onChange={(e) => setClienteId(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
+                >
+                  <option value="">Sin cliente (venta anonima)</option>
+                  {clientes.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+                <div style={{ fontSize: 11, color: T.textTer, marginTop: 6, lineHeight: 1.45 }}>
+                  Si eliges cliente, la compra queda en su ficha y en el registro de productos vendidos.
+                </div>
               </>
             )}
           </div>

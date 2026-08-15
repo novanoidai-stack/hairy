@@ -230,6 +230,13 @@ function CajaScreen() {
     "efectivo" | "datafono" | "bizum"
   >("efectivo");
   const [ventaEnviando, setVentaEnviando] = useState(false);
+  // Cliente de la venta suelta (opcional). Sin esto la venta era siempre
+  // anonima: no quedaba en la ficha de nadie y en el registro de productos
+  // vendidos salia "Cliente desconocido".
+  const [ventaClienteId, setVentaClienteId] = useState("");
+  const [clientesVenta, setClientesVenta] = useState<
+    Array<{ id: string; nombre: string }>
+  >([]);
   // Búsqueda + categoría del panel "Venta rápida" (salones con catálogo grande).
   const [ventaBusqueda, setVentaBusqueda] = useState("");
   const [ventaCategoriaFiltro, setVentaCategoriaFiltro] =
@@ -550,6 +557,15 @@ function CajaScreen() {
         .eq("activo", true)
         .order("nombre");
       if (prods) setProductosDisponibles(prods);
+
+      // Clientes para poder poner nombre a una venta suelta.
+      const { data: clis } = await supabase
+        .from("clientes")
+        .select("id, nombre")
+        .eq("negocio_id", profile.negocio_id)
+        .order("nombre")
+        .limit(500);
+      setClientesVenta(clis ?? []);
     } catch (err) {
       console.error("Error cargando citas pendientes:", err);
       reportarError(err, { origen: "app", tipo: "operativo" });
@@ -2649,6 +2665,43 @@ function CajaScreen() {
                   ))}
                 </div>
 
+                {/* Cliente (opcional): si no se elige, la venta queda anonima
+                    y no aparece en la ficha de nadie. */}
+                <div style={{ marginBottom: 12 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: T.textSec,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Cliente (opcional)
+                  </div>
+                  <select
+                    value={ventaClienteId}
+                    onChange={(e) => setVentaClienteId(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      background: T.card,
+                      border: `1px solid ${T.border}`,
+                      borderRadius: 8,
+                      color: T.text,
+                      fontSize: 13,
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <option value="">Sin cliente (venta anónima)</option>
+                    {clientesVenta.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Total + método + cobrar */}
                 <div
                   style={{
@@ -2783,11 +2836,13 @@ function CajaScreen() {
                             p_metodo: ventaMetodo,
                             p_propina_cents: 0,
                             p_descuento_cents: 0,
+                            p_cliente_id: ventaClienteId || null,
                           },
                         );
                         if (rpcErr) throw rpcErr;
                         setShowVentaProductos(false);
                         setCarrito([]);
+                        setVentaClienteId("");
                         setMensaje({
                           type: "success",
                           text: `Venta registrada · ${(carrito.reduce((s, c) => s + c.precio_cents * c.cantidad, 0) / 100).toFixed(2)}€`,
