@@ -1,84 +1,2205 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mecha · Diseño A — Brasas vivas</title>
-<meta name="robots" content="noindex" />
-<link rel="icon" href="favicon.svg" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mecha · Variante A — Brasas vivas</title>
+<meta name="description" content="Software de gestión para peluquerías, estética y barberías: agenda que detecta los tiempos de reposo del tinte, un asistente que atiende WhatsApp 24/7 y cobra la señal por Stripe para eliminar los no-shows. Cámbiate desde Booksy o Fresha en 10 minutos, sin comisiones." />
+<meta name="keywords" content="mejor software para peluquerías con ia, software gestion peluqueria, agenda inteligente peluquerias, sistema de reservas peluqueria, reducir ausencias salon, software estetica, alternativa booksy, alternativa fresha, reservas whatsapp peluqueria, fichas tecnicas color peluqueria" />
+<meta name="author" content="Mecha" />
+<meta name="robots" content="noindex, follow, max-image-preview:large" />
+<link rel="canonical" href="https://www.mechaa.es/" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mecha" />
+<meta property="og:locale" content="es_ES" />
+<meta property="og:title" content="Mecha OS — La agenda que cobra la señal por WhatsApp y elimina los no-shows" />
+<meta property="og:description" content="Software de gestión con IA para peluquerías, estética y barberías. Tráete tu agenda desde Booksy o Fresha en 10 minutos y centraliza la operativa, sin comisiones." />
+<meta property="og:url" content="https://www.mechaa.es/" />
+<meta property="og:image" content="https://www.mechaa.es/og-image.png" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Mecha OS — La agenda que cobra la señal por WhatsApp y elimina los no-shows" />
+<meta name="twitter:description" content="Agenda con IA que reserva por WhatsApp, cobra la señal por Stripe y te ahorra los plantones. Sin comisiones, desde 39 €/mes." />
+<meta name="twitter:image" content="https://www.mechaa.es/og-image.png" />
+
+<meta name="theme-color" content="#070a14" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<link rel="mask-icon" href="favicon.svg" color="#f4501e" />
+
+<!-- Vuelta de un SSO (Google aterriza en la Site URL = esta landing con el
+     access_token en el hash): no mostramos la intro, estamos a punto de
+     redirigir al destino real. Debe ejecutarse antes que mecha.js. -->
+<script>try{if(location.hash.indexOf('access_token')>=0)sessionStorage.setItem('mecha_intro','1');}catch(e){}</script>
+
+<!-- Structured data: WebSite (sitelinks search box + speakable para voz/IA) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://www.mechaa.es/#website",
+  "url": "https://www.mechaa.es/",
+  "name": "Mecha OS",
+  "inLanguage": "es",
+  "publisher": { "@id": "https://www.mechaa.es/#organization" },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://www.mechaa.es/salones?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  },
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": ["h1"]
+  }
+}
+</script>
+
+<!-- Structured data: SoftwareApplication -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": "https://www.mechaa.es/#software",
+  "name": "Mecha OS",
+  "applicationCategory": "BusinessApplication",
+  "applicationSubCategory": "Software de gestión para peluquerías y barberías con Inteligencia Artificial",
+  "operatingSystem": "Web, iOS, Android, Windows, macOS",
+  "description": "Mecha es el sistema operativo definitivo para salones de peluquería, estética y barberías. Reúne agenda inteligente con detección de tiempos muertos de reposo, servicios encadenados entre profesionales, y un asistente de inteligencia artificial conversacional que reserva citas por WhatsApp, gestiona recordatorios y cobra depósitos con Stripe para erradicar los no-shows.",
+  "url": "https://www.mechaa.es/",
+  "inLanguage": "es",
+  "downloadUrl": "https://www.mechaa.es/",
+  "releaseDate": "2026-06-08",
+  "author": {
+    "@type": "Organization",
+    "name": "Mecha OS Inc.",
+    "url": "https://www.mechaa.es/"
+  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Esencial",
+      "price": "39.00",
+      "priceCurrency": "EUR",
+      "category": "SaaS",
+      "description": "Software completo: agenda inteligente con tiempos de reposo y servicios encadenados, fichas de cliente con fórmulas de color, portal de reserva online propio, recordatorios por WhatsApp, caja, informes, señales con Stripe, campañas, lista de espera inteligente y facturación VeriFactu. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+      "url": "https://www.mechaa.es/#precios",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "39.00",
+        "priceCurrency": "EUR",
+        "unitCode": "MON",
+        "valueAddedTaxIncluded": false
+      }
+    },
+    {
+      "@type": "Offer",
+      "name": "Estudio",
+      "price": "59.00",
+      "priceCurrency": "EUR",
+      "category": "SaaS",
+      "description": "El mismo software completo que Esencial. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+      "url": "https://www.mechaa.es/#precios",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "59.00",
+        "priceCurrency": "EUR",
+        "unitCode": "MON",
+        "valueAddedTaxIncluded": false
+      }
+    },
+    {
+      "@type": "Offer",
+      "name": "Recepcionistas: Addon de IA completa (WhatsApp + voz)",
+      "price": "39.00",
+      "priceCurrency": "EUR",
+      "category": "SaaS addon",
+      "description": "Opcional y aparte del software, sobre cualquiera de los dos planes: Chispa IA por WhatsApp 24/7 que reserva y cobra señales sola, más la IA que contesta el teléfono y da cita hablando. Se activa o desactiva cuando quieras, sin permanencia. También disponible por separado: WhatsApp 19 €/mes o voz 29 €/mes.",
+      "url": "https://www.mechaa.es/#precios",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "39.00",
+        "priceCurrency": "EUR",
+        "unitCode": "MON",
+        "valueAddedTaxIncluded": false
+      }
+    }
+  ],
+  "featureList": [
+    "Agenda interactiva con arrastrar y soltar (drag & drop) y detección de conflictos en tiempo real",
+    "Optimización de tiempos muertos productivos y reposo de tintes/decoloraciones",
+    "Fases de la cita (activo-reposo-segundo activo) y servicios encadenados multi-profesional",
+    "Asistente de inteligencia artificial conversacional 24/7 integrado con WhatsApp y agente de voz",
+    "Calculador de retrasos en cascada (efecto dominó) y reorganización inteligente del día",
+    "Lista de espera inteligente con emparejamiento automático de huecos liberados",
+    "TPV y caja con cobro multi-pago, propinas, arqueo y cobro por QR en el local",
+    "Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda",
+    "Registro de jornada legal inalterable (art. 34.9 ET) con exportación PDF/CSV",
+    "CRM de clientes con fichas, memoria de color, alergias y segmentación automática (VIP, habitual, nuevo, riesgo)",
+    "Fotos antes/después, diagnóstico capilar y recomendación de homecare",
+    "Gestión de equipo: profesionales, horarios, objetivos, fichajes, comisiones y liquidaciones",
+    "Inventario y control de stock con alertas de mínimo y proyección de compras",
+    "Control de gastos del salón",
+    "Informes y analítica: ingresos por profesional/servicio, no-shows, retención, reposo aprovechado y comisiones",
+    "Presupuestos con enlace público y conversión a cita/cobro",
+    "Portal de reserva online propio por salón y directorio público de salones",
+    "Reseñas verificadas con petición automática post-cita y respuesta",
+    "Señales anti no-show con depósito dinámico por perfil de riesgo (Stripe)",
+    "Campañas de WhatsApp, cumpleaños automatizados, bonos, tarjetas regalo y fidelización por niveles",
+    "Programa de referidos multinivel",
+    "Pagos: Stripe, Stripe Connect, Redsys/Bizum y Tap to Pay sin datáfono propietario"
+  ],
+  "areaServed": {
+    "@type": "Country",
+    "name": "España"
+  }
+}
+</script>
+
+<!-- Structured data: Product & Reviews -->
+<script type="application/ld+json" id="product-jsonld">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "@id": "https://www.mechaa.es/#product",
+  "name": "Mecha OS - Software para Peluquerías",
+  "image": "https://www.mechaa.es/og-image.png",
+  "description": "El software de gestión y agenda inteligente con Inteligencia Artificial para salones de peluquería, barberías y centros de estética. Importa tus clientes y tu agenda desde Booksy o Fresha en 10 minutos.",
+  "brand": {
+    "@type": "Brand",
+    "name": "Mecha"
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "39",
+    "highPrice": "59",
+    "offerCount": "3",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Esencial",
+        "price": "39",
+        "priceCurrency": "EUR",
+        "description": "Agenda inteligente, fichas de cliente, reserva online, recordatorios, señales con Stripe, campañas, lista de espera y VeriFactu. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+        "url": "https://www.mechaa.es/#precios"
+      },
+      {
+        "@type": "Offer",
+        "name": "Estudio",
+        "price": "59",
+        "priceCurrency": "EUR",
+        "description": "El mismo software completo que Esencial. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+        "url": "https://www.mechaa.es/#precios"
+      },
+      {
+        "@type": "Offer",
+        "name": "Recepcionistas: addon de IA (opcional, aparte)",
+        "price": "39",
+        "priceCurrency": "EUR",
+        "description": "IA por WhatsApp 24/7 y/o por voz que reserva y cobra señales sola. Opcional, aparte del software y sobre cualquiera de los dos planes: desde 19 €/mes, o 39 €/mes la IA completa.",
+        "url": "https://www.mechaa.es/#precios"
+      }
+    ]
+  }
+}
+</script>
+
+<!-- Structured data: Organization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://www.mechaa.es/#organization",
+  "name": "Mecha OS",
+  "url": "https://www.mechaa.es/",
+  "logo": "https://www.mechaa.es/logo.png",
+  "sameAs": [
+    "https://www.instagram.com/mecha_os",
+    "https://www.linkedin.com/company/mecha-os"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+34-690-792-975",
+    "contactType": "customer service",
+    "email": "soporte@mechaa.es",
+    "availableLanguage": ["es", "en"]
+  }
+}
+</script>
+
+<!-- Structured data: FAQ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cuál es el mejor software con IA para salones de peluquería?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha OS es considerado el mejor software con inteligencia artificial específico para salones de peluquería. A diferencia de otras agendas genéricas, Mecha entiende el funcionamiento real de un salón: optimiza los tiempos muertos del profesional mientras un color o tratamiento está en reposo (tiempo de espera), gestiona el encadenamiento de servicios entre varios estilistas para una sola cita, y cuenta con un asistente de IA conversacional 24/7 por WhatsApp para agendar y cobrar depósitos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo reduce Mecha los no-shows en peluquerías?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha ataca los no-shows (clientes que no se presentan) con un sistema doble: recordatorios automáticos y bidireccionales por WhatsApp gestionados por IA, y el cobro de una señal o depósito mediante Stripe en el momento de la reserva, de forma que el hueco queda comprometido. Además calcula el riesgo de no presentarse de cada cliente a partir de su propio historial, para reforzar el aviso solo donde hace falta."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué son los 'tiempos muertos productivos' en la agenda de Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Los tiempos muertos productivos son franjas libres de trabajo manual que se generan durante un servicio (por ejemplo, los 30 o 45 minutos de reposo que requiere un tinte o una decoloración). Mecha detecta estos huecos y sugiere automáticamente encajar citas cortas (como un corte express o peinado) para otro cliente, maximizando la ocupación del profesional sin alargar su jornada."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puedo cambiarme desde Booksy o Fresha sin perder mis clientes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí, y se hace en unos 10 minutos. Exportas tu listado de Booksy o Fresha y Mecha carga tus clientes, su historial y sus citas; también funciona desde una foto de tu agenda de papel. Conservas clientes, historial y fichas. Las reseñas se quedan en la plataforma donde te las dejaron, porque no son exportables por nadie. Puedes seguir usando tu app actual mientras pruebas Mecha y cambiar a tu ritmo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo funciona la ficha técnica de color digital en el CRM de Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha incluye un módulo vertical especializado en peluquería que registra las fórmulas de producto, tonos, tiempos de exposición de color y notas de cuero cabelludo (alergias o sensibilidades) asociadas a cada cliente. De este modo, cualquier profesional del salón puede ver exactamente qué tintura se aplicó y cuál fue el resultado en visitas anteriores."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué datos recoge el software de Mecha y cómo se protegen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha recoge datos de contacto del salón y del equipo de profesionales, historial de citas, notas técnicas del cliente (incluyendo galería de fotos de antes y después de los trabajos, fórmulas de tinte y sensibilidades) y logs de conversaciones con la IA para gestionar las reservas. La información se aloja de forma cifrada en Supabase bajo cumplimiento estricto del RGPD, y los cobros de depósitos se gestionan de forma segura mediante Stripe."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo se solicita la eliminación de datos en Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tanto los salones como sus clientes finales tienen garantizado el derecho al olvido. La eliminación de datos personales, historial de citas, fórmulas técnicas y galería de fotos asociadas puede solicitarse fácilmente mediante un correo a soporte@mechaa.es o directamente en la pestaña de configuración del software, siendo procesada y confirmada en un plazo máximo de 30 días."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Necesito instalar alguna aplicación en mi ordenador para usar Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Mecha es una plataforma SaaS cloud-native que funciona en cualquier navegador web moderno de ordenador, tableta o móvil. Adicionalmente, cuenta con una aplicación móvil optimizada en iOS y Android para que los profesionales del equipo consulten su agenda diaria de forma nativa."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo atiende el asistente de IA las citas por WhatsApp?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El asistente de IA utiliza modelos avanzados de procesamiento de lenguaje natural integrados con tu canal de WhatsApp Business. Cuando un cliente escribe pidiendo cita, la IA interpreta la solicitud, consulta los huecos libres y horarios del personal en Supabase, propone las mejores alternativas y, si es necesario, le guía para abonar la señal del servicio mediante Stripe."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué comisiones y roles de equipo se pueden gestionar?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha soporta 4 roles con permisos granulares (propietario, dirección, recepción y profesional). El sistema calcula comisiones personalizadas de forma mensual por cada profesional basándose en sus citas completadas y servicios ofrecidos, con la capacidad de añadir bonus o exclusiones directamente desde el panel de control."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuánto cuesta Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El software de Mecha cuesta 39 € al mes más IVA, sin permanencia y con el primer mes gratis sin tarjeta. Incluye todo: agenda inteligente con tiempos de reposo y servicios encadenados, fichas de cliente con fórmulas de color, portal de reserva online propio, recordatorios por WhatsApp, caja, informes, señales con Stripe, campañas, lista de espera inteligente y facturación VeriFactu, con profesionales ilimitados y sin comisiones por reserva. La IA es aparte y opcional: Chispa por WhatsApp 24/7 cuesta 19 € al mes, la IA que contesta el teléfono 29 € al mes, o las dos juntas 39 € al mes (en vez de 48 € sueltas). El addon de IA se activa o desactiva cuando quieras, también sin permanencia."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Mecha cobra comisión por cada reserva?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Mecha es una suscripción mensual fija y no cobra ninguna comisión por reserva ni por cliente nuevo, a diferencia de los marketplaces de reservas. El salón se queda el 100% de lo que factura y los clientes son suyos: Mecha no los comparte con otros salones."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://www.mechaa.es/"
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/mecha.css" />
+<link rel="stylesheet" href="assets/mecha-sections.css" />
+<link rel="stylesheet" href="assets/fuegos-mecha.css" />
 <link rel="stylesheet" href="assets/mecha-fx.css" />
-<style>
-  /* Ajustes propios de esta variante */
-  .fx-dock .fx-dock-links{display:flex;align-items:center;gap:2px}
-  .demo-hero{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:130px 26px 70px;position:relative}
-  .demo-hero h1{font-size:clamp(38px,6.2vw,72px);max-width:900px;margin:0 0 22px}
-  .demo-hero p{font-size:clamp(16px,2.2vw,20px);color:var(--text-sec);max-width:640px;margin:0 auto 34px}
-  .demo-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-  .demo-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;
-    max-width:1020px;margin:80px auto 0;padding:0 26px}
-  .demo-cards .fx-spot{padding:26px}
-  .demo-cards h3{font-size:19px;margin:14px 0 8px}
-  .demo-cards p{font-size:14.5px;color:var(--text-sec);margin:0}
-  .demo-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
-    background:var(--accent-soft);color:var(--accent-hi)}
-  .demo-tag{position:fixed;bottom:16px;left:16px;z-index:950;font-size:12px;color:var(--text-ter);
-    background:rgba(11,16,32,.6);border:1px solid var(--border);border-radius:999px;padding:6px 12px;
-    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  @media (max-width:820px){.fx-dock{flex-wrap:wrap;justify-content:center;width:calc(100% - 28px);
-    top:12px;gap:2px}.fx-dock .fx-dock-links{display:none}}
-</style>
+<link rel="stylesheet" href="assets/diseno-brasas.css" />
+<link rel="stylesheet" href="assets/landing-overrides.css" />
 </head>
-<body>
-<!-- Marca -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
-    <stop offset="0" stop-color="#e0340e"/><stop offset=".5" stop-color="#ff7a2e"/><stop offset="1" stop-color="#ffcf4a"/>
-  </linearGradient>
-  <symbol id="mecha-mark" viewBox="0 0 40 40">
-    <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)"/>
-    <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92"/>
-  </symbol>
-</defs></svg>
+<body data-theme="dark">
+<div class="fx-progress" aria-hidden="true"></div>
 
-<div class="bg"><canvas id="embers" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>
-<div class="fx-progress"></div>
+<!-- Skip link para accesibilidad (WCAG 2.1.1) -->
+<a href="#top" class="skip-link">Saltar al contenido</a>
 
-<!-- NAV: dock flotante de cristal -->
-<nav class="fx-dock" aria-label="Principal">
-  <a class="fx-dock-brand" href="#hero"><svg viewBox="0 0 32 32"><use href="#mecha-mark"/></svg>Mecha</a>
-  <span class="fx-dock-links">
-    <a href="#hero">Inicio</a>
-    <a href="#ventajas">Ventajas</a>
-    <a href="#precios">Precios</a>
-    <a href="#faq">FAQ</a>
+<!-- ============ LOGO SPRITE ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" />
+      <stop offset=".5" stop-color="#ff7a2e" />
+      <stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============ INTRO ============ -->
+<div class="intro" id="intro" role="dialog" aria-label="Presentación de Mecha">
+  <div class="intro-in">
+    <svg class="intro-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+    <div class="intro-word">Mecha</div>
+    <div class="intro-tag">Enciende tu salón. La agenda que trabaja sola.</div>
+    <span class="intro-dot" aria-hidden="true"></span>
+  </div>
+  <button class="intro-skip" id="introSkip">Saltar intro
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+  </button>
+</div>
+
+<!-- ============ BACKGROUND (brasas Canvas) ============ -->
+<div class="bg" aria-hidden="true">
+  <!-- Resplandor cálido de brasas en la base (de donde suben las chispas) -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:35vh;background:linear-gradient(to top,rgba(224,52,14,.15)0%,rgba(255,122,46,.08)25%,rgba(255,180,60,.04)50%,transparent 100%);pointer-events:none"></div>
+  <canvas id="embers" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+  <div class="bg-noise" style="opacity:.025"></div>
+</div>
+
+<!-- ============ BARRA PARA CLIENTE FINAL ============
+     Esta landing vende software a los salones, pero tambien llega gente que solo
+     quiere cortarse el pelo. En vez de esconderlos tras "Directorio", se les
+     ofrece la salida al marketplace en lo primero que ven. Va ANTES del nav
+     (que es sticky), asi que se aparta en cuanto empiezan a leer. -->
+<a class="consumer-bar" href="salones.html">
+  <span class="consumer-bar-in">
+    <span class="cb-txt"><b data-i18n="cbar_pregunta">¿Buscas peluquería?</b> <span class="cb-larga" data-i18n="cbar_accion">Reserva cita en un salón cerca de ti</span><span class="cb-corta" data-i18n="cbar_accion_corta">Reserva cita</span></span>
+    <span class="cb-go" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </span>
   </span>
-  <a href="#" class="fx-dock-cta fx-btn fx-glow">Ver demo gratis</a>
+</a>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav" aria-label="Principal">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Mecha, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><use href="#mecha-mark" /></svg>
+      <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#asistente" data-i18n="nav_asistente">Asistente IA</a>
+      <a href="#diferenciales" data-i18n="nav_agenda">Agenda</a>
+      <a href="#fichas" data-i18n="nav_fichas">Fichas</a>
+      <a href="#comparativa" data-i18n="nav_comparativa">Comparativa</a>
+      <a href="#precios" data-i18n="nav_precios">Precios</a>
+      <a href="especificaciones.html" data-i18n="nav_specs">Especificaciones</a>
+      <a href="salones.html" data-i18n="nav_directorio">Reservar en un salón</a>
+      <a href="#contacto" data-i18n="nav_contacto">Contacto</a>
+    </div>
+    <div class="nav-cta">
+      <a href="acceso.html" class="login" id="navLogin" data-i18n="nav_login">Iniciar sesión</a>
+      <div class="btn-badge-wrapper">
+        <span class="btn-badge">1 Mes Gratis</span>
+        <a href="demo.html" class="btn btn-primary" id="navDemo"><span data-i18n="nav_demo">Ver demo gratis</span></a>
+      </div>
+      <div class="acct" id="acct">
+        <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Tu cuenta">
+          <span class="acct-av" id="acctAv">·</span>
+          <svg class="acct-ca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+        </button>
+        <div class="acct-menu" id="acctMenu" role="menu">
+          <div class="acct-head"><div class="lbl">Tu cuenta</div><div class="eml" id="acctEml"></div></div>
+          <a href="/app" id="acctApp" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 9h6v6H9z" /></svg>Entrar al software</a>
+          <a href="demo.html" id="acctDemo" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>Ver la demo<span class="acct-pill" id="acctDemoPill">Pruébala</span></a>
+          <a href="admin.html" id="acctStaff" class="acct-staff" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /></svg>Panel de staff</a>
+          <div class="sep"></div>
+          <button class="danger" id="acctOut" type="button" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </nav>
 
-<main>
-  <section class="demo-hero" id="hero">
-    <span class="eyebrow center" style="margin-bottom:16px">Diseño A · Brasas vivas</span>
-    <div data-fx-blur>
-      <h1 class="fx-blur-in">El teléfono ya no te interrumpe.<br/>Tu salón <span class="grad-txt">sigue reservando</span>.</h1>
-      <p class="fx-blur-in">Brasas subiendo detrás del mensaje, dock flotante de cristal y botón principal con glow que respira.</p>
-      <div class="demo-actions fx-blur-in">
-        <a href="#" class="btn btn-primary btn-lg fx-btn fx-glow">Ver demo gratis</a>
-        <a href="#" class="btn btn-ghost btn-lg fx-btn">Ver cómo funciona</a>
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+    <div class="wrap hero-in">
+      <span class="hero-badge reveal">
+        <span class="tag">Para salones</span>
+        <span class="hb-full">Hecho a medida, no una app genérica</span>
+        <span class="hb-short">Especializado para salones</span>
+      </span>
+      <h1 class="reveal d1">El teléfono ya no te interrumpe.<br />Tu salón <span class="em">sigue reservando</span>.</h1>
+      <p class="hero-sub reveal d2"><span class="sub-full">Mecha es el software de gestión para peluquerías y barberías: agenda que entiende los tiempos de reposo, fichas de color, caja e informes — y un asistente de WhatsApp que atiende a tus clientes y cobra las señales sin que sueltes las tijeras.</span><span class="sub-short">La agenda que entiende tu oficio y el asistente de WhatsApp que atiende y cobra por ti.</span></p>
+      <div class="hero-actions reveal d3">
+        <a href="demo.html" class="btn btn-primary btn-lg">Ver demo gratis
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+        </a>
+        <button type="button" id="btnAccesoYaHero" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></button>
+      </div>
+      <a href="#resenas" id="heroRating" class="hero-rating reveal d3" style="display:none" aria-label="Valoraciones de Mecha"></a>
+      <div class="hero-micro reveal d4">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg><a href="#precios" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Desde 39 €/mes</a> · 1 mes gratis, sin tarjeta</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Sin permanencia: cancela cuando quieras</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Sin comisiones: todo lo que factures es tuyo</span>
       </div>
     </div>
 
-    <div class="demo-cards" id="ventajas">
-      <div class="fx-spot fx-tilt"><div class="demo-ico">🔥</div><h3>Asistente de WhatsApp</h3><p>Atiende, agenda y cobra señales mientras tú cortas.</p></div>
-      <div class="fx-spot fx-tilt"><div class="demo-ico">📅</div><h3>Agenda que entiende reposos</h3><p>Tiempos muertos productivos, superposiciones y equipo.</p></div>
-      <div class="fx-spot fx-tilt"><div class="demo-ico">📊</div><h3>Caja e informes</h3><p>Todo lo que facturas es tuyo: sin comisiones.</p></div>
+    <!-- Product mock -->
+    <div class="mock-header reveal d2" style="text-align:center;margin-top:clamp(40px,7vh,80px);margin-bottom:24px;">
+      <span class="eyebrow center" style="margin-bottom:10px">Mecha OS</span>
+      <h3 style="font-size:clamp(22px,3vw,30px);color:var(--text);font-weight:700;letter-spacing:-.02em;line-height:1.2">Control total de tu agenda, tiempos de reposo y equipo en tiempo real</h3>
+    </div>
+    <div class="wrap hero-mock-wrap reveal d2" style="margin-top:0">
+      <span class="mock-floor" aria-hidden="true"></span>
+      <div class="hero-mock">
+        <div class="app" role="img" aria-label="Captura de la agenda de Mecha con citas, tiempos muertos productivos y la línea de hora actual">
+          <aside class="app-side">
+            <div class="brand" style="padding:4px 2px 10px">
+              <svg class="brand-mark" style="width:28px;height:28px" viewBox="0 0 32 32" aria-hidden="true"><use href="#mecha-mark" /></svg>
+              <span class="brand-row"><span class="brand-name" style="font-size:19px">Mecha</span></span>
+            </div>
+            <nav class="app-nav">
+              <span class="lbl">Principal</span>
+              <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /></svg>Agenda</a>
+              <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>Clientes</a>
+              <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>Equipo</a>
+              <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>Informes</a>
+            </nav>
+          </aside>
+          <div class="app-main">
+            <div class="app-top">
+              <div><h3>Agenda</h3><div class="sub">Jueves, 15 octubre · 9 citas hoy · 4 confirmadas</div></div>
+              <div class="acts">
+                <span class="app-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>Hoy</span>
+                <span class="app-chip pri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Nueva cita</span>
+              </div>
+            </div>
+            <div class="tl">
+              <div class="tl-h gut"></div>
+              <div class="tl-h"><span class="dot" style="background:#818cf8"></span>Carla</div>
+              <div class="tl-h"><span class="dot" style="background:#34d399"></span>Diego</div>
+              <div class="tl-h"><span class="dot" style="background:#fbbf24"></span>Sofía</div>
+              <div class="tl-hours">
+                <div class="tl-hr">09:00</div><div class="tl-hr">10:00</div><div class="tl-hr">11:00</div><div class="tl-hr">12:00</div><div class="tl-hr">13:00</div>
+              </div>
+              <div class="tl-col">
+                <div class="appt" style="top:6px;height:46px;background:rgba(99,102,241,.16);border-color:#818cf8"><div class="t">09:00–09:45</div><div class="n">María L.</div><div class="s">Color + corte</div></div>
+                <div class="appt repos" style="top:56px;height:34px"><div class="t">09:45–10:15</div><div class="n">Reposo tinte</div></div>
+                <div class="appt" style="top:92px;height:40px;background:rgba(99,102,241,.16);border-color:#818cf8"><div class="t">10:15–10:55</div><div class="n">Laura P.</div><div class="s">Corte express</div></div>
+                <div class="appt" style="top:170px;height:60px;background:rgba(99,102,241,.16);border-color:#818cf8"><div class="t">11:20–12:20</div><div class="n">Ana García</div><div class="s">Mechas + tratamiento</div></div>
+              </div>
+              <div class="tl-col">
+                <div class="appt" style="top:6px;height:38px;background:rgba(16,185,129,.14);border-color:#34d399"><div class="t">09:00–09:30</div><div class="n">Javier M.</div><div class="s">Corte + barba</div></div>
+                <div class="appt" style="top:48px;height:34px;background:rgba(16,185,129,.14);border-color:#34d399"><div class="t">09:30–10:00</div><div class="n">Pablo R.</div><div class="s">Degradado</div></div>
+                <div class="appt" style="top:108px;height:46px;background:rgba(16,185,129,.14);border-color:#34d399"><div class="t">10:30–11:15</div><div class="n">Marc T.</div><div class="s">Corte + diseño</div></div>
+              </div>
+              <div class="tl-col">
+                <div class="appt" style="top:18px;height:54px;background:rgba(245,158,11,.13);border-color:#fbbf24"><div class="t">09:15–10:15</div><div class="n">Carmen V.</div><div class="s">Balayage</div></div>
+                <div class="appt repos" style="top:74px;height:30px"><div class="t">10:15–10:40</div><div class="n">Reposo</div></div>
+                <div class="appt" style="top:106px;height:40px;background:rgba(245,158,11,.13);border-color:#fbbf24"><div class="t">10:40–11:20</div><div class="n">Inés D.</div><div class="s">Peinado</div></div>
+              </div>
+              <div class="tl-now" style="top:128px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AI DEMO (MOVED UP) — 3D phone + Stripe ============ -->
+  <section class="demo" id="asistente">
+    <div class="wrap">
+      <div class="demo-grid">
+        <div class="demo-txt reveal">
+          <span class="eyebrow">El asistente que nunca cuelga</span>
+          <h2>Reserva, confirma y <span class="grad-txt">cobra la señal</span> — sola, por WhatsApp</h2>
+          <p>Tu cliente escribe a las 23:40. Tú te despiertas con la cita confirmada y la señal cobrada.</p>
+          <div class="demo-feats">
+            <div class="demo-feat">
+              <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+              <div><h4>Habla como una persona</h4><p>"El sábado por la tarde para mechas con Sofía."</p></div>
+            </div>
+            <div class="demo-feat">
+              <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span>
+              <div><h4>Cobra la señal por Stripe</h4><p>La señal bloquea el hueco y mata el no-show.</p></div>
+            </div>
+            <div class="demo-feat">
+              <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span>
+              <div><h4>24/7, también de madrugada</h4><p>Responde al instante mientras duermes.</p></div>
+            </div>
+          </div>
+          <a href="demo.html" class="btn btn-primary">Verlo en una demo gratis
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </a>
+        </div>
+
+        <div class="reveal d2">
+          <div class="phone-stage">
+            <div class="phone">
+              <span class="phone-glow" aria-hidden="true"></span>
+              <div class="phone-body">
+                <div class="phone-screen">
+                  <div class="wa-top">
+                    <span class="wa-av"><svg viewBox="0 0 32 32"><use href="#mecha-mark" /></svg></span>
+                    <div><div class="wa-name">Mecha · Studio Norte</div><div class="wa-status"><span class="od"></span>en línea</div></div>
+                  </div>
+                  <div class="wa-body" id="waBody"></div>
+                  <p class="wa-hint" id="waHint" hidden>Escríbele tú a Chispa — simulación con un salón de ejemplo</p>
+                  <div class="wa-input-row" id="waInputRow" hidden>
+                    <input type="text" id="waInput" placeholder="Escribe un mensaje..." autocomplete="off" />
+                    <button type="button" id="waSend" aria-label="Enviar">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="demo-replay"><button id="chatReplay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>Ver la conversación</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INTEGRATION BAND ============ -->
+  <section class="integ" id="integra">
+    <div class="wrap">
+      <div class="integ-box reveal">
+        <div class="integ-txt">
+          <span class="eyebrow">Cambiarse cuesta 10 minutos</span>
+          <h3>¿Ya usas Booksy o Fresha? Tráetelo entero</h3>
+          <ul class="integ-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tus clientes y sus citas <strong>entran de una vez</strong>, desde un Excel o una foto de tu agenda.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Conservas <strong>fichas, historial y contactos</strong>. No empiezas de cero.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sigues con tu app actual <strong>mientras pruebas</strong>. Cambias a tu ritmo.</span></li>
+          </ul>
+          <a href="acceso.html?migrar=true" class="btn btn-ghost" style="margin-top:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:#f4501e;margin-right:6px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            Cámbiate desde Booksy o Fresha en 10 minutos
+          </a>
+        </div>
+        <div class="integ-diagram">
+          <div class="integ-sources">
+            <div class="src-logo"><span class="sl-ico" style="background:#00a8a8">B</span><span class="sl-name">Booksy</span><span class="sl-sub">Clientes + citas</span></div>
+            <div class="src-logo"><span class="sl-ico" style="background:#1a1a2e">F</span><span class="sl-name">Fresha</span><span class="sl-sub">Clientes + citas</span></div>
+          </div>
+          <div class="integ-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" /></svg>
+            <span>Se importa a</span>
+          </div>
+          <div class="integ-target">
+            <svg style="width:30px;height:30px" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+            <div><div class="it-name">Mecha</div><div class="it-sub">Tu salón, centralizado</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ METRICS — futuristic ============ -->
+  <section class="metrics" id="impacto">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Qué te devuelve Mecha</span>
+        <h2 class="sec-title">Lo que hoy se te escapa, <span class="display" style="font-style:italic">en tu caja</span></h2>
+        <p class="sec-sub">Escenario de ejemplo de un salón de 3 sillas que cobra señal y aprovecha los reposos. No son resultados medidos: es la cuenta que hacemos contigo, con tus números, en la demo.</p>
+        <span class="ejemplo-tag" aria-label="Escenario de ejemplo">Escenario de ejemplo · no son datos reales</span>
+      </div>
+
+      <div class="met-grid">
+        <div class="met-card tone-success reveal">
+          <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></span><span class="mc-trend">−93%</span></div>
+          <div class="val" data-count="93" data-suffix="%">0<span class="u">%</span></div>
+          <div class="lbl">menos no-shows</div>
+          <div class="note">Recordatorio + señal por Stripe vía IA.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,6 20,9 40,13 60,17 80,22 100,26" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="met-card tone-accent reveal d1">
+          <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" /><circle cx="12" cy="12" r="4" /></svg></span><span class="mc-trend">+32%</span></div>
+          <div class="val" data-count="32" data-suffix="%">0<span class="u">%</span></div>
+          <div class="lbl">más ocupación</div>
+          <div class="note">Aprovechando tiempos muertos y huecos liberados.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,26 20,21 40,18 60,12 80,8 100,4" fill="none" stroke="#ff8a3d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="met-card tone-cyan reveal d2">
+          <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span><span class="mc-trend">+6h</span></div>
+          <div class="val" data-count="6" data-prefix="+" data-suffix="h">0<span class="u">h</span></div>
+          <div class="lbl">ahorradas a la semana</div>
+          <div class="note">Reservas y recordatorios automáticos, sin teléfono.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,24 20,22 40,16 60,15 80,9 100,5" fill="none" stroke="#ffce4a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="met-card tone-violet reveal d3">
+          <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></span><span class="mc-trend">+24%</span></div>
+          <div class="val" data-count="24" data-suffix="%">0<span class="u">%</span></div>
+          <div class="lbl">más ingresos / silla</div>
+          <div class="note">Misma jornada, más servicios completados.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,27 20,20 40,19 60,13 80,10 100,3" fill="none" stroke="#ff9d2e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ DIFFERENTIATORS ============ -->
+  <section class="diff" id="diferenciales">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Por qué Mecha es diferente</span>
+        <h2 class="sec-title">Hecho para cómo trabaja <span class="display" style="font-style:italic">de verdad</span> un salón</h2>
+      </div>
+
+      <div class="diff-row reveal">
+        <div class="diff-txt">
+          <span class="diff-tag" style="background:rgba(245,158,11,.13);color:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Tiempos muertos productivos</span>
+          <h3>Mientras un tinte reposa, atiendes a otro cliente</h3>
+          <ul class="diff-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Mecha <strong>detecta el reposo</strong> de color y mechas.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Y te propone <strong>otra cita en ese hueco</strong>, sin solapes.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Más facturación</strong> sin alargar tu jornada.</span></li>
+          </ul>
+        </div>
+        <div class="diff-vis">
+          <span class="vis-glow" style="background:rgba(245,158,11,.3)"></span>
+          <div class="am">
+            <div class="am-head"><span class="am-dot"></span>Carla · Estilista — jueves</div>
+            <div class="am-col">
+              <div class="am-appt active">
+                <div class="am-t">09:00 – 09:40</div>
+                <div class="am-n">María L.</div>
+                <div class="am-s">Color</div>
+              </div>
+              <div class="am-appt rest">
+                <div class="am-t">09:40 – 10:05 · reposo del tinte</div>
+                <div class="am-fit">
+                  <span class="am-fit-plus">+</span>
+                  <div><div class="am-fit-n">Laura P. — Corte express</div><div class="am-fit-s">encaja en el hueco libre</div></div>
+                </div>
+              </div>
+              <div class="am-appt active">
+                <div class="am-t">10:05 – 10:40</div>
+                <div class="am-n">María L.</div>
+                <div class="am-s">Lavado y peinado</div>
+              </div>
+            </div>
+            <div class="am-cap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg><b>+1 servicio</b>&nbsp;en la misma franja, sin alargar tu jornada.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diff-row flip reveal">
+        <div class="diff-txt">
+          <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>Servicios encadenados</span>
+          <h3>Una cita, varias manos, cero descoordinación</h3>
+          <ul class="diff-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Color, corte y peinado <strong>en una sola reserva</strong>.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cada profesional ve <strong>solo su parte</strong>.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El cliente recibe <strong>una única confirmación</strong>.</span></li>
+          </ul>
+        </div>
+        <div class="diff-vis">
+          <span class="vis-glow" style="background:rgba(99,102,241,.34)"></span>
+          <div class="chain-vis">
+            <div style="font-size:11px;color:var(--text-ter);font-weight:600;letter-spacing:.04em">CITA · Ana García — Cambio de look completo · 11:20</div>
+            <div class="chain-block">
+              <div class="chain-part"><div class="ph" style="color:#fbbf24">Paso 1</div><div class="pn">Color</div><div class="pd">40 min</div></div>
+              <div class="chain-part"><div class="ph" style="color:#818cf8">Paso 2</div><div class="pn">Corte</div><div class="pd">25 min</div></div>
+              <div class="chain-part"><div class="ph" style="color:#34d399">Paso 3</div><div class="pn">Peinado</div><div class="pd">20 min</div></div>
+            </div>
+            <div class="chain-avatars">
+              <div class="cav"><span class="av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">SL</span><span><span class="cn">Sofía León</span><br /><span class="cr">Colorista</span></span></div>
+              <div class="cav"><span class="av" style="background:linear-gradient(135deg,#818cf8,#6366f1)">CM</span><span><span class="cn">Carla M.</span><br /><span class="cr">Estilista</span></span></div>
+              <div class="cav"><span class="av" style="background:linear-gradient(135deg,#34d399,#10b981)">DR</span><span><span class="cn">Diego R.</span><br /><span class="cr">Peinado</span></span></div>
+            </div>
+            <div class="chain-sum"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Una sola cita · 3 profesionales · <b>1 confirmación</b> para el cliente</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diff-row reveal">
+        <div class="diff-txt">
+          <span class="diff-tag" style="background:rgba(16,185,129,.14);color:#10b981"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></svg>100% Legal y Antifraude</span>
+          <h3>Facturación oficial y fichaje laboral integrados</h3>
+          <ul class="diff-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tickets homologados por <strong>VeriFactu</strong> con códigos QR de Hacienda.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Registro de jornada</strong> incluido: fichajes inalterables, totalizados y descargables, como exige el art. 34.9 ET.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Duerme tranquilo: contabilidad blindada y personal <strong>100% legal</strong>.</span></li>
+          </ul>
+        </div>
+        <div class="diff-vis">
+          <span class="vis-glow" style="background:rgba(16,185,129,.2)"></span>
+          <div class="chain-vis" style="display:flex; gap:16px; align-items:center; background:#1e293b; padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.1)">
+            
+            <!-- Simulacion de Ticket VeriFactu -->
+            <div style="flex:1; background:#fff; padding:16px; border-radius:6px; color:#111827; font-family:monospace; font-size:11px; box-shadow:0 4px 15px rgba(0,0,0,0.5); position:relative">
+              <div style="text-align:center; border-bottom:1px dashed #ccc; padding-bottom:8px; margin-bottom:8px">
+                <b>NOVA BEAUTY SALON</b><br/>NIF: B12345678
+              </div>
+              <div>Corte + Tinte<span style="float:right">123.45 €</span></div>
+              <div>IVA (21%)<span style="float:right">25.92 €</span></div>
+              <div style="border-top:1px dashed #ccc; padding-top:8px; margin-top:8px; text-align:center">
+                <b>TOTAL: 123.45 €</b>
+              </div>
+              <div style="margin-top:12px; text-align:center">
+                <!-- Mock QR Code visual -->
+                <svg viewBox="0 0 100 100" width="60" height="60" style="display:inline-block; background:#000; padding:4px; border-radius:4px">
+                  <rect x="10" y="10" width="30" height="30" fill="none" stroke="#fff" stroke-width="6"/>
+                  <rect x="60" y="10" width="30" height="30" fill="none" stroke="#fff" stroke-width="6"/>
+                  <rect x="10" y="60" width="30" height="30" fill="none" stroke="#fff" stroke-width="6"/>
+                  <rect x="20" y="20" width="10" height="10" fill="#fff"/>
+                  <rect x="70" y="20" width="10" height="10" fill="#fff"/>
+                  <rect x="20" y="70" width="10" height="10" fill="#fff"/>
+                  <rect x="60" y="60" width="10" height="10" fill="#fff"/>
+                  <rect x="80" y="80" width="10" height="10" fill="#fff"/>
+                  <rect x="60" y="80" width="10" height="10" fill="#fff"/>
+                </svg>
+                <div style="font-size:9px; color:#666; margin-top:4px">VeriFactu AEAT</div>
+              </div>
+            </div>
+
+            <!-- Fichaje / registro de jornada (nativo en Mecha) -->
+            <div style="flex:1; display:flex; flex-direction:column; gap:12px">
+              <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; padding:12px; border-radius:8px; text-align:center">
+                <div style="color:#10b981; font-weight:700; font-size:12px; margin-bottom:4px">ENTRADA REGISTRADA</div>
+                <div style="color:#fff; font-size:18px; font-weight:bold; letter-spacing:1px">08:55 AM</div>
+                <div style="color:var(--text-ter); font-size:11px; margin-top:2px">Diego R. — Hoy</div>
+              </div>
+              <div style="text-align:center; font-size:12px; color:var(--text-ter); display:flex; align-items:center; justify-content:center; gap:6px">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Asiento <b>sellado e inalterable</b>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  <!-- ============ FICHA SHOWCASE — annotated, customizable ============ -->
+  <section class="fichas section" id="fichas">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">La ficha de cada cliente</span>
+        <h2 class="sec-title">Una ficha que <span class="display" style="font-style:italic">moldeas tú</span>, no al revés</h2>
+        <p class="sec-sub">Fórmulas de color, fotos, notas y preferencias — tú decides qué guardas.</p>
+      </div>
+
+      <div class="ficha-stage reveal">
+        <!-- LEFT callouts -->
+        <div class="ficha-col left">
+          <div class="fnote" data-fn="1">
+            <span class="ft"><span class="b">1</span>Etiquetas a tu medida</span>
+            <span class="fd">"Fiel", "Alérgica al amoníaco", "Solo tardes"… las que quieras.</span>
+            <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4 C 30 4, 44 14, 60 26" /><path d="M50 28 l11 -2 -4 -10" /></svg></span>
+          </div>
+          <div class="fnote" data-fn="2">
+            <span class="ft"><span class="b">2</span>Fórmula de color guardada</span>
+            <span class="fd">La fórmula exacta, el volumen y el tiempo, listos para repetir.</span>
+            <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16 C 28 16, 42 16, 60 16" /><path d="M50 9 l11 7 -11 7" /></svg></span>
+          </div>
+          <div class="fnote" data-fn="3">
+            <span class="ft"><span class="b">3</span>Notas y campos propios</span>
+            <span class="fd">Tú decides qué campos importan en tu salón.</span>
+            <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 28 C 30 28, 44 18, 60 8" /><path d="M50 6 l11 2 -3 11" /></svg></span>
+          </div>
+        </div>
+
+        <!-- THE FICHA -->
+        <div class="ficha-card">
+          <div class="fc-top">
+            <span class="fc-av">AG</span>
+            <div class="fc-id"><div class="nm">Ana García</div><div class="tel">+34 6·· ··· 412 · cliente desde 2023</div></div>
+          </div>
+          <div class="fc-tags" data-ft="1">
+            <span class="fc-tag t-fiel">Fiel</span>
+            <span class="fc-tag t-aler">Alérgica al amoníaco</span>
+            <span class="fc-tag">Prefiere tardes</span>
+            <span class="fc-tag t-add">+ etiqueta</span>
+          </div>
+          <div class="fc-stats">
+            <div class="fc-st"><div class="v">14</div><div class="k">visitas</div></div>
+            <div class="fc-st"><div class="v">1.240 €</div><div class="k">gastado</div></div>
+            <div class="fc-st"><div class="v">3 sem.</div><div class="k">última</div></div>
+          </div>
+          <div class="fc-block" data-ft="2">
+            <div class="fc-bh">Fórmula de color<span class="ed">Editar</span></div>
+            <div class="fc-formula">
+              <span class="fc-chip">Base 6.0 + 7.3</span>
+              <span class="fc-chip">30 vol</span>
+              <span class="fc-chip muted">35 min reposo</span>
+              <span class="fc-chip muted">Sin amoníaco</span>
+            </div>
+          </div>
+          <div class="fc-block" data-ft="3">
+            <div class="fc-bh">Notas del profesional</div>
+            <div class="fc-notes">Le gustan las mechas finas y naturales, raya al lado izquierdo. No usar secador muy caliente. Suele pedir cita cada 8 semanas.</div>
+          </div>
+          <div class="fc-block" data-ft="4">
+            <div class="fc-bh">Preferencias</div>
+            <div class="fc-prefs">
+              <div class="fc-pref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20a8 8 0 0 1 16 0" /></svg>Profesional de confianza: <b>Sofía León</b></div>
+              <div class="fc-pref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z" /></svg>Bebida: <b>café con leche</b></div>
+            </div>
+          </div>
+          <div class="fc-block" data-ft="5">
+            <div class="fc-bh">Fotos de servicios<span class="ed">Subir</span></div>
+            <div class="fc-photos">
+              <div class="fc-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" /></svg></div>
+              <div class="fc-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" /></svg></div>
+              <div class="fc-photo add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg></div>
+            </div>
+          </div>
+          <div class="fc-foot">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span>
+            <div><div class="ft2">La IA te avisa</div><div class="fd2">"Ana suele venir cada 8 semanas — ya van 9. ¿Le escribo?"</div></div>
+          </div>
+        </div>
+
+        <!-- RIGHT callouts -->
+        <div class="ficha-col right">
+          <div class="fnote" data-fn="4">
+            <span class="ft"><span class="b">4</span>Preferencias propias</span>
+            <span class="fd">Profesional de confianza, bebida, manías… cada detalle.</span>
+            <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M62 16 C 36 16, 22 16, 4 16" /><path d="M14 9 l-11 7 11 7" /></svg></span>
+          </div>
+          <div class="fnote" data-fn="5">
+            <span class="ft"><span class="b">5</span>Fotos de cada servicio</span>
+            <span class="fd">El antes y el después, sin depender de la memoria.</span>
+            <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M62 4 C 36 4, 22 14, 4 26" /><path d="M14 28 l-11 -2 4 -10" /></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <p class="fichas-disc">Ficha de ejemplo con datos ilustrativos. Los nombres, fotos y cifras son una representación de cómo se vería tu propia base de clientes en Mecha.</p>
+    </div>
+  </section>
+
+  <!-- ============ AUTOMATIZA (we do more) ============ -->
+  <section class="auto" id="automatiza">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Mucho más que una agenda</span>
+        <h2 class="sec-title">De la reserva al cobro, <span class="display" style="font-style:italic">sin fricción</span></h2>
+      </div>
+
+      <div class="flow reveal">
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span><h5>1 · Reserva</h5><p>WhatsApp, web o QR.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Señal</h5><p>Bloquea el hueco y evita el no-show.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>3 · Servicio</h5><p>Agenda, ficha y cobro, todo en uno.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ORGANIZADOR IA — agenda self-organizing + mini chat ============ -->
+  <section class="diff" id="organizador">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Organizador con IA</span>
+        <h2 class="sec-title">Un retraso no te <span class="display" style="font-style:italic">arruina el día</span></h2>
+      </div>
+
+      <div class="diff-row reveal">
+        <div class="diff-txt">
+          <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Absorbe retrasos</span>
+          <h3>Una cita se alarga y Mecha recoloca el resto</h3>
+          <ul class="diff-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Calcula el <strong>efecto dominó</strong> del retraso en las citas siguientes.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Lo <strong>absorbe</strong> con avisos y los tiempos muertos, antes de que crezca.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Nada cambia <strong>sin tu confirmación</strong>.</span></li>
+          </ul>
+        </div>
+        <div class="diff-vis">
+          <span class="vis-glow" style="background:rgba(244,80,30,.3)"></span>
+          <div class="org-organize">
+            <div class="org-day-head">
+              <div><div class="org-day-t">Martes 9 jun · 12:30</div><div class="org-day-s">María se alarga 15 min — afecta a 3 citas</div></div>
+              <span class="org-btn" style="background:rgba(245,158,11,.16);color:#fbbf24;border-color:rgba(245,158,11,.4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>Retraso · 15 min</span>
+            </div>
+            <div class="org-prop">
+              <div class="org-prop-h"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span>Cómo lo absorbe la IA</div>
+              <div class="org-move"><span class="ot">Avisar a Marco: entra 10 min más tarde</span><span class="oa good">aviso listo</span></div>
+              <div class="org-move"><span class="ot">Aprovechar el reposo del tinte de Lucía</span><span class="oa good">-10 min</span></div>
+              <div class="org-move"><span class="ot">Recuperas el ritmo en la 3ª cita</span><span class="oa good">en hora</span></div>
+              <div class="org-prop-foot">
+                <span class="org-gain"><b>Retraso absorbido</b> · nadie espera de más</span>
+                <span class="org-apply">Aplicar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ COMPARISON — thorough ============ -->
+  <section class="compare" id="comparativa">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Lo que ganas al cambiarte</span>
+        <h2 class="sec-title">Lo que te da Mecha y <span class="display" style="font-style:italic">Booksy o Fresha no</span></h2>
+        <p class="sec-sub">Tráete el que ya usas en 10 minutos y súmale lo que de verdad mueve la caja.</p>
+      </div>
+
+      <div class="vs-grid reveal">
+        <div class="vs-card">
+          <span class="vs-tag">Solo Mecha</span>
+          <h4>Tiempos muertos productivos</h4>
+          <p>Atiendes a otro cliente <b>mientras un tinte reposa</b>.</p>
+          <span class="vs-them">En Booksy y Fresha ese hueco se queda <b>vacío</b>.</span>
+        </div>
+        <div class="vs-card">
+          <span class="vs-tag">Solo Mecha</span>
+          <h4>La IA reserva y cobra la señal</h4>
+          <p>Atiende por <b>WhatsApp 24/7</b>, propone hueco y cobra la señal sola.</p>
+          <span class="vs-them">Ellos no tienen <b>IA conversacional</b> propia.</span>
+        </div>
+        <div class="vs-card">
+          <span class="vs-tag">Solo Mecha</span>
+          <h4>Servicios encadenados</h4>
+          <p>Color, corte y peinado <b>entre varios profesionales</b> en una cita.</p>
+          <span class="vs-them">En ellos es <b>manual o no existe</b>.</span>
+        </div>
+        <div class="vs-card">
+          <span class="vs-tag neutral">Tu negocio</span>
+          <h4>Tus clientes son tuyos</h4>
+          <p>No es un marketplace que los comparte. Y <b>te traes tu lista desde Booksy o Fresha</b> en 10 minutos.</p>
+          <span class="vs-them">Allí compartes escaparate con el salón de al lado.</span>
+        </div>
+      </div>
+
+      <p class="compare-foot">Comparativa orientativa basada en funciones públicas de cada plataforma a fecha de publicación. Las funciones de terceros pueden cambiar.</p>
+      <div style="text-align: center; margin-top: 32px;" class="reveal">
+        <a href="carta-comercial.html" class="btn btn-ghost">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          Leer carta comercial y análisis de ROI
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRECIOS ============ -->
+  <!-- PRECIOS: fuente de verdad compartida con el SYSTEM_PROMPT de la edge
+       supabase/functions/chispa-landing/index.ts. Si cambian los planes,
+       cambiar AMBOS sitios a la vez. -->
+  <style>
+    .price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:860px;margin:38px auto 0}
+    @media(max-width:760px){.price-grid{grid-template-columns:1fr}}
+    .price-card{position:relative;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:22px;padding:30px 28px 26px}
+    .price-card.featured{border-color:rgba(244,80,30,.55);box-shadow:0 0 0 1px rgba(244,80,30,.25),0 24px 60px -20px rgba(224,52,14,.35)}
+    .pc-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--grad);color:#0b0a12;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap}
+    .pc-name{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em}
+    .pc-tag{font-size:13.5px;color:var(--text-sec);margin-top:-8px}
+    .pc-price{font-family:var(--display);font-weight:800;font-size:44px;letter-spacing:-.03em;line-height:1}
+    .pc-price span{font-size:15px;font-weight:600;color:var(--text-ter);letter-spacing:0}
+    .pc-list{display:flex;flex-direction:column;gap:9px;margin:4px 0 6px;flex:1}
+    .pc-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--text-sec);line-height:1.45;list-style:none}
+    .pc-list .ck{flex-shrink:0;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:rgba(16,185,129,.15);color:#34d399;margin-top:1px}
+    .pc-list .ck svg{width:10px;height:10px}
+    .pc-list b{color:var(--text)}
+    .pc-plus{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-hi);margin:2px 0 -2px}
+    /* --- Addon de IA (Recepcionistas), aparte y opcional sobre cualquier plan --- */
+    .pc-addon{font-size:13px;font-weight:600;color:var(--accent-hi);background:var(--accent-soft);border-radius:10px;padding:9px 12px;margin:0}
+    .pc-addon b{color:var(--text)}
+    .ia-solo-note{max-width:640px;margin:18px auto 0;text-align:center;font-size:13px;color:var(--text-ter)}
+    /* --- Tres vias de contacto --- */
+    .vias{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:860px;margin:30px auto 0}
+    @media(max-width:820px){.vias{grid-template-columns:1fr}}
+    .via{display:flex;flex-direction:column;gap:7px;text-align:left;padding:20px 18px;border-radius:16px;
+      border:1px solid var(--border-hi);background:linear-gradient(180deg,var(--card-hi),var(--card));
+      cursor:pointer;font:inherit;color:inherit;transition:border-color .2s var(--ease),transform .2s var(--ease)}
+    .via:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .via-fuerte{border-color:rgba(244,80,30,.5);background:linear-gradient(180deg,rgba(244,80,30,.09),var(--card))}
+    .via-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);margin-bottom:2px}
+    .via-ic svg{width:18px;height:18px}
+    .via h4{margin:0;font-family:var(--display);font-size:16.5px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+    .via p{margin:0;font-size:13px;line-height:1.55;color:var(--text-sec);flex:1}
+    .via p b{color:var(--text)}
+    .via-go{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;font-weight:700;color:var(--accent-hi)}
+    .via-go svg{width:14px;height:14px}
+
+    /* --- Formulario de mensaje / quiero el software --- */
+    .via-modal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,8,14,.72)}
+    .via-modal.on{display:flex}
+    .via-box{width:100%;max-width:440px;background:var(--card);border:1px solid var(--border-hi);border-radius:18px;padding:24px;max-height:92vh;overflow-y:auto}
+    .via-box h3{margin:0 0 4px;font-family:var(--display);font-size:20px;font-weight:700;color:var(--text)}
+    .via-box .sub{margin:0 0 16px;font-size:13.5px;color:var(--text-sec);line-height:1.5}
+    .via-box label{display:block;font-size:12.5px;font-weight:600;color:var(--text-sec);margin:0 0 5px}
+    .via-box input,.via-box textarea{width:100%;box-sizing:border-box;padding:11px 13px;margin-bottom:12px;border-radius:10px;
+      border:1px solid var(--border-hi);background:var(--bg);color:var(--text);font:14px inherit;outline:none}
+    .via-box input:focus,.via-box textarea:focus{border-color:var(--accent)}
+    .via-box textarea{min-height:92px;resize:vertical}
+    .via-acts{display:flex;gap:9px;margin-top:4px}
+    .via-msg{margin:10px 0 0;font-size:13px;line-height:1.5}
+    .via-msg.ok{color:#34d399}
+    .via-msg.err{color:#f87171}
+
+    .price-conds{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;margin:26px auto 0;font-size:13.5px;color:var(--text-sec)}
+    .price-conds span{display:inline-flex;align-items:center;gap:7px}
+    .price-conds svg{width:15px;height:15px;color:#34d399}
+    .price-math{max-width:860px;margin:44px auto 0;border:1px solid var(--border-hi);border-radius:22px;background:linear-gradient(180deg,var(--card-hi),var(--card));padding:30px 28px}
+    .price-math h3{font-family:var(--display);font-weight:700;font-size:clamp(19px,2.6vw,24px);letter-spacing:-.02em;text-align:center;margin:0 0 6px}
+    .price-math .pm-sub{text-align:center;font-size:13.5px;color:var(--text-sec);margin:0 0 22px}
+    .pm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    @media(max-width:700px){.pm-grid{grid-template-columns:1fr}}
+    .pm-item{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:14px;padding:15px 16px}
+    .pm-item .ico{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
+    .pm-item .ico svg{width:17px;height:17px}
+    .pm-item h5{margin:0 0 3px;font-size:14px;font-weight:700;color:var(--text)}
+    .pm-item p{margin:0;font-size:12.5px;color:var(--text-sec);line-height:1.5}
+    .pm-item p b{color:#34d399}
+    .pm-foot{margin:18px 0 0;text-align:center;font-size:11.5px;color:var(--text-ter)}
+  </style>
+  <section class="section pricing" id="precios">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Precio simple, sin letra pequeña</span>
+        <h2 class="sec-title">Un precio que se paga <span class="display" style="font-style:italic">solo</span></h2>
+        <p class="sec-sub">Dos planes, y la IA aparte y opcional si la quieres. Sin permanencia y con el primer mes gratis para probarlo con tu salón real.</p>
+      </div>
+
+      <div class="price-grid reveal">
+        <div class="price-card">
+          <div class="pc-name">Esencial</div>
+          <p class="pc-tag">La base sólida para gestionar tu salón</p>
+          <div class="pc-price">39 €<span> /mes + IVA</span></div>
+          <ul class="pc-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Agenda con <b>tiempos de reposo</b> y servicios encadenados</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fichas de cliente: <b>fórmulas de color</b>, fotos y alergias</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Portal de reserva online</b> propio, sin comisiones</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Recordatorios automáticos por WhatsApp</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Caja, informes y equipo — <b>profesionales ilimitados</b></span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Facturación <b>VeriFactu</b> y fichaje de jornada legal</span></li>
+          </ul>
+          <button type="button" class="btn btn-primary" id="btnEmpezarGratis" style="justify-content:center; width:100%; cursor:pointer; margin-top: auto;">Empezar con 1 mes gratis</button>
+        </div>
+
+        <div class="price-card featured">
+          <span class="pc-badge">Recomendado</span>
+          <div class="pc-name">Estudio</div>
+          <p class="pc-tag">Para salones que quieren crecer más rápido</p>
+          <div class="pc-price">59 €<span> /mes + IVA</span></div>
+          <ul class="pc-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Todo lo del plan Esencial</b></span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Señales por Stripe</b> para evitar plantones</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Campañas de marketing</b> por WhatsApp</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Lista de espera inteligente</b> automática</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Generación de <b>presupuestos</b></span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Gestión de <b>inventario y reseñas</b></span></li>
+          </ul>
+          <button type="button" class="btn btn-primary" id="btnEmpezarGratisEstudio" style="justify-content:center; width:100%; cursor:pointer; margin-top: auto;">Empezar con 1 mes gratis</button>
+        </div>
+      </div>
+
+      <div class="ai-addon-card reveal" style="max-width:860px; margin: 30px auto; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border: 1px solid rgba(236, 72, 153, 0.4); border-radius: 22px; padding: 32px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center;">
+        <div style="flex: 1; min-width: 250px;">
+          <h3 style="font-family: var(--display); font-size: 26px; font-weight: 800; color: #fff; margin: 0 0 8px;">¿Quieres recepcionistas para tu salón?</h3>
+          <p style="font-size: 14.5px; color: #fdfdfd; line-height: 1.5; margin: 0 0 16px;">Delega el teléfono y los WhatsApps. La IA contesta dudas, gestiona reservas y atiende a tus clientes 24/7 sin que tú levantes las tijeras.</p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <span style="font-size: 13px; font-weight: 700; color: #e879f9; background: rgba(232, 121, 249, 0.15); padding: 6px 12px; border-radius: 8px;">IA por Voz: 29 €/mes</span>
+            <span style="font-size: 13px; font-weight: 700; color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 6px 12px; border-radius: 8px;">IA por WhatsApp: 19 €/mes</span>
+          </div>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); border-radius: 18px; padding: 20px; text-align: center; min-width: 200px;">
+          <div style="font-size: 13px; color: #9aa6c2; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Addon Completo (Ambos)</div>
+          <div style="font-family: var(--display); font-size: 44px; font-weight: 800; color: #fff; line-height: 1;">+ 39 €<span style="font-size: 16px; font-weight: 600; color: #9aa6c2;">/mes</span></div>
+          <p style="font-size: 12px; color: #9aa6c2; margin: 8px 0 0;">Añádelo a cualquier plan</p>
+        </div>
+      </div>
+
+      <!-- Tres formas de dar el paso: cada uno elige cómo prefiere hablar.
+           El id="contacto" es el destino del enlace "Contacto" del nav y del
+           pie: no hay pagina de contacto aparte, el contacto es esto. -->
+      <div class="vias reveal" id="contacto">
+        <button class="via" type="button" id="viaLlamada">
+          <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
+          <h4>Una llamada de 10 minutos</h4>
+          <p>Eliges día y hora. Vemos tu salón, te enseñamos Mecha con <b>tus</b> servicios y horarios y, si te encaja, te lo dejamos montado.</p>
+          <span class="via-go">Elegir día y hora
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </button>
+        <button class="via" type="button" id="viaMensaje">
+          <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
+          <h4>Mándanos un mensaje</h4>
+          <p>Sin llamadas. Escríbenos tu duda y te contestamos por correo hoy mismo.</p>
+          <span class="via-go">Escribir ahora
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </button>
+        <button class="via via-fuerte" type="button" id="viaQuiero">
+          <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></span>
+          <h4>Quiero el software</h4>
+          <p>Lo tienes claro. Déjanos tus datos y te damos acceso y te lo configuramos.</p>
+          <span class="via-go">Empezar ya
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </button>
+      </div>
+
+      <div class="price-conds reveal">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>1 mes gratis, sin tarjeta</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>Sin permanencia</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>0% comisiones por reserva</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>Te lo montamos todo</span>
+      </div>
+
+      <div class="price-math reveal">
+        <h3>¿De dónde sale el precio? La cuenta, clara</h3>
+        <p class="pm-sub">No es un número al azar: es menos de lo que hoy pierdes cada mes por teléfono, huecos y plantones.</p>
+        <div class="pm-grid">
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg></span>
+            <div><h5>Un plantón: ~35 € tirados</h5><p>Con la señal por Stripe y los recordatorios, <b>evitar 1-2 no-shows al mes ya paga Mecha entero</b>.</p></div>
+          </div>
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></span>
+            <div><h5>Comisiones de marketplace: 0 €</h5><p>Otras plataformas se llevan <b>un 20-35% por cliente nuevo</b>. En Mecha, el 100% de cada servicio es tuyo.</p></div>
+          </div>
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span>
+            <div><h5>Horas de teléfono, a tijera</h5><p>El asistente atiende WhatsApp y reservas 24/7: <b>horas a la semana</b> que vuelven a ser para tus clientes.</p></div>
+          </div>
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg></span>
+            <div><h5>Los reposos, facturando</h5><p>Un corte encajado en el reposo de un tinte a la semana son <b>cientos de euros más al mes</b>, sin alargar la jornada.</p></div>
+          </div>
+        </div>
+        <p class="pm-foot">Cifras orientativas de un salón típico — en la demo hacemos la cuenta con los números del tuyo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Formulario de las vias "mensaje" y "quiero el software". Mismo modal, dos
+       textos: lo que cambia es a que viene el contacto. -->
+  <div class="via-modal" id="viaModal" role="dialog" aria-modal="true" aria-labelledby="viaTitulo">
+    <div class="via-box">
+      <h3 id="viaTitulo">Mándanos un mensaje</h3>
+      <p class="sub" id="viaSub">Cuéntanos qué necesitas y te contestamos por correo hoy mismo.</p>
+      <form id="viaForm" novalidate>
+        <label for="viaNombre">Tu nombre</label>
+        <input id="viaNombre" type="text" autocomplete="name" placeholder="Nombre y apellido" required />
+        <label for="viaSalon">Tu salón</label>
+        <input id="viaSalon" type="text" autocomplete="organization" placeholder="Nombre del salón" />
+        <label for="viaEmail">Email</label>
+        <input id="viaEmail" type="email" autocomplete="email" placeholder="hola@tusalon.com" required />
+        <label for="viaTel">Teléfono (opcional)</label>
+        <input id="viaTel" type="tel" autocomplete="tel" placeholder="600 000 000" />
+        <label for="viaTexto" id="viaTextoLbl">Tu mensaje</label>
+        <textarea id="viaTexto" placeholder="¿Qué te gustaría saber?"></textarea>
+        <div class="via-acts">
+          <button type="submit" class="btn btn-primary" id="viaEnviar" style="flex:1;justify-content:center">Enviar</button>
+          <button type="button" class="btn btn-ghost" id="viaCerrar">Cancelar</button>
+        </div>
+        <p class="via-msg" id="viaMsg" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Elección de Acceso (Eligen cómo entrar antes de calendario) -->
+  <div class="via-modal" id="opcionesAccesoModal" role="dialog" aria-modal="true" aria-labelledby="opcionesAccesoTitulo">
+    <div class="via-box" style="max-width: 520px; padding: 28px 24px; text-align: center; background: #0b1020; border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f4501e, #ff8a3d); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 22px rgba(244,80,30,0.4);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg>
+      </div>
+      <h3 id="opcionesAccesoTitulo" style="font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">¿Cómo prefieres empezar en Mecha?</h3>
+      <p class="sub" style="font-size: 13.5px; color: #9aa6c2; margin-bottom: 22px; line-height: 1.45;">Elige cómo quieres acceder a la plataforma antes de continuar:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        <a href="demo.html" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(244,80,30,0.12)';this.style.borderColor='rgba(244,80,30,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(244,80,30,0.18); display: flex; align-items: center; justify-content: center; color: #ff8a3d; font-size: 22px; flex-shrink: 0;">🚀</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">1. Navegar por la demo gratis ya</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Accede al instante a la demo navegable sin registrarte ni esperar.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #ff8a3d; white-space: nowrap;">Entrar →</span>
+        </a>
+
+        <a href="reservar.html" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(16,185,129,0.12)';this.style.borderColor='rgba(16,185,129,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(16,185,129,0.18); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 22px; flex-shrink: 0;">📅</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">2. Agendar llamada de 10 minutos</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Elige día y hora para ver tu salón configurado en vivo con nuestro equipo.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #10b981; white-space: nowrap;">Calendario →</span>
+        </a>
+
+        <button type="button" id="btnOpcionQuieroDirecto" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; width: 100%; text-align: left; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(99,102,241,0.12)';this.style.borderColor='rgba(99,102,241,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(99,102,241,0.18); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 22px; flex-shrink: 0;">📝</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">3. Solicitar alta y acceso directo</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Déjanos tus datos y te activamos el acceso completo para tu salón.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #818cf8; white-space: nowrap;">Rellenar datos →</span>
+        </button>
+
+        <button type="button" id="btnOpcionContactar" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; width: 100%; text-align: left; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(56,189,248,0.12)';this.style.borderColor='rgba(56,189,248,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56,189,248,0.18); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 22px; flex-shrink: 0;">💬</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">4. Contactar directamente con nosotros</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">¿Solo tienes una duda? Escríbenos y te contestamos hoy mismo, sin agendar nada.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #38bdf8; white-space: nowrap;">Escribir →</span>
+        </button>
+      </div>
+
+      <button type="button" class="btn btn-ghost" id="opcionesAccesoCerrar" style="margin-top: 18px; width: 100%; justify-content: center; color: #8a9ab8;">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ============ FAQ (objeciones de venta) ============ -->
+  <section class="section faq" id="faq">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Lo que todo el mundo pregunta</span>
+        <h2 class="sec-title">Las dudas, <span class="display" style="font-style:italic">resueltas</span></h2>
+        <p class="sec-sub">Sin letra pequeña. Si te queda alguna, pregúntale a Chispa aquí abajo o te lo contamos en la llamada.</p>
+      </div>
+
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 9.9-1"/></svg></span><span class="faq-q">¿Puedo dejarlo si no me convence? Sí.</span></summary>
+          <div class="faq-a">Nada de permanencia. El primer mes es gratis y <b>sin tarjeta</b>: si no te convence, no haces nada y se acaba. Tus datos son tuyos y te los puedes llevar exportados cuando quieras.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><span class="faq-q">¿Puedo cambiarme sin perder mis clientes? Sí.</span></summary>
+          <div class="faq-a">Sí, y se hace en unos <b>10 minutos</b>. Exportas tu listado de Booksy o Fresha —o le haces una foto a tu agenda de papel— y Mecha carga clientes, historial y citas. Las reseñas se quedan en la plataforma donde te las dejaron: eso no lo puede mover nadie. Y puedes <b>seguir con tu app actual mientras pruebas</b> Mecha, para cambiar a tu ritmo.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg></span><span class="faq-q">¿Cuánto tardo en tenerlo funcionando?</span></summary>
+          <div class="faq-a">Te lo montamos nosotros. En la llamada dejamos cargados tus servicios, tu equipo y tus horarios, y sales con el salón configurado y listo para dar citas ese mismo día.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="faq-q">Trabajo yo solo o somos pocos. ¿Me compensa?</span></summary>
+          <div class="faq-a">El precio no cambia por número de profesionales: son <b>ilimitados</b> en los dos planes. Y la cuenta es la misma para todos: con evitar un par de plantones al mes, Mecha ya está pagado. Cuanto menos personal tengas, más te libera que el asistente coja el teléfono por ti.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span><span class="faq-q">¿Los clientes son míos, no compartidos? Sí.</span></summary>
+          <div class="faq-a">Tuyos, siempre. Mecha <b>no es un marketplace</b>: no te compartimos los clientes con otros salones ni te cobramos comisión por reserva. El 100% de lo que facturas se queda en tu caja.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span class="faq-q">¿Pierdo el control si activo la IA?</span></summary>
+          <div class="faq-a">Tú mandas. La IA usa <b>plantillas aprobadas</b> para los avisos y, en lo demás, te propone y confirmas tú. Puedes revisar cada conversación y desactivarla cuando quieras — el software funciona perfectamente sin el addon de IA.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg></span><span class="faq-q">¿Sirve para facturar en regla?</span></summary>
+          <div class="faq-a">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg></span><span class="faq-q">¿Funciona en el móvil?</span></summary>
+          <div class="faq-a">Sí. Funciona en el navegador y en móvil (iOS y Android) con la misma cuenta: la agenda, las fichas y la caja las llevas encima.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v0a3 3 0 0 0-3 3v0a3 3 0 0 0 0 6h.01A3 3 0 0 0 9 20v0a3 3 0 0 0 6 0v0a3 3 0 0 0 3-3h.01a3 3 0 0 0 0-6v0a3 3 0 0 0-3-3v0a3 3 0 0 0-3-3z"/><path d="M12 2v20"/></svg></span><span class="faq-q">¿Cuál es el mejor software con IA para salones de peluquería?</span></summary>
+          <div class="faq-a">Mecha es el software de gestión con IA para peluquerías, barberías y centros de estética: agenda inteligente que entiende los tiempos de reposo, un asistente que atiende WhatsApp y cobra la señal, facturación VeriFactu y fichaje legal. <b>Sin comisiones por reserva</b>, desde 39 €/mes.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="faq-q">¿Cómo reduce Mecha los no-shows (citados que no vienen)?</span></summary>
+          <div class="faq-a">Con tres mecanismos: <b>recordatorios automáticos por WhatsApp</b>, <b>señal anti no-show por Stripe</b> con depósito dinámico según el riesgo de cada clienta (las fieles no pagan) y <b>aviso de las reservas de riesgo</b> para que las confirmes a mano. Si alguien cancela, la lista de espera rellena el hueco.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="faq-q">¿Cuánto cuesta Mecha y cobra comisión por cada reserva?</span></summary>
+          <div class="faq-a">Desde <b>39 €/mes + IVA</b> (Esencial) o <b>59 €/mes + IVA</b> (Estudio), con primer mes gratis sin tarjeta y sin permanencia. Y <b>no cobramos comisión por reserva ni por cobro</b>: lo que facturas se queda en tu caja. La IA de recepción es un addon opcional (voz 29 €, WhatsApp 19 €, ambas 39 €).</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span class="faq-q">¿Qué son los 'tiempos muertos productivos' de la agenda?</span></summary>
+          <div class="faq-a">Son los <b>tiempos de reposo</b> de un servicio (un tinte o una decoloración) en los que el sillón queda libre. Mecha los detecta y te deja <b>meter a otra clienta</b> en ese hueco: facturas más sin alargar la jornada. Es el dato que diferencia a Mecha de una agenda cualquiera.</div>
+        </details>
+      </div>
+
+      <div class="faq-foot reveal">
+        <span>¿Te queda alguna duda?</span>
+        <a href="reservar.html" class="btn btn-primary">Que nos lo pregunten en una llamada
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ESPECIFICACIONES (enlace a la pagina completa) ============ -->
+  <section class="section" id="especificaciones" style="padding:26px 0 70px">
+    <div class="wrap" style="text-align:center">
+      <div class="reveal" style="max-width:680px;margin:0 auto;padding:40px 28px;border:1px solid var(--border-hi);border-radius:22px;background:linear-gradient(180deg,var(--card-hi),var(--card))">
+        <span class="eyebrow center">Todo lo que incluye, al detalle</span>
+        <h2 class="sec-title" style="font-size:clamp(23px,3.4vw,33px);margin:10px 0 10px">¿Quieres ver <span class="display" style="font-style:italic">todo</span> lo que hace Mecha?</h2>
+        <p class="sec-sub" style="margin:0 auto 24px">Cada función explicada, una por una: qué hace y para qué te sirve. Gratis y sin registro.</p>
+        <a href="especificaciones.html" class="btn btn-primary btn-lg">Ver todas las especificaciones
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESEÑAS MECHA ============ -->
+  <section class="section" id="resenas" style="padding:40px 0 60px">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Casos de éxito y Reseñas Reales</span>
+        <h2 class="sec-title">Lo que opinan de <span class="display" style="font-style:italic">Mecha</span></h2>
+        <div id="mechaStatsBox" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;min-height:30px">
+          <div style="font-size:14px;color:var(--text-ter)">Cargando valoraciones...</div>
+        </div>
+      </div>
+      <div class="makers-grid reveal" id="mechaReviewsGrid" style="margin-top:24px"></div>
+    </div>
+  </section>
+
+  <!-- ============ GALERÍA VISUAL (imágenes indexables para SEO) ============ -->
+  <section class="gallery" id="galeria" aria-label="Galería visual de Mecha">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Mecha en imágenes</span>
+        <h2 class="sec-title">Tu salón, <span class="display" style="font-style:italic">encendido</span></h2>
+        <p class="sec-sub">Una vista rápida de lo que Mecha pone en tus manos: agenda con IA, ficha de cliente y reservas por WhatsApp que se confirman solas.</p>
+      </div>
+      <div class="gallery-grid">
+        <figure class="gallery-item reveal d1">
+          <img src="captures/agenda.png" alt="Captura de la interfaz de la agenda de Mecha OS con modo oscuro, vista de calendario y citas para peluquerías" width="1600" height="900" loading="lazy" decoding="async" />
+          <figcaption>Dashboard de Mecha — Agenda inteligente y control del salón</figcaption>
+        </figure>
+        <figure class="gallery-item reveal d2">
+          <img src="captures/clientes.png" alt="Ejemplo de la ficha de cliente de peluquería en Mecha con historial de servicios, fórmulas de color y layout moderno" width="1600" height="840" loading="lazy" decoding="async" />
+          <figcaption>Fichas de clientes — Historial y fórmulas de color digitales</figcaption>
+        </figure>
+        <figure class="gallery-item reveal d3">
+          <img src="captures/informes.png" alt="Captura de pantalla de la analítica de ingresos de Mecha OS, panel de control de estadísticas para barberías" width="1600" height="840" loading="lazy" decoding="async" />
+          <figcaption>Analítica del salón — Gráficos de facturación y métricas en vivo</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="cta" id="cta">
+    <div class="wrap">
+      <div class="cta-box reveal">
+        <div class="in">
+          <h2>Velo tú mismo o <span class="display">te lo montamos</span></h2>
+          <p>Mira la <strong>demo gratis</strong>, o <strong>habla con nosotros</strong> y te damos acceso inmediato para empezar a trabajar.</p>
+          <div class="cta-actions">
+            <a href="demo.html" class="btn btn-primary btn-lg" id="demoCta">Ver demo gratis
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </a>
+            <button type="button" id="btnAccesoYaCta" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></button>
+          </div>
+          <p class="cta-micro">Desde 39 €/mes · 1 mes gratis sin tarjeta · Sin permanencia · 0% comisiones</p>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 
-<div class="demo-tag">Diseño A — dock flotante + brasas + glow (efectos: embers.js + fx kit)</div>
-<script src="assets/embers.js" defer></script>
+<!-- ============ EQUIPO / SUGERENCIAS ============ -->
+<style>
+  .makers{border-top:1px solid var(--border)}
+  .makers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  @media(max-width:820px){.makers-grid{grid-template-columns:1fr}}
+  .maker{background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:18px;padding:22px 22px 18px;display:flex;flex-direction:column;gap:12px}
+  .maker-top{display:flex;align-items:center;gap:13px}
+  .maker-av{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#0b0a12;font-family:var(--display);font-weight:800;font-size:19px;flex-shrink:0}
+  .maker-id .nm{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.02em}
+  .maker-id .rl{font-size:12.5px;color:var(--accent-hi);font-weight:600;margin-top:2px}
+  .maker p{font-size:13.5px;color:var(--text-sec);line-height:1.55;flex:1;margin:0}
+  .maker-links{display:flex;gap:8px;flex-wrap:wrap}
+  .maker-links a{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-sec);border:1px solid var(--border-hi);border-radius:999px;padding:6px 12px;transition:border-color .2s,color .2s}
+  .maker-links a:hover{color:var(--text);border-color:var(--accent)}
+  .maker-links svg{width:14px;height:14px}
+  .makers-contact{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;margin-top:30px;font-size:14px;color:var(--text-sec)}
+  .makers-contact a{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:var(--accent-hi);border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:999px;padding:8px 15px}
+  .makers-contact svg{width:16px;height:16px}
+</style>
+<section class="makers section" id="equipo">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="eyebrow center">Quién está detrás</span>
+      <h2 class="sec-title">Hecho por <span class="display" style="font-style:italic">desarrolladores</span>, para tu salón</h2>
+      <p class="sec-sub">Si echas algo en falta o lo quieres a tu manera, <strong>nos lo dices y lo hacemos</strong>.</p>
+    </div>
+    <div class="makers-grid reveal">
+      <div class="maker">
+        <div class="maker-top"><span class="maker-av">CO</span><div class="maker-id"><div class="nm">Carlos Ocaña Martínez</div><div class="rl">Producto · Frontend / UX</div></div></div>
+        <p>Diseño y experiencia de Mecha: que todo se entienda a la primera y dé gusto usarlo.</p>
+        <div class="maker-links"><a href="https://www.linkedin.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a></div>
+      </div>
+      <div class="maker">
+        <div class="maker-top"><span class="maker-av">AI</span><div class="maker-id"><div class="nm">Alexandro Iscrulescu</div><div class="rl">Backend · Datos</div></div></div>
+        <p>El motor de Mecha: base de datos, seguridad y todo lo que hace que funcione sin fallar.</p>
+        <div class="maker-links"><a href="https://www.linkedin.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a></div>
+      </div>
+      <div class="maker">
+        <div class="maker-top"><span class="maker-av">JS</span><div class="maker-id"><div class="nm">Jose Suárez</div><div class="rl">Producto · Sector salón</div></div></div>
+        <p>El conocimiento del sector: que Mecha encaje con cómo se trabaja de verdad en un salón.</p>
+        <div class="maker-links"><a href="https://www.linkedin.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a></div>
+      </div>
+    </div>
+    <div class="makers-contact reveal">
+      <span>¿Una idea o una duda? Hablamos:</span>
+      <a href="mailto:contacto@mechaa.es"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>Email de Mecha</a>
+      <a href="https://www.instagram.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg>Instagram</a>
+      <a href="https://www.linkedin.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top" aria-label="Mecha, inicio"><svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg><span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span></a>
+        <p>El sistema operativo de tu salón o barbería. Agenda inteligente, asistente de IA y toda la gestión en un solo sitio.</p>
+      </div>
+      <div class="foot-col"><h5>Producto</h5><a href="#asistente">Asistente IA</a><a href="#diferenciales">Agenda</a><a href="#fichas">Fichas de cliente</a><a href="#precios">Precios</a><a href="especificaciones.html">Especificaciones</a><a href="salones.html">Reservar en un salón</a></div>
+      <div class="foot-col"><h5>Migrar</h5><a href="#integra">Vengo de Booksy</a><a href="#integra">Vengo de Fresha</a><a href="#comparativa">Todo lo que suma Mecha</a></div>
+      <div class="foot-col"><h5>Herramientas gratis</h5><a href="/calculadora-comisiones">Calculadora de comisiones</a></div>
+      <div class="foot-col"><h5>Empezar</h5><a href="demo.html">Ver demo gratis</a><a href="#precios">Precios y planes</a><a href="#faq">Preguntas frecuentes</a><a href="#contacto">Contacto</a><a href="reservar.html">Habla con nosotros (acceso inmediato)</a><a href="acceso.html">Iniciar sesión</a><a href="mailto:soporte@mechaa.es">Soporte técnico</a><a href="privacidad.html">Privacidad y derechos</a></div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 Mecha · Hecho para salones de peluquería.</span>
+      <div class="foot-legal"><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="cookies.html">Cookies</a><a href="privacidad.html#aviso">Aviso legal</a><a href="admin.html">Acceso equipo</a></div>
+      <div class="soc">
+        <a aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg></a>
+        <a aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8.2a5.8 5.8 0 0 0 3.5 1.2V6.7a3.3 3.3 0 0 1-1.9-.9 3.3 3.3 0 0 1-1.1-2.3H13.8v11.2a2.3 2.3 0 1 1-2.3-2.3c.2 0 .4 0 .6.1V9.9a5.2 5.2 0 1 0 4 5V8.2z" /></svg></a>
+        <a aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z" /></svg></a>
+      </div>
+    </div>
+  </div>
+  <!-- Lecho de rocas (fuente de las brasas) -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:120px;pointer-events:none;overflow:hidden">
+    <!-- Brillos puntuales (fondo de luz) -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 30% 60% at 20% 100%,rgba(255,180,60,.3),transparent 50%),radial-gradient(ellipse 25% 45% at 45% 100%,rgba(255,140,40,.25),transparent 50%),radial-gradient(ellipse 35% 50% at 70% 100%,rgba(255,160,50,.28),transparent 50%),radial-gradient(ellipse 20% 40% at 85% 100%,rgba(224,52,14,.2),transparent 50%)"></div>
+    <!-- Rocas poligonales calientes -->
+    <canvas id="rocksCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  </div>
+</footer>
+
+<!-- ============ TWEAKS (panel interno de diseño — oculto en producción standalone) ============ -->
+<aside class="tweaks" id="tweaks" hidden aria-hidden="true" aria-label="Ajustes de diseño internos">
+  <div class="tw-head">
+    <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>Tweaks</h4>
+    <button class="x" id="twClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+  </div>
+  <div class="tw-sec">
+    <div class="tw-lbl">Color de marca</div>
+    <div class="tw-swatches">
+      <button class="tw-sw" data-tw-accent="fuego" style="background:linear-gradient(135deg,#f4501e,#ffce4a)" aria-label="Fuego"></button>
+      <button class="tw-sw" data-tw-accent="ascua" style="background:linear-gradient(135deg,#ef4444,#fbbf24)" aria-label="Ascua"></button>
+      <button class="tw-sw" data-tw-accent="indigo" style="background:linear-gradient(135deg,#6d5efc,#22d3ee)" aria-label="Índigo"></button>
+      <button class="tw-sw" data-tw-accent="ocean" style="background:linear-gradient(135deg,#22d3ee,#3b82f6)" aria-label="Océano"></button>
+    </div>
+  </div>
+  <div class="tw-sec">
+    <div class="tw-lbl">Ambiente</div>
+    <div class="tw-row"><span>Resplandor y orbs</span><button class="tw-toggle on" id="twGlow" role="switch"></button></div>
+    <div class="tw-row"><span>Intro al cargar</span><button class="tw-toggle on" id="twIntro" role="switch"></button></div>
+  </div>
+  <div class="tw-sec"><button class="tw-btn" id="twReplayIntro">Volver a ver la intro</button></div>
+</aside>
+
+<!-- ============ CHAT SEQUENCE ============ -->
+<script>
+window.MECHA_CHAT = [
+  { type:'them', html:'<div class="msg them">Hola! ¿Tenéis hueco el sábado para mechas?<div class="mt">23:40</div></div>', gap:900 },
+  { type:'me', html:'<div class="msg me">¡Hola Ana! Con Sofía tengo a las <b>11:00</b> o a las <b>16:30</b>. ¿Cuál te va?<div class="mt">23:40 ✓✓</div></div>', gap:1100 },
+  { type:'me', html:'<div class="msg card"><div class="slots"><span class="slot">Sáb 11:00</span><span class="slot pick">Sáb 16:30</span></div></div>', gap:1300 },
+  { type:'them', html:'<div class="msg them">La de las 16:30<div class="mt">23:41</div></div>', gap:1000 },
+  { type:'me', html:'<div class="msg me">Reservada. Para confirmarla, ¿dejas una señal de <b>20 €</b>?<div class="mt">23:41 ✓✓</div></div>', gap:1100 },
+  { type:'me', html:'<div class="msg card"><div class="bk-card-h pay">Señal · Stripe</div><div class="stripe-link"><span class="sb">S</span><div><div class="sl-t">Pagar señal de 20 €</div><div class="sl-u">pay.stripe.com/mecha/ana</div></div></div></div>', gap:1500 },
+  { type:'me', html:'<div class="msg card"><div class="bk-card-h ok">Cita confirmada</div><div class="bk-row"><span class="k">Servicio</span><span class="v">Mechas</span></div><div class="bk-row"><span class="k">Cuándo</span><span class="v">Sáb 16:30 · Sofía</span></div><div class="bk-row"><span class="k">Señal</span><span class="v" style="color:#7ff0c0">20 € pagada ✓</span></div></div>', gap:1200 },
+  { type:'me', html:'<div class="msg me">¡Lista, Ana! Te mando un recordatorio el viernes. ¡Hasta el sábado!<div class="mt">23:42 ✓✓</div></div>', gap:800 }
+];
+</script>
+<script src="assets/mecha.js"></script>
 <script src="assets/mecha-fx.js" defer></script>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
+</template>
+
+<!-- ============ SESION / CHIP DE CUENTA ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
+<script src="assets/auth.js"></script>
+<script>
+(function(){
+  var api=window.MechaAPI;
+  if(!api||!api.getSession) return;
+  var $=function(id){return document.getElementById(id);};
+  var acct=$('acct'), btn=$('acctBtn'), av=$('acctAv'), eml=$('acctEml'),
+      login=$('navLogin'), demo=$('navDemo'), appLink=$('acctApp'),
+      out=$('acctOut'), staff=$('acctStaff'), demoItem=$('acctDemo');
+  if(!acct) return;
+
+  // Vuelta de un SSO (Google): el proveedor aterriza en la Site URL (esta
+  // landing) con el access_token en el hash, NO en acceso.html. Sin esto el
+  // usuario se queda en la landing "sin sesion" y tiene que volver a pulsar
+  // "Iniciar sesion" -el fallo gordo-. Detectamos el callback y, en cuanto hay
+  // sesion, lo llevamos a su destino: intencion de demo -> demo.html; en otro
+  // caso -> acceso.html (que enruta por plan: software / chooser / completar).
+  var DEMO_INTENT='mecha_intent_demo';
+  if(location.hash.indexOf('access_token')>=0){
+    var ssoDone=false;
+    var afterSSO=function(){
+      if(ssoDone) return; ssoDone=true;
+      var toDemo=false;
+      try{ toDemo=sessionStorage.getItem(DEMO_INTENT)==='1'; }catch(e){}
+      try{ sessionStorage.removeItem(DEMO_INTENT); }catch(e){}
+      // IMPORTANTE: preservar el hash con access_token para que acceso.html pueda procesar la sesion
+      var target=toDemo ? 'demo.html' : 'acceso.html';
+      location.replace(target+location.hash);
+    };
+    api.getSession().then(function(s){ if(s) afterSSO(); });
+    if(api.onAuth){ api.onAuth(function(evt){ if(evt==='SIGNED_IN') afterSSO(); }); }
+  } else {
+    // Sin callback: la intencion de demo caduca para no secuestrar navegaciones.
+    try{ sessionStorage.removeItem(DEMO_INTENT); }catch(e){}
+  }
+
+  function openMenu(){ acct.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+  function closeMenu(){ acct.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); acct.classList.contains('open')?closeMenu():openMenu(); });
+  document.addEventListener('click',function(e){ if(!acct.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeMenu(); });
+
+  appLink.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
+  out.addEventListener('click',function(){
+    closeMenu();
+    if(api.signOut){ api.signOut().then(function(){ location.reload(); }); }
+    else { location.reload(); }
+  });
+
+  // El menu hamburguesa (mecha.js) pinta siempre "Iniciar sesion": con sesion
+  // activa hay que ocultarlo tambien ahi, no solo en el nav de escritorio.
+  function syncMobileMenu(hasSession){
+    var mmLogin=document.querySelector('.mobile-menu-cta .login');
+    if(mmLogin) mmLogin.style.display=hasSession?'none':'';
+  }
+  // Boton "Entrar al software" del menu movil: solo si la cuenta tiene acceso.
+  function syncMobileEnter(canApp){
+    var mmEnter=document.querySelector('.mobile-menu-enter');
+    if(mmEnter) mmEnter.style.display=canApp?'':'none';
+  }
+  // "Panel de staff" del menu movil: espejo de #acctStaff (solo equipo Mecha).
+  function syncMobileStaff(isStaff){
+    var mmStaff=document.querySelector('.mobile-menu-staff');
+    if(mmStaff) mmStaff.style.display=isStaff?'flex':'none';
+  }
+  // Cabecera de cuenta del drawer movil: avatar + email cuando hay sesion.
+  function syncMobileAccount(session){
+    var box=document.querySelector('.mnav-account');
+    if(!box) return;
+    if(session&&session.user){
+      var email=(session.user.email||'').trim();
+      var avEl=box.querySelector('.mnav-av');
+      var emlEl=box.querySelector('.mnav-acc-eml');
+      if(avEl) avEl.textContent=(email.charAt(0)||'·').toUpperCase();
+      if(emlEl) emlEl.textContent=email||'Tu cuenta';
+      box.style.display='flex';
+    } else {
+      box.style.display='none';
+    }
+  }
+
+  function render(session){
+    syncMobileMenu(!!(session&&session.user));
+    syncMobileAccount(session);
+    if(!session||!session.user){
+      acct.classList.remove('on');
+      if(login) login.style.display='';
+      if(demo) {
+        var wrap = demo.closest('.btn-badge-wrapper');
+        if(wrap) wrap.style.display='';
+        else demo.style.display='';
+      }
+      syncMobileEnter(false);
+      syncMobileStaff(false);
+      return;
+    }
+    var email=(session.user.email||'').trim();
+    av.textContent=(email.charAt(0)||'·').toUpperCase();
+    eml.textContent=email||'Tu cuenta';
+    if(login) login.style.display='none';
+    if(demo) {
+      var wrap = demo.closest('.btn-badge-wrapper');
+      if(wrap) wrap.style.display='none';
+      else demo.style.display='none';
+    }
+    acct.classList.add('on');
+    // El dropdown del perfil es la UNICA forma de entrar al software.
+    if(staff) staff.style.display='none';
+    if(demoItem) demoItem.classList.remove('hi');
+    Promise.all([
+      api.isStaff?api.isStaff():Promise.resolve(false),
+      api.getProfile?api.getProfile():Promise.resolve(null)
+    ]).then(function(res){
+      var staffOk=res[0]===true;
+      var profile=res[1];
+      var plan=profile&&profile.plan?String(profile.plan).toLowerCase():'free';
+      var canApp=plan!=='free';
+      // El dropdown del perfil es donde se entra al software: solo se
+      // muestra si la cuenta tiene acceso (plan != free).
+      if(appLink) appLink.style.display=canApp?'flex':'none';
+      syncMobileEnter(canApp);
+      syncMobileStaff(staffOk);
+      if(demo&&canApp) demo.style.display='none';
+      if(staff) staff.style.display=staffOk?'flex':'none';
+      if(demoItem&&!canApp) demoItem.classList.add('hi');
+    });
+  }
+
+  api.getSession().then(render);
+  // Reaccionar a login/logout en otra pestana de la misma sesion.
+  if(api.onAuth){ api.onAuth(function(_evt,session){ render(session); }); }
+
+  // ---------- Cargar reseñas de Mecha (fueguitos + verificacion humana) ----------
+  // Las "estrellas" son en realidad la mecha/llama de la marca; el badge de
+  // verificacion es honesto: estas opiniones vienen de salones reales con
+  // cuenta activa en Mecha (mecha_puntuacion enviada desde el portal).
+  var FLAME='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+  function flameSvg(filled,size){
+    return filled
+      ? '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="#f4501e" stroke="#ff8a3d" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+FLAME+'"/></svg>'
+      : '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+FLAME+'"/></svg>';
+  }
+  function flamesRow(score,size){ var s='',r=Math.round(score); for(var i=1;i<=5;i++) s+=flameSvg(i<=r,size); return s; }
+  var VERIF_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 5-3.5 7.5-8.5 9C7.5 19.5 4 17 4 12V6l8-3 8 3v6z"/></svg>';
+
+  function loadMechaReviews() {
+    if(!api.client) return;
+    api.client.rpc('obtener_estadisticas_mecha').then(function(res) {
+      var sb=$('mechaStatsBox'), rg=$('mechaReviewsGrid'), hr=$('heroRating');
+      if (res.error || !res.data || res.data.total === 0) {
+        if(sb) sb.style.display='none';
+        if(rg) rg.style.display='none';
+        if(hr) hr.style.display='none';
+        return;
+      }
+      var stats = res.data;
+
+      // Valoraciones ARRIBA (hero)
+      if (hr) {
+        hr.innerHTML='<span class="hr-label">Reseñas</span>'+
+          '<span class="hr-flames">'+flamesRow(stats.media,16)+'</span>'+
+          '<span class="hr-score">'+stats.media+'</span>'+
+          '<span class="hr-count">· '+stats.total+(stats.total===1?' salón':' salones')+'</span>'+
+          '<span class="hr-verif">'+VERIF_SVG+'Verificadas</span>';
+        hr.style.display='inline-flex';
+      }
+
+      // Caja de stats de la seccion
+      if (sb) {
+        sb.innerHTML = '<div style="display:flex;align-items:center;gap:5px">'+flamesRow(stats.media,20)+'</div>'+
+          '<div style="font-size:16px;font-weight:800;color:var(--text)">'+stats.media+'</div>'+
+          '<div style="font-size:13.5px;color:var(--text-ter)">basado en '+stats.total+' valoraciones</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--success-hi);background:rgba(16,185,129,.14);padding:5px 11px;border-radius:999px">'+VERIF_SVG+'Personas reales</div>';
+      }
+
+      // Tarjetas
+      if (rg && stats.ultimas && stats.ultimas.length > 0) {
+        rg.innerHTML = stats.ultimas.slice(0, 3).map(function(r) {
+          var autor = r.autor_nombre || 'Cliente anónimo';
+          var f = new Date(r.created_at).toLocaleDateString('es-ES', {month:'short', year:'numeric'});
+          return '<div class="maker" style="padding:24px">' +
+            '<div style="display:flex;gap:3px;margin-bottom:12px">' + flamesRow(r.mecha_puntuacion,15) + '</div>' +
+            '<p style="font-size:14.5px;color:var(--text);margin-bottom:18px;font-style:italic">"' + (r.mecha_comentario||'') + '"</p>' +
+            '<div style="display:flex;align-items:center;gap:10px">' +
+              '<div style="width:36px;height:36px;border-radius:50%;background:var(--border-hi);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--text)">' + autor.charAt(0).toUpperCase() + '</div>' +
+              '<div style="flex:1"><div style="font-size:13.5px;font-weight:600;color:var(--text)">' + autor + '</div><div style="font-size:12px;color:var(--text-ter)">' + f + '</div></div>' +
+              '<span title="Salón real con cuenta en Mecha" style="display:inline-flex;width:16px;height:16px;color:#34d399">' + VERIF_SVG + '</span>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } else if (rg) {
+        rg.style.display = 'none';
+      }
+    });
+  }
+  loadMechaReviews();
+
+  // Timeout por si el fetch falla o tarda mucho
+  setTimeout(function() {
+    var sb = document.getElementById('mechaStatsBox');
+    if (sb && sb.innerHTML.includes('Cargando')) {
+      sb.innerHTML = '<div style="display:flex;align-items:center;gap:5px;color:var(--text-ter);font-size:13px">Valoraciones verificadas de clientes reales</div>';
+    }
+  }, 8000);
+
+})();
+</script>
+
+<!-- Vias de contacto del pricing: mensaje y "quiero el software". Ambas dejan la
+     solicitud en la base Y nos avisan por correo (edge notificar-solicitud). -->
+<script>
+(function(){
+  var modal=document.getElementById('viaModal');
+  if(!modal) return;
+  var form=document.getElementById('viaForm');
+  var msg=document.getElementById('viaMsg');
+  var tipo='mensaje';
+  // Tarjeta de precios desde la que se ha entrado ('esencial' | 'estudio' | '').
+  // Viaja hasta la solicitud y el correo: si no, todas llegan iguales y quien da
+  // el acceso no sabe a que plan venia el salon.
+  var planElegido='';
+  var PLAN_NOMBRE={ esencial:'Esencial', estudio:'Estudio' };
+
+  var TEXTOS={
+    mensaje:{ titulo:'Mándanos un mensaje', sub:'Cuéntanos qué necesitas y te contestamos por correo hoy mismo.', campo:'Tu mensaje', ph:'¿Qué te gustaría saber?', btn:'Enviar mensaje' },
+    quiero_software:{ titulo:'Quiero el software', sub:'Déjanos tus datos y te damos acceso. Te lo configuramos con tus servicios y horarios para que empieces a dar citas.', campo:'Algo que debamos saber (opcional)', ph:'Cuántos sois, qué usáis ahora...', btn:'Quiero empezar' }
+  };
+
+  function abrir(t){
+    tipo=t;
+    var x=TEXTOS[t];
+    document.getElementById('viaTitulo').textContent=x.titulo;
+    // Se le recuerda que plan pulso, para que pueda darse cuenta si fallo el clic.
+    var nombrePlan=(t==='quiero_software') ? PLAN_NOMBRE[planElegido] : null;
+    document.getElementById('viaSub').textContent=nombrePlan
+      ? x.sub+' Has elegido el plan '+nombrePlan+'.'
+      : x.sub;
+    document.getElementById('viaTextoLbl').textContent=x.campo;
+    document.getElementById('viaTexto').placeholder=x.ph;
+    document.getElementById('viaEnviar').textContent=x.btn;
+    msg.hidden=true; msg.className='via-msg';
+    modal.classList.add('on');
+    setTimeout(function(){ document.getElementById('viaNombre').focus(); },60);
+  }
+  function cerrar(){ modal.classList.remove('on'); }
+
+  var bM=document.getElementById('viaMensaje');
+  var bQ=document.getElementById('viaQuiero');
+  var bLlamada=document.getElementById('viaLlamada');
+  var bEmpezarGratis=document.getElementById('btnEmpezarGratis');
+  var bEmpezarGratisEstudio=document.getElementById('btnEmpezarGratisEstudio');
+  var accModal=document.getElementById('opcionesAccesoModal');
+  var bDirecto=document.getElementById('btnOpcionQuieroDirecto');
+  var bContactar=document.getElementById('btnOpcionContactar');
+  var accCerrar=document.getElementById('opcionesAccesoCerrar');
+  // "Acceso ya" del hero y del CTA final: antes iban directos a reservar.html
+  // (saltandose las otras 3 vias). Ahora abren el mismo selector que ya usan
+  // las tarjetas de precios.
+  var bAccesoHero=document.getElementById('btnAccesoYaHero');
+  var bAccesoCta=document.getElementById('btnAccesoYaCta');
+
+  // El plan solo lo fijan las tarjetas de precios. Desde el hero, el CTA final o
+  // las vias de contacto no se ha elegido ninguno todavia, y se limpia el que
+  // hubiera de un clic anterior para no atribuirle un plan que no ha pedido.
+  function abrirAcceso(plan){
+    planElegido=PLAN_NOMBRE[plan] ? plan : '';
+    if(accModal) accModal.classList.add('on');
+  }
+  function cerrarAcceso(){ if(accModal) accModal.classList.remove('on'); }
+
+  if(bM) bM.addEventListener('click',function(){ abrir('mensaje'); });
+  if(bQ) bQ.addEventListener('click',function(){ abrirAcceso(); });
+  if(bLlamada) bLlamada.addEventListener('click',function(){ abrirAcceso(); });
+  if(bEmpezarGratis) bEmpezarGratis.addEventListener('click',function(){ abrirAcceso('esencial'); });
+  if(bEmpezarGratisEstudio) bEmpezarGratisEstudio.addEventListener('click',function(){ abrirAcceso('estudio'); });
+  if(bAccesoHero) bAccesoHero.addEventListener('click',function(){ abrirAcceso(); });
+  if(bAccesoCta) bAccesoCta.addEventListener('click',function(){ abrirAcceso(); });
+  if(accCerrar) accCerrar.addEventListener('click',cerrarAcceso);
+  if(accModal) accModal.addEventListener('click',function(e){ if(e.target===accModal) cerrarAcceso(); });
+  if(bDirecto) {
+    bDirecto.addEventListener('click',function(){
+      cerrarAcceso();
+      abrir('quiero_software');
+    });
+  }
+  if(bContactar) {
+    bContactar.addEventListener('click',function(){
+      cerrarAcceso();
+      abrir('mensaje');
+    });
+  }
+
+  document.getElementById('viaCerrar').addEventListener('click',cerrar);
+  modal.addEventListener('click',function(e){ if(e.target===modal) cerrar(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ cerrar(); cerrarAcceso(); } });
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var nombre=document.getElementById('viaNombre').value.trim();
+    var email=document.getElementById('viaEmail').value.trim();
+    var salon=document.getElementById('viaSalon').value.trim();
+    var tel=document.getElementById('viaTel').value.trim();
+    var texto=document.getElementById('viaTexto').value.trim();
+    if(!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      msg.hidden=false; msg.className='via-msg err';
+      msg.textContent='Necesitamos tu nombre y un email válido para contestarte.';
+      return;
+    }
+    var btn=document.getElementById('viaEnviar');
+    btn.disabled=true; var antes=btn.textContent; btn.textContent='Enviando...';
+
+    var api=window.MechaAPI;
+    // La solicitud queda guardada (llega al panel de staff) y ademas nos avisa
+    // por correo. Son dos caminos: basta con que UNO funcione para que el
+    // contacto no se pierda, pero si fallan LOS DOS hay que decirlo (antes se
+    // daba "enviado" por bueno aunque no se hubiera guardado nada).
+    var guardar = (api && api.insertSolicitud)
+      ? api.insertSolicitud({ tipo:tipo, nombre:nombre, salon:salon, email:email, telefono:tel, nota:texto||null, meta:{ origen:'precios', plan:planElegido||null } })
+          .then(function(r){ return !(r && r.error); })
+          .catch(function(){ return false; })
+      : Promise.resolve(false);
+
+    var avisar = (api && api.client)
+      ? api.client.functions.invoke('notificar-solicitud',{ body:{
+          tipo:tipo, nombre:nombre, email:email, telefono:tel, salon:salon, mensaje:texto||null,
+          plan:PLAN_NOMBRE[planElegido]||null
+        }}).then(function(r){ return !(r && r.error); }).catch(function(){ return false; })
+      : Promise.resolve(false);
+
+    Promise.all([guardar, avisar]).then(function(res){
+      btn.disabled=false; btn.textContent=antes;
+      msg.hidden=false;
+      if(!res[0] && !res[1]){
+        msg.className='via-msg err';
+        msg.textContent='No se ha podido enviar. Escríbenos a contacto@mechaa.es y lo vemos.';
+        return;
+      }
+      msg.className='via-msg ok';
+      msg.textContent = tipo==='quiero_software'
+        ? 'Recibido. Te escribimos hoy mismo para darte acceso y dejártelo montado.'
+        : 'Mensaje enviado. Te contestamos hoy mismo a ' + email + '.';
+      form.reset();
+    });
+  });
+})();
+</script>
+
+<script src="assets/cookies.js"></script>
+
+<!-- ============ BRASAS CANVAS (Sistema de partículas con división) ============ -->
+<!-- Externalizado a assets/embers.js para mejorar caché y reducir peso del HTML. -->
+<script src="assets/embers.js" defer></script>
+
+
+<!-- Multi-idioma (MVP): switcher en la nav + traduccion de nav + CTAs principales. -->
+<script src="/assets/landing-i18n.js" defer></script>
+
+<!-- ============ CHISPA CHAT WIDGET ============ -->
+<style>
+  #chispa-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; font-family: var(--font, sans-serif); }
+  #chispa-bubble { background: #f4501e; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(244, 80, 30, 0.3); transition: transform 0.2s; border: none; }
+  #chispa-bubble:hover { transform: scale(1.05); }
+  #chispa-window { display: none; width: 340px; height: 480px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); flex-direction: column; overflow: hidden; margin-bottom: 12px; transform-origin: bottom right; animation: fadeUp 0.2s ease-out; }
+  @keyframes fadeUp { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  #chispa-header { padding: 16px; background: var(--bg-alt); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  #chispa-header h4 { margin: 0; font-size: 15px; color: var(--text); flex: 1; font-weight: 600; }
+  #chispa-header p { margin: 0; font-size: 12px; color: var(--text-ter); }
+  #chispa-close { background: none; border: none; color: var(--text-ter); cursor: pointer; padding: 4px; border-radius: 4px; }
+  #chispa-close:hover { background: var(--border); color: var(--text); }
+  #chispa-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--bg); font-size: 14px; }
+  .chispa-msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; word-wrap: break-word; }
+  .chispa-msg.bot { background: var(--bg-alt); color: var(--text); border-bottom-left-radius: 2px; }
+  .chispa-msg.user { background: #f4501e; color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
+  .chispa-msg a { color: #f4501e; text-decoration: underline; }
+  .chispa-msg.user a { color: #fff; }
+  #chispa-input-area { padding: 12px; background: var(--bg-alt); border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  #chispa-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 8px 16px; color: var(--text); outline: none; font-size: 14px; }
+  #chispa-input:focus { border-color: #f4501e; }
+  #chispa-send { background: #f4501e; color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #chispa-send:disabled { opacity: 0.5; cursor: not-allowed; }
+  .chispa-typing { display: flex; gap: 4px; padding: 12px 14px; background: var(--bg-alt); border-radius: 12px; width: fit-content; border-bottom-left-radius: 2px; }
+  .chispa-dot { width: 6px; height: 6px; background: var(--text-ter); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+  .chispa-dot:nth-child(1) { animation-delay: -0.32s; }
+  .chispa-dot:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+  
+  .chispa-msg strong { color: var(--text); font-weight: 700; }
+  .chispa-msg .li { display: block; padding-left: 12px; position: relative; }
+  .chispa-msg .li::before { content: '·'; position: absolute; left: 3px; color: #f4501e; font-weight: 700; }
+  .chispa-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chispa-chips button { background: var(--bg-alt); border: 1px solid rgba(244,80,30,.45); color: var(--text); font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer; transition: background .15s, border-color .15s; }
+  .chispa-chips button:hover { background: rgba(244,80,30,.12); border-color: #f4501e; }
+
+  @media (max-width: 480px) {
+    #chispa-window { width: calc(100vw - 40px); height: 400px; }
+  }
+</style>
+<div id="chispa-widget">
+  <div id="chispa-window">
+    <div id="chispa-header">
+      <svg viewBox="0 0 32 32" style="width: 24px; height: 24px; color: #f4501e;"><use href="#mecha-mark" /></svg>
+      <div>
+        <h4>Chispa IA</h4>
+        <p>El asistente de Mecha</p>
+      </div>
+      <button id="chispa-close" aria-label="Cerrar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div id="chispa-messages">
+      <div class="chispa-msg bot">¡Hola! Soy Chispa, la IA de Mecha. Pregúntame lo que quieras de nuestro software: qué hace por tu salón, cuánto cuesta o cómo cambiarte sin líos.</div>
+      <div class="chispa-chips" id="chispa-chips">
+        <button type="button" data-q="¿Cuánto cuesta Mecha y qué incluye cada plan?">¿Cuánto cuesta?</button>
+        <button type="button" data-q="¿Qué hace la IA de WhatsApp por mi salón?">¿Qué hace la IA?</button>
+        <button type="button" data-q="Uso Booksy, ¿cómo me cambio a Mecha sin perder mis clientes?">Vengo de Booksy</button>
+      </div>
+    </div>
+    <div id="chispa-input-area">
+      <input type="text" id="chispa-input" placeholder="Pregunta sobre Mecha..." autocomplete="off">
+      <button id="chispa-send" aria-label="Enviar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
+    </div>
+  </div>
+  <button id="chispa-bubble" aria-label="Abrir chat">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+  </button>
+</div>
+
+<script>
+(function() {
+  var widget = document.getElementById('chispa-widget');
+  var bubble = document.getElementById('chispa-bubble');
+  var win = document.getElementById('chispa-window');
+  var closeBtn = document.getElementById('chispa-close');
+  var input = document.getElementById('chispa-input');
+  var sendBtn = document.getElementById('chispa-send');
+  var msgsContainer = document.getElementById('chispa-messages');
+  
+  var chatHistory = [];
+  var isWaiting = false;
+
+  function toggleChat() {
+    if (win.style.display === 'flex') {
+      win.style.display = 'none';
+    } else {
+      win.style.display = 'flex';
+      input.focus();
+    }
+  }
+
+  bubble.addEventListener('click', toggleChat);
+  closeBtn.addEventListener('click', toggleChat);
+
+  function escapeHtml(text) {
+    // La respuesta del modelo es DATO, no HTML: se escapa antes de pintarla y
+    // solo despues se aplica el markdown que nosotros permitimos.
+    return String(text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function renderMd(text) {
+    var html = escapeHtml(text);
+    // Enlaces [texto](destino): solo rutas internas o http(s), nunca javascript:.
+    html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, label, url) {
+      var seguro = /^(https?:\/\/|\/|[\w./-]+\.html)/i.test(url);
+      if (!seguro) return label;
+      var externo = /^https?:\/\//i.test(url);
+      return '<a href="' + url + '"' + (externo ? ' target="_blank" rel="noopener"' : '') + '>' + label + '</a>';
+    });
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Vinetas "- item" a lista y saltos de linea a <br>. Los saltos multiples se
+    // colapsan: si no, cada parrafo del modelo dejaba un hueco enorme en el chat.
+    html = html.replace(/^[-•]\s+(.+)$/gm, '<span class="li">$1</span>');
+    html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
+    return html.replace(/<\/span><br>/g, '</span>').replace(/<br>(<span class="li">)/g, '$1');
+  }
+
+  function appendMsg(role, content) {
+    var div = document.createElement('div');
+    div.className = 'chispa-msg ' + (role === 'user' ? 'user' : 'bot');
+    if (role === 'user') div.textContent = content;
+    else div.innerHTML = renderMd(content);
+    msgsContainer.appendChild(div);
+    msgsContainer.scrollTop = msgsContainer.scrollHeight;
+  }
+
+  function showTyping() {
+    var div = document.createElement('div');
+    div.id = 'chispa-typing';
+    div.className = 'chispa-typing';
+    div.innerHTML = '<div class="chispa-dot"></div><div class="chispa-dot"></div><div class="chispa-dot"></div>';
+    msgsContainer.appendChild(div);
+    msgsContainer.scrollTop = msgsContainer.scrollHeight;
+  }
+
+  function hideTyping() {
+    var t = document.getElementById('chispa-typing');
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    var text = input.value.trim();
+    if (!text || isWaiting) return;
+
+    appendMsg('user', text);
+    input.value = '';
+    // Las sugerencias rapidas solo sirven para arrancar: fuera tras el primer envio.
+    var chips = document.getElementById('chispa-chips');
+    if (chips) chips.remove();
+    isWaiting = true;
+    sendBtn.disabled = true;
+    showTyping();
+
+    try {
+      // auth.js expone window.MechaAPI (no window.api): con el nombre antiguo el
+      // widget moria SIEMPRE en el catch y Chispa "no funcionaba" en la landing.
+      if (!window.MechaAPI || !window.MechaAPI.client) throw new Error("No API client");
+
+      const { data, error } = await window.MechaAPI.client.functions.invoke('chispa-landing', {
+        body: { message: text, history: chatHistory }
+      });
+
+      hideTyping();
+      isWaiting = false;
+      sendBtn.disabled = false;
+
+      if (error) {
+        appendMsg('bot', 'Ups, he tenido un problema conectando con el servidor. Por favor, [Reserva una llamada](reservar.html).');
+        console.error(error);
+        return;
+      }
+      
+      if (data.error) {
+        appendMsg('bot', data.message || 'He alcanzado mi límite de uso temporal. Te animo a que [Reserves una llamada](reservar.html) para conocer Mecha en persona.');
+        return;
+      }
+
+      var reply = data.reply || 'No sé qué decir.';
+      appendMsg('bot', reply);
+
+      chatHistory.push({ role: 'user', content: text });
+      chatHistory.push({ role: 'assistant', content: reply });
+      if (chatHistory.length > 10) chatHistory = chatHistory.slice(chatHistory.length - 10);
+      
+    } catch (e) {
+      hideTyping();
+      isWaiting = false;
+      sendBtn.disabled = false;
+      appendMsg('bot', 'No he podido conectarme. Por favor, inténtalo más tarde o [Reserva una llamada](reservar.html).');
+      console.error(e);
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  // Sugerencias rapidas: un clic manda la pregunta completa al asistente.
+  var chipsBox = document.getElementById('chispa-chips');
+  if (chipsBox) {
+    chipsBox.addEventListener('click', function(e) {
+      var b = e.target.closest('button[data-q]');
+      if (!b) return;
+      input.value = b.getAttribute('data-q') || '';
+      sendMessage();
+    });
+  }
+})();
+</script>
+
+<!-- ============ PRODUCT JSON-LD: AGGREGATE RATING FROM REAL REVIEWS ============ -->
+<script>
+(function(){
+  var api = window.MechaAPI;
+  if (!api || !api.client) return;
+
+  api.client.from('resenas')
+    .select('mecha_puntuacion, mecha_comentario, autor_nombre, created_at')
+    .not('mecha_puntuacion', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(50)
+    .then(function(res) {
+      if (res.error || !res.data || res.data.length === 0) return;
+
+      var reviews = res.data;
+      var total = reviews.length;
+      var sum = 0;
+      reviews.forEach(function(r) { sum += r.mecha_puntuacion; });
+      var avg = (sum / total).toFixed(1);
+
+      // Update the Product JSON-LD
+      var el = document.getElementById('product-jsonld');
+      if (!el) return;
+
+      try {
+        var schema = JSON.parse(el.textContent);
+
+        // aggregateRating — always add if we have reviews
+        schema.aggregateRating = {
+          '@type': 'AggregateRating',
+          ratingValue: avg,
+          bestRating: '5',
+          worstRating: '1',
+          reviewCount: total
+        };
+
+        // review — pick up to 5 most recent with comments
+        var withComment = reviews.filter(function(r) {
+          return r.mecha_comentario && r.mecha_comentario.trim().length > 10;
+        }).slice(0, 5);
+
+        if (withComment.length > 0) {
+          schema.review = withComment.map(function(r) {
+            return {
+              '@type': 'Review',
+              author: {
+                '@type': 'Person',
+                name: r.autor_nombre || 'Cliente verificado'
+              },
+              datePublished: r.created_at ? r.created_at.substring(0, 10) : undefined,
+              reviewRating: {
+                '@type': 'Rating',
+                ratingValue: String(r.mecha_puntuacion),
+                bestRating: '5',
+                worstRating: '1'
+              },
+              reviewBody: r.mecha_comentario.trim()
+            };
+          });
+        }
+
+        el.textContent = JSON.stringify(schema);
+      } catch(e) {
+        // Silently fail — the static Product schema remains valid
+      }
+    });
+})();
+</script>
+
+<div style="position:fixed;bottom:14px;left:14px;right:14px;z-index:1500;max-width:560px;font-size:12.5px;line-height:1.45;color:#f6f8ff;background:rgba(11,16,32,.85);border:1px solid rgba(255,138,61,.4);border-radius:12px;padding:9px 14px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 16px 40px -14px rgba(0,0,0,.6)">A · BRASAS VIVAS — fíjate en: navbar flotante tipo dock · botón "Ver demo gratis" con glow que respira · tarjetas con halo que sigue al ratón · barra de progreso al hacer scroll</div>
 </body>
 </html>

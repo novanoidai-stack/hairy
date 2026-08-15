@@ -1,0 +1,48 @@
+/* ============================================================
+   VARIANTE B · AURORA FUEGO — aplicada sobre la landing real.
+   Aurora cálida animada detrás del hero, tipografía serif
+   editorial y línea de luz bajo la navbar. Cargar tras
+   mecha.css/mecha-fx.css.
+   ============================================================ */
+
+/* Aurora: dos cortinas cálidas que respiran lentamente */
+.bg::after{content:"";position:absolute;inset:-20%;pointer-events:none;
+  mix-blend-mode:screen;opacity:.5;filter:blur(70px);
+  background:
+    linear-gradient(115deg,rgba(224,52,14,.5),rgba(255,122,46,.32) 40%,rgba(255,207,74,.22) 70%,transparent),
+    linear-gradient(245deg,rgba(255,138,61,.4),rgba(224,52,14,.25) 50%,transparent);
+  background-size:60% 120%,55% 110%;
+  background-repeat:no-repeat;background-position:-10% -20%,110% -10%;
+  animation:dAurora 16s ease-in-out infinite alternate}
+@keyframes dAurora{
+  0%{background-position:-10% -20%,110% -10%;opacity:.4}
+  100%{background-position:8% 6%,88% 8%;opacity:.62}}
+
+/* Navbar: cristal más transparente + línea de luz inferior */
+.nav.scrolled{background:rgba(7,10,20,.55)}
+.nav.scrolled::after{content:"";position:absolute;left:10%;right:10%;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,138,61,.75),rgba(255,206,74,.75),transparent);
+  animation:dLine 5s ease-in-out infinite}
+@keyframes dLine{0%,100%{opacity:.35}50%{opacity:.9}}
+
+/* Hero editorial: serif elegante + palabra clave con brillo */
+.hero h1{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
+.hero .em{background:linear-gradient(110deg,var(--accent-hi) 30%,#ffe9c9 50%,var(--violet) 70%);
+  background-size:250% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;animation:dShiny 3.4s linear infinite}
+@keyframes dShiny{0%{background-position:120% 0}100%{background-position:-120% 0}}
+
+/* Botón secundario suave, estilo aurora */
+.hero .btn-ghost{background:rgba(255,138,61,.1);border-color:rgba(255,138,61,.4)}
+.hero .btn-ghost:hover{background:rgba(255,138,61,.18);border-color:rgba(255,206,74,.65)}
+
+/* Tarjetas con borde-gradiente animado (fx kit) */
+.price-card{position:relative;background:var(--card);background-clip:padding-box;
+  border:1px solid transparent;border-radius:var(--r-lg)}
+.price-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
+  background:linear-gradient(120deg,var(--accent),var(--violet),var(--cyan),var(--accent));
+  background-size:300% 300%;animation:fxBorderFlow 6s linear infinite}
+
+@media (prefers-reduced-motion:reduce){
+  .bg::after,.nav.scrolled::after,.hero .em,.price-card::before{animation:none}
+}

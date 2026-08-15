@@ -1,0 +1,37 @@
+/* ============================================================
+   VARIANTE A · BRASAS VIVAS — aplicada sobre la landing real.
+   Navbar destacada tipo dock + botón principal con glow que
+   respira + tarjetas spotlight. El fondo de brasas ya existe
+   (embers.js). Cargar tras mecha.css/mecha-fx.css.
+   ============================================================ */
+
+/* Nav flotante tipo dock: sigue en el flujo (sticky) para no
+   romper el drawer de movil, pero despegada del borde. */
+.nav{top:12px;border-radius:999px;margin:0 14px;
+  border:1px solid var(--border-hi);
+  background:rgba(11,16,32,.5);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  box-shadow:0 18px 50px -18px rgba(0,0,0,.7)}
+.nav.scrolled{background:rgba(11,16,32,.72);border-bottom-color:var(--border-hi)}
+.nav-in{height:60px;padding:0 8px}
+.nav-links a{font-size:13.5px;padding:7px 10px}
+.nav-cta .login{font-size:13.5px}
+.consumer-bar{margin-bottom:6px}
+
+/* Botón principal: glow pulsante (fx kit) */
+.nav .btn-primary,.hero .btn-primary{animation:fxGlowPulse 2.6s ease-in-out infinite}
+
+/* Tarjetas de sección como spotlight (fx kit) */
+.card,.price-card,.ficha{position:relative;overflow:hidden}
+.card::before,.price-card::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .3s;
+  pointer-events:none;
+  background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(255,138,61,.14),transparent 65%)}
+.card:hover::before,.price-card:hover::before{opacity:1}
+.card:hover,.price-card:hover{border-color:rgba(255,138,61,.4)}
+
+/* Título del hero con brillo que recorre (shiny text) */
+.hero .em{-webkit-text-fill-color:transparent}
+
+@media (prefers-reduced-motion:reduce){
+  .nav .btn-primary,.hero .btn-primary{animation:none}
+}

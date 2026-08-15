@@ -1,0 +1,55 @@
+/* ============================================================
+   VARIANTE C · FORJA CLARA — aplicada sobre la landing real.
+   Pasa toda la landing al crema cálido del software (#f6f1ea)
+   manteniendo el fuego como acento: coherencia total entre
+   marketing y producto. Cargar tras mecha.css/mecha-fx.css.
+   ============================================================ */
+
+:root{
+  --bg:#f6f1ea;--bg-2:#fbf6f0;--card:#ffffff;--card-hi:#fbf6f0;
+  --border:rgba(28,24,20,.1);--border-hi:rgba(28,24,20,.18);
+  --text:#1c1814;--text-sec:#5c5249;--text-ter:#736658;
+  --shadow-card:0 24px 60px -30px rgba(224,52,14,.18);
+}
+body{background:var(--bg)}
+::selection{background:var(--accent);color:#fff}
+
+/* Fondo: sin noche — orbs muy tenues sobre crema + grid técnico */
+.bg{background:#f6f1ea}
+.bg::before{background:
+  radial-gradient(70% 50% at 50% -10%,rgba(224,52,14,.06),transparent 70%),
+  radial-gradient(50% 40% at 90% 0%,rgba(255,180,90,.14),transparent 70%),
+  radial-gradient(60% 50% at 8% 6%,rgba(255,130,60,.1),transparent 70%)}
+.bg .orb{opacity:.14}
+.bg .orb.o3{opacity:.08}
+.bg-noise{opacity:.02}
+.bg::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(28,24,20,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(28,24,20,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(75% 55% at 50% 30%,#000 25%,transparent 72%);
+  mask-image:radial-gradient(75% 55% at 50% 30%,#000 25%,transparent 72%)}
+
+/* Navbar clara */
+.nav.scrolled{background:rgba(246,241,234,.82);
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3)}
+.nav-links a:hover{background:rgba(244,80,30,.07)}
+.nav-toggle{background:#fff;border-color:var(--border-hi)}
+.nav-toggle:hover{background:var(--card-hi);border-color:var(--accent)}
+
+/* Botones: primario fuego sólido, secundario blanco */
+.btn-primary{box-shadow:0 12px 28px -10px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn-ghost{background:#fff;color:var(--text);border-color:var(--border-hi)}
+.btn-ghost:hover{background:var(--card-hi);border-color:var(--accent)}
+
+/* Intro: cortina crema para no pegar con el resto */
+.intro{background:#f3ece2}
+
+/* Consumo/barras y chips */
+.consumer-bar{background:linear-gradient(90deg,rgba(224,52,14,.1),rgba(255,122,46,.08) 55%,rgba(255,207,74,.07));
+  border-bottom-color:rgba(224,52,14,.18)}
+.consumer-bar:hover{background:linear-gradient(90deg,rgba(224,52,14,.16),rgba(255,122,46,.13) 55%,rgba(255,207,74,.11))}
+.consumer-bar .cb-txt{color:var(--text-sec)}
+.consumer-bar .cb-txt b{color:var(--text)}
+
+@media (prefers-reduced-motion:reduce){.bg::after{display:none}}
