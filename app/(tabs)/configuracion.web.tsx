@@ -4517,7 +4517,9 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [linkResenaGoogle, setLinkResenaGoogle] = useState('');
   const [fondoPortalUrl, setFondoPortalUrl] = useState('');
   const [subiendoFondo, setSubiendoFondo] = useState(false);
-  const [fondoErr, setFondoErr] = useState('');
+  // Mensaje del fondo: antes solo habia hueco para errores, pero ahora la foto
+  // se guarda sola y hay que poder decir "guardada" o "falta el enlace".
+  const [fondoMsg, setFondoMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [fotos, setFotos] = useState<NegocioFoto[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosMsg, setFotosMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -4784,12 +4786,30 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     }
   }, [negocioId, fotos]);
 
+  // Retira del bucket un fondo que ya no se usa, para no ir dejando imagenes
+  // huerfanas cada vez que se cambia. Solo toca objetos del propio negocio.
+  const limpiarFondoDelBucket = async (url: string) => {
+    const marca = '/salon-fotos/';
+    const i = url.indexOf(marca);
+    if (i < 0) return;
+    const path = url.slice(i + marca.length).split('?')[0];
+    if (!path.startsWith(`${negocioId}/fondo/`)) return;
+    await supabase.storage.from('salon-fotos').remove([path]);
+  };
+
+  // La foto de fondo se guarda SOLA, igual que las de la galeria.
+  //
+  // Antes esto solo hacia `setFondoPortalUrl(...)`: la vista previa mostraba el
+  // fondo nuevo, pero no se persistia nada. Si no pulsabas ademas "Guardar
+  // portal", al volver a entrar la foto habia desaparecido — y la pantalla
+  // habia dado a entender que estaba puesta.
   const subirFondoPortal = async (files: FileList | null) => {
     const file = files?.[0];
     if (!file || !negocioId) return;
-    if (!file.type.startsWith('image/')) { setFondoErr('Selecciona una imagen.'); return; }
-    if (file.size > 5 * 1024 * 1024) { setFondoErr('La imagen excede 5MB. Usa una imagen más pequeña.'); return; }
-    setSubiendoFondo(true); setFondoErr('');
+    if (!file.type.startsWith('image/')) { setFondoMsg({ ok: false, text: 'Selecciona una imagen.' }); return; }
+    if (file.size > 5 * 1024 * 1024) { setFondoMsg({ ok: false, text: 'La imagen excede 5MB. Usa una imagen más pequeña.' }); return; }
+    setSubiendoFondo(true); setFondoMsg(null);
+    const anterior = fondoPortalUrl;
     try {
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
       const rand = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
@@ -4798,17 +4818,62 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       const path = `${negocioId}/fondo/fondo-${rand}.${ext}`;
       const up = await supabase.storage.from('salon-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
       if (up.error) {
-        setFondoErr(`No se pudo subir la foto (${up.error.message || 'error desconocido'}). Comprueba que tienes permisos en el bucket.`);
+        setFondoMsg({ ok: false, text: `No se pudo subir la foto (${up.error.message || 'error desconocido'}). Comprueba que tienes permisos en el bucket.` });
         return;
       }
       const { data } = supabase.storage.from('salon-fotos').getPublicUrl(path);
-      setFondoPortalUrl(data.publicUrl);
+      const urlNueva = data.publicUrl;
+
+      // Se escribe con UPDATE, no con upsert: `slug` es obligatorio en
+      // negocio_portal, asi que no se puede crear la fila con el fondo suelto.
+      const { data: filas, error: errGuardar } = await supabase
+        .from('negocio_portal')
+        .update({ fondo_portal_url: urlNueva, updated_at: new Date().toISOString() })
+        .eq('negocio_id', negocioId)
+        .select('negocio_id');
+
+      if (errGuardar) {
+        // Si no se ha podido guardar, el objeto subido sobra: fuera.
+        await supabase.storage.from('salon-fotos').remove([path]);
+        setFondoMsg({ ok: false, text: mensajeDeError(errGuardar, 'No se pudo guardar la foto de fondo.') });
+        return;
+      }
+
+      setFondoPortalUrl(urlNueva);
+
+      if (!filas || filas.length === 0) {
+        // El portal aun no existe como fila (nunca se guardo). No se miente:
+        // se dice que falta el paso que crea el portal.
+        setFondoMsg({ ok: false, text: 'Imagen subida, pero tu portal todavía no está creado. Pulsa «Guardar portal» para dejarla puesta.' });
+        return;
+      }
+      if (anterior) await limpiarFondoDelBucket(anterior);
+      setFondoMsg({ ok: true, text: 'Foto de fondo guardada.' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error desconocido';
-      setFondoErr(`Error al subir la imagen: ${msg}`);
+      setFondoMsg({ ok: false, text: `Error al subir la imagen: ${msg}` });
     } finally {
       setSubiendoFondo(false);
     }
+  };
+
+  // Quitar tambien persiste: antes solo vaciaba el estado local y la foto
+  // seguia puesta en el portal publico.
+  const quitarFondoPortal = async () => {
+    if (!negocioId) return;
+    const anterior = fondoPortalUrl;
+    setFondoMsg(null);
+    const { error } = await supabase
+      .from('negocio_portal')
+      .update({ fondo_portal_url: null, updated_at: new Date().toISOString() })
+      .eq('negocio_id', negocioId);
+    if (error) {
+      setFondoMsg({ ok: false, text: mensajeDeError(error, 'No se pudo quitar la foto de fondo.') });
+      return;
+    }
+    setFondoPortalUrl('');
+    if (anterior) await limpiarFondoDelBucket(anterior);
+    setFondoMsg({ ok: true, text: 'Foto de fondo quitada.' });
   };
 
   const borrarFoto = useCallback(async (foto: NegocioFoto) => {
@@ -4883,11 +4948,13 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
                 <input type="file" accept="image/*" disabled={subiendoFondo} onChange={e => subirFondoPortal(e.target.files)} style={{ display: 'none' }} />
               </label>
               {fondoPortalUrl && !subiendoFondo && (
-                <button className="m-btn-danger" onClick={() => setFondoPortalUrl('')} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}>Quitar</button>
+                <button className="m-btn-danger" onClick={quitarFondoPortal} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}>Quitar</button>
               )}
             </div>
           </div>
-          {fondoErr && <div style={{ fontSize: 11, color: T.danger, marginTop: 6 }}>{fondoErr}</div>}
+          {fondoMsg && (
+            <div style={{ fontSize: 11, color: fondoMsg.ok ? T.success : T.danger, marginTop: 6 }}>{fondoMsg.text}</div>
+          )}
         </FieldRow>
         <FieldRow label="Reseña de Google" hint="Pega el enlace para dejar una reseña en tu ficha de Google (Google Business). Generamos un QR para imprimir y dejar en el mostrador.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
