@@ -15,9 +15,9 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/lib/supabase';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
-import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { metaEstadoCita } from '@/lib/citasEstadoUi';
+import { RegistroCard, RegistroEstado, RegistroVerMas, RegistroBuscador, RegistroChip, IconosRegistro } from './RegistroCard';
 
 interface Props {
   desde: Date;
@@ -49,7 +49,6 @@ const ETIQUETA_EVENTO: Record<string, string> = {
 const eur = (c: number | null | undefined) => ((c ?? 0) / 100).toFixed(2);
 
 export function AuditoriaSection({ desde, hasta, clientesMap, profesionalesMap }: Props) {
-  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [asientos, setAsientos] = useState<Asiento[]>([]);
@@ -173,70 +172,34 @@ export function AuditoriaSection({ desde, hasta, clientesMap, profesionalesMap }
     });
   }, [asientos, filtroModulo, busqueda, describir]);
 
-  const chip = (activo: boolean): React.CSSProperties => ({
-    padding: '6px 12px',
-    borderRadius: 999,
-    border: `1px solid ${activo ? T.primary : T.border}`,
-    background: activo ? T.primarySoft : 'transparent',
-    color: activo ? T.primaryHi : T.textSec,
-    fontSize: 12.5,
-    fontWeight: 600,
-    cursor: 'pointer',
-  });
-
   return (
-    <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: `1px solid ${T.border}` }}>
-      <div style={{ padding: isMobile ? 16 : 24, borderBottom: `1px solid ${T.borderHi}` }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.text }}>Auditoria</h2>
-        <p style={{ margin: '4px 0 0', fontSize: 14, color: T.textSec }}>
-          Quien cambio que y cuando. Los asientos los escribe el servidor, no la app: no se pueden
-          editar ni borrar desde aqui.
-        </p>
-      </div>
-
-      <div
-        style={{
-          padding: isMobile ? '12px 16px' : '16px 24px',
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          borderBottom: `1px solid ${T.border}`,
-        }}
-      >
-        {(['todos', 'citas', 'caja'] as const).map((m) => (
-          <button key={m} onClick={() => setFiltroModulo(m)} style={chip(filtroModulo === m)}>
-            {m === 'todos' ? 'Todo' : m === 'citas' ? 'Citas' : 'Caja y gastos'}
-          </button>
-        ))}
-        <input
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar por persona, cliente o motivo"
-          style={{
-            flex: 1,
-            minWidth: isMobile ? '100%' : 220,
-            padding: '8px 12px',
-            borderRadius: 8,
-            border: `1px solid ${T.border}`,
-            fontSize: 13,
-            color: T.text,
-            boxSizing: 'border-box',
-          }}
-        />
-      </div>
-
-      <div style={{ padding: isMobile ? 16 : 24, maxHeight: 600, overflowY: 'auto' }}>
+    <RegistroCard
+      titulo="Auditoria"
+      descripcion="Quien cambio que y cuando. Los asientos los escribe el servidor, no la app: no se pueden editar ni borrar desde aqui."
+      icono={IconosRegistro.auditoria}
+      acento={T.primary}
+      toolbar={
+        <>
+          {(['todos', 'citas', 'caja'] as const).map((m) => (
+            <RegistroChip key={m} activo={filtroModulo === m} onClick={() => setFiltroModulo(m)}>
+              {m === 'todos' ? 'Todo' : m === 'citas' ? 'Citas' : 'Caja y gastos'}
+            </RegistroChip>
+          ))}
+          <RegistroBuscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por persona, cliente o motivo" />
+        </>
+      }
+    >
+      <div style={{ maxHeight: 600, overflowY: 'auto' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>Cargando registro...</div>
+          <RegistroEstado tipo="cargando">Cargando registro...</RegistroEstado>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.danger }}>{error}</div>
+          <RegistroEstado tipo="error">{error}</RegistroEstado>
         ) : filtrados.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>
+          <RegistroEstado tipo="vacio">
             {asientos.length === 0
               ? 'Todavia no hay movimientos registrados en este periodo.'
               : 'Ningun movimiento coincide con el filtro.'}
-          </div>
+          </RegistroEstado>
         ) : (
           <>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -281,28 +244,13 @@ export function AuditoriaSection({ desde, hasta, clientesMap, profesionalesMap }
                 );
               })}
             </div>
-            {filtrados.length > visibles && (
-              <button
-                onClick={() => setVisibles((v) => v + PAGINA)}
-                style={{
-                  marginTop: 14,
-                  width: '100%',
-                  padding: '10px 0',
-                  background: 'transparent',
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  color: T.textSec,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Ver mas ({filtrados.length - visibles} restantes)
-              </button>
-            )}
+            <RegistroVerMas
+              restantes={filtrados.length - visibles}
+              onClick={() => setVisibles((v) => v + PAGINA)}
+            />
           </>
         )}
       </div>
-    </div>
+    </RegistroCard>
   );
 }

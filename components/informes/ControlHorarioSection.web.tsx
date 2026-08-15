@@ -12,16 +12,10 @@ import { useEffect, useState } from 'react';
 import { getUserProfile } from '@/lib/auth';
 import { RegistroJornada } from '@/components/jornada/RegistroJornada.web';
 import { cargarConfigJornada, type ConfigJornada } from '@/lib/jornada';
+import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
+import { RegistroCard, IconosRegistro } from './RegistroCard';
 
-const TOKENS = {
-  bgCard: '#ffffff',
-  border: 'rgba(40,30,24,0.08)',
-  borderHi: 'rgba(40,30,24,0.14)',
-  text: '#1c1814',
-  textSec: '#5c5249',
-  textTer: '#736658',
-  cyan: '#0891b2',
-};
+const ACENTO = '#0891b2';
 
 export interface ControlHorarioSectionProps {
   profesionales: Array<{ id: string; nombre: string }>;
@@ -43,36 +37,13 @@ export function ControlHorarioSection({ profesionales, isMobile = false, customI
   }, []);
 
   return (
-    <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12,
-        padding: isMobile ? '11px 13px' : '14px 18px', borderRadius: '14px 14px 0 0',
-        background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`,
-      }}>
-        <div style={{
-          width: isMobile ? 30 : 36, height: isMobile ? 30 : 36, borderRadius: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: `${TOKENS.cyan}18`, flexShrink: 0,
-        }}>
-          <svg width={isMobile ? 16 : 18} height={isMobile ? 16 : 18} viewBox="0 0 24 24" fill="none"
-               stroke={TOKENS.cyan} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-          </svg>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: isMobile ? 13.5 : 14, fontWeight: 700, color: TOKENS.text }}>
-            Control horario
-          </div>
-          <div style={{ fontSize: isMobile ? 10.5 : 11, color: TOKENS.textTer, marginTop: 1 }}>
-            Registro de jornada del equipo · descargable para la nómina y para la Inspección
-          </div>
-        </div>
-      </div>
-
-      <div className="section-card" style={{
-        padding: isMobile ? 13 : 18, borderRadius: '0 0 14px 14px', background: TOKENS.bgCard,
-        border: `1px solid ${TOKENS.border}`, borderTop: 'none',
-      }}>
+    <RegistroCard
+      titulo="Control horario"
+      descripcion="Registro de jornada del equipo · descargable para la nómina y para la Inspección"
+      icono={IconosRegistro.reloj}
+      acento={ACENTO}
+    >
+      <>
         <div style={{ fontSize: 12.5, color: TOKENS.textSec, lineHeight: 1.55, marginBottom: 14, maxWidth: 760 }}>
           Este es el registro que tienes que poder enseñar si te lo piden. Cada entrada, salida y pausa
           queda con la hora real del servidor, no se puede editar ni borrar, y se conserva cuatro años.
@@ -91,7 +62,7 @@ export function ControlHorarioSection({ profesionales, isMobile = false, customI
           customDesde={customInicio ?? undefined}
           customHasta={customFin ?? undefined}
         />
-      </div>
-    </div>
+      </>
+    </RegistroCard>
   );
 }

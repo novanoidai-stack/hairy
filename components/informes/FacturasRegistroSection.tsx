@@ -15,9 +15,9 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/lib/supabase';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
-import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { generarTicketPdf, descargarBlob } from '@/lib/caja/ticketPdf';
+import { RegistroCard, RegistroEstado, RegistroVerMas, RegistroBuscador, IconosRegistro } from './RegistroCard';
 
 interface Props {
   negocioId: string;
@@ -55,10 +55,10 @@ interface Emisor {
 }
 
 const IVA_PCT = 21;
+const PAGINA = 50;
 const eur = (c: number) => (c / 100).toFixed(2);
 
 export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
-  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filas, setFilas] = useState<TicketRow[]>([]);
@@ -66,6 +66,8 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
   const [lineasPorCobro, setLineasPorCobro] = useState<Record<string, any[]>>({});
   const [selected, setSelected] = useState<TicketRow | null>(null);
   const [busqueda, setBusqueda] = useState('');
+  // Se cargan hasta 1000 cobros, pero no se pintan todos de golpe.
+  const [visibles, setVisibles] = useState(PAGINA);
   const [generando, setGenerando] = useState(false);
 
   useEffect(() => {
@@ -163,6 +165,10 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
     };
   }, [negocioId, desde.toISOString(), hasta.toISOString()]);
 
+  useEffect(() => {
+    setVisibles(PAGINA);
+  }, [busqueda, filas]);
+
   const filtradas = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     if (!q) return filas;
@@ -243,104 +249,77 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
     gap: 8,
   };
 
+  const aviso = (contenido: React.ReactNode, tono: 'neutro' | 'ojo') => (
+    <div
+      style={{
+        fontSize: 12,
+        color: tono === 'ojo' ? T.text : T.textSec,
+        background: tono === 'ojo' ? T.warningSoft : T.bg,
+        border: `1px solid ${tono === 'ojo' ? `${T.warning}33` : T.border}`,
+        borderRadius: 8,
+        padding: '10px 12px',
+        lineHeight: 1.5,
+      }}
+    >
+      {contenido}
+    </div>
+  );
+
   return (
-    <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: `1px solid ${T.border}` }}>
-      <div
-        style={{
-          padding: isMobile ? 16 : 24,
-          borderBottom: `1px solid ${T.borderHi}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.text }}>Tickets de venta</h2>
-          <p style={{ margin: '4px 0 0', fontSize: 14, color: T.textSec }}>
-            Cada cobro deja un ticket numerado con una huella encadenada al anterior: si se alterase
-            uno, la cadena deja de cuadrar.
-          </p>
-        </div>
+    <RegistroCard
+      titulo="Tickets de venta"
+      descripcion="Cada cobro deja un ticket numerado con una huella encadenada al anterior: si se alterase uno, la cadena deja de cuadrar."
+      icono={IconosRegistro.ticket}
+      acento={T.primary}
+      accion={
         <button onClick={descargarCSV} style={btn}>
           Exportar CSV
         </button>
-      </div>
-
-      {/* Avisos honestos, antes de la tabla */}
-      <div style={{ padding: isMobile ? '12px 16px 0' : '16px 24px 0', display: 'grid', gap: 8 }}>
-        <div
-          style={{
-            fontSize: 12,
-            color: T.textSec,
-            background: T.bg,
-            border: `1px solid ${T.border}`,
-            borderRadius: 8,
-            padding: '10px 12px',
-            lineHeight: 1.5,
-          }}
-        >
-          Registro interno inalterable. <strong>No se envía a la AEAT</strong>: no es una factura
-          dada de alta en VeriFactu. Sirve como libro de tickets propio y como prueba de que no se
-          ha tocado nada a posteriori.
-        </div>
-        {faltanDatosFiscales && (
-          <div
-            style={{
-              fontSize: 12,
-              color: T.text,
-              background: T.warningSoft,
-              border: `1px solid ${T.warning}33`,
-              borderRadius: 8,
-              padding: '10px 12px',
-              lineHeight: 1.5,
-            }}
-          >
-            Faltan los datos fiscales del salón (razón social y NIF), así que los tickets salen sin
-            emisor. Complétalos en Ajustes para que el PDF quede presentable.
-          </div>
-        )}
-        {sinTicket > 0 && (
-          <div
-            style={{
-              fontSize: 12,
-              color: T.text,
-              background: T.warningSoft,
-              border: `1px solid ${T.warning}33`,
-              borderRadius: 8,
-              padding: '10px 12px',
-              lineHeight: 1.5,
-            }}
-          >
-            {sinTicket} {sinTicket === 1 ? 'cobro no tiene' : 'cobros no tienen'} ticket emitido.
-          </div>
-        )}
-        <input
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+      }
+      toolbar={
+        <RegistroBuscador
+          valor={busqueda}
+          onChange={setBusqueda}
           placeholder="Buscar por numero, cliente, servicio o huella"
-          style={{
-            padding: '9px 12px',
-            borderRadius: 8,
-            border: `1px solid ${T.border}`,
-            fontSize: 13,
-            color: T.text,
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
         />
+      }
+    >
+      {/* Avisos honestos, antes de la tabla */}
+      <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
+        {aviso(
+          <>
+            Registro interno inalterable. <strong>No se envía a la AEAT</strong>: no es una factura
+            dada de alta en VeriFactu. Sirve como libro de tickets propio y como prueba de que no se
+            ha tocado nada a posteriori.
+          </>,
+          'neutro',
+        )}
+        {faltanDatosFiscales &&
+          aviso(
+            <>
+              Faltan los datos fiscales del salón (razón social y NIF), así que los tickets salen sin
+              emisor. Complétalos en Ajustes para que el PDF quede presentable.
+            </>,
+            'ojo',
+          )}
+        {sinTicket > 0 &&
+          aviso(
+            <>
+              {sinTicket} {sinTicket === 1 ? 'cobro no tiene' : 'cobros no tienen'} ticket emitido.
+            </>,
+            'ojo',
+          )}
       </div>
 
-      <div style={{ padding: isMobile ? 16 : 24, overflowX: 'auto', maxHeight: 600, overflowY: 'auto' }}>
+      <div style={{ overflowX: 'auto', maxHeight: 600, overflowY: 'auto' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>Cargando tickets...</div>
+          <RegistroEstado tipo="cargando">Cargando tickets...</RegistroEstado>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.danger }}>{error}</div>
+          <RegistroEstado tipo="error">{error}</RegistroEstado>
         ) : filtradas.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: T.textSec }}>
+          <RegistroEstado tipo="vacio">
             {filas.length === 0 ? 'No hay cobros en este periodo.' : 'Ningun ticket coincide con la busqueda.'}
-          </div>
+          </RegistroEstado>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
             <thead style={{ position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
@@ -354,7 +333,7 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
               </tr>
             </thead>
             <tbody>
-              {filtradas.map((f) => (
+              {filtradas.slice(0, visibles).map((f) => (
                 <tr key={f.cobro_id} style={{ borderBottom: `1px solid ${T.border}` }}>
                   <td style={{ padding: '12px 8px', color: T.text, fontWeight: 600 }}>
                     {f.numero_factura ?? <span style={{ color: T.warning }}>sin emitir</span>}
@@ -395,6 +374,10 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
             </tbody>
           </table>
         )}
+        <RegistroVerMas
+          restantes={filtradas.length - visibles}
+          onClick={() => setVisibles((v) => v + PAGINA)}
+        />
       </div>
 
       {selected && (
@@ -552,6 +535,6 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </RegistroCard>
   );
 }

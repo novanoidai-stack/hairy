@@ -6,31 +6,9 @@ import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { reportarError } from '@/lib/reportarError';
 import { startOfMonth, endOfMonth, format, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
+import { RegistroCard, IconosRegistro } from './RegistroCard';
 
-const TOKENS = {
-  bg: '#f6f1ea',
-  bgPanel: '#fffdfb',
-  bgCard: '#ffffff',
-  bgCardHi: '#fbf6f0',
-  border: 'rgba(40,30,24,0.08)',
-  borderHi: 'rgba(40,30,24,0.14)',
-  text: '#1c1814',
-  textSec: '#5c5249',
-  textTer: '#736658',
-  primary: '#f4501e',
-  primaryHi: '#c0260a',
-  primarySoft: 'rgba(244,80,30,0.12)',
-  success: '#0f9d6b',
-  successSoft: 'rgba(15,157,107,0.14)',
-  warning: '#e08a00',
-  warningSoft: 'rgba(224,138,0,0.16)',
-  danger: '#e23b34',
-  dangerSoft: 'rgba(226,59,52,0.14)',
-  amber: '#e08a00',
-  amberSoft: 'rgba(224,138,0,0.16)',
-  cyan: '#0891b2',
-  cyanSoft: 'rgba(8,145,178,0.14)',
-};
 
 const Icon = ({ name, size = 20, color = '#1c1814' }: { name: string; size?: number; color?: string }) => {
   const icons: Record<string, string> = {
@@ -171,38 +149,21 @@ export function GastosSection({
 
   return (
     <>
-      <div style={{ marginBottom: isMobile ? 10 : 14, marginTop: 14 }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12,
-          padding: isMobile ? '11px 13px' : '14px 18px',
-          borderRadius: '14px 14px 0 0', background: TOKENS.bgCard,
-          border: `1px solid ${TOKENS.border}`, borderBottom: `1px solid ${TOKENS.border}`,
-        }}>
-          <div style={{
-            width: isMobile ? 30 : 36, height: isMobile ? 30 : 36, borderRadius: 10,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: `${TOKENS.danger}18`, flexShrink: 0,
-          }}>
-            <Icon name="dollar" size={isMobile ? 16 : 18} color={TOKENS.danger} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: isMobile ? 13.5 : 14, fontWeight: 700, color: TOKENS.text }}>Gastos fijos y variables</div>
-              <div style={{ fontSize: isMobile ? 10.5 : 11, color: TOKENS.textTer, marginTop: 1 }}>{periodoLabel}</div>
-            </div>
-            <button
-              onClick={() => setModalOpen(true)}
-              style={{ padding: '6px 12px', borderRadius: 8, background: TOKENS.danger, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-            >
-              <Icon name="plus" size={14} color="#fff" /> Añadir
-            </button>
-          </div>
-        </div>
-
-        <div style={{
-          padding: isMobile ? 13 : 18, borderRadius: '0 0 14px 14px', background: TOKENS.bgCard,
-          border: `1px solid ${TOKENS.border}`, borderTop: 'none',
-        }}>
+      <RegistroCard
+        titulo="Gastos fijos y variables"
+        descripcion={periodoLabel}
+        icono={IconosRegistro.gasto}
+        acento={TOKENS.danger}
+        accion={
+          <button
+            onClick={() => setModalOpen(true)}
+            style={{ padding: '6px 12px', borderRadius: 8, background: TOKENS.danger, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+          >
+            <Icon name="plus" size={14} color="#fff" /> Añadir
+          </button>
+        }
+      >
+        <>
           {/* Selector de mes */}
           {!(customInicio && customFin) && (
             <div style={{ display: 'flex', gap: 4, background: TOKENS.bgPanel, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, overflowX: 'auto', marginBottom: 16 }}>
@@ -276,8 +237,8 @@ export function GastosSection({
               })}
             </div>
           )}
-        </div>
-      </div>
+        </>
+      </RegistroCard>
 
       {modalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(28,24,20,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setModalOpen(false)}>

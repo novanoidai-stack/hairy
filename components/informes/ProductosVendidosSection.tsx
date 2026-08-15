@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { RegistroCard, RegistroEstado, RegistroVerMas, IconosRegistro } from './RegistroCard';
+import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sección "Productos vendidos" para la pestaña Informes.
@@ -19,23 +21,6 @@ import { es } from 'date-fns/locale';
 // del registro de productos vendidos.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TOKENS = {
-  bg: '#f6f1ea',
-  bgPanel: '#fffdfb',
-  bgCard: '#ffffff',
-  bgCardHi: '#fbf6f0',
-  border: 'rgba(40,30,24,0.08)',
-  borderHi: 'rgba(40,30,24,0.14)',
-  text: '#1c1814',
-  textSec: '#5c5249',
-  textTer: '#736658',
-  primary: '#f4501e',
-  primaryHi: '#c0260a',
-  primarySoft: 'rgba(244,80,30,0.12)',
-  success: '#0f9d6b',
-  successSoft: 'rgba(15,157,107,0.14)',
-  warning: '#e08a00',
-};
 
 const fmtEur = (cents: number) => (cents / 100).toFixed(2);
 const fmtFecha = (iso: string | null) => {
@@ -72,6 +57,9 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
   const [loading, setLoading] = useState(true);
   const [cobros, setCobros] = useState<CobroConLineas[]>([]);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  // Antes se cortaba en 50 y punto: las ventas 51 en adelante no habia forma de
+  // verlas, sin decirlo en ninguna parte.
+  const [visibles, setVisibles] = useState(50);
 
   useEffect(() => {
     let cancelado = false;
@@ -204,48 +192,23 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
   const sinDatos = !loading && cobros.length === 0;
 
   return (
-    <div style={{ marginTop: 16 }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12,
-        padding: isMobile ? '11px 13px' : '14px 18px',
-        borderRadius: '14px 14px 0 0', background: TOKENS.bgCard,
-        border: `1px solid ${TOKENS.border}`,
-      }}>
-        <div style={{
-          width: isMobile ? 30 : 36, height: isMobile ? 30 : 36, borderRadius: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: TOKENS.successSoft, flexShrink: 0,
-        }}>
-          <span style={{ color: TOKENS.success, fontWeight: 800, fontSize: isMobile ? 15 : 17 }}>📦</span>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: isMobile ? 13.5 : 14, fontWeight: 700, color: TOKENS.text }}>
-            Productos vendidos
-          </div>
-          <div style={{ fontSize: isMobile ? 10.5 : 11, color: TOKENS.textTer, marginTop: 1 }}>
-            Registro de venta de productos (en cita o sueltos) del periodo.
-          </div>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div style={{
-        padding: isMobile ? 13 : 18, borderRadius: '0 0 14px 14px', background: TOKENS.bgCard,
-        border: `1px solid ${TOKENS.border}`, borderTop: 'none',
-      }}>
+    <RegistroCard
+      titulo="Productos vendidos"
+      descripcion="Registro de venta de productos (en cita o sueltos) del periodo."
+      icono={IconosRegistro.producto}
+      acento={TOKENS.success}
+    >
+      <>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 24, color: TOKENS.textSec, fontSize: 13 }}>
-            Cargando productos vendidos…
-          </div>
+          <RegistroEstado tipo="cargando">Cargando productos vendidos…</RegistroEstado>
         ) : sinDatos ? (
-          <div style={{ textAlign: 'center', padding: '24px 10px', color: TOKENS.textSec, fontSize: 13 }}>
+          <RegistroEstado tipo="vacio">
             No se han vendido productos en este periodo.
             <br />
             <span style={{ fontSize: 11, color: TOKENS.textTer }}>
               Las ventas de productos desde Caja aparecerán aquí automáticamente.
             </span>
-          </div>
+          </RegistroEstado>
         ) : (
           <>
             {/* KPIs */}
@@ -306,7 +269,7 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
                 <div>{isMobile ? 'Fecha' : 'Fecha'}</div>
                 <div style={{ textAlign: 'right' }}>Importe</div>
               </div>
-              {cobros.slice(0, 50).map((cobro) => (
+              {cobros.slice(0, visibles).map((cobro) => (
                 cobro.lineas.map((l, idx) => {
                   const cliente = cobro.cliente_id ? clientesMap?.get(cobro.cliente_id) : null;
                   const prof = cobro.profesional_id ? profesionalesMap?.get(cobro.profesional_id) : null;
@@ -371,12 +334,11 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
                   );
                 })
               ))}
-              {cobros.length > 50 && (
-                <div style={{ padding: '9px 12px', fontSize: 11, color: TOKENS.textTer, borderTop: `1px solid ${TOKENS.border}`, textAlign: 'center' }}>
-                  Mostrando 50 de {cobros.length} tickets. Usa un periodo más corto para ver el detalle completo.
-                </div>
-              )}
             </div>
+            <RegistroVerMas
+              restantes={Math.max(0, cobros.length - visibles)}
+              onClick={() => setVisibles((v) => v + 50)}
+            />
 
             {/* Top clientes (colapsable visualmente debajo) */}
             {stats.rankingClientes.length > 0 && (
@@ -396,8 +358,8 @@ export function ProductosVendidosSection({ negocioId, desde, hasta, clientesMap,
             )}
           </>
         )}
-      </div>
-    </div>
+      </>
+    </RegistroCard>
   );
 }
 
