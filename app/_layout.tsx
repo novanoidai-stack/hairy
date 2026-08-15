@@ -65,7 +65,7 @@ if (Platform.OS !== 'web') {
   SplashScreen.preventAutoHideAsync();
 }
 
-function ThemedRoot({ children }: { children: React.ReactNode }) {
+function ThemedRoot({ children, isPublicRoute }: { children: React.ReactNode; isPublicRoute?: boolean }) {
   const { c, isDark } = useTheme();
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: c.bg }}>
@@ -73,12 +73,12 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <MotionStyles />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
-      <PrivacyConsentModal />
-      {/* Salon con un solo correo: antes de nada, quien eres. */}
-      <GuardaIdentidad />
-      <ChispaLauncher />
-      <CoachLauncher />
-      <TourLauncher />
+      {!isPublicRoute && <PrivacyConsentModal />}
+      {/* Salon con un solo correo: antes de nada, quien eres (solo en panel interno, nunca en reservas publicas del marketplace). */}
+      {!isPublicRoute && <GuardaIdentidad />}
+      {!isPublicRoute && <ChispaLauncher />}
+      {!isPublicRoute && <CoachLauncher />}
+      {!isPublicRoute && <TourLauncher />}
       {children}
     </GestureHandlerRootView>
   );
@@ -302,7 +302,7 @@ export default function RootLayout() {
     <CalendarProvider>
     <ThemeProvider>
     <SafeAreaProvider>
-    <ThemedRoot>
+    <ThemedRoot isPublicRoute={isPublicRoute}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />

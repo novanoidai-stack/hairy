@@ -6,22 +6,25 @@
 // pinta nada y no cuesta nada: una llamada a acceso_salon_estado() por carga.
 
 import { useEffect, useState } from 'react';
+import { useSegments } from 'expo-router';
 import { useAccesoSalon } from '@/lib/hooks/useAccesoSalon';
 import { getUserProfile } from '@/lib/auth';
 import PuertaIdentidad from './PuertaIdentidad';
 
 export function GuardaIdentidad() {
+  const segments = useSegments();
+  const isPublicRoute = ['r', 'resena', 'cita', 'pago', 'pagar', 'presupuesto', 'contacto'].includes(String(segments[0]));
   const { cargando, modo, tienePin, identidad, fichas, negocioId, email, refrescar } = useAccesoSalon();
   const [nombreSalon, setNombreSalon] = useState<string | null>(null);
 
   useEffect(() => {
     let vivo = true;
-    if (modo !== 'compartido') return;
+    if (isPublicRoute || modo !== 'compartido') return;
     getUserProfile().then((p) => { if (vivo) setNombreSalon(p?.nombre_negocio ?? null); });
     return () => { vivo = false; };
-  }, [modo]);
+  }, [modo, isPublicRoute]);
 
-  if (cargando || modo !== 'compartido' || identidad) return null;
+  if (isPublicRoute || cargando || modo !== 'compartido' || identidad) return null;
 
   return (
     <PuertaIdentidad
