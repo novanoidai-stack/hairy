@@ -61,3 +61,13 @@ web/fichaje-legal-peluqueria/
 web/reducir-no-shows-peluqueria/
 web/alternativa-booksy/
 web/alternativa-fresha/
+
+# Herramientas de agente y pruebas temporales
+.agents/
+.playwright-mcp/
+.zcode/
+.env.*
+.env_*
+*.bak*
+/*.png
+

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mecha OS — El salón que se lleva solo</title>
+<meta name="description" content="Software de gestión para peluquerías y barberías: agenda con reposos, VeriFactu, fichajes legales, portal sin comisión y recepcionistas de IA.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{--paper:#fdf6f0;--paper-2:#fff;--ink:#15100b;--ink-2:#5d5349;--ink-3:#8d8278;--line:rgba(21,16,11,.10);--line-2:rgba(21,16,11,.20);--card:#fff;--accent:#f4501e;--accent-hi:#ff8a3d;--gold:#ffcf4a;--accent-soft:rgba(244,80,30,.09);--ok:#0f9b6c;--ok-soft:rgba(15,155,108,.11);--lav:#7c6cf0;--lav-soft:rgba(124,108,240,.13);--peach:rgba(255,176,90,.18);--mint:rgba(15,155,108,.13);--shadow:0 26px 60px -34px rgba(21,16,11,.32);--shadow-s:0 6px 18px -10px rgba(21,16,11,.28);--display:'Bricolage Grotesque',system-ui,sans-serif;--serif:'Newsreader',Georgia,serif;--body:'Inter',system-ui,-apple-system,sans-serif}
+body[data-theme="dark"]{--paper:#0a0908;--paper-2:#12100e;--ink:#f8f4ee;--ink-2:#b0a69c;--ink-3:#8b8177;--line:rgba(255,255,255,.10);--line-2:rgba(255,255,255,.20);--card:#171311;--accent-soft:rgba(244,80,30,.16);--ok-soft:rgba(15,155,108,.17);--lav-soft:rgba(124,108,240,.2);--peach:rgba(255,176,90,.16);--mint:rgba(15,155,108,.16);--shadow:0 30px 70px -30px rgba(0,0,0,.85);--shadow-s:0 8px 20px -12px rgba(0,0,0,.8)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hi)}
+img,svg{display:block;max-width:100%}
+button,input{font-family:inherit}
+::selection{background:var(--accent);color:#fff}
+@keyframes mFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes mPulse{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.45)}50%{box-shadow:0 0 0 8px rgba(244,80,30,0)}}
+@keyframes mDot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+@keyframes mSlide{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@keyframes mBlink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes mGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes mDrift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(5%,-4%) scale(1.1)}66%{transform:translate(-4%,3%) scale(.95)}100%{transform:translate(0,0) scale(1)}}
+@keyframes mAurora{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes mQueue{0%,5%{opacity:.5;transform:translateY(5px)}14%,30%{opacity:1;transform:translateY(0)}44%,100%{opacity:.84;transform:translateY(0)}}
+@keyframes mCheck{0%,8%{transform:scale(.4);opacity:.2}18%{transform:scale(1.18);opacity:1}28%,100%{transform:scale(1);opacity:1}}
+@keyframes mFill{0%,40%{width:0}70%,100%{width:100%}}
+@keyframes mRing{0%{stroke-dashoffset:352}100%{stroke-dashoffset:38}}
+@keyframes mWave{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+.btn-grad{background:linear-gradient(120deg,var(--accent),var(--accent-hi));color:#fff!important;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 18px 38px -14px rgba(244,80,30,.7)}
+.btn-grad:hover{transform:translateY(-2px);color:#fff!important}
+.hov-card{transition:transform .22s ease,border-color .22s ease}
+.hov-card:hover{transform:translateY(-3px);border-color:rgba(244,80,30,.45)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
+.chip-ok{padding:4px 10px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-weight:600;font-size:12px;display:inline-block}
+.conn{position:relative;height:64px;display:grid;place-items:center}
+.conn>div{width:2px;height:100%;transform-origin:top;transition:transform .2s linear}
+@media (max-width:980px){
+  .grid2{grid-template-columns:minmax(0,1fr)!important;gap:26px!important}
+  [data-navlinks]{display:none!important}
+  [data-cmprow]{grid-template-columns:minmax(0,1.4fr)!important}
+  [data-cmprow]>div:nth-child(2){display:none!important}
+  .conn{height:44px!important}
+}
+@media (max-width:640px){
+  section,[id]{padding-left:18px!important;padding-right:18px!important}
+  .qrow{grid-template-columns:1fr 1fr!important}
+  .phone-wrap{max-width:100%!important}
+  [data-sticky-cta] span{display:none}
+}
+</style>
+</head>
+<body>
+
+<div style="position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:90" data-progress></div>
+
+<nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--paper) 84%,transparent)">
+<div style="max-width:1220px;margin:0 auto;padding:12px 26px;display:flex;align-items:center;gap:24px">
+<a href="#top" style="display:flex;align-items:center;gap:10px;color:var(--ink)">
+<svg viewBox="0 0 40 40" style="width:32px;height:32px" aria-hidden="true"><defs><linearGradient id="mg5" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e0340e"/><stop offset=".5" stop-color="#ff7a2e"/><stop offset="1" stop-color="#ffcf4a"/></linearGradient></defs><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mg5)"/><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="var(--paper)" opacity=".9"/></svg>
+<span style="font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.04em">Mecha<span style="color:var(--accent)">.</span></span>
+<span style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line-2);padding:2px 5px;border-radius:5px">OS</span>
+</a>
+<div data-navlinks style="display:flex;gap:20px;margin-left:auto;font-size:13.6px;color:var(--ink-2)">
+<a href="#gestion" style="color:inherit">La gestión, sola</a>
+<a href="#equipo" style="color:inherit">Tu equipo</a>
+<a href="#todo" style="color:inherit">Todo en uno</a>
+<a href="#demo" style="color:inherit">Probar el software</a>
+<a href="#precios" style="color:inherit">Precios</a>
+</div>
+<div style="display:flex;align-items:center;gap:11px;margin-left:auto" data-navcta>
+<button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+</button>
+<a href="/acceso.html" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
+<a href="#demo" class="btn-grad" style="padding:10px 18px;border-radius:11px;font-size:13.6px;font-weight:600">Probar el software</a>
+</div>
+</div>
+</nav>
+
+<main id="top" style="position:relative">
+
+<!-- ═══════════ HERO ═══════════ -->
+<section style="position:relative;overflow:hidden;padding:clamp(40px,5.5vw,78px) 26px clamp(30px,4vw,56px);background:radial-gradient(120% 90% at 15% 0%,var(--accent-soft),transparent 60%)">
+<div style="position:absolute;inset:-45% -25%;pointer-events:none;opacity:.5;background:conic-gradient(from 20deg,transparent 0deg,var(--accent-soft) 70deg,transparent 150deg,var(--lav-soft) 230deg,transparent 310deg);filter:blur(70px);animation:mAurora 50s linear infinite"></div>
+<div data-spot style="position:absolute;width:600px;height:600px;left:-160px;top:-220px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(244,80,30,.20),transparent 66%);filter:blur(24px);animation:mDrift 28s ease-in-out infinite"></div>
+<div style="position:absolute;inset:0;pointer-events:none;opacity:.45;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%);-webkit-mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%)"></div>
+
+<div class="grid2" style="position:relative;max-width:1220px;margin:0 auto;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(30px,4.5vw,60px);align-items:center">
+<div>
+<span style="display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:18px">
+<span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>Software de gestión para salones</span>
+<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">El salón que <span style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent)">se lleva solo</span></h1>
+<p style="font-size:clamp(19px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:560px;margin:0 0 26px;text-wrap:pretty">Tu salón gasta <b style="color:var(--ink)">4 h al día</b> en gestión.<br />Mecha hace el <b style="color:var(--ink)">90%</b>. Tú, la silla.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+<a href="#demo" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;font-weight:600;font-size:15.5px">Entrar en el software real <span>→</span></a>
+<a href="#gestion" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">Ver qué hace por ti</a>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)">
+<span>✓ Sin registro para probarlo</span><span>✓ 0% de comisión</span><span>✓ Profesionales ilimitados</span>
+<span style="width:100%;font-size:11.5px;color:var(--ink-3)">Estimación sobre un salón de 3 sillas. En la demo lo calculamos con tus números.</span>
+</div>
+</div>
+
+<div style="position:relative">
+<div style="position:relative;border-radius:26px;border:1px solid var(--line-2);background:var(--card);box-shadow:var(--shadow);overflow:hidden">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:linear-gradient(120deg,var(--accent-soft),transparent)">
+<span style="width:8px;height:8px;border-radius:50%;background:var(--ok);animation:mBlink 2.2s infinite"></span>
+<b style="font-family:var(--display);font-size:15px">Gestión de hoy · en piloto automático</b>
+<span style="margin-left:auto;font-size:11px;color:var(--ink-3)">jueves, 15 oct</span>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:0">
+<div style="padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--paper)">
+<div style="position:relative;width:118px;height:118px">
+<svg viewBox="0 0 128 128" style="width:118px;height:118px;transform:rotate(-90deg)"><circle cx="64" cy="64" r="56" fill="none" stroke="var(--line)" stroke-width="11"/><circle cx="64" cy="64" r="56" fill="none" stroke="url(#mg5)" stroke-width="11" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352" style="animation:mRing 1.6s cubic-bezier(.22,.61,.36,1) .3s forwards"/></svg>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<b style="font-family:var(--display);font-size:30px;letter-spacing:-.03em;line-height:1"><span data-count="90" data-suffix="%">90%</span></b>
+<span style="font-size:10.5px;color:var(--ink-3);text-align:center;line-height:1.2">de la gestión<br />hecha sola</span>
+</div>
+</div>
+<div style="text-align:center;font-size:11.5px;color:var(--ink-2);line-height:1.4"><b style="color:var(--ink)">4 h 20</b> de tareas<br />→ <b style="color:var(--ok)">24 min</b> tuyos</div>
+</div>
+<div style="padding:14px;display:flex;flex-direction:column;gap:8px;min-height:288px;overflow:hidden;position:relative">
+<div style="position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,transparent,var(--card));pointer-events:none;z-index:2"></div>
+<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) infinite">
+<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) infinite;flex:none">✓</span>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">12 citas confirmadas por WhatsApp</div><div style="font-size:11px;color:var(--ink-3)">sin escribir un mensaje</div></div>
+<span style="font-size:11px;color:var(--ok);font-weight:600">−38 min</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 2s infinite">
+<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 2s infinite;flex:none">✓</span>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Reposo del tinte vendido</div><div style="font-size:11px;color:var(--ink-3)">corte encajado desde la lista de espera</div></div>
+<span style="font-size:11px;color:var(--ok);font-weight:600">+18 €</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 4s infinite">
+<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 4s infinite;flex:none">✓</span>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">9 facturas VeriFactu enviadas a la AEAT</div><div style="font-size:11px;color:var(--ink-3)">con su QR y su hash encadenado</div></div>
+<span style="font-size:11px;color:var(--ok);font-weight:600">−45 min</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 6s infinite">
+<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 6s infinite;flex:none">✓</span>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Jornada del equipo registrada</div><div style="font-size:11px;color:var(--ink-3)">3 fichajes, 1,9 h extra, comisiones al día</div></div>
+<span style="font-size:11px;color:var(--ok);font-weight:600">−25 min</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 8s infinite">
+<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 8s infinite;flex:none">✓</span>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Caja cuadrada y arqueo cerrado</div><div style="font-size:11px;color:var(--ink-3)">1.284 € · propinas y comisiones repartidas</div></div>
+<span style="font-size:11px;color:var(--ok);font-weight:600">−40 min</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 10s infinite">
+<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 10s infinite;flex:none">✓</span>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Informe del mes listo</div><div style="font-size:11px;color:var(--ink-3)">ocupación, margen y fugas, en PDF</div></div>
+<span style="font-size:11px;color:var(--ok);font-weight:600">−30 min</span>
+</div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--line);background:var(--paper);font-size:12px;color:var(--ink-2)">
+<span style="flex:1">Lo que tú haces hoy: <b style="color:var(--ink)">mirar la agenda y cortar pelo</b>.</span>
+<span style="font-family:var(--display);font-weight:800;font-size:17px;color:var(--ok)">24 min</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,transparent,var(--accent))"></div></div>
+
+<!-- ═══════════ 1 · LA GESTIÓN ═══════════ -->
+<section id="gestion" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
+<div style="max-width:1120px;margin:0 auto">
+<div class="reveal" style="max-width:760px;margin-bottom:clamp(26px,3.5vw,44px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">1</span>La gestión</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Somos los mejores gestionando salones. <span style="font-family:var(--serif);font-style:italic;font-weight:400">Y se nota en el reloj.</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">No te ayuda a hacerla más rápido. La hace.</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px">
+<div class="reveal hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:16px">🗓</span><b style="font-family:var(--display);font-size:17px">La agenda se ordena sola</b></div>
+<p style="margin:0 0 10px;font-size:15px;color:var(--ink-2)">Confirma, recuerda, recoloca retrasos y convierte el reposo del tinte en un hueco vendido.</p>
+<div style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mFill 3s ease-in-out infinite"></div></div>
+<div style="font-size:11.5px;color:var(--ink-3);margin-top:6px">≈ 1 h 10 al día que no gastas</div>
+</div>
+<div class="reveal hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:16px">💳</span><b style="font-family:var(--display);font-size:17px">Cobrar y facturar, el mismo gesto</b></div>
+<p style="margin:0 0 10px;font-size:15px;color:var(--ink-2)">Cobras y la factura <b>VeriFactu</b> se firma y se envía a la AEAT sola. El arqueo cuadra al cerrar.</p>
+<div style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mFill 3s ease-in-out .3s infinite"></div></div>
+<div style="font-size:11.5px;color:var(--ink-3);margin-top:6px">≈ 45 min al día que no gastas</div>
+</div>
+<div class="reveal hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:16px">📥</span><b style="font-family:var(--display);font-size:17px">Las reservas entran sin ti</b></div>
+<p style="margin:0 0 10px;font-size:15px;color:var(--ink-2)">Tu portal abierto 24/7, con señal y 0% de comisión. Reservan de madrugada; tú lo ves al abrir.</p>
+<div style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mFill 3s ease-in-out .6s infinite"></div></div>
+<div style="font-size:11.5px;color:var(--ink-3);margin-top:6px">−93% de plantones</div>
+</div>
+<div class="reveal hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:16px">🧠</span><b style="font-family:var(--display);font-size:17px">Nada se te olvida</b></div>
+<p style="margin:0 0 10px;font-size:15px;color:var(--ink-2)">Clientas que no vuelven, stock bajo, reseñas por pedir. Te llega resuelto: solo dices que sí.</p>
+<div style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mFill 3s ease-in-out .9s infinite"></div></div>
+<div style="font-size:11.5px;color:var(--ink-3);margin-top:6px">bandeja de avisos con acción en un toque</div>
+</div>
+<div class="reveal hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:16px">📈</span><b style="font-family:var(--display);font-size:17px">Las cuentas, al día</b></div>
+<p style="margin:0 0 10px;font-size:15px;color:var(--ink-2)">Margen, ocupación y fugas por profesional. Con un párrafo que te dice qué hacer.</p>
+<div style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mFill 3s ease-in-out 1.2s infinite"></div></div>
+<div style="font-size:11.5px;color:var(--ink-3);margin-top:6px">informe en PDF o CSV, cuando quieras</div>
+</div>
+<div class="reveal hov-card" style="border:1px solid rgba(244,80,30,.4);border-radius:18px;padding:22px;background:linear-gradient(160deg,var(--accent-soft),var(--card) 65%);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px">⏱</span><b style="font-family:var(--display);font-size:17px">Lo que te queda a ti</b></div>
+<p style="margin:0 0 12px;font-size:15px;color:var(--ink-2)">24 minutos: mirar el día, decidir dos cosas y cerrar.</p>
+<div style="display:flex;align-items:baseline;gap:8px"><b style="font-family:var(--display);font-size:34px;letter-spacing:-.03em;color:var(--accent)"><span data-count="90" data-suffix="%">90%</span></b><span style="font-size:13px;color:var(--ink-2)">menos tiempo de gestión</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--lav))"></div></div>
+
+<!-- ═══════════ 2 · EL EQUIPO ═══════════ -->
+<section id="equipo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);overflow:hidden">
+<div style="position:absolute;width:560px;height:560px;right:-200px;top:0;border-radius:50%;background:radial-gradient(circle,var(--lav-soft),transparent 70%);filter:blur(30px);animation:mDrift 32s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:relative;max-width:1120px;margin:0 auto">
+<div class="reveal" style="max-width:780px;margin-bottom:clamp(26px,3.5vw,44px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--lav);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">2</span>El equipo</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">El software que hace que <span style="font-family:var(--serif);font-style:italic;font-weight:400">la gente se quede</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Lo difícil no es llenar la agenda: es tener equipo. Aquí cada profesional ve sus horas, sus comisiones y sus objetivos sin preguntarte.</p>
+</div>
+<div class="grid2" style="grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(22px,3vw,40px);align-items:center">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
+<b style="font-family:var(--display);font-size:17px">Fichaje y jornada legal, dentro</b>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Entrada, descanso y salida en Mecha. Registro del art. 34.9 ET en PDF, sin app aparte.</p>
+</div>
+<div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
+<b style="font-family:var(--display);font-size:17px">Comisiones que se calculan solas</b>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Sobre lo que cada uno facturó de verdad. Se acabó el Excel del día 30.</p>
+</div>
+<div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
+<b style="font-family:var(--display);font-size:17px">Cada uno ve lo justo</b>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Tú ves el dinero; el equipo ve lo suyo. Dar de alta a alguien: dos minutos y 0 € más.</p>
+</div>
+<div class="reveal" style="border:1px solid rgba(124,108,240,.45);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--lav-soft),var(--card) 65%)">
+<b style="font-family:var(--display);font-size:17px">Un salón ordenado retiene</b>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">La gente se va de los salones caóticos, no de los que pagan bien y a tiempo.</p>
+</div>
+</div>
+<div class="reveal" style="border:1px solid var(--line-2);border-radius:22px;background:var(--card);box-shadow:var(--shadow);overflow:hidden">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--paper)">
+<b style="font-family:var(--display);font-size:15px">Mi jornada · Sofía</b>
+<span style="margin-left:auto;font-size:10.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:4px 9px;border-radius:999px;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--ok);animation:mBlink 1.8s infinite"></span>EN TURNO</span>
+</div>
+<div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;text-align:center;font-size:11px">
+<div style="padding:12px 8px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><div style="font-family:var(--display);font-weight:800;font-size:19px">09:10</div><div style="color:var(--ink-3)">entrada</div></div>
+<div style="padding:12px 8px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><div style="font-family:var(--display);font-weight:800;font-size:19px">7,4 h</div><div style="color:var(--ink-3)">hoy</div></div>
+<div style="padding:12px 8px;border-radius:12px;border:1px solid rgba(244,80,30,.35);background:var(--accent-soft)"><div style="font-family:var(--display);font-weight:800;font-size:19px;color:var(--accent)">+1,9 h</div><div style="color:var(--ink-3)">extra del mes</div></div>
+</div>
+<div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span>Objetivo del mes</span><b>3.420 € / 4.000 €</b></div>
+<div style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><div style="width:86%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mGrow 1s ease both;transform-origin:left"></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Comisión acumulada</span><b style="color:var(--ok)">418,60 €</b></div>
+<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Propinas del mes</span><b>96,00 €</b></div>
+<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Clientas que repiten con ella</span><b>78%</b></div>
+</div>
+<div style="padding:12px 14px;border-radius:12px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:12.5px;color:var(--ink-2)">Su registro de jornada del mes está firmado y listo para la gestoría. <b style="color:var(--ink)">Exportar PDF</b></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--lav),var(--accent))"></div></div>
+
+<!-- ═══════════ 3 · TODO EN UNO ═══════════ -->
+<section id="todo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
+<div style="max-width:1120px;margin:0 auto">
+<div class="reveal" style="max-width:760px;margin-bottom:clamp(24px,3vw,40px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">3</span>Todo en uno</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un software, <span style="font-family:var(--serif);font-style:italic;font-weight:400">no cinco suscripciones</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">La cita se convierte en ticket, el ticket en factura y las horas en nómina. Si están en cinco programas, el pegamento eres tú.</p>
+</div>
+<div class="reveal grid2" style="grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(20px,3vw,34px);align-items:stretch">
+<div style="border:1px solid var(--line-2);border-radius:22px;background:var(--card);box-shadow:var(--shadow);overflow:hidden">
+<div style="padding:16px 20px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">Lo que dejas de pagar por separado</div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">🗓</span><span style="flex:1">Software de agenda o marketplace</span><s style="color:var(--ink-3)">30 €</s><span style="color:var(--accent);font-weight:600;font-size:12px">+ comisiones</span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">💳</span><span style="flex:1">TPV y cobro con datáfono</span><s style="color:var(--ink-3)">25 €</s></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">🧾</span><span style="flex:1">Programa de facturación VeriFactu</span><s style="color:var(--ink-3)">15 €</s></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">⏱</span><span style="flex:1">App de fichaje y control horario</span><s style="color:var(--ink-3)">12 €</s></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">📣</span><span style="flex:1">Envíos de WhatsApp, reseñas y campañas</span><s style="color:var(--ink-3)">20 €</s></div>
+<div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--paper);font-size:14px"><span style="flex:1;font-weight:600">Todo eso, dentro de Mecha</span><b style="font-family:var(--display);font-size:26px;color:var(--ok)">59 €</b><span style="font-size:12px;color:var(--ink-3)">/mes</span></div>
+</div>
+<div class="qrow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">🗓</div><b>Agenda con reposos</b><div style="color:var(--ink-3);font-size:11.5px">y lista de espera</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">👤</div><b>Fichas con fórmula</b><div style="color:var(--ink-3);font-size:11.5px">fotos, alergias, historial</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">💳</div><b>Caja y TPV</b><div style="color:var(--ink-3);font-size:11.5px">propinas, Bizum, Tap to Pay</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid rgba(244,80,30,.35);background:var(--accent-soft);font-size:13px"><div style="font-size:17px;margin-bottom:6px">🧾</div><b>Facturación VeriFactu</b><div style="color:var(--ink-3);font-size:11.5px">enviada a la AEAT</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid rgba(244,80,30,.35);background:var(--accent-soft);font-size:13px"><div style="font-size:17px;margin-bottom:6px">⏱</div><b>Control horario</b><div style="color:var(--ink-3);font-size:11.5px">fichaje legal del equipo</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">🌐</div><b>Portal de reservas</b><div style="color:var(--ink-3);font-size:11.5px">tu marca, 0% comisión</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">📦</div><b>Inventario</b><div style="color:var(--ink-3);font-size:11.5px">con alertas de mínimo</div></div>
+<div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">📈</div><b>Informes</b><div style="color:var(--ink-3);font-size:11.5px">por servicio y profesional</div></div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--gold))"></div></div>
+
+<!-- ═══════════ 4 · DEMO ═══════════ -->
+<section id="demo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);overflow:hidden">
+<div style="position:absolute;inset:-30% -10%;pointer-events:none;opacity:.4;background:conic-gradient(from 140deg,transparent,var(--accent-soft) 80deg,transparent 200deg,var(--peach),transparent 340deg);filter:blur(70px);animation:mAurora 46s linear infinite"></div>
+<div style="position:relative;max-width:1020px;margin:0 auto;text-align:center">
+<div class="reveal">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span>Pruébalo tú</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">No te lo contamos: <span style="font-family:var(--serif);font-style:italic;font-weight:400">entra y tócalo</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0 auto 26px;max-width:620px;text-wrap:pretty">Es Mecha de verdad, con un salón de ejemplo. Chispa te guía y tú tocas: crear una cita, partirla en reposos, cobrar, descargar el informe.</p>
+</div>
+<div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;text-align:left;margin-bottom:24px">
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">16</div><b style="font-size:14px">pasos guiados</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Agenda, cita, reposos, ficha, equipo e informes. Puedes saltártelos cuando quieras.</div></div>
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">100%</div><b style="font-size:14px">software real</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">No es un vídeo ni un maquetado: es Mecha funcionando, con datos de ejemplo.</div></div>
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">0</div><b style="font-size:14px">registros</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Sin correo, sin tarjeta y sin llamada comercial detrás. Entras y sales.</div></div>
+</div>
+<div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:12px">
+<a href="/demo.html" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:600;font-size:16px;animation:mPulse 3s ease-in-out infinite">▶ Empezar el recorrido guiado</a>
+<a href="/demo.html" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">Entrar y trastear por mi cuenta</a>
+</div>
+<p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">También te lo enseñamos en directo en 10 minutos, con tus servicios y tus precios: <a href="#contacto">reservar una demo guiada</a>.</p>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--gold),var(--accent))"></div></div>
+
+<!-- ═══════════ 5 · COMPARATIVA ═══════════ -->
+<section id="comparativa" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
+<div style="max-width:1080px;margin:0 auto">
+<div class="reveal" style="max-width:760px;margin-bottom:clamp(24px,3vw,40px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">5</span>Dónde se queda corto lo que usas</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Una app de citas <span style="font-family:var(--serif);font-style:italic;font-weight:400">no gestiona un salón</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Las apps tipo <b>Booksy</b> o <b>Fresha</b> te llenan la agenda y ahí acaban. Lo demás lo sigues haciendo tú.</p>
+</div>
+<div class="reveal" style="border:1px solid var(--line-2);border-radius:22px;overflow:hidden;background:var(--card);box-shadow:var(--shadow)">
+<div data-cmprow style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);background:var(--paper);border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">
+<div style="padding:14px 18px">Lo que necesita un salón</div>
+<div style="padding:14px 18px">Apps de citas (Booksy, Fresha…)</div>
+<div style="padding:14px 18px;color:var(--accent);font-weight:700">Mecha</div>
+</div>
+<div id="cmpBody"></div>
+<div style="padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--paper)">
+<div style="flex:1;min-width:250px;font-size:14.5px;color:var(--ink-2)"><b style="color:var(--ink)">Puedes quedarte con tu app de citas si te trae clientes.</b> Mucha gente la deja solo como escaparate y lleva el salón con Mecha. Te migramos agenda, clientes e historial en 10 minutos.</div>
+<a href="#contacto" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:600;font-size:14.5px">Tráete tu agenda →</a>
+</div>
+</div>
+<p style="font-size:11.5px;color:var(--ink-3);margin:14px 0 0">Comparativa orientativa sobre categorías de producto, elaborada con funciones publicadas; pueden cambiar.</p>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--ok))"></div></div>
+
+<!-- ═══════════ 6 · LAS CUENTAS ═══════════ -->
+<section id="cuentas" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
+<div style="max-width:1020px;margin:0 auto">
+<div class="reveal" style="text-align:center;max-width:660px;margin:0 auto clamp(24px,3vw,40px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">6</span>Tu caso</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Cuánto tiempo y dinero <span style="font-family:var(--serif);font-style:italic;font-weight:400">te está costando</span></h2>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">Mueve las barras con los números de tu salón.</p>
+</div>
+<div class="reveal grid2" style="align-items:stretch">
+<div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow)">
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Horas al día en gestión: <b id="lHoras" style="color:var(--accent);font-size:16px">4 h</b></label>
+<input id="rHoras" type="range" min="0.5" max="6" step="0.5" value="4" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Plantones al mes: <b id="lNoShows" style="color:var(--accent);font-size:16px">6</b></label>
+<input id="rNoShows" type="range" min="1" max="40" value="6" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Ticket medio: <b id="lTicket" style="color:var(--accent);font-size:16px">45 €</b></label>
+<input id="rTicket" type="range" min="15" max="180" step="5" value="45" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Profesionales: <b id="lSillas" style="color:var(--accent);font-size:16px">3</b></label>
+<input id="rSillas" type="range" min="1" max="20" value="3" style="width:100%;accent-color:var(--accent)" />
+<p style="font-size:12px;color:var(--ink-3);margin:18px 0 0;line-height:1.5">Con 2 o con 20 profesionales pagas lo mismo, y 0 € de comisión por reserva. Sube el slider y compruébalo.</p>
+</div>
+<div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:14px">
+<div>
+<div style="font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">Tiempo de gestión al mes</div>
+<div style="font-family:var(--display);font-weight:800;font-size:clamp(34px,4.4vw,52px);line-height:1;letter-spacing:-.03em;color:var(--accent)"><span id="oHorasMes">104 h</span><span style="font-size:16px;font-weight:600;color:var(--ink-3)"> → <span id="oHorasMecha">10 h</span></span></div>
+<div style="font-size:13.5px;color:var(--ink-2);margin-top:6px">Te devolvemos <b id="oHorasLibres">94 h al mes</b>. A precio de hora de salón, son <b id="oValorHoras">2.820 €</b> de tu tiempo.</div>
+</div>
+<div style="height:1px;background:var(--line)"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Plantones al mes</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--accent)" id="oPerdidaMes">810 €</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Recuperable con señal</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)" id="oRecuperado">753 €</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste de Mecha</div><div style="font-family:var(--display);font-weight:700;font-size:23px">59 €</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste extra por profesional</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)">0 €</div></div>
+</div>
+<div style="background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:15px;font-size:13px;color:var(--ink-2)">Entre tiempo recuperado y plantones evitados, Mecha se paga <b style="color:var(--ink)" id="oVeces">61 veces</b> cada mes.</div>
+<a href="#demo" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:12px;background:var(--ink);color:var(--paper);font-weight:600;font-size:15px;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Ver el software con estos números →</a>
+</div>
+</div>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--ok),var(--accent))"></div></div>
+
+<!-- ═══════════ 7 · IA ADDON (móvil WhatsApp realista) ═══════════ -->
+<section id="ia" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
+<div style="max-width:1120px;margin:0 auto">
+<div class="reveal" style="max-width:760px;margin-bottom:clamp(22px,3vw,36px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ok);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">+</span>Addon opcional</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,44px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Y si quieres, que <span style="font-family:var(--serif);font-style:italic;font-weight:400">tampoco contestes el teléfono</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0">El software va solo sin esto. Si lo activas, la IA atiende WhatsApp y llamadas: da cita, cobra la señal y crea la ficha.</p>
+</div>
+<div class="reveal grid2" style="grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,3vw,36px);align-items:center">
+<div class="phone-wrap" style="position:relative;width:100%;max-width:342px;margin:0 auto;border-radius:44px;padding:11px;background:linear-gradient(160deg,#2b2723,#100e0c);box-shadow:0 40px 80px -34px rgba(21,16,11,.6),0 0 0 1px rgba(255,255,255,.06) inset">
+<div style="position:relative;border-radius:34px;overflow:hidden;background:#0f1014;display:flex;flex-direction:column;height:530px">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:96px;height:26px;border-radius:99px;background:#000;z-index:5"></div>
+<div style="display:flex;align-items:center;padding:11px 20px 4px;font-size:11.5px;font-weight:600;color:#fff">
+<span style="width:64px">23:40</span><span style="flex:1"></span>
+<span style="display:flex;align-items:flex-end;gap:2px;height:10px"><i style="width:3px;height:4px;background:#fff;border-radius:1px;display:block"></i><i style="width:3px;height:6px;background:#fff;border-radius:1px;display:block"></i><i style="width:3px;height:8px;background:#fff;border-radius:1px;display:block"></i><i style="width:3px;height:10px;background:rgba(255,255,255,.45);border-radius:1px;display:block"></i></span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:8px 12px 10px;background:#1f2c33">
+<svg viewBox="0 0 24 24" style="width:18px;height:18px;flex:none" fill="none" stroke="#e9edef" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+<img src="assets/v4/chispa-avatar.png" alt="Chispa" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;background:#0b141a" />
+<div style="flex:1;min-width:0">
+<div style="font-weight:600;font-size:14px;color:#e9edef;line-height:1.2">Studio Norte</div>
+<div style="font-size:11px;color:#9fb0b8;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:mBlink 2.4s infinite"></span>en línea</div>
+</div>
+<svg viewBox="0 0 24 24" style="width:17px;height:17px" fill="#9fb0b8"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 3.5V7l-4 3.5Z"/></svg>
+</div>
+<div id="chat" style="flex:1;overflow-y:auto;padding:12px 10px 14px;display:flex;flex-direction:column;gap:7px;font-size:13.4px;background:#0b141a;background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px),radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px);background-size:22px 22px,34px 34px;background-position:0 0,11px 17px">
+<div style="align-self:center;font-size:10.5px;color:#8aa0a9;background:rgba(31,44,51,.9);padding:4px 11px;border-radius:8px;margin-bottom:2px">HOY · FUERA DE HORARIO</div>
+<div class="wapp-u">Hola, ¿tenéis hueco el sábado para mechas? 🙏</div>
+<div class="wapp-b">¡Claro! Con Sofía queda el <b>sábado a las 11:30</b> o a las <b>17:00</b>. Mechas completas, 90 min · 85 €.</div>
+<div class="wapp-u">A las 11:30 mejor</div>
+<div class="wapp-b" style="padding:8px">
+<div style="border-left:3px solid #25d366;background:rgba(37,211,102,.10);border-radius:6px;padding:7px 9px;margin-bottom:6px">
+<div style="font-size:11.5px;font-weight:700;color:#25d366">Señal de 15 € cobrada</div>
+<div style="font-size:11.5px;color:rgba(233,237,239,.75)">Sábado 11:30 · Mechas · Sofía</div>
+</div>
+Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
+</div>
+<form id="chatForm" style="display:flex;align-items:center;gap:7px;padding:8px 9px 14px;background:#0b141a">
+<div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:22px;background:#1f2c33">
+<svg viewBox="0 0 24 24" style="width:17px;height:17px;flex:none" fill="#8aa0a9"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-3.5 7a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6Zm7 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6ZM12 17.6c-2.2 0-4.1-1.3-4.9-3.1h9.8c-.8 1.8-2.7 3.1-4.9 3.1Z"/></svg>
+<input id="chatInput" placeholder="Escribe un mensaje" style="flex:1;min-width:0;border:none;background:transparent;color:#e9edef;font-size:13.4px;outline:none" />
+</div>
+<button type="submit" style="width:40px;height:40px;flex:none;border:none;border-radius:50%;background:#00a884;color:#fff;cursor:pointer;display:grid;place-items:center" title="Enviar">
+<svg viewBox="0 0 24 24" style="width:19px;height:19px" fill="#fff"><path d="M3 20.5 21 12 3 3.5 3 10l12 2-12 2z"/></svg>
+</button>
+</form>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="border:1px solid rgba(15,155,108,.35);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><img src="assets/v4/chispa-avatar.png" alt="" style="width:34px;height:34px;border-radius:10px;object-fit:cover" /><b style="font-family:var(--display);font-size:17px">IA por WhatsApp</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:5px 10px;border-radius:8px">19 €/mes</span></div>
+<p style="margin:0;font-size:14px;color:var(--ink-2)">Da cita, mueve citas, responde precios y horarios, pide la señal y crea la ficha. Nunca ofrece un hueco que no existe: lee tu agenda real. Pruébala aquí al lado.</p>
+</div>
+<div style="border:1px solid rgba(244,80,30,.4);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--accent-soft),var(--card) 60%);box-shadow:var(--shadow-s)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px">📞</span><b style="font-family:var(--display);font-size:17px">IA de voz</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px">29 €/mes</span></div>
+<p style="margin:0 0 12px;font-size:14px;color:var(--ink-2)">Coge el teléfono, habla y da cita. Te deja la transcripción y el resumen de cada llamada, y te la pasa si la clienta prefiere hablar contigo.</p>
+<div style="display:flex;align-items:flex-end;gap:3px;height:26px">
+<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out infinite"></span>
+<span style="flex:1;background:var(--accent-hi);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .12s infinite"></span>
+<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .24s infinite"></span>
+<span style="flex:1;background:var(--gold);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .36s infinite"></span>
+<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .48s infinite"></span>
+<span style="flex:1;background:var(--accent-hi);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .6s infinite"></span>
+<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .72s infinite"></span>
+<span style="flex:1;background:var(--gold);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .84s infinite"></span>
+<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .96s infinite"></span>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 18px;border-radius:16px;border:1px dashed rgba(244,80,30,.45)"><span style="flex:1;min-width:200px;font-size:14px;color:var(--ink-2)"><b style="color:var(--ink)">Las dos juntas: +39 €/mes</b>, sin permanencia.</span><a href="#contacto" style="padding:11px 18px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Probarlas →</a></div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--gold))"></div></div>
+
+<!-- ═══════════ PRECIOS ═══════════ -->
+<section id="precios" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
+<div style="max-width:920px;margin:0 auto">
+<div class="reveal" style="text-align:center;max-width:640px;margin:0 auto clamp(24px,3vw,40px)">
+<span style="display:block;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Precio simple, sin letra pequeña</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes con profesionales ilimitados. Primer mes gratis, sin permanencia y con la migración hecha por nosotros.</p>
+</div>
+<div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+<div class="hov-card" style="border:1px solid var(--line-2);border-radius:22px;padding:28px;background:var(--card);display:flex;flex-direction:column;gap:13px;box-shadow:var(--shadow-s)">
+<div style="font-family:var(--display);font-weight:800;font-size:21px">Esencial</div>
+<div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">La base sólida para gestionar tu salón</div>
+<div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">39 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
+<div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--ink-2);flex:1">
+<span>✓ Agenda con <b style="color:var(--ink)">tiempos de reposo</b> y servicios encadenados</span>
+<span>✓ Fichas con <b style="color:var(--ink)">fórmulas de color</b>, fotos y alergias</span>
+<span>✓ <b style="color:var(--ink)">Portal de reserva propio</b>, sin comisiones</span>
+<span>✓ Caja y TPV con propinas, Bizum y Tap to Pay</span>
+<span>✓ <b style="color:var(--ink)">VeriFactu</b> y <b style="color:var(--ink)">control horario</b> del equipo</span>
+<span>✓ Informes — <b style="color:var(--ink)">profesionales ilimitados</b></span>
+</div>
+<a href="#contacto" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:14.5px">Empezar con 1 mes gratis</a>
+</div>
+<div class="hov-card" style="position:relative;border:1px solid rgba(244,80,30,.55);border-radius:22px;padding:28px;background:linear-gradient(170deg,var(--accent-soft),var(--card) 55%);display:flex;flex-direction:column;gap:13px;box-shadow:0 26px 60px -30px rgba(224,52,14,.45)">
+<span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap">Recomendado</span>
+<div style="font-family:var(--display);font-weight:800;font-size:21px">Estudio</div>
+<div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">Para salones que quieren ir en automático</div>
+<div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">59 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
+<div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--ink-2);flex:1">
+<span>✓ <b style="color:var(--ink)">Todo lo del plan Esencial</b></span>
+<span>✓ <b style="color:var(--ink)">Señales por Stripe</b> contra los plantones</span>
+<span>✓ <b style="color:var(--ink)">Lista de espera</b> que vende los reposos sola</span>
+<span>✓ <b style="color:var(--ink)">Campañas</b> por WhatsApp y reseñas automáticas</span>
+<span>✓ Inventario y presupuestos</span>
+<span>✓ Migración y puesta en marcha incluidas</span>
+</div>
+<a href="#contacto" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:600;font-size:14.5px">Empezar con 1 mes gratis</a>
+</div>
+</div>
+<div class="reveal" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 20px;margin-top:22px;font-size:13.5px;color:var(--ink-2)">
+<span>✓ 1 mes gratis, sin tarjeta</span><span>✓ Sin permanencia</span><span>✓ 0% comisiones</span><span>✓ Profesionales ilimitados</span><span>✓ Te lo montamos todo</span>
+</div>
+</div>
+</section>
+
+<!-- ═══════════ CONTACTO ═══════════ -->
+<section id="contacto" style="padding:clamp(48px,6vw,88px) 26px;background:var(--ink);color:var(--paper);position:relative;overflow:hidden">
+<div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(244,80,30,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
+<div style="position:relative;max-width:1080px;margin:0 auto">
+<div class="reveal" style="text-align:center;margin-bottom:28px">
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.6vw,46px);letter-spacing:-.03em;margin:0 0 12px">Deja de llevar el salón <span style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent-hi)">a mano</span></h2>
+<p style="font-size:16.5px;color:rgba(255,255,255,.66);margin:0">Entra en el software real ahora mismo, o te lo montamos con tus servicios en una llamada de 10 minutos.</p>
+</div>
+<div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+<a href="/demo.html" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(244,80,30,.5);background:linear-gradient(160deg,rgba(244,80,30,.22),rgba(255,255,255,.03));color:var(--paper)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+<span style="font-size:22px">▶</span>
+<b style="font-family:var(--display);font-size:17px">Probar el software ahora</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Recorrido guiado de 16 pasos sobre Mecha real. Sin registro.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Entrar →</span>
+</a>
+<a href="#contacto" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
+<span style="font-size:22px">📅</span>
+<b style="font-family:var(--display);font-size:17px">Demo guiada de 10 min</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.62)">Eliges día y hora. Te lo enseñamos con tus servicios y tus precios.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Elegir día y hora →</span>
+</a>
+<a href="#contacto" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
+<span style="font-size:22px">⚡</span>
+<b style="font-family:var(--display);font-size:17px">Quiero empezar ya</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Déjanos tus datos y te damos acceso con tu salón configurado.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Empezar →</span>
+</a>
+</div>
+</div>
+</section>
+
+<footer style="padding:32px 26px;background:var(--ink);color:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.1)">
+<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;font-size:13px">
+<span style="font-family:var(--display);font-weight:800;font-size:19px;color:var(--paper)">Mecha<span style="color:var(--accent)">.</span></span>
+<div style="display:flex;flex-wrap:wrap;gap:18px">
+<a href="/demo.html" style="color:inherit">Probar el software</a>
+<a href="/especificaciones.html" style="color:inherit">Especificaciones</a>
+<a href="/salones.html" style="color:inherit">Reservar en un salón</a>
+<a href="/privacidad.html" style="color:inherit">Privacidad</a>
+<a href="/terminos.html" style="color:inherit">Términos</a>
+</div>
+<span>© 2026 Mecha OS</span>
+</div>
+</footer>
+
+</main>
+
+<!-- CTA fijo inferior -->
+<div data-sticky-cta style="position:fixed;left:0;right:0;bottom:0;z-index:80;transform:translateY(120%);transition:transform .45s cubic-bezier(.22,.61,.36,1);padding:12px 20px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)">
+<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px">
+<span style="font-size:14px;color:var(--ink-2);flex:1;min-width:220px"><b style="color:var(--ink)">El 90% de la gestión de tu salón, hecha sola.</b> Entra en el software real y compruébalo.</span>
+<a href="/demo.html" class="btn-grad" style="padding:11px 20px;border-radius:11px;font-weight:600;font-size:14px">Probar el software →</a>
+</div>
+</div>
+
+<style>
+.reveal{opacity:1}
+.reveal:not(.on){opacity:0;transform:translateY(26px)}
+.reveal.on{animation:mFade .7s cubic-bezier(.22,.61,.36,1) both}
+.wapp-u{align-self:flex-end;max-width:82%;background:#005c4b;color:#e9edef;padding:7px 10px;border-radius:12px 3px 12px 12px;box-shadow:0 1px 1px rgba(0,0,0,.3);animation:mSlide .35s ease both}
+.wapp-b{align-self:flex-start;max-width:86%;background:#1f2c33;color:#e9edef;padding:7px 10px;border-radius:3px 12px 12px 12px;box-shadow:0 1px 1px rgba(0,0,0,.3);animation:mSlide .35s ease both}
+</style>
+
+<script>
+function toggleTema(){ document.body.dataset.theme = document.body.dataset.theme === "dark" ? "" : "dark"; }
+
+function countUp(el){
+  el.dataset.done="1";
+  const target=+el.dataset.count, suffix=el.dataset.suffix||"";
+  if(!target) return;
+  const t0=performance.now(), dur=1100;
+  const tick=t=>{
+    const k=Math.min(1,(t-t0)/dur), v=Math.round(target*(1-Math.pow(1-k,3)));
+    el.textContent=v.toLocaleString("es-ES")+suffix;
+    if(k<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function sweep(){
+  document.querySelectorAll(".reveal").forEach(el=>{ if(!el.classList.contains("on") && el.getBoundingClientRect().top<innerHeight*0.9) el.classList.add("on"); });
+  document.querySelectorAll("[data-count]").forEach(el=>{ if(!el.dataset.done && el.getBoundingClientRect().top<innerHeight*0.92) countUp(el); });
+}
+function onScroll(){
+  const d=document.documentElement;
+  const p=d.scrollTop/Math.max(1,d.scrollHeight-d.clientHeight);
+  const bar=document.querySelector("[data-progress]"); if(bar) bar.style.width=(p*100).toFixed(2)+"%";
+  const cta=document.querySelector("[data-sticky-cta]");
+  if(cta){
+    const fin=document.getElementById("contacto");
+    const cerca=fin && fin.getBoundingClientRect().top<innerHeight*1.1;
+    cta.style.transform=p>0.16 && !cerca ? "translateY(0)":"translateY(120%)";
+  }
+  document.querySelectorAll(".conn>div").forEach(el=>{
+    const r=el.parentElement.getBoundingClientRect();
+    const k=Math.max(0,Math.min(1,(innerHeight*0.85-r.top)/(r.height+60)));
+    el.style.transform="scaleY("+k.toFixed(3)+")";
+  });
+  sweep();
+}
+addEventListener("scroll",onScroll,{passive:true});
+addEventListener("mousemove",e=>{ const s=document.querySelector("[data-spot]"); if(s) s.style.marginLeft=(e.clientX*0.02)+"px"; },{passive:true});
+
+/* comparativa */
+const FILAS=[
+  { tema:"Tiempos de reposo del tinte", otros:"No existen: un color son 90 min de silla bloqueada", mecha:"Activo → reposo → activo. El reposo se marca vendible y se rellena solo" },
+  { tema:"Servicios encadenados", otros:"Dos citas sueltas cuadradas a mano", mecha:"Color con una profesional y peinado con otra, en la misma cita" },
+  { tema:"Facturación española", otros:"Fuera del programa: otro software y la gestoría", mecha:"VeriFactu con hash y QR, enviada a la AEAT desde la propia caja" },
+  { tema:"Control horario del equipo", otros:"No lo cubren: app de fichaje aparte", mecha:"Fichaje y registro de jornada legal (art. 34.9 ET) incluido" },
+  { tema:"Comisiones y objetivos", otros:"Excel de fin de mes", mecha:"Calculadas sobre lo facturado real, visibles para cada profesional" },
+  { tema:"Coste por cliente nuevo", otros:"20-35% de comisión cada vez que entra por el escaparate", mecha:"0%. Quien entra por tu portal es tuyo y no pagas nada" },
+  { tema:"Precio al crecer", otros:"Por profesional o por silla: creces y sube la factura", mecha:"Plano. Profesionales ilimitados en los dos planes" },
+  { tema:"Trabajo de gestión que te queda", otros:"Casi todo: confirmar, cobrar, facturar, cuadrar, fichar", mecha:"Un 10%: mirar el día y decidir dos cosas" }
+];
+document.getElementById("cmpBody").innerHTML=FILAS.map(f=>
+  '<div data-cmprow style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid var(--line);font-size:14px" onmouseover="this.style.background=\'var(--accent-soft)\'" onmouseout="this.style.background=\'none\'">'+
+  '<div style="padding:15px 18px;font-weight:600">'+f.tema+'</div>'+
+  '<div style="padding:15px 18px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start"><span style="color:var(--ink-3);font-weight:700">✕</span><span>'+f.otros+'</span></div>'+
+  '<div style="padding:15px 18px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start;background:var(--accent-soft)"><span style="color:var(--ok);font-weight:700">✓</span><span>'+f.mecha+'</span></div></div>'
+).join("");
+
+/* calculadora */
+const R=id=>document.getElementById(id);
+function calc(){
+  const horas=+R("rHoras").value, noShows=+R("rNoShows").value, ticket=+R("rTicket").value, sillas=+R("rSillas").value;
+  R("lHoras").textContent=(horas%1?horas.toFixed(1):horas)+" h";
+  R("lNoShows").textContent=noShows;
+  R("lTicket").textContent=ticket+" €";
+  R("lSillas").textContent=sillas;
+  const nf=n=>Math.round(n).toLocaleString("es-ES");
+  const perdida=noShows*ticket*Math.max(1,Math.round(sillas/3));
+  const hMes=horas*26, hMecha=hMes*0.1;
+  R("oHorasMes").textContent=nf(hMes)+" h";
+  R("oHorasMecha").textContent=nf(hMecha)+" h";
+  R("oHorasLibres").textContent=nf(hMes-hMecha)+" h";
+  R("oValorHoras").textContent=nf((hMes-hMecha)*(ticket/1.5))+" €";
+  R("oPerdidaMes").textContent=nf(perdida)+" €";
+  R("oRecuperado").textContent=nf(perdida*0.93)+" €";
+  R("oVeces").textContent=Math.max(1,Math.round((perdida*0.93+(hMes-hMecha)*(ticket/1.5))/59));
+}
+["rHoras","rNoShows","rTicket","rSillas"].forEach(id=>R(id).addEventListener("input",calc));
+
+/* chat WhatsApp */
+function reply(q){
+  const t=(q||"").toLowerCase();
+  if(/precio|cuesta|cu[aá]nto|cuanto|tarifa|€/.test(t)) return "Corte caballero 18 €, color raíz 45 € y mechas completas 85 €. Si reservas ahora te pido 15 € de señal y se descuentan del total.";
+  if(/s[aá]bado|sabado|hueco|cita|hora|reserv|lunes|martes|viernes|jueves|mi[eé]rcoles/.test(t)) return "Tengo el sábado a las 11:30 y a las 17:00 con Sofía, y el viernes a las 19:15 con Carla. ¿Cuál te bloqueo?";
+  if(/cancel|cambiar|mover|aplaz/.test(t)) return "Sin problema, te muevo la cita. Tengo el jueves a las 18:00 o el sábado a las 12:45. La señal se mantiene en la nueva cita.";
+  if(/d[oó]nde|donde|direcci[oó]n|direccion|abre|horario/.test(t)) return "Estamos en Rúa Real 42, A Coruña. Abrimos de martes a sábado, de 9:30 a 20:30. ¿Te doy cita?";
+  if(/alergia|tinte|reposo|tarda|dura|color|f[oó]rmula|formula/.test(t)) return "Las mechas completas son 90 min con su reposo. Tengo anotado en tu ficha si eres alérgica a la PPD y ajusto la fórmula. ¿Seguimos con la cita?";
+  if(/se[ñn]al|deposit|pago|stripe/.test(t)) return "La señal es de 15 € por Stripe o Bizum, se descuenta del total y bloquea tu hueco.";
+  if(/gracias|vale|ok|perfecto|genial/.test(t)) return "¡A ti! Te mando el recordatorio el día antes. Si necesitas cambiar algo, escríbeme cuando quieras.";
+  return "Te ayudo con eso: puedo darte cita, decirte precios, mover una reserva o pasarte con el salón. ¿Qué prefieres?";
+}
+document.getElementById("chatForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const input=document.getElementById("chatInput"), body=document.getElementById("chat");
+  const q=input.value.trim(); if(!q) return;
+  input.value="";
+  const u=document.createElement("div"); u.className="wapp-u"; u.textContent=q; body.appendChild(u);
+  const typing=document.createElement("div");
+  typing.className="wapp-b"; typing.style.display="flex"; typing.style.gap="4px";
+  typing.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:#8aa0a9;animation:mDot 1.1s infinite"></span><span style="width:6px;height:6px;border-radius:50%;background:#8aa0a9;animation:mDot 1.1s .15s infinite"></span><span style="width:6px;height:6px;border-radius:50%;background:#8aa0a9;animation:mDot 1.1s .3s infinite"></span>';
+  body.appendChild(typing);
+  body.scrollTop=body.scrollHeight;
+  setTimeout(()=>{
+    typing.remove();
+    const b=document.createElement("div"); b.className="wapp-b"; b.innerHTML=reply(q); body.appendChild(b);
+    body.scrollTop=body.scrollHeight;
+  },950);
+});
+
+calc();
+sweep();
+onScroll();
+setInterval(sweep,400);
+</script>
+</body>
+</html>
