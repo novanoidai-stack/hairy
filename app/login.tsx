@@ -117,7 +117,7 @@ export default function LoginScreen() {
         <View style={s.card}>
           <View style={s.brandRow}>
             <MechaMark size={40} />
-            <Text style={s.wordmark}>Mecha</Text>
+            <Text style={s.wordmark}>Mecha<Text style={{ color: '#f4501e' }}>.</Text></Text>
             <View style={s.tag}><Text style={s.tagText}>OS</Text></View>
           </View>
           <Text style={s.sub}>{mode === 'login' ? 'Gestión inteligente de tu salón' : 'Crea tu cuenta'}</Text>

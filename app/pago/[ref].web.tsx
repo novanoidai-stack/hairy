@@ -127,9 +127,9 @@ function Shell({ children }: { children: React.ReactNode }) {
       <div className="pg-blob2" aria-hidden style={{ position: 'absolute', bottom: '8%', right: '4%', width: 320, height: 320, borderRadius: '50%', background: 'rgba(255,222,170,0.45)', pointerEvents: 'none', zIndex: 0 }} />
       <div aria-hidden style={{ position: 'absolute', bottom: -70, right: -50, opacity: 0.05, pointerEvents: 'none', zIndex: 0 }}><MechaMark size={360} /></div>
       <div style={{ maxWidth: 440, margin: '0 auto', position: 'relative', zIndex: 1, paddingTop: 56 }}>
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 18 }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 18 }}>
           <span className="pg-flame" style={{ display: 'inline-flex' }}><MechaMark size={18} /></span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.9px' }}>mecha</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#1c1814', letterSpacing: '-0.3px' }}>Mecha<span style={{ color: T.primary }}>.</span></span>
         </header>
         {children}
       </div>

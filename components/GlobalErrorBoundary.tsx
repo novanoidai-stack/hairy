@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { reportarError, notificarErrorSoporte } from '@/lib/reportarError';
+import { MechaMark } from '@/components/ui/MechaMark';
 
 interface Props {
   children: React.ReactNode;
@@ -92,15 +93,20 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
             width: 80,
             height: 80,
             borderRadius: 24,
-            background: 'linear-gradient(135deg, #f4501e 0%, #e0340e 100%)',
+            background: 'linear-gradient(135deg, rgba(244,80,30,0.12) 0%, rgba(224,52,14,0.06) 100%)',
+            border: '1px solid rgba(244,80,30,0.22)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 32,
-            boxShadow: '0 12px 40px rgba(244,80,30,0.25)',
+            marginBottom: 24,
+            boxShadow: '0 12px 40px rgba(244,80,30,0.15)',
           }}
         >
-          <span style={{ fontSize: 40 }}>🔧</span>
+          <MechaMark size={48} />
+        </div>
+        <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 2, marginBottom: 8 }}>
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#1c1814', letterSpacing: -0.4 }}>Mecha</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: '#f4501e' }}>.</span>
         </div>
 
         <h1

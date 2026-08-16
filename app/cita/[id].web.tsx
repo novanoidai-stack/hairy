@@ -659,7 +659,7 @@ function Shell({ children, salon, slug }: { children: React.ReactNode; salon?: s
             <span style={{ fontFamily: SERIF, fontSize: 22, color: T.text }}>{salon || 'Mecha'}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(10px)', border: '1px solid rgba(244,80,30,0.16)', padding: '5px 11px', borderRadius: 999 }}>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.8px' }}>mecha</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#1c1814', letterSpacing: '-0.2px' }}>Mecha<span style={{ color: T.primary }}>.</span></span>
           </div>
         </header>
         {children}

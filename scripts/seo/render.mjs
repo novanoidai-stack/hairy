@@ -30,7 +30,7 @@ export function headerHtml(active = '') {
   <div class="d-wrap d-top-in">
     <a class="d-logo" href="/" aria-label="Mecha, inicio">
       ${LOGO_SVG}
-      <span class="nm">mecha</span>
+      <span class="nm">Mecha<span class="dot" style="color:#f4501e">.</span></span>
     </a>
     <span class="d-top-sp"></span>
     <a class="d-top-link" href="/salones">Buscar salones</a>
@@ -49,7 +49,7 @@ export function footerHtml() {
       <div>
         <div class="marca">
           ${LOGO_SVG.replace('mGradSeo', 'mGradFoot')}
-          <span class="nm">mecha</span>
+          <span class="nm">Mecha<span class="dot" style="color:#f4501e">.</span></span>
         </div>
         <p class="desc">Software de gestion para peluquerias y barberias con IA. El directorio lo forman los salones que lo usan.</p>
       </div>

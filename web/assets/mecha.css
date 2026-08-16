@@ -136,7 +136,8 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
    ============================================================ */
 .brand{display:flex;align-items:center;gap:12px}
 .brand-mark{width:40px;height:40px;flex-shrink:0}
-.brand-name{font-family:var(--display);font-weight:800;font-size:27px;letter-spacing:-.04em;line-height:1}
+.brand-name{font-family:var(--display);font-weight:800;font-size:27px;letter-spacing:-.04em;line-height:1;display:inline-flex;align-items:baseline}
+.brand-dot,.brand-name .brand-dot,.brand-name .dot,.intro-word .dot,.legal-brand .dot,.dm-bar .dot,.d-logo .dot{color:var(--accent);display:inline}
 .brand-row{display:flex;align-items:baseline;gap:8px}
 .brand-tag{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--text-ter);
   border:1px solid var(--border-hi);padding:2px 6px;border-radius:5px}

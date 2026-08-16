@@ -314,7 +314,7 @@ export function Sidebar() {
           {!collapsed && (
             <View style={{ flexDirection: 'column', gap: 2 }}>
               <View style={s.brandRow}>
-                <TText style={s.logoText}>Mecha</TText>
+                <TText style={s.logoText}>Mecha<TText style={s.logoDot}>.</TText></TText>
                 <View style={s.brandTag}><TText style={s.brandTagText}>OS</TText></View>
               </View>
               {profile !== undefined && profile !== null && (
@@ -586,6 +586,9 @@ const s = StyleSheet.create({
     fontWeight: '800',
     color: tokens.text,
     letterSpacing: -0.9,
+  },
+  logoDot: {
+    color: tokens.primary,
   },
   collapseBtn: {
     width: 26,
