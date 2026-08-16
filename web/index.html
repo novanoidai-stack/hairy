@@ -8,6 +8,7 @@
 <meta name="keywords" content="mejor software para peluquerías con ia, software gestion peluqueria, agenda inteligente peluquerias, sistema de reservas peluqueria, reducir ausencias salon, software estetica, alternativa booksy, alternativa fresha, reservas whatsapp peluqueria, fichas tecnicas color peluqueria" />
 <meta name="author" content="Mecha" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="msvalidate.01" content="628088A775D112B54F5E485263EB4ECC" />
 <link rel="canonical" href="https://www.mechaa.es/" />
 
 <!-- Open Graph -->
@@ -325,6 +326,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "El software de Mecha cuesta 39 € al mes más IVA, sin permanencia y con el primer mes gratis sin tarjeta. Incluye todo: agenda inteligente con tiempos de reposo y servicios encadenados, fichas de cliente con fórmulas de color, portal de reserva online propio, recordatorios por WhatsApp, caja, informes, señales con Stripe, campañas, lista de espera inteligente y facturación VeriFactu, con profesionales ilimitados y sin comisiones por reserva. La IA es aparte y opcional: Chispa por WhatsApp 24/7 cuesta 19 € al mes, la IA que contesta el teléfono 29 € al mes, o las dos juntas 39 € al mes (en vez de 48 € sueltas). El addon de IA se activa o desactiva cuando quieras, también sin permanencia."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Mecha cumple con la normativa VeriFactu de la AEAT?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. Mecha incluye el módulo fiscal y de facturación VeriFactu adaptado a los requisitos técnicos de la Agencia Tributaria (AEAT), generando el encadenamiento de facturas mediante hash SHA-256 inalterable, código QR de cotejo y registro de eventos de auditoría fiscal."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo funciona el registro de jornada legal (art. 34.9 ET) en Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha incluye un sistema de control horario y fichajes digital inalterable conforme al Real Decreto-ley 8/2019 y el artículo 34.9 del Estatuto de los Trabajadores. El equipo ficha entradas, pausas y salidas con un toque, y el salón puede exportar los informes oficiales en PDF y CSV para cualquier inspección de trabajo."
       }
     },
     {
@@ -1046,20 +1063,27 @@
     .pc-addon b{color:var(--text)}
     .ia-solo-note{max-width:640px;margin:18px auto 0;text-align:center;font-size:13px;color:var(--text-ter)}
     /* --- Tres vias de contacto --- */
-    .vias{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:860px;margin:30px auto 0}
-    @media(max-width:820px){.vias{grid-template-columns:1fr}}
+    .vias{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;max-width:1080px;margin:30px auto 0}
+    @media(max-width:980px){.vias{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:580px){.vias{grid-template-columns:1fr}}
     .via{display:flex;flex-direction:column;gap:7px;text-align:left;padding:20px 18px;border-radius:16px;
       border:1px solid var(--border-hi);background:linear-gradient(180deg,var(--card-hi),var(--card));
-      cursor:pointer;font:inherit;color:inherit;transition:border-color .2s var(--ease),transform .2s var(--ease)}
+      cursor:pointer;font:inherit;color:inherit;text-decoration:none;transition:border-color .2s var(--ease),transform .2s var(--ease)}
     .via:hover{border-color:var(--accent);transform:translateY(-2px)}
     .via-fuerte{border-color:rgba(244,80,30,.5);background:linear-gradient(180deg,rgba(244,80,30,.09),var(--card))}
+    .via-wa:hover{border-color:rgba(37,211,102,.6)}
     .via-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);margin-bottom:2px}
     .via-ic svg{width:18px;height:18px}
+    .via-ic-wa{background:rgba(37,211,102,.15);color:#25d366}
     .via h4{margin:0;font-family:var(--display);font-size:16.5px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
     .via p{margin:0;font-size:13px;line-height:1.55;color:var(--text-sec);flex:1}
     .via p b{color:var(--text)}
     .via-go{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;font-weight:700;color:var(--accent-hi)}
     .via-go svg{width:14px;height:14px}
+    .via-wa .via-go{color:#25d366}
+
+    /* Modal scroll lock */
+    body.modal-open{overflow:hidden !important;touch-action:none}
 
     /* --- Formulario de mensaje / quiero el software --- */
     .via-modal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,8,14,.72)}
@@ -1150,18 +1174,26 @@
         </div>
       </div>
 
-      <!-- Tres formas de dar el paso: cada uno elige cómo prefiere hablar.
+      <!-- Formas de dar el paso: cada uno elige cómo prefiere hablar.
            El id="contacto" es el destino del enlace "Contacto" del nav y del
            pie: no hay pagina de contacto aparte, el contacto es esto. -->
       <div class="vias reveal" id="contacto">
         <button class="via" type="button" id="viaLlamada">
           <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
-          <h4>Una llamada de 10 minutos</h4>
+          <h4>Una llamada de 10 min</h4>
           <p>Eliges día y hora. Vemos tu salón, te enseñamos Mecha con <b>tus</b> servicios y horarios y, si te encaja, te lo dejamos montado.</p>
           <span class="via-go">Elegir día y hora
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
           </span>
         </button>
+        <a class="via via-wa" href="https://wa.me/34690792975?text=Hola%20Mecha,%20quiero%20informaci%C3%B3n%20para%20mi%20sal%C3%B3n" target="_blank" rel="noopener noreferrer" id="viaWhatsApp">
+          <span class="via-ic via-ic-wa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z" /></svg></span>
+          <h4>WhatsApp directo</h4>
+          <p>Respuesta inmediata. Escríbenos directamente y te resolvemos cualquier duda al instante por chat.</p>
+          <span class="via-go">Abrir WhatsApp
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </a>
         <button class="via" type="button" id="viaMensaje">
           <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
           <h4>Mándanos un mensaje</h4>
@@ -1241,52 +1273,61 @@
 
   <!-- Modal de Elección de Acceso (Eligen cómo entrar antes de calendario) -->
   <div class="via-modal" id="opcionesAccesoModal" role="dialog" aria-modal="true" aria-labelledby="opcionesAccesoTitulo">
-    <div class="via-box" style="max-width: 520px; padding: 28px 24px; text-align: center; background: #0b1020; border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
-      <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f4501e, #ff8a3d); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 22px rgba(244,80,30,0.4);">
+    <div class="via-box acc-modal-box">
+      <div class="acc-modal-badge">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg>
       </div>
-      <h3 id="opcionesAccesoTitulo" style="font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">¿Cómo prefieres empezar en Mecha?</h3>
-      <p class="sub" style="font-size: 13.5px; color: #9aa6c2; margin-bottom: 22px; line-height: 1.45;">Elige cómo quieres acceder a la plataforma antes de continuar:</p>
+      <h3 id="opcionesAccesoTitulo" class="acc-modal-title">¿Cómo prefieres empezar en Mecha?</h3>
+      <p class="sub acc-modal-sub">Elige cómo quieres acceder a la plataforma antes de continuar:</p>
       
-      <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
-        <a href="demo.html" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(244,80,30,0.12)';this.style.borderColor='rgba(244,80,30,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(244,80,30,0.18); display: flex; align-items: center; justify-content: center; color: #ff8a3d; font-size: 22px; flex-shrink: 0;">🚀</div>
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">1. Navegar por la demo gratis ya</div>
-            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Accede al instante a la demo navegable sin registrarte ni esperar.</div>
+      <div class="acc-modal-list">
+        <a href="demo.html" class="acc-opt acc-opt-demo">
+          <div class="acc-opt-icon">🚀</div>
+          <div class="acc-opt-content">
+            <div class="acc-opt-title">1. Navegar por la demo gratis ya</div>
+            <div class="acc-opt-desc">Accede al instante a la demo navegable sin registrarte ni esperar.</div>
           </div>
-          <span style="font-size: 13px; font-weight: 700; color: #ff8a3d; white-space: nowrap;">Entrar →</span>
+          <span class="acc-opt-arrow">Entrar →</span>
         </a>
 
-        <a href="reservar.html" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(16,185,129,0.12)';this.style.borderColor='rgba(16,185,129,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(16,185,129,0.18); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 22px; flex-shrink: 0;">📅</div>
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">2. Agendar llamada de 10 minutos</div>
-            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Elige día y hora para ver tu salón configurado en vivo con nuestro equipo.</div>
+        <a href="reservar.html" class="acc-opt acc-opt-call">
+          <div class="acc-opt-icon">📅</div>
+          <div class="acc-opt-content">
+            <div class="acc-opt-title">2. Agendar llamada de 10 minutos</div>
+            <div class="acc-opt-desc">Elige día y hora para ver tu salón configurado en vivo con nuestro equipo.</div>
           </div>
-          <span style="font-size: 13px; font-weight: 700; color: #10b981; white-space: nowrap;">Calendario →</span>
+          <span class="acc-opt-arrow">Calendario →</span>
         </a>
 
-        <button type="button" id="btnOpcionQuieroDirecto" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; width: 100%; text-align: left; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(99,102,241,0.12)';this.style.borderColor='rgba(99,102,241,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(99,102,241,0.18); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 22px; flex-shrink: 0;">📝</div>
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">3. Solicitar alta y acceso directo</div>
-            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Déjanos tus datos y te activamos el acceso completo para tu salón.</div>
+        <button type="button" id="btnOpcionQuieroDirecto" class="acc-opt acc-opt-direct">
+          <div class="acc-opt-icon">📝</div>
+          <div class="acc-opt-content">
+            <div class="acc-opt-title">3. Solicitar alta y acceso directo</div>
+            <div class="acc-opt-desc">Déjanos tus datos y te activamos el acceso completo para tu salón.</div>
           </div>
-          <span style="font-size: 13px; font-weight: 700; color: #818cf8; white-space: nowrap;">Rellenar datos →</span>
+          <span class="acc-opt-arrow">Rellenar datos →</span>
         </button>
 
-        <button type="button" id="btnOpcionContactar" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; width: 100%; text-align: left; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(56,189,248,0.12)';this.style.borderColor='rgba(56,189,248,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56,189,248,0.18); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 22px; flex-shrink: 0;">💬</div>
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">4. Contactar directamente con nosotros</div>
-            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">¿Solo tienes una duda? Escríbenos y te contestamos hoy mismo, sin agendar nada.</div>
+        <button type="button" id="btnOpcionContactar" class="acc-opt acc-opt-chat">
+          <div class="acc-opt-icon">💬</div>
+          <div class="acc-opt-content">
+            <div class="acc-opt-title">4. Contactar directamente con nosotros</div>
+            <div class="acc-opt-desc">¿Solo tienes una duda? Escríbenos y te contestamos hoy mismo, sin agendar nada.</div>
           </div>
-          <span style="font-size: 13px; font-weight: 700; color: #38bdf8; white-space: nowrap;">Escribir →</span>
+          <span class="acc-opt-arrow">Escribir →</span>
         </button>
+
+        <a href="https://wa.me/34690792975?text=Hola%20Mecha,%20quiero%20informaci%C3%B3n%20para%20mi%20sal%C3%B3n" target="_blank" rel="noopener noreferrer" class="acc-opt acc-opt-wa">
+          <div class="acc-opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z" /></svg></div>
+          <div class="acc-opt-content">
+            <div class="acc-opt-title">5. Escribir por WhatsApp</div>
+            <div class="acc-opt-desc">Chat directo con soporte y fundadores de Mecha en tiempo real.</div>
+          </div>
+          <span class="acc-opt-arrow">Abrir chat →</span>
+        </a>
       </div>
 
-      <button type="button" class="btn btn-ghost" id="opcionesAccesoCerrar" style="margin-top: 18px; width: 100%; justify-content: center; color: #8a9ab8;">Cerrar</button>
+      <button type="button" class="btn btn-ghost acc-modal-close" id="opcionesAccesoCerrar">Cerrar</button>
     </div>
   </div>
 
@@ -1477,9 +1518,10 @@
     </div>
     <div class="makers-contact reveal">
       <span>¿Una idea o una duda? Hablamos:</span>
+      <a href="https://wa.me/34690792975?text=Hola%20Mecha,%20quiero%20informaci%C3%B3n%20para%20mi%20sal%C3%B3n" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z" /></svg>WhatsApp directo</a>
       <a href="mailto:contacto@mechaa.es"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>Email de Mecha</a>
-      <a href="https://www.instagram.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg>Instagram</a>
-      <a href="https://www.linkedin.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a>
+      <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg>Instagram</a>
+      <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a>
     </div>
   </div>
 </section>
@@ -1501,9 +1543,9 @@
       <span>© 2026 Mecha · Hecho para salones de peluquería.</span>
       <div class="foot-legal"><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="cookies.html">Cookies</a><a href="privacidad.html#aviso">Aviso legal</a><a href="admin.html">Acceso equipo</a></div>
       <div class="soc">
-        <a aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg></a>
-        <a aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8.2a5.8 5.8 0 0 0 3.5 1.2V6.7a3.3 3.3 0 0 1-1.9-.9 3.3 3.3 0 0 1-1.1-2.3H13.8v11.2a2.3 2.3 0 1 1-2.3-2.3c.2 0 .4 0 .6.1V9.9a5.2 5.2 0 1 0 4 5V8.2z" /></svg></a>
-        <a aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z" /></svg></a>
+        <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg></a>
+        <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8.2a5.8 5.8 0 0 0 3.5 1.2V6.7a3.3 3.3 0 0 1-1.9-.9 3.3 3.3 0 0 1-1.1-2.3H13.8v11.2a2.3 2.3 0 1 1-2.3-2.3c.2 0 .4 0 .6.1V9.9a5.2 5.2 0 1 0 4 5V8.2z" /></svg></a>
+        <a href="https://wa.me/34690792975?text=Hola%20Mecha,%20quiero%20informaci%C3%B3n" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z" /></svg></a>
       </div>
     </div>
   </div>
@@ -1789,6 +1831,15 @@ window.MECHA_CHAT = [
     quiero_software:{ titulo:'Quiero el software', sub:'Déjanos tus datos y te damos acceso. Te lo configuramos con tus servicios y horarios para que empieces a dar citas.', campo:'Algo que debamos saber (opcional)', ph:'Cuántos sois, qué usáis ahora...', btn:'Quiero empezar' }
   };
 
+  function updateScrollLock(){
+    var isAnyModalOpen = (modal && modal.classList.contains('on')) || (accModal && accModal.classList.contains('on'));
+    if (isAnyModalOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+  }
+
   function abrir(t){
     tipo=t;
     var x=TEXTOS[t];
@@ -1803,9 +1854,13 @@ window.MECHA_CHAT = [
     document.getElementById('viaEnviar').textContent=x.btn;
     msg.hidden=true; msg.className='via-msg';
     modal.classList.add('on');
+    updateScrollLock();
     setTimeout(function(){ document.getElementById('viaNombre').focus(); },60);
   }
-  function cerrar(){ modal.classList.remove('on'); }
+  function cerrar(){
+    modal.classList.remove('on');
+    updateScrollLock();
+  }
 
   var bM=document.getElementById('viaMensaje');
   var bQ=document.getElementById('viaQuiero');
@@ -1827,9 +1882,17 @@ window.MECHA_CHAT = [
   // hubiera de un clic anterior para no atribuirle un plan que no ha pedido.
   function abrirAcceso(plan){
     planElegido=PLAN_NOMBRE[plan] ? plan : '';
-    if(accModal) accModal.classList.add('on');
+    if(accModal) {
+      accModal.classList.add('on');
+      updateScrollLock();
+    }
   }
-  function cerrarAcceso(){ if(accModal) accModal.classList.remove('on'); }
+  function cerrarAcceso(){
+    if(accModal) {
+      accModal.classList.remove('on');
+      updateScrollLock();
+    }
+  }
 
   if(bM) bM.addEventListener('click',function(){ abrir('mensaje'); });
   if(bQ) bQ.addEventListener('click',function(){ abrirAcceso(); });
