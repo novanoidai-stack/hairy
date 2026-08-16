@@ -164,6 +164,9 @@ const ANIM = `
   a:hover { color: #f4501e; }
   ::-webkit-scrollbar { height: 0; }
   .rp-step { animation: rpUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+  /* El checkbox real del consentimiento esta escondido: cuando recibe el foco
+     por teclado, el que se marca es el cuadrito pintado que va justo detras. */
+  .rp-consent input:focus-visible + span { outline: 2px solid #f4501e; outline-offset: 2px; }
 `;
 
 export default function PortalReservaWeb() {
@@ -614,7 +617,9 @@ export default function PortalReservaWeb() {
         </div>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(28,24,20,0.02) 0%,rgba(18,14,10,0.74) 100%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '0 20px 24px' : '0 40px 24px', pointerEvents: 'none' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#ffcf4a', marginBottom: 6 }}>Salón de belleza · Madrid</div>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#ffcf4a', marginBottom: 6 }}>
+            {info.negocio.ciudad ? `Salón de belleza · ${info.negocio.ciudad}` : 'Salón de belleza'}
+          </div>
           <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: isMobile ? 36 : 44, color: '#fff', lineHeight: 1 }}>{info.negocio.nombre}</div>
         </div>
       </div>
@@ -821,14 +826,22 @@ export default function PortalReservaWeb() {
                           </label>
                         </div>
                         {/* Si falta el consentimiento el boton no dice nada util: se resalta
-                            la casilla (borde rojo + fondo + sacudida) y se lleva a la vista. */}
+                            la casilla (borde rojo + fondo + sacudida) y se lleva a la vista.
+                            La casilla es un checkbox DE VERDAD, escondido debajo del cuadrito
+                            pintado: sin el, quien navega con teclado o lector de pantalla no
+                            podia marcar el consentimiento y se quedaba sin poder reservar. */}
                         <label
                           ref={consentRef}
-                          className={consentFallo ? 'rp-shake' : undefined}
-                          onClick={() => { setConsent(!consent); setConsentFallo(false); }}
-                          style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer', padding: consentFallo ? '10px 12px' : 0, borderRadius: 12, border: consentFallo ? `1.5px solid ${T.danger}` : '1.5px solid transparent', background: consentFallo ? T.dangerSoft : 'transparent', transition: 'background 0.2s ease, border-color 0.2s ease' }}
+                          className={`rp-consent${consentFallo ? ' rp-shake' : ''}`}
+                          style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer', padding: consentFallo ? '10px 12px' : 0, borderRadius: 12, border: consentFallo ? `1.5px solid ${T.danger}` : '1.5px solid transparent', background: consentFallo ? T.dangerSoft : 'transparent', transition: 'background 0.2s ease, border-color 0.2s ease' }}
                         >
-                          <span style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : consentFallo ? T.danger : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={consent}
+                            onChange={e => { setConsent(e.target.checked); setConsentFallo(false); }}
+                            style={{ position: 'absolute', width: 1, height: 1, opacity: 0, margin: 0 }}
+                          />
+                          <span aria-hidden style={{ flexShrink: 0, marginTop: 1, width: 21, height: 21, borderRadius: 6, border: '2px solid ' + (consent ? T.primary : consentFallo ? T.danger : T.borderHi), background: consent ? T.primary : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {consent && <Icon name="check" size={14} color="#fff" />}
                           </span>
                           <span style={{ fontSize: 12.5, color: consentFallo ? T.danger : '#5c5249', lineHeight: 1.45, fontWeight: consentFallo ? 600 : 400 }}>He leído y acepto la política de privacidad. Solo usamos tus datos para gestionar esta cita.</span>

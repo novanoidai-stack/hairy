@@ -23,15 +23,24 @@ import {
 // modo caería a 'individual' y la puerta "¿Quién eres?" desaparecería en un
 // salón compartido, dejando entrar sin preguntar. Con el respaldo, usa lo último
 // que sí supimos.
+//
+// La clave lleva el negocio DENTRO a propósito: en un mismo navegador se entra
+// con varias cuentas (el ordenador de la oficina, una demo, la cuenta de
+// pruebas). Con una clave única, el "compartido" del salón A se le pegaba al
+// salón B y le salía la puerta "¿Quién eres?" a quien no le tocaba.
 const CLAVE_ESTADO = 'mecha_estado_acceso';
-async function leerEstadoPersistido(): Promise<EstadoAccesoSalon | null> {
+const claveEstado = (negocioId: string) => `${CLAVE_ESTADO}:${negocioId}`;
+
+async function leerEstadoPersistido(negocioId: string | null): Promise<EstadoAccesoSalon | null> {
+  if (!negocioId) return null;
   try {
-    const v = await AsyncStorage.getItem(CLAVE_ESTADO);
+    const v = await AsyncStorage.getItem(claveEstado(negocioId));
     return v ? (JSON.parse(v) as EstadoAccesoSalon) : null;
   } catch { return null; }
 }
-async function guardarEstadoPersistido(e: EstadoAccesoSalon): Promise<void> {
-  try { await AsyncStorage.setItem(CLAVE_ESTADO, JSON.stringify(e)); } catch { /* modo privado */ }
+async function guardarEstadoPersistido(negocioId: string | null, e: EstadoAccesoSalon): Promise<void> {
+  if (!negocioId) return;
+  try { await AsyncStorage.setItem(claveEstado(negocioId), JSON.stringify(e)); } catch { /* modo privado */ }
 }
 
 export interface FichaElegible {
@@ -94,12 +103,12 @@ export function useAccesoSalon(): AccesoSalon {
         if (datos) {
           modo = datos.modo === 'compartido' ? 'compartido' : 'individual';
           tienePin = datos.tiene_pin === true;
-          guardarEstadoPersistido({ modo, tienePin }).catch(() => {});
+          guardarEstadoPersistido(perfil?.negocio_id ?? null, { modo, tienePin }).catch(() => {});
         } else {
           // La consulta falló (red, arranque en frío): no inventamos 'individual'
           // sin más, que haría desaparecer la puerta en un salón compartido.
-          // Usamos el último estado conocido de este dispositivo.
-          const persistido = await leerEstadoPersistido();
+          // Usamos el último estado conocido de ESTE salón en este dispositivo.
+          const persistido = await leerEstadoPersistido(perfil?.negocio_id ?? null);
           modo = persistido?.modo ?? 'individual';
           tienePin = persistido?.tienePin ?? false;
         }

@@ -31,6 +31,9 @@ export interface PortalNegocio {
   direccion: string | null;
   telefono: string | null;
   web: string | null;
+  // Ciudad del salon: la pinta la cabecera del portal. Sin esto el portal decia
+  // "Salon de belleza · Madrid" a todo el mundo.
+  ciudad: string | null;
   idioma: string;
   mostrar_precios: 'catalogo' | 'tras_seleccion' | 'nunca';
   color_acento: string;

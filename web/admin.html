@@ -1424,7 +1424,7 @@
         var id = btn.getAttribute('data-grant');
         var p = accounts.filter(function (x) { return x.id === id; })[0];
         var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
-        if (!window.confirm('Dar acceso completo a "' + quien + '"?\n\nLa cuenta pasará a plan full con su propio negocio y dejará de estar limitada a la demo.')) return;
+        if (!window.confirm('Dar acceso completo a "' + quien + '"?\n\nLa cuenta pasará a plan Estudio con su propio negocio y dejará de estar limitada a la demo.')) return;
         btn.disabled = true;
         var prev = btn.textContent;
         btn.textContent = 'Activando...';

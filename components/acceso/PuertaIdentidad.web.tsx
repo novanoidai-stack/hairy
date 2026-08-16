@@ -217,10 +217,12 @@ export function PuertaIdentidad({ fichas, negocioId, tienePin, email, nombreSalo
                     placeItems: 'center',
                     border: `1.5px dashed ${T.borderHi}`,
                     color: T.textTer,
-                    fontSize: 24,
+                    fontSize: 15,
+                    fontWeight: 800,
+                    letterSpacing: 1,
                   }}
                 >
-                  🔑
+                  PIN
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>Soy el jefe</div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: T.textTer }}>Propietario · PIN</div>

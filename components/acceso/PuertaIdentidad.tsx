@@ -122,7 +122,7 @@ export function PuertaIdentidad({ fichas, negocioId, tienePin, email, nombreSalo
 
           <TouchableOpacity style={[s.ficha, s.fichaJefe]} onPress={() => entrar(ENTRADA_PROPIETARIO, 'Propietario', 'owner')}>
             <View style={[s.avatar, s.avatarJefe]}>
-              <Text style={s.avatarJefeTexto}>🔑</Text>
+              <Text style={s.avatarJefeTexto}>PIN</Text>
             </View>
             <Text style={s.fichaNombre}>Soy el jefe</Text>
             <Text style={s.fichaRol}>Propietario · PIN</Text>
@@ -158,7 +158,7 @@ const s = StyleSheet.create({
   avatar: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   avatarJefe: { backgroundColor: 'transparent', borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(40,30,24,0.16)' },
   avatarTexto: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  avatarJefeTexto: { fontSize: 22 },
+  avatarJefeTexto: { fontSize: 14, fontWeight: '800', letterSpacing: 1, color: '#8a7d70' },
   fichaNombre: { fontSize: 15, fontWeight: '700', color: '#1c1814', marginTop: 10, textAlign: 'center' },
   fichaRol: { fontSize: 11, fontWeight: '600', color: '#8a7d70', marginTop: 4 },
   vacio: { fontSize: 13, color: '#5c5249', textAlign: 'center', marginTop: 18 },
