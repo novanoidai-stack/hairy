@@ -1,6 +1,6 @@
 /* Mecha - capa de datos del sitio publico.
    Requiere cargar antes el UMD de supabase-js:
-   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+   <script src="/assets/vendor/supabase-2.45.4.js"></script>
    Usa la anon key (publica). El destino de la app ("el software") se puede sobreescribir
    con window.MECHA_APP_URL antes de cargar este script. */
 (function () {
