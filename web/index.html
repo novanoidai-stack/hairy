@@ -382,15 +382,125 @@
 <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" /></noscript>
 <style>
-:root{--paper:#fdf6f0;--paper-2:#fff;--ink:#15100b;--ink-2:#5d5349;--ink-3:#8d8278;--line:rgba(21,16,11,.10);--line-2:rgba(21,16,11,.20);--card:#fff;--accent:#f4501e;--accent-hi:#ff8a3d;--gold:#ffcf4a;--accent-soft:rgba(244,80,30,.09);--ok:#0f9b6c;--ok-soft:rgba(15,155,108,.11);--lav:#7c6cf0;--lav-soft:rgba(124,108,240,.13);--peach:rgba(255,176,90,.18);--mint:rgba(15,155,108,.13);--shadow:0 26px 60px -34px rgba(21,16,11,.32);--shadow-s:0 6px 18px -10px rgba(21,16,11,.28);--display:'Bricolage Grotesque',system-ui,sans-serif;--serif:'Newsreader',Georgia,serif;--body:'Inter',system-ui,-apple-system,sans-serif}
-body[data-theme="dark"]{--paper:#0a0908;--paper-2:#12100e;--ink:#f8f4ee;--ink-2:#b0a69c;--ink-3:#8b8177;--line:rgba(255,255,255,.10);--line-2:rgba(255,255,255,.20);--card:#171311;--accent-soft:rgba(244,80,30,.16);--ok-soft:rgba(15,155,108,.17);--lav-soft:rgba(124,108,240,.2);--peach:rgba(255,176,90,.16);--mint:rgba(15,155,108,.16);--shadow:0 30px 70px -30px rgba(0,0,0,.85);--shadow-s:0 8px 20px -12px rgba(0,0,0,.8)}
+:root{
+  --paper:#fdf6f0;
+  --paper-2:#fff;
+  --ink:#15100b;
+  --ink-2:#5d5349;
+  --ink-3:#8d8278;
+  --line:rgba(21,16,11,.10);
+  --line-2:rgba(21,16,11,.20);
+  --card:#fff;
+  --accent:#f4501e;
+  --accent-hi:#ff8a3d;
+  --gold:#ffcf4a;
+  --accent-soft:rgba(244,80,30,.09);
+  --ok:#0f9b6c;
+  --ok-soft:rgba(15,155,108,.11);
+  --lav:#7c6cf0;
+  --lav-soft:rgba(124,108,240,.13);
+  --peach:rgba(255,176,90,.18);
+  --mint:rgba(15,155,108,.13);
+  --shadow:0 26px 60px -34px rgba(21,16,11,.32);
+  --shadow-s:0 6px 18px -10px rgba(21,16,11,.28);
+  --display:'Bricolage Grotesque',system-ui,sans-serif;
+  --serif:'Newsreader',Georgia,serif;
+  --body:'Inter',system-ui,-apple-system,sans-serif;
+}
+body[data-theme="dark"]{
+  --paper:#0a0908;
+  --paper-2:#12100e;
+  --ink:#f8f4ee;
+  --ink-2:#b0a69c;
+  --ink-3:#8b8177;
+  --line:rgba(255,255,255,.10);
+  --line-2:rgba(255,255,255,.20);
+  --card:#171311;
+  --accent-soft:rgba(244,80,30,.16);
+  --ok-soft:rgba(15,155,108,.17);
+  --lav-soft:rgba(124,108,240,.2);
+  --peach:rgba(255,176,90,.16);
+  --mint:rgba(15,155,108,.16);
+  --shadow:0 30px 70px -30px rgba(0,0,0,.85);
+  --shadow-s:0 8px 20px -12px rgba(0,0,0,.8);
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html{scroll-behavior:smooth}
+
+/* Scrollbar premium personalizado */
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:999px;border:2px solid var(--paper)}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  position:relative;
+  transition:background .35s ease,color .35s ease;
+}
+
+/* Textura sutil y fondo cinemático */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:998;
+  opacity:.6;
+}
+
+/* Cursor ambient spotlight glow */
+.cursor-glow{
+  position:fixed;
+  width:460px;
+  height:460px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,rgba(244,80,30,.11) 0%,rgba(255,138,61,.04) 45%,transparent 70%);
+  transform:translate(-50%,-50%);
+  z-index:0;
+  filter:blur(30px);
+  will-change:left,top,opacity;
+  opacity:0;
+  transition:opacity .4s ease;
+}
+body[data-theme="dark"] .cursor-glow{
+  background:radial-gradient(circle,rgba(244,80,30,.15) 0%,rgba(124,108,240,.07) 45%,transparent 70%);
+}
+
 a{color:var(--accent);text-decoration:none;transition:color .2s ease}
 a:hover{color:var(--accent-hi)}
 img,svg{display:block;max-width:100%}
 button,input{font-family:inherit}
 ::selection{background:var(--accent);color:#fff}
+
+/* Tipografía de títulos con brillo en palabras clave */
+.fx-title-accent{
+  background:linear-gradient(115deg,var(--accent) 0%,var(--gold) 50%,var(--accent-hi) 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:fxTextGlow 6s linear infinite;
+  display:inline;
+}
+@keyframes fxTextGlow{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+
+/* Cifras con ancho tabular alineado */
+[data-count],.num-tabular,#oHorasMes,#oHorasMecha,#oHorasLibres,#oValorHoras,#oPerdidaMes,#oRecuperado,#oVeces{
+  font-variant-numeric:tabular-nums;
+}
+
+/* Keyframes de animación */
 @keyframes mFade{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes mPulse{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.45)}50%{box-shadow:0 0 0 8px rgba(244,80,30,0)}}
 @keyframes mDot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3.5px)}}
@@ -405,6 +515,19 @@ button,input{font-family:inherit}
 @keyframes mRing{0%{stroke-dashoffset:352}100%{stroke-dashoffset:38}}
 @keyframes mWave{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
 @keyframes btnShine{0%{left:-100%}100%{left:200%}}
+
+/* Barra de progreso superior ultra-nítida */
+[data-progress]{
+  position:fixed;
+  top:0;
+  left:0;
+  height:3px;
+  width:0;
+  background:linear-gradient(90deg,var(--accent),var(--accent-hi),var(--gold));
+  z-index:1000;
+  box-shadow:0 0 14px rgba(244,80,30,.85),0 0 4px #ffcf4a;
+  transition:width .08s linear;
+}
 
 /* Botones Premium con barrido de luz y respuesta táctil */
 .btn-grad{
@@ -439,10 +562,26 @@ button,input{font-family:inherit}
   transform:scale(.97) translateY(0);
 }
 
-/* Tarjetas elevadas con borde luminoso */
+/* Tarjetas elevadas con borde luminoso y spotlight */
 .hov-card{
+  position:relative;
   transition:transform .26s cubic-bezier(.16,1,.3,1),border-color .26s ease,box-shadow .26s ease;
   will-change:transform;
+  overflow:hidden;
+}
+.hov-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgba(244,80,30,.10), transparent 70%);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s ease;
+  z-index:1;
+}
+.hov-card:hover::before{
+  opacity:1;
 }
 .hov-card:hover{
   transform:translateY(-4px);
@@ -567,10 +706,32 @@ input[type="range"]::-moz-range-thumb{
   animation:mSlide .25s ease both;
 }
 
+/* Navegación estilo dock flotante */
+nav{
+  position:sticky;
+  top:0;
+  z-index:70;
+  backdrop-filter:blur(18px) saturate(160%);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  background:color-mix(in srgb,var(--paper) 82%,transparent);
+  border-bottom:1px solid var(--line);
+  transition:background .3s ease,border-color .3s ease,box-shadow .3s ease;
+}
+[data-navlinks] a{
+  padding:6px 12px;
+  border-radius:999px;
+  transition:color .2s ease,background .2s ease;
+}
+[data-navlinks] a:hover{
+  color:var(--ink)!important;
+  background:var(--accent-soft);
+}
+
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
 .chip-ok{padding:4px 10px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-weight:600;font-size:12px;display:inline-block}
 .conn{position:relative;height:64px;display:grid;place-items:center}
-.conn>div{width:2px;height:100%;transform-origin:top;transition:transform .2s linear}
+.conn>div{width:2px;height:100%;transform-origin:top;transition:transform .2s linear;box-shadow:0 0 8px rgba(244,80,30,.35)}
+
 @media (max-width:980px){
   .grid2{grid-template-columns:minmax(0,1fr)!important;gap:26px!important}
   [data-navlinks]{display:none!important}
@@ -588,6 +749,7 @@ input[type="range"]::-moz-range-thumb{
 </style>
 </head>
 <body>
+<div id="cursorGlow" class="cursor-glow" aria-hidden="true"></div>
 
 <div style="position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:90" data-progress></div>
 
@@ -602,14 +764,14 @@ input[type="range"]::-moz-range-thumb{
 </span>
 </a>
 
-<nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--paper) 84%,transparent)">
+<nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);background:color-mix(in srgb,var(--paper) 84%,transparent);border-bottom:1px solid var(--line)">
 <div style="max-width:1220px;margin:0 auto;padding:12px 26px;display:flex;align-items:center;gap:24px">
 <a href="#top" style="display:flex;align-items:center;gap:10px;color:var(--ink)">
 <svg viewBox="0 0 40 40" style="width:32px;height:32px" aria-hidden="true"><defs><linearGradient id="mg5" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e0340e"/><stop offset=".5" stop-color="#ff7a2e"/><stop offset="1" stop-color="#ffcf4a"/></linearGradient></defs><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mg5)"/><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="var(--paper)" opacity=".9"/></svg>
 <span style="font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.04em">Mecha<span style="color:var(--accent)">.</span></span>
 <span style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line-2);padding:2px 5px;border-radius:5px">OS</span>
 </a>
-<div data-navlinks style="display:flex;gap:20px;margin-left:auto;font-size:13.6px;color:var(--ink-2)">
+<div data-navlinks style="display:flex;gap:14px;margin-left:auto;font-size:13.6px;color:var(--ink-2)">
 <a href="#gestion" style="color:inherit">La gestión, sola</a>
 <a href="#equipo" style="color:inherit">Tu equipo</a>
 <a href="#todo" style="color:inherit">Todo en uno</a>
@@ -617,7 +779,7 @@ input[type="range"]::-moz-range-thumb{
 <a href="#precios" style="color:inherit">Precios</a>
 </div>
 <div style="display:flex;align-items:center;gap:11px;margin-left:auto" data-navcta>
-<button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center">
+<button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
 </button>
 <a href="/acceso.html" id="navLogin" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
@@ -638,7 +800,7 @@ input[type="range"]::-moz-range-thumb{
 <div>
 <span style="display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:18px">
 <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>No hay software más especializado en salones que Mecha</span>
-<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">El salón que <span style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent)">se lleva solo</span></h1>
+<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">El salón que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">se lleva solo</span></h1>
 <p style="font-size:clamp(19px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:560px;margin:0 0 26px;text-wrap:pretty">Ninguna agenda sabe lo que tarda un tinte. <b style="color:var(--ink)">Mecha sí</b>: vende los <b style="color:var(--ink)">reposos</b>, llena tu agenda con la <b style="color:var(--ink)">lista de espera</b> y la <b style="color:var(--ink)">IA atiende el WhatsApp</b> por ti.</p>
 <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px">
 <a href="#demo" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;font-weight:600;font-size:15.5px">Entrar en el software real <span>→</span></a>
@@ -768,7 +930,7 @@ input[type="range"]::-moz-range-thumb{
 <div style="position:relative;max-width:1120px;margin:0 auto">
 <div class="reveal" style="max-width:780px;margin-bottom:clamp(26px,3.5vw,44px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--lav);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">2</span>El equipo</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">El software que hace que <span style="font-family:var(--serif);font-style:italic;font-weight:400">la gente se quede</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">El software que hace que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">la gente se quede</span></h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Lo difícil no es llenar la agenda: es tener equipo. Aquí cada profesional ve sus horas, sus comisiones y sus objetivos sin preguntarte.</p>
 </div>
 <div class="grid2" style="grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(22px,3vw,40px);align-items:center">
@@ -824,7 +986,7 @@ input[type="range"]::-moz-range-thumb{
 <div style="max-width:1120px;margin:0 auto">
 <div class="reveal" style="max-width:760px;margin-bottom:clamp(24px,3vw,40px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">3</span>Todo en uno</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un software, <span style="font-family:var(--serif);font-style:italic;font-weight:400">no cinco suscripciones</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un software, <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">no cinco suscripciones</span></h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">La cita se convierte en ticket, el ticket en factura y las horas en nómina. Si están en cinco programas, el pegamento eres tú.</p>
 </div>
 <div class="reveal grid2" style="grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(20px,3vw,34px);align-items:stretch">
@@ -859,7 +1021,7 @@ input[type="range"]::-moz-range-thumb{
 <div style="position:relative;max-width:1020px;margin:0 auto;text-align:center">
 <div class="reveal">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span>Pruébalo tú</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">No te lo contamos: <span style="font-family:var(--serif);font-style:italic;font-weight:400">entra y tócalo</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">No te lo contamos: <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">entra y tócalo</span></h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0 auto 26px;max-width:620px;text-wrap:pretty">Es Mecha de verdad, con un salón de ejemplo. Chispa te guía y tú tocas: crear una cita, partirla en reposos, cobrar, descargar el informe.</p>
 </div>
 <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;text-align:left;margin-bottom:24px">
@@ -882,7 +1044,7 @@ input[type="range"]::-moz-range-thumb{
 <div style="max-width:1080px;margin:0 auto">
 <div class="reveal" style="max-width:760px;margin-bottom:clamp(24px,3vw,40px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">5</span>Dónde se queda corto lo que usas</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Una app de citas <span style="font-family:var(--serif);font-style:italic;font-weight:400">no gestiona un salón</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Una app de citas <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">no gestiona un salón</span></h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Las apps tipo <b>Booksy</b> o <b>Fresha</b> te llenan la agenda y ahí acaban. Lo demás lo sigues haciendo tú.</p>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:22px;overflow:hidden;background:var(--card);box-shadow:var(--shadow)">
@@ -908,7 +1070,7 @@ input[type="range"]::-moz-range-thumb{
 <div style="max-width:1020px;margin:0 auto">
 <div class="reveal" style="text-align:center;max-width:660px;margin:0 auto clamp(24px,3vw,40px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">6</span>Tu caso</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Cuánto tiempo y dinero <span style="font-family:var(--serif);font-style:italic;font-weight:400">te está costando</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Cuánto tiempo y dinero <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">te está costando</span></h2>
 <p style="font-size:16.5px;color:var(--ink-2);margin:0">Mueve las barras con los números de tu salón.</p>
 </div>
 <div class="reveal grid2" style="align-items:stretch">
@@ -958,7 +1120,7 @@ input[type="range"]::-moz-range-thumb{
 <div style="max-width:1120px;margin:0 auto">
 <div class="reveal" style="max-width:760px;margin-bottom:clamp(22px,3vw,36px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ok);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">+</span>Addon opcional</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,44px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Y si quieres, que <span style="font-family:var(--serif);font-style:italic;font-weight:400">tampoco contestes el teléfono</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,44px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Y si quieres, que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">tampoco contestes el teléfono</span></h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0">El software va solo sin esto. Si lo activas, la IA atiende WhatsApp y llamadas: da cita, cobra la señal y crea la ficha.</p>
 </div>
 <div class="reveal grid2" style="grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,3vw,36px);align-items:center">
@@ -1040,7 +1202,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <div style="max-width:920px;margin:0 auto">
 <div class="reveal" style="text-align:center;max-width:640px;margin:0 auto clamp(24px,3vw,40px)">
 <span style="display:block;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Precio simple, sin letra pequeña</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
 <p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes con profesionales ilimitados. Primer mes gratis, sin permanencia y con la migración hecha por nosotros.</p>
 </div>
 <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
@@ -1058,8 +1220,8 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </div>
 <a href="#contacto" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:14.5px">Empezar con 1 mes gratis</a>
 </div>
-<div class="hov-card" style="position:relative;border:1px solid rgba(244,80,30,.55);border-radius:22px;padding:28px;background:linear-gradient(170deg,var(--accent-soft),var(--card) 55%);display:flex;flex-direction:column;gap:13px;box-shadow:0 26px 60px -30px rgba(224,52,14,.45)">
-<span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap">Recomendado</span>
+<div class="hov-card" style="position:relative;border:1px solid rgba(244,80,30,.55);border-radius:22px;padding:32px 28px 28px;background:linear-gradient(170deg,var(--accent-soft),var(--card) 55%);display:flex;flex-direction:column;gap:13px;box-shadow:0 26px 60px -30px rgba(224,52,14,.45);overflow:visible">
+<span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px rgba(244,80,30,.45);z-index:3">Recomendado</span>
 <div style="font-family:var(--display);font-weight:800;font-size:21px">Estudio</div>
 <div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">Para salones que quieren ir en automático</div>
 <div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">59 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
@@ -1085,7 +1247,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(244,80,30,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
 <div style="position:relative;max-width:1080px;margin:0 auto">
 <div class="reveal" style="text-align:center;margin-bottom:28px">
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.6vw,46px);letter-spacing:-.03em;margin:0 0 12px">Deja de llevar el salón <span style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent-hi)">a mano</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.6vw,46px);letter-spacing:-.03em;margin:0 0 12px">Deja de llevar el salón <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">a mano</span></h2>
 <p style="font-size:16.5px;color:rgba(255,255,255,.66);margin:0">Entra en el software real ahora mismo, o te lo montamos con tus servicios en una llamada de 10 minutos.</p>
 </div>
 <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
@@ -1248,13 +1410,64 @@ function arrancar(){
       });
     }, { rootMargin: "0px 0px -10% 0px" });
     document.querySelectorAll(".reveal,[data-count]").forEach(el => alAparecer.observe(el));
-  } else {
-    sweep();
-    setInterval(sweep, 400);
   }
 
   pintarScroll();
 }
+
+// Spotlight interactivo que sigue al ratón con interpolación a 60fps
+let focoRaton = null, cursorGlow = null;
+let mouseTargetX = -999, mouseTargetY = -999, mouseCurrentX = -999, mouseCurrentY = -999;
+let mouseMoving = false;
+
+function updateMouseSpotlight(){
+  if (mouseCurrentX === -999) {
+    mouseCurrentX = mouseTargetX;
+    mouseCurrentY = mouseTargetY;
+  } else {
+    mouseCurrentX += (mouseTargetX - mouseCurrentX) * 0.14;
+    mouseCurrentY += (mouseTargetY - mouseCurrentY) * 0.14;
+  }
+  
+  if (cursorGlow) {
+    cursorGlow.style.left = mouseCurrentX.toFixed(1) + "px";
+    cursorGlow.style.top = mouseCurrentY.toFixed(1) + "px";
+    cursorGlow.style.opacity = "1";
+  }
+  if (focoRaton) {
+    focoRaton.style.marginLeft = (mouseCurrentX * 0.02) + "px";
+  }
+  
+  if (Math.abs(mouseTargetX - mouseCurrentX) > 0.4 || Math.abs(mouseTargetY - mouseCurrentY) > 0.4) {
+    requestAnimationFrame(updateMouseSpotlight);
+  } else {
+    mouseMoving = false;
+  }
+}
+
+addEventListener("mousemove", e => {
+  if (!cursorGlow) cursorGlow = document.getElementById("cursorGlow");
+  if (!focoRaton) focoRaton = document.querySelector("[data-spot]");
+  mouseTargetX = e.clientX;
+  mouseTargetY = e.clientY;
+  if (!mouseMoving) {
+    mouseMoving = true;
+    requestAnimationFrame(updateMouseSpotlight);
+  }
+}, { passive: true });
+
+document.addEventListener("mouseleave", () => {
+  if (cursorGlow) cursorGlow.style.opacity = "0";
+});
+
+// Reflejo interactivo en tarjetas
+document.querySelectorAll(".hov-card").forEach(card => {
+  card.addEventListener("mousemove", e => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty("--mx", (e.clientX - rect.left) + "px");
+    card.style.setProperty("--my", (e.clientY - rect.top) + "px");
+  }, { passive: true });
+});
 
 function pintarScroll(){
   scrollEnCola = false;
@@ -1280,17 +1493,6 @@ function onScroll(){
   requestAnimationFrame(pintarScroll);
 }
 addEventListener("scroll",onScroll,{passive:true});
-// El foco que sigue al raton: elemento cacheado y un repintado por frame
-// (mousemove dispara cientos de veces por segundo; antes cada uno hacia su
-// propia busqueda en el DOM y su propia escritura de estilo).
-let focoRaton = null, xRaton = 0, focoEnCola = false;
-addEventListener("mousemove", e => {
-  if (!focoRaton) return;
-  xRaton = e.clientX;
-  if (focoEnCola) return;
-  focoEnCola = true;
-  requestAnimationFrame(() => { focoEnCola = false; focoRaton.style.marginLeft = (xRaton * 0.02) + "px"; });
-}, { passive: true });
 
 /* comparativa */
 const FILAS=[
