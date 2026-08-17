@@ -21,7 +21,8 @@ function buildSitemap(salones) {
     { loc: `${BASE_URL}/`, changefreq: 'weekly', priority: '1.0', lastmod: today },
     { loc: `${BASE_URL}/salones`, changefreq: 'daily', priority: '0.9', lastmod: today },
     { loc: `${BASE_URL}/especificaciones.html`, changefreq: 'monthly', priority: '0.8', lastmod: today },
-    { loc: `${BASE_URL}/calculadora-comisiones`, changefreq: 'monthly', priority: '0.8', lastmod: today }
+    { loc: `${BASE_URL}/calculadora-comisiones`, changefreq: 'monthly', priority: '0.8', lastmod: today },
+    { loc: `${BASE_URL}/calculadora-ahorro-comisiones`, changefreq: 'monthly', priority: '0.8', lastmod: today }
   ];
 
   // Landings de long-tail (nicho, modulo, comparativa).

@@ -19,6 +19,11 @@ const CARD_STYLE = `<style>
   .seo-card .star{font-weight:700;color:var(--d-text)}
   .seo-card .addr{font-size:13px;color:var(--d-text-ter)}
   .seo-card .go{margin-top:6px;font-size:14px;font-weight:700;color:var(--d-fuego-hi)}
+  .seo-city-hub{background:var(--d-card);border:1px solid var(--d-border);border-radius:var(--d-r-lg);padding:24px;margin-bottom:24px}
+  .seo-city-hub h2{font-family:'Bricolage Grotesque','Inter',sans-serif;font-size:20px;font-weight:700;margin:0 0 12px}
+  .seo-city-hub p{margin:0 0 14px;font-size:15px;line-height:1.6;color:var(--d-text-sec)}
+  .seo-services-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .seo-pill{background:var(--d-card-hi);border:1px solid var(--d-border);padding:6px 14px;border-radius:var(--d-r-full);font-size:13.5px;color:var(--d-text)}
   .seo-cta{margin-top:34px;background:var(--d-card-hi);border:1px solid var(--d-border);border-radius:var(--d-r-lg);padding:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
   .seo-cta h2{font-family:'Bricolage Grotesque','Inter',sans-serif;font-size:21px;margin:0}
   .seo-cta p{margin:6px 0 0;color:var(--d-text-sec);font-size:14.5px}
@@ -49,32 +54,9 @@ function cityPageHtml(grupo) {
   const { ciudad, provincia, salones, citySlug } = grupo;
   const path = `/peluquerias-en-${citySlug}`;
   const titulo = `Peluquerias y barberias en ${ciudad} — Reserva cita online | Mecha`;
-  const descripcion = `Peluquerias y barberias en ${ciudad}${provincia ? ` (${provincia})` : ''} con reserva online: servicios, precios y valoraciones. Pide cita sin llamar por telefono.`;
+  const descripcion = `Encuentra las mejores peluquerias, barberias y centros de estetica en ${ciudad}${provincia ? ` (${provincia})` : ''} con reserva online instantanea 24/7 sin comisiones ni esperas.`;
 
-  const itemList = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: `Peluquerias en ${ciudad}`,
-    numberOfItems: salones.length,
-    itemListElement: salones.map((s, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      url: `${BASE_URL}/salon/${s.slug}`,
-      name: s.nombre
-    }))
-  };
-
-  const collectionPage = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    '@id': `${BASE_URL}${path}#collection`,
-    url: `${BASE_URL}${path}`,
-    name: titulo,
-    description: descripcion,
-    isPartOf: { '@type': 'WebSite', '@id': `${BASE_URL}/#website`, name: 'Mecha OS', url: `${BASE_URL}/` },
-    about: itemList,
-    inLanguage: 'es'
-  };
+  const jsonLdBlocks = [];
 
   const breadcrumb = breadcrumbJsonLd([
     { name: 'Inicio', path: '/' },
@@ -82,8 +64,38 @@ function cityPageHtml(grupo) {
     { name: ciudad, path }
   ]);
 
+  let bodyContent = '';
   const n = salones.length;
-  const body = `${CARD_STYLE}
+
+  if (n > 0) {
+    const itemList = {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: `Peluquerias en ${ciudad}`,
+      numberOfItems: salones.length,
+      itemListElement: salones.map((s, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${BASE_URL}/salon/${s.slug}`,
+        name: s.nombre
+      }))
+    };
+
+    const collectionPage = {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': `${BASE_URL}${path}#collection`,
+      url: `${BASE_URL}${path}`,
+      name: titulo,
+      description: descripcion,
+      isPartOf: { '@type': 'WebSite', '@id': `${BASE_URL}/#website`, name: 'Mecha OS', url: `${BASE_URL}/` },
+      about: itemList,
+      inLanguage: 'es'
+    };
+
+    jsonLdBlocks.push(collectionPage, itemList, breadcrumb);
+
+    bodyContent = `
 <nav class="seo-crumb" aria-label="Migas de pan"><a href="/">Inicio</a> &rsaquo; <a href="/salones">Directorio</a> &rsaquo; ${esc(ciudad)}</nav>
 <h1 style="font-family:'Bricolage Grotesque','Inter',sans-serif;font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-0.03em;margin:0 0 4px">Peluquerias y barberias en ${esc(ciudad)} <span class="em">con reserva online</span></h1>
 <p class="seo-intro">${n} ${n === 1 ? 'salon trabaja con Mecha en' : 'salones trabajan con Mecha en'} ${esc(ciudad)}: mira sus servicios, precios y valoraciones y pide cita online a la hora que te venga bien. Reservas directamente en la agenda del salon, sin llamadas ni intermediarios.</p>
@@ -93,18 +105,66 @@ ${salones.map(salonCard).join('\n')}
 <section class="seo-cta">
   <div>
     <h2>Tienes un salon en ${esc(ciudad)}?</h2>
-    <p>Mecha es el software con el que estos salones llevan su agenda, su caja y sus clientas. Aparecer en este directorio va incluido.</p>
+    <p>Mecha es el software con el que estos salones llevan su agenda, su caja y sus clientas sin comisiones por cita. Aparecer en este directorio va incluido.</p>
   </div>
   <a href="/#precios">Activar mi salon</a>
 </section>`;
+  } else {
+    // Ciudad en expansion nacional GEO 150%
+    const collectionPage = {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': `${BASE_URL}${path}#collection`,
+      url: `${BASE_URL}${path}`,
+      name: titulo,
+      description: descripcion,
+      isPartOf: { '@type': 'WebSite', '@id': `${BASE_URL}/#website`, name: 'Mecha OS', url: `${BASE_URL}/` },
+      inLanguage: 'es'
+    };
+
+    jsonLdBlocks.push(collectionPage, breadcrumb);
+
+    bodyContent = `
+<nav class="seo-crumb" aria-label="Migas de pan"><a href="/">Inicio</a> &rsaquo; <a href="/salones">Directorio</a> &rsaquo; ${esc(ciudad)}</nav>
+<h1 style="font-family:'Bricolage Grotesque','Inter',sans-serif;font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-0.03em;margin:0 0 4px">Peluquerias y barberias en ${esc(ciudad)} <span class="em">con cita online</span></h1>
+<p class="seo-intro">Encuentra los mejores salones de peluqueria, barberias y centros de estetica en ${esc(ciudad)}${provincia ? ` (${esc(provincia)})` : ''}. Reserva cita online en tiempo real directamente en la agenda del estilista, con confirmacion instantanea por WhatsApp 24/7.</p>
+
+<div class="seo-city-hub">
+  <h2>Servicios populares de peluqueria y belleza en ${esc(ciudad)}</h2>
+  <p>Los profesionales y salones gestionados con Mecha en ${esc(ciudad)} ofrecen catalogo completo de servicios tecnicos sin esperas telefonicas:</p>
+  <div class="seo-services-pills">
+    <span class="seo-pill">Corte caballero y arreglo de barba</span>
+    <span class="seo-pill">Corte y peinado de mujer</span>
+    <span class="seo-pill">Coloracion, Mechas y Balayage</span>
+    <span class="seo-pill">Tratamientos de keratina y brillo</span>
+    <span class="seo-pill">Manicura y pedicura semipermanente</span>
+    <span class="seo-pill">Depilacion y tratamientos faciales</span>
+  </div>
+</div>
+
+<div class="seo-city-hub">
+  <h2>Por que reservar en salones Mecha en ${esc(ciudad)}</h2>
+  <p><strong>Cero esperas:</strong> Reservas directamente en los huecos reales de la agenda del salon, incluso de noche o festivos gracias a la IA de WhatsApp.</p>
+  <p><strong>Precios transparentes:</strong> Consulta el precio cerrado y la duracion exacta de cada servicio antes de confirmar.</p>
+  <p><strong>Tus datos protegidos:</strong> Mecha no comparte tus datos con plataformas de terceros ni te enviara publicidad no deseada de otros negocios.</p>
+</div>
+
+<section class="seo-cta">
+  <div>
+    <h2>Diriges una peluqueria o barberia en ${esc(ciudad)}?</h2>
+    <p>Mecha es el sistema operativo con IA que te da agenda con tiempos de reposo, recepcionista de WhatsApp 24/7, VeriFactu y 0% comisiones. Se el salon de referencia en ${esc(ciudad)}.</p>
+  </div>
+  <a href="/#contacto">Probar Mecha 1 mes gratis</a>
+</section>`;
+  }
 
   return pageHtml({
     title: titulo,
     description: descripcion,
     path,
     active: 'ciudad',
-    jsonLd: [collectionPage, itemList, breadcrumb],
-    bodyHtml: body
+    jsonLd: jsonLdBlocks,
+    bodyHtml: `${CARD_STYLE}\n${bodyContent}`
   });
 }
 

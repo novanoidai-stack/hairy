@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calculadora de ahorro frente a Booksy, Fresha y Treatwell | Mecha</title>
+<meta name="description" content="Calcula en 30 segundos cuánto dinero pierdes al mes en comisiones con Booksy, Fresha o Treatwell y cuánto ahorras con la tarifa plana de Mecha OS. 0% comisiones." />
+<meta name="robots" content="index, follow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="canonical" href="https://www.mechaa.es/calculadora-ahorro-comisiones" />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.mechaa.es/calculadora-ahorro-comisiones" />
+<meta property="og:title" content="Calculadora de ahorro frente a Booksy, Fresha y Treatwell" />
+<meta property="og:description" content="Descubre cuánto te ahorras al año pasando de un modelo de comisiones abusivas a la tarifa plana sin comisiones de Mecha." />
+<meta property="og:image" content="https://www.mechaa.es/og-image.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Calculadora de ahorro frente a Booksy, Fresha y Treatwell" />
+<meta name="twitter:description" content="Simula tu ahorro mensual y anual al eliminar las comisiones por reserva y cliente nuevo." />
+<meta name="twitter:image" content="https://www.mechaa.es/og-image.jpg" />
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&display=swap" />
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&display=swap" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+<link rel="stylesheet" href="assets/directorio.css" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de ahorro de comisiones para peluquerías",
+  "url": "https://www.mechaa.es/calculadora-ahorro-comisiones",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "es-ES",
+  "description": "Simulador interactivo para comparar el coste de comisiones de Booksy, Fresha y Treatwell frente a la tarifa plana sin comisiones de Mecha OS.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "isAccessibleForFree": true,
+  "publisher": { "@type": "Organization", "name": "Mecha OS", "url": "https://www.mechaa.es" }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.mechaa.es/" },
+    { "@type": "ListItem", "position": 2, "name": "Calculadora de Ahorro", "item": "https://www.mechaa.es/calculadora-ahorro-comisiones" }
+  ]
+}
+</script>
+
+<style>
+  .calc-wrap { max-width: 960px; margin: 0 auto; padding: 20px 0 60px; }
+  .calc-hero { text-align: center; margin-bottom: 36px; }
+  .calc-hero h1 { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: clamp(28px, 4.5vw, 42px); font-weight: 800; letter-spacing: -0.03em; margin: 0 0 10px; }
+  .calc-hero h1 .em { background: var(--d-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .calc-hero p { font-size: 17px; color: var(--d-text-sec); max-width: 680px; margin: 0 auto; line-height: 1.6; }
+
+  .calc-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px; }
+  @media (max-width: 840px) { .calc-grid { grid-template-columns: 1fr; } }
+
+  .calc-card { background: var(--d-card); border: 1px solid var(--d-border); border-radius: var(--d-r-lg); padding: 26px; }
+  .calc-card h2 { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: 20px; font-weight: 700; margin: 0 0 20px; }
+
+  .slider-group { margin-bottom: 22px; }
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 14.5px; font-weight: 600; }
+  .slider-val { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: 19px; font-weight: 800; color: var(--d-fuego-hi); }
+  .slider-input { width: 100%; height: 6px; border-radius: 999px; background: var(--d-border); -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
+  .slider-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--d-fuego-hi); cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .slider-hint { font-size: 12.5px; color: var(--d-text-ter); margin-top: 4px; }
+
+  .res-box { background: var(--d-card-hi); border: 1px solid var(--d-border-hi); border-radius: var(--d-r-lg); padding: 24px; text-align: center; }
+  .res-big { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: clamp(34px, 5vw, 48px); font-weight: 800; color: #1a7f37; letter-spacing: -0.03em; margin: 10px 0; }
+  .res-sub { font-size: 14px; color: var(--d-text-sec); margin-bottom: 24px; }
+
+  .cmp-bars { display: flex; flex-direction: column; gap: 14px; margin-bottom: 26px; }
+  .cmp-row { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+  .cmp-label { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 600; }
+  .cmp-track { width: 100%; height: 12px; border-radius: 6px; background: rgba(0,0,0,0.06); overflow: hidden; }
+  .cmp-fill { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
+  .fill-mecha { background: #1a7f37; }
+  .fill-fresha { background: #e0340e; }
+  .fill-booksy { background: #d97706; }
+  .fill-treatwell { background: #dc2626; }
+
+  .calc-cta-btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 15px; border-radius: var(--d-r-md); background: var(--d-grad); color: #fff; font-weight: 700; font-size: 15.5px; text-decoration: none; box-shadow: 0 4px 14px rgba(224,52,14,.25); }
+  .calc-cta-btn:hover { filter: brightness(1.05); }
+
+  .breakdown-table { width: 100%; border-collapse: collapse; margin-top: 30px; font-size: 14px; }
+  .breakdown-table th, .breakdown-table td { padding: 10px 12px; border-bottom: 1px solid var(--d-border); text-align: left; }
+  .breakdown-table th { font-weight: 700; color: var(--d-text); }
+  .breakdown-table td.money { text-align: right; font-weight: 700; }
+</style>
+</head>
+<body class="directorio">
+
+<header class="d-top">
+  <div class="d-wrap d-top-in">
+    <a class="d-logo" href="/" aria-label="Mecha, inicio">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="mGradCalc" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+        </linearGradient></defs>
+        <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradCalc)" />
+        <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fffdfb" opacity=".92" />
+      </svg>
+      <span class="nm">Mecha<span class="dot" style="color:#f4501e">.</span></span>
+    </a>
+    <span class="d-top-sp"></span>
+    <a class="d-top-link" href="/salones">Directorio</a>
+    <a class="d-top-link" href="/especificaciones.html">Qué es Mecha</a>
+    <a class="d-top-link" href="/#precios">Precios</a>
+    <a class="d-top-link d-top-pro" href="/#contacto">Probar Mecha 1 mes gratis</a>
+  </div>
+</header>
+
+<main class="d-wrap">
+  <div class="calc-wrap">
+    <div class="calc-hero">
+      <h1>Calculadora de <span class="em">ahorro en comisiones</span></h1>
+      <p>Comprueba cuánto dinero se llevan las plataformas de comisiones (Fresha, Booksy, Treatwell) y cuánto ahorras cada mes con la tarifa plana sin comisiones de Mecha OS.</p>
+    </div>
+
+    <div class="calc-grid">
+      <!-- Sliders -->
+      <div class="calc-card">
+        <h2>Datos de tu salón</h2>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Citas mensuales totales</span>
+            <span class="slider-val" id="valCitas">300</span>
+          </div>
+          <input class="slider-input" type="range" id="inpCitas" min="50" max="1200" step="25" value="300" />
+          <div class="slider-hint">Número medio de servicios realizados al mes en tu local</div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Ticket medio por servicio</span>
+            <span class="slider-val" id="valTicket">38 €</span>
+          </div>
+          <input class="slider-input" type="range" id="inpTicket" min="15" max="150" step="1" value="38" />
+          <div class="slider-hint">Precio medio que paga un cliente por visita</div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>% Clientes nuevos al mes</span>
+            <span class="slider-val" id="valNuevos">15 %</span>
+          </div>
+          <input class="slider-input" type="range" id="inpNuevos" min="5" max="50" step="5" value="15" />
+          <div class="slider-hint">Fresha cobra el 20% y Treatwell hasta el 35% del primer servicio de cada cliente nuevo</div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>% Cobros con tarjeta / online</span>
+            <span class="slider-val" id="valTarjeta">60 %</span>
+          </div>
+          <input class="slider-input" type="range" id="inpTarjeta" min="20" max="100" step="10" value="60" />
+          <div class="slider-hint">Comisiones por procesamiento de tarjeta bancaria</div>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="calc-card">
+        <div class="res-box">
+          <div style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a7f37">Tu ahorro estimado con Mecha</div>
+          <div class="res-big" id="resAhorroAnual">+ 5.420 € / año</div>
+          <div class="res-sub" id="resAhorroMensual">Ahorras <strong id="valAhorroMes">452 €</strong> cada mes</div>
+
+          <div class="cmp-bars">
+            <div class="cmp-row">
+              <div class="cmp-label"><span>Mecha OS (Tarifa Plana)</span><span style="color:#1a7f37">39 €/mes</span></div>
+              <div class="cmp-track"><div class="cmp-fill fill-mecha" id="barMecha" style="width: 10%;"></div></div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-label"><span>Fresha (20% nuevo + 1.4% TPV)</span><span id="costeFresha" style="color:#e0340e">485 €/mes</span></div>
+              <div class="cmp-track"><div class="cmp-fill fill-fresha" id="barFresha" style="width: 85%;"></div></div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-label"><span>Treatwell (hasta 35% nuevo + cuota)</span><span id="costeTreatwell" style="color:#dc2626">615 €/mes</span></div>
+              <div class="cmp-track"><div class="cmp-fill fill-treatwell" id="barTreatwell" style="width: 100%;"></div></div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-label"><span>Booksy (Cuota + comisión por cita)</span><span id="costeBooksy" style="color:#d97706">210 €/mes</span></div>
+              <div class="cmp-track"><div class="cmp-fill fill-booksy" id="barBooksy" style="width: 45%;"></div></div>
+            </div>
+          </div>
+
+          <a class="calc-cta-btn" href="/#contacto">Empezar a ahorrar con Mecha &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla desglose -->
+    <div class="calc-card" style="margin-top:28px">
+      <h2>Desglose comparativo detallado</h2>
+      <table class="breakdown-table">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Mecha OS</th>
+            <th>Fresha</th>
+            <th>Treatwell</th>
+            <th>Booksy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Comisión por cliente nuevo</td>
+            <td style="color:#1a7f37;font-weight:700">0 €</td>
+            <td id="tdFreshaNuevos">342 €</td>
+            <td id="tdTreatwellNuevos">598 €</td>
+            <td>Variable</td>
+          </tr>
+          <tr>
+            <td>Comisión por procesamiento TPV</td>
+            <td style="color:#1a7f37;font-weight:700">0 € (tu banco)</td>
+            <td id="tdFreshaTpv">104 €</td>
+            <td>Incluido / %</td>
+            <td>Según pasarela</td>
+          </tr>
+          <tr>
+            <td>Cuota mensual de software</td>
+            <td>39 €</td>
+            <td>0 € (falso gratis)</td>
+            <td>99 €</td>
+            <td>Desde 45 € + extras</td>
+          </tr>
+          <tr style="background:rgba(244,80,30,0.05);font-weight:700">
+            <td>Coste total mensual</td>
+            <td style="color:#1a7f37;font-size:16px">39 €/mes</td>
+            <td id="tdTotalFresha" style="color:#e0340e">485 €/mes</td>
+            <td id="tdTotalTreatwell" style="color:#dc2626">615 €/mes</td>
+            <td id="tdTotalBooksy" style="color:#d97706">210 €/mes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer class="d-foot">
+  <div class="d-wrap">
+    <div class="d-foot-cols">
+      <div>
+        <div class="marca">
+          <span class="nm">Mecha<span class="dot" style="color:#f4501e">.</span></span>
+        </div>
+        <p class="desc">Software con IA para peluquerías, barberías y estética. Cero comisiones por reserva.</p>
+      </div>
+      <div>
+        <h4>Herramientas</h4>
+        <a href="/calculadora-ahorro-comisiones">Calculadora de ahorro</a>
+        <a href="/calculadora-comisiones">Calculadora de personal</a>
+        <a href="/salones">Directorio</a>
+      </div>
+      <div>
+        <h4>Comparativas</h4>
+        <a href="/alternativa-booksy">vs Booksy</a>
+        <a href="/alternativa-fresha">vs Fresha</a>
+        <a href="/alternativa-treatwell">vs Treatwell</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/terminos.html">Términos</a>
+      </div>
+    </div>
+    <div class="d-foot-bajo">
+      <span>&copy; 2026 Mecha OS</span>
+      <span>Tus clientas son tuyas, no de intermediarios.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const inpCitas = document.getElementById('inpCitas');
+  const inpTicket = document.getElementById('inpTicket');
+  const inpNuevos = document.getElementById('inpNuevos');
+  const inpTarjeta = document.getElementById('inpTarjeta');
+
+  const valCitas = document.getElementById('valCitas');
+  const valTicket = document.getElementById('valTicket');
+  const valNuevos = document.getElementById('valNuevos');
+  const valTarjeta = document.getElementById('valTarjeta');
+
+  const resAhorroAnual = document.getElementById('resAhorroAnual');
+  const valAhorroMes = document.getElementById('valAhorroMes');
+
+  const costeFresha = document.getElementById('costeFresha');
+  const costeTreatwell = document.getElementById('costeTreatwell');
+  const costeBooksy = document.getElementById('costeBooksy');
+
+  const barMecha = document.getElementById('barMecha');
+  const barFresha = document.getElementById('barFresha');
+  const barTreatwell = document.getElementById('barTreatwell');
+  const barBooksy = document.getElementById('barBooksy');
+
+  const tdFreshaNuevos = document.getElementById('tdFreshaNuevos');
+  const tdFreshaTpv = document.getElementById('tdFreshaTpv');
+  const tdTreatwellNuevos = document.getElementById('tdTreatwellNuevos');
+  const tdTotalFresha = document.getElementById('tdTotalFresha');
+  const tdTotalTreatwell = document.getElementById('tdTotalTreatwell');
+  const tdTotalBooksy = document.getElementById('tdTotalBooksy');
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('es-ES') + ' €';
+  }
+
+  function recalculate() {
+    const citas = Number(inpCitas.value);
+    const ticket = Number(inpTicket.value);
+    const pctNuevos = Number(inpNuevos.value) / 100;
+    const pctTarjeta = Number(inpTarjeta.value) / 100;
+
+    valCitas.textContent = citas;
+    valTicket.textContent = ticket + ' €';
+    valNuevos.textContent = (pctNuevos * 100) + ' %';
+    valTarjeta.textContent = (pctTarjeta * 100) + ' %';
+
+    const facturacionTotal = citas * ticket;
+    const citasNuevas = citas * pctNuevos;
+    const facturacionNuevos = citasNuevas * ticket;
+    const facturacionTarjeta = facturacionTotal * pctTarjeta;
+    const transaccionesTarjeta = citas * pctTarjeta;
+
+    // Mecha: tarifa fija
+    const cMecha = 39;
+
+    // Fresha: 20% clientes nuevos + 1.40% tarjeta + 0.20€ transacción
+    const freshaNuevos = facturacionNuevos * 0.20;
+    const freshaTpv = (facturacionTarjeta * 0.014) + (transaccionesTarjeta * 0.20);
+    const cFresha = freshaNuevos + freshaTpv;
+
+    // Treatwell: 30% clientes nuevos + 99€ cuota base + 2% transacciones
+    const treatwellNuevos = facturacionNuevos * 0.30;
+    const cTreatwell = 99 + treatwellNuevos + (facturacionTarjeta * 0.02);
+
+    // Booksy: 45€ base + ~0.50€ por reserva marketplace (~35% de reservas)
+    const cBooksy = 45 + (citas * 0.35 * 1.50) + (facturacionTarjeta * 0.012);
+
+    // Ahorro frente al competidor más común (Fresha)
+    const ahorroMes = Math.max(0, cFresha - cMecha);
+    const ahorroAno = ahorroMes * 12;
+
+    resAhorroAnual.textContent = '+ ' + fmt(ahorroAno) + ' / año';
+    valAhorroMes.textContent = fmt(ahorroMes);
+
+    costeFresha.textContent = fmt(cFresha) + '/mes';
+    costeTreatwell.textContent = fmt(cTreatwell) + '/mes';
+    costeBooksy.textContent = fmt(cBooksy) + '/mes';
+
+    tdFreshaNuevos.textContent = fmt(freshaNuevos);
+    tdFreshaTpv.textContent = fmt(freshaTpv);
+    tdTreatwellNuevos.textContent = fmt(treatwellNuevos);
+
+    tdTotalFresha.textContent = fmt(cFresha) + '/mes';
+    tdTotalTreatwell.textContent = fmt(cTreatwell) + '/mes';
+    tdTotalBooksy.textContent = fmt(cBooksy) + '/mes';
+
+    // Barras proporcionales
+    const maxCoste = Math.max(cTreatwell, cFresha, cBooksy, 100);
+    barMecha.style.width = Math.min(100, Math.max(6, (cMecha / maxCoste) * 100)) + '%';
+    barFresha.style.width = Math.min(100, Math.max(6, (cFresha / maxCoste) * 100)) + '%';
+    barTreatwell.style.width = Math.min(100, Math.max(6, (cTreatwell / maxCoste) * 100)) + '%';
+    barBooksy.style.width = Math.min(100, Math.max(6, (cBooksy / maxCoste) * 100)) + '%';
+  }
+
+  [inpCitas, inpTicket, inpNuevos, inpTarjeta].forEach(el => {
+    el.addEventListener('input', recalculate);
+  });
+
+  recalculate();
+</script>
+
+</body>
+</html>

@@ -1,23 +1,47 @@
 # Mecha OS — https://www.mechaa.es
-# El dominio canonico es www; el apex y hairy-two.vercel.app redirigen (308) aqui.
+# Dominio canónico: https://www.mechaa.es (apex y subdominios técnicos redirigen a www)
 
-User-agent: *
+# Reglas para Motores de Inteligencia Artificial (AIO / LLMs / Modelos Generativos)
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: cohere-ai
+User-agent: Bytespider
+User-agent: Diffbot
+User-agent: CCBot
 Allow: /
-
-# Panel de staff y recuperacion de contrasena: nunca.
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /salones
+Allow: /salon/*
+Allow: /peluquerias-en-*
+Allow: /software-*
+Allow: /alternativa-*
+Allow: /verifactu-*
+Allow: /agenda-*
+Allow: /fichaje-*
+Allow: /reducir-*
+Allow: /calculadora-*
+Allow: /especificaciones.html
 Disallow: /admin.html
 Disallow: /restablecer.html
-
-# La SPA del software: todas las rutas /app/* devuelven el MISMO shell
-# (ver rewrites de vercel.json), asi que indexarlas solo genera duplicados.
-# Reabrir cuando los portales publicos /app/r/<slug> tengan metadatos propios
-# servidos desde el servidor — es la base del directorio SEO del mes 2-3.
 Disallow: /app/
 
-# Las paginas del directorio marketplace (/salones y /salon/*), las landings de
-# nicho/modulo/comparativa (/software-barberia, /verifactu-peluqueria,
-# /alternativa-booksy, ...), las paginas de ciudad (/peluquerias-en-*) y el
-# manifiesto para LLMs (/llms.txt) son publicas e indexables.
-# Las paginas de staff/administracion y la SPA interna de software permanecen desindexadas/bloqueadas.
+# Reglas generales para todos los motores de búsqueda (Google, Bing, Yahoo, DuckDuckGo)
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /restablecer.html
+Disallow: /app/
+
+# Manifiestos de Conocimiento para Modelos de Lenguaje
+# https://www.mechaa.es/llms.txt
+# https://www.mechaa.es/llms-full.txt
 
 Sitemap: https://www.mechaa.es/sitemap.xml

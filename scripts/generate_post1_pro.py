@@ -1,0 +1,831 @@
+import os
+import base64
+from playwright.sync_api import sync_playwright
+
+# Convert logo and avatar to base64 if needed, or build vector graphics
+html_content = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #030508;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    padding: 50px;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .slide {
+    width: 1080px;
+    height: 1350px;
+    background: #07090E;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 85px 80px;
+    overflow: hidden;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Deep luxury lighting effects */
+  .glow-radial-orange {
+    position: absolute;
+    top: -200px;
+    right: -180px;
+    width: 750px;
+    height: 750px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244, 80, 30, 0.25) 0%, rgba(255, 122, 46, 0.08) 45%, transparent 70%);
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glow-radial-purple {
+    position: absolute;
+    bottom: -220px;
+    left: -180px;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124, 108, 240, 0.18) 0%, rgba(124, 108, 240, 0.04) 50%, transparent 75%);
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .grid-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 36px 36px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-text {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+  }
+  .brand-text span { color: #F4501E; }
+  .header-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .header-tag .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #F4501E;
+    box-shadow: 0 0 10px #F4501E;
+  }
+
+  /* Main Typography */
+  .content {
+    z-index: 10;
+    margin: auto 0;
+  }
+  .badge-statement {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(244, 80, 30, 0.12);
+    border: 1px solid rgba(244, 80, 30, 0.35);
+    color: #FF8A3D;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 26px;
+  }
+  .title-hero {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 66px;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    color: #FFFFFF;
+    margin-bottom: 26px;
+  }
+  .gradient-text-fire {
+    background: linear-gradient(135deg, #FFFFFF 20%, #FF8A3D 70%, #F4501E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .gradient-text-glow {
+    background: linear-gradient(135deg, #FF9E58 0%, #F4501E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .desc-hero {
+    font-size: 24px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 400;
+    max-width: 900px;
+  }
+
+  /* Luxury Glassmorphic Cards */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 26px;
+    backdrop-filter: blur(20px);
+    padding: 34px 36px;
+    box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Slide 1 - Hero Card */
+  .manifesto-card {
+    background: linear-gradient(145deg, rgba(244, 80, 30, 0.12) 0%, rgba(15, 20, 32, 0.9) 100%);
+    border: 1.5px solid rgba(244, 80, 30, 0.35);
+    border-radius: 28px;
+    padding: 36px 40px;
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 30px 60px -15px rgba(244, 80, 30, 0.25);
+  }
+  .manifesto-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .manifesto-number {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 54px;
+    font-weight: 800;
+    color: #FF8A3D;
+    line-height: 1;
+  }
+  .manifesto-label {
+    font-size: 17px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+  }
+  .manifesto-divider {
+    width: 1px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Slide 2 - Versus Comparison */
+  .vs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 30px;
+  }
+  .vs-box {
+    border-radius: 24px;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 480px;
+  }
+  .vs-box.old {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .vs-box.new {
+    background: linear-gradient(160deg, rgba(244, 80, 30, 0.16) 0%, rgba(20, 25, 38, 0.95) 100%);
+    border: 1.5px solid rgba(244, 80, 30, 0.45);
+    box-shadow: 0 20px 45px -10px rgba(244, 80, 30, 0.3);
+  }
+  .vs-tag {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .vs-tag.old { color: rgba(255, 255, 255, 0.45); }
+  .vs-tag.new { color: #FF8A3D; }
+  .vs-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    line-height: 1.15;
+  }
+  .vs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .vs-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .vs-item.old { color: rgba(255, 255, 255, 0.6); }
+  .vs-item.new { color: rgba(255, 255, 255, 0.95); font-weight: 600; }
+  .vs-icon { font-size: 20px; flex-shrink: 0; }
+
+  /* Slide 3 - Chemical Rest UI simulation */
+  .timeline-container {
+    background: #0D111A;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 26px;
+    padding: 32px;
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+  }
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .timeline-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .timeline-badge {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #4ade80;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 20px;
+    align-items: center;
+  }
+  .time-col {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+  }
+  .block-card {
+    border-radius: 18px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .block-card.active-app {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .block-card.rest-phase {
+    background: linear-gradient(90deg, rgba(244, 80, 30, 0.22) 0%, rgba(255, 138, 61, 0.12) 100%);
+    border: 1.5px dashed rgba(244, 80, 30, 0.6);
+  }
+  .block-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .block-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .block-sub {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.65);
+  }
+  .block-pill {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .block-pill.orange {
+    background: #F4501E;
+    color: #FFFFFF;
+    box-shadow: 0 4px 15px rgba(244, 80, 30, 0.4);
+  }
+  .block-pill.green {
+    background: #16a34a;
+    color: #FFFFFF;
+  }
+
+  /* Slide 4 - WhatsApp UI Simulation */
+  .chat-container {
+    background: #0B1017;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    padding: 30px;
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+  }
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .chat-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #F4501E, #FF8A3D);
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    box-shadow: 0 8px 20px rgba(244, 80, 30, 0.4);
+  }
+  .chat-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .chat-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chat-status {
+    font-size: 14px;
+    color: #4ade80;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chat-status .green-dot {
+    width: 7px;
+    height: 7px;
+    background: #4ade80;
+    border-radius: 50%;
+  }
+  .bubble-client {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px 20px 20px 4px;
+    padding: 18px 22px;
+    max-width: 82%;
+    font-size: 18px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .bubble-ia {
+    align-self: flex-end;
+    background: #1F2C34;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 20px 20px 4px 20px;
+    padding: 20px 24px;
+    max-width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 18px;
+    line-height: 1.45;
+  }
+  .stripe-box {
+    background: #0E1626;
+    border: 1px solid rgba(99, 91, 255, 0.4);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .stripe-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+  .stripe-badge {
+    background: #635BFF;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 8px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Slide 5 - Final Offer Card */
+  .offer-card {
+    background: linear-gradient(150deg, rgba(244, 80, 30, 0.18) 0%, rgba(12, 17, 28, 0.95) 100%);
+    border: 1.5px solid rgba(244, 80, 30, 0.45);
+    border-radius: 32px;
+    padding: 46px 44px;
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    box-shadow: 0 35px 70px -15px rgba(244, 80, 30, 0.3);
+  }
+  .offer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .offer-perk {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .offer-perk-icon {
+    font-size: 24px;
+  }
+  .big-action-btn {
+    background: linear-gradient(135deg, #F4501E 0%, #FF8A3D 100%);
+    color: #FFFFFF;
+    padding: 22px 40px;
+    border-radius: 999px;
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.01em;
+    box-shadow: 0 16px 40px -8px rgba(244, 80, 30, 0.65);
+    margin-top: 10px;
+  }
+
+  /* Footer */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 28px;
+    z-index: 10;
+  }
+  .footer-cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 21px;
+    font-weight: 700;
+    color: #FF8A3D;
+  }
+  .footer-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 14px;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG Definition -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="flameProGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#D82C0D"/>
+      <stop offset="45%" stop-color="#F4501E"/>
+      <stop offset="80%" stop-color="#FF8A3D"/>
+      <stop offset="100%" stop-color="#FFD15C"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ==========================================
+     SLIDE 1: EL MANIFIESTO DISRUPTIVO
+=============================================== -->
+<div id="slide-1" class="slide">
+  <div class="glow-radial-orange"></div>
+  <div class="glow-radial-purple"></div>
+  <div class="grid-pattern"></div>
+
+  <div class="header">
+    <div class="brand">
+      <svg style="width:46px;height:46px" viewBox="0 0 40 40">
+        <path fill="url(#flameProGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+        <path fill="#FFFFFF" opacity="0.92" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+      </svg>
+      <div class="brand-text">Mecha<span>.</span></div>
+    </div>
+    <div class="header-tag"><span class="dot"></span> COMUNICADO OFICIAL</div>
+  </div>
+
+  <div class="content">
+    <div class="badge-statement">Aviso al sector de la belleza en España</div>
+    <h1 class="title-hero">Se acabó regalar el <span class="gradient-text-fire">35% de tu salón</span> a los marketplaces.</h1>
+    <p class="desc-hero">Nace Mecha OS: el sistema operativo con Inteligencia Artificial diseñado para devolverle el control, la agenda y los beneficios a los verdaderos profesionales.</p>
+    
+    <div class="manifesto-card">
+      <div class="manifesto-stat">
+        <div class="manifesto-number">0%</div>
+        <div class="manifesto-label">Comisiones por cita</div>
+      </div>
+      <div class="manifesto-divider"></div>
+      <div class="manifesto-stat">
+        <div class="manifesto-number">100%</div>
+        <div class="manifesto-label">Tus clientas son tuyas</div>
+      </div>
+      <div class="manifesto-divider"></div>
+      <div class="manifesto-stat">
+        <div class="manifesto-number">24/7</div>
+        <div class="manifesto-label">WhatsApp con IA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-cta">Desliza · El cambio empieza hoy ➔</div>
+    <div class="footer-count">01 / 05</div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SLIDE 2: MENSAJE A LOS GIGANTES (VERSUS)
+=============================================== -->
+<div id="slide-2" class="slide">
+  <div class="glow-radial-orange" style="background: radial-gradient(circle, rgba(230, 40, 40, 0.2) 0%, transparent 65%);"></div>
+  <div class="grid-pattern"></div>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-text">Mecha<span>.</span></div>
+    </div>
+    <div class="header-tag"><span class="dot"></span> EL MENSAJE ES CLARO</div>
+  </div>
+
+  <div class="content">
+    <h2 class="title-hero" style="font-size:52px;margin-bottom:12px">Ellos crearon un peaje.<br><span class="gradient-text-glow">Mecha lo destruye.</span></h2>
+    <p class="desc-hero" style="font-size:21px">Durante años te hicieron creer que necesitabas un intermediario para llenar tu salón. Esta es la diferencia real:</p>
+
+    <div class="vs-grid">
+      <!-- Old model -->
+      <div class="vs-box old">
+        <div>
+          <div class="vs-tag old">Marketplaces Tradicionales</div>
+          <div class="vs-title" style="color:rgba(255,255,255,0.6)">El viejo modelo</div>
+          <div class="vs-list">
+            <div class="vs-item old"><span class="vs-icon">❌</span> Comisiones del 20% al 35% por cliente nuevo.</div>
+            <div class="vs-item old"><span class="vs-icon">❌</span> Tus clientas se comparten con tu competencia.</div>
+            <div class="vs-item old"><span class="vs-icon">❌</span> Citas vacías sin fianza ni protección.</div>
+            <div class="vs-item old"><span class="vs-icon">❌</span> Nadie atiende tus mensajes fuera de horario.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mecha OS -->
+      <div class="vs-box new">
+        <div>
+          <div class="vs-tag new">Mecha OS</div>
+          <div class="vs-title" style="color:#FFFFFF">El nuevo estándar</div>
+          <div class="vs-list">
+            <div class="vs-item new"><span class="vs-icon">⚡</span> 0% comisiones. Tarifa plana desde 39€/mes.</div>
+            <div class="vs-item new"><span class="vs-icon">⚡</span> Base de datos 100% privada y en tu poder.</div>
+            <div class="vs-item new"><span class="vs-icon">⚡</span> Fianza automática con Stripe anti no-shows.</div>
+            <div class="vs-item new"><span class="vs-icon">⚡</span> Chispa IA cierra citas por WhatsApp 24/7.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-cta">Mira nuestra agenda inteligente ➔</div>
+    <div class="footer-count">02 / 05</div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SLIDE 3: AGENDA CON TIEMPOS DE REPOSO
+=============================================== -->
+<div id="slide-3" class="slide">
+  <div class="glow-radial-orange"></div>
+  <div class="grid-pattern"></div>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-text">Mecha<span>.</span></div>
+    </div>
+    <div class="header-tag"><span class="dot"></span> INGENIERÍA EXCLUSIVA</div>
+  </div>
+
+  <div class="content">
+    <h2 class="title-hero" style="font-size:50px;margin-bottom:12px">Tu sillón no puede estar parado <span class="gradient-text-fire">mientras actúa el tinte.</span></h2>
+    <p class="desc-hero" style="font-size:21px">Mecha desglosa los servicios técnicos en fases para encajar citas express en los tiempos de reposo químico. Duplica tu caja sin hacer horas extra.</p>
+
+    <div class="timeline-container">
+      <div class="timeline-header">
+        <div class="timeline-title">🗓️ Agenda Inteligente · Sillón 1 (Color & Estilo)</div>
+        <div class="timeline-badge">+38% FACTURACIÓN</div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="time-col">09:00</div>
+        <div class="block-card active-app">
+          <div class="block-left">
+            <div class="block-name">Balayage Completo · Elena R.</div>
+            <div class="block-sub">Fase 1: Aplicación y montaje técnico (35 min)</div>
+          </div>
+          <div class="block-pill" style="background:rgba(255,255,255,0.1);color:#FFF">Activo</div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="time-col" style="color:#FF8A3D;font-weight:800">09:35</div>
+        <div class="block-card rest-phase">
+          <div class="block-left">
+            <div class="block-name" style="color:#FF8A3D">⏳ REPOSO QUÍMICO (Elena en espera)</div>
+            <div class="block-sub" style="color:#FFF">⚡ <b>Hueco aprovechado:</b> Corte Caballero (Lucas · +25€)</div>
+          </div>
+          <div class="block-pill orange">Encadenado</div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="time-col">10:15</div>
+        <div class="block-card active-app">
+          <div class="block-left">
+            <div class="block-name">Elena R. · Lavado & Styling Final</div>
+            <div class="block-sub">Fase 3: Matiz, aclarado y peinado (30 min)</div>
+          </div>
+          <div class="block-pill green">Cerrado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-cta">Conoce a tu recepcionista IA ➔</div>
+    <div class="footer-count">03 / 05</div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SLIDE 4: CHISPA IA EN WHATSAPP 24/7
+=============================================== -->
+<div id="slide-4" class="slide">
+  <div class="glow-radial-orange"></div>
+  <div class="grid-pattern"></div>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-text">Mecha<span>.</span></div>
+    </div>
+    <div class="header-tag"><span class="dot"></span> ASISTENTE 24/7</div>
+  </div>
+
+  <div class="content">
+    <h2 class="title-hero" style="font-size:50px;margin-bottom:12px">Tu WhatsApp atiende, agenda y <span class="gradient-text-fire">cobra señas mientras duermes.</span></h2>
+    <p class="desc-hero" style="font-size:21px">El 42% de las reservas se intentan fuera de horario. Chispa responde al segundo, consulta tu calendario y asegura el turno cobrando la fianza.</p>
+
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-header-info">
+          <div class="chat-name">Chispa · Asistente IA de tu Salón</div>
+          <div class="chat-status"><span class="green-dot"></span> En línea 24/7 · Domingo 23:42</div>
+        </div>
+      </div>
+
+      <div class="bubble-client">
+        "¡Hola! ¿Tenéis hueco para unas mechas balayage este viernes por la tarde?"
+      </div>
+
+      <div class="bubble-ia">
+        <div>"¡Hola Clara! Con Sofía tenemos libre este <b>viernes a las 16:30</b>. Son 90 min (con reposo optimizado)."</div>
+        <div class="stripe-box">
+          <div class="stripe-text">💳 Fianza de confirmación: <b>20,00 €</b></div>
+          <div class="stripe-badge">Stripe Seguro</div>
+        </div>
+        <div style="font-size:15px;color:#4ade80;font-weight:700">✓ Pago recibido · Cita bloqueada en tu calendario</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-cta">Únete al lanzamiento oficial ➔</div>
+    <div class="footer-count">04 / 05</div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SLIDE 5: OFERTA DE LANZAMIENTO
+=============================================== -->
+<div id="slide-5" class="slide">
+  <div class="glow-radial-orange"></div>
+  <div class="glow-radial-purple"></div>
+  <div class="grid-pattern"></div>
+
+  <div class="header">
+    <div class="brand">
+      <svg style="width:46px;height:46px" viewBox="0 0 40 40">
+        <path fill="url(#flameProGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+        <path fill="#FFFFFF" opacity="0.92" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+      </svg>
+      <div class="brand-text">Mecha<span>.</span></div>
+    </div>
+    <div class="header-tag"><span class="dot"></span> ACCESO EXCLUSIVO</div>
+  </div>
+
+  <div class="content">
+    <h2 class="title-hero" style="font-size:52px;margin-bottom:10px">El futuro de tu salón <span class="gradient-text-fire">empieza hoy.</span></h2>
+    <p class="desc-hero" style="font-size:21px">Pruébalo sin riesgo. Sin tarjeta de crédito. Sin contratos de permanencia.</p>
+
+    <div class="offer-card">
+      <div class="offer-grid">
+        <div class="offer-perk"><span class="offer-perk-icon">🎁</span> 1 Mes de prueba 100% GRATIS</div>
+        <div class="offer-perk"><span class="offer-perk-icon">📦</span> Migración asistida en 10 min</div>
+        <div class="offer-perk"><span class="offer-perk-icon">⚖️</span> VeriFactu + Fichaje legal</div>
+        <div class="offer-perk"><span class="offer-perk-icon">👥</span> Profesionales ilimitados</div>
+      </div>
+      <div class="big-action-btn">Pide tu Demo en www.mechaa.es</div>
+    </div>
+
+    <p style="text-align:center;font-size:21px;color:rgba(255,255,255,0.7);margin-top:24px">O envíanos un DM con la palabra <b>"MECHA"</b> y te configuramos todo.</p>
+  </div>
+
+  <div class="footer">
+    <div class="footer-cta" style="color:#FFF">Guarda y Comparte este Post 🔖</div>
+    <div class="footer-count">05 / 05</div>
+  </div>
+</div>
+
+</body>
+</html>
+"""
+
+os.makedirs("public/instagram/post1_pro", exist_ok=True)
+html_path = os.path.abspath("public/instagram/post1_pro/render_post1_pro.html")
+with open(html_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print(f"Professional Post 1 HTML saved to {html_path}")
+
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_page(viewport={"width": 1200, "height": 7800})
+    page.goto(f"file:///{html_path}")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(1000)
+
+    for i in range(1, 6):
+        el = page.locator(f"#slide-{i}")
+        slide_path = f"public/instagram/post1_pro/slide_pro_{i}.png"
+        el.screenshot(path=slide_path)
+        print(f"Professional Slide {i} generated at {slide_path}!")
+
+    browser.close()
+
+print("All 5 Ultra-Premium carousel slides generated successfully at 1080x1350px!")

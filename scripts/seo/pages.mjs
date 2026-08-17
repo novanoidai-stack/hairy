@@ -15,7 +15,7 @@ export const LANDING_PAGES = [
     description: 'Software para barberias con agenda inteligente, fichajes legales, facturacion VeriFactu y un asistente que atiende WhatsApp por ti. Desde 39 eur/mes, sin comisiones.',
     lead: 'Mecha es el software de gestion pensado para barberias: una agenda que entiende que un afeitado de navaja y un corte no duran lo mismo, una caja que cuadra sola y un asistente de IA que atiende WhatsApp y cobra la senal cuando un cliente pide hora fuera de horario. Sin comisiones por reserva y sin permanencia.',
     bullets: [
-      { titulo: 'Agenda que respeta los tiempos reales de la barberia', texto: 'Cada servicio lleva su duracion real. Si un servicio tiene tiempo de reposo (un tinte) o encadena dos manos, la agenda lo coloca solo y te avisa de los huecos muertos que podrias estar aprovechando.' },
+      { titulo: 'Agenda que respeta los tiempos reales de la barberia', texto: 'Cada servicio lleva su duracion real. Si un servicio tiene tiempo de reposo (un tinte o tratamiento de barba) o encadena dos manos, la agenda lo coloca solo y te avisa de los huecos muertos que podrias estar aprovechando.' },
       { titulo: 'Barberia y peluqueria en la misma cuenta', texto: 'Si combinas servicio de senor y senora, tarifas de barba, corte y color, todo convive sin duplicar clientes ni agendas. Servicios combinables y precios por profesional.' },
       { titulo: 'Fichaje legal del personal', texto: 'Registro de jornada inalterable que cumple el art. 34.9 del Estatuto de los Trabajadores, con entradas, salidas, pausas y correcciones con doble conformidad. Descargable en PDF para una inspeccion.' },
       { titulo: 'Facturacion VeriFactu en regla', texto: 'Tickets y facturas con cadena AEAT, QR de cotejo y envio a Hacienda. Sin otro programa de facturacion encimado.' },
@@ -53,6 +53,44 @@ export const LANDING_PAGES = [
       { q: 'Tengo que pagar comision por cada reserva?', a: 'No. Precios cerrados (Esencial 39 eur/mes, Estudio 59 eur/mes, mas IVA), sin comision por reserva ni por cobro. Las senales y los cobros van por tu Stripe o tu Redsys/Bizum.' }
     ]
   },
+  {
+    slug: 'software-unas-manicura',
+    tipo: 'nicho',
+    h1: 'Software para salones de manicura y unas: micro-citas y senales sin comision',
+    title: 'Software para salones de manicura y unas 2026 | Con IA — Mecha',
+    description: 'Software para salones de unas, manicura y pedicura: agenda rapida, senales por Stripe para eliminar no-shows, recordatorios por WhatsApp y caja. Desde 39 eur/mes.',
+    lead: 'En los salones de unas y nail art, cada 15 minutos cuentan. Mecha te ofrece una agenda visual que encaja micro-servicios, pedicuras y decoraciones sin solapes, cobra senal automatica para evitar ausencias y atiende WhatsApp con IA 24/7 sin interrumpir tu trabajo.',
+    bullets: [
+      { titulo: 'Micro-slots para servicios express', texto: 'Configura citas de 15, 30 o 45 minutos segun el tipo de manicura (semipermanente, acrilico, gel o express) y combina servicios adicionales (retirada, decoracion) sin desajustar el horario.' },
+      { titulo: 'Senales anti no-show para proteger tus huecos', texto: 'Cobra una senal por Stripe a clientas nuevas o con historial de ausencias. Si no asisten, el hueco queda compensado y la lista de espera se activa sola.' },
+      { titulo: 'WhatsApp con IA que atiende mientras trabajas', texto: 'Chispa responde dudas de precios, muestra huecos libres y reserva citas mientras tienes las manos ocupadas con una clienta.' },
+      { titulo: 'Fichas con fotos de disenos y preferencias', texto: 'Guarda fotos de disenos anteriores, colores favoritos y sensibilidades en la ficha de cada clienta para dar un servicio personalizado.' },
+      { titulo: 'Facturacion VeriFactu y control de caja', texto: 'Cobro por tarjeta, Bizum o efectivo con tickets homologados por la AEAT y arqueo diario sin errores.' }
+    ],
+    faqs: [
+      { q: 'Puedo combinar retirada de esmalte y manicura en una sola cita?', a: 'Si. Mecha permite anadir complementos (add-ons) y servicios encadenados para que la clienta reserve el servicio principal y los extras con su duracion real calculada.' },
+      { q: 'Como ayuda Mecha a evitar las cancelaciones de ultima hora?', a: 'Con el cobro de fianza/senal por enlace de Stripe y recordatorios interactivos por WhatsApp 24h antes que permiten confirmar o reagendar con un solo clic.' },
+      { q: 'Cobra Mecha un porcentaje de mis cobros de unas?', a: 'No. Tarifa plana desde 39 eur/mes sin comisiones por cita ni por volumen de facturacion.' }
+    ]
+  },
+  {
+    slug: 'software-peluqueria-canina',
+    tipo: 'nicho',
+    h1: 'Software para peluquerias caninas y estetica de mascotas: citas por raza y tamano',
+    title: 'Software para peluqueria canina 2026 | Agenda y gestion — Mecha',
+    description: 'Software de gestion para peluquerias caninas: agenda con tiempos de bano y secado por tamano de raza, recordatorios WhatsApp, caja y fichas de mascotas. 0% comisiones.',
+    lead: 'La peluqueria canina requiere gestionar tiempos de bano, secador y corte segun el tamano y pelaje de cada mascota. Mecha adapta la agenda a los tiempos de secado (mientras un perro se seca en cabina, puedes banar a otro), lleva el historial de cada mascota y cobra senales para evitar ausencias.',
+    bullets: [
+      { titulo: 'Tiempos de secado y bano optimizados', texto: 'Aprovecha los tiempos pasivos de secado en cabina para banar o cepillar al siguiente perro, duplicando el flujo de trabajo del salon canino.' },
+      { titulo: 'Fichas completas de mascota y propietario', texto: 'Registra raza, peso, caracter, alergias a champus, historial de cortes y telefono del dueno en una ficha unificada.' },
+      { titulo: 'Recordatorios por WhatsApp automaticos', texto: 'Avisa a los duenos antes de la cita y envia un mensaje automatico cuando su perro este listo para ser recogido.' },
+      { titulo: 'Caja, TPV y productos de higiene', texto: 'Venta de champus, correas y alimentacion integrada con el cobro del servicio de peluqueria.' }
+    ],
+    faqs: [
+      { q: 'Sirve Mecha para peluquerias caninas con varios baneros y estilistas?', a: 'Si. Puedes organizar la agenda por columnas de profesionales o puestos de trabajo (banyeras, mesas de corte) sin solapes.' },
+      { q: 'Puedo avisar al dueno cuando su mascota este lista?', a: 'Si. Con un toque desde la agenda envias un WhatsApp notificando que el servicio ha terminado y pueden pasar a recogerla.' }
+    ]
+  },
 
   /* ============================ MODULOS ============================ */
   {
@@ -84,7 +122,7 @@ export const LANDING_PAGES = [
     h1: 'Agenda inteligente para peluquerias: tiempos de reposo, servicios encadenados y huecos',
     title: 'Agenda inteligente para peluquerias | Reposo y encadenados — Mecha',
     description: 'La agenda inteligente para peluquerias: detecta tiempos de reposo del tinte, encadena servicios entre profesionales, absorbe retrasos y aprovecha huecos muertos. Sin comisiones.',
-    lead: 'La diferencia entre una agenda cualquiera y una agenda inteligente es que esta entiende como trabaja una peluqueria. La de Mecha sabe que mientras un tinte reposa el sillon esta libre para otro cliente, que una cita puede encadenar varias manos y que un retraso no debe arruinar el resto del dia. Todo automático, decidís vosotros.',
+    lead: 'La diferencia entre una agenda cualquiera y una agenda inteligente es que esta entiende como trabaja una peluqueria. La de Mecha sabe que mientras un tinte reposa el sillon esta libre para otro cliente, que una cita puede encadenar varias manos y que un retraso no debe arruinar el resto del dia. Todo automatico, decidis vosotros.',
     bullets: [
       { titulo: 'Tiempos muertos productivos', texto: 'Mientras un tinte o una decoloracion reposa, la agenda libera el sillon y te ofrece meter a otro cliente en ese hueco. Tiempo que antes se perdia, ahora se factura.' },
       { titulo: 'Fases de la cita (activo - reposo - activo)', texto: 'Una cita con reposo se divide en sus fases reales. La agenda reserva el segundo bloque del mismo profesional y evita falsos conflictos.' },
@@ -109,7 +147,7 @@ export const LANDING_PAGES = [
     description: 'Registro de jornada legal para peluquerias y barberias: fichaje inalterable, entradas/salidas/pausas, correcciones con doble conformidad y exportacion PDF/CSV. Cumple art. 34.9 ET.',
     lead: 'El registro de jornada es obligatorio y debe ser inalterable. Mecha lleva el fichaje legal de tu peluqueria integrado con la agenda: el personal ficha entrada, salida y pausas con hora del servidor, las correcciones requieren doble conformidad y todo se exporta en PDF para una inspeccion de trabajo.',
     bullets: [
-      { titulo: 'Registro inalterable', texto: 'Los fichajes no se pueden editar en silenccio: cualquier cambio queda registrado. Conservacion de 4 anos, como exige el Estatuto de los Trabajadores.' },
+      { titulo: 'Registro inalterable', texto: 'Los fichajes no se pueden editar en silencio: cualquier cambio queda registrado. Conservacion de 4 anos, como exige el Estatuto de los Trabajadores.' },
       { titulo: 'Entradas, salidas y pausas', texto: 'El personal ficha con la hora del servidor (no la del dispositivo). Pausas, turnos partidos y horas extras quedan reflejados.' },
       { titulo: 'Correcciones con doble conformidad', texto: 'Para corregir un fichaje hacen falta empresa y empleado; si hay discrepancia, queda registrada. Cumple el criterio de la Inspeccion de Trabajo.' },
       { titulo: 'Exportable a PDF y CSV', texto: 'Descarga el control horario de cualquier periodo (por persona o por salon) en PDF o CSV para entregar en una inspeccion o al asesor laboral.' },
@@ -163,17 +201,17 @@ export const LANDING_PAGES = [
       { titulo: 'IA que atiende WhatsApp 24/7', texto: 'Un asistente que da cita, contesta dudas y cobra la senal fuera de horario. En Booksy no existe; en Mecha es un addon que activas cuando quieras.' },
       { titulo: 'VeriFactu y fichaje legal incluidos', texto: 'Facturacion oficial AEAT con QR de cotejo y registro de jornada conforme al art. 34.9 ET, dentro del plan. Sin modulos fiscales extra.' },
       { titulo: 'Tus clientes son tuyos', texto: 'Mecha no es un marketplace: no compartes tus clientas con otros salones ni competis en el mismo buscador. Tus datos son tuyos y los exportas cuando quieras.' },
-      { titulo: 'Migracion desde Booksy en 10 minutos', texto: 'Importas tus clientes y tu agenda desde Booksy de forma asistida, o subes una foto de tu agenda y el importador IA la convierte en datos.' }
+      { titulo: 'Migracion desde Booksy en 10 minutos', texto: 'Importas tus clientes y tu agenda desde Booksy de forma asistida, o subes una foto de tu agenda y el importador IA de Mecha la convierte en datos.' }
     ],
     comparativa: [
-      { aspecto: 'Comision por reserva', mecha: 'No, precios cerrados', otro: 'Si, por cada cita' },
-      { aspecto: 'Agenda con tiempos de reposo', mecha: 'Si', otro: 'No' },
+      { aspecto: 'Comision por reserva', mecha: 'No, precios cerrados (0%)', otro: 'Si, por cada cita o cliente' },
+      { aspecto: 'Agenda con tiempos de reposo de tinte', mecha: 'Si (fases activo-reposo)', otro: 'No' },
       { aspecto: 'Servicios encadenados entre profesionales', mecha: 'Si', otro: 'No' },
-      { aspecto: 'Asistente IA por WhatsApp y voz', mecha: 'Si (addon)', otro: 'No' },
-      { aspecto: 'Facturacion VeriFactu (AEAT)', mecha: 'Si, incluida', otro: 'No / modulo aparte' },
-      { aspecto: 'Fichaje legal (art. 34.9 ET)', mecha: 'Si, incluido', otro: 'No' },
-      { aspecto: 'Modelo', mecha: 'Software (tus clientes son tuyos)', otro: 'Marketplace' },
-      { aspecto: 'Precio desde', mecha: '39 eur/mes + IVA', otro: 'Base + comisiones' }
+      { aspecto: 'Asistente IA por WhatsApp y voz 24/7', mecha: 'Si (Chispa)', otro: 'No' },
+      { aspecto: 'Facturacion VeriFactu (AEAT)', mecha: 'Si, incluida (SHA-256)', otro: 'No / modulo aparte' },
+      { aspecto: 'Fichaje legal (art. 34.9 ET)', mecha: 'Si, inalterable', otro: 'No' },
+      { aspecto: 'Modelo de privacidad', mecha: 'Software (tus clientas son tuyas)', otro: 'Marketplace competidor' },
+      { aspecto: 'Precio mensual', mecha: 'Desde 39 eur/mes + IVA', otro: 'Cuota base + comisiones' }
     ],
     faqs: [
       { q: 'Por que cambiar de Booksy a Mecha?', a: 'Porque Mecha no cobra comision por reserva (precios cerrados desde 39 eur/mes), tiene una agenda pensada para peluqueria (tiempos de reposo, servicios encadenados), IA que atiende WhatsApp, VeriFactu y fichaje legal incluidos, y porque tus clientes son tuyos: Mecha no es un marketplace.' },
@@ -192,7 +230,7 @@ export const LANDING_PAGES = [
     description: 'Por que Mecha es la mejor alternativa a Fresha: agenda con reposo, IA que atiende WhatsApp, VeriFactu, fichaje legal y senales anti no-show. Sin comision por reserva. Migra en 10 min.',
     lead: 'Si buscas una alternativa a Fresha, Mecha te ofrece agenda y reserva online sin las comisiones por reserva del modelo de Fresha. Ademas anade una agenda hecha para peluqueria (con tiempos de reposo y servicios encadenados), IA que atiende WhatsApp y cobra la senal, facturacion VeriFactu y fichaje legal. Migras en 10 minutos sin perder tus clientes.',
     bullets: [
-      { titulo: 'Precios cerrados, sin comision por reserva', texto: 'Frente al modelo de comision por cita, Mecha ofrece precios cerrados desde 39 eur/mes sin porcentaje por reserva ni por cobro. Predecible mes a mes.' },
+      { titulo: 'Precios cerrados, sin comision por reserva', texto: 'Frente al modelo de 20% por cliente nuevo y comision por cita de Fresha, Mecha ofrece precios cerrados desde 39 eur/mes sin porcentaje por reserva ni por cobro. Ahorra miles de euros al ano.' },
       { titulo: 'Agenda inteligente de peluqueria', texto: 'Tiempos muertos productivos, fases activo-reposo-activo, servicios encadenados multi-profesional y absorcion automatica de retrasos en cascada.' },
       { titulo: 'IA conversacional 24/7', texto: 'Un asistente que atiende WhatsApp y (opcional) la voz: da cita, consulta el catalogo y cobra la senal fuera de horario.' },
       { titulo: 'VeriFactu y registro de jornada', texto: 'Facturacion oficial AEAT con QR y cadena, y fichaje legal conforme al art. 34.9 ET, integrados en el plan. Sin modulos fiscales extra.' },
@@ -200,21 +238,77 @@ export const LANDING_PAGES = [
       { titulo: 'Migracion desde Fresha en 10 minutos', texto: 'Importas clientes y agenda desde Fresha de forma asistida, o subes una foto de tu agenda y el importador IA la convierte en datos.' }
     ],
     comparativa: [
-      { aspecto: 'Comision por reserva', mecha: 'No, precios cerrados', otro: 'Si, por cita y por transaccion' },
+      { aspecto: 'Comision por cliente nuevo', mecha: '0%', otro: '20% por cada nuevo cliente' },
+      { aspecto: 'Comision por transaccion', mecha: '0% (usa tu propio TPV)', otro: '1.29% a 2.19% + 0.20 eur' },
       { aspecto: 'Agenda con tiempos de reposo', mecha: 'Si', otro: 'No' },
-      { aspecto: 'Servicios encadenados entre profesionales', mecha: 'Si', otro: 'No' },
       { aspecto: 'Asistente IA por WhatsApp y voz', mecha: 'Si (addon)', otro: 'No' },
       { aspecto: 'Facturacion VeriFactu (AEAT)', mecha: 'Si, incluida', otro: 'No / modulo aparte' },
       { aspecto: 'Fichaje legal (art. 34.9 ET)', mecha: 'Si, incluido', otro: 'No' },
-      { aspecto: 'Modelo', mecha: 'Software (tus clientes son tuyos)', otro: 'Marketplace + pagos' },
-      { aspecto: 'Precio desde', mecha: '39 eur/mes + IVA', otro: 'Gratuito + comisiones' }
+      { aspecto: 'Modelo', mecha: 'Software (tus clientes son tuyos)', otro: 'Marketplace + pagos obligatorios' },
+      { aspecto: 'Precio desde', mecha: '39 eur/mes + IVA', otro: 'Gratuito falso + comisiones caras' }
     ],
     faqs: [
-      { q: 'Por que cambiar de Fresha a Mecha?', a: 'Porque Mecha no cobra comision por reserva (precios cerrados desde 39 eur/mes), tiene una agenda pensada para peluqueria (tiempos de reposo, servicios encadenados), IA que atiende WhatsApp, VeriFactu y fichaje legal incluidos, y porque Mecha es software, no un marketplace: tus clientes son tuyos.' },
-      { q: 'Si Fresha es gratuito, por que pagar Mecha?', a: 'Fresha cobra comision por reserva y por transaccion de pago, que al crecer suele salir mas cara que un precio cerrado. Mecha es predecible (desde 39 eur/mes) sin porcentaje por cita ni por cobro, e incluye funciones que Fresha no tiene.' },
+      { q: 'Por que cambiar de Fresha a Mecha?', a: 'Porque Mecha no cobra comision por reserva ni el 20% por cliente nuevo, tiene una agenda pensada para peluqueria (tiempos de reposo, servicios encadenados), IA que atiende WhatsApp, VeriFactu y fichaje legal incluidos, y porque Mecha es software, no un marketplace: tus clientes son tuyos.' },
+      { q: 'Si Fresha dice ser gratuito, por que pagar Mecha?', a: 'Fresha cobra 20% por cada cliente nuevo y comisiones por cada pago con tarjeta. Un salon mediano acaba pagando entre 400 y 900 euros al mes a Fresha. Con Mecha pagas solo 39 euros al mes fijos.' },
       { q: 'Puedo migrar mis clientes y mi agenda desde Fresha?', a: 'Si. La migracion desde Fresha es asistida y suele tardar unos 10 minutos. Tambien puedes subir una foto de tu agenda de papel y el importador IA de Mecha la convierte en datos.' },
-      { q: 'Mecha me obliga a usar sus pagos como un marketplace?', a: 'No. Cobras por tu Stripe, tu Redsys/Bizum o en efectivo. Mecha no se queda un porcentaje de tus cobros ni de tus reservas.' },
-      { q: 'Tiene Mecha cosas que Fresha no tiene?', a: 'Si: agenda con tiempos muertos productivos y servicios encadenados, IA conversacional por WhatsApp y voz, facturacion VeriFactu con QR AEAT, fichaje legal y depositos dinamicos por riesgo de no-show.' }
+      { q: 'Mecha me obliga a usar un datofono propietario caro?', a: 'No. Puedes cobrar con tu propio datofono del banco (Redsys/Bizum al 0.3%), con Stripe o con Tap to Pay directamente desde tu movil.' }
+    ]
+  },
+  {
+    slug: 'alternativa-treatwell',
+    tipo: 'comparativa',
+    competidor: 'Treatwell',
+    h1: 'Alternativa a Treatwell: el software que no se queda con el 35% de tus clientes',
+    title: 'Alternativa a Treatwell 2026 | Sin comisiones abusivas — Mecha',
+    description: 'Por que cambiar de Treatwell a Mecha: 0% comisiones, agenda con tiempos de reposo, IA por WhatsApp, VeriFactu y fichaje legal. Ahorra mas de 6.000 eur al ano.',
+    lead: 'Treatwell cobra hasta un 35% de comision por cada cliente nuevo y te obliga a hacer descuentos que devaluan tu trabajo. Mecha te devuelve el control de tu salon: tarifa plana de 39 eur/mes, 0% comisiones, agenda inteligente con tiempos de reposo y recepcionista de WhatsApp 24/7.',
+    bullets: [
+      { titulo: '0% comisiones frente al 35% de Treatwell', texto: 'No cedas un tercio de tu facturacion en comisiones de marketplace. Con Mecha el 100% del dinero de cada cita es para tu salon.' },
+      { titulo: 'Tus clientas nunca veran a la competencia', texto: 'En Treatwell tus clientas reciben ofertas de otros salones cercanos. En Mecha tu portal de reservas es privado y exclusivo de tu marca.' },
+      { titulo: 'Agenda especializada en peluqueria y color', texto: 'Gestiona fases de reposo de tinte, balayage y tratamientos sin bloquear el sillon a ciegas como hace Treatwell.' },
+      { titulo: 'VeriFactu y control horario incluidos', texto: 'Facturas homologadas por la AEAT con QR y registro inalterable de jornada para inspecciones laborales dentro de tu cuota.' },
+      { titulo: 'Migracion asistida en 10 minutos', texto: 'Traspasa tu base de datos de clientes desde Treatwell de forma rapida y segura.' }
+    ],
+    comparativa: [
+      { aspecto: 'Comision por cliente nuevo', mecha: '0%', otro: 'Hasta 35% + IVA' },
+      { aspecto: 'Comision por citas recurrentes', mecha: '0%', otro: '2% a 3% por transaccion' },
+      { aspecto: 'Agenda con tiempos de reposo de tinte', mecha: 'Si', otro: 'No' },
+      { aspecto: 'Recepcionista IA WhatsApp 24/7', mecha: 'Si (Chispa)', otro: 'No' },
+      { aspecto: 'Facturacion VeriFactu (AEAT)', mecha: 'Si, incluida', otro: 'No' },
+      { aspecto: 'Control horario (Art. 34.9 ET)', mecha: 'Si, incluido', otro: 'No' },
+      { aspecto: 'Propiedad del cliente', mecha: '100% tuya', otro: 'Del marketplace' },
+      { aspecto: 'Precio', mecha: '39 eur/mes fijos', otro: 'Comisiones variables abusivas' }
+    ],
+    faqs: [
+      { q: 'Cuanto puedo ahorrar al cambiarme de Treatwell a Mecha?', a: 'Un salon que capta 20 clientas nuevas al mes en Treatwell con un ticket medio de 45 euros paga mas de 315 euros al mes solo en comisiones (3.780 euros al ano). Con Mecha pagas 39 euros al mes, ahorrando mas de 3.300 euros limpios al ano.' },
+      { q: 'Pierdo a mis clientes si dejo Treatwell?', a: 'No. Puedes exportar el listado de clientes de Treatwell e importarlo en Mecha en 10 minutos. Tus clientas reservaran en tu nuevo enlace privado sin ver otros salones.' }
+    ]
+  },
+  {
+    slug: 'alternativa-square-appointments',
+    tipo: 'comparativa',
+    competidor: 'Square Appointments',
+    h1: 'Alternativa a Square Appointments: software especializado en peluqueria con IA',
+    title: 'Alternativa a Square Appointments 2026 | Peluquerias — Mecha',
+    description: 'Mecha vs Square Appointments: agenda con tiempos de reposo, fichas tecnicas con formulas de color, IA por WhatsApp, VeriFactu y control horario laboral. Desde 39 eur/mes.',
+    lead: 'Square Appointments es un sistema generico pensado para tiendas y cafeterias, no para salones. Mecha es el software vertical disenado para peluquerias: entiende que un tinte tiene tiempos de reposo, guarda formulas tecnicas exactas y cumple las leyes fiscales (VeriFactu) y laborales (fichajes) de Espana.',
+    bullets: [
+      { titulo: 'Especializado en peluqueria y estetica', texto: 'Fichas de color con oxidante, gramos, tonos y tiempos de exposicion que Square no tiene.' },
+      { titulo: 'Tiempos de reposo quimico nativos', texto: 'La agenda de Mecha permite meter cortes rapidos mientras un tinte actua, duplicando el rendimiento por sillon.' },
+      { titulo: 'Cumplimiento fiscal VeriFactu (AEAT)', texto: 'Tickets encadenados con SHA-256 y codigo QR oficial de Hacienda, adaptado a la ley espanola.' },
+      { titulo: 'Fichaje legal inalterable art. 34.9 ET', texto: 'Registro de jornada obligatorio con marca de tiempo del servidor para inspecciones de trabajo.' },
+      { titulo: 'Recepcionista de WhatsApp con IA', texto: 'Atiende y cobra reservas automaticamente mientras Square solo envia SMS basicos.' }
+    ],
+    comparativa: [
+      { aspecto: 'Fichas con formulas de color y tecnicas', mecha: 'Si, especializado', otro: 'Notas de texto basicas' },
+      { aspecto: 'Tiempos de reposo en la agenda', mecha: 'Si (fases automaticas)', otro: 'No (bloque continuo ciego)' },
+      { aspecto: 'VeriFactu AEAT con QR de cotejo', mecha: 'Si, homologado', otro: 'No' },
+      { aspecto: 'Registro de jornada laboral (Art. 34.9 ET)', mecha: 'Si, inalterable', otro: 'No' },
+      { aspecto: 'Asistente IA por WhatsApp 24/7', mecha: 'Si (Chispa)', otro: 'No' },
+      { aspecto: 'Tarifa mensual', mecha: 'Desde 39 eur/mes', otro: 'Gratis limitado / suscripcion por staff' }
+    ],
+    faqs: [
+      { q: 'Por que elegir Mecha frente a Square si Square tiene version gratuita?', a: 'Porque Square carece de las funciones criticas de una peluqueria: no gestiona tiempos de reposo (te hace perder hasta un 40% de citas), no guarda formulas de tinte estructuradas y no cumple con la normativa espanola de VeriFactu ni el registro obligatorio de jornada laboral.' }
     ]
   }
 ];

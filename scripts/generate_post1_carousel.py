@@ -1,0 +1,509 @@
+import os
+from playwright.sync_api import sync_playwright
+
+html_content = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 40px;
+    font-family: 'Inter', sans-serif;
+  }
+  .slide {
+    width: 1080px;
+    height: 1350px;
+    background: #080B12;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 80px 75px;
+    overflow: hidden;
+    color: #FFFFFF;
+  }
+  
+  /* Background gradients & subtle glows */
+  .bg-glow-top {
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244, 80, 30, 0.22) 0%, rgba(255, 122, 46, 0.06) 45%, transparent 70%);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+  .bg-glow-bottom {
+    position: absolute;
+    bottom: -150px;
+    left: -150px;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124, 108, 240, 0.16) 0%, transparent 65%);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+  
+  /* Header branding */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-name {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+  }
+  .brand-name span { color: #F4501E; }
+  .badge-tag {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+  }
+
+  /* Content area */
+  .main-content {
+    z-index: 2;
+    margin: auto 0;
+  }
+
+  .pill-highlight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(244, 80, 30, 0.15);
+    border: 1px solid rgba(244, 80, 30, 0.4);
+    color: #FF8A3D;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #F4501E;
+  }
+
+  .headline {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 68px;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+    margin-bottom: 28px;
+  }
+  .headline-gradient {
+    background: linear-gradient(135deg, #FF8A3D 0%, #F4501E 50%, #FFCF4A 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtext {
+    font-size: 26px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 400;
+  }
+
+  /* Footer of slide */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 26px;
+    z-index: 2;
+  }
+  .swipe-cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #FF8A3D;
+  }
+  .slide-count {
+    font-size: 19px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Cards list for features/pains */
+  .cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .card-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 22px;
+    padding: 26px 30px;
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+  }
+  .card-icon {
+    font-size: 34px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .card-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 6px;
+  }
+  .card-desc {
+    font-size: 19px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  /* Table comparison */
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 14px;
+    margin-top: 20px;
+  }
+  .comp-table th {
+    padding: 12px 20px;
+    font-size: 19px;
+    font-weight: 700;
+    text-align: left;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .comp-table td {
+    padding: 22px 24px;
+    font-size: 22px;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .comp-table td:first-child {
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .comp-table td:last-child {
+    border-right: 1px solid rgba(244, 80, 30, 0.4);
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    background: rgba(244, 80, 30, 0.12);
+    border-top: 1px solid rgba(244, 80, 30, 0.4);
+    border-bottom: 1px solid rgba(244, 80, 30, 0.4);
+    font-weight: 700;
+    color: #FF8A3D;
+  }
+  .comp-table td.other {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Big CTA box */
+  .cta-box {
+    background: linear-gradient(145deg, rgba(244, 80, 30, 0.18) 0%, rgba(255, 122, 46, 0.05) 100%);
+    border: 1.5px solid rgba(244, 80, 30, 0.45);
+    border-radius: 28px;
+    padding: 44px 40px;
+    text-align: center;
+    margin-top: 30px;
+  }
+  .cta-box-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 44px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 14px;
+  }
+  .cta-box-desc {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.45;
+    margin-bottom: 30px;
+  }
+  .cta-button {
+    background: linear-gradient(135deg, #F4501E 0%, #FF8A3D 100%);
+    color: #FFFFFF;
+    padding: 20px 42px;
+    border-radius: 999px;
+    font-size: 23px;
+    font-weight: 800;
+    display: inline-block;
+    box-shadow: 0 14px 35px -6px rgba(244, 80, 30, 0.6);
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG Definition -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="flamePostGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#D82C0D"/>
+      <stop offset="45%" stop-color="#F4501E"/>
+      <stop offset="80%" stop-color="#FF8A3D"/>
+      <stop offset="100%" stop-color="#FFD15C"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- SLIDE 1: PORTADA -->
+<div id="slide-1" class="slide">
+  <div class="bg-glow-top"></div>
+  <div class="header">
+    <div class="brand-logo">
+      <svg style="width:44px;height:44px" viewBox="0 0 40 40">
+        <path fill="url(#flamePostGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+        <path fill="#FFFFFF" opacity="0.9" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+      </svg>
+      <div class="brand-name">Mecha<span>.</span></div>
+    </div>
+    <div class="badge-tag">Lanzamiento Oficial</div>
+  </div>
+
+  <div class="main-content">
+    <div class="pill-highlight"><span class="pill-dot"></span> Nueva Era para Salones</div>
+    <h1 class="headline">El software para peluquerías que <span class="headline-gradient">no cobra comisión.</span></h1>
+    <p class="subtext">Descubre el sistema operativo con Inteligencia Artificial diseñado para duplicar la rentabilidad de tus sillones y atender tu WhatsApp 24/7.</p>
+  </div>
+
+  <div class="footer">
+    <div class="swipe-cta">Desliza para ver cómo funciona ➔</div>
+    <div class="slide-count">01 / 05</div>
+  </div>
+</div>
+
+<!-- SLIDE 2: EL PROBLEMA -->
+<div id="slide-2" class="slide">
+  <div class="bg-glow-top" style="background: radial-gradient(circle, rgba(230, 40, 40, 0.18) 0%, transparent 65%);"></div>
+  <div class="header">
+    <div class="brand-logo">
+      <div class="brand-name">Mecha<span>.</span></div>
+    </div>
+    <div class="badge-tag">La Realidad del Sector</div>
+  </div>
+
+  <div class="main-content">
+    <h2 class="headline" style="font-size:52px;margin-bottom:14px">¿Cansado de perder dinero en tu propio salón?</h2>
+    <div class="cards-list">
+      <div class="card-item">
+        <div class="card-icon">💸</div>
+        <div>
+          <div class="card-title">Comisiones del 25% al 35%</div>
+          <div class="card-desc">Marketplaces tradicionales que te cobran por clientas que ya son tuyas.</div>
+        </div>
+      </div>
+      <div class="card-item">
+        <div class="card-icon">📵</div>
+        <div>
+          <div class="card-title">Citas vacías (No-Shows)</div>
+          <div class="card-desc">Huecos de tinte o balayage que no aparecen y te hacen perder 100€ de golpe.</div>
+        </div>
+      </div>
+      <div class="card-item">
+        <div class="card-icon">⏳</div>
+        <div>
+          <div class="card-title">Esclavo del WhatsApp</div>
+          <div class="card-desc">Contestando mensajes para dar cita los domingos por la noche mientras intentas cenar.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="swipe-cta">Hay otra forma de trabajar ➔</div>
+    <div class="slide-count">02 / 05</div>
+  </div>
+</div>
+
+<!-- SLIDE 3: LA SOLUCIÓN MECHA -->
+<div id="slide-3" class="slide">
+  <div class="bg-glow-top"></div>
+  <div class="header">
+    <div class="brand-logo">
+      <div class="brand-name">Mecha<span>.</span></div>
+    </div>
+    <div class="badge-tag">Módulos Especializados</div>
+  </div>
+
+  <div class="main-content">
+    <h2 class="headline" style="font-size:52px;margin-bottom:14px">Todo lo que tu salón necesita en 1 pantalla</h2>
+    <div class="cards-list">
+      <div class="card-item">
+        <div class="card-icon">🤖</div>
+        <div>
+          <div class="card-title">IA "Chispa" por WhatsApp 24/7</div>
+          <div class="card-desc">Atiende clientas fuera de horario, agenda la cita y cobra la fianza con Stripe.</div>
+        </div>
+      </div>
+      <div class="card-item">
+        <div class="card-icon">✂️</div>
+        <div>
+          <div class="card-title">Agenda con Tiempos de Reposo</div>
+          <div class="card-desc">Encaja cortes rápidos mientras actúa el tinte. Duplica la caja sin horas extra.</div>
+        </div>
+      </div>
+      <div class="card-item">
+        <div class="card-icon">⚖️</div>
+        <div>
+          <div class="card-title">VeriFactu + Fichaje Laboral</div>
+          <div class="card-desc">Cumplimiento 100% legal en España (Art. 34.9 ET y AEAT) sin papeleos.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="swipe-cta">Compara los números ➔</div>
+    <div class="slide-count">03 / 05</div>
+  </div>
+</div>
+
+<!-- SLIDE 4: COMPARATIVA -->
+<div id="slide-4" class="slide">
+  <div class="bg-glow-top"></div>
+  <div class="header">
+    <div class="brand-logo">
+      <div class="brand-name">Mecha<span>.</span></div>
+    </div>
+    <div class="badge-tag">Comparativa Real</div>
+  </div>
+
+  <div class="main-content">
+    <h2 class="headline" style="font-size:50px;margin-bottom:10px">¿Por qué cambiarte a Mecha?</h2>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Función</th>
+          <th>Otros Apps</th>
+          <th>Mecha OS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Comisión por cita</td>
+          <td class="other">20% - 35%</td>
+          <td>0% SIEMPRE</td>
+        </tr>
+        <tr>
+          <td>Propiedad clientas</td>
+          <td class="other">Compartidas</td>
+          <td>100% Tuyas</td>
+        </tr>
+        <tr>
+          <td>IA en WhatsApp</td>
+          <td class="other">❌ No</td>
+          <td>✅ 24/7 con Seña</td>
+        </tr>
+        <tr>
+          <td>Tiempos de Reposo</td>
+          <td class="other">❌ Básico</td>
+          <td>✅ Optimizado</td>
+        </tr>
+        <tr>
+          <td>Tarifa mensual</td>
+          <td class="other">Comisiones</td>
+          <td>Fija desde 39€</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div class="swipe-cta">Prueba de lanzamiento ➔</div>
+    <div class="slide-count">04 / 05</div>
+  </div>
+</div>
+
+<!-- SLIDE 5: LLAMADA A LA ACCIÓN -->
+<div id="slide-5" class="slide">
+  <div class="bg-glow-top"></div>
+  <div class="header">
+    <div class="brand-logo">
+      <svg style="width:44px;height:44px" viewBox="0 0 40 40">
+        <path fill="url(#flamePostGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+        <path fill="#FFFFFF" opacity="0.9" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+      </svg>
+      <div class="brand-name">Mecha<span>.</span></div>
+    </div>
+    <div class="badge-tag">Oferta Especial</div>
+  </div>
+
+  <div class="main-content">
+    <div class="cta-box">
+      <div class="pill-highlight" style="margin-bottom:18px"><span class="pill-dot"></span> Sin Tarjeta de Crédito</div>
+      <div class="cta-box-title">Pruébalo 1 mes GRATIS</div>
+      <div class="cta-box-desc">Te regalamos 30 días completos. Migramos tu agenda actual en 10 minutos sin perder clientas ni historial.</div>
+      <div class="cta-button">Entra en www.mechaa.es</div>
+    </div>
+    <p style="text-align:center;font-size:20px;color:rgba(255,255,255,0.6);margin-top:24px">O envíanos un DM con la palabra <b>"DEMO"</b> y te configuramos todo.</p>
+  </div>
+
+  <div class="footer">
+    <div class="swipe-cta" style="color:#FFF">Guarda este post 🔖</div>
+    <div class="slide-count">05 / 05</div>
+  </div>
+</div>
+
+</body>
+</html>
+"""
+
+os.makedirs("public/instagram/post1", exist_ok=True)
+html_path = os.path.abspath("public/instagram/post1/render_post1.html")
+with open(html_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print(f"Post 1 HTML saved to {html_path}")
+
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_page(viewport={"width": 1200, "height": 7500})
+    page.goto(f"file:///{html_path}")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(1000)
+
+    for i in range(1, 6):
+        el = page.locator(f"#slide-{i}")
+        slide_path = f"public/instagram/post1/slide_{i}.png"
+        el.screenshot(path=slide_path)
+        print(f"Slide {i} generated at {slide_path}!")
+
+    browser.close()
+
+print("All 5 carousel slides generated successfully at 1080x1350px (4:5 format)!")

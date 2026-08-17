@@ -17,8 +17,20 @@
       "destination": "/salones.html"
     },
     {
+      "source": "/especificaciones",
+      "destination": "/especificaciones.html"
+    },
+    {
+      "source": "/demo",
+      "destination": "/demo.html"
+    },
+    {
       "source": "/calculadora-comisiones",
       "destination": "/calculadora-comisiones.html"
+    },
+    {
+      "source": "/calculadora-ahorro-comisiones",
+      "destination": "/calculadora-ahorro-comisiones.html"
     },
     {
       "source": "/salon/:slug",

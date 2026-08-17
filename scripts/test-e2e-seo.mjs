@@ -68,6 +68,7 @@ export async function runSeoTestSuite() {
     { file: 'index.html', route: '/' },
     { file: 'especificaciones.html', route: '/especificaciones.html' },
     { file: 'calculadora-comisiones.html', route: '/calculadora-comisiones' },
+    { file: 'calculadora-ahorro-comisiones.html', route: '/calculadora-ahorro-comisiones' },
     { file: 'salones.html', route: '/salones' },
     { file: 'salon.html', route: '/salon' }
   ];
@@ -84,7 +85,9 @@ export async function runSeoTestSuite() {
   const LANDING_DIRS = [
     'software-barberia', 'software-estetica', 'verifactu-peluqueria',
     'agenda-inteligente-peluqueria', 'fichaje-legal-peluqueria',
-    'reducir-no-shows-peluqueria', 'alternativa-booksy', 'alternativa-fresha'
+    'reducir-no-shows-peluqueria', 'alternativa-booksy', 'alternativa-fresha',
+    'alternativa-treatwell', 'alternativa-square-appointments',
+    'software-unas-manicura', 'software-peluqueria-canina'
   ];
   function discoverGeneratedPages() {
     const pages = [];
