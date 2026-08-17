@@ -16,7 +16,7 @@ const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 // y una ciudad, incluso si Supabase no responde durante el build.
 const FALLBACK_SALONES = [
   {
-    slug: 'florent-suarez-peluqueros',
+    slug: 'florentsuarez',
     nombre: 'Florent Suarez Peluqueros',
     descripcion: 'Peluqueria y barberia en A Coruna con reserva online. Reserva cita a la hora que te venga bien, sin llamar.',
     direccion: 'Avenida de Finisterre 31 Bajo, 15004',
