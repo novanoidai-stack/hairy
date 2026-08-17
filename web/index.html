@@ -744,7 +744,37 @@ nav{
   section,[id]{padding-left:18px!important;padding-right:18px!important}
   .qrow{grid-template-columns:1fr 1fr!important}
   .phone-wrap{max-width:100%!important}
-  [data-sticky-cta] span{display:none}
+  .banner-top-free .banner-sub{display:none!important}
+  .banner-top-free .banner-sep{display:none!important}
+  .banner-top-free .banner-dir{display:none!important}
+  .banner-top-free-in{justify-content:center!important}
+  [data-sticky-cta]{padding:10px 14px!important}
+  [data-sticky-cta] .sticky-desk-only{display:none!important}
+}
+.badge-free{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:linear-gradient(120deg,var(--accent),var(--gold));
+  color:#fff!important;
+  font-size:10.5px;
+  font-weight:800;
+  padding:3px 9px;
+  border-radius:999px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  box-shadow:0 2px 10px rgba(244,80,30,.4);
+  line-height:1.2;
+  flex-shrink:0;
+}
+.banner-top-free{
+  background:linear-gradient(90deg,#15100b,#281d15 45%,#15100b);
+  border-bottom:1px solid rgba(244,80,30,.25);
+  color:var(--paper);
+  font-size:13px;
+  padding:9px 24px;
+  position:relative;
+  z-index:75;
 }
 </style>
 </head>
@@ -753,16 +783,25 @@ nav{
 
 <div style="position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:90" data-progress></div>
 
-<!-- Barra para cliente final: quien solo quiere peluquero sale al marketplace
-     en lo primero que ve; se aparta en cuanto empieza a leer. -->
-<a href="salones.html" style="display:block;background:var(--ink);color:var(--paper);text-decoration:none">
-<span style="max-width:1220px;margin:0 auto;padding:9px 26px;display:flex;align-items:center;gap:12px;font-size:13px">
-<b>¿Buscas peluquería?</b>
-<span style="color:rgba(255,255,255,.66)">Reserva cita en un salón cerca de ti</span>
-<span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--accent-hi)">Ir al directorio
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-</span>
+<!-- Barra destacada: 1 mes completamente gratis para salones + acceso a directorio -->
+<div class="banner-top-free">
+<div class="banner-top-free-in" style="max-width:1220px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:9px">
+<span class="badge-free">1 Mes Gratis</span>
+<span style="font-size:13px"><b>Pruébala 1 mes completamente gratis</b><span class="banner-sub" style="color:rgba(255,255,255,.75)"> · Sin tarjeta, sin permanencia y te lo dejamos montado</span></span>
+</div>
+<div style="display:flex;align-items:center;gap:16px;margin-left:auto">
+<a href="#contacto" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--accent-hi);text-decoration:none;font-size:13px">
+Empezar gratis →
 </a>
+<span class="banner-sep" style="opacity:.25">|</span>
+<a href="salones.html" class="banner-dir" style="color:rgba(255,255,255,.65);text-decoration:none;font-size:12.5px;display:inline-flex;align-items:center;gap:5px">
+¿Buscas peluquería? Ver directorio
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+</a>
+</div>
+</div>
+</div>
 
 <nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);background:color-mix(in srgb,var(--paper) 84%,transparent);border-bottom:1px solid var(--line)">
 <div style="max-width:1220px;margin:0 auto;padding:12px 26px;display:flex;align-items:center;gap:24px">
@@ -783,7 +822,10 @@ nav{
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
 </button>
 <a href="/acceso.html" id="navLogin" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
-<a href="/demo.html" id="navDemo" class="btn-grad" style="padding:10px 18px;border-radius:11px;font-size:13.6px;font-weight:600">Probar el software</a>
+<a href="#contacto" id="navDemo" class="btn-grad" style="padding:9px 18px;border-radius:11px;font-size:13.6px;font-weight:700;display:inline-flex;align-items:center;gap:8px">
+<span style="background:rgba(255,255,255,.24);padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">1 Mes Gratis</span>
+Probar el software
+</a>
 </div>
 </div>
 </nav>
@@ -798,17 +840,19 @@ nav{
 
 <div class="grid2" style="position:relative;max-width:1220px;margin:0 auto;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(30px,4.5vw,60px);align-items:center">
 <div>
-<span style="display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:18px">
-<span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>No hay software más especializado en salones que Mecha</span>
+<div style="display:inline-flex;align-items:center;gap:9px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.28);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;box-shadow:0 4px 14px rgba(244,80,30,.12)">
+<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>
+Pruébala 1 mes completamente gratis · Sin tarjeta
+</div>
 <h1 style="font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">El salón que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">se lleva solo</span></h1>
 <p style="font-size:clamp(19px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:560px;margin:0 0 26px;text-wrap:pretty">Ninguna agenda sabe lo que tarda un tinte. <b style="color:var(--ink)">Mecha sí</b>: vende los <b style="color:var(--ink)">reposos</b>, llena tu agenda con la <b style="color:var(--ink)">lista de espera</b> y la <b style="color:var(--ink)">IA atiende el WhatsApp</b> por ti.</p>
 <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-<a href="#demo" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;font-weight:600;font-size:15.5px">Entrar en el software real <span>→</span></a>
-<a href="#gestion" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">Ver qué hace por ti</a>
+<a href="#contacto" class="btn-grad" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:13px;font-weight:700;font-size:15.5px">Empezar 1 mes gratis sin tarjeta <span>→</span></a>
+<a href="/demo.html" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 24px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">Ver demo interactiva</a>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)">
-<span>✓ Sin registro para probarlo</span><span>✓ 0% de comisión</span><span>✓ Profesionales ilimitados</span><span>✓ No hay software más especializado en salones</span>
-<span style="width:100%;font-size:11.5px;color:var(--ink-3)">Estimación sobre un salón de 3 sillas. En la demo lo calculamos con tus números.</span>
+<span style="font-weight:700;color:var(--ink)">✓ 1 mes completamente gratis</span><span>✓ Sin tarjeta de crédito</span><span>✓ 0% comisiones</span><span>✓ Sin permanencia</span><span>✓ Migración de Booksy/Fresha gratis</span>
+<span style="width:100%;font-size:11.5px;color:var(--ink-3)">Configuración en 10 minutos. En la demo lo calculamos con los números reales de tu salón.</span>
 </div>
 </div>
 
@@ -864,9 +908,9 @@ nav{
 </div>
 </div>
 </div>
-<div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--line);background:var(--paper);font-size:12px;color:var(--ink-2)">
-<span style="flex:1">Lo que tú haces hoy: <b style="color:var(--ink)">mirar la agenda y cortar pelo</b>.</span>
-<span style="font-family:var(--display);font-weight:800;font-size:17px;color:var(--ok)">24 min</span>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-top:1px solid var(--line);background:linear-gradient(90deg,var(--accent-soft),var(--paper));font-size:12px;color:var(--ink-2);flex-wrap:wrap">
+<span>✨ <b style="color:var(--ink)">1 mes gratis:</b> Te lo dejamos montado con tus servicios.</span>
+<a href="#contacto" style="font-weight:700;color:var(--accent);text-decoration:underline">Pedir mes gratis →</a>
 </div>
 </div>
 </div>
@@ -917,6 +961,16 @@ nav{
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px">⏱</span><b style="font-family:var(--display);font-size:17px">Lo que te queda a ti</b></div>
 <p style="margin:0 0 12px;font-size:15px;color:var(--ink-2)">24 minutos: mirar el día, decidir dos cosas y cerrar.</p>
 <div style="display:flex;align-items:baseline;gap:8px"><b style="font-family:var(--display);font-size:34px;letter-spacing:-.03em;color:var(--accent)"><span data-count="90" data-suffix="%">90%</span></b><span style="font-size:13px;color:var(--ink-2)">menos tiempo de gestión</span></div>
+</div>
+<div class="reveal hov-card" style="grid-column:1/-1;border:1px dashed rgba(244,80,30,.45);border-radius:18px;padding:20px 24px;background:linear-gradient(135deg,var(--accent-soft),var(--card) 60%);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;box-shadow:var(--shadow-s)">
+<div style="flex:1;min-width:260px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+<span class="badge-free">1 Mes Gratis</span>
+<b style="font-family:var(--display);font-size:18px;color:var(--ink)">Pruébalo 1 mes gratis en tu propio salón</b>
+</div>
+<p style="margin:0;font-size:14px;color:var(--ink-2)">Ahorra 4 horas al día de gestión desde la primera semana. Sin tarjeta, sin permanencia y con la migración incluida gratis.</p>
+</div>
+<a href="#contacto" class="btn-grad" style="padding:12px 24px;border-radius:12px;font-weight:700;font-size:14.5px;white-space:nowrap">Empezar 1 mes gratis →</a>
 </div>
 </div>
 </div>
@@ -976,6 +1030,9 @@ nav{
 </div>
 </div>
 </div>
+<div class="reveal" style="margin-top:20px;text-align:center;padding:14px 20px;border-radius:16px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:13.5px;color:var(--ink-2)">
+👥 <b>Profesionales ilimitados sin coste extra por silla</b> · Pruébalo con todo tu equipo durante <b style="color:var(--ink)">1 mes completamente gratis</b>.
+</div>
 </div>
 </section>
 
@@ -997,7 +1054,13 @@ nav{
 <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">🧾</span><span style="flex:1">Programa de facturación VeriFactu</span><s style="color:var(--ink-3)">15 €</s></div>
 <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">⏱</span><span style="flex:1">App de fichaje y control horario</span><s style="color:var(--ink-3)">12 €</s></div>
 <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;flex:none">📣</span><span style="flex:1">Envíos de WhatsApp, reseñas y campañas</span><s style="color:var(--ink-3)">20 €</s></div>
-<div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--paper);font-size:14px"><span style="flex:1;font-weight:600">Todo eso, dentro de Mecha</span><b style="font-family:var(--display);font-size:26px;color:var(--ok)">59 €</b><span style="font-size:12px;color:var(--ink-3)">/mes</span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--paper);font-size:14px">
+<div style="flex:1">
+<div style="font-weight:700;color:var(--ink)">Todo eso, dentro de Mecha</div>
+<div style="font-size:12px;color:var(--ok);font-weight:700">🎁 1er mes completamente gratis (0 € sin tarjeta)</div>
+</div>
+<b style="font-family:var(--display);font-size:26px;color:var(--ok)">59 €</b><span style="font-size:12px;color:var(--ink-3)">/mes después</span>
+</div>
 </div>
 <div class="qrow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
 <div style="padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13px"><div style="font-size:17px;margin-bottom:6px">🗓</div><b>Agenda con reposos</b><div style="color:var(--ink-3);font-size:11.5px">y lista de espera</div></div>
@@ -1020,18 +1083,18 @@ nav{
 <div style="position:absolute;inset:-30% -10%;pointer-events:none;opacity:.4;background:conic-gradient(from 140deg,transparent,var(--accent-soft) 80deg,transparent 200deg,var(--peach),transparent 340deg);filter:blur(70px);animation:mAurora 46s linear infinite"></div>
 <div style="position:relative;max-width:1020px;margin:0 auto;text-align:center">
 <div class="reveal">
-<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span>Pruébalo tú</span>
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span>Pruébalo tú · 1 mes gratis</span>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">No te lo contamos: <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">entra y tócalo</span></h2>
-<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0 auto 26px;max-width:620px;text-wrap:pretty">Es Mecha de verdad, con un salón de ejemplo. Chispa te guía y tú tocas: crear una cita, partirla en reposos, cobrar, descargar el informe.</p>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0 auto 26px;max-width:620px;text-wrap:pretty">Es Mecha de verdad, con un salón de ejemplo. Pruébalo ahora mismo o empieza tu mes 100% gratis con los datos y clientes reales de tu salón.</p>
 </div>
 <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;text-align:left;margin-bottom:24px">
 <div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">16</div><b style="font-size:14px">pasos guiados</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Agenda, cita, reposos, ficha, equipo e informes. Puedes saltártelos cuando quieras.</div></div>
 <div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">100%</div><b style="font-size:14px">software real</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">No es un vídeo ni un maquetado: es Mecha funcionando, con datos de ejemplo.</div></div>
-<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">0</div><b style="font-size:14px">registros</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Sin correo, sin tarjeta y sin llamada comercial detrás. Entras y sales.</div></div>
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">0</div><b style="font-size:14px">tarjeta o registros</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Sin tarjeta, sin permanencia y sin letra pequeña. Entras y sales.</div></div>
 </div>
-<div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:12px">
-<a href="/demo.html" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:600;font-size:16px;animation:mPulse 3s ease-in-out infinite">▶ Empezar el recorrido guiado</a>
-<a href="/demo.html" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">Entrar y trastear por mi cuenta</a>
+<div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px">
+<a href="#contacto" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:700;font-size:16px;animation:mPulse 3s ease-in-out infinite">🎁 Empezar 1 mes completamente gratis</a>
+<a href="/demo.html" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver recorrido guiado de 16 pasos</a>
 </div>
 <p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">También te lo enseñamos en directo en 10 minutos, con tus servicios y tus precios: <a href="#contacto">reservar una demo guiada</a>.</p>
 </div>
@@ -1055,8 +1118,8 @@ nav{
 </div>
 <div id="cmpBody"></div>
 <div style="padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--paper)">
-<div style="flex:1;min-width:250px;font-size:14.5px;color:var(--ink-2)"><b style="color:var(--ink)">Puedes quedarte con tu app de citas si te trae clientes.</b> Mucha gente la deja solo como escaparate y lleva el salón con Mecha. Te migramos agenda, clientes e historial en 10 minutos.</div>
-<a href="#contacto" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:600;font-size:14.5px">Tráete tu agenda →</a>
+<div style="flex:1;min-width:250px;font-size:14.5px;color:var(--ink-2)"><b style="color:var(--ink)">Tráete tu agenda con 1 mes completamente gratis.</b> Te migramos clientes, historial y fórmulas en 10 minutos. 0% comisiones por reserva y sin permanencia.</div>
+<a href="#contacto" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 1 mes gratis →</a>
 </div>
 </div>
 <p style="font-size:11.5px;color:var(--ink-3);margin:14px 0 0">Comparativa orientativa sobre categorías de producto, elaborada con funciones publicadas; pueden cambiar.</p>
@@ -1107,7 +1170,7 @@ nav{
 <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste extra por profesional</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)">0 €</div></div>
 </div>
 <div style="background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:15px;font-size:13px;color:var(--ink-2)">Entre tiempo recuperado y plantones evitados, Mecha se paga <b style="color:var(--ink)" id="oVeces">61 veces</b> cada mes.</div>
-<a href="#demo" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:12px;background:var(--ink);color:var(--paper);font-weight:600;font-size:15px;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Ver el software con estos números →</a>
+<a href="#contacto" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px">Probar 1 mes gratis con estos números →</a>
 </div>
 </div>
 </div>
@@ -1201,15 +1264,16 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <section id="precios" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
 <div style="max-width:920px;margin:0 auto">
 <div class="reveal" style="text-align:center;max-width:640px;margin:0 auto clamp(24px,3vw,40px)">
-<span style="display:block;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Precio simple, sin letra pequeña</span>
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.28);padding:5px 14px;border-radius:999px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">🎉 Oferta de lanzamiento · Primer mes 0 €</div>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
-<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes con profesionales ilimitados. Primer mes gratis, sin permanencia y con la migración hecha por nosotros.</p>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes con profesionales ilimitados. Primer mes completamente gratis, sin tarjeta, sin permanencia y con la migración incluida.</p>
 </div>
 <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
 <div class="hov-card" style="border:1px solid var(--line-2);border-radius:22px;padding:28px;background:var(--card);display:flex;flex-direction:column;gap:13px;box-shadow:var(--shadow-s)">
 <div style="font-family:var(--display);font-weight:800;font-size:21px">Esencial</div>
 <div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">La base sólida para gestionar tu salón</div>
 <div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">39 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
+<div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-top:-6px;display:flex;align-items:center;gap:6px">🎁 Primer mes: 0 € completamente gratis</div>
 <div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--ink-2);flex:1">
 <span>✓ Agenda con <b style="color:var(--ink)">tiempos de reposo</b> y servicios encadenados</span>
 <span>✓ Fichas con <b style="color:var(--ink)">fórmulas de color</b>, fotos y alergias</span>
@@ -1218,13 +1282,14 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <span>✓ <b style="color:var(--ink)">VeriFactu</b> y <b style="color:var(--ink)">control horario</b> del equipo</span>
 <span>✓ Informes — <b style="color:var(--ink)">profesionales ilimitados</b></span>
 </div>
-<a href="#contacto" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:14.5px">Empezar con 1 mes gratis</a>
+<a href="#contacto" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:700;font-size:14.5px">Empezar 1 mes gratis →</a>
 </div>
 <div class="hov-card" style="position:relative;border:1px solid rgba(244,80,30,.55);border-radius:22px;padding:32px 28px 28px;background:linear-gradient(170deg,var(--accent-soft),var(--card) 55%);display:flex;flex-direction:column;gap:13px;box-shadow:0 26px 60px -30px rgba(224,52,14,.45);overflow:visible">
 <span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px rgba(244,80,30,.45);z-index:3">Recomendado</span>
 <div style="font-family:var(--display);font-weight:800;font-size:21px">Estudio</div>
 <div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">Para salones que quieren ir en automático</div>
 <div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">59 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
+<div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-top:-6px;display:flex;align-items:center;gap:6px">🎁 Primer mes: 0 € completamente gratis</div>
 <div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--ink-2);flex:1">
 <span>✓ <b style="color:var(--ink)">Todo lo del plan Esencial</b></span>
 <span>✓ <b style="color:var(--ink)">Señales por Stripe</b> contra los plantones</span>
@@ -1233,11 +1298,11 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <span>✓ Inventario y presupuestos</span>
 <span>✓ Migración y puesta en marcha incluidas</span>
 </div>
-<a href="#contacto" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:600;font-size:14.5px">Empezar con 1 mes gratis</a>
+<a href="#contacto" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 1 mes gratis →</a>
 </div>
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 20px;margin-top:22px;font-size:13.5px;color:var(--ink-2)">
-<span>✓ 1 mes gratis, sin tarjeta</span><span>✓ Sin permanencia</span><span>✓ 0% comisiones</span><span>✓ Profesionales ilimitados</span><span>✓ Te lo montamos todo</span>
+<span style="font-weight:700;color:var(--ink)">✓ 1 mes gratis, sin tarjeta</span><span>✓ Sin permanencia</span><span>✓ 0% comisiones</span><span>✓ Profesionales ilimitados</span><span>✓ Migración gratis incluida</span>
 </div>
 </div>
 </section>
@@ -1247,27 +1312,31 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(244,80,30,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
 <div style="position:relative;max-width:1080px;margin:0 auto">
 <div class="reveal" style="text-align:center;margin-bottom:28px">
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.6vw,46px);letter-spacing:-.03em;margin:0 0 12px">Deja de llevar el salón <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">a mano</span></h2>
-<p style="font-size:16.5px;color:rgba(255,255,255,.66);margin:0">Entra en el software real ahora mismo, o te lo montamos con tus servicios en una llamada de 10 minutos.</p>
+<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(244,80,30,.22);border:1px solid rgba(244,80,30,.45);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;color:var(--accent-hi);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">
+🎁 Prueba sin compromiso
+</div>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.6vw,46px);letter-spacing:-.03em;margin:0 0 12px">Pruébala <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">1 mes completamente gratis</span></h2>
+<p style="font-size:16.5px;color:rgba(255,255,255,.76);margin:0 max-width:680px;margin-left:auto;margin-right:auto">Sin tarjeta, sin permanencia y con la migración de tu software anterior hecha por nosotros. Elige cómo prefieres empezar:</p>
 </div>
 <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
-<a href="/demo.html" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(244,80,30,.5);background:linear-gradient(160deg,rgba(244,80,30,.22),rgba(255,255,255,.03));color:var(--paper)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
-<span style="font-size:22px">▶</span>
-<b style="font-family:var(--display);font-size:17px">Probar el software ahora</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Recorrido guiado de 16 pasos sobre Mecha real. Sin registro.</span>
-<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Entrar →</span>
+<a href="https://wa.me/34690792975?text=Hola,%20vengo%20de%20Instagram%20y%20quiero%20probar%20Mecha%201%20mes%20gratis" target="_blank" rel="noopener" aria-label="Pedir mes gratis por WhatsApp" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(37,211,102,.5);background:linear-gradient(160deg,rgba(37,211,102,.18),rgba(255,255,255,.03));color:var(--paper);position:relative;overflow:hidden" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+<span style="position:absolute;top:14px;right:14px;background:#25d366;color:#000;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em">Directo Instagram</span>
+<span style="font-size:24px">💬</span>
+<b style="font-family:var(--display);font-size:17px">Pedir 1 mes gratis por WhatsApp</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.75)">Atención directa en 1 clic (+34 690 79 29 75). Escríbenos y te activamos el mes gratis al instante.</span>
+<span style="font-size:13px;font-weight:700;color:#25d366;margin-top:4px">Abrir WhatsApp (+34 690 79 29 75) →</span>
 </a>
-<a href="https://wa.me/34690792975" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
-<span style="font-size:22px">💬</span>
-<b style="font-family:var(--display);font-size:17px">Hablar por WhatsApp</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.62)">Atención directa en 1 clic (+34 690 79 29 75). Resolvemos tus dudas al instante.</span>
-<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Abrir WhatsApp (+34 690 79 29 75) →</span>
+<a href="/demo.html" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(244,80,30,.5);background:linear-gradient(160deg,rgba(244,80,30,.22),rgba(255,255,255,.03));color:var(--paper)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+<span style="font-size:24px">▶</span>
+<b style="font-family:var(--display);font-size:17px">Ver el software ahora</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Recorrido guiado de 16 pasos sobre Mecha real. Sin tarjeta ni registros.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Entrar a la demo →</span>
 </a>
 <a href="tel:+34690792975" aria-label="Llamar por teléfono" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
-<span style="font-size:22px">📞</span>
+<span style="font-size:24px">📞</span>
 <b style="font-family:var(--display);font-size:17px">Llamada directa</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Llámanos gratis al +34 690 79 29 75 y te dejamos el software listo.</span>
-<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Llamar ahora →</span>
+<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Llámanos gratis al +34 690 79 29 75 y te dejamos el software listo con tu mes gratis.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Llamar gratis ahora →</span>
 </a>
 </div>
 </div>
@@ -1342,10 +1411,13 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </main>
 
 <!-- CTA fijo inferior -->
-<div data-sticky-cta style="position:fixed;left:0;right:0;bottom:0;z-index:80;transform:translateY(120%);transition:transform .45s cubic-bezier(.22,.61,.36,1);padding:12px 20px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)">
-<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px">
-<span style="font-size:14px;color:var(--ink-2);flex:1;min-width:220px"><b style="color:var(--ink)">El 90% de la gestión de tu salón, hecha sola.</b> Entra en el software real y compruébalo.</span>
-<a href="/demo.html" class="btn-grad" style="padding:11px 20px;border-radius:11px;font-weight:600;font-size:14px">Probar el software →</a>
+<div data-sticky-cta style="position:fixed;left:0;right:0;bottom:0;z-index:80;transform:translateY(120%);transition:transform .45s cubic-bezier(.22,.61,.36,1);padding:12px 20px;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)">
+<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px">
+<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px">
+<span class="badge-free">1 Mes Gratis</span>
+<span style="font-size:13.5px;color:var(--ink-2)"><b style="color:var(--ink)">Pruébala 1 mes completamente gratis sin tarjeta.</b> <span class="sticky-desk-only">El 90% de la gestión hecha sola.</span></span>
+</div>
+<a href="#contacto" class="btn-grad" style="padding:10px 20px;border-radius:11px;font-weight:700;font-size:14px;white-space:nowrap">Empezar 1 mes gratis →</a>
 </div>
 </div>
 

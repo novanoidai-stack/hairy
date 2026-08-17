@@ -71,3 +71,5 @@ web/alternativa-fresha/
 *.bak*
 /*.png
 
+
+.vercel-token.txt
