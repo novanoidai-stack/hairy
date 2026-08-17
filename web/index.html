@@ -76,13 +76,6 @@
   "inLanguage": "es",
   "downloadUrl": "https://www.mechaa.es/",
   "releaseDate": "2026-06-08",
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "reviewCount": "128",
-    "bestRating": "5",
-    "worstRating": "1"
-  },
   "author": {
     "@type": "Organization",
     "name": "Mecha OS Inc.",
@@ -181,13 +174,6 @@
   "brand": {
     "@type": "Brand",
     "name": "Mecha"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "reviewCount": "128",
-    "bestRating": "5",
-    "worstRating": "1"
   },
   "offers": {
     "@type": "AggregateOffer",
@@ -424,6 +410,7 @@ button,input{font-family:inherit}
 @media (max-width:980px){
   .grid2{grid-template-columns:minmax(0,1fr)!important;gap:26px!important}
   [data-navlinks]{display:none!important}
+  [data-navcta]{display:none!important}
   [data-cmprow]{grid-template-columns:minmax(0,1.4fr)!important}
   [data-cmprow]>div:nth-child(2){display:none!important}
   .conn{height:44px!important}
@@ -439,6 +426,17 @@ button,input{font-family:inherit}
 <body>
 
 <div style="position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:90" data-progress></div>
+
+<!-- Barra para cliente final: quien solo quiere peluquero sale al marketplace
+     en lo primero que ve; se aparta en cuanto empieza a leer. -->
+<a href="salones.html" style="display:block;background:var(--ink);color:var(--paper);text-decoration:none">
+<span style="max-width:1220px;margin:0 auto;padding:9px 26px;display:flex;align-items:center;gap:12px;font-size:13px">
+<b>¿Buscas peluquería?</b>
+<span style="color:rgba(255,255,255,.66)">Reserva cita en un salón cerca de ti</span>
+<span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--accent-hi)">Ir al directorio
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+</span>
+</a>
 
 <nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--paper) 84%,transparent)">
 <div style="max-width:1220px;margin:0 auto;padding:12px 26px;display:flex;align-items:center;gap:24px">
@@ -458,8 +456,8 @@ button,input{font-family:inherit}
 <button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
 </button>
-<a href="/acceso.html" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
-<a href="#demo" class="btn-grad" style="padding:10px 18px;border-radius:11px;font-size:13.6px;font-weight:600">Probar el software</a>
+<a href="/acceso.html" id="navLogin" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
+<a href="/demo.html" id="navDemo" class="btn-grad" style="padding:10px 18px;border-radius:11px;font-size:13.6px;font-weight:600">Probar el software</a>
 </div>
 </div>
 </nav>
@@ -482,12 +480,6 @@ button,input{font-family:inherit}
 <a href="#demo" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;font-weight:600;font-size:15.5px">Entrar en el software real <span>→</span></a>
 <a href="#gestion" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 28px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">Ver qué hace por ti</a>
 </div>
-<a href="#resenas" class="hov-card" style="display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);margin-bottom:20px;box-shadow:var(--shadow-s)" title="Reseñas sobre Mecha">
-<span style="color:var(--gold);font-size:15px;letter-spacing:2px">★★★★★</span>
-<b style="font-family:var(--display);font-size:15px">4,9</b>
-<span style="font-size:13px;color:var(--ink-2)">· 128 reseñas sobre Mecha</span>
-<span style="font-size:12px;color:var(--accent);font-weight:600">Verlas →</span>
-</a>
 <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)">
 <span>✓ Sin registro para probarlo</span><span>✓ 0% de comisión</span><span>✓ Profesionales ilimitados</span><span>✓ No hay software más especializado en salones</span>
 <span style="width:100%;font-size:11.5px;color:var(--ink-3)">Estimación sobre un salón de 3 sillas. En la demo lo calculamos con tus números.</span>
@@ -555,36 +547,6 @@ button,input{font-family:inherit}
 </div>
 </section>
 
-<!-- ═══════════ RESEÑAS (primera impresión) ═══════════ -->
-<section id="resenas" style="padding:clamp(34px,4vw,56px) 26px;background:linear-gradient(180deg,transparent,var(--paper-2) 20%,var(--paper-2) 80%,transparent)">
-<div style="max-width:1120px;margin:0 auto">
-<div class="reveal" style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:center;margin-bottom:clamp(20px,2.5vw,30px);text-align:center">
-<span style="color:var(--gold);font-size:19px;letter-spacing:3px">★★★★★</span>
-<span style="font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.03em">4,9 <span style="font-size:14px;font-weight:600;color:var(--ink-3)">sobre 5</span></span>
-<span style="font-size:14px;color:var(--ink-2)">en <b>128 reseñas</b> de peluquerías y barberías que ya gestionan su salón con Mecha</span>
-</div>
-<div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
-<div class="hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
-<div style="color:var(--gold);letter-spacing:2px;margin-bottom:10px">★★★★★</div>
-<p style="margin:0 0 12px;font-size:15px;color:var(--ink-2);line-height:1.5">"En 20 años probé Booksy, Fresha y tres agendas de gestoría. Ninguna sabía lo que era un reposo. Mecha me encaja un corte en el hueco del tinte y la lista de espera se lo vende sola."</p>
-<div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font-weight:700;color:var(--accent);font-size:14px">MR</span><div><b style="font-size:13.5px">María Reixo</b><div style="font-size:11.5px;color:var(--ink-3)">Peluquería · A Coruña</div></div></div>
-</div>
-<div class="hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
-<div style="color:var(--gold);letter-spacing:2px;margin-bottom:10px">★★★★★</div>
-<p style="margin:0 0 12px;font-size:15px;color:var(--ink-2);line-height:1.5">"Los plantones se acabaron: la IA de WhatsApp cobra la señal antes de bloquear la silla, hasta fuera de horario. Yo solo entro por la mañana y la agenda ya está llena y cobrada."</p>
-<div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:50%;background:var(--lav-soft);display:grid;place-items:center;font-weight:700;color:var(--lav);font-size:14px">DC</span><div><b style="font-size:13.5px">David Carballo</b><div style="font-size:11.5px;color:var(--ink-3)">Barbería · Vigo</div></div></div>
-</div>
-<div class="hov-card" style="border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);box-shadow:var(--shadow-s)">
-<div style="color:var(--gold);letter-spacing:2px;margin-bottom:10px">★★★★★</div>
-<p style="margin:0 0 12px;font-size:15px;color:var(--ink-2);line-height:1.5">"Es lo único que uso: agenda, caja, VeriFactu y el fichaje del equipo. Las comisiones se calculan solas a fin de mes y se acabó el Excel. Con 6 profesionales pago lo mismo que con 1."</p>
-<div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:50%;background:var(--ok-soft);display:grid;place-items:center;font-weight:700;color:var(--ok);font-size:14px">LS</span><div><b style="font-size:13.5px">Lucía Serrano</b><div style="font-size:11.5px;color:var(--ink-3)">Estética · Santiago</div></div></div>
-</div>
-</div>
-<p style="text-align:center;font-size:11.5px;color:var(--ink-3);margin:16px 0 0">Reseñas de clientes de Mecha OS. Valoración media sobre el total de reseñas verificadas del producto.</p>
-</div>
-</section>
-
-<div class="conn"><div style="background:linear-gradient(180deg,transparent,var(--accent))"></div></div>
 
 <!-- ═══════════ 1 · LA GESTIÓN ═══════════ -->
 <section id="gestion" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
@@ -955,17 +917,17 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <span style="font-size:13.5px;color:rgba(255,255,255,.7)">Recorrido guiado de 16 pasos sobre Mecha real. Sin registro.</span>
 <span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Entrar →</span>
 </a>
-<a href="#contacto" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
-<span style="font-size:22px">📅</span>
-<b style="font-family:var(--display);font-size:17px">Demo guiada de 10 min</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.62)">Eliges día y hora. Te lo enseñamos con tus servicios y tus precios.</span>
-<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Elegir día y hora →</span>
+<a href="https://wa.me/34690792975" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
+<span style="font-size:22px">💬</span>
+<b style="font-family:var(--display);font-size:17px">Hablar por WhatsApp</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.62)">Atención directa en 1 clic (+34 690 79 29 75). Resolvemos tus dudas al instante.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Abrir WhatsApp (+34 690 79 29 75) →</span>
 </a>
-<a href="#contacto" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
-<span style="font-size:22px">⚡</span>
-<b style="font-family:var(--display);font-size:17px">Quiero empezar ya</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Déjanos tus datos y te damos acceso con tu salón configurado.</span>
-<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Empezar →</span>
+<a href="tel:+34690792975" aria-label="Llamar por teléfono" style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:var(--paper)" onmouseover="this.style.borderColor='var(--accent-hi)';this.style.background='rgba(244,80,30,.14)'" onmouseout="this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.04)'">
+<span style="font-size:22px">📞</span>
+<b style="font-family:var(--display);font-size:17px">Llamada directa</b>
+<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Llámanos gratis al +34 690 79 29 75 y te dejamos el software listo.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Llamar ahora →</span>
 </a>
 </div>
 </div>
@@ -978,6 +940,8 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <a href="/demo.html" style="color:inherit">Probar el software</a>
 <a href="/especificaciones.html" style="color:inherit">Especificaciones</a>
 <a href="/salones.html" style="color:inherit">Reservar en un salón</a>
+<a href="https://wa.me/34690792975" target="_blank" rel="noopener" aria-label="WhatsApp" style="color:inherit">WhatsApp</a>
+<a href="tel:+34690792975" aria-label="Teléfono" style="color:inherit">Tel: +34 690 79 29 75</a>
 <a href="/privacidad.html" style="color:inherit">Privacidad</a>
 <a href="/terminos.html" style="color:inherit">Términos</a>
 </div>

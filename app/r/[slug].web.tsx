@@ -205,6 +205,7 @@ export default function PortalReservaWeb() {
   const turnstileWidgetId = useRef<string | null>(null);
   const resolverCaptcha = useRef<((token: string) => void) | null>(null);
   const exitoRef = useRef<HTMLDivElement>(null);
+  const pasoProfRef = useRef<HTMLDivElement>(null);
   const [consentIa, setConsentIa] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
@@ -487,6 +488,9 @@ export default function PortalReservaWeb() {
   function elegirServicio(sv: PortalServicio) {
     setServicio(sv); setError('');
     setStep('profesional');
+    // El paso 2 (profesional y dias) aparece debajo de la lista de servicios:
+    // al elegir, bajamos hasta el para no obligar a scrollear a ciegas.
+    setTimeout(() => pasoProfRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
   }
 
   function reiniciar() {
@@ -711,7 +715,7 @@ export default function PortalReservaWeb() {
 
                     {/* 2. Profesional */}
                     {servicioElegido && (
-                      <div style={{ marginBottom: 22 }}>
+                      <div ref={pasoProfRef} style={{ marginBottom: 22, scrollMarginTop: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi }}>2 · Profesional</div>
                           <button onClick={() => setServicio(null)} style={{ background: 'none', border: 'none', color: '#5c5249', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Cambiar servicio</button>
@@ -799,6 +803,14 @@ export default function PortalReservaWeb() {
                             </div>
                           </div>
                         ))}
+                        {slotSel?.en_reposo && (
+                          <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 12, background: T.primarySoft, border: `1px dashed ${T.primary}`, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: T.primaryHi }}>
+                            <Icon name="scissors" size={15} color={T.primary} />
+                            <span>
+                              <strong>Hueco express:</strong> Aprovecha el tiempo de reposo de un servicio técnico previo{slotSel.reposo_disponible_min ? ` (${slotSel.reposo_disponible_min} min libres)` : ''}.
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -807,7 +819,7 @@ export default function PortalReservaWeb() {
                       <div>
                         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>4 · Tus datos</div>
                         <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 12 }}>Para confirmar la cita</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                           <label style={{ display: 'block' }}>
                             <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5c5249', marginBottom: 6 }}>Nombre</span>
                             <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre" style={inputStyle} />
