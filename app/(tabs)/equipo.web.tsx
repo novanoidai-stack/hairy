@@ -632,9 +632,9 @@ export default function EquipoWeb() {
             Equipo
             <button
               onClick={() => setShowManualPanel(true)}
-              className="m-btn-icon"
+              className="m-btn-icon btn-interactive"
               title="Manual de esta pagina"
-              style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+              style={{ display: 'grid', placeItems: 'center', width: isMobile ? 36 : 30, height: isMobile ? 36 : 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0, touchAction: 'manipulation' }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
@@ -650,25 +650,25 @@ export default function EquipoWeb() {
               : `${profesionales.length} ${profesionales.length === 1 ? 'profesional' : 'profesionales'} · ${activos} ${activos === 1 ? 'activo' : 'activos'} · gestiona disponibilidad y bloqueos`}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'config.ver') ? (
             <button
-              className="m-btn-secondary"
+              className="m-btn-secondary btn-interactive"
               onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
               title="A que hora abre y cierra el local (Configuracion -> Horarios). El horario de cada persona se toca en su ficha."
-              style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: isMobile ? '8px 12px' : '9px 14px', minHeight: isMobile ? 42 : 38, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation' }}>
               <Icon name="calendar" size={16} color={TOKENS.text} />
               {isMobile ? 'Salón' : 'Horario del salón'}
             </button>
           ) : null}
           {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar') ? (
             <button
-              className="m-btn-primary"
+              className="m-btn-primary btn-interactive"
               onClick={() => {
                 if (cupoLleno) { avisarCupo(); return; }
                 setShowNewProf(true);
               }}
-              style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: isMobile ? '8px 14px' : '9px 16px', minHeight: isMobile ? 42 : 38, background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation' }}>
               <Icon name="plus" size={16} color="#fff" />
               {isMobile ? 'Añadir' : 'Añadir profesional'}
             </button>
@@ -680,7 +680,7 @@ export default function EquipoWeb() {
           las dos ultimas: son datos de todo el centro. */}
       {(!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar')) && (
         <div style={{ padding: isMobile ? '12px 16px 0' : '16px 32px 0' }}>
-          <div style={{ display: 'inline-flex', background: TOKENS.bg, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap' }}>
+          <div style={{ display: 'inline-flex', background: TOKENS.bg, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap', gap: 2 }}>
             {([
               { value: 'fichas', label: 'Fichas' },
               { value: 'rendimiento', label: 'Rendimiento' },
@@ -690,11 +690,16 @@ export default function EquipoWeb() {
                 key={o.value}
                 onClick={() => { setVistaEquipo(o.value); if (o.value !== 'fichas') setSelected(null); }}
                 style={{
-                  padding: '7px 14px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  padding: isMobile ? '8px 14px' : '7px 14px',
+                  minHeight: isMobile ? 38 : 32,
+                  borderRadius: 7, border: 'none', cursor: 'pointer',
                   fontSize: 12.5, fontWeight: 700,
                   background: vistaEquipo === o.value ? TOKENS.bgCard : 'transparent',
                   color: vistaEquipo === o.value ? TOKENS.text : TOKENS.textSec,
                   boxShadow: vistaEquipo === o.value ? '0 1px 3px rgba(40,30,24,0.12)' : 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  touchAction: 'manipulation',
                 }}
               >
                 {o.label}

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 import { mensajeDeError } from '@/lib/errores';
 import { reportarError } from '@/lib/reportarError';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA, CITA_STATUS_ACTIVOS } from '@/lib/constants';
@@ -300,6 +301,7 @@ function ClientesWeb() {
   // Fusion de duplicadas: la clienta abierta actua de maestra; se elige la duplicada.
   const [fusionMaestro, setFusionMaestro] = useState<Cliente | null>(null);
   const [searchText, setSearchText] = useState('');
+  const debouncedSearchText = useDebounce(searchText, 200);
   const [loading, setLoading] = useState(true);
   const [showClienteModal, setShowClienteModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -639,7 +641,7 @@ function ClientesWeb() {
 
   const visibleClientes = useMemo(() => {
     let list = clientes;
-    const q = norm(searchText.trim());
+    const q = norm(debouncedSearchText.trim());
     if (q) {
       list = list.filter((cl) =>
         norm(cl.nombre).includes(q) ||
@@ -655,7 +657,7 @@ function ClientesWeb() {
       else list = list.filter((cl) => cl.tag === activeTagFilter);
     }
     return list;
-  }, [clientes, searchText, activeTagFilter]);
+  }, [clientes, debouncedSearchText, activeTagFilter]);
 
   if (loading) return <PageLoader message="Cargando clientes..." />;
 

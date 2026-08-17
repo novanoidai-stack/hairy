@@ -50,14 +50,14 @@ setup('authenticate', async ({ page }) => {
   console.log('Submitting login credentials...');
   await loginBtn.click();
 
-  // Wait for loading screen to complete and chooser button #chApp to appear
+  // Wait for loading screen to complete and chooser button #chApp to appear if staff account
   const chAppBtn = page.locator('button#chApp, button:has-text("Entrar al software")').first();
   try {
-    await chAppBtn.waitFor({ state: 'visible', timeout: 25000 });
+    await chAppBtn.waitFor({ state: 'visible', timeout: 12000 });
     console.log('Chooser button #chApp detected, clicking to enter software...');
     await chAppBtn.click();
   } catch (e) {
-    console.log('Chooser button did not appear within 25s or already navigated:', (e as Error).message);
+    console.log('Chooser button skipped or already navigating to /app');
   }
 
   try {

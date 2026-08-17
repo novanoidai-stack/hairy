@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { reportarError } from '@/lib/reportarError';
 import { esConfirmada, esPendiente, esNoShow, esCompletada, esSinConfirmar48h, VENTANA_SIN_CONFIRMAR_MS } from '@/lib/citasMetrics';
@@ -81,6 +82,7 @@ function CitasCRMScreen() {
   const [srvFilter, setSrvFilter] = useState('todos');
   const [soloSinConfirmar, setSoloSinConfirmar] = useState(false);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 200);
 
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
   const [showManualPanel, setShowManualPanel] = useState(false);
@@ -167,8 +169,8 @@ function CitasCRMScreen() {
     // Predicado canonico compartido con avisos y agenda (48h + confirmada por el
     // salon + sin respuesta del cliente): las tres pantallas dicen lo mismo.
     if (soloSinConfirmar) { const ahora = Date.now(); list = list.filter((c) => esSinConfirmar48h(c, ahora)); }
-    if (search.trim()) {
-      const s = search.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const s = debouncedSearch.toLowerCase();
       list = list.filter((c) => {
         const cli = c.cliente_id ? cliMap.get(c.cliente_id) : null;
         const srv = c.servicio_id ? srvMap.get(c.servicio_id) : null;
@@ -178,7 +180,7 @@ function CitasCRMScreen() {
       });
     }
     return list;
-  }, [citas, search, soloSinConfirmar, cliMap, srvMap]);
+  }, [citas, debouncedSearch, soloSinConfirmar, cliMap, srvMap]);
 
   // Resumen (sobre lo filtrado) para dar contexto tipo CRM.
   const stats = useMemo(() => {

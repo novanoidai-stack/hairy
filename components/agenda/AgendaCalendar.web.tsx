@@ -1,4 +1,13 @@
-import { useEffect, useState, useMemo, useRef, useCallback, memo } from "react";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  memo,
+  useDeferredValue,
+} from "react";
+import { TimelineNowIndicator } from "./TimelineNowIndicator.web";
 import { createPortal } from "react-dom";
 import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -75,6 +84,7 @@ import { FichaColorModal } from "@/app/(tabs)/clientes.web";
 import { obtenerNivelCliente } from "@/lib/fidelizacion";
 import { AvisosBell } from "@/components/avisos/AvisosBell.web";
 import { ListaEsperaDropdown } from "./ListaEsperaDropdown.web";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -660,6 +670,8 @@ export default function AgendaCalendar() {
   const [filterServicio, setFilterServicio] = useState("todos");
   const [filterEstado, setFilterEstado] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 200);
+  const deferredSearchQuery = useDeferredValue(debouncedSearchQuery);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showClienteHistorial, setShowClienteHistorial] = useState<any>(null);
   const [recolocarRetraso, setRecolocarRetraso] = useState(true); // toggle de Configuracion (negocio_config.config)
@@ -1351,7 +1363,15 @@ export default function AgendaCalendar() {
         const inicio = new Date(c.inicio);
         return inicio < ahora && inicio.toDateString() === hoyStr;
       });
-      setCitasVencidas(vencidas);
+      setCitasVencidas((prev) => {
+        if (
+          prev.length === vencidas.length &&
+          prev.every((p, idx) => p.id === vencidas[idx]?.id)
+        ) {
+          return prev;
+        }
+        return vencidas;
+      });
     }
     checkVencidas();
     const interval = setInterval(checkVencidas, 60000);
@@ -1862,10 +1882,10 @@ export default function AgendaCalendar() {
   const citasActivasHoy = useMemo(() => citasHoy.filter(esActiva), [citasHoy]);
   const totalActivasHoy = citasActivasHoy.length;
 
-  // 8.4: buscador global
+  // 8.4: buscador global (optimizado con useDeferredValue para evitar stutter)
   const searchResults = useMemo(() => {
-    if (!searchQuery || searchQuery.length < 2) return [];
-    const q = norm(searchQuery);
+    if (!deferredSearchQuery || deferredSearchQuery.length < 2) return [];
+    const q = norm(deferredSearchQuery);
     return citas
       .filter((c) => {
         const cli = clientes.find((cl: any) => cl.id === c.cliente_id);
@@ -1879,7 +1899,7 @@ export default function AgendaCalendar() {
         );
       })
       .slice(0, 12);
-  }, [searchQuery, citas, clientes, servicios, profesionales]);
+  }, [deferredSearchQuery, citas, clientes, servicios, profesionales]);
 
   // Citas sin confirmar por el cliente: MISMA definicion canonica que la campana
   // de avisos y la pagina de Citas (esSinConfirmar48h en lib/citasMetrics).
@@ -6953,6 +6973,1804 @@ const BLOQUEO_LABELS: Record<string, string> = {
   reserva_temporal: "Hueco reservado",
 };
 
+interface DayTimelineAppointmentCardProps {
+  cita: any;
+  prof: any;
+  profColor: string;
+  citaBg: string;
+  citaBorder: string;
+  citaBorderHover: string;
+  citaShadow: string;
+  citaShadowHover: string;
+  profCitas: any[];
+  citasWithLanes: any[];
+  clienteMap: any;
+  servicioMap: any;
+  categorias: any[];
+  citaAddonsMap: any;
+  propuestaPorCitaId: any;
+  START_H: number;
+  ROW_H: number;
+  isDragging: boolean;
+  isBeingDragged: boolean;
+  selectedProf: string;
+  profesionalesLength: number;
+  completarManual: boolean;
+  clientes: any[];
+  startDrag: (cita: any, e: React.MouseEvent<HTMLDivElement>) => void;
+  toggleCompletada: (citaId: string, estado: string) => void;
+  onCreateSlot?: (data: { hora: string; profId: string; reposoContext?: any }) => void;
+  onClienteHistorial?: ((cli: any) => void) | null;
+}
+
+function areCardPropsEqual(
+  prev: DayTimelineAppointmentCardProps,
+  next: DayTimelineAppointmentCardProps,
+): boolean {
+  if (prev.cita?.id !== next.cita?.id) return false;
+  if (prev.cita?.estado !== next.cita?.estado) return false;
+  if (prev.cita?.inicio !== next.cita?.inicio) return false;
+  if (prev.cita?.fin !== next.cita?.fin) return false;
+  if (prev.cita?._lane !== next.cita?._lane) return false;
+  if (prev.cita?._totalLanes !== next.cita?._totalLanes) return false;
+  if (prev.cita?._nested !== next.cita?._nested) return false;
+  if (prev.cita?._nestedLane !== next.cita?._nestedLane) return false;
+  if (prev.cita?._nestedTotal !== next.cita?._nestedTotal) return false;
+  if (prev.cita?._desbordaMin !== next.cita?._desbordaMin) return false;
+  if (prev.cita?.cliente_id !== next.cita?.cliente_id) return false;
+  if (prev.cita?.servicio_id !== next.cita?.servicio_id) return false;
+  if (prev.cita?.precio !== next.cita?.precio) return false;
+  if (prev.cita?.importe_final !== next.cita?.importe_final) return false;
+  if (prev.cita?.notas !== next.cita?.notas) return false;
+  if (prev.cita?.updated_at !== next.cita?.updated_at) return false;
+  if (prev.isBeingDragged !== next.isBeingDragged) return false;
+  if (prev.isDragging !== next.isDragging) return false;
+  if (prev.START_H !== next.START_H) return false;
+  if (prev.ROW_H !== next.ROW_H) return false;
+  if (prev.profColor !== next.profColor) return false;
+  if (prev.citaBg !== next.citaBg) return false;
+  if (prev.citaBorder !== next.citaBorder) return false;
+  if (prev.selectedProf !== next.selectedProf) return false;
+  if (prev.profesionalesLength !== next.profesionalesLength) return false;
+  if (prev.completarManual !== next.completarManual) return false;
+  if (prev.clienteMap !== next.clienteMap) return false;
+  if (prev.servicioMap !== next.servicioMap) return false;
+  if (prev.categorias !== next.categorias) return false;
+
+  const prevProp = prev.propuestaPorCitaId?.get?.(prev.cita?.id);
+  const nextProp = next.propuestaPorCitaId?.get?.(next.cita?.id);
+  if (prevProp !== nextProp) return false;
+
+  const prevAddons = prev.citaAddonsMap?.[prev.cita?.id];
+  const nextAddons = next.citaAddonsMap?.[next.cita?.id];
+  if (prevAddons !== nextAddons) {
+    if (JSON.stringify(prevAddons) !== JSON.stringify(nextAddons)) return false;
+  }
+
+  return true;
+}
+
+export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCard({
+  cita,
+  prof,
+  profColor,
+  citaBg,
+  citaBorder,
+  citaBorderHover,
+  citaShadow,
+  citaShadowHover,
+  profCitas,
+  citasWithLanes,
+  clienteMap,
+  servicioMap,
+  categorias,
+  citaAddonsMap,
+  propuestaPorCitaId,
+  START_H,
+  ROW_H,
+  isDragging,
+  isBeingDragged,
+  selectedProf,
+  profesionalesLength,
+  completarManual,
+  clientes,
+  startDrag,
+  toggleCompletada,
+  onCreateSlot,
+  onClienteHistorial,
+}: DayTimelineAppointmentCardProps) {
+  const start = new Date(cita.inicio);
+  const end = new Date(cita.fin);
+  const startH = start.getHours() + start.getMinutes() / 60;
+  const durH = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+  const top = (startH - START_H) * ROW_H;
+  const height = Math.max(16, durH * ROW_H);
+  const lane = cita._lane ?? 0;
+  const totalLanes = cita._totalLanes ?? 1;
+  const nested = !!cita._nested;
+  const hostCita = nested
+    ? profCitas.find((h: any) => h.id === cita._hostId)
+    : null;
+  const hostLane = hostCita?._lane ?? 0;
+  const hostTotalLanes = hostCita?._totalLanes ?? 1;
+  const hostL = (hostLane / hostTotalLanes) * 100;
+  const hostW = 100 / hostTotalLanes;
+  const NEST_INSET_L = 6,
+    NEST_INSET_R = 6;
+  const nArea = 100 - NEST_INSET_L - NEST_INSET_R;
+  const nLane = cita._nestedLane ?? 0;
+  const nTotal = cita._nestedTotal ?? 1;
+  const nW = nArea / nTotal;
+  const nestL = hostL + ((NEST_INSET_L + nLane * nW) * hostW) / 100;
+  const nestR =
+    100 -
+    (hostL +
+      ((NEST_INSET_L + (nLane + 1) * nW) * hostW) / 100);
+  const nestedLeft = `calc(${Math.max(0, nestL)}% + 2px)`;
+  const nestedRight = `calc(${Math.max(0, nestR)}% + 2px)`;
+  const cancelada = cita.estado === CITA_STATUS.CANCELADA;
+  const actualCitaBg = cancelada
+    ? "rgba(226,59,52,0.04)"
+    : nested
+      ? "#ffffff"
+      : citaBg;
+  const bordeEstado =
+    cita.estado === CITA_STATUS.PENDIENTE ||
+    cita.estado === CITA_STATUS.CONFIRMADA
+      ? ESTADO_CITA_UI[cita.estado].color
+      : null;
+  const actualCitaBorder = nested
+    ? "rgba(34,197,94,0.45)"
+    : (bordeEstado ?? citaBorder);
+  const actualCitaBorderHover = nested
+    ? "rgba(34,197,94,0.85)"
+    : (bordeEstado ?? citaBorderHover);
+  const actualCitaShadow = nested
+    ? "0 6px 16px rgba(40,30,24,0.16), 0 1px 3px rgba(40,30,24,0.08)"
+    : citaShadow;
+  const actualCitaShadowHover = nested
+    ? "0 10px 22px rgba(40,30,24,0.24), 0 2px 6px rgba(40,30,24,0.12)"
+    : citaShadowHover;
+  const isChained = !!cita.grupo_id;
+  const chainSiblings = isChained
+    ? citasWithLanes.filter((c: any) => c.grupo_id === cita.grupo_id)
+    : [];
+  const chainTotal = chainSiblings.length;
+  const chainPos = isChained ? (cita.orden_en_grupo ?? 0) + 1 : 0;
+  const finActiva = cita.fin_activa ? new Date(cita.fin_activa) : null;
+  const finEspera = cita.fin_espera ? new Date(cita.fin_espera) : null;
+  const activaPx = finActiva
+    ? ((finActiva.getTime() - start.getTime()) / (1000 * 60 * 60)) * ROW_H
+    : height;
+  const esperaPx =
+    finActiva && finEspera
+      ? ((finEspera.getTime() - finActiva.getTime()) / (1000 * 60 * 60)) * ROW_H
+      : 0;
+  const hasEspera = esperaPx > 2;
+  const srv = servicioMap?.get(cita.servicio_id);
+  const cat = srv
+    ? (categorias || []).find((cc: any) => cc.id === srv.categoria_id)
+    : null;
+  const catColor = cat ? categoryColorHex(cat.color) : null;
+  const catName = cat?.nombre || "";
+  const stripeColor = catColor || profColor;
+
+  return (
+    <div
+      key={cita.id}
+      style={{
+        position: "absolute",
+        top,
+        left: nested
+          ? nestedLeft
+          : `calc(${(lane / totalLanes) * 100}% + 4px)`,
+        right: nested
+          ? nestedRight
+          : `calc(${((totalLanes - lane - 1) / totalLanes) * 100}% + 4px)`,
+        height,
+        boxSizing: "border-box",
+        pointerEvents: "auto",
+        zIndex: nested ? 15 : 10,
+        background: cancelada
+          ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
+          : hasEspera && !nested
+            ? `linear-gradient(to bottom, ${actualCitaBg} 0px, ${actualCitaBg} ${activaPx}px, transparent ${activaPx}px, transparent ${activaPx + esperaPx}px, ${actualCitaBg} ${activaPx + esperaPx}px, ${actualCitaBg} 100%)`
+            : actualCitaBg,
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: cancelada ? "#55555540" : actualCitaBorder,
+        borderLeft: cancelada
+          ? `${totalLanes > 1 || (profesionalesLength || 1) >= 2 ? 2 : 4}px solid #66666660`
+          : `${totalLanes > 1 || (profesionalesLength || 1) >= 2 ? 2 : 4}px solid ${stripeColor}`,
+        borderTop:
+          isChained && !cancelada ? `2px solid #e0340e` : undefined,
+        borderRadius: height <= 32 ? 6 : 12,
+        padding:
+          hasEspera && activaPx <= 45
+            ? "2px 4px"
+            : height <= 16
+              ? "0px 4px"
+              : height <= 32
+                ? "2px 4px"
+                : "6px 8px",
+        overflow: "hidden",
+        cursor: isDragging ? "grabbing" : "grab",
+        display: "flex",
+        flexDirection: "column",
+        gap: height <= 32 ? 0 : height < 60 ? 1 : 2,
+        boxShadow: cancelada ? "none" : actualCitaShadow,
+        transition: isBeingDragged
+          ? "none"
+          : "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transform: "scale(1)",
+        opacity: cancelada ? 0.45 : isBeingDragged ? 0.25 : 1,
+      }}
+      onMouseDown={(e) => {
+        if (!cancelada) startDrag(cita, e);
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "scale(1.02)";
+        e.currentTarget.style.boxShadow = cancelada
+          ? "none"
+          : actualCitaShadowHover;
+        e.currentTarget.style.borderColor = cancelada
+          ? "#77777770"
+          : actualCitaBorderHover;
+        e.currentTarget.style.borderLeftColor = cancelada
+          ? "#66666660"
+          : stripeColor;
+        if (isChained && !cancelada)
+          e.currentTarget.style.borderTop = "2px solid #e0340e";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.boxShadow = cancelada
+          ? "none"
+          : actualCitaShadow;
+        e.currentTarget.style.borderColor = cancelada
+          ? "#55555540"
+          : actualCitaBorder;
+        e.currentTarget.style.borderLeftColor = cancelada
+          ? "#66666660"
+          : stripeColor;
+        if (isChained && !cancelada)
+          e.currentTarget.style.borderTop = "2px solid #e0340e";
+      }}
+    >
+      {nested && cita._desbordaMin > 0 && !cancelada && (
+        <span
+          title={`Esta cita se sale ${cita._desbordaMin} min del hueco de reposo`}
+          style={{
+            position: "absolute",
+            top: 2,
+            right: 2,
+            zIndex: 8,
+            padding: "1px 5px",
+            borderRadius: 999,
+            background: "#f59e0b",
+            color: "#fff",
+            fontSize: 8.5,
+            fontWeight: 800,
+            lineHeight: 1.5,
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          }}
+        >
+          +{cita._desbordaMin}′
+        </span>
+      )}
+      {propuestaPorCitaId.has(cita.id) && !cancelada && (() => {
+        const prop = propuestaPorCitaId.get(cita.id);
+        const hhmm = new Date(prop.inicio_propuesto).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+        return (
+          <span
+            title={`Cambio propuesto a las ${hhmm} — pendiente de confirmación del cliente`}
+            style={{
+              position: "absolute",
+              bottom: 2,
+              left: 2,
+              zIndex: 8,
+              padding: "1px 6px",
+              borderRadius: 999,
+              background: "#7c3aed",
+              color: "#fff",
+              fontSize: 8.5,
+              fontWeight: 800,
+              lineHeight: 1.5,
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            }}
+          >
+            ↻ {hhmm}
+          </span>
+        );
+      })()}
+      {hasEspera &&
+        !cancelada &&
+        (() => {
+          const reposoIniMs = finActiva!.getTime();
+          const reposoFinMs = finEspera!.getTime();
+          const hayActiva2 = !(
+            finEspera && finEspera < end
+          );
+          const ocupados = profCitas
+            .filter(
+              (c: any) =>
+                c._hostId === cita.id &&
+                c.estado !== CITA_STATUS.CANCELADA,
+            )
+            .map(
+              (c: any) =>
+                [
+                  new Date(c.inicio).getTime(),
+                  new Date(c.fin).getTime(),
+                ] as [number, number],
+            )
+            .sort(
+              (
+                a: [number, number],
+                b: [number, number],
+              ) => a[0] - b[0],
+            );
+          const libres: [number, number][] = [];
+          let cursor = reposoIniMs;
+          for (const [ini, fin] of ocupados) {
+            if (ini > cursor)
+              libres.push([
+                cursor,
+                Math.min(ini, reposoFinMs),
+              ]);
+            cursor = Math.max(cursor, fin);
+          }
+          if (cursor < reposoFinMs)
+            libres.push([cursor, reposoFinMs]);
+          const msToPx = (ms: number) =>
+            (ms / 3600000) * ROW_H;
+          return (
+            <div
+              style={{
+                position: "absolute",
+                top: activaPx,
+                left: 0,
+                right: 0,
+                height: esperaPx,
+                pointerEvents: "auto",
+                zIndex: 4,
+                background:
+                  "repeating-linear-gradient(135deg, rgba(16,185,129,0.15) 0px, rgba(16,185,129,0.15) 5px, rgba(16,185,129,0.04) 5px, rgba(16,185,129,0.04) 11px)",
+                borderTop:
+                  "1.5px dashed rgba(16,185,129,0.55)",
+                borderBottom: hayActiva2
+                  ? "1.5px dashed rgba(16,185,129,0.55)"
+                  : "none",
+                overflow: "hidden",
+              }}
+            >
+              {libres.map(([ini, fin], i) => {
+                const gapMin = Math.round(
+                  (fin - ini) / 60000,
+                );
+                if (gapMin < 5) return null;
+                const gapTop = msToPx(ini - reposoIniMs);
+                const gapH = msToPx(fin - ini);
+                return (
+                  <ReposoFreeGapInteractive
+                    key={i}
+                    ini={ini}
+                    fin={fin}
+                    gapMin={gapMin}
+                    gapTop={gapTop}
+                    gapH={gapH}
+                    cita={cita}
+                    clienteMap={clienteMap}
+                    servicioMap={servicioMap}
+                    onSelectReposo={({
+                      horaStr,
+                      profId,
+                      reposoContext,
+                    }) => {
+                      if (onCreateSlot) {
+                        onCreateSlot({
+                          hora: horaStr,
+                          profId,
+                          reposoContext,
+                        });
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })()}
+      <div
+        style={
+          hasEspera && !nested && !cancelada
+            ? {
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: Math.max(20, activaPx),
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                gap: activaPx <= 45 ? 0 : 2,
+                padding:
+                  activaPx <= 45 ? "2px 6px" : "6px 8px",
+                boxSizing: "border-box",
+                zIndex: 6,
+              }
+            : { display: "contents" }
+        }
+      >
+        {(() => {
+          const narrow = height < 50;
+          const bloqueBajo = height < 64;
+          const nombreCliente =
+            clienteMap?.get(cita.cliente_id)?.nombre ||
+            "-";
+          const nombreServicio =
+            servicioMap?.get(cita.servicio_id)?.nombre ||
+            "";
+          const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })}`;
+          const timeStrCompact =
+            totalLanes > 1 || height <= 32
+              ? start.toLocaleTimeString(LOCALE, {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : timeStr;
+          const badgeColor = catColor || profColor;
+          const catIconChip = cat?.icono
+            ? getCategoryIcon(
+                cat.icono,
+                badgeColor,
+                narrow ? 11 : 12,
+              )
+            : null;
+          const iniciales =
+            nombreCliente
+              .split(/\s+/)
+              .map((w: string) => w[0])
+              .filter(Boolean)
+              .slice(0, 2)
+              .join("")
+              .toUpperCase() || "·";
+          const profIni =
+            (prof?.nombre || "?")
+              .split(/\s+/)
+              .map((w: string) => w[0])
+              .filter(Boolean)
+              .slice(0, 2)
+              .join("")
+              .toUpperCase() || "?";
+          const stylistAvatar = (
+            <span
+              title={`Estilista: ${prof?.nombre || ""}`}
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: 999,
+                overflow: "hidden",
+                flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: profColor,
+                border:
+                  "1.5px solid rgba(255,255,255,0.9)",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
+              }}
+            >
+              {prof?.foto_perfil ? (
+                <img
+                  src={prof.foto_perfil}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <span
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 800,
+                    color: "#ffffff",
+                    lineHeight: 1,
+                  }}
+                >
+                  {profIni}
+                </span>
+              )}
+            </span>
+          );
+          const estrecho =
+            totalLanes > 1 ||
+            (selectedProf === "todos" &&
+              (profesionalesLength || 1) >= 2) ||
+            (profesionalesLength || 1) >= 5;
+          const isSmallOrNarrow =
+            height <= 32 || estrecho;
+          const identidad = isSmallOrNarrow
+            ? iniciales
+            : nombreCliente;
+
+          const esCompletada =
+            cita.estado === CITA_STATUS.COMPLETADA;
+          const esNoShow =
+            cita.estado === CITA_STATUS.NO_PRESENTADA;
+          let icon: any = null;
+          if (
+            !cancelada &&
+            !esNoShow &&
+            completarManual
+          ) {
+            if (esCompletada) {
+              icon = (
+                <div
+                  title="Desmarcar completada"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCompletada(
+                      cita.id,
+                      cita.estado,
+                    );
+                  }}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    margin: "-14px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 999,
+                      background: "#0f9d6b",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      flexShrink: 0,
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "#0c7d55";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        "#0f9d6b";
+                    }}
+                  >
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                </div>
+              );
+            } else {
+              icon = (
+                <div
+                  title="Marcar como completada"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCompletada(
+                      cita.id,
+                      cita.estado,
+                    );
+                  }}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    margin: "-14px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 999,
+                      border: `2px solid ${TOKENS.borderHi}`,
+                      background: "transparent",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "#0f9d6b";
+                      e.currentTarget.style.background =
+                        "rgba(15,157,107,0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor =
+                        TOKENS.borderHi;
+                      e.currentTarget.style.background =
+                        "transparent";
+                    }}
+                  />
+                </div>
+              );
+            }
+          }
+
+          const chainBadge = isChained ? (
+            <span
+              style={{
+                fontSize: 8,
+                fontWeight: 700,
+                background: "rgba(192,38,10,0.25)",
+                color: "#e0340e",
+                padding: "1px 5px",
+                borderRadius: 4,
+                flexShrink: 0,
+                letterSpacing: 0.3,
+              }}
+            >
+              {chainPos}/{chainTotal}
+            </span>
+          ) : null;
+
+          const addonsNames = (
+            citaAddonsMap[cita.id] || []
+          )
+            .map((ca: any) => ca.service_addons?.nombre)
+            .filter(Boolean);
+          const addonsStr =
+            addonsNames.length > 0
+              ? "+ " + addonsNames.join(", ")
+              : "";
+
+          if (narrow || estrecho || height <= 32) {
+            const effectiveLanes = nested
+              ? cita._nestedTotal || 1
+              : totalLanes;
+            const superNarrow =
+              height <= 24 || effectiveLanes >= 3;
+            if (height <= 28) {
+              return (
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    overflow: "hidden",
+                    height: "100%",
+                    padding: "0 4px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: cancelada
+                        ? TOKENS.textTer
+                        : TOKENS.text,
+                      flexShrink: 0,
+                      fontVariantNumeric:
+                        "tabular-nums" as any,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {timeStrCompact}
+                  </span>
+                  {chainBadge}
+                  {stylistAvatar}
+                  {icon}
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: cancelada
+                        ? TOKENS.textTer
+                        : TOKENS.text,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      lineHeight: 1,
+                      flexShrink: 1,
+                      minWidth: 0,
+                      textDecoration: cancelada
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {nombreCliente}
+                  </span>
+                  {nombreServicio && (
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        color: cancelada
+                          ? TOKENS.textTer
+                          : TOKENS.text,
+                        background: cancelada
+                          ? "transparent"
+                          : TOKENS.bgCard,
+                        border: cancelada
+                          ? "none"
+                          : `1px solid ${catColor || profColor}55`,
+                        borderLeft: cancelada
+                          ? "none"
+                          : `2px solid ${catColor || profColor}`,
+                        padding: "0 3px",
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        flexShrink: 2,
+                        minWidth: 0,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {nombreServicio}
+                    </span>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  justifyContent: "center",
+                  gap: 1,
+                  overflow: "hidden",
+                  height: "100%",
+                  padding: "1px 4px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  {catIconChip && !superNarrow && (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {catIconChip}
+                    </span>
+                  )}
+                  {!superNarrow && (
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 800,
+                        color: cancelada
+                          ? TOKENS.textTer
+                          : TOKENS.text,
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
+                        lineHeight: 1,
+                        fontVariantNumeric:
+                          "tabular-nums" as any,
+                      }}
+                    >
+                      {timeStrCompact}
+                    </span>
+                  )}
+                  {chainBadge}
+                  {!superNarrow &&
+                    height > 30 &&
+                    stylistAvatar}
+                  {icon}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    maxWidth: "100%",
+                    overflow: "hidden",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      color: cancelada
+                        ? TOKENS.textTer
+                        : TOKENS.text,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      textDecoration: cancelada
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {nombreCliente}
+                  </span>
+                  {nombreServicio && height > 32 && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: cancelada
+                          ? TOKENS.textTer
+                          : TOKENS.text,
+                        background: cancelada
+                          ? "transparent"
+                          : TOKENS.bgCard,
+                        border: cancelada
+                          ? "none"
+                          : `1px solid ${catColor || profColor}55`,
+                        borderLeft: cancelada
+                          ? "none"
+                          : `2px solid ${catColor || profColor}`,
+                        padding: "1px 4px",
+                        borderRadius: 4,
+                        boxShadow: cancelada
+                          ? "none"
+                          : "0 1px 2px rgba(0,0,0,0.08)",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "100%",
+                      }}
+                    >
+                      {nombreServicio}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              style={{
+                position: "relative",
+                zIndex: 6,
+                minWidth: 0,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 7,
+                height: "100%",
+                overflow: "hidden",
+              }}
+            >
+              <span
+                style={{
+                  flexShrink: 0,
+                  width:
+                    hasEspera && activaPx <= 45 ? 22 : 28,
+                  height:
+                    hasEspera && activaPx <= 45 ? 22 : 28,
+                  borderRadius: 8,
+                  background: cancelada
+                    ? "#99999955"
+                    : badgeColor,
+                  display: "grid",
+                  placeItems: "center",
+                  color: "#fff",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  marginTop: 1,
+                }}
+                title={
+                  catName
+                    ? `${catName} · ${nombreCliente}`
+                    : nombreCliente
+                }
+              >
+                {iniciales}
+              </span>
+              <div
+                style={{
+                  flex: "0 0 auto",
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: height < 64 ? 0 : 1,
+                  position: "relative",
+                  zIndex: 6,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 6,
+                  }}
+                >
+                  {height > 24 && (
+                    <span
+                      style={{
+                        fontSize:
+                          hasEspera && activaPx <= 45
+                            ? 10.5
+                            : 12.5,
+                        color: cancelada
+                          ? TOKENS.textTer
+                          : TOKENS.text,
+                        fontWeight: 800,
+                        letterSpacing: -0.2,
+                        whiteSpace: "nowrap",
+                        fontVariantNumeric:
+                          "tabular-nums" as any,
+                      }}
+                    >
+                      {height <= 32
+                        ? timeStrCompact
+                        : timeStr}
+                    </span>
+                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {chainBadge}
+                    {height > 30 && stylistAvatar}
+                    {icon}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: height < 30 ? 0 : 2,
+                    width: "100%",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    onMouseDown={(e) => {
+                      if (onClienteHistorial)
+                        e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                      if (onClienteHistorial) {
+                        e.stopPropagation();
+                        const cli = clientes.find(
+                          (cl: any) =>
+                            cl.id === cita.cliente_id,
+                        );
+                        if (cli) onClienteHistorial(cli);
+                      }
+                    }}
+                    style={{
+                      width: "fit-content",
+                      maxWidth: "100%",
+                      fontSize:
+                        hasEspera && activaPx <= 45
+                          ? 10.5
+                          : height < 30
+                            ? 11
+                            : 12,
+                      lineHeight:
+                        height < 30 ? "1.1" : "1.2",
+                      fontWeight: 800,
+                      color: cancelada
+                        ? TOKENS.textTer
+                        : TOKENS.text,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      textDecoration: cancelada
+                        ? "line-through"
+                        : "none",
+                      cursor: onClienteHistorial
+                        ? "pointer"
+                        : "default",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                    title="Ver historial de este cliente"
+                  >
+                    {identidad}
+                    {cita.encadenadoId && !cancelada && (
+                      <Icon
+                        name="link"
+                        size={12}
+                        color={TOKENS.primary}
+                      />
+                    )}
+                    {(cita.fin_activa ||
+                      cita.fin_espera) &&
+                      !cancelada && (
+                        <Icon
+                          name="coffee"
+                          size={12}
+                          color="#f59e0b"
+                        />
+                      )}
+                    {bloqueBajo &&
+                      height > 32 &&
+                      nombreServicio && (
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: cancelada
+                              ? TOKENS.textTer
+                              : TOKENS.textSec,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            minWidth: 0,
+                          }}
+                          title={nombreServicio}
+                        >
+                          · {nombreServicio}
+                        </span>
+                      )}
+                  </div>
+                  {height > 32 && !bloqueBajo && (
+                    <div
+                      style={{
+                        background: cancelada
+                          ? "transparent"
+                          : TOKENS.bgCard,
+                        border: cancelada
+                          ? "none"
+                          : `1px solid ${catColor || profColor}55`,
+                        borderLeft: cancelada
+                          ? "none"
+                          : `3px solid ${catColor || profColor}`,
+                        padding:
+                          hasEspera && activaPx <= 45
+                            ? "1px 4px"
+                            : "2px 6px",
+                        borderRadius: 6,
+                        boxShadow: cancelada
+                          ? "none"
+                          : "0 1px 3px rgba(0,0,0,0.08)",
+                        width: "fit-content",
+                        maxWidth: "100%",
+                        fontSize:
+                          hasEspera && activaPx <= 45
+                            ? 9.5
+                            : 10.5,
+                        fontWeight: 700,
+                        color: cancelada
+                          ? TOKENS.textTer
+                          : TOKENS.text,
+                        whiteSpace: "normal",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 1,
+                      }}
+                    >
+                      {catIconChip ? (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            flexShrink: 0,
+                            marginTop: 2,
+                          }}
+                          title={catName}
+                        >
+                          {catIconChip}
+                        </span>
+                      ) : (
+                        catColor && (
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: 999,
+                              background: catColor,
+                              flexShrink: 0,
+                              marginTop: 4,
+                            }}
+                            title={catName}
+                          />
+                        )
+                      )}
+                      <span
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {nombreServicio ||
+                          (cita.servicio_id
+                            ? "Servicio eliminado"
+                            : "Sin servicio")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {addonsStr && height >= 64 && (
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: "#10b981",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {addonsStr}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    </div>
+  );
+}, areCardPropsEqual);
+
+interface DayTimelineProfessionalColumnProps {
+  prof: any;
+  profColor: string;
+  profCitas: any[];
+  citasWithLanes: any[];
+  selectedDateObj: Date;
+  START_H: number;
+  ROW_H: number;
+  horariosProf: any[];
+  horarioSalonHoy: any;
+  festivoHoy: any;
+  salonCerradoTodoElDia: boolean;
+  bloqueos: any[];
+  clienteMap: any;
+  servicioMap: any;
+  categorias: any[];
+  citaAddonsMap: any;
+  propuestaPorCitaId: any;
+  isDragging: boolean;
+  dragCitaId: string | null | undefined;
+  selectedProf: string;
+  profesionalesLength: number;
+  completarManual: boolean;
+  clientes: any[];
+  startDrag: (cita: any, e: React.MouseEvent<HTMLDivElement>) => void;
+  toggleCompletada: (citaId: string, estado: string) => void;
+  onCreateSlot?: (data: { hora: string; profId: string; reposoContext?: any }) => void;
+  onClienteHistorial?: ((cli: any) => void) | null;
+  zonasResaltadas: ProblemaAgenda[];
+  profesionales: any[];
+}
+
+export const DayTimelineProfessionalColumn = memo(function DayTimelineProfessionalColumn({
+  prof,
+  profColor,
+  profCitas,
+  citasWithLanes,
+  selectedDateObj,
+  START_H,
+  ROW_H,
+  horariosProf,
+  horarioSalonHoy,
+  festivoHoy,
+  salonCerradoTodoElDia,
+  bloqueos,
+  clienteMap,
+  servicioMap,
+  categorias,
+  citaAddonsMap,
+  propuestaPorCitaId,
+  isDragging,
+  dragCitaId,
+  selectedProf,
+  profesionalesLength,
+  completarManual,
+  clientes,
+  startDrag,
+  toggleCompletada,
+  onCreateSlot,
+  onClienteHistorial,
+  zonasResaltadas,
+  profesionales,
+}: DayTimelineProfessionalColumnProps) {
+  const citaBg = `${profColor}2b`;
+  const citaBorder = `${profColor}45`;
+  const citaBorderHover = `${profColor}77`;
+  const citaShadow = `0 4px 12px -2px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 1px ${profColor}1a`;
+  const citaShadowHover = `0 12px 20px -4px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px ${profColor}33`;
+
+  return (
+    <div key={prof.id} style={{ position: "relative", pointerEvents: "none" }}>
+      {(() => {
+        const dayStart = new Date(selectedDateObj);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(selectedDateObj);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const dbDia = selectedDateObj.getDay();
+        const profHorarios = (horariosProf as any[])
+          .filter(
+            (h: any) =>
+              h.profesional_id === prof.id &&
+              h.dia_semana === dbDia,
+          )
+          .sort(
+            (a: any, b: any) => (a.turno ?? 1) - (b.turno ?? 1),
+          );
+
+        const alDia = (hhmm: string) => {
+          const [h, m] = String(hhmm).split(":").map(Number);
+          const d = new Date(selectedDateObj);
+          d.setHours(h, m || 0, 0, 0);
+          return d;
+        };
+        const salonCerrado: any[] = [];
+        if (salonCerradoTodoElDia) {
+          const diaIni = new Date(selectedDateObj);
+          diaIni.setHours(START_H, 0, 0, 0);
+          const diaFin = new Date(selectedDateObj);
+          diaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+          salonCerrado.push({
+            id: `salon-cerrado-${prof.id}`,
+            profesional_id: prof.id,
+            inicio: diaIni.toISOString(),
+            fin: diaFin.toISOString(),
+            tipo: "salon_cerrado",
+            motivo: festivoHoy
+              ? festivoHoy.motivo || "Festivo"
+              : "El salón no abre este día",
+          });
+        } else if (
+          horarioSalonHoy &&
+          horarioSalonHoy.apertura &&
+          horarioSalonHoy.cierre
+        ) {
+          const rejillaIniSalon = new Date(selectedDateObj);
+          rejillaIniSalon.setHours(START_H, 0, 0, 0);
+          const rejillaFinSalon = new Date(selectedDateObj);
+          rejillaFinSalon.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+          const abreSalon = alDia(horarioSalonHoy.apertura);
+          const cierraSalon = alDia(horarioSalonHoy.cierre);
+          if (abreSalon > rejillaIniSalon) {
+            salonCerrado.push({
+              id: `salon-antes-${prof.id}`,
+              profesional_id: prof.id,
+              inicio: rejillaIniSalon.toISOString(),
+              fin: abreSalon.toISOString(),
+              tipo: "salon_cerrado",
+              motivo: `El salón abre a las ${String(horarioSalonHoy.apertura).slice(0, 5)}`,
+            });
+          }
+          if (cierraSalon < rejillaFinSalon) {
+            salonCerrado.push({
+              id: `salon-despues-${prof.id}`,
+              profesional_id: prof.id,
+              inicio: cierraSalon.toISOString(),
+              fin: rejillaFinSalon.toISOString(),
+              tipo: "salon_cerrado",
+              motivo: `El salón cierra a las ${String(horarioSalonHoy.cierre).slice(0, 5)}`,
+            });
+          }
+        }
+        const virtualPauses = [];
+        if (profHorarios.length > 1) {
+          for (let i = 0; i < profHorarios.length - 1; i++) {
+            const h1 = profHorarios[i];
+            const h2 = profHorarios[i + 1];
+            const vStart = new Date(selectedDateObj);
+            const [sH, sM] = h1.hora_fin.split(":").map(Number);
+            vStart.setHours(sH, sM, 0, 0);
+            const vEnd = new Date(selectedDateObj);
+            const [eH, eM] = h2.hora_inicio
+              .split(":")
+              .map(Number);
+            vEnd.setHours(eH, eM, 0, 0);
+            if (vEnd > vStart) {
+              virtualPauses.push({
+                id: `pause-${prof.id}-${i}`,
+                profesional_id: prof.id,
+                inicio: vStart.toISOString(),
+                fin: vEnd.toISOString(),
+                tipo: "descanso",
+                motivo: "Pausa de comida",
+              });
+            }
+          }
+        }
+
+        const tieneAlgunHorario = (horariosProf as any[]).some(
+          (h: any) => h.profesional_id === prof.id,
+        );
+        const fueraJornada: any[] = [];
+        if (
+          tieneAlgunHorario &&
+          profHorarios.length === 0 &&
+          !salonCerradoTodoElDia
+        ) {
+          const rejillaIni = new Date(selectedDateObj);
+          rejillaIni.setHours(START_H, 0, 0, 0);
+          const rejillaFin = new Date(selectedDateObj);
+          rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+          fueraJornada.push({
+            id: `jornada-libra-${prof.id}`,
+            profesional_id: prof.id,
+            inicio: rejillaIni.toISOString(),
+            fin: rejillaFin.toISOString(),
+            tipo: "fuera_jornada",
+            motivo: "No trabaja este dia",
+          });
+        }
+        if (profHorarios.length > 0 && !salonCerradoTodoElDia) {
+          const rejillaIni = new Date(selectedDateObj);
+          rejillaIni.setHours(START_H, 0, 0, 0);
+          const rejillaFin = new Date(selectedDateObj);
+          rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+          const entra = alDia(profHorarios[0].hora_inicio);
+          const sale = alDia(
+            profHorarios[profHorarios.length - 1].hora_fin,
+          );
+          if (entra > rejillaIni) {
+            fueraJornada.push({
+              id: `jornada-ini-${prof.id}`,
+              profesional_id: prof.id,
+              inicio: rejillaIni.toISOString(),
+              fin: entra.toISOString(),
+              tipo: "fuera_jornada",
+              motivo: `Entra a las ${profHorarios[0].hora_inicio.slice(0, 5)}`,
+            });
+          }
+          if (sale < rejillaFin) {
+            fueraJornada.push({
+              id: `jornada-fin-${prof.id}`,
+              profesional_id: prof.id,
+              inicio: sale.toISOString(),
+              fin: rejillaFin.toISOString(),
+              tipo: "fuera_jornada",
+              motivo: `Termina a las ${profHorarios[profHorarios.length - 1].hora_fin.slice(0, 5)}`,
+            });
+          }
+        }
+
+        return [
+          ...(bloqueos as any[]),
+          ...virtualPauses,
+          ...fueraJornada,
+          ...salonCerrado,
+        ]
+          .filter((b: any) => {
+            if (b.profesional_id !== prof.id) return false;
+            return (
+              new Date(b.inicio) <= dayEnd &&
+              new Date(b.fin) >= dayStart
+            );
+          })
+          .sort(
+            (a: any, b: any) =>
+              new Date(a.inicio).getTime() -
+              new Date(b.inicio).getTime(),
+          )
+          .map((b: any, idx: number, arr: any[]) => {
+            const bIniMs = new Date(b.inicio).getTime();
+            const bFinMs = new Date(b.fin).getTime();
+            const labelRow = arr
+              .slice(0, idx)
+              .filter(
+                (o: any) =>
+                  new Date(o.inicio).getTime() < bFinMs &&
+                  new Date(o.fin).getTime() > bIniMs,
+              ).length;
+            const labelOffset = labelRow * 14;
+            const bloqueoDayStart = new Date(selectedDateObj);
+            bloqueoDayStart.setHours(START_H, 0, 0, 0);
+            const bloqueoDayEnd = new Date(selectedDateObj);
+            bloqueoDayEnd.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+            const bStart = new Date(
+              Math.max(
+                new Date(b.inicio).getTime(),
+                bloqueoDayStart.getTime(),
+              ),
+            );
+            const bEnd = new Date(
+              Math.min(
+                new Date(b.fin).getTime(),
+                bloqueoDayEnd.getTime(),
+              ),
+            );
+            const blockTop =
+              (bStart.getHours() +
+                bStart.getMinutes() / 60 -
+                START_H) *
+              ROW_H;
+            const blockHeight =
+              (bEnd.getHours() +
+                bEnd.getMinutes() / 60 -
+                (bStart.getHours() + bStart.getMinutes() / 60)) *
+              ROW_H;
+            if (blockHeight <= 0) return null;
+            const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
+            const cabeEtiqueta =
+              blockHeight > labelOffset + 16;
+            return (
+              <div
+                key={b.id}
+                style={{
+                  position: "absolute",
+                  top: blockTop,
+                  left: 2,
+                  right: 2,
+                  height: blockHeight,
+                  background: `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
+                  backgroundColor: `${bColor}0a`,
+                  borderLeft: `3px solid ${bColor}99`,
+                  borderRadius: 6,
+                  pointerEvents: "none",
+                  zIndex: 1 + labelRow,
+                  padding: "4px 6px",
+                  overflow: "hidden",
+                }}
+              >
+                {cabeEtiqueta && (
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: TOKENS.text,
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                      marginTop: labelOffset,
+                      background: `${bColor}26`,
+                      borderRadius: 4,
+                      padding: "1px 4px",
+                      width: "fit-content",
+                    }}
+                  >
+                    {BLOQUEO_LABELS[b.tipo] || b.tipo}
+                  </div>
+                )}
+                {b.motivo &&
+                  blockHeight > labelOffset + 32 && (
+                    <div
+                      style={{
+                        fontSize: 9,
+                        color: TOKENS.textSec,
+                        marginTop: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {b.motivo}
+                    </div>
+                  )}
+              </div>
+            );
+          });
+      })()}
+      {[...profCitas]
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.inicio).getTime() -
+            new Date(a.inicio).getTime(),
+        )
+        .map((cita: any) => (
+          <DayTimelineAppointmentCard
+            key={cita.id}
+            cita={cita}
+            prof={prof}
+            profColor={profColor}
+            citaBg={citaBg}
+            citaBorder={citaBorder}
+            citaBorderHover={citaBorderHover}
+            citaShadow={citaShadow}
+            citaShadowHover={citaShadowHover}
+            profCitas={profCitas}
+            citasWithLanes={citasWithLanes}
+            clienteMap={clienteMap}
+            servicioMap={servicioMap}
+            categorias={categorias}
+            citaAddonsMap={citaAddonsMap}
+            propuestaPorCitaId={propuestaPorCitaId}
+            START_H={START_H}
+            ROW_H={ROW_H}
+            isDragging={isDragging}
+            isBeingDragged={dragCitaId === cita.id}
+            selectedProf={selectedProf}
+            profesionalesLength={profesionalesLength}
+            completarManual={completarManual}
+            clientes={clientes}
+            startDrag={startDrag}
+            toggleCompletada={toggleCompletada}
+            onCreateSlot={onCreateSlot}
+            onClienteHistorial={onClienteHistorial}
+          />
+        ))}
+
+      {(zonasResaltadas as ProblemaAgenda[])
+        .filter(
+          (p) =>
+            p.zona.profesionalId === prof.id ||
+            p.zonaOrigen?.profesionalId === prof.id,
+        )
+        .map((p) => {
+          const aY = (iso: string) => {
+            const d = new Date(iso);
+            return (
+              (d.getHours() + d.getMinutes() / 60 - START_H) *
+              ROW_H
+            );
+          };
+          const zTop = aY(p.zona.desde);
+          const zH = aY(p.zona.hasta) - zTop;
+          if (zH <= 0) return null;
+          const rango = (
+            zonasResaltadas as ProblemaAgenda[]
+          ).findIndex((x) => x.id === p.id);
+          const principal = rango >= 0 && rango < 3;
+          const cambiaDeProfesional =
+            !!p.zonaOrigen &&
+            p.zonaOrigen.profesionalId !== p.zona.profesionalId;
+          const colorDe = (id: string) =>
+            (profesionales as any[]).find((x) => x.id === id)
+              ?.color || TOKENS.primary;
+          const tono = cambiaDeProfesional
+            ? colorDe(p.zona.profesionalId)
+            : p.tipo === "solape"
+              ? "#e23b34"
+              : p.tipo === "retraso"
+                ? "#f59e0b"
+                : "#10b981";
+          const tonoOrigen = cambiaDeProfesional
+            ? colorDe(p.zonaOrigen!.profesionalId)
+            : tono;
+          const opacidad = principal ? 1 : 0.42;
+          const oTop = p.zonaOrigen
+            ? aY(p.zonaOrigen.desde)
+            : null;
+          const oH =
+            p.zonaOrigen && oTop != null
+              ? aY(p.zonaOrigen.hasta) - oTop
+              : 0;
+          const flechaDesde =
+            oTop != null ? Math.min(oTop, zTop + zH) : null;
+          const flechaHasta =
+            oTop != null ? Math.max(zTop + zH, oTop) : null;
+          const viaje =
+            principal &&
+            !cambiaDeProfesional &&
+            oTop != null &&
+            oH > 0 &&
+            Math.abs(zTop - oTop) > 8
+              ? zTop - oTop
+              : null;
+
+          return (
+            <div
+              key={`prob-${p.id}`}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                pointerEvents: "none",
+                zIndex: 35,
+              }}
+            >
+              {p.zonaOrigen &&
+                oTop != null &&
+                oH > 0 &&
+                p.zonaOrigen.profesionalId === prof.id && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: oTop,
+                      left: 2,
+                      right: 2,
+                      height: oH,
+                      borderRadius: 8,
+                      border: `1.5px dashed ${tonoOrigen}`,
+                      background: `${tonoOrigen}10`,
+                      pointerEvents: "none",
+                      zIndex: 39,
+                      opacity: opacidad,
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 4,
+                        right: 6,
+                        padding: "1px 6px",
+                        borderRadius: 4,
+                        background: tonoOrigen,
+                        color: "#fff",
+                        fontSize: 8.5,
+                        fontWeight: 800,
+                        letterSpacing: 0.3,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Mover
+                    </span>
+                  </div>
+                )}
+
+              {viaje != null && oTop != null && (
+                <div
+                  style={
+                    {
+                      position: "absolute",
+                      top: oTop,
+                      left: 2,
+                      right: 2,
+                      height: oH,
+                      borderRadius: 8,
+                      border: `1.5px solid ${tono}`,
+                      pointerEvents: "none",
+                      zIndex: 42,
+                      ["--viaje" as any]: `${viaje}px`,
+                      animation:
+                        "viajeZona 2.4s ease-in-out infinite",
+                    } as React.CSSProperties
+                  }
+                />
+              )}
+
+              {flechaDesde != null &&
+                flechaHasta != null &&
+                flechaHasta - flechaDesde > 16 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: flechaDesde,
+                      height: flechaHasta - flechaDesde,
+                      left: "50%",
+                      width: 2,
+                      marginLeft: -1,
+                      background: tono,
+                      opacity: 0.85,
+                      pointerEvents: "none",
+                      zIndex: 41,
+                      animation: principal
+                        ? "pulseZona 1.6s ease-in-out infinite"
+                        : undefined,
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: -1,
+                        left: -4,
+                        width: 0,
+                        height: 0,
+                        borderLeft: "5px solid transparent",
+                        borderRight: "5px solid transparent",
+                        borderBottom: `6px solid ${tono}`,
+                      }}
+                    />
+                  </div>
+                )}
+
+              {p.zona.profesionalId === prof.id && (
+                <div
+                  data-mecha-zona={p.id}
+                  title={`${rango >= 0 ? `#${rango + 1} · ` : ""}${p.titulo} — ${p.descripcion}${p.porQue ? ` (${p.porQue})` : ""}`}
+                  style={{
+                    position: "absolute",
+                    top: zTop,
+                    left: 2,
+                    right: 2,
+                    height: zH,
+                    borderRadius: 8,
+                    border: `2px solid ${tono}`,
+                    background: `${tono}1f`,
+                    boxShadow: principal
+                      ? `0 0 0 3px ${tono}22`
+                      : "none",
+                    pointerEvents: "none",
+                    zIndex: 40,
+                    animation: principal
+                      ? "pulseZona 1.6s ease-in-out infinite"
+                      : undefined,
+                  }}
+                >
+                  {rango >= 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: -9,
+                        right: 6,
+                        minWidth: 16,
+                        height: 16,
+                        padding: "0 4px",
+                        borderRadius: 999,
+                        background: "#fff",
+                        border: `1.5px solid ${tono}`,
+                        color: tono,
+                        fontSize: 9,
+                        fontWeight: 900,
+                        lineHeight: "13px",
+                        textAlign: "center",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.18)",
+                      }}
+                    >
+                      {rango + 1}
+                    </span>
+                  )}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -9,
+                      left: 8,
+                      right: 8,
+                      padding: "1px 7px",
+                      borderRadius: 999,
+                      background: tono,
+                      color: "#fff",
+                      fontSize: 9.5,
+                      fontWeight: 800,
+                      letterSpacing: 0.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      display: "block",
+                      boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                      paddingRight: 22,
+                    }}
+                  >
+                    {p.accionCorta || p.titulo}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+    </div>
+  );
+});
+
 // Memoizado: no re-renderiza la agenda entera cuando el padre cambia estado
 // no relacionado (abrir modales, hover, etc.). Sus props ya son estables
 // (useMemo en maps/filtered + useCallback en las callbacks).
@@ -7027,18 +8845,6 @@ function DayTimeline({
   // 200px cabe cómodamente y el contenedor hace scroll lateral si hace falta.
   const MIN_COL_W = 200;
   const START_H = HORARIO_APERTURA.horas;
-  // Reloj propio: al estar memoizado, DayTimeline no re-renderiza con el padre,
-  // asi que la linea AHORA necesita su propio tick para seguir viva.
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(t);
-  }, []);
-  const currentHourPercent =
-    (now.getHours() - START_H + now.getMinutes() / 60) / HOURS.length;
-  const isToday =
-    now.getHours() >= START_H && now.getHours() < START_H + HOURS.length;
-
   // Al abrir la agenda del dia de HOY, llevar la vista a la hora actual. Antes
   // arrancaba siempre en la hora de apertura: por la tarde el salon veia la
   // rejilla vacia de la manana y tenia que bajar a mano cada vez.
@@ -7047,51 +8853,57 @@ function DayTimeline({
     selectedDateObj instanceof Date &&
     selectedDateObj.toDateString() === new Date().toDateString();
   useEffect(() => {
-    if (yaAutoScroll.current || !esMismoDiaQueHoy || !isToday) return;
+    if (yaAutoScroll.current || !esMismoDiaQueHoy) return;
     const grid = gridRef.current;
     if (!grid) return;
+    const nowInit = new Date();
+    const currentH = nowInit.getHours();
+    if (currentH < START_H || currentH >= START_H + HOURS.length) return;
     // Contenedor con scroll vertical mas cercano (la rejilla vive dentro de el).
     let cont: HTMLElement | null = grid.parentElement;
     while (cont && cont.scrollHeight <= cont.clientHeight + 8)
       cont = cont.parentElement;
     if (!cont) return;
-    const topAhora = (now.getHours() - START_H + now.getMinutes() / 60) * ROW_H;
+    const topAhora = (currentH - START_H + nowInit.getMinutes() / 60) * ROW_H;
     // Un tercio por encima: se ve lo que acaba de pasar y lo que viene.
     cont.scrollTop = Math.max(0, topAhora - cont.clientHeight / 3);
     yaAutoScroll.current = true;
-  }, [esMismoDiaQueHoy, isToday, citas.length]);
+  }, [esMismoDiaQueHoy, citas.length]);
 
-  async function toggleCompletada(citaId: string, estadoActual: string) {
-    const nuevoEstado =
-      estadoActual === CITA_STATUS.COMPLETADA
-        ? CITA_STATUS.CONFIRMADA
-        : CITA_STATUS.COMPLETADA;
-    let idsToUpdate = [citaId];
-    const citaObj = (citas || []).find((x: any) => x.id === citaId);
-    if (citaObj && citaObj.grupo_id && citaObj.cliente_id) {
-      const chain = (citas || [])
-        .filter(
-          (x: any) =>
-            x.grupo_id === citaObj.grupo_id &&
-            x.cliente_id === citaObj.cliente_id,
-        )
-        .sort(
-          (a: any, b: any) =>
-            (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
-            new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
-        );
-      if (chain.length > 0 && chain[0].id === citaId) {
-        idsToUpdate = chain.map((x: any) => x.id);
+  const toggleCompletada = useCallback(
+    async (citaId: string, estadoActual: string) => {
+      const nuevoEstado =
+        estadoActual === CITA_STATUS.COMPLETADA
+          ? CITA_STATUS.CONFIRMADA
+          : CITA_STATUS.COMPLETADA;
+      let idsToUpdate = [citaId];
+      const citaObj = (citas || []).find((x: any) => x.id === citaId);
+      if (citaObj && citaObj.grupo_id && citaObj.cliente_id) {
+        const chain = (citas || [])
+          .filter(
+            (x: any) =>
+              x.grupo_id === citaObj.grupo_id &&
+              x.cliente_id === citaObj.cliente_id,
+          )
+          .sort(
+            (a: any, b: any) =>
+              (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
+              new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+          );
+        if (chain.length > 0 && chain[0].id === citaId) {
+          idsToUpdate = chain.map((x: any) => x.id);
+        }
       }
-    }
-    await supabase
-      .from("citas")
-      .update({ estado: nuevoEstado })
-      .in("id", idsToUpdate);
-    idsToUpdate.forEach((id) => {
-      onCitaUpdated?.({ id, estado: nuevoEstado });
-    });
-  }
+      await supabase
+        .from("citas")
+        .update({ estado: nuevoEstado })
+        .in("id", idsToUpdate);
+      idsToUpdate.forEach((id) => {
+        onCitaUpdated?.({ id, estado: nuevoEstado });
+      });
+    },
+    [citas, onCitaUpdated],
+  );
 
   // ---- DRAG & DROP ----
   const [isDragging, setIsDragging] = useState(false);
@@ -7144,29 +8956,32 @@ function DayTimeline({
   const _dateRef = useRef(selectedDateObj);
   _dateRef.current = selectedDateObj;
 
-  const startDrag = (cita: any, e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const d = {
-      cita,
-      startX: e.clientX,
-      startY: e.clientY,
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      ghostX: rect.left,
-      ghostY: rect.top,
-      blockWidth: rect.width,
-      blockHeight: rect.height,
-    };
-    dragRef.current = d;
-    // El fantasma se monta YA (antes aparecia en el primer mousemove). A partir
-    // de aqui su posicion se actualiza escribiendo el transform sobre el nodo,
-    // no con setState: ver onMove.
-    ghostPosRef.current = { x: d.ghostX, y: d.ghostY };
-    setDrag(d);
-    setIsDragging(true);
-  };
+  const startDrag = useCallback(
+    (cita: any, e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const d = {
+        cita,
+        startX: e.clientX,
+        startY: e.clientY,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top,
+        ghostX: rect.left,
+        ghostY: rect.top,
+        blockWidth: rect.width,
+        blockHeight: rect.height,
+      };
+      dragRef.current = d;
+      // El fantasma se monta YA (antes aparecia en el primer mousemove). A partir
+      // de aqui su posicion se actualiza escribiendo el transform sobre el nodo,
+      // no con setState: ver onMove.
+      ghostPosRef.current = { x: d.ghostX, y: d.ghostY };
+      setDrag(d);
+      setIsDragging(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!isDragging) return;
@@ -7681,7 +9496,7 @@ function DayTimeline({
   }, [isDragging]);
   // ---- END DRAG & DROP ----
 
-  const citasWithLanes = useMemo(() => {
+  const { citasWithLanes, citasByProf } = useMemo(() => {
     const result = citas.map((c: any) => ({ ...c }));
     const byProf: Record<string, any[]> = {};
     result.forEach((c: any) => {
@@ -7853,7 +9668,11 @@ function DayTimeline({
         });
       });
     });
-    return result;
+    const map = new Map<string, any[]>();
+    Object.entries(byProf).forEach(([profId, arr]) => {
+      map.set(profId, arr);
+    });
+    return { citasWithLanes: result, citasByProf: map };
   }, [citas]);
 
   // Horario general del salon y festivo del dia: no dependen del profesional,
@@ -7988,58 +9807,12 @@ function DayTimeline({
               cursor: isDragging ? "grabbing" : "default",
             }}
           >
-            {isToday && (
-              <div
-                style={{
-                  position: "absolute",
-                  left: 56,
-                  right: 0,
-                  top:
-                    (now.getHours() - START_H + now.getMinutes() / 60) * ROW_H,
-                  height: 0,
-                  borderTop: `2px dashed ${TOKENS.danger}`,
-                  pointerEvents: "none",
-                  zIndex: 60,
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    left: -8,
-                    top: -7,
-                    width: 12,
-                    height: 12,
-                    borderRadius: 999,
-                    background: TOKENS.danger,
-                    boxShadow: `0 0 12px ${TOKENS.danger}`,
-                  }}
-                />
-                {/* Hora "ahora" en la columna de horas (gutter), no sobre las citas:
-                antes iba a left:8 dentro de la rejilla y tapaba la esquina de la
-                cita en curso. La linea discontinua + el punto rojo ya marcan el
-                ahora; aqui solo la hora, alineada a la derecha del gutter. */}
-                <div
-                  style={{
-                    position: "absolute",
-                    left: -56,
-                    top: -8,
-                    width: 50,
-                    textAlign: "right",
-                    fontSize: 9.5,
-                    fontWeight: 800,
-                    color: TOKENS.danger,
-                    background: TOKENS.bg,
-                    padding: "1px 4px",
-                    borderRadius: 4,
-                    whiteSpace: "nowrap",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {now.getHours().toString().padStart(2, "0")}:
-                  {now.getMinutes().toString().padStart(2, "0")}
-                </div>
-              </div>
-            )}
+            <TimelineNowIndicator
+              selectedDate={selectedDateObj}
+              startHour={START_H}
+              rowHeight={ROW_H}
+              totalHours={HOURS.length}
+            />
             {dropSlot &&
               drag &&
               (() => {
@@ -8394,1748 +10167,40 @@ function DayTimeline({
             >
               {profesionales.map((prof: any) => {
                 const profColor = prof.color || TOKENS.primary;
-                // IMPORTANTE: color SOLIDO, no gradiente. Abajo se usa como parada
-                // de color dentro de otro linear-gradient (bloques con reposo);
-                // si aqui hubiera un gradiente, ese CSS es invalido y el bloque
-                // se queda sin fondo (se veia "sin color").
-                const citaBg = `${profColor}2b`;
-                const citaBorder = `${profColor}45`;
-                const citaBorderHover = `${profColor}77`;
-                const citaShadow = `0 4px 12px -2px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 1px ${profColor}1a`;
-                const citaShadowHover = `0 12px 20px -4px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px ${profColor}33`;
-                const profCitas = citasWithLanes.filter(
-                  (c: any) => c.profesional_id === prof.id,
-                );
+                const profCitas = citasByProf.get(prof.id) || [];
                 return (
-                  <div
+                  <DayTimelineProfessionalColumn
                     key={prof.id}
-                    style={{ position: "relative", pointerEvents: "none" }}
-                  >
-                    {(() => {
-                      const dayStart = new Date(selectedDateObj);
-                      dayStart.setHours(0, 0, 0, 0);
-                      const dayEnd = new Date(selectedDateObj);
-                      dayEnd.setHours(23, 59, 59, 999);
-
-                      // OJO: esto leia `horarios` (negocio_horarios), que NO tiene
-                      // profesional_id ni hora_fin, asi que profHorarios salia
-                      // SIEMPRE vacio y la pausa de comida no se pinto nunca. La
-                      // fuente correcta es horarios_profesional (horariosProf).
-                      // dia_semana ahi es 0=DOMINGO, asi que getDay() vale tal cual.
-                      const dbDia = selectedDateObj.getDay();
-                      const profHorarios = (horariosProf as any[])
-                        .filter(
-                          (h: any) =>
-                            h.profesional_id === prof.id &&
-                            h.dia_semana === dbDia,
-                        )
-                        .sort(
-                          (a: any, b: any) => (a.turno ?? 1) - (b.turno ?? 1),
-                        );
-
-                      // horarioSalonHoy/festivoHoy/salonCerradoTodoElDia vienen del
-                      // useMemo de arriba (no dependen de `prof`, se calculan una
-                      // sola vez para toda la rejilla).
-                      const alDia = (hhmm: string) => {
-                        const [h, m] = String(hhmm).split(":").map(Number);
-                        const d = new Date(selectedDateObj);
-                        d.setHours(h, m || 0, 0, 0);
-                        return d;
-                      };
-                      const salonCerrado: any[] = [];
-                      if (salonCerradoTodoElDia) {
-                        const diaIni = new Date(selectedDateObj);
-                        diaIni.setHours(START_H, 0, 0, 0);
-                        const diaFin = new Date(selectedDateObj);
-                        diaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-                        salonCerrado.push({
-                          id: `salon-cerrado-${prof.id}`,
-                          profesional_id: prof.id,
-                          inicio: diaIni.toISOString(),
-                          fin: diaFin.toISOString(),
-                          tipo: "salon_cerrado",
-                          motivo: festivoHoy
-                            ? festivoHoy.motivo || "Festivo"
-                            : "El salón no abre este día",
-                        });
-                      } else if (
-                        horarioSalonHoy &&
-                        horarioSalonHoy.apertura &&
-                        horarioSalonHoy.cierre
-                      ) {
-                        // Salon abierto pero con ventana mas estrecha que la rejilla
-                        // (ej. abre a las 10 o cierra a las 18): marcar lo de fuera.
-                        const rejillaIniSalon = new Date(selectedDateObj);
-                        rejillaIniSalon.setHours(START_H, 0, 0, 0);
-                        const rejillaFinSalon = new Date(selectedDateObj);
-                        rejillaFinSalon.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-                        const abreSalon = alDia(horarioSalonHoy.apertura);
-                        const cierraSalon = alDia(horarioSalonHoy.cierre);
-                        if (abreSalon > rejillaIniSalon) {
-                          salonCerrado.push({
-                            id: `salon-antes-${prof.id}`,
-                            profesional_id: prof.id,
-                            inicio: rejillaIniSalon.toISOString(),
-                            fin: abreSalon.toISOString(),
-                            tipo: "salon_cerrado",
-                            motivo: `El salón abre a las ${String(horarioSalonHoy.apertura).slice(0, 5)}`,
-                          });
-                        }
-                        if (cierraSalon < rejillaFinSalon) {
-                          salonCerrado.push({
-                            id: `salon-despues-${prof.id}`,
-                            profesional_id: prof.id,
-                            inicio: cierraSalon.toISOString(),
-                            fin: rejillaFinSalon.toISOString(),
-                            tipo: "salon_cerrado",
-                            motivo: `El salón cierra a las ${String(horarioSalonHoy.cierre).slice(0, 5)}`,
-                          });
-                        }
-                      }
-                      const virtualPauses = [];
-                      if (profHorarios.length > 1) {
-                        for (let i = 0; i < profHorarios.length - 1; i++) {
-                          const h1 = profHorarios[i];
-                          const h2 = profHorarios[i + 1];
-                          const vStart = new Date(selectedDateObj);
-                          const [sH, sM] = h1.hora_fin.split(":").map(Number);
-                          vStart.setHours(sH, sM, 0, 0);
-                          const vEnd = new Date(selectedDateObj);
-                          const [eH, eM] = h2.hora_inicio
-                            .split(":")
-                            .map(Number);
-                          vEnd.setHours(eH, eM, 0, 0);
-                          if (vEnd > vStart) {
-                            virtualPauses.push({
-                              id: `pause-${prof.id}-${i}`,
-                              profesional_id: prof.id,
-                              inicio: vStart.toISOString(),
-                              fin: vEnd.toISOString(),
-                              tipo: "descanso",
-                              motivo: "Pausa de comida",
-                            });
-                          }
-                        }
-                      }
-
-                      // Fuera de la jornada de ESTE profesional: antes de su
-                      // primer turno y despues del ultimo. Es lo que hacia falta
-                      // para ver de un vistazo que uno acaba a las 14:00 y otro a
-                      // las 20:00; hasta ahora la rejilla pintaba a todos con la
-                      // ventana del salon. Sin fila de horario no se pinta nada:
-                      // no se inventa una jornada que nadie configuro.
-                      // Distincion que importa: "no tiene NINGUNA fila" (el salon
-                      // no ha configurado horarios: no se pinta nada, seria pintar
-                      // a todo el mundo de gris) no es lo mismo que "tiene filas
-                      // pero ninguna hoy" (ese dia libra: se apaga la columna
-                      // entera).
-                      const tieneAlgunHorario = (horariosProf as any[]).some(
-                        (h: any) => h.profesional_id === prof.id,
-                      );
-                      const fueraJornada: any[] = [];
-                      if (
-                        tieneAlgunHorario &&
-                        profHorarios.length === 0 &&
-                        !salonCerradoTodoElDia
-                      ) {
-                        const rejillaIni = new Date(selectedDateObj);
-                        rejillaIni.setHours(START_H, 0, 0, 0);
-                        const rejillaFin = new Date(selectedDateObj);
-                        rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-                        fueraJornada.push({
-                          id: `jornada-libra-${prof.id}`,
-                          profesional_id: prof.id,
-                          inicio: rejillaIni.toISOString(),
-                          fin: rejillaFin.toISOString(),
-                          tipo: "fuera_jornada",
-                          motivo: "No trabaja este dia",
-                        });
-                      }
-                      if (profHorarios.length > 0 && !salonCerradoTodoElDia) {
-                        const rejillaIni = new Date(selectedDateObj);
-                        rejillaIni.setHours(START_H, 0, 0, 0);
-                        const rejillaFin = new Date(selectedDateObj);
-                        rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-                        const entra = alDia(profHorarios[0].hora_inicio);
-                        const sale = alDia(
-                          profHorarios[profHorarios.length - 1].hora_fin,
-                        );
-                        if (entra > rejillaIni) {
-                          fueraJornada.push({
-                            id: `jornada-ini-${prof.id}`,
-                            profesional_id: prof.id,
-                            inicio: rejillaIni.toISOString(),
-                            fin: entra.toISOString(),
-                            tipo: "fuera_jornada",
-                            motivo: `Entra a las ${profHorarios[0].hora_inicio.slice(0, 5)}`,
-                          });
-                        }
-                        if (sale < rejillaFin) {
-                          fueraJornada.push({
-                            id: `jornada-fin-${prof.id}`,
-                            profesional_id: prof.id,
-                            inicio: sale.toISOString(),
-                            fin: rejillaFin.toISOString(),
-                            tipo: "fuera_jornada",
-                            motivo: `Termina a las ${profHorarios[profHorarios.length - 1].hora_fin.slice(0, 5)}`,
-                          });
-                        }
-                      }
-
-                      return [
-                        ...(bloqueos as any[]),
-                        ...virtualPauses,
-                        ...fueraJornada,
-                        ...salonCerrado,
-                      ]
-                        .filter((b: any) => {
-                          if (b.profesional_id !== prof.id) return false;
-                          return (
-                            new Date(b.inicio) <= dayEnd &&
-                            new Date(b.fin) >= dayStart
-                          );
-                        })
-                        .sort(
-                          (a: any, b: any) =>
-                            new Date(a.inicio).getTime() -
-                            new Date(b.inicio).getTime(),
-                        )
-                        .map((b: any, idx: number, arr: any[]) => {
-                          // Cuando dos bloqueos cubren el mismo tramo (ej.
-                          // vacaciones + salon cerrado por festivo) sus
-                          // etiquetas caian en la misma Y y se solapaban los
-                          // nombres. Se escalona: cada bloque solapado empuja
-                          // su etiqueta (y su motivo) una fila hacia abajo.
-                          const bIniMs = new Date(b.inicio).getTime();
-                          const bFinMs = new Date(b.fin).getTime();
-                          const labelRow = arr
-                            .slice(0, idx)
-                            .filter(
-                              (o: any) =>
-                                new Date(o.inicio).getTime() < bFinMs &&
-                                new Date(o.fin).getTime() > bIniMs,
-                            ).length;
-                          const labelOffset = labelRow * 14;
-                          const bloqueoDayStart = new Date(selectedDateObj);
-                          bloqueoDayStart.setHours(START_H, 0, 0, 0);
-                          const bloqueoDayEnd = new Date(selectedDateObj);
-                          bloqueoDayEnd.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-                          const bStart = new Date(
-                            Math.max(
-                              new Date(b.inicio).getTime(),
-                              bloqueoDayStart.getTime(),
-                            ),
-                          );
-                          const bEnd = new Date(
-                            Math.min(
-                              new Date(b.fin).getTime(),
-                              bloqueoDayEnd.getTime(),
-                            ),
-                          );
-                          const blockTop =
-                            (bStart.getHours() +
-                              bStart.getMinutes() / 60 -
-                              START_H) *
-                            ROW_H;
-                          const blockHeight =
-                            (bEnd.getHours() +
-                              bEnd.getMinutes() / 60 -
-                              (bStart.getHours() + bStart.getMinutes() / 60)) *
-                            ROW_H;
-                          if (blockHeight <= 0) return null;
-                          const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
-                          // Si el desplazamiento deja la etiqueta fuera del
-                          // bloque, no se pinta (mejor sin nombre que un
-                          // nombre montado encima de otro).
-                          const cabeEtiqueta =
-                            blockHeight > labelOffset + 16;
-                          return (
-                            <div
-                              key={b.id}
-                              style={{
-                                position: "absolute",
-                                top: blockTop,
-                                left: 2,
-                                right: 2,
-                                height: blockHeight,
-                                background: `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
-                                backgroundColor: `${bColor}0a`,
-                                borderLeft: `3px solid ${bColor}99`,
-                                borderRadius: 6,
-                                pointerEvents: "none",
-                                zIndex: 1 + labelRow,
-                                padding: "4px 6px",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {cabeEtiqueta && (
-                                <div
-                                  style={{
-                                    fontSize: 10,
-                                    color: TOKENS.text,
-                                    fontWeight: 700,
-                                    whiteSpace: "nowrap",
-                                    marginTop: labelOffset,
-                                    background: `${bColor}26`,
-                                    borderRadius: 4,
-                                    padding: "1px 4px",
-                                    width: "fit-content",
-                                  }}
-                                >
-                                  {BLOQUEO_LABELS[b.tipo] || b.tipo}
-                                </div>
-                              )}
-                              {b.motivo &&
-                                blockHeight > labelOffset + 32 && (
-                                  <div
-                                    style={{
-                                      fontSize: 9,
-                                      color: TOKENS.textSec,
-                                      marginTop: 1,
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    {b.motivo}
-                                  </div>
-                                )}
-                            </div>
-                          );
-                        });
-                    })()}
-                    {[...profCitas]
-                      .sort(
-                        (a: any, b: any) =>
-                          new Date(b.inicio).getTime() -
-                          new Date(a.inicio).getTime(),
-                      )
-                      .map((cita: any) => {
-                        const start = new Date(cita.inicio);
-                        const end = new Date(cita.fin);
-                        const startH =
-                          start.getHours() + start.getMinutes() / 60;
-                        const durH =
-                          (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-                        const top = (startH - START_H) * ROW_H;
-                        const height = Math.max(16, durH * ROW_H);
-                        const lane = cita._lane ?? 0;
-                        const totalLanes = cita._totalLanes ?? 1;
-                        const nested = !!cita._nested;
-                        const hostCita = nested
-                          ? profCitas.find((h: any) => h.id === cita._hostId)
-                          : null;
-                        const hostLane = hostCita?._lane ?? 0;
-                        const hostTotalLanes = hostCita?._totalLanes ?? 1;
-                        const hostL = (hostLane / hostTotalLanes) * 100;
-                        const hostW = 100 / hostTotalLanes;
-                        // Insets pequenos: la cita encajada ocupa casi todo el ancho
-                        // del reposo (con 13% quedaba flotando, descolgada del hueco).
-                        const NEST_INSET_L = 6,
-                          NEST_INSET_R = 6;
-                        const nArea = 100 - NEST_INSET_L - NEST_INSET_R;
-                        const nLane = cita._nestedLane ?? 0;
-                        const nTotal = cita._nestedTotal ?? 1;
-                        const nW = nArea / nTotal;
-                        const nestL =
-                          hostL + ((NEST_INSET_L + nLane * nW) * hostW) / 100;
-                        const nestR =
-                          100 -
-                          (hostL +
-                            ((NEST_INSET_L + (nLane + 1) * nW) * hostW) / 100);
-                        const nestedLeft = `calc(${Math.max(0, nestL)}% + 2px)`;
-                        const nestedRight = `calc(${Math.max(0, nestR)}% + 2px)`;
-                        const cancelada = cita.estado === CITA_STATUS.CANCELADA;
-                        // El fondo del bloque lleva SIEMPRE el color del
-                        // profesional, tenga reposo o no. Antes los estados
-                        // completada/no-presentada lo pisaban (verde/ambar) y las
-                        // citas terminadas salian todas verdes. El estado se
-                        // distingue por el borde y la etiqueta, no tinendo el bloque.
-                        const actualCitaBg = cancelada
-                          ? "rgba(226,59,52,0.04)"
-                          : nested
-                            ? "#ffffff"
-                            : citaBg;
-                        // El borde habla del ESTADO, y usa el mismo lenguaje de
-                        // color que el badge y el detalle (lib/citasEstadoUi).
-                        // Antes `confirmada` se pintaba naranja aqui y verde en
-                        // el badge de la misma cita. Ahora `pendiente` sale
-                        // ambar, que es justo lo que interesa localizar de un
-                        // vistazo: lo que todavia falta por confirmar.
-                        const bordeEstado =
-                          cita.estado === CITA_STATUS.PENDIENTE ||
-                          cita.estado === CITA_STATUS.CONFIRMADA
-                            ? ESTADO_CITA_UI[cita.estado].color
-                            : null;
-                        const actualCitaBorder = nested
-                          ? "rgba(34,197,94,0.45)"
-                          : (bordeEstado ?? citaBorder);
-                        const actualCitaBorderHover = nested
-                          ? "rgba(34,197,94,0.85)"
-                          : (bordeEstado ?? citaBorderHover);
-                        const actualCitaShadow = nested
-                          ? "0 6px 16px rgba(40,30,24,0.16), 0 1px 3px rgba(40,30,24,0.08)"
-                          : citaShadow;
-                        const actualCitaShadowHover = nested
-                          ? "0 10px 22px rgba(40,30,24,0.24), 0 2px 6px rgba(40,30,24,0.12)"
-                          : citaShadowHover;
-                        const isChained = !!cita.grupo_id;
-                        const chainSiblings = isChained
-                          ? citasWithLanes.filter(
-                              (c: any) => c.grupo_id === cita.grupo_id,
-                            )
-                          : [];
-                        const chainTotal = chainSiblings.length;
-                        const chainPos = isChained
-                          ? (cita.orden_en_grupo ?? 0) + 1
-                          : 0;
-                        const finActiva = cita.fin_activa
-                          ? new Date(cita.fin_activa)
-                          : null;
-                        const finEspera = cita.fin_espera
-                          ? new Date(cita.fin_espera)
-                          : null;
-                        const activaPx = finActiva
-                          ? ((finActiva.getTime() - start.getTime()) /
-                              (1000 * 60 * 60)) *
-                            ROW_H
-                          : height;
-                        const esperaPx =
-                          finActiva && finEspera
-                            ? ((finEspera.getTime() - finActiva.getTime()) /
-                                (1000 * 60 * 60)) *
-                              ROW_H
-                            : 0;
-                        const hasEspera = esperaPx > 2;
-                        const srv = servicioMap?.get(cita.servicio_id);
-                        const cat = srv
-                          ? (categorias || []).find(
-                              (cc: any) => cc.id === srv.categoria_id,
-                            )
-                          : null;
-                        const catColor = cat
-                          ? categoryColorHex(cat.color)
-                          : null;
-                        const catName = cat?.nombre || "";
-                        const stripeColor = catColor || profColor;
-                        return (
-                          <div
-                            key={cita.id}
-                            style={{
-                              position: "absolute",
-                              top,
-                              left: nested
-                                ? nestedLeft
-                                : `calc(${(lane / totalLanes) * 100}% + 4px)`,
-                              right: nested
-                                ? nestedRight
-                                : `calc(${((totalLanes - lane - 1) / totalLanes) * 100}% + 4px)`,
-                              height,
-                              boxSizing: "border-box",
-                              pointerEvents: "auto",
-                              zIndex: nested ? 15 : 10,
-                              background: cancelada
-                                ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
-                                : hasEspera && !nested
-                                  ? `linear-gradient(to bottom, ${actualCitaBg} 0px, ${actualCitaBg} ${activaPx}px, transparent ${activaPx}px, transparent ${activaPx + esperaPx}px, ${actualCitaBg} ${activaPx + esperaPx}px, ${actualCitaBg} 100%)`
-                                  : actualCitaBg,
-                              borderWidth: 1,
-                              borderStyle: "solid",
-                              borderColor: cancelada
-                                ? "#55555540"
-                                : actualCitaBorder,
-                              borderLeft: cancelada
-                                ? `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid #66666660`
-                                : `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid ${stripeColor}`,
-                              borderTop:
-                                isChained && !cancelada
-                                  ? `2px solid #e0340e`
-                                  : undefined,
-                              borderRadius: height <= 32 ? 6 : 12,
-                              padding:
-                                hasEspera && activaPx <= 45
-                                  ? "2px 4px"
-                                  : height <= 16
-                                    ? "0px 4px"
-                                    : height <= 32
-                                      ? "2px 4px"
-                                      : "6px 8px",
-                              overflow: "hidden",
-                              cursor: isDragging ? "grabbing" : "grab",
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: height <= 32 ? 0 : height < 60 ? 1 : 2,
-                              boxShadow: cancelada ? "none" : actualCitaShadow,
-                              transition:
-                                drag?.cita.id === cita.id
-                                  ? "none"
-                                  : "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                              transform: "scale(1)",
-                              opacity: cancelada
-                                ? 0.45
-                                : drag?.cita.id === cita.id
-                                  ? 0.25
-                                  : 1,
-                            }}
-                            onMouseDown={(e) => {
-                              if (!cancelada) startDrag(cita, e);
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.02)";
-                              e.currentTarget.style.boxShadow = cancelada
-                                ? "none"
-                                : actualCitaShadowHover;
-                              e.currentTarget.style.borderColor = cancelada
-                                ? "#77777770"
-                                : actualCitaBorderHover;
-                              e.currentTarget.style.borderLeftColor = cancelada
-                                ? "#66666660"
-                                : stripeColor;
-                              if (isChained && !cancelada)
-                                e.currentTarget.style.borderTop =
-                                  "2px solid #e0340e";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "scale(1)";
-                              e.currentTarget.style.boxShadow = cancelada
-                                ? "none"
-                                : actualCitaShadow;
-                              e.currentTarget.style.borderColor = cancelada
-                                ? "#55555540"
-                                : actualCitaBorder;
-                              e.currentTarget.style.borderLeftColor = cancelada
-                                ? "#66666660"
-                                : stripeColor;
-                              if (isChained && !cancelada)
-                                e.currentTarget.style.borderTop =
-                                  "2px solid #e0340e";
-                            }}
-                          >
-                            {/* Encajada en un reposo pero mas larga que el hueco.
-                                No se bloquea (el gestor sabe lo que hace): se
-                                pinta encajada y se avisa de cuanto se sale. */}
-                            {nested && cita._desbordaMin > 0 && !cancelada && (
-                              <span
-                                title={`Esta cita se sale ${cita._desbordaMin} min del hueco de reposo`}
-                                style={{
-                                  position: "absolute",
-                                  top: 2,
-                                  right: 2,
-                                  zIndex: 8,
-                                  padding: "1px 5px",
-                                  borderRadius: 999,
-                                  background: "#f59e0b",
-                                  color: "#fff",
-                                  fontSize: 8.5,
-                                  fontWeight: 800,
-                                  lineHeight: 1.5,
-                                  whiteSpace: "nowrap",
-                                  pointerEvents: "none",
-                                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                                }}
-                              >
-                                +{cita._desbordaMin}′
-                              </span>
-                            )}
-                            {/* Fase 3: esta cita tiene un cambio de hora
-                                propuesto a la clienta (pendiente de que confirme
-                                por WhatsApp). Sin el badge, el salon no ve que
-                                hay un adelanto sobre la mesa y puede mover la
-                                cita por debajo. Violeta, mismo idioma que el
-                                bloque reserva_temporal que retiene el hueco. */}
-                            {propuestaPorCitaId.has(cita.id) && !cancelada && (() => {
-                              const prop = propuestaPorCitaId.get(cita.id);
-                              const hhmm = new Date(prop.inicio_propuesto).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-                              return (
-                                <span
-                                  title={`Cambio propuesto a las ${hhmm} — pendiente de confirmación del cliente`}
-                                  style={{
-                                    position: "absolute",
-                                    bottom: 2,
-                                    left: 2,
-                                    zIndex: 8,
-                                    padding: "1px 6px",
-                                    borderRadius: 999,
-                                    background: "#7c3aed",
-                                    color: "#fff",
-                                    fontSize: 8.5,
-                                    fontWeight: 800,
-                                    lineHeight: 1.5,
-                                    whiteSpace: "nowrap",
-                                    pointerEvents: "none",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                                  }}
-                                >
-                                  ↻ {hhmm}
-                                </span>
-                              );
-                            })()}
-                            {hasEspera &&
-                              !cancelada &&
-                              (() => {
-                                const reposoIniMs = finActiva!.getTime();
-                                const reposoFinMs = finEspera!.getTime();
-                                const hayActiva2 = !!(
-                                  finEspera && finEspera < end
-                                );
-                                // Huecos LIBRES del reposo = reposo menos las citas
-                                // anidadas. Si un reposo de 60' tiene una cita de 30'
-                                // encajada, los 30' restantes se ven claramente
-                                // disponibles (cada hueco con su propia etiqueta).
-                                const ocupados = profCitas
-                                  .filter(
-                                    (c: any) =>
-                                      c._hostId === cita.id &&
-                                      c.estado !== CITA_STATUS.CANCELADA,
-                                  )
-                                  .map(
-                                    (c: any) =>
-                                      [
-                                        new Date(c.inicio).getTime(),
-                                        new Date(c.fin).getTime(),
-                                      ] as [number, number],
-                                  )
-                                  .sort(
-                                    (
-                                      a: [number, number],
-                                      b: [number, number],
-                                    ) => a[0] - b[0],
-                                  );
-                                const libres: [number, number][] = [];
-                                let cursor = reposoIniMs;
-                                for (const [ini, fin] of ocupados) {
-                                  if (ini > cursor)
-                                    libres.push([
-                                      cursor,
-                                      Math.min(ini, reposoFinMs),
-                                    ]);
-                                  cursor = Math.max(cursor, fin);
-                                }
-                                if (cursor < reposoFinMs)
-                                  libres.push([cursor, reposoFinMs]);
-                                const msToPx = (ms: number) =>
-                                  (ms / 3600000) * ROW_H;
-                                return (
-                                  <div
-                                    style={{
-                                      position: "absolute",
-                                      top: activaPx,
-                                      left: 0,
-                                      right: 0,
-                                      height: esperaPx,
-                                      pointerEvents: "auto",
-                                      zIndex: 4,
-                                      // Trama diagonal: el reposo se lee como "fase
-                                      // distinta" aunque el bloque sea del color del
-                                      // profesional (antes era un velo plano).
-                                      background:
-                                        "repeating-linear-gradient(135deg, rgba(16,185,129,0.15) 0px, rgba(16,185,129,0.15) 5px, rgba(16,185,129,0.04) 5px, rgba(16,185,129,0.04) 11px)",
-                                      borderTop:
-                                        "1.5px dashed rgba(16,185,129,0.55)",
-                                      borderBottom: hayActiva2
-                                        ? "1.5px dashed rgba(16,185,129,0.55)"
-                                        : "none",
-                                      overflow: "hidden",
-                                    }}
-                                  >
-                                    {libres.map(([ini, fin], i) => {
-                                      const gapMin = Math.round(
-                                        (fin - ini) / 60000,
-                                      );
-                                      if (gapMin < 5) return null;
-                                      const gapTop = msToPx(ini - reposoIniMs);
-                                      const gapH = msToPx(fin - ini);
-                                      return (
-                                        <ReposoFreeGapInteractive
-                                          key={i}
-                                          ini={ini}
-                                          fin={fin}
-                                          gapMin={gapMin}
-                                          gapTop={gapTop}
-                                          gapH={gapH}
-                                          cita={cita}
-                                          clienteMap={clienteMap}
-                                          servicioMap={servicioMap}
-                                          onSelectReposo={({
-                                            horaStr,
-                                            profId,
-                                            reposoContext,
-                                          }) => {
-                                            if (onCreateSlot) {
-                                              onCreateSlot({
-                                                hora: horaStr,
-                                                profId,
-                                                reposoContext,
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      );
-                                    })}
-                                  </div>
-                                );
-                              })()}
-                            {/* Cabecera de la cita ANCLADA A LA FASE ACTIVA. Con reposo, el
-                                bloque es alto pero el profesional solo trabaja en la franja
-                                de arriba: si el texto fluye por todo el bloque acaba cayendo
-                                sobre la trama del reposo (y sobre las citas encajadas ahi).
-                                Acotandolo a activaPx, el nombre y la hora se quedan siempre
-                                donde corresponde. Sin reposo no se toca nada (display:contents).
-                                Suelo de 20px: con una activa muy corta, recortar a cero
-                                dejaria el bloque mudo. */}
-                            <div
-                              style={
-                                hasEspera && !nested && !cancelada
-                                  ? {
-                                      position: "absolute",
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      height: Math.max(20, activaPx),
-                                      overflow: "hidden",
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      gap: activaPx <= 45 ? 0 : 2,
-                                      padding:
-                                        activaPx <= 45 ? "2px 6px" : "6px 8px",
-                                      boxSizing: "border-box",
-                                      zIndex: 6,
-                                    }
-                                  : { display: "contents" }
-                              }
-                            >
-                              {(() => {
-                                const narrow = height < 50;
-                                // Bloque bajo pero ancho (tipico de movil: una columna
-                                // de 290px y una cita de 20'). Apilar hora + nombre +
-                                // chip de servicio pide ~64px de contenido dentro de 41
-                                // utiles, asi que el servicio se cortaba. Por debajo de
-                                // 64px el servicio se pinta EN LINEA tras el nombre,
-                                // aprovechando el ancho que sobra.
-                                const bloqueBajo = height < 64;
-                                const nombreCliente =
-                                  clienteMap?.get(cita.cliente_id)?.nombre ||
-                                  "-";
-                                const nombreServicio =
-                                  servicioMap?.get(cita.servicio_id)?.nombre ||
-                                  "";
-                                const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })}`;
-                                const timeStrCompact =
-                                  totalLanes > 1 || height <= 32
-                                    ? start.toLocaleTimeString(LOCALE, {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })
-                                    : timeStr;
-                                const badgeColor = catColor || profColor;
-                                const catIconChip = cat?.icono
-                                  ? getCategoryIcon(
-                                      cat.icono,
-                                      badgeColor,
-                                      narrow ? 11 : 12,
-                                    )
-                                  : null;
-                                const iniciales =
-                                  nombreCliente
-                                    .split(/\s+/)
-                                    .map((w: string) => w[0])
-                                    .filter(Boolean)
-                                    .slice(0, 2)
-                                    .join("")
-                                    .toUpperCase() || "·";
-                                // Avatar del estilista dentro del bloque: foto de
-                                // perfil si la tiene, iniciales sobre su color si no.
-                                const profIni =
-                                  (prof?.nombre || "?")
-                                    .split(/\s+/)
-                                    .map((w: string) => w[0])
-                                    .filter(Boolean)
-                                    .slice(0, 2)
-                                    .join("")
-                                    .toUpperCase() || "?";
-                                const stylistAvatar = (
-                                  <span
-                                    title={`Estilista: ${prof?.nombre || ""}`}
-                                    style={{
-                                      width: 18,
-                                      height: 18,
-                                      borderRadius: 999,
-                                      overflow: "hidden",
-                                      flexShrink: 0,
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      background: profColor,
-                                      border:
-                                        "1.5px solid rgba(255,255,255,0.9)",
-                                      boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
-                                    }}
-                                  >
-                                    {prof?.foto_perfil ? (
-                                      <img
-                                        src={prof.foto_perfil}
-                                        alt=""
-                                        // Perezosa: hay avatares antiguos sin comprimir
-                                        // (las subidas nuevas van a 400px) y no deben
-                                        // frenar el pintado de la rejilla de citas.
-                                        loading="lazy"
-                                        decoding="async"
-                                        style={{
-                                          width: "100%",
-                                          height: "100%",
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    ) : (
-                                      <span
-                                        style={{
-                                          fontSize: 8,
-                                          fontWeight: 800,
-                                          color: "#ffffff",
-                                          lineHeight: 1,
-                                        }}
-                                      >
-                                        {profIni}
-                                      </span>
-                                    )}
-                                  </span>
-                                );
-                                const estrecho =
-                                  totalLanes > 1 ||
-                                  (selectedProf === "todos" &&
-                                    (profesionales?.length || 1) >= 2) ||
-                                  (profesionales?.length || 1) >= 5;
-                                const isSmallOrNarrow =
-                                  height <= 32 || estrecho;
-                                const identidad = isSmallOrNarrow
-                                  ? iniciales
-                                  : nombreCliente;
-
-                                const esCompletada =
-                                  cita.estado === CITA_STATUS.COMPLETADA;
-                                const esNoShow =
-                                  cita.estado === CITA_STATUS.NO_PRESENTADA;
-                                let icon: any = null;
-                                if (
-                                  !cancelada &&
-                                  !esNoShow &&
-                                  completarManual
-                                ) {
-                                  if (esCompletada) {
-                                    icon = (
-                                      <div
-                                        title="Desmarcar completada"
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleCompletada(
-                                            cita.id,
-                                            cita.estado,
-                                          );
-                                        }}
-                                        style={{
-                                          width: 44,
-                                          height: 44,
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          cursor: "pointer",
-                                          margin: "-14px",
-                                          flexShrink: 0,
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            width: 16,
-                                            height: 16,
-                                            borderRadius: 999,
-                                            background: "#0f9d6b",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            color: "#fff",
-                                            flexShrink: 0,
-                                            transition: "all 0.15s ease",
-                                          }}
-                                          onMouseEnter={(e) => {
-                                            e.currentTarget.style.background =
-                                              "#0c7d55";
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            e.currentTarget.style.background =
-                                              "#0f9d6b";
-                                          }}
-                                        >
-                                          <svg
-                                            width="10"
-                                            height="10"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="3.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          >
-                                            <polyline points="20 6 9 17 4 12" />
-                                          </svg>
-                                        </div>
-                                      </div>
-                                    );
-                                  } else {
-                                    icon = (
-                                      <div
-                                        title="Marcar como completada"
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleCompletada(
-                                            cita.id,
-                                            cita.estado,
-                                          );
-                                        }}
-                                        style={{
-                                          width: 44,
-                                          height: 44,
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          cursor: "pointer",
-                                          margin: "-14px",
-                                          flexShrink: 0,
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            width: 16,
-                                            height: 16,
-                                            borderRadius: 999,
-                                            border: `2px solid ${TOKENS.borderHi}`,
-                                            background: "transparent",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            flexShrink: 0,
-                                            transition: "all 0.15s ease",
-                                          }}
-                                          onMouseEnter={(e) => {
-                                            e.currentTarget.style.borderColor =
-                                              "#0f9d6b";
-                                            e.currentTarget.style.background =
-                                              "rgba(15,157,107,0.15)";
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            e.currentTarget.style.borderColor =
-                                              TOKENS.borderHi;
-                                            e.currentTarget.style.background =
-                                              "transparent";
-                                          }}
-                                        />
-                                      </div>
-                                    );
-                                  }
-                                }
-
-                                const chainBadge = isChained ? (
-                                  <span
-                                    style={{
-                                      fontSize: 8,
-                                      fontWeight: 700,
-                                      background: "rgba(192,38,10,0.25)",
-                                      color: "#e0340e",
-                                      padding: "1px 5px",
-                                      borderRadius: 4,
-                                      flexShrink: 0,
-                                      letterSpacing: 0.3,
-                                    }}
-                                  >
-                                    {chainPos}/{chainTotal}
-                                  </span>
-                                ) : null;
-
-                                const addonsNames = (
-                                  citaAddonsMap[cita.id] || []
-                                )
-                                  .map((ca: any) => ca.service_addons?.nombre)
-                                  .filter(Boolean);
-                                const addonsStr =
-                                  addonsNames.length > 0
-                                    ? "+ " + addonsNames.join(", ")
-                                    : "";
-
-                                if (narrow || estrecho || height <= 32) {
-                                  const effectiveLanes = nested
-                                    ? cita._nestedTotal || 1
-                                    : totalLanes;
-                                  const superNarrow =
-                                    height <= 24 || effectiveLanes >= 3;
-                                  const badgePx = superNarrow
-                                    ? 15
-                                    : estrecho
-                                      ? 24
-                                      : 18;
-                                  if (height <= 28) {
-                                    return (
-                                      <div
-                                        style={{
-                                          position: "relative",
-                                          zIndex: 6,
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 4,
-                                          overflow: "hidden",
-                                          height: "100%",
-                                          padding: "0 4px",
-                                          whiteSpace: "nowrap",
-                                        }}
-                                      >
-                                        <span
-                                          style={{
-                                            fontSize: 10,
-                                            fontWeight: 800,
-                                            color: cancelada
-                                              ? TOKENS.textTer
-                                              : TOKENS.text,
-                                            flexShrink: 0,
-                                            fontVariantNumeric:
-                                              "tabular-nums" as any,
-                                            lineHeight: 1,
-                                          }}
-                                        >
-                                          {timeStrCompact}
-                                        </span>
-                                        {chainBadge}
-                                        {stylistAvatar}
-                                        {icon}
-                                        <span
-                                          style={{
-                                            fontSize: 10,
-                                            fontWeight: 800,
-                                            color: cancelada
-                                              ? TOKENS.textTer
-                                              : TOKENS.text,
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            whiteSpace: "nowrap",
-                                            lineHeight: 1,
-                                            flexShrink: 1,
-                                            minWidth: 0,
-                                            textDecoration: cancelada
-                                              ? "line-through"
-                                              : "none",
-                                          }}
-                                        >
-                                          {nombreCliente}
-                                        </span>
-                                        {nombreServicio && (
-                                          <span
-                                            style={{
-                                              fontSize: 9.5,
-                                              fontWeight: 700,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.text,
-                                              background: cancelada
-                                                ? "transparent"
-                                                : TOKENS.bgCard,
-                                              border: cancelada
-                                                ? "none"
-                                                : `1px solid ${catColor || profColor}55`,
-                                              borderLeft: cancelada
-                                                ? "none"
-                                                : `2px solid ${catColor || profColor}`,
-                                              padding: "0 3px",
-                                              borderRadius: 3,
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                              whiteSpace: "nowrap",
-                                              flexShrink: 2,
-                                              minWidth: 0,
-                                              lineHeight: 1,
-                                            }}
-                                          >
-                                            {nombreServicio}
-                                          </span>
-                                        )}
-                                      </div>
-                                    );
-                                  }
-                                  return (
-                                    <div
-                                      style={{
-                                        position: "relative",
-                                        zIndex: 2,
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "flex-start",
-                                        justifyContent: "center",
-                                        gap: 1,
-                                        overflow: "hidden",
-                                        height: "100%",
-                                        padding: "1px 4px",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 4,
-                                        }}
-                                      >
-                                        {catIconChip && !superNarrow && (
-                                          <span
-                                            style={{
-                                              display: "inline-flex",
-                                              flexShrink: 0,
-                                            }}
-                                          >
-                                            {catIconChip}
-                                          </span>
-                                        )}
-                                        {!superNarrow && (
-                                          <span
-                                            style={{
-                                              fontSize: 10.5,
-                                              fontWeight: 800,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.text,
-                                              flexShrink: 0,
-                                              whiteSpace: "nowrap",
-                                              lineHeight: 1,
-                                              fontVariantNumeric:
-                                                "tabular-nums" as any,
-                                            }}
-                                          >
-                                            {timeStrCompact}
-                                          </span>
-                                        )}
-                                        {chainBadge}
-                                        {!superNarrow &&
-                                          height > 30 &&
-                                          stylistAvatar}
-                                        {icon}
-                                      </div>
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 4,
-                                          maxWidth: "100%",
-                                          overflow: "hidden",
-                                        }}
-                                      >
-                                        <span
-                                          style={{
-                                            fontSize: 10.5,
-                                            fontWeight: 800,
-                                            color: cancelada
-                                              ? TOKENS.textTer
-                                              : TOKENS.text,
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            textDecoration: cancelada
-                                              ? "line-through"
-                                              : "none",
-                                          }}
-                                        >
-                                          {nombreCliente}
-                                        </span>
-                                        {nombreServicio && height > 32 && (
-                                          <span
-                                            style={{
-                                              fontSize: 10,
-                                              fontWeight: 700,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.text,
-                                              background: cancelada
-                                                ? "transparent"
-                                                : TOKENS.bgCard,
-                                              border: cancelada
-                                                ? "none"
-                                                : `1px solid ${catColor || profColor}55`,
-                                              borderLeft: cancelada
-                                                ? "none"
-                                                : `2px solid ${catColor || profColor}`,
-                                              padding: "1px 4px",
-                                              borderRadius: 4,
-                                              boxShadow: cancelada
-                                                ? "none"
-                                                : "0 1px 2px rgba(0,0,0,0.08)",
-                                              whiteSpace: "nowrap",
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                              maxWidth: "100%",
-                                            }}
-                                          >
-                                            {nombreServicio}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div
-                                    style={{
-                                      position: "relative",
-                                      zIndex: 6,
-                                      minWidth: 0,
-                                      display: "flex",
-                                      alignItems: "flex-start",
-                                      gap: 7,
-                                      height: "100%",
-                                      overflow: "hidden",
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        flexShrink: 0,
-                                        width:
-                                          hasEspera && activaPx <= 45 ? 22 : 28,
-                                        height:
-                                          hasEspera && activaPx <= 45 ? 22 : 28,
-                                        borderRadius: 8,
-                                        background: cancelada
-                                          ? "#99999955"
-                                          : badgeColor,
-                                        display: "grid",
-                                        placeItems: "center",
-                                        color: "#fff",
-                                        fontSize: 11,
-                                        fontWeight: 800,
-                                        marginTop: 1,
-                                      }}
-                                      title={
-                                        catName
-                                          ? `${catName} · ${nombreCliente}`
-                                          : nombreCliente
-                                      }
-                                    >
-                                      {iniciales}
-                                    </span>
-                                    <div
-                                      style={{
-                                        flex: "0 0 auto",
-                                        minWidth: 0,
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: height < 64 ? 0 : 1,
-                                        position: "relative",
-                                        zIndex: 6,
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "space-between",
-                                          gap: 6,
-                                        }}
-                                      >
-                                        {height > 24 && (
-                                          <span
-                                            style={{
-                                              fontSize:
-                                                hasEspera && activaPx <= 45
-                                                  ? 10.5
-                                                  : 12.5,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.text,
-                                              fontWeight: 800,
-                                              letterSpacing: -0.2,
-                                              whiteSpace: "nowrap",
-                                              fontVariantNumeric:
-                                                "tabular-nums" as any,
-                                            }}
-                                          >
-                                            {height <= 32
-                                              ? timeStrCompact
-                                              : timeStr}
-                                          </span>
-                                        )}
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 5,
-                                            flexShrink: 0,
-                                          }}
-                                        >
-                                          {chainBadge}
-                                          {height > 30 && stylistAvatar}
-                                          {icon}
-                                        </div>
-                                      </div>
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          flexDirection: "column",
-                                          gap: height < 30 ? 0 : 2,
-                                          width: "100%",
-                                          overflow: "hidden",
-                                        }}
-                                      >
-                                        <div
-                                          onMouseDown={(e) => {
-                                            if (onClienteHistorial)
-                                              e.stopPropagation();
-                                          }}
-                                          onClick={(e) => {
-                                            if (onClienteHistorial) {
-                                              e.stopPropagation();
-                                              const cli = clientes.find(
-                                                (cl: any) =>
-                                                  cl.id === cita.cliente_id,
-                                              );
-                                              if (cli) onClienteHistorial(cli);
-                                            }
-                                          }}
-                                          style={{
-                                            width: "fit-content",
-                                            maxWidth: "100%",
-                                            fontSize:
-                                              hasEspera && activaPx <= 45
-                                                ? 10.5
-                                                : height < 30
-                                                  ? 11
-                                                  : 12,
-                                            lineHeight:
-                                              height < 30 ? "1.1" : "1.2",
-                                            fontWeight: 800,
-                                            color: cancelada
-                                              ? TOKENS.textTer
-                                              : TOKENS.text,
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            textDecoration: cancelada
-                                              ? "line-through"
-                                              : "none",
-                                            cursor: onClienteHistorial
-                                              ? "pointer"
-                                              : "default",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 4,
-                                          }}
-                                          title="Ver historial de este cliente"
-                                        >
-                                          {identidad}
-                                          {cita.encadenadoId && !cancelada && (
-                                            <Icon
-                                              name="link"
-                                              size={12}
-                                              color={TOKENS.primary}
-                                            />
-                                          )}
-                                          {(cita.fin_activa ||
-                                            cita.fin_espera) &&
-                                            !cancelada && (
-                                              <Icon
-                                                name="coffee"
-                                                size={12}
-                                                color="#f59e0b"
-                                              />
-                                            )}
-                                          {/* Servicio en linea cuando no cabe su chip debajo. */}
-                                          {bloqueBajo &&
-                                            height > 32 &&
-                                            nombreServicio && (
-                                              <span
-                                                style={{
-                                                  fontWeight: 600,
-                                                  color: cancelada
-                                                    ? TOKENS.textTer
-                                                    : TOKENS.textSec,
-                                                  overflow: "hidden",
-                                                  textOverflow: "ellipsis",
-                                                  whiteSpace: "nowrap",
-                                                  minWidth: 0,
-                                                }}
-                                                title={nombreServicio}
-                                              >
-                                                · {nombreServicio}
-                                              </span>
-                                            )}
-                                        </div>
-                                        {height > 32 && !bloqueBajo && (
-                                          <div
-                                            style={{
-                                              background: cancelada
-                                                ? "transparent"
-                                                : TOKENS.bgCard,
-                                              border: cancelada
-                                                ? "none"
-                                                : `1px solid ${catColor || profColor}55`,
-                                              borderLeft: cancelada
-                                                ? "none"
-                                                : `3px solid ${catColor || profColor}`,
-                                              padding:
-                                                hasEspera && activaPx <= 45
-                                                  ? "1px 4px"
-                                                  : "2px 6px",
-                                              borderRadius: 6,
-                                              boxShadow: cancelada
-                                                ? "none"
-                                                : "0 1px 3px rgba(0,0,0,0.08)",
-                                              width: "fit-content",
-                                              maxWidth: "100%",
-                                              fontSize:
-                                                hasEspera && activaPx <= 45
-                                                  ? 9.5
-                                                  : 10.5,
-                                              fontWeight: 700,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.text,
-                                              whiteSpace: "normal",
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: 4,
-                                              marginTop: 1,
-                                            }}
-                                          >
-                                            {catIconChip ? (
-                                              <span
-                                                style={{
-                                                  display: "inline-flex",
-                                                  flexShrink: 0,
-                                                  marginTop: 2,
-                                                }}
-                                                title={catName}
-                                              >
-                                                {catIconChip}
-                                              </span>
-                                            ) : (
-                                              catColor && (
-                                                <span
-                                                  style={{
-                                                    width: 6,
-                                                    height: 6,
-                                                    borderRadius: 999,
-                                                    background: catColor,
-                                                    flexShrink: 0,
-                                                    marginTop: 4,
-                                                  }}
-                                                  title={catName}
-                                                />
-                                              )
-                                            )}
-                                            <span
-                                              style={{
-                                                overflow: "hidden",
-                                                textOverflow: "ellipsis",
-                                                display: "-webkit-box",
-                                                WebkitLineClamp: 2,
-                                                WebkitBoxOrient: "vertical",
-                                                wordBreak: "break-word",
-                                              }}
-                                            >
-                                              {nombreServicio ||
-                                                (cita.servicio_id
-                                                  ? "Servicio eliminado"
-                                                  : "Sin servicio")}
-                                            </span>
-                                          </div>
-                                        )}
-                                      </div>
-                                      {addonsStr && height >= 64 && (
-                                        <div
-                                          style={{
-                                            fontSize: 9,
-                                            color: "#10b981",
-                                            fontWeight: 600,
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                          }}
-                                        >
-                                          {addonsStr}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                    {/* Modo "Enseñamelo". Por cada problema de esta columna pinta
-                        hasta tres cosas: la cita de ORIGEN (la que se movería), una
-                        FLECHA hasta el destino y el hueco DESTINO con la accion en
-                        imperativo ("Adelantar a las 14:30"). Antes solo se pintaba
-                        el destino con el nombre del problema ("Hueco muerto"), que
-                        no dice ni que hay que hacer ni con que cita.
-                        Va el ultimo y con zIndex alto para leerse por encima de las
-                        citas, sin capturar el raton (se sigue arrastrando debajo). */}
-                    {(zonasResaltadas as ProblemaAgenda[])
-                      .filter(
-                        (p) =>
-                          p.zona.profesionalId === prof.id ||
-                          p.zonaOrigen?.profesionalId === prof.id,
-                      )
-                      .map((p) => {
-                        const aY = (iso: string) => {
-                          const d = new Date(iso);
-                          return (
-                            (d.getHours() + d.getMinutes() / 60 - START_H) *
-                            ROW_H
-                          );
-                        };
-                        const zTop = aY(p.zona.desde);
-                        const zH = aY(p.zona.hasta) - zTop;
-                        if (zH <= 0) return null;
-                        // Rango de prioridad dentro del dia (la lista ya viene
-                        // ordenada). Los tres primeros se pintan fuerte; el resto
-                        // se atenua para que la agenda no se emborrone cuando hay
-                        // ocho avisos a la vez.
-                        const rango = (
-                          zonasResaltadas as ProblemaAgenda[]
-                        ).findIndex((x) => x.id === p.id);
-                        const principal = rango >= 0 && rango < 3;
-                        // Movimiento ENTRE profesionales: el destino es de otra
-                        // persona. Se marca aparte porque es el cambio que mas
-                        // confunde si se pinta igual que un movimiento propio.
-                        const cambiaDeProfesional =
-                          !!p.zonaOrigen &&
-                          p.zonaOrigen.profesionalId !== p.zona.profesionalId;
-                        const colorDe = (id: string) =>
-                          (profesionales as any[]).find((x) => x.id === id)
-                            ?.color || TOKENS.primary;
-                        const nombreDe = (id: string) =>
-                          (profesionales as any[]).find((x) => x.id === id)
-                            ?.nombre || "";
-                        const tono = cambiaDeProfesional
-                          ? colorDe(p.zona.profesionalId)
-                          : p.tipo === "solape"
-                            ? "#e23b34"
-                            : p.tipo === "retraso"
-                              ? "#f59e0b"
-                              : "#10b981";
-                        const tonoOrigen = cambiaDeProfesional
-                          ? colorDe(p.zonaOrigen!.profesionalId)
-                          : tono;
-                        const opacidad = principal ? 1 : 0.42;
-                        const oTop = p.zonaOrigen
-                          ? aY(p.zonaOrigen.desde)
-                          : null;
-                        const oH =
-                          p.zonaOrigen && oTop != null
-                            ? aY(p.zonaOrigen.hasta) - oTop
-                            : 0;
-                        // La flecha va del origen al destino. "Adelantar" sube, asi
-                        // que normalmente apunta hacia arriba.
-                        const flechaDesde =
-                          oTop != null ? Math.min(oTop, zTop + zH) : null;
-                        const flechaHasta =
-                          oTop != null ? Math.max(zTop + zH, oTop) : null;
-                        // Recorrido de la "caja viajera": del origen al destino.
-                        // Solo tiene sentido dentro de la MISMA columna; si la
-                        // cita cambia de profesional, el viaje seria en diagonal
-                        // entre columnas y ahi lo que se pinta es el color de cada
-                        // persona en cada punta.
-                        const viaje =
-                          principal &&
-                          !cambiaDeProfesional &&
-                          oTop != null &&
-                          oH > 0 &&
-                          Math.abs(zTop - oTop) > 8
-                            ? zTop - oTop
-                            : null;
-                        return (
-                          <div
-                            key={`zona-${p.id}`}
-                            style={{ opacity: opacidad }}
-                          >
-                            {/* Cita de origen: marco tenue, sin latido (el latido
-                                se reserva al destino, que es donde hay que mirar). */}
-                            {oTop != null && oH > 0 && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: Math.max(0, oTop),
-                                  left: 2,
-                                  right: 2,
-                                  height: Math.max(14, oH),
-                                  borderRadius: 10,
-                                  border: `2px solid ${tonoOrigen}`,
-                                  background: `${tonoOrigen}12`,
-                                  pointerEvents: "none",
-                                  zIndex: 39,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    position: "absolute",
-                                    bottom: -9,
-                                    right: 8,
-                                    padding: "1px 7px",
-                                    borderRadius: 999,
-                                    background: "#fff",
-                                    border: `1.5px solid ${tonoOrigen}`,
-                                    color: tonoOrigen,
-                                    fontSize: 9.5,
-                                    fontWeight: 800,
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  {cambiaDeProfesional
-                                    ? `mover a ${nombreDe(p.zona.profesionalId).split(" ")[0]}`
-                                    : "mover esta"}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* La caja viajera: una copia fantasma de la cita que
-                                recorre el camino hasta su sitio, una y otra vez.
-                                Es lo que se entiende sin leer nada. */}
-                            {viaje != null && (
-                              <div
-                                style={
-                                  {
-                                    position: "absolute",
-                                    top: Math.max(0, oTop!),
-                                    left: 8,
-                                    right: 8,
-                                    height: Math.max(14, oH),
-                                    borderRadius: 10,
-                                    background: `${tono}55`,
-                                    border: `1.5px solid ${tono}`,
-                                    pointerEvents: "none",
-                                    zIndex: 42,
-                                    ["--viaje" as any]: `${viaje}px`,
-                                    animation:
-                                      "viajeZona 2.4s ease-in-out infinite",
-                                  } as React.CSSProperties
-                                }
-                              />
-                            )}
-
-                            {/* Flecha origen -> destino */}
-                            {flechaDesde != null &&
-                              flechaHasta != null &&
-                              flechaHasta - flechaDesde > 16 && (
-                                <div
-                                  style={{
-                                    position: "absolute",
-                                    top: flechaDesde,
-                                    height: flechaHasta - flechaDesde,
-                                    left: "50%",
-                                    width: 2,
-                                    marginLeft: -1,
-                                    background: tono,
-                                    opacity: 0.85,
-                                    pointerEvents: "none",
-                                    zIndex: 41,
-                                    animation: principal
-                                      ? "pulseZona 1.6s ease-in-out infinite"
-                                      : undefined,
-                                  }}
-                                >
-                                  {/* Punta: sube hacia el destino */}
-                                  <span
-                                    style={{
-                                      position: "absolute",
-                                      top: -1,
-                                      left: -4,
-                                      width: 0,
-                                      height: 0,
-                                      borderLeft: "5px solid transparent",
-                                      borderRight: "5px solid transparent",
-                                      borderBottom: `7px solid ${tono}`,
-                                    }}
-                                  />
-                                </div>
-                              )}
-
-                            {/* Destino: lo que hay que mirar */}
-                            <div
-                              data-mecha-zona={p.id}
-                              title={`${rango >= 0 ? `#${rango + 1} · ` : ""}${p.titulo} — ${p.descripcion}${p.porQue ? ` (${p.porQue})` : ""}`}
-                              style={{
-                                position: "absolute",
-                                top: Math.max(0, zTop),
-                                left: 2,
-                                right: 2,
-                                height: Math.max(14, zH),
-                                borderRadius: 10,
-                                border: `2px dashed ${tono}`,
-                                background: `${tono}1f`,
-                                boxShadow: principal
-                                  ? `0 0 0 3px ${tono}22`
-                                  : "none",
-                                pointerEvents: "none",
-                                zIndex: 40,
-                                animation: principal
-                                  ? "pulseZona 1.6s ease-in-out infinite"
-                                  : undefined,
-                              }}
-                            >
-                              {/* Numero de prioridad: por cual empezar cuando el
-                                  dia saca varios avisos a la vez. */}
-                              {rango >= 0 && (
-                                <span
-                                  style={{
-                                    position: "absolute",
-                                    top: -9,
-                                    right: 6,
-                                    minWidth: 16,
-                                    height: 16,
-                                    padding: "0 4px",
-                                    borderRadius: 999,
-                                    background: "#fff",
-                                    border: `1.5px solid ${tono}`,
-                                    color: tono,
-                                    fontSize: 9,
-                                    fontWeight: 900,
-                                    lineHeight: "13px",
-                                    textAlign: "center",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.18)",
-                                  }}
-                                >
-                                  {rango + 1}
-                                </span>
-                              )}
-                              <span
-                                style={{
-                                  position: "absolute",
-                                  top: -9,
-                                  left: 8,
-                                  right: 8,
-                                  padding: "1px 7px",
-                                  borderRadius: 999,
-                                  background: tono,
-                                  color: "#fff",
-                                  fontSize: 9.5,
-                                  fontWeight: 800,
-                                  letterSpacing: 0.3,
-                                  // En movil la columna es estrecha: mejor
-                                  // recortar con puntos suspensivos que dejar que
-                                  // la etiqueta se salga y pise a la de al lado.
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                  display: "block",
-                                  boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
-                                  // Deja sitio al numero de prioridad de la esquina.
-                                  paddingRight: 22,
-                                }}
-                              >
-                                {p.accionCorta || p.titulo}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
+                    prof={prof}
+                    profColor={profColor}
+                    profCitas={profCitas}
+                    citasWithLanes={citasWithLanes}
+                    selectedDateObj={selectedDateObj}
+                    START_H={START_H}
+                    ROW_H={ROW_H}
+                    horariosProf={horariosProf}
+                    horarioSalonHoy={horarioSalonHoy}
+                    festivoHoy={festivoHoy}
+                    salonCerradoTodoElDia={salonCerradoTodoElDia}
+                    bloqueos={bloqueos}
+                    clienteMap={clienteMap}
+                    servicioMap={servicioMap}
+                    categorias={categorias}
+                    citaAddonsMap={citaAddonsMap}
+                    propuestaPorCitaId={propuestaPorCitaId}
+                    isDragging={isDragging}
+                    dragCitaId={drag?.cita?.id}
+                    selectedProf={selectedProf}
+                    profesionalesLength={profesionales?.length || 1}
+                    completarManual={completarManual}
+                    clientes={clientes}
+                    startDrag={startDrag}
+                    toggleCompletada={toggleCompletada}
+                    onCreateSlot={onCreateSlot}
+                    onClienteHistorial={onClienteHistorial}
+                    zonasResaltadas={zonasResaltadas}
+                    profesionales={profesionales}
+                  />
                 );
               })}
             </div>
@@ -11054,6 +11119,54 @@ function DayListView({
   );
 }
 
+const ModalAhoraBadge = memo(function ModalAhoraBadge() {
+  const [ahora, setAhora] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setAhora(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  const ahoraStr = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "8px 13px",
+        borderRadius: 11,
+        background: "rgba(148,163,184,0.06)",
+        border: `1px solid ${TOKENS.border}`,
+      }}
+    >
+      <div
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: "#10b981",
+          boxShadow: "0 0 6px #10b981",
+        }}
+      />
+      <span
+        style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}
+      >
+        Ahora
+      </span>
+      <span
+        style={{
+          fontSize: 14,
+          color: TOKENS.text,
+          fontWeight: 700,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {ahoraStr}
+      </span>
+    </div>
+  );
+});
+
 function NewCitaModal({
   onClose,
   onSaved,
@@ -11187,7 +11300,9 @@ function NewCitaModal({
   const [nuevoClienteTelefono, setNuevoClienteTelefono] = useState("");
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState("");
+  const debouncedClienteSearch = useDebounce(clienteSearch, 200);
   const [servicioSearch, setServicioSearch] = useState("");
+  const debouncedServicioSearch = useDebounce(servicioSearch, 200);
   const [historialClienteServicios, setHistorialClienteServicios] = useState<{
     top: string[];
     last: string[];
@@ -11372,14 +11487,6 @@ function NewCitaModal({
     }
   }, [demoZone]);
 
-  // Reloj en vivo: muestra la hora actual arriba del formulario como referencia
-  // rapida al crear la cita. Se refresca cada 30 s.
-  const [ahora, setAhora] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setAhora(new Date()), 30000);
-    return () => clearInterval(t);
-  }, []);
-  const ahoraStr = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
 
   useEffect(() => {
     let cancel = false;
@@ -11635,9 +11742,9 @@ function NewCitaModal({
   // Agrupa el selector de servicios por categoria (color de cabecera), orden = categorias_servicio.orden.
   const gruposServicio = useMemo(() => {
     let baseList = selectedProf ? serviciosFiltrados : servicios;
-    if (servicioSearch.trim()) {
+    if (debouncedServicioSearch.trim()) {
       baseList = baseList.filter((s: any) =>
-        norm(s?.nombre || "").includes(norm(servicioSearch)),
+        norm(s?.nombre || "").includes(norm(debouncedServicioSearch)),
       );
     }
     const grupos = categorias
@@ -11658,7 +11765,7 @@ function NewCitaModal({
       });
     }
     return grupos;
-  }, [categorias, selectedProf, serviciosFiltrados, servicios, servicioSearch]);
+  }, [categorias, selectedProf, serviciosFiltrados, servicios, debouncedServicioSearch]);
 
   // Duration resolution: manual → prof service override → duraciones_profesional → service default
   const duracionActiva =
@@ -12847,43 +12954,7 @@ function NewCitaModal({
               flexWrap: "wrap",
             }}
           >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "8px 13px",
-                borderRadius: 11,
-                background: "rgba(148,163,184,0.08)",
-                border: `1px solid ${TOKENS.border}`,
-              }}
-            >
-              <span
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: 999,
-                  background: "#16a34a",
-                  boxShadow: "0 0 0 3px rgba(22,163,74,0.18)",
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}
-              >
-                Ahora
-              </span>
-              <span
-                style={{
-                  fontSize: 14,
-                  color: TOKENS.text,
-                  fontWeight: 700,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {ahoraStr}
-              </span>
-            </div>
+            <ModalAhoraBadge />
             <div
               style={{
                 display: "inline-flex",
@@ -13255,7 +13326,7 @@ function NewCitaModal({
                 {(() => {
                   const CLIENTES_TOPE = 30;
                   const matches = clientes.filter((c) =>
-                    norm(c.nombre).includes(norm(clienteSearch)),
+                    norm(c.nombre).includes(norm(debouncedClienteSearch)),
                   );
                   const visibles = matches.slice(0, CLIENTES_TOPE);
                   const ocultos = matches.length - visibles.length;
@@ -21641,6 +21712,31 @@ function SearchDropdown({
   trigger,
   children,
 }: any) {
+  const [localQ, setLocalQ] = useState(q || "");
+  const debounceTimerRef = useRef<any>(null);
+
+  useEffect(() => {
+    setLocalQ(q || "");
+  }, [q]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleInputChange = (val: string) => {
+    setLocalQ(val);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setQ(val);
+    }, 150);
+  };
+
   return (
     <div style={{ position: "relative" }}>
       <button
@@ -21709,8 +21805,8 @@ function SearchDropdown({
             </span>
             <input
               autoFocus
-              value={q}
-              onChange={(e) => setQ(e.currentTarget.value)}
+              value={localQ}
+              onChange={(e) => handleInputChange(e.currentTarget.value)}
               placeholder={placeholder}
               style={{
                 flex: 1,

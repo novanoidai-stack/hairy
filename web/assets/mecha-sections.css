@@ -132,7 +132,7 @@
     34px 50px 90px -30px rgba(0,0,0,.85),0 0 0 2px rgba(148,163,184,.1);position:relative}
 .phone-body::before{content:"";position:absolute;top:120px;bottom:120px;left:-3px;width:3px;border-radius:3px;background:linear-gradient(180deg,#2a3150,#161b30)}
 .phone-body::after{content:"";position:absolute;top:150px;right:-3px;width:3px;height:74px;border-radius:3px;background:linear-gradient(180deg,#2a3150,#161b30)}
-.phone-glow{position:absolute;inset:-40px;border-radius:70px;background:radial-gradient(circle at 50% 30%,var(--accent-glow),transparent 68%);filter:blur(50px);opacity:.5;z-index:-1}
+.phone-glow{position:absolute;inset:-40px;border-radius:70px;background:radial-gradient(circle at 50% 30%,var(--accent-glow),transparent 68%);filter:blur(50px);opacity:.5;z-index:-1;pointer-events:none}
 .phone-screen{background:#0b141a;border-radius:36px;overflow:hidden;height:642px;display:flex;flex-direction:column;position:relative}
 .wa-top{background:#1f2c33;padding:46px 16px 12px;display:flex;align-items:center;gap:11px;position:relative}
 .wa-top::before{content:"";position:absolute;top:13px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#000;border-radius:999px}
@@ -721,6 +721,9 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
   .phone-stage, .phone {
     pointer-events: none !important;
   }
+  .wa-input-row, .wa-input-row * {
+    pointer-events: auto !important;
+  }
   .wa-body {
     overflow-y: hidden !important;
     overscroll-behavior: auto !important;
@@ -735,12 +738,16 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
   .phone-stage, .phone {
     pointer-events: none !important;
   }
+  .wa-input-row, .wa-input-row * {
+    pointer-events: auto !important;
+  }
 
   /* El glow del telefono (.phone-glow, inset:-40px sobre un movil de 344px) se
      salia ~31px del viewport y generaba scroll horizontal en toda la landing
      (ademas descolocaba el panel lateral del menu, que es position:fixed).
      overflow-x:clip recorta solo el sangrado horizontal sin crear contenedor de
      scroll, asi que no afecta al nav sticky ni a las animaciones de reveal. */
+  html, body { overflow-x: clip; }
   .demo { overflow-x: clip; }
 
   /* Hero Mockup Calendar: single-column layout fit */
@@ -789,5 +796,157 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
   .sec-head {
     text-align: center !important;
   }
+}
+
+/* ============================================================
+   MODAL SCROLL-LOCK & ACCESO MODAL STYLING
+   ============================================================ */
+body.modal-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+.acc-modal-box {
+  max-width: 520px !important;
+  padding: 28px 24px !important;
+  text-align: center;
+  background: #0b1020 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+.acc-modal-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4501e, #ff8a3d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 22px rgba(244, 80, 30, 0.4);
+}
+
+.acc-modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+  font-family: var(--display, inherit);
+}
+
+.acc-modal-sub {
+  font-size: 13.5px;
+  color: #9aa6c2;
+  margin-bottom: 22px;
+  line-height: 1.45;
+}
+
+.acc-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.acc-opt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background 0.2s var(--ease, ease), border-color 0.2s var(--ease, ease), transform 0.2s var(--ease, ease);
+}
+
+.acc-opt:hover {
+  transform: translateY(-1px);
+}
+
+.acc-opt-demo:hover {
+  background: rgba(244, 80, 30, 0.12);
+  border-color: rgba(244, 80, 30, 0.4);
+}
+
+.acc-opt-call:hover {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.acc-opt-direct:hover {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.acc-opt-chat:hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.acc-opt-wa:hover {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: rgba(37, 211, 102, 0.4);
+}
+
+.acc-opt-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.acc-opt-demo .acc-opt-icon { background: rgba(244, 80, 30, 0.18); color: #ff8a3d; }
+.acc-opt-call .acc-opt-icon { background: rgba(16, 185, 129, 0.18); color: #10b981; }
+.acc-opt-direct .acc-opt-icon { background: rgba(99, 102, 241, 0.18); color: #818cf8; }
+.acc-opt-chat .acc-opt-icon { background: rgba(56, 189, 248, 0.18); color: #38bdf8; }
+.acc-opt-wa .acc-opt-icon { background: rgba(37, 211, 102, 0.18); color: #25d366; }
+
+.acc-opt-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.acc-opt-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.acc-opt-desc {
+  font-size: 12px;
+  color: #9aa6c2;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.acc-opt-arrow {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.acc-opt-demo .acc-opt-arrow { color: #ff8a3d; }
+.acc-opt-call .acc-opt-arrow { color: #10b981; }
+.acc-opt-direct .acc-opt-arrow { color: #818cf8; }
+.acc-opt-chat .acc-opt-arrow { color: #38bdf8; }
+.acc-opt-wa .acc-opt-arrow { color: #25d366; }
+
+.acc-modal-close {
+  margin-top: 18px !important;
+  width: 100% !important;
+  justify-content: center !important;
+  color: #8a9ab8 !important;
 }
 

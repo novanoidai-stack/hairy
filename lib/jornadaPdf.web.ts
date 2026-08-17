@@ -9,7 +9,7 @@
 import {
   fmtMinutos, minutosADecimal, fmtHoraCorta, MARCA_LABEL, ORIGEN_LABEL,
   type DiaJornada, type AsientoJornada,
-} from './jornada';
+} from './jornadaTypes';
 
 export interface JornadaPdfData {
   salonNombre: string;
@@ -163,6 +163,48 @@ export async function generarJornadaPdf(data: JornadaPdfData): Promise<Blob> {
     doc.setTextColor(...ink);
     y += 6;
   }
+
+  // ── Bloque de Firmas de Conformidad (Art. 34.9 ET / ITSS) ───────────────────
+  asegurar(38);
+  y += 6;
+
+  const boxW = (R - L - 10) / 2;
+  const boxH = 26;
+
+  // Firma Trabajador
+  doc.setDrawColor(200, 195, 185);
+  doc.setFillColor(252, 251, 250);
+  doc.roundedRect(L, y, boxW, boxH, 1.5, 1.5, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...ink);
+  doc.text('Firma del Trabajador / Trabajadora', L + 4, y + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...grey);
+  doc.text(`Persona: ${data.profesional}`, L + 4, y + 10, { maxWidth: boxW - 8 });
+  doc.text('Conforme con el registro mensual de horas.', L + 4, y + 14);
+  doc.setFontSize(6.5);
+  doc.text('Fecha: _____ / _____ / ________', L + 4, y + 22.5);
+
+  // Sello y Firma Empresa
+  const rx = L + boxW + 10;
+  doc.setDrawColor(200, 195, 185);
+  doc.setFillColor(252, 251, 250);
+  doc.roundedRect(rx, y, boxW, boxH, 1.5, 1.5, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...ink);
+  doc.text('Sello y Firma de la Empresa / Dirección', rx + 4, y + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...grey);
+  doc.text(`Empresa: ${data.salonNombre || 'Centro de trabajo'}${data.salonCif ? ' · CIF: ' + data.salonCif : ''}`, rx + 4, y + 10, { maxWidth: boxW - 8 });
+  doc.text('Certificación empresarial de jornada (Art. 34.9 ET).', rx + 4, y + 14);
+  doc.setFontSize(6.5);
+  doc.text('Fecha: _____ / _____ / ________', rx + 4, y + 22.5);
+
+  y += boxH + 6;
 
   // ── Detalle de asientos (para la Inspeccion) ───────────────────────────────
   if (data.asientos && data.asientos.length > 0) {

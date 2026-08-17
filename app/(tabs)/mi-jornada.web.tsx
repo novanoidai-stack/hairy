@@ -25,6 +25,7 @@ import { UMBRAL_HUECO_MIN_DEFAULT } from '@/lib/organizarAgenda';
 import { CITA_STATUS, CITA_STATUS_ACTIVOS } from '@/lib/constants';
 import { fichar as ficharJornada, cargarEstadoJornada, type Modalidad, type JornadaEstado } from '@/lib/jornada';
 import { RegistroJornada } from '@/components/jornada/RegistroJornada.web';
+import { FichaColorModal } from '@/app/(tabs)/clientes.web';
 
 const T = DESIGN_TOKENS;
 
@@ -59,7 +60,15 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
 
 type Periodo = 'hoy' | 'semana' | 'mes';
 
-interface CitaLista { inicio: string; cliente: string | null; servicio: string | null; es_tinte: boolean; }
+interface CitaLista {
+  id?: string;
+  cliente_id?: string;
+  profesional_id?: string;
+  inicio: string;
+  cliente: string | null;
+  servicio: string | null;
+  es_tinte: boolean;
+}
 interface Resumen {
   profesional: { id: string | null; nombre: string; vinculado: boolean };
   rol: string;
@@ -235,6 +244,7 @@ function MiJornadaScreen() {
   const [estadoJornada, setEstadoJornada] = useState<JornadaEstado | null>(null);
   const [identidadRol, setIdentidadRol] = useState<string | null>(null);
   const [userId, setUserId] = useState('');
+  const [negocioId, setNegocioId] = useState('');
   const [salonNombre, setSalonNombre] = useState('');
   const [fichando, setFichando] = useState(false);
   const [subTab, setSubTab] = useState<'citas' | 'numeros' | 'ausencias' | 'registro'>('citas');
@@ -246,6 +256,16 @@ function MiJornadaScreen() {
   const [nuevoIntercambio, setNuevoIntercambio] = useState<{ companero_id: string; fecha_solicitante: string; fecha_companero: string; motivo: string } | null>(null);
   const [misObjetivos, setMisObjetivos] = useState<MiObjetivo[]>([]);
   const [profesionalesActivos, setProfesionalesActivos] = useState<ProfesionalMini[]>([]);
+  const [serviciosCatalogo, setServiciosCatalogo] = useState<any[]>([]);
+  const [citasDetalladas, setCitasDetalladas] = useState<any[]>([]);
+  const [showFichaColorModal, setShowFichaColorModal] = useState(false);
+  const [fichaColorTarget, setFichaColorTarget] = useState<{
+    mode: 'add' | 'edit';
+    ficha: any;
+    clienteId: string;
+    citasCliente: any[];
+  } | null>(null);
+  const [loadingFichaColor, setLoadingFichaColor] = useState(false);
   const [ausencias, setAusencias] = useState<Array<{id: string; inicio: string; fin: string; tipo: string; motivo: string | null}>>([]);
   const [showAusenciaModal, setShowAusenciaModal] = useState(false);
   const ayudaIA = useAyudaIA();
@@ -346,6 +366,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
       if (!esVigente()) return;
       if (!profile?.negocio_id) { setLoading(false); return; }
       setUserId(profile.id || '');
+      setNegocioId(profile.negocio_id);
       setSalonNombre(profile.nombre_negocio || profile.negocio_id);
       // Con acceso compartido, user_id es el del jefe para todo el mundo: las
       // marcas de cada persona se distinguen por su ficha, no por la cuenta.
@@ -359,16 +380,59 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
       setIdentidadRol(identidadFichajes?.rol ?? null);
       setEstadoJornada(estadoJornadaNueva);
       const [d, h] = rangoDe(per);
+
+      // Cargar catalogo de servicios del negocio para asociar a fichas de color
+      const { data: srvData } = await supabase
+        .from('servicios')
+        .select('id, nombre, categoria, duracion_espera_min')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('activo', true)
+        .order('nombre');
+      if (srvData && esVigente()) setServiciosCatalogo(srvData);
+
+      // Cargar citas detalladas para enriquecer citas_lista con IDs y permitir apertura de FichaColorModal
+      const activeProfId = identidadFichajes?.profesionalId ?? null;
+      let qCitas = supabase
+        .from('citas')
+        .select('id, inicio, fin, estado, cliente_id, profesional_id, servicio_id, formula_producto, formula_tono, clientes(id, nombre), servicios(id, nombre, categoria, duracion_espera_min)')
+        .eq('negocio_id', profile.negocio_id)
+        .gte('inicio', d.toISOString())
+        .lt('inicio', h.toISOString())
+        .order('inicio', { ascending: false });
+      if (activeProfId) {
+        qCitas = qCitas.eq('profesional_id', activeProfId);
+      }
+      const { data: cData } = await qCitas;
+      if (cData && esVigente()) setCitasDetalladas(cData);
+
       // En un salon con un solo correo la cuenta es la del jefe, asi que la
       // ficha hay que decirla: es la persona que se identifico en la tablet.
       // El servidor comprueba que sea de este salon antes de hacerle caso.
       const { data, error: rpcErr } = await supabase.rpc('mi_jornada_resumen', {
         p_desde: d.toISOString(),
         p_hasta: h.toISOString(),
-        p_profesional_id: identidadActiva(profile.negocio_id)?.profesionalId ?? null,
+        p_profesional_id: activeProfId,
       });
       if (rpcErr) throw rpcErr;
       if (!esVigente()) return;
+
+      // Enriquecer la lista de citas con los IDs de cliente y cita correspondientes
+      if (data && (data as Resumen).citas_lista) {
+        const enrichedList = (data as Resumen).citas_lista.map((item) => {
+          const match = cData?.find((cd: any) => {
+            const cName = Array.isArray(cd.clientes) ? cd.clientes[0]?.nombre : cd.clientes?.nombre;
+            return cd.inicio === item.inicio || (cName && item.cliente && cName.toLowerCase() === item.cliente.toLowerCase());
+          });
+          return {
+            ...item,
+            id: match?.id,
+            cliente_id: match?.cliente_id,
+            profesional_id: match?.profesional_id,
+          };
+        });
+        (data as Resumen).citas_lista = enrichedList;
+      }
+
       setResumen(data as Resumen);
       const { data: objRes } = await supabase.rpc('mis_objetivos_progreso');
       if (!esVigente()) return;
@@ -389,7 +453,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
 
       const hace48h = new Date(Date.now() - 48 * 3600000).toISOString();
       let qRes = supabase.from('resenas').select('id, puntuacion, comentario').eq('negocio_id', profile.negocio_id).gte('created_at', hace48h).order('created_at', { ascending: false }).limit(1);
-      const pId = identidadActiva(profile.negocio_id)?.profesionalId;
+      const pId = activeProfId;
       if (pId) qRes = qRes.eq('profesional_id', pId);
       const { data: resData } = await qRes;
       if (!esVigente()) return;
@@ -528,6 +592,107 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
       setError(mensajeDeError(err));
     } finally {
       setFichando(false);
+    }
+  };
+
+  const handleAbrirFichaColor = async (item: CitaLista) => {
+    setLoadingFichaColor(true);
+    setError(null);
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id) return;
+
+      let citaId = item.id;
+      let clienteId = item.cliente_id;
+      let profesionalId = item.profesional_id || identidadProfesionalId || resumen?.profesional?.id;
+
+      if (!citaId || !clienteId) {
+        const match = citasDetalladas.find((c: any) => {
+          const cli = Array.isArray(c.clientes) ? c.clientes[0] : c.clientes;
+          return (
+            c.inicio === item.inicio ||
+            (cli?.nombre && item.cliente && cli.nombre.toLowerCase() === item.cliente.toLowerCase())
+          );
+        });
+        if (match) {
+          citaId = citaId || match.id;
+          clienteId = clienteId || match.cliente_id;
+          profesionalId = profesionalId || match.profesional_id;
+        }
+      }
+
+      if (!clienteId && item.cliente) {
+        const { data: clData } = await supabase
+          .from('clientes')
+          .select('id, nombre')
+          .eq('negocio_id', profile.negocio_id)
+          .ilike('nombre', item.cliente.trim())
+          .limit(1)
+          .maybeSingle();
+        if (clData) clienteId = clData.id;
+      }
+
+      if (!clienteId) {
+        alert('Esta cita no tiene una clienta vinculada para registrar ficha técnica.');
+        setLoadingFichaColor(false);
+        return;
+      }
+
+      let existingFicha: any = null;
+      let mode: 'add' | 'edit' = 'add';
+
+      if (citaId) {
+        const { data: fByCita } = await supabase
+          .from('fichas_tecnicas_color')
+          .select('*')
+          .eq('cita_id', citaId)
+          .maybeSingle();
+        if (fByCita) {
+          existingFicha = fByCita;
+          mode = 'edit';
+        }
+      }
+
+      if (!existingFicha && clienteId) {
+        const { data: fByCli } = await supabase
+          .from('fichas_tecnicas_color')
+          .select('*')
+          .eq('cliente_id', clienteId)
+          .eq('negocio_id', profile.negocio_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (fByCli) {
+          existingFicha = {
+            ...fByCli,
+            id: undefined,
+            cita_id: citaId || null,
+            profesional_id: profesionalId || null,
+          };
+        }
+      }
+
+      const { data: cliCitas } = await supabase
+        .from('citas')
+        .select('id, inicio, fin, estado, servicio_id, profesional_id, cliente_id')
+        .eq('cliente_id', clienteId)
+        .order('inicio', { ascending: false });
+
+      setFichaColorTarget({
+        mode,
+        ficha: existingFicha || {
+          cita_id: citaId || null,
+          profesional_id: profesionalId || null,
+        },
+        clienteId,
+        citasCliente: (cliCitas as any) || [],
+      });
+      setShowFichaColorModal(true);
+    } catch (err) {
+      console.error('Error al abrir Ficha de Color:', err);
+      setError(mensajeDeError(err));
+    } finally {
+      setLoadingFichaColor(false);
     }
   };
 
@@ -738,14 +903,15 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
         </div>
 
         {isMobile && (
-          <div style={{ display: 'flex', background: T.bgCard, borderRadius: 10, padding: 4, marginBottom: 16, border: `1px solid ${T.border}` }}>
+          <div style={{ display: 'flex', background: T.bgCard, borderRadius: 12, padding: 4, marginBottom: 16, border: `1px solid ${T.border}`, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <button
               onClick={() => setSubTab('citas')}
               onMouseEnter={(e) => { if (subTab !== 'citas') e.currentTarget.style.background = T.primarySoft; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'citas' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                minHeight: 44,
+                padding: '10px 4px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'citas' ? T.primary : 'transparent',
@@ -754,7 +920,11 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 fontWeight: 700,
                 cursor: 'pointer',
                 textAlign: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                touchAction: 'manipulation',
               }}
             >
               Citas
@@ -765,7 +935,8 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'numeros' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                minHeight: 44,
+                padding: '10px 4px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'numeros' ? T.primary : 'transparent',
@@ -774,7 +945,11 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 fontWeight: 700,
                 cursor: 'pointer',
                 textAlign: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                touchAction: 'manipulation',
               }}
             >
               Mis números
@@ -785,7 +960,8 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'ausencias' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                minHeight: 44,
+                padding: '10px 4px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'ausencias' ? T.primary : 'transparent',
@@ -794,7 +970,11 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 fontWeight: 700,
                 cursor: 'pointer',
                 textAlign: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                touchAction: 'manipulation',
               }}
             >
               Ausencias
@@ -805,7 +985,8 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'registro' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                minHeight: 44,
+                padding: '10px 4px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'registro' ? T.primary : 'transparent',
@@ -814,7 +995,11 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 fontWeight: 700,
                 cursor: 'pointer',
                 textAlign: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                touchAction: 'manipulation',
               }}
             >
               Registro
@@ -911,7 +1096,35 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {resumen!.citas_lista.map((c, idx) => (
-                  <div key={idx} className="mj-row" style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0,1fr) auto', gap: 12, alignItems: 'center', padding: '12px 16px', background: T.bgCard, borderRadius: 12, border: `1px solid ${T.border}`, animationDelay: `${Math.min(idx, 12) * 0.025}s` }}>
+                  <div
+                    key={idx}
+                    className="mj-row"
+                    onClick={() => handleAbrirFichaColor(c)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'auto minmax(0,1fr) auto',
+                      gap: 12,
+                      alignItems: 'center',
+                      padding: '13px 16px',
+                      background: T.bgCard,
+                      borderRadius: 12,
+                      border: `1px solid ${c.es_tinte ? 'rgba(244,80,30,0.25)' : T.border}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s cubic-bezier(0.16,1,0.3,1)',
+                      animationDelay: `${Math.min(idx, 12) * 0.025}s`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = T.primary;
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = `0 4px 16px ${T.primarySoft}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = c.es_tinte ? 'rgba(244,80,30,0.25)' : T.border;
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    title="Haz clic para ver o registrar la fórmula técnica de color de esta cita"
+                  >
                     <span style={{ fontSize: 13, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                       {format(parseISO(c.inicio), 'HH:mm', { locale: es })}
                     </span>
@@ -923,11 +1136,59 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                         {c.servicio || 'Servicio'}
                       </div>
                     </div>
-                    {c.es_tinte && (
-                      <span style={{ fontSize: 11, color: T.primaryHi, background: T.primarySoft, padding: '3px 9px', borderRadius: 999, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                        <Icon name="drop" size={12} color={T.primaryHi} /> Color
-                      </span>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {c.es_tinte ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAbrirFichaColor(c);
+                          }}
+                          className="btn-interactive"
+                          style={{
+                            fontSize: 11.5,
+                            color: '#fff',
+                            background: `linear-gradient(135deg, ${T.primary}, ${T.primaryHi})`,
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: 999,
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            cursor: 'pointer',
+                            boxShadow: `0 2px 8px ${T.primarySoft}`,
+                            touchAction: 'manipulation',
+                          }}
+                        >
+                          <Icon name="drop" size={13} color="#fff" /> Color
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAbrirFichaColor(c);
+                          }}
+                          className="btn-interactive"
+                          style={{
+                            fontSize: 11.5,
+                            color: T.textSec,
+                            background: T.bg,
+                            border: `1px solid ${T.border}`,
+                            padding: '5px 10px',
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            cursor: 'pointer',
+                            touchAction: 'manipulation',
+                          }}
+                          title="Registrar fórmula técnica"
+                        >
+                          <Icon name="drop" size={12} color={T.textTer} /> Fórmula
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1149,6 +1410,27 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           content={manualMiJornada}
           isMobile={isMobile}
           onClose={() => setShowManualPanel(false)}
+        />
+      )}
+
+      {showFichaColorModal && fichaColorTarget && (
+        <FichaColorModal
+          mode={fichaColorTarget.mode}
+          ficha={fichaColorTarget.ficha}
+          clienteId={fichaColorTarget.clienteId}
+          negocioId={negocioId}
+          citasCliente={fichaColorTarget.citasCliente}
+          servicios={serviciosCatalogo}
+          profesionales={profesionalesActivos}
+          onClose={() => {
+            setShowFichaColorModal(false);
+            setFichaColorTarget(null);
+          }}
+          onSaved={async () => {
+            setShowFichaColorModal(false);
+            setFichaColorTarget(null);
+            await cargar(periodo);
+          }}
         />
       )}
     </div>

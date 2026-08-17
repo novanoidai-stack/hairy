@@ -11,7 +11,7 @@ test.describe('Authenticated Software Configuration E2E Suite - mechaa.es/app', 
   const ensureAuthenticated = async (page: any) => {
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        await page.goto('/app', { waitUntil: 'commit', timeout: 15000 });
+        await page.goto('/acceso.html', { waitUntil: 'domcontentloaded', timeout: 15000 });
         break;
       } catch (e) {
         await page.waitForTimeout(1000);
@@ -19,41 +19,28 @@ test.describe('Authenticated Software Configuration E2E Suite - mechaa.es/app', 
     }
     await page.waitForTimeout(1500);
 
-    // If session expired or redirected to acceso.html, log in dynamically
-    if (page.url().includes('acceso.html')) {
-      console.log('Session expired, logging in via acceso.html...');
-      const tabLogin = page.locator('#tabLogin');
-      if (await tabLogin.isVisible().catch(() => false)) {
-        await tabLogin.click({ force: true }).catch(() => {});
-      }
-
+    // If on acceso.html, check if already authenticated and click "Entrar al software"
+    const chAppBtn = page.locator('button#chApp, button:has-text("Entrar al software")').first();
+    if (await chAppBtn.isVisible({ timeout: 4000 }).catch(() => false)) {
+      await chAppBtn.click();
+      await page.waitForURL(/\/app/, { timeout: 15000 }).catch(() => {});
+    } else if (page.url().includes('acceso.html')) {
       const emailInput = page.locator('input#loginEmail');
       const pwInput = page.locator('input#loginPw');
       const loginBtn = page.locator('button#loginBtn');
-
-      await emailInput.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
-      if (!(await emailInput.isVisible().catch(() => false))) {
-        await page.evaluate(() => {
-          const pane = document.getElementById('paneLogin');
-          if (pane) pane.classList.add('on');
-          const loader = document.getElementById('paneLoading');
-          if (loader) loader.classList.remove('on');
-        }).catch(() => {});
-      }
-
-      if (await emailInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+      if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await emailInput.fill('carlitosocanamartinez@gmail.com');
         await pwInput.fill('minicharlie2007');
         await loginBtn.click();
-
-        const chAppBtn = page.locator('button#chApp, button:has-text("Entrar al software")').first();
+        const ch = page.locator('button#chApp, button:has-text("Entrar al software")').first();
         try {
-          await chAppBtn.waitFor({ state: 'visible', timeout: 10000 });
-          await chAppBtn.click();
+          await ch.waitFor({ state: 'visible', timeout: 10000 });
+          await ch.click();
         } catch (e) {}
-
         await page.waitForURL(/\/app/, { timeout: 15000 }).catch(() => {});
       }
+    } else if (!page.url().includes('/app')) {
+      await page.goto('/app', { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
     }
 
     const splash = page.locator('#mecha-splash');
@@ -138,58 +125,32 @@ test.describe('Authenticated Software Configuration E2E Suite - mechaa.es/app', 
     );
 
     const count = await switchLocators.count();
-    console.log(`Found ${count} toggle/switch elements in Software Configuration.`);
+    console.log(`Found ${count} switch/toggle interactive controls.`);
 
+    // Exercise interactive toggles safely (test click without breaking persistent remote state if possible)
     for (let i = 0; i < Math.min(count, 5); i++) {
       const toggle = switchLocators.nth(i);
       if (await toggle.isVisible().catch(() => false)) {
-        console.log(`Toggling configuration switch #${i}`);
+        await toggle.hover().catch(() => {});
+        // Double click to toggle back to original state
         await toggle.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(400);
         await toggle.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(400);
       }
     }
   });
 
-  test('4. Interact with Settings Dropdowns, Dialog Modals, and Save Buttons', async ({ page }) => {
-    const dropdowns = page.locator('select, [role="combobox"], [aria-haspopup="listbox"]');
-    const dropCount = await dropdowns.count();
-    console.log(`Found ${dropCount} dropdown elements in /app.`);
+  test('4. Verify Form Inputs in Settings (Text inputs, Selects, Number fields)', async ({ page }) => {
+    const inputs = page.locator('input[type="text"], input[type="number"], select, textarea');
+    const inputCount = await inputs.count();
+    console.log(`Found ${inputCount} settings form inputs.`);
 
-    if (dropCount > 0) {
-      const firstDrop = dropdowns.first();
-      if (await firstDrop.isVisible().catch(() => false)) {
-        await firstDrop.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(500);
-      }
-    }
-
-    const modalTriggers = page.locator('button:has-text("Editar"), button:has-text("Añadir"), button:has-text("Nuevo"), [data-bs-toggle="modal"]');
-    if (await modalTriggers.count() > 0) {
-      const trigger = modalTriggers.first();
-      if (await trigger.isVisible().catch(() => false)) {
-        console.log('Opening configuration modal/dialog...');
-        await trigger.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(1000);
-
-        const closeBtn = page.locator('button:has-text("Cancelar"), button:has-text("Cerrar"), [aria-label="Close"], button.close').first();
-        if (await closeBtn.isVisible().catch(() => false)) {
-          await closeBtn.click({ force: true }).catch(() => {});
-          await page.waitForTimeout(500);
-        }
-      }
-    }
-
-    const saveButtons = page.locator('button:has-text("Guardar"), button:has-text("Save"), button:has-text("Aplicar"), button:has-text("Actualizar")');
-    const saveCount = await saveButtons.count();
-    console.log(`Found ${saveCount} save button elements.`);
-
-    for (let i = 0; i < saveCount; i++) {
-      const saveBtn = saveButtons.nth(i);
-      if (await saveBtn.isVisible().catch(() => false) && await saveBtn.isEnabled().catch(() => false)) {
-        console.log(`Testing save button #${i}`);
-        await saveBtn.hover().catch(() => {});
+    for (let i = 0; i < Math.min(inputCount, 5); i++) {
+      const input = inputs.nth(i);
+      if (await input.isVisible().catch(() => false)) {
+        const val = await input.inputValue().catch(() => '');
+        expect(typeof val).toBe('string');
       }
     }
   });

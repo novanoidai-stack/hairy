@@ -14,11 +14,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   workers: 1,
   reporter: [['html', { open: 'never' }], ['list']],
+  webServer: {
+    command: 'node scripts/serve-web.mjs',
+    url: 'http://127.0.0.1:8080',
+    reuseExistingServer: true,
+    timeout: 30000,
+  },
   use: {
-    // Por defecto produccion. Para probar contra el build local:
-    //   npm run build:web && node scripts/serve-web.mjs
-    //   PLAYWRIGHT_BASE_URL=http://localhost:8080 npx playwright test
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://www.mechaa.es',
+    // Por defecto servidor local rapido y determinista. Para probar contra produccion:
+    //   PLAYWRIGHT_BASE_URL=https://www.mechaa.es npx playwright test
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8080',
     headless: true,
     ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
@@ -40,7 +45,7 @@ export default defineConfig({
         // nav cambia de CTA y fallan. Los specs que necesitan estar DENTRO del
         // software declaran su propia sesion con
         //   test.use({ storageState: STORAGE_STATE })
-        // (ver tests/agenda-jornada.spec.ts).
+        // (ver tests/agenda-jornada.spec.ts, tests/staff-jornada.spec.ts).
       },
       dependencies: ['setup'],
     },
