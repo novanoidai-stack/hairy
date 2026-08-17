@@ -1,5 +1,23 @@
-import * as XLSX from 'xlsx';
-import JSZip from 'jszip';
+// xlsx (~8 MB en disco) y jszip solo hacen falta cuando alguien sube de verdad
+// una hoja de calculo o un .docx. Importarlos arriba los metia en el bundle
+// principal, asi que TODOS los visitantes los descargaban para no usarlos casi
+// nunca. Con import() dinamico viajan en su propio trozo, bajo demanda.
+type ModuloXlsx = typeof import('xlsx');
+// jszip usa `export =`, asi que segun como lo envuelva el bundler el modulo
+// llega tal cual o dentro de .default: se aceptan las dos formas.
+type JsZip = typeof import('jszip');
+
+let xlsxEnVuelo: Promise<ModuloXlsx> | null = null;
+function cargarXlsx(): Promise<ModuloXlsx> {
+  if (!xlsxEnVuelo) xlsxEnVuelo = import('xlsx');
+  return xlsxEnVuelo;
+}
+
+let jszipEnVuelo: Promise<JsZip> | null = null;
+function cargarJsZip(): Promise<JsZip> {
+  if (!jszipEnVuelo) jszipEnVuelo = import('jszip').then((m) => ((m as any).default ?? m) as JsZip);
+  return jszipEnVuelo;
+}
 
 export interface ExtractedDocument {
   type: 'text' | 'image';
@@ -24,6 +42,7 @@ export function cleanExtractedText(rawText: string): string {
  */
 async function extractTextFromDocx(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
+  const JSZip = await cargarJsZip();
   const zip = await JSZip.loadAsync(arrayBuffer);
   const documentXmlFile = zip.file('word/document.xml');
   const xmlString = documentXmlFile ? await documentXmlFile.async('string') : '';
@@ -93,6 +112,7 @@ async function extractTextFromDocx(file: File): Promise<string> {
  */
 async function extractTextFromExcel(file: File): Promise<string> {
   const data = await file.arrayBuffer();
+  const XLSX = await cargarXlsx();
   const workbook = XLSX.read(data, { type: 'array' });
   let fullText = '';
 

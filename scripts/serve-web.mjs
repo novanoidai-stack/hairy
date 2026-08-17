@@ -10,6 +10,8 @@ import http from 'node:http';
 import { promises as fs } from 'node:fs';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
+import { pipeline } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,6 +95,29 @@ async function resolveFile(urlPath) {
   return null;
 }
 
+// Mismas reglas de Cache-Control que vercel.json, para que medir en local se
+// parezca a produccion. Los estaticos del export de Expo llevan hash en el
+// nombre, asi que son immutable; el resto de /app (index.html, manifest) no.
+const INMUTABLE = 'public, max-age=31536000, immutable';
+function cacheControl(pathname) {
+  if (pathname.startsWith('/app/_expo/') || pathname.startsWith('/app/assets/')) return INMUTABLE;
+  if (pathname.startsWith('/app')) return 'no-store, must-revalidate';
+  if (/^\/assets\/.*\.(png|jpg|jpeg|gif|webp|avif|svg|ico|mp3|woff|woff2|ttf|otf)$/.test(pathname)) return INMUTABLE;
+  if (/^\/assets\/.*\.(css|js)$/.test(pathname)) return 'public, max-age=600, stale-while-revalidate=86400';
+  return 'public, max-age=0, must-revalidate';
+}
+
+// Vercel comprime todo lo que sirve. Sin esto, medir tamanos en local engana:
+// el bundle del app pasa de ~7 MB en claro a una fraccion por la red.
+const COMPRIMIBLE = /^(text\/|application\/(javascript|json|manifest|xml)|image\/svg)/;
+function encoding(req, type) {
+  if (!COMPRIMIBLE.test(type)) return null;
+  const acepta = String(req.headers['accept-encoding'] || '');
+  if (/\bbr\b/.test(acepta)) return 'br';
+  if (/\bgzip\b/.test(acepta)) return 'gzip';
+  return null;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const file = await resolveFile(req.url || '/');
@@ -101,8 +126,19 @@ const server = http.createServer(async (req, res) => {
       res.end('<h1>404</h1><p>No encontrado. Si esperabas el software, ejecuta primero <code>npm run build:web</code>.</p>');
       return;
     }
-    res.writeHead(200, { 'Content-Type': contentType(file), 'Cache-Control': 'no-cache' });
-    createReadStream(file).pipe(res);
+    const pathname = decodeURIComponent((req.url || '/').split('?')[0]);
+    const type = contentType(file);
+    const enc = encoding(req, type);
+    const headers = { 'Content-Type': type, 'Cache-Control': cacheControl(pathname) };
+    if (enc) {
+      headers['Content-Encoding'] = enc;
+      headers['Vary'] = 'Accept-Encoding';
+    }
+    res.writeHead(200, headers);
+    const origen = createReadStream(file);
+    if (!enc) { origen.pipe(res); return; }
+    const compresor = enc === 'br' ? zlib.createBrotliCompress() : zlib.createGzip();
+    pipeline(origen, compresor, res, () => {});
   } catch (err) {
     res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('500 ' + (err?.message || 'error'));

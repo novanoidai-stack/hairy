@@ -85,7 +85,25 @@
       ]
     },
     {
-      "source": "/app/(.*)",
+      "source": "/app/_expo/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/app/assets/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/app",
       "headers": [
         {
           "key": "Cache-Control",
@@ -94,7 +112,16 @@
       ]
     },
     {
-      "source": "/assets/(.*).(png|jpg|jpeg|gif|webp|svg|ico|mp3|woff|woff2|ttf|otf)",
+      "source": "/app/:path((?!_expo/|assets/).*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*).(png|jpg|jpeg|gif|webp|avif|svg|ico|mp3|woff|woff2|ttf|otf)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -105,7 +132,7 @@
     {
       "source": "/assets/(.*).(css|js)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        { "key": "Cache-Control", "value": "public, max-age=600, stale-while-revalidate=86400" }
       ]
     }
   ]

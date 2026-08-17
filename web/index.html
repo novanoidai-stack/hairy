@@ -375,7 +375,9 @@
 <!-- Fuentes y estilos propios de la landing v5 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Newsreader:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap" /></noscript>
 <style>
 :root{--paper:#fdf6f0;--paper-2:#fff;--ink:#15100b;--ink-2:#5d5349;--ink-3:#8d8278;--line:rgba(21,16,11,.10);--line-2:rgba(21,16,11,.20);--card:#fff;--accent:#f4501e;--accent-hi:#ff8a3d;--gold:#ffcf4a;--accent-soft:rgba(244,80,30,.09);--ok:#0f9b6c;--ok-soft:rgba(15,155,108,.11);--lav:#7c6cf0;--lav-soft:rgba(124,108,240,.13);--peach:rgba(255,176,90,.18);--mint:rgba(15,155,108,.13);--shadow:0 26px 60px -34px rgba(21,16,11,.32);--shadow-s:0 6px 18px -10px rgba(21,16,11,.28);--display:'Bricolage Grotesque',system-ui,sans-serif;--serif:'Newsreader',Georgia,serif;--body:'Inter',system-ui,-apple-system,sans-serif}
 body[data-theme="dark"]{--paper:#0a0908;--paper-2:#12100e;--ink:#f8f4ee;--ink-2:#b0a69c;--ink-3:#8b8177;--line:rgba(255,255,255,.10);--line-2:rgba(255,255,255,.20);--card:#171311;--accent-soft:rgba(244,80,30,.16);--ok-soft:rgba(15,155,108,.17);--lav-soft:rgba(124,108,240,.2);--peach:rgba(255,176,90,.16);--mint:rgba(15,155,108,.16);--shadow:0 30px 70px -30px rgba(0,0,0,.85);--shadow-s:0 8px 20px -12px rgba(0,0,0,.8)}
@@ -799,7 +801,7 @@ button,input{font-family:inherit}
 </div>
 <div style="display:flex;align-items:center;gap:10px;padding:8px 12px 10px;background:#1f2c33">
 <svg viewBox="0 0 24 24" style="width:18px;height:18px;flex:none" fill="none" stroke="#e9edef" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-<img src="assets/v4/chispa-avatar.png" alt="Chispa" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;background:#0b141a" />
+<picture><source srcset="assets/v4/chispa-avatar-96.webp" type="image/webp" /><img src="assets/v4/chispa-avatar-96.png" alt="Chispa" width="34" height="34" decoding="async" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;background:#0b141a" /></picture>
 <div style="flex:1;min-width:0">
 <div style="font-weight:600;font-size:14px;color:#e9edef;line-height:1.2">Studio Norte</div>
 <div style="font-size:11px;color:#9fb0b8;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:mBlink 2.4s infinite"></span>en línea</div>
@@ -831,7 +833,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </div>
 <div style="display:flex;flex-direction:column;gap:12px">
 <div style="border:1px solid rgba(15,155,108,.35);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><img src="assets/v4/chispa-avatar.png" alt="" style="width:34px;height:34px;border-radius:10px;object-fit:cover" /><b style="font-family:var(--display);font-size:17px">IA por WhatsApp</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:5px 10px;border-radius:8px">19 €/mes</span></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><picture><source srcset="assets/v4/chispa-avatar-96.webp" type="image/webp" /><img src="assets/v4/chispa-avatar-96.png" alt="" width="34" height="34" loading="lazy" decoding="async" style="width:34px;height:34px;border-radius:10px;object-fit:cover" /></picture><b style="font-family:var(--display);font-size:17px">IA por WhatsApp</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:5px 10px;border-radius:8px">19 €/mes</span></div>
 <p style="margin:0;font-size:14px;color:var(--ink-2)">Da cita, mueve citas, responde precios y horarios, pide la señal y crea la ficha. Nunca ofrece un hueco que no existe: lee tu agenda real. Pruébala aquí al lado.</p>
 </div>
 <div style="border:1px solid rgba(244,80,30,.4);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--accent-soft),var(--card) 60%);box-shadow:var(--shadow-s)">
@@ -986,25 +988,83 @@ function sweep(){
   document.querySelectorAll(".reveal").forEach(el=>{ if(!el.classList.contains("on") && el.getBoundingClientRect().top<innerHeight*0.9) el.classList.add("on"); });
   document.querySelectorAll("[data-count]").forEach(el=>{ if(!el.dataset.done && el.getBoundingClientRect().top<innerHeight*0.92) countUp(el); });
 }
-function onScroll(){
+
+/* Elementos fijos del scroll: se buscan UNA vez, no en cada evento.
+   OJO: este <script> va incrustado en mitad del body, asi que cuando se ejecuta
+   todavia NO existe el marcado que viene despues. Por eso todo lo que consulta
+   el DOM se resuelve en arrancar(), ya con la pagina entera parseada. */
+let barraProgreso = null;
+let ctaFlotante   = null;
+let finContacto   = null;
+let conectores    = [];
+let scrollEnCola  = false;
+
+/* Aparicion de secciones y contadores.
+   Antes esto era un setInterval(sweep,400) eterno: cada 0,4 s recorria TODO el
+   documento y llamaba a getBoundingClientRect() en cada elemento, que obliga al
+   navegador a recalcular el layout. Con la pagina quieta y hasta en segundo
+   plano. IntersectionObserver hace lo mismo sin trabajo cuando no pasa nada. */
+function arrancar(){
+  barraProgreso = document.querySelector("[data-progress]");
+  ctaFlotante   = document.querySelector("[data-sticky-cta]");
+  finContacto   = document.getElementById("contacto");
+  conectores    = Array.from(document.querySelectorAll(".conn>div"));
+  focoRaton     = document.querySelector("[data-spot]");
+
+  if ("IntersectionObserver" in window) {
+    const alAparecer = new IntersectionObserver((entradas, obs) => {
+      entradas.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        if (el.classList.contains("reveal")) el.classList.add("on");
+        if (el.hasAttribute("data-count") && !el.dataset.done) countUp(el);
+        obs.unobserve(el); // una vez visto, no hay nada mas que vigilar
+      });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    document.querySelectorAll(".reveal,[data-count]").forEach(el => alAparecer.observe(el));
+  } else {
+    sweep();
+    setInterval(sweep, 400);
+  }
+
+  pintarScroll();
+}
+
+function pintarScroll(){
+  scrollEnCola = false;
   const d=document.documentElement;
   const p=d.scrollTop/Math.max(1,d.scrollHeight-d.clientHeight);
-  const bar=document.querySelector("[data-progress]"); if(bar) bar.style.width=(p*100).toFixed(2)+"%";
-  const cta=document.querySelector("[data-sticky-cta]");
-  if(cta){
-    const fin=document.getElementById("contacto");
-    const cerca=fin && fin.getBoundingClientRect().top<innerHeight*1.1;
-    cta.style.transform=p>0.16 && !cerca ? "translateY(0)":"translateY(120%)";
+  if(barraProgreso) barraProgreso.style.width=(p*100).toFixed(2)+"%";
+  if(ctaFlotante){
+    const cerca=finContacto && finContacto.getBoundingClientRect().top<innerHeight*1.1;
+    ctaFlotante.style.transform=p>0.16 && !cerca ? "translateY(0)":"translateY(120%)";
   }
-  document.querySelectorAll(".conn>div").forEach(el=>{
+  conectores.forEach(el=>{
     const r=el.parentElement.getBoundingClientRect();
     const k=Math.max(0,Math.min(1,(innerHeight*0.85-r.top)/(r.height+60)));
     el.style.transform="scaleY("+k.toFixed(3)+")";
   });
-  sweep();
+}
+
+// Un solo repintado por frame: el evento scroll llega mucho mas a menudo que
+// los 60 fps que el navegador puede dibujar, y cada vuelta media el layout.
+function onScroll(){
+  if(scrollEnCola) return;
+  scrollEnCola = true;
+  requestAnimationFrame(pintarScroll);
 }
 addEventListener("scroll",onScroll,{passive:true});
-addEventListener("mousemove",e=>{ const s=document.querySelector("[data-spot]"); if(s) s.style.marginLeft=(e.clientX*0.02)+"px"; },{passive:true});
+// El foco que sigue al raton: elemento cacheado y un repintado por frame
+// (mousemove dispara cientos de veces por segundo; antes cada uno hacia su
+// propia busqueda en el DOM y su propia escritura de estilo).
+let focoRaton = null, xRaton = 0, focoEnCola = false;
+addEventListener("mousemove", e => {
+  if (!focoRaton) return;
+  xRaton = e.clientX;
+  if (focoEnCola) return;
+  focoEnCola = true;
+  requestAnimationFrame(() => { focoEnCola = false; focoRaton.style.marginLeft = (xRaton * 0.02) + "px"; });
+}, { passive: true });
 
 /* comparativa */
 const FILAS=[
@@ -1076,9 +1136,16 @@ document.getElementById("chatForm").addEventListener("submit",e=>{
 });
 
 calc();
-sweep();
-onScroll();
-setInterval(sweep,400);
+
+// Este <script> vive dentro del body: al ejecutarse aun falta por parsear todo
+// el marcado que va debajo. Las secciones que aparecen al hacer scroll estan
+// ahi, asi que el observador se monta cuando el documento esta completo (antes
+// esto lo tapaba el setInterval, que reintentaba cada 0,4 s para siempre).
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", arrancar);
+} else {
+  arrancar();
+}
 </script>
 
 <!-- ============ SESION / SSO (Google aterriza en esta landing con el access_token) ============ -->

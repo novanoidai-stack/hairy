@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { supabase, IS_DEMO_MODE, signInDemoViewer } from '@/lib/supabase';
+import { supabase, IS_DEMO_MODE, signInDemoViewer, AUTH_STORAGE_KEY } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -27,13 +27,12 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import './globals.css';
 
-// Load Google Fonts for web + inject default text color
+// Inject default text color + PWA bits.
+// Las fuentes NO se piden aqui: la hoja de Google Fonts (Inter + Bricolage +
+// Instrument Serif) va ya en el <head> de web/app/index.html, que la inyecta
+// scripts/postbuild-web.mjs. Antes se pedia ademas desde aqui y desde
+// WebScrollbarStyles, asi que el navegador descargaba la MISMA hoja tres veces.
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
-  const link = document.createElement('link');
-  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap';
-  link.rel = 'stylesheet';
-  document.head.appendChild(link);
-
   // PWA: manifest + theme-color. No se puede usar app/+html.tsx (este proyecto
   // exporta en modo SPA, no static; +html.tsx no se aplica), asi que se inyecta
   // en runtime igual que las fuentes de arriba.
@@ -119,6 +118,33 @@ async function veredictoDeAcceso(cancelado: () => boolean): Promise<Veredicto> {
   return 'desconocido';
 }
 
+// --- Sesion: "no hay" no es lo mismo que "no he podido leerla" -------------
+// getSession() devuelve null tambien cuando el token habia caducado y el
+// refresco fallo (por ejemplo un parpadeo de red): el refresh_token puede
+// seguir siendo perfectamente bueno. Echar a la calle en ese caso es el viejo
+// "te logueas y se te sale afuera" que ya se corrigio en veredictoDeAcceso().
+// Si NO hay nada guardado, en cambio, no hay nada que reintentar: fuera y ya.
+function haySesionGuardada(): boolean {
+  try {
+    return !!window.localStorage.getItem(AUTH_STORAGE_KEY);
+  } catch {
+    return false; // modo privado: sin almacen no hay sesion que recuperar
+  }
+}
+
+async function reintentarSesion(cancelado: () => boolean): Promise<any | null> {
+  for (const espera of [500, 1500]) {
+    await new Promise((r) => setTimeout(r, espera));
+    if (cancelado()) return null;
+    const { data } = await supabase.auth.getSession();
+    if (data?.session) return data.session;
+    // Si por el camino ha desaparecido lo guardado (signOut, sesion revocada),
+    // ya no es un fallo de lectura: es que no hay sesion.
+    if (!haySesionGuardada()) return null;
+  }
+  return null;
+}
+
 const CLAVE_ACCESO = 'mecha_acceso:';
 
 function recordarAcceso(uid: string, valor: 'free' | 'completo') {
@@ -132,13 +158,20 @@ function recuerdoDeAcceso(uid: string): string | null {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_800ExtraBold,
-  });
+  // Los .ttf de Inter solo hacen falta en NATIVO. En web la fuente llega como
+  // woff2 desde Google Fonts (ver el <head> de index.html), asi que cargar
+  // ademas los cinco ttf del bundle eran 1,7 MB de descarga para nada.
+  const [fontsLoaded, fontError] = useFonts(
+    Platform.OS === 'web'
+      ? {}
+      : {
+          Inter_400Regular,
+          Inter_500Medium,
+          Inter_600SemiBold,
+          Inter_700Bold,
+          Inter_800ExtraBold,
+        },
+  );
 
   const [session, setSession] = useState<any>(undefined);
   // Demo compartida: hasta que no aterriza su sesion no se puede consultar nada.
@@ -146,6 +179,9 @@ export default function RootLayout() {
   // quedan vacias y NO se reintentan: el visitante veia "0 citas" para siempre.
   // Esto marca cuando ya no tiene sentido seguir esperando (fallo o timeout).
   const [demoSinSesion, setDemoSinSesion] = useState(false);
+  // Hay sesion guardada pero getSession no la ha podido resolver todavia: se
+  // reintenta manteniendo el spinner (ver reintentarSesion).
+  const [recuperandoSesion, setRecuperandoSesion] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const isWeb = Platform.OS === 'web';
@@ -206,7 +242,27 @@ export default function RootLayout() {
             .catch(() => setDemoSinSesion(true));
           return;
         }
-        window.location.href = '/acceso.html';
+        // Nada guardado: no hay sesion de verdad, a la landing sin dar vueltas.
+        if (!haySesionGuardada()) {
+          window.location.href = '/acceso.html';
+          return;
+        }
+        // Hay sesion guardada pero no hemos podido resolverla. Se reintenta
+        // antes de echar a nadie; mientras tanto seguimos en el spinner en vez
+        // de montar la app sin token (pantallas vacias que no se reintentan).
+        let cancelado = false;
+        setRecuperandoSesion(true);
+        reintentarSesion(() => cancelado)
+          .catch(() => null)
+          .then((s) => {
+            if (cancelado) return;
+            setRecuperandoSesion(false);
+            if (s) setSession(s);
+            else window.location.href = '/acceso.html';
+          });
+        // Si la sesion aparece por otro lado (onAuthStateChange) se corta el
+        // reintento y se quita el spinner: si no, se quedaria girando.
+        return () => { cancelado = true; setRecuperandoSesion(false); };
       }
       return;
     }
@@ -288,7 +344,7 @@ export default function RootLayout() {
   // se queda colgado: mejor entrar y que la pantalla avise que quedarse fijo).
   const esperandoDemo = isWeb && IS_DEMO_MODE && session === null && !isPublicRoute && !demoSinSesion;
 
-  if (session === undefined || esperandoDemo) {
+  if (session === undefined || esperandoDemo || recuperandoSesion) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f1ea' }}>
         <ActivityIndicator size="large" color="#f4501e" />

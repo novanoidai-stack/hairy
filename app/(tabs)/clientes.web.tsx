@@ -20,7 +20,6 @@ import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ejecutarAccion, type AccionPropuesta } from '@/lib/chispaOps';
-import * as XLSX from 'xlsx';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualClientes } from '@/lib/manuals/clientes';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
@@ -2910,9 +2909,12 @@ function ImportModal({ negocioId, onClose, onSaved }: {
     setError('');
     
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        // xlsx pesa varios MB: se trae aqui, cuando ya hay un fichero de verdad
+        // que leer, en vez de viajar en el bundle que descarga todo el mundo.
+        const XLSX = await import('xlsx');
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];

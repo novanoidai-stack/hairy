@@ -61,7 +61,14 @@ const headInject = `
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&display=swap" />
+    <!-- UNICA hoja de fuentes de la app (antes se pedia tambien desde _layout.tsx y
+         WebScrollbarStyles: tres descargas de lo mismo). Las tres familias que usa
+         el software: Inter (texto), Bricolage Grotesque (titulares) e Instrument
+         Serif. Se carga sin bloquear el render (media=print + onload) para que el
+         splash pinte de inmediato; el <noscript> cubre el caso sin JS. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap" />
+    <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap" /></noscript>
     <style id="mecha-splash-css">
       #root { background: #f6f1ea; }
       .mecha-splash {

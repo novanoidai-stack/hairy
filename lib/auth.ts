@@ -34,8 +34,15 @@ export interface UserProfile {
 // corta) y comparte la peticion en vuelo, sin arriesgar datos rancios: se
 // invalida en cualquier cambio de sesion y tras mutar el propio perfil. No cachea
 // resultados nulos ni errores transitorios (para que un fallo de red se reintente).
+// El TTL era de 8 s, pensado solo para colapsar la rafaga del montaje inicial.
+// Pero getUserProfile() lo llama CADA pantalla al montarse, asi que moverse
+// entre pestanas cada pocos segundos volvia a pagar el viaje a /auth/v1/user
+// (300-500 ms) una y otra vez, y la navegacion se sentia pastosa. 60 s es
+// seguro porque el cache no depende del reloj para lo que importa: se invalida
+// al instante en cualquier cambio de sesion, al cambiar de identidad en el
+// mostrador y tras editar el propio perfil.
 type Cache<T> = { at: number; promise: Promise<T> } | null;
-const AUTH_TTL_MS = 8000;
+const AUTH_TTL_MS = 60000;
 let userCache: Cache<Awaited<ReturnType<typeof rawGetUser>>> = null;
 let profileCache: Cache<UserProfile | null> = null;
 

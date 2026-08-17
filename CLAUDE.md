@@ -65,6 +65,18 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    `Documentacion/` está en `.gitignore` porque contiene client secrets de Google — no versionar.
 5. **Sin claims falsos:** nada de reseñas/ratings inventados en structured data ni cifras
    sin fuente en la landing (ya se retiraron una vez).
+6. **RLS rápida (17 ago 2026):** toda política nueva envuelve sus llamadas en `(select ...)`
+   — `(select auth.uid())`, `(select is_shared_demo_visitor())`, `(select my_negocio_id_text())`.
+   Suelta, Postgres la ejecuta una vez POR FILA; dentro de un subselect la evalúa una vez por
+   consulta (InitPlan). Y los ayudantes de RLS van `STABLE`, **nunca `VOLATILE`**: `is_staff()`
+   volátil provocó por sí sola 24 M de seq scans sobre `staff` y 456 M de tuplas leídas en
+   `citas`. Se comprueba en el plan (`One-Time Filter` + `InitPlan`) y con el advisor de
+   rendimiento (aviso `auth_rls_initplan`). Migraciones: `migrations/rendimiento-rls-initplan.sql`
+   (idempotente, se puede repasar tras añadir políticas) y `rendimiento-funciones-estables-e-indices.sql`.
+7. **Caché de `/app` (17 ago 2026):** los estáticos del export de Expo llevan hash en el nombre,
+   así que `/app/_expo/*` y `/app/assets/*` van `immutable` en `vercel.json`; solo `index.html`
+   y el resto de `/app` van `no-store`. Estuvo TODO en `no-store` y eso obligaba a re-descargar
+   el bundle de ~7 MB en cada carga, login y apertura de demo. No volver a poner `no-store` a `/app/(.*)`.
 
 ## Convenciones de código
 

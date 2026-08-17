@@ -864,9 +864,9 @@ export default function AgendaCalendar() {
       .then(setMensajesSinLeer)
       .catch(() => {});
   }, [negocioId]);
-  useEffect(() => {
-    refreshMensajesSinLeer();
-  }, [refreshMensajesSinLeer]);
+  // Solo useFocusEffect: ya se dispara al montar con la agenda enfocada. El
+  // useEffect que habia aqui ademas hacia que cada montaje pidiera la cuenta
+  // DOS veces (dos viajes identicos a la base de datos, uno por cada efecto).
   useFocusEffect(
     useCallback(() => {
       refreshMensajesSinLeer();
@@ -883,9 +883,8 @@ export default function AgendaCalendar() {
       if (!error) setClientesFugaCount((data ?? []).length);
     });
   }, [onboardingEligible]);
-  useEffect(() => {
-    refreshClientesFuga();
-  }, [refreshClientesFuga]);
+  // Igual que arriba: useFocusEffect ya cubre el montaje, el useEffect solo
+  // duplicaba la llamada al RPC de riesgo de fuga.
   useFocusEffect(
     useCallback(() => {
       refreshClientesFuga();
