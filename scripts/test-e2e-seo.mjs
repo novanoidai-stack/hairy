@@ -34,7 +34,7 @@ export function generateSalonJsonLd(salon) {
       'addressCountry': 'ES'
     },
     'priceRange': '€€',
-    'image': 'https://www.mechaa.es/og-image.png'
+    'image': 'https://www.mechaa.es/og-image.jpg'
   };
 }
 

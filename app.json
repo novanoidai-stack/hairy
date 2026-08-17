@@ -27,7 +27,15 @@
       "backgroundColor": "#f6f1ea"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "asyncRoutes": {
+            "web": "production",
+            "default": false
+          }
+        }
+      ],
       "expo-secure-store"
     ],
     "experiments": {

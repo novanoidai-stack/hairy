@@ -1056,11 +1056,11 @@ body, html {
         <div class="card-gallery">
           <span class="cust-label">Galería de Trabajos (Antes / Después)</span>
           <div class="gallery-main" id="galleryMain">
-            <img src="assets/hair-style-1.png" alt="Hair Style History">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23141210'/%3E%3Cpath d='M150 190l35-45 30 38 22-26 33 43H150z' fill='%23f4501e' opacity='.45'/%3E%3Ccircle cx='160' cy='120' r='16' fill='%23f4501e' opacity='.35'/%3E%3C/svg%3E" alt="Hair Style History">
           </div>
           <div class="gallery-thumbs">
-            <div class="gallery-thumb" style="border-color: var(--accent);"><img src="assets/hair-style-1.png" alt="thumb1"></div>
-            <div class="gallery-thumb"><img src="assets/hair-style-2.png" alt="thumb2"></div>
+            <div class="gallery-thumb" style="border-color: var(--accent);"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23141210'/%3E%3Cpath d='M150 190l35-45 30 38 22-26 33 43H150z' fill='%23f4501e' opacity='.45'/%3E%3Ccircle cx='160' cy='120' r='16' fill='%23f4501e' opacity='.35'/%3E%3C/svg%3E" alt="thumb1"></div>
+            <div class="gallery-thumb"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23141210'/%3E%3Cpath d='M150 190l35-45 30 38 22-26 33 43H150z' fill='%23f4501e' opacity='.45'/%3E%3Ccircle cx='160' cy='120' r='16' fill='%23f4501e' opacity='.35'/%3E%3C/svg%3E" alt="thumb2"></div>
             <div class="gallery-thumb"><svg viewBox="0 0 24 24" style="width:24px; fill:var(--border);"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c0 1.1.9-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
           </div>
         </div>
@@ -1555,7 +1555,9 @@ document.addEventListener('DOMContentLoaded', () => {
   tl.fromTo('#formulaText', { borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }, { borderColor: 'var(--border-glow)', background: 'rgba(244, 80, 30, 0.08)', duration: 0.6 }, 48.60);
   tl.to('#galleryMain img', { opacity: 0, duration: 0.3 }, 50.60);
   tl.add(() => {
-    document.querySelector('#galleryMain img').src = "assets/hair-style-2.png";
+    // (Antes aqui se cambiaba la foto de la galeria por hair-style-2.png. Esas
+    // dos imagenes eran 1,4 MB de peso muerto en el despliegue y se retiraron;
+    // el hueco queda con el marcador de arriba.)
   }, 50.90);
   tl.to('#galleryMain img', { opacity: 1, duration: 0.3 }, 51.00);
 

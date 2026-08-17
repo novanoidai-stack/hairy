@@ -90,7 +90,7 @@ function buildSalonPage(s, template, styleBlock, bodyPart) {
   const descripcion = descripcionRaw.length > 155
     ? descripcionRaw.slice(0, 152).replace(/\s+\S*$/, '').trim() + '…'
     : descripcionRaw;
-  const ogImage = s.foto || `${BASE_URL}/og-image.png`;
+  const ogImage = s.foto || `${BASE_URL}/og-image.jpg`;
 
   const ldBlocks = `<script type="application/ld+json" id="salon-jsonld">
 ${JSON.stringify(salonJsonLd(s), null, 2)}

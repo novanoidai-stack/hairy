@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import { entrarAlSoftware } from './helpers/software';
 const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/user.json');
 
 test.use({ storageState: STORAGE_STATE });
@@ -8,47 +9,12 @@ test.describe('Authenticated Software Configuration E2E Suite - mechaa.es/app', 
   let pageErrors: Error[] = [];
   let consoleErrors: string[] = [];
 
+  // Entrar es responsabilidad de tests/auth.setup.ts + helpers/software.ts.
+  // Aqui habia una copia del login (correo y contrasena a mano) como plan B
+  // por si el storageState venia vacio; eso tapaba el fallo real y ademas
+  // repetia la dependencia del CDN externo de acceso.html en cada test.
   const ensureAuthenticated = async (page: any) => {
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        await page.goto('/acceso.html', { waitUntil: 'domcontentloaded', timeout: 15000 });
-        break;
-      } catch (e) {
-        await page.waitForTimeout(1000);
-      }
-    }
-    await page.waitForTimeout(1500);
-
-    // If on acceso.html, check if already authenticated and click "Entrar al software"
-    const chAppBtn = page.locator('button#chApp, button:has-text("Entrar al software")').first();
-    if (await chAppBtn.isVisible({ timeout: 4000 }).catch(() => false)) {
-      await chAppBtn.click();
-      await page.waitForURL(/\/app/, { timeout: 15000 }).catch(() => {});
-    } else if (page.url().includes('acceso.html')) {
-      const emailInput = page.locator('input#loginEmail');
-      const pwInput = page.locator('input#loginPw');
-      const loginBtn = page.locator('button#loginBtn');
-      if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await emailInput.fill('carlitosocanamartinez@gmail.com');
-        await pwInput.fill('minicharlie2007');
-        await loginBtn.click();
-        const ch = page.locator('button#chApp, button:has-text("Entrar al software")').first();
-        try {
-          await ch.waitFor({ state: 'visible', timeout: 10000 });
-          await ch.click();
-        } catch (e) {}
-        await page.waitForURL(/\/app/, { timeout: 15000 }).catch(() => {});
-      }
-    } else if (!page.url().includes('/app')) {
-      await page.goto('/app', { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
-    }
-
-    const splash = page.locator('#mecha-splash');
-    if (await splash.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await splash.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
-    }
-
-    await page.waitForTimeout(1500);
+    await entrarAlSoftware(page, '/app');
   };
 
   test.beforeEach(async ({ page }) => {

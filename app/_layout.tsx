@@ -132,17 +132,27 @@ function haySesionGuardada(): boolean {
   }
 }
 
+// Tope de la recuperacion. Con la red caida del todo, auth-js reintenta el
+// refresco por dentro con esperas largas, y sin este tope el visitante se
+// quedaba medio minuto mirando el spinner. Pasado el tope se le manda a la
+// landing, que es lo que hacia antes.
+const LIMITE_RECUPERACION_MS = 8000;
+
 async function reintentarSesion(cancelado: () => boolean): Promise<any | null> {
-  for (const espera of [500, 1500]) {
-    await new Promise((r) => setTimeout(r, espera));
-    if (cancelado()) return null;
-    const { data } = await supabase.auth.getSession();
-    if (data?.session) return data.session;
-    // Si por el camino ha desaparecido lo guardado (signOut, sesion revocada),
-    // ya no es un fallo de lectura: es que no hay sesion.
-    if (!haySesionGuardada()) return null;
-  }
-  return null;
+  const intentos = async (): Promise<any | null> => {
+    for (const espera of [500, 1500]) {
+      await new Promise((r) => setTimeout(r, espera));
+      if (cancelado()) return null;
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) return data.session;
+      // Si por el camino ha desaparecido lo guardado (signOut, sesion
+      // revocada), ya no es un fallo de lectura: es que no hay sesion.
+      if (!haySesionGuardada()) return null;
+    }
+    return null;
+  };
+  const rendirse = new Promise<null>((r) => setTimeout(() => r(null), LIMITE_RECUPERACION_MS));
+  return Promise.race([intentos(), rendirse]);
 }
 
 const CLAVE_ACCESO = 'mecha_acceso:';

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
 import { STORAGE_STATE } from '../playwright.config';
+import { entrarAlSoftware as abrirSoftware } from './helpers/software';
 
 // E2E Test Suite for R4: Staff Panel, Mi Jornada & Art. 34.9 ET Shift Clocking Compliance
 //
@@ -13,38 +13,20 @@ import { STORAGE_STATE } from '../playwright.config';
 
 test.use({ storageState: STORAGE_STATE });
 
-async function entrarAlSoftware(page: any, _destino: string = '/app') {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      await page.goto('/acceso.html', { waitUntil: 'domcontentloaded', timeout: 15000 });
-      break;
-    } catch (e) {
-      await page.waitForTimeout(500);
-    }
-  }
-
-  // Handle access/login screen if redirected
-  const chApp = page.locator('button#chApp, button:has-text("Entrar al software")').first();
-  if (await chApp.isVisible({ timeout: 4000 }).catch(() => false)) {
-    await chApp.click();
-    await page.waitForURL(/\/app/, { timeout: 15000 }).catch(() => {});
-  } else if (!page.url().includes('/app')) {
-    await page.goto('/app', { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
-  }
-
-  const splash = page.locator('#mecha-splash');
-  if (await splash.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await splash.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
-  }
-
-  await page.waitForTimeout(1000);
-
-  // Navigate to Mi Jornada tab in sidebar
-  const miJornadaTab = page.locator('text=/Mi jornada/i').first();
-  if (await miJornadaTab.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await miJornadaTab.click({ force: true });
-    await page.waitForTimeout(1000);
-  }
+// Estos tests van todos de la pantalla "Mi jornada", asi que se entra
+// directamente a su ruta.
+//
+// Antes se intentaba llegar pinchando "Mi jornada" en el menu lateral, y eso no
+// funcionaba NUNCA: el rail va contraido por defecto, con lo que la etiqueta no
+// existe en el DOM. Ademas la comprobacion era `isVisible({ timeout })`, que en
+// Playwright NO espera (la opcion se ignora): devolvia false al instante, el
+// click se saltaba en silencio y el test se quedaba en la Agenda comprobando
+// textos de una pantalla en la que no estaba.
+async function entrarAMiJornada(page: any) {
+  await abrirSoftware(page, '/app/mi-jornada');
+  await expect(page.getByText(/Tu fichaje de hoy|Fichar entrada|Mi jornada/i).first()).toBeVisible({
+    timeout: 30000,
+  });
 }
 
 test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
@@ -88,7 +70,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
       });
     });
 
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
 
     // Verify main clocking actions container
     const clockingArea = page.locator('text=/Fichar entrada|Fichar salida|Pausa|Reanudar|Tu fichaje de hoy/i').first();
@@ -129,7 +111,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
       });
     });
 
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
 
     // Trigger clock in button if visible
     const entradaBtn = page.locator('button:has-text("Fichar entrada")').first();
@@ -142,7 +124,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
   });
 
   test('T1.3: Monthly Shift PDF Export contains formal Signature Boxes ("Firma del Trabajador" / "Sello y Firma de la Empresa")', async ({ page }) => {
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
 
     const { generarJornadaPdf } = await import('../lib/jornadaPdf.web');
     const mockData = {
@@ -197,7 +179,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
   });
 
   test('T1.4: Technical Color Formulas (FichaColorModal) Form Inputs & Validation', async ({ page }) => {
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
 
     // Verify presence of staff panel and color formulas integration
     const staffPanel = page.locator('div:has-text("Mi jornada"), div:has-text("Fichar"), div:has-text("Tu fichaje de hoy")').first();
@@ -247,7 +229,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
       });
     });
 
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
 
     // Test transition: fuera -> trabajando
     const btnEntrada = page.locator('button:has-text("Fichar entrada")').first();
@@ -266,7 +248,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
   for (const vp of staffViewports) {
     test(`T2.2: Mobile Viewport Zero Clipping on Mi Jornada — ${vp.name}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await entrarAlSoftware(page);
+      await entrarAMiJornada(page);
       await page.waitForTimeout(1500);
 
       const [scrollW, clientW] = await page.evaluate(() => [
@@ -303,7 +285,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
       });
     });
 
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
     await page.waitForTimeout(1500);
 
     // Verify RegistroJornada component or totals section mounted
@@ -316,7 +298,7 @@ test.describe('Staff Panel & Mi Jornada E2E Suite (R4 / Art. 34.9 ET)', () => {
   // =========================================================================
 
   test('T4.1: Complete Stylist Working Day Lifecycle (Clock In -> Work -> Pause -> Resume -> Clock Out -> Export PDF)', async ({ page }) => {
-    await entrarAlSoftware(page);
+    await entrarAMiJornada(page);
     await page.waitForTimeout(1000);
 
     // Verify presence of staff member details or link notice

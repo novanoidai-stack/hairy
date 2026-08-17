@@ -103,12 +103,12 @@ export function breadcrumbJsonLd(items) {
  * @param {string} [o.robots]    default 'index, follow'
  * @param {object[]} [o.jsonLd]  bloques JSON-LD ya construidos
  * @param {string} o.bodyHtml    HTML del <main>
- * @param {string} [o.ogImage]   imagen OG (por defecto /og-image.png)
+ * @param {string} [o.ogImage]   imagen OG (por defecto /og-image.jpg)
  */
 export function pageHtml(o) {
   const canonical = `${BASE_URL}${o.path}`;
   const robots = o.robots || 'index, follow, max-image-preview:large';
-  const ogImage = o.ogImage || `${BASE_URL}/og-image.png`;
+  const ogImage = o.ogImage || `${BASE_URL}/og-image.jpg`;
   const jsonLd = Array.isArray(o.jsonLd) ? o.jsonLd : [];
   const ldBlocks = jsonLd
     .map(b => `<script type="application/ld+json">\n${JSON.stringify(b, null, 2)}\n</script>`)

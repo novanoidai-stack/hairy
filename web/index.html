@@ -18,13 +18,13 @@
 <meta property="og:title" content="Mecha OS — La agenda que cobra la señal por WhatsApp y elimina los no-shows" />
 <meta property="og:description" content="Software de gestión con IA para peluquerías, estética y barberías. Tráete tu agenda desde Booksy o Fresha en 10 minutos y centraliza la operativa, sin comisiones." />
 <meta property="og:url" content="https://www.mechaa.es/" />
-<meta property="og:image" content="https://www.mechaa.es/og-image.png" />
+<meta property="og:image" content="https://www.mechaa.es/og-image.jpg" />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Mecha OS — La agenda que cobra la señal por WhatsApp y elimina los no-shows" />
 <meta name="twitter:description" content="Agenda con IA que reserva por WhatsApp, cobra la señal por Stripe y te ahorra los plantones. Sin comisiones, desde 39 €/mes." />
-<meta name="twitter:image" content="https://www.mechaa.es/og-image.png" />
+<meta name="twitter:image" content="https://www.mechaa.es/og-image.jpg" />
 
 <meta name="theme-color" content="#070a14" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -169,7 +169,7 @@
   "@type": "Product",
   "@id": "https://www.mechaa.es/#product",
   "name": "Mecha OS - Software para Peluquerías",
-  "image": "https://www.mechaa.es/og-image.png",
+  "image": "https://www.mechaa.es/og-image.jpg",
   "description": "El software de gestión y agenda inteligente con Inteligencia Artificial para salones de peluquería, barberías y centros de estética. Importa tus clientes y tu agenda desde Booksy o Fresha en 10 minutos.",
   "brand": {
     "@type": "Brand",
@@ -222,7 +222,10 @@
   "logo": "https://www.mechaa.es/logo.png",
   "sameAs": [
     "https://www.instagram.com/mecha_os",
-    "https://www.linkedin.com/company/mecha-os"
+    "https://www.linkedin.com/company/mecha-os",
+    "https://www.linkedin.com/company/novanoidai",
+    "https://www.linkedin.com/in/carlos-oca%C3%B1a-mart%C3%ADnez-8b6348259/",
+    "https://www.linkedin.com/in/alexandru-iscrulescu-a831002a2/"
   ],
   "contactPoint": {
     "@type": "ContactPoint",
@@ -383,28 +386,187 @@
 body[data-theme="dark"]{--paper:#0a0908;--paper-2:#12100e;--ink:#f8f4ee;--ink-2:#b0a69c;--ink-3:#8b8177;--line:rgba(255,255,255,.10);--line-2:rgba(255,255,255,.20);--card:#171311;--accent-soft:rgba(244,80,30,.16);--ok-soft:rgba(15,155,108,.17);--lav-soft:rgba(124,108,240,.2);--peach:rgba(255,176,90,.16);--mint:rgba(15,155,108,.16);--shadow:0 30px 70px -30px rgba(0,0,0,.85);--shadow-s:0 8px 20px -12px rgba(0,0,0,.8)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-a{color:var(--accent);text-decoration:none}
+a{color:var(--accent);text-decoration:none;transition:color .2s ease}
 a:hover{color:var(--accent-hi)}
 img,svg{display:block;max-width:100%}
 button,input{font-family:inherit}
 ::selection{background:var(--accent);color:#fff}
-@keyframes mFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes mFade{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes mPulse{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.45)}50%{box-shadow:0 0 0 8px rgba(244,80,30,0)}}
-@keyframes mDot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
-@keyframes mSlide{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@keyframes mDot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3.5px)}}
+@keyframes mSlide{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
 @keyframes mBlink{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes mGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes mDrift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(5%,-4%) scale(1.1)}66%{transform:translate(-4%,3%) scale(.95)}100%{transform:translate(0,0) scale(1)}}
+@keyframes mDrift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(5%,-4%) scale(1.08)}66%{transform:translate(-4%,3%) scale(.96)}100%{transform:translate(0,0) scale(1)}}
 @keyframes mAurora{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 @keyframes mQueue{0%,5%{opacity:.5;transform:translateY(5px)}14%,30%{opacity:1;transform:translateY(0)}44%,100%{opacity:.84;transform:translateY(0)}}
 @keyframes mCheck{0%,8%{transform:scale(.4);opacity:.2}18%{transform:scale(1.18);opacity:1}28%,100%{transform:scale(1);opacity:1}}
 @keyframes mFill{0%,40%{width:0}70%,100%{width:100%}}
 @keyframes mRing{0%{stroke-dashoffset:352}100%{stroke-dashoffset:38}}
 @keyframes mWave{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
-.btn-grad{background:linear-gradient(120deg,var(--accent),var(--accent-hi));color:#fff!important;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 18px 38px -14px rgba(244,80,30,.7)}
-.btn-grad:hover{transform:translateY(-2px);color:#fff!important}
-.hov-card{transition:transform .22s ease,border-color .22s ease}
-.hov-card:hover{transform:translateY(-3px);border-color:rgba(244,80,30,.45)}
+@keyframes btnShine{0%{left:-100%}100%{left:200%}}
+
+/* Botones Premium con barrido de luz y respuesta táctil */
+.btn-grad{
+  position:relative;
+  background:linear-gradient(120deg,var(--accent),var(--accent-hi));
+  color:#fff!important;
+  transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1),background .2s ease;
+  box-shadow:0 16px 36px -12px rgba(244,80,30,.62),0 0 0 1px rgba(255,255,255,.18) inset;
+  overflow:hidden;
+  isolation:isolate;
+}
+.btn-grad::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:45%;
+  height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:skewX(-22deg);
+  pointer-events:none;
+}
+.btn-grad:hover{
+  transform:translateY(-2.5px);
+  box-shadow:0 22px 46px -12px rgba(244,80,30,.8),0 0 0 1px rgba(255,255,255,.28) inset;
+  color:#fff!important;
+}
+.btn-grad:hover::after{
+  animation:btnShine .85s cubic-bezier(.16,1,.3,1);
+}
+.btn-grad:active{
+  transform:scale(.97) translateY(0);
+}
+
+/* Tarjetas elevadas con borde luminoso */
+.hov-card{
+  transition:transform .26s cubic-bezier(.16,1,.3,1),border-color .26s ease,box-shadow .26s ease;
+  will-change:transform;
+}
+.hov-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(244,80,30,.45)!important;
+  box-shadow:0 20px 42px -20px rgba(244,80,30,.25),var(--shadow)!important;
+}
+.hov-card:active{
+  transform:scale(.985) translateY(-2px);
+}
+
+/* Sliders de calculadora con estilo refinado */
+input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  background:var(--line-2);
+  border-radius:999px;
+  height:8px;
+  cursor:pointer;
+  outline:none;
+  transition:background .2s ease;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--gold));
+  border:2.5px solid var(--paper-2);
+  box-shadow:0 4px 14px rgba(244,80,30,.5),0 0 0 1px rgba(21,16,11,.1);
+  cursor:pointer;
+  transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover{
+  transform:scale(1.18);
+  box-shadow:0 6px 18px rgba(244,80,30,.65),0 0 0 4px rgba(244,80,30,.18);
+}
+input[type="range"]::-webkit-slider-thumb:active{
+  transform:scale(1.05);
+  box-shadow:0 2px 8px rgba(244,80,30,.75),0 0 0 6px rgba(244,80,30,.24);
+}
+input[type="range"]::-moz-range-thumb{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--gold));
+  border:2.5px solid var(--paper-2);
+  box-shadow:0 4px 14px rgba(244,80,30,.5);
+  cursor:pointer;
+  transition:transform .18s ease;
+}
+
+/* WhatsApp Phone Demo Styles */
+.wapp-u{
+  align-self:flex-end;
+  max-width:82%;
+  background:#005c4b;
+  color:#e9edef;
+  padding:8px 12px;
+  border-radius:14px 4px 14px 14px;
+  box-shadow:0 2px 5px rgba(0,0,0,.3);
+  animation:mSlide .32s cubic-bezier(.16,1,.3,1) both;
+  font-size:13.2px;
+  line-height:1.4;
+  word-break:break-word;
+}
+.wapp-b{
+  align-self:flex-start;
+  max-width:86%;
+  background:#1f2c33;
+  color:#e9edef;
+  padding:8px 12px;
+  border-radius:4px 14px 14px 14px;
+  box-shadow:0 2px 5px rgba(0,0,0,.3);
+  animation:mSlide .32s cubic-bezier(.16,1,.3,1) both;
+  font-size:13.2px;
+  line-height:1.4;
+  word-break:break-word;
+}
+.wapp-b a{
+  color:#53bdeb!important;
+  text-decoration:underline;
+  font-weight:600;
+}
+.wapp-chip{
+  font-size:11px;
+  font-weight:500;
+  padding:5px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+  color:#9fb0b8;
+  border:1px solid rgba(255,255,255,.14);
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all .2s ease;
+  flex:none;
+}
+.wapp-chip:hover{
+  background:rgba(37,211,102,.18);
+  color:#25d366;
+  border-color:rgba(37,211,102,.45);
+  transform:translateY(-1px);
+}
+.wapp-typing-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#8aa0a9;
+  display:inline-block;
+  animation:mDot 1.2s infinite ease-in-out;
+}
+.wapp-typing-bubble{
+  align-self:flex-start;
+  background:#1f2c33;
+  padding:9px 14px;
+  border-radius:4px 14px 14px 14px;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  width:fit-content;
+  box-shadow:0 2px 5px rgba(0,0,0,.3);
+  animation:mSlide .25s ease both;
+}
+
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
 .chip-ok{padding:4px 10px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-weight:600;font-size:12px;display:inline-block}
 .conn{position:relative;height:64px;display:grid;place-items:center}
@@ -766,6 +928,14 @@ button,input{font-family:inherit}
 <div style="font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">Tiempo de gestión al mes</div>
 <div style="font-family:var(--display);font-weight:800;font-size:clamp(34px,4.4vw,52px);line-height:1;letter-spacing:-.03em;color:var(--accent)"><span id="oHorasMes">104 h</span><span style="font-size:16px;font-weight:600;color:var(--ink-3)"> → <span id="oHorasMecha">10 h</span></span></div>
 <div style="font-size:13.5px;color:var(--ink-2);margin-top:6px">Te devolvemos <b id="oHorasLibres">94 h al mes</b>. A precio de hora de salón, son <b id="oValorHoras">2.820 €</b> de tu tiempo.</div>
+<!-- Barra visual de tiempo recuperado vs tradicional -->
+<div style="margin-top:10px;background:rgba(21,16,11,.10);height:10px;border-radius:999px;overflow:hidden;position:relative">
+<div id="barAhorro" style="height:100%;width:90%;border-radius:999px;background:linear-gradient(90deg,var(--ok),#25d366);transition:width .3s ease"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:4px">
+<span style="color:var(--ok);font-weight:700">90% tiempo ahorrado</span>
+<span>10% supervisión</span>
+</div>
 </div>
 <div style="height:1px;background:var(--line)"></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -793,7 +963,7 @@ button,input{font-family:inherit}
 </div>
 <div class="reveal grid2" style="grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,3vw,36px);align-items:center">
 <div class="phone-wrap" style="position:relative;width:100%;max-width:342px;margin:0 auto;border-radius:44px;padding:11px;background:linear-gradient(160deg,#2b2723,#100e0c);box-shadow:0 40px 80px -34px rgba(21,16,11,.6),0 0 0 1px rgba(255,255,255,.06) inset">
-<div style="position:relative;border-radius:34px;overflow:hidden;background:#0f1014;display:flex;flex-direction:column;height:530px">
+<div style="position:relative;border-radius:34px;overflow:hidden;background:#0f1014;display:flex;flex-direction:column;height:540px">
 <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:96px;height:26px;border-radius:99px;background:#000;z-index:5"></div>
 <div style="display:flex;align-items:center;padding:11px 20px 4px;font-size:11.5px;font-weight:600;color:#fff">
 <span style="width:64px">23:40</span><span style="flex:1"></span>
@@ -804,7 +974,7 @@ button,input{font-family:inherit}
 <picture><source srcset="assets/v4/chispa-avatar-96.webp" type="image/webp" /><img src="assets/v4/chispa-avatar-96.png" alt="Chispa" width="34" height="34" decoding="async" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;background:#0b141a" /></picture>
 <div style="flex:1;min-width:0">
 <div style="font-weight:600;font-size:14px;color:#e9edef;line-height:1.2">Studio Norte</div>
-<div style="font-size:11px;color:#9fb0b8;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:mBlink 2.4s infinite"></span>en línea</div>
+<div style="font-size:11px;color:#9fb0b8;display:flex;align-items:center;gap:5px" id="chatStatus"><span style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:mBlink 2.4s infinite"></span>en línea</div>
 </div>
 <svg viewBox="0 0 24 24" style="width:17px;height:17px" fill="#9fb0b8"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 3.5V7l-4 3.5Z"/></svg>
 </div>
@@ -820,12 +990,18 @@ button,input{font-family:inherit}
 </div>
 Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </div>
-<form id="chatForm" style="display:flex;align-items:center;gap:7px;padding:8px 9px 14px;background:#0b141a">
+<!-- Chips de preguntas rápidas con IA real -->
+<div style="display:flex;gap:6px;padding:6px 10px;overflow-x:auto;scrollbar-width:none;background:#0b141a;border-top:1px solid rgba(255,255,255,.05)" id="chatChips">
+<button type="button" class="wapp-chip" data-prompt="Hola, ¿qué servicios y precios tenéis?">💡 ¿Precios y servicios?</button>
+<button type="button" class="wapp-chip" data-prompt="¿Tenéis hueco para un corte mañana por la tarde?">💡 ¿Hueco para corte?</button>
+<button type="button" class="wapp-chip" data-prompt="¿Cómo funciona el cobro de la señal?">💡 ¿Cómo cobráis señal?</button>
+</div>
+<form id="chatForm" style="display:flex;align-items:center;gap:7px;padding:8px 9px 12px;background:#0b141a">
 <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:22px;background:#1f2c33">
 <svg viewBox="0 0 24 24" style="width:17px;height:17px;flex:none" fill="#8aa0a9"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-3.5 7a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6Zm7 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6ZM12 17.6c-2.2 0-4.1-1.3-4.9-3.1h9.8c-.8 1.8-2.7 3.1-4.9 3.1Z"/></svg>
-<input id="chatInput" placeholder="Escribe un mensaje" style="flex:1;min-width:0;border:none;background:transparent;color:#e9edef;font-size:13.4px;outline:none" />
+<input id="chatInput" placeholder="Escribe a Chispa (IA real)..." style="flex:1;min-width:0;border:none;background:transparent;color:#e9edef;font-size:13.4px;outline:none" />
 </div>
-<button type="submit" style="width:40px;height:40px;flex:none;border:none;border-radius:50%;background:#00a884;color:#fff;cursor:pointer;display:grid;place-items:center" title="Enviar">
+<button type="submit" style="width:40px;height:40px;flex:none;border:none;border-radius:50%;background:#00a884;color:#fff;cursor:pointer;display:grid;place-items:center;transition:transform .18s ease" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='none'" title="Enviar mensaje">
 <svg viewBox="0 0 24 24" style="width:19px;height:19px" fill="#fff"><path d="M3 20.5 21 12 3 3.5 3 10l12 2-12 2z"/></svg>
 </button>
 </form>
@@ -935,19 +1111,69 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </div>
 </section>
 
-<footer style="padding:32px 26px;background:var(--ink);color:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.1)">
-<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;font-size:13px">
-<span style="font-family:var(--display);font-weight:800;font-size:19px;color:var(--paper)">Mecha<span style="color:var(--accent)">.</span></span>
+<footer style="padding:44px 26px 36px;background:var(--ink);color:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.1)">
+<div style="max-width:1080px;margin:0 auto">
+
+<!-- Sección de Creadores y Fundadores con LinkedIn -->
+<div style="padding-bottom:34px;margin-bottom:30px;border-bottom:1px solid rgba(255,255,255,.08)">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:20px">
+<div>
+<span style="display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-hi)">
+<span style="width:6px;height:6px;border-radius:50%;background:var(--accent-hi);animation:mPulse 2.4s infinite"></span>Equipo & Desarrollo
+</span>
+<h3 style="font-family:var(--display);font-size:clamp(19px,2.2vw,24px);font-weight:700;color:var(--paper);margin:4px 0 0">Los fundadores detrás de Mecha OS</h3>
+</div>
+<a href="https://www.linkedin.com/company/novanoidai" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--paper);font-size:12.5px;font-weight:600;transition:all .22s ease" onmouseover="this.style.background='rgba(10,102,194,.22)';this.style.borderColor='#0a66c2';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.borderColor='rgba(255,255,255,.12)';this.style.color='var(--paper)'">
+<svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:#0a66c2"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.78c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63-.73-1.63-1.63-1.63Z"/></svg>
+<span>Novanoid AI en LinkedIn</span>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px"><path d="M7 17L17 7M7 7h10v10"/></svg>
+</a>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+<!-- Carlos Ocaña -->
+<a href="https://www.linkedin.com/in/carlos-oca%C3%B1a-mart%C3%ADnez-8b6348259/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:var(--paper);text-decoration:none;transition:all .25s ease" onmouseover="this.style.background='rgba(244,80,30,.12)';this.style.borderColor='rgba(244,80,30,.45)';this.style.transform='translateY(-2.5px)'" onmouseout="this.style.background='rgba(255,255,255,.035)';this.style.borderColor='rgba(255,255,255,.09)';this.style.transform='none'">
+<div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#f4501e,#ff8a3d);display:grid;place-items:center;font-weight:800;font-size:16px;color:#fff;flex:none;box-shadow:0 8px 18px -4px rgba(244,80,30,.5)">CO</div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px">
+<b style="font-size:15px;color:var(--paper);font-family:var(--display)">Carlos Ocaña</b>
+<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#0a66c2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+</div>
+<div style="font-size:12.5px;color:rgba(255,255,255,.65);margin-top:2px">Co-Fundador · Producto & Diseño</div>
+</div>
+<div style="width:34px;height:34px;border-radius:50%;background:rgba(10,102,194,.18);display:grid;place-items:center;flex:none;border:1px solid rgba(10,102,194,.4)">
+<svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:#53bdeb"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.78c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63-.73-1.63-1.63-1.63Z"/></svg>
+</div>
+</a>
+<!-- Alexandru Iscrulescu -->
+<a href="https://www.linkedin.com/in/alexandru-iscrulescu-a831002a2/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:var(--paper);text-decoration:none;transition:all .25s ease" onmouseover="this.style.background='rgba(124,108,240,.14)';this.style.borderColor='rgba(124,108,240,.5)';this.style.transform='translateY(-2.5px)'" onmouseout="this.style.background='rgba(255,255,255,.035)';this.style.borderColor='rgba(255,255,255,.09)';this.style.transform='none'">
+<div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#7c6cf0,#9f8eff);display:grid;place-items:center;font-weight:800;font-size:16px;color:#fff;flex:none;box-shadow:0 8px 18px -4px rgba(124,108,240,.5)">AI</div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px">
+<b style="font-size:15px;color:var(--paper);font-family:var(--display)">Alexandru Iscrulescu</b>
+<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#0a66c2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+</div>
+<div style="font-size:12.5px;color:rgba(255,255,255,.65);margin-top:2px">Co-Fundador · IA & Arquitectura</div>
+</div>
+<div style="width:34px;height:34px;border-radius:50%;background:rgba(10,102,194,.18);display:grid;place-items:center;flex:none;border:1px solid rgba(10,102,194,.4)">
+<svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:#53bdeb"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.78c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63-.73-1.63-1.63-1.63Z"/></svg>
+</div>
+</a>
+</div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;font-size:13.5px">
+<span style="font-family:var(--display);font-weight:800;font-size:20px;color:var(--paper)">Mecha<span style="color:var(--accent)">.</span></span>
 <div style="display:flex;flex-wrap:wrap;gap:18px">
 <a href="/demo.html" style="color:inherit">Probar el software</a>
 <a href="/especificaciones.html" style="color:inherit">Especificaciones</a>
 <a href="/salones.html" style="color:inherit">Reservar en un salón</a>
-<a href="https://wa.me/34690792975" target="_blank" rel="noopener" aria-label="WhatsApp" style="color:inherit">WhatsApp</a>
+<a href="https://wa.me/34690792975" target="_blank" rel="noopener" aria-label="WhatsApp" style="color:inherit">WhatsApp (+34 690 79 29 75)</a>
 <a href="tel:+34690792975" aria-label="Teléfono" style="color:inherit">Tel: +34 690 79 29 75</a>
 <a href="/privacidad.html" style="color:inherit">Privacidad</a>
 <a href="/terminos.html" style="color:inherit">Términos</a>
 </div>
-<span>© 2026 Mecha OS</span>
+<span>© 2026 Mecha OS · Novanoid AI</span>
+</div>
 </div>
 </footer>
 
@@ -1086,53 +1312,179 @@ document.getElementById("cmpBody").innerHTML=FILAS.map(f=>
 
 /* calculadora */
 const R=id=>document.getElementById(id);
+function updateSliderTrack(el){
+  if(!el) return;
+  const min = +el.min || 0, max = +el.max || 100, val = +el.value;
+  const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+  el.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--line-2) ${pct}%, var(--line-2) 100%)`;
+}
+
 function calc(){
   const horas=+R("rHoras").value, noShows=+R("rNoShows").value, ticket=+R("rTicket").value, sillas=+R("rSillas").value;
   R("lHoras").textContent=(horas%1?horas.toFixed(1):horas)+" h";
   R("lNoShows").textContent=noShows;
   R("lTicket").textContent=ticket+" €";
   R("lSillas").textContent=sillas;
+  
+  ["rHoras","rNoShows","rTicket","rSillas"].forEach(id => updateSliderTrack(R(id)));
+
   const nf=n=>Math.round(n).toLocaleString("es-ES");
   const perdida=noShows*ticket*Math.max(1,Math.round(sillas/3));
   const hMes=horas*26, hMecha=hMes*0.1;
+  const hLibres = hMes - hMecha;
   R("oHorasMes").textContent=nf(hMes)+" h";
   R("oHorasMecha").textContent=nf(hMecha)+" h";
-  R("oHorasLibres").textContent=nf(hMes-hMecha)+" h";
-  R("oValorHoras").textContent=nf((hMes-hMecha)*(ticket/1.5))+" €";
+  R("oHorasLibres").textContent=nf(hLibres)+" h al mes";
+  R("oValorHoras").textContent=nf(hLibres*(ticket/1.5))+" €";
   R("oPerdidaMes").textContent=nf(perdida)+" €";
   R("oRecuperado").textContent=nf(perdida*0.93)+" €";
-  R("oVeces").textContent=Math.max(1,Math.round((perdida*0.93+(hMes-hMecha)*(ticket/1.5))/59));
+  R("oVeces").textContent=Math.max(1,Math.round((perdida*0.93+hLibres*(ticket/1.5))/59));
+
+  const barAhorro = document.getElementById("barAhorro");
+  if(barAhorro) {
+    const pctAhorro = Math.min(95, Math.max(70, Math.round((hLibres / hMes) * 100)));
+    barAhorro.style.width = pctAhorro + "%";
+  }
 }
 ["rHoras","rNoShows","rTicket","rSillas"].forEach(id=>R(id).addEventListener("input",calc));
 
-/* chat WhatsApp */
-function reply(q){
-  const t=(q||"").toLowerCase();
-  if(/precio|cuesta|cu[aá]nto|cuanto|tarifa|€/.test(t)) return "Corte caballero 18 €, color raíz 45 € y mechas completas 85 €. Si reservas ahora te pido 15 € de señal y se descuentan del total.";
-  if(/s[aá]bado|sabado|hueco|cita|hora|reserv|lunes|martes|viernes|jueves|mi[eé]rcoles/.test(t)) return "Tengo el sábado a las 11:30 y a las 17:00 con Sofía, y el viernes a las 19:15 con Carla. ¿Cuál te bloqueo?";
-  if(/cancel|cambiar|mover|aplaz/.test(t)) return "Sin problema, te muevo la cita. Tengo el jueves a las 18:00 o el sábado a las 12:45. La señal se mantiene en la nueva cita.";
-  if(/d[oó]nde|donde|direcci[oó]n|direccion|abre|horario/.test(t)) return "Estamos en Rúa Real 42, A Coruña. Abrimos de martes a sábado, de 9:30 a 20:30. ¿Te doy cita?";
-  if(/alergia|tinte|reposo|tarda|dura|color|f[oó]rmula|formula/.test(t)) return "Las mechas completas son 90 min con su reposo. Tengo anotado en tu ficha si eres alérgica a la PPD y ajusto la fórmula. ¿Seguimos con la cita?";
-  if(/se[ñn]al|deposit|pago|stripe/.test(t)) return "La señal es de 15 € por Stripe o Bizum, se descuenta del total y bloquea tu hueco.";
-  if(/gracias|vale|ok|perfecto|genial/.test(t)) return "¡A ti! Te mando el recordatorio el día antes. Si necesitas cambiar algo, escríbeme cuando quieras.";
-  return "Te ayudo con eso: puedo darte cita, decirte precios, mover una reserva o pasarte con el salón. ¿Qué prefieres?";
+/* ═══════════ CHAT WHATSAPP POTENCIADO POR IA REAL ═══════════ */
+const SUPABASE_URL = 'https://vtrggiogjrhqtwbhbgia.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+
+// Historial inicial con la conversación precargada para mantener el contexto
+let chatHistory = [
+  { role: 'user', content: 'Hola, ¿tenéis hueco el sábado para mechas? 🙏' },
+  { role: 'assistant', content: '¡Claro! Con Sofía queda el sábado a las 11:30 o a las 17:00. Mechas completas, 90 min · 85 €.' },
+  { role: 'user', content: 'A las 11:30 mejor' },
+  { role: 'assistant', content: 'Señal de 15 € cobrada. Sábado 11:30 · Mechas · Sofía. Reservado ✅ Se descuenta del total. Te recuerdo el viernes.' }
+];
+let isChatBusy = false;
+
+function renderChatMd(str) {
+  if (!str) return '';
+  let html = String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, label, url) => {
+    return `<a href="${url}" style="color:#53bdeb;text-decoration:underline;font-weight:600">${label}</a>`;
+  });
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  html = html.replace(/\n/g, '<br>');
+  return html;
 }
-document.getElementById("chatForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  const input=document.getElementById("chatInput"), body=document.getElementById("chat");
-  const q=input.value.trim(); if(!q) return;
-  input.value="";
-  const u=document.createElement("div"); u.className="wapp-u"; u.textContent=q; body.appendChild(u);
-  const typing=document.createElement("div");
-  typing.className="wapp-b"; typing.style.display="flex"; typing.style.gap="4px";
-  typing.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:#8aa0a9;animation:mDot 1.1s infinite"></span><span style="width:6px;height:6px;border-radius:50%;background:#8aa0a9;animation:mDot 1.1s .15s infinite"></span><span style="width:6px;height:6px;border-radius:50%;background:#8aa0a9;animation:mDot 1.1s .3s infinite"></span>';
+
+function fallbackReply(q) {
+  const t = (q || '').toLowerCase();
+  if (/precio|cuesta|cu[aá]nto|cuanto|tarifa|€/.test(t)) return "En Studio Norte: corte caballero 18 €, corte + barba 25 €, color raíz 45 € y mechas 65 €. Si reservas pedimos señal del 20% por Stripe que se descuenta del total.";
+  if (/s[aá]bado|sabado|hueco|cita|hora|reserv|lunes|martes|viernes|jueves|mi[eé]rcoles|mañana|hoy/.test(t)) return "Tenemos huecos con Sofía, Diego o Carla de martes a sábado (9:30 a 20:00). ¿Qué servicio y qué día te viene mejor?";
+  if (/cancel|cambiar|mover|aplaz/.test(t)) return "Sin problema, te muevo la cita a cualquier otro hueco libre y la señal se transfiere automáticamente.";
+  if (/d[oó]nde|donde|direcci[oó]n|direccion|abre|horario/.test(t)) return "Studio Norte abre de lunes a sábado de 9:30 a 20:00. ¿Para qué servicio te gustaría venir?";
+  if (/se[ñn]al|deposit|pago|stripe|bizum/.test(t)) return "La señal es un depósito seguro con Stripe para bloquear el sillón y se descuenta íntegramente del ticket final.";
+  if (/gracias|vale|ok|perfecto|genial/.test(t)) return "¡A ti! Te enviamos confirmación por WhatsApp. Si necesitas algo más, aquí estoy.";
+  return "Te ayudo encantada con citas, precios de servicios o disponibilidad de nuestro equipo. ¿Qué te gustaría consultar?";
+}
+
+async function sendChatMessage(rawText) {
+  if (!rawText || isChatBusy) return;
+  const q = rawText.trim();
+  if (!q) return;
+
+  const input = document.getElementById("chatInput");
+  const body = document.getElementById("chat");
+  const statusEl = document.getElementById("chatStatus");
+
+  if (input) input.value = "";
+  isChatBusy = true;
+
+  const now = new Date();
+  const timeStr = (now.getHours()<10?'0':'')+now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+
+  // 1. Mensaje del usuario
+  const u = document.createElement("div");
+  u.className = "wapp-u";
+  u.innerHTML = `<div>${q.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><span style="display:block;font-size:10px;color:rgba(233,237,239,.65);text-align:right;margin-top:2px">${timeStr} · ✓✓</span>`;
+  body.appendChild(u);
+  body.scrollTo({ top: body.scrollHeight, behavior: "smooth" });
+
+  // 2. Estado escribiendo...
+  if (statusEl) {
+    statusEl.innerHTML = '<span style="color:#25d366;display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:mPulse 1s infinite"></span>escribiendo...</span>';
+  }
+
+  // 3. Burbuja de puntos WhatsApp
+  const typing = document.createElement("div");
+  typing.className = "wapp-typing-bubble";
+  typing.innerHTML = '<span class="wapp-typing-dot"></span><span class="wapp-typing-dot" style="animation-delay:.18s"></span><span class="wapp-typing-dot" style="animation-delay:.36s"></span>';
   body.appendChild(typing);
-  body.scrollTop=body.scrollHeight;
-  setTimeout(()=>{
+  body.scrollTo({ top: body.scrollHeight, behavior: "smooth" });
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/chispa-recepcionista', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({
+        message: q,
+        history: chatHistory.slice(-8)
+      })
+    });
+
+    let botReplyText = "";
+    if (res.ok) {
+      const data = await res.json();
+      botReplyText = data.reply || "¡Perfecto! Te lo gestiono en un momento.";
+    } else {
+      let errData = {};
+      try { errData = await res.json(); } catch(e) {}
+      if (errData.error === 'rate_limit_exceeded') {
+        botReplyText = "Has alcanzado el límite de la demo interactiva. Puedes [probar la demo completa aquí](demo.html) o reservar una llamada con nosotros.";
+      } else {
+        botReplyText = fallbackReply(q);
+      }
+    }
+
     typing.remove();
-    const b=document.createElement("div"); b.className="wapp-b"; b.innerHTML=reply(q); body.appendChild(b);
-    body.scrollTop=body.scrollHeight;
-  },950);
+    const b = document.createElement("div");
+    b.className = "wapp-b";
+    b.innerHTML = `<div>${renderChatMd(botReplyText)}</div><span style="display:block;font-size:10px;color:rgba(233,237,239,.65);text-align:right;margin-top:4px">${timeStr}</span>`;
+    body.appendChild(b);
+    body.scrollTo({ top: body.scrollHeight, behavior: "smooth" });
+
+    chatHistory.push({ role: 'user', content: q });
+    chatHistory.push({ role: 'assistant', content: botReplyText });
+  } catch (err) {
+    typing.remove();
+    const fallback = fallbackReply(q);
+    const b = document.createElement("div");
+    b.className = "wapp-b";
+    b.innerHTML = `<div>${renderChatMd(fallback)}</div><span style="display:block;font-size:10px;color:rgba(233,237,239,.65);text-align:right;margin-top:4px">${timeStr}</span>`;
+    body.appendChild(b);
+    body.scrollTo({ top: body.scrollHeight, behavior: "smooth" });
+  } finally {
+    isChatBusy = false;
+    if (statusEl) {
+      statusEl.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:mBlink 2.4s infinite"></span>en línea';
+    }
+  }
+}
+
+document.getElementById("chatForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const input = document.getElementById("chatInput");
+  if (input) sendChatMessage(input.value);
+});
+
+// Click en chips de preguntas rápidas
+document.querySelectorAll("#chatChips .wapp-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const prompt = chip.dataset.prompt || chip.textContent.replace('💡 ', '');
+    sendChatMessage(prompt);
+  });
 });
 
 calc();

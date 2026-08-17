@@ -58,6 +58,107 @@ function detectDemoMode(): boolean {
 
 export const IS_DEMO_MODE = detectDemoMode();
 
+// Clave donde auth-js deja la sesion. La usa el guard de app/_layout.tsx para
+// distinguir "no hay sesion" (no hay nada guardado) de "no he podido leerla"
+// (hay token guardado pero el refresco fallo). En web es la misma clave que
+// escribe acceso.html, por eso el salto landing -> /app conserva el login.
+export const AUTH_STORAGE_KEY = IS_DEMO_MODE
+  ? 'mecha-demo-auth'
+  : `sb-${supabaseUrl.replace(/^https?:\/\//, '').split('.')[0]}-auth-token`;
+
+// --- Una sola peticion para cada lectura repetida --------------------------
+//
+// Al abrir el software, varias piezas independientes (el lanzador de Chispa,
+// el estado de puesta en marcha, la agenda, los avisos, la barra del portal...)
+// piden POR SU CUENTA lo mismo casi a la vez. Medido en un arranque real: 61
+// peticiones a Supabase, de las cuales unas 25 eran repeticiones EXACTAS de
+// otra que estaba viajando en ese mismo momento (negocio_config ocho veces,
+// negocio_horarios seis, profesionales seis...).
+//
+// En vez de tocar los ~120 sitios que consultan, se resuelve una vez aqui: si
+// llega una lectura identica a otra que sigue en vuelo, se cuelga de la misma
+// respuesta en lugar de abrir otra. No hay caduquez que gestionar -- no se
+// guarda nada: en cuanto la respuesta llega, la entrada desaparece. Lo que una
+// pantalla lea despues sigue siendo una consulta nueva.
+//
+// Reglas de la casa:
+//   - Solo lecturas (GET y HEAD; los contadores `head: true` de PostgREST son
+//     HEAD). Las escrituras y las RPC van por POST y pueden tener efectos:
+//     esas nunca se comparten.
+//   - Si la peticion trae su propio AbortSignal no se comparte, para que
+//     cancelar una no le corte la respuesta a otra.
+//   - La clave incluye las cabeceras que cambian la respuesta (token, Range,
+//     Prefer, Accept...): dos peticiones solo se juntan si son la MISMA.
+//
+// Ademas, unas pocas tablas de referencia (las de configuracion del salon, que
+// cambian de Pascuas a Ramos pero se consultan sin parar) mantienen la
+// respuesta unos segundos, porque sus repeticiones no llegan a la vez sino una
+// detras de otra. Para que eso NO pueda enseñar datos viejos, cualquier
+// escritura contra una tabla tira lo guardado de esa tabla: guardar y volver a
+// leer siempre devuelve lo recien guardado.
+const lecturasEnVuelo = new Map<string, { promesa: Promise<Response>; tabla: string; hasta: number }>();
+
+const CABECERAS_QUE_CUENTAN = ['authorization', 'apikey', 'accept', 'accept-profile', 'range', 'prefer'];
+
+// Tablas de configuracion del salon: se leen desde muchos sitios y cambian muy
+// de vez en cuando. Nada de citas, clientes, caja ni nada que se mueva.
+const TABLAS_DE_REFERENCIA = new Set([
+  'negocio_config',
+  'negocio_horarios',
+  'negocio_portal',
+  'profesionales',
+  'servicios',
+  'categorias_servicio',
+]);
+const VIDA_REFERENCIA_MS = 3000;
+
+function tablaDeUrl(url: string): string {
+  return url.match(/\/rest\/v1\/([a-zA-Z0-9_]+)/)?.[1] ?? '';
+}
+
+function claveDeLectura(url: string, init?: RequestInit): string {
+  const h = new Headers(init?.headers || {});
+  return url + '\n' + CABECERAS_QUE_CUENTAN.map((k) => `${k}=${h.get(k) ?? ''}`).join('&');
+}
+
+function fetchSinRepetir(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const metodo = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+  const tabla = tablaDeUrl(url);
+
+  if (metodo !== 'GET' && metodo !== 'HEAD') {
+    // Escritura (o RPC): lo guardado de esa tabla ya no vale.
+    if (tabla) {
+      for (const [k, v] of lecturasEnVuelo) if (v.tabla === tabla) lecturasEnVuelo.delete(k);
+    }
+    return fetch(input as RequestInfo, init);
+  }
+  if (init?.signal) return fetch(input as RequestInfo, init);
+
+  const clave = claveDeLectura(url, init);
+  const guardada = lecturasEnVuelo.get(clave);
+  // Se devuelve siempre una copia: el cuerpo de una Response solo se puede
+  // leer una vez, y aqui puede haber varios esperandola.
+  if (guardada && Date.now() < guardada.hasta) return guardada.promesa.then((r) => r.clone());
+
+  // Barrido de lo caducado, para que el mapa no crezca sin fin.
+  const ahora = Date.now();
+  for (const [k, v] of lecturasEnVuelo) if (ahora >= v.hasta) lecturasEnVuelo.delete(k);
+
+  const peticion = fetch(input as RequestInfo, init);
+  const entrada = { promesa: peticion, tabla, hasta: Number.POSITIVE_INFINITY };
+  lecturasEnVuelo.set(clave, entrada);
+  const soltar = (ok: boolean) => {
+    if (lecturasEnVuelo.get(clave) !== entrada) return;
+    // Mientras viajaba solo la comparten los que ya estaban esperando; a partir
+    // de aqui, solo las tablas de referencia siguen valiendo un rato.
+    if (ok && TABLAS_DE_REFERENCIA.has(tabla)) entrada.hasta = Date.now() + VIDA_REFERENCIA_MS;
+    else lecturasEnVuelo.delete(clave);
+  };
+  peticion.then((r) => soltar(r.ok), () => soltar(false));
+  return peticion.then((r) => r.clone());
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
@@ -68,6 +169,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+  global: { fetch: fetchSinRepetir },
 });
 
 // Cuenta de demo compartida (las credenciales son publicas a proposito: ya

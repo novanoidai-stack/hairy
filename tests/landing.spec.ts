@@ -255,7 +255,14 @@ test.describe('Landing Page E2E Suite - mechaa.es', () => {
           timeout: 4000,
         });
 
-        if (response.status() >= 400 && response.status() !== 403 && response.status() !== 429) {
+        // 403/429: algunos sitios bloquean peticiones automaticas. 999: el
+        // anti-bot de LinkedIn a clientes no-navegador (el perfil existe).
+        if (
+          response.status() >= 400 &&
+          response.status() !== 403 &&
+          response.status() !== 429 &&
+          response.status() !== 999
+        ) {
           brokenLinks.push({ href, status: response.status() });
         }
       } catch (err) {

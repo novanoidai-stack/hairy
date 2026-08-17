@@ -57,7 +57,10 @@ const mockPortalInfo = {
 async function abrirYElegirServicio(page: any, servicio: RegExp = /Corte caballero|Corte/i) {
   await page.goto(RUTA, { waitUntil: 'domcontentloaded' });
   const boton = page.locator('button').filter({ hasText: servicio }).first();
-  await boton.waitFor({ timeout: 15000 });
+  // 30 s y no 15: el portal arranca descargando el bundle entero de la app, y
+  // en una maquina ocupada (o tras un build, con la cache fria) 15 s se quedan
+  // cortos y el test fallaba de vez en cuando sin que hubiera nada roto.
+  await boton.waitFor({ timeout: 30000 });
   await boton.click();
 }
 

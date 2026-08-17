@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { reportarError, notificarErrorSoporte } from '@/lib/reportarError';
+import { rescatarSiChunkCaducado } from '@/lib/chunkCaducado';
 import { MechaMark } from '@/components/ui/MechaMark';
 
 interface Props {
@@ -31,6 +32,10 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Pantalla que no llega porque su trozo de codigo es de un build anterior:
+    // no es un fallo del producto, se recarga y ya. Ni pantalla de error ni
+    // correo a soporte por algo que se arregla solo.
+    if (rescatarSiChunkCaducado(error)) return;
     console.error('[GlobalErrorBoundary]', error, info.componentStack);
     // Y ademas se manda, que si no lo de abajo ("nuestro equipo ya esta al
     // tanto") era mentira: el error se quedaba en la consola de su navegador.

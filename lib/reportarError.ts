@@ -15,6 +15,7 @@
 //     salon de verdad.
 
 import { supabase, IS_DEMO_MODE } from './supabase';
+import { rescatarSiChunkCaducado } from './chunkCaducado';
 
 const yaEnviados = new Set<string>();
 
@@ -97,10 +98,14 @@ export function instalarCazadorDeErrores(): () => void {
   instalado = true;
 
   const onError = (e: ErrorEvent) => {
+    // Trozo de codigo de un build viejo (tras un despliegue): se recarga en vez
+    // de reportar. Ver lib/chunkCaducado.ts.
+    if (rescatarSiChunkCaducado(e.error ?? e.message)) return;
     reportarError(e.error ?? e.message, { pila: e.error?.stack });
   };
   const onRejection = (e: PromiseRejectionEvent) => {
     const r = e.reason as { message?: string; stack?: string } | string | undefined;
+    if (rescatarSiChunkCaducado(r)) return;
     reportarError(typeof r === 'string' ? r : r?.message ?? 'promesa rechazada sin motivo', {
       pila: typeof r === 'object' ? r?.stack : undefined,
     });
