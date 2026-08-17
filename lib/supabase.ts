@@ -109,6 +109,9 @@ const TABLAS_DE_REFERENCIA = new Set([
   'profesionales',
   'servicios',
   'categorias_servicio',
+  // Cambia tan a menudo como las horas del salon: lo piden la agenda y las
+  // fichas de profesional una detras de otra al arrancar (medido x3 en prod).
+  'horarios_profesional',
 ]);
 const VIDA_REFERENCIA_MS = 3000;
 
