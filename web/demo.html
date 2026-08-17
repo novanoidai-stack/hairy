@@ -125,36 +125,92 @@
 .gt-spot.on{opacity:1}
 @media(prefers-reduced-motion:reduce){ .gt-spot{transition-duration:.2s} }
 
-/* ---------- DOCK FIJO (controles que nunca se mueven) ---------- */
-.gt-dock{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);pointer-events:auto;
-  width:min(700px,calc(100vw - 40px));
-  display:grid;grid-template-columns:1fr auto;column-gap:24px;align-items:end;
-  padding:22px 22px 20px;
-  background:rgba(19,21,27,.97);
-  border:1px solid rgba(255,255,255,.09);border-radius:16px;
-  box-shadow:0 24px 60px -20px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
-  -webkit-backdrop-filter:blur(20px) saturate(130%);backdrop-filter:blur(20px) saturate(130%);
-  animation:gtDockIn .4s cubic-bezier(.16,1,.3,1)}
-@keyframes gtDockIn{from{transform:translateX(-50%) translateY(12px)}to{transform:translateX(-50%) translateY(0)}}
-
-/* progreso: linea fina y sobria arriba */
-.gt-dock-prog{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.07)}
-.gt-dock-prog i{display:block;height:100%;background:var(--accent);transition:width .55s cubic-bezier(.4,0,.2,1)}
-
-/* contenido (micro-slide; sin opacity para que nunca quede invisible) */
-.gt-content{grid-column:1;min-width:0;transition:transform .26s cubic-bezier(.16,1,.3,1)}
-.gt-content.swap{transform:translateY(6px)}
-.gt-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.gt-ic{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;
-  background:rgba(244,80,30,.14);color:var(--accent-hi);border:1px solid rgba(244,80,30,.24)}
-.gt-ic svg{width:15px;height:15px}
-.gt-phase-lbl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ff9b66;white-space:nowrap}
-.gt-dot{width:3px;height:3px;border-radius:50%;background:#5a6172;flex-shrink:0}
-.gt-count{font-family:var(--mono);font-size:11.5px;font-weight:600;color:#9aa3b5;white-space:nowrap}
+/* ---------- PREMIUM 1d "Subtítulo de película": sin caja, frase enorme sobre velo ---------- */
+@keyframes gtActo{0%{opacity:0;transform:scale(1.04)}14%{opacity:1;transform:scale(1)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.99)}}
+@keyframes gtToca{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes gtLineIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.gt-acto{position:absolute;inset:0;z-index:11;display:none;place-items:center;pointer-events:none;
+  background:rgba(8,9,13,.88);backdrop-filter:blur(6px)}
+.gt-acto.on{display:grid;animation:gtActo 1.5s ease forwards}
+.gt-acto-in{text-align:center;color:#fff;padding:0 30px}
+.gt-acto-k{font-family:var(--display);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:#ff8a3d;margin-bottom:12px}
+.gt-acto-t{font-family:var(--display);font-size:clamp(30px,4.2vw,50px);font-weight:700;letter-spacing:-.03em;line-height:1.05;text-wrap:balance}
+.gt-acto-s{font-size:15.5px;color:rgba(255,255,255,.6);margin-top:10px}
+.gt-dock{position:absolute;left:0;right:0;bottom:0;pointer-events:auto;
+  padding:clamp(64px,9vh,110px) clamp(22px,4vw,44px) 24px;
+  background:linear-gradient(180deg,transparent,rgba(8,9,13,.42) 34%,rgba(8,9,13,.92));
+  border:0;border-radius:0;box-shadow:none;backdrop-filter:none}
+.gt-dock-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.10)}
+.gt-dock-prog i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .55s cubic-bezier(.4,0,.2,1)}
+.gt-chapters{display:flex;gap:2px 16px;margin:0 0 14px;flex-wrap:wrap}
+.gt-chap{position:relative;border:0;background:transparent;color:rgba(255,255,255,.42);
+  font-size:11px;font-weight:600;cursor:pointer;padding:3px 0;letter-spacing:.02em}
+.gt-chap:hover{color:#cfd4de}
+.gt-chap.on{color:#fff}
+.gt-chap.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:2px}
+.gt-chap.done{color:rgba(255,255,255,.6)}
+.gt-eyebrow{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:#ff9b66;margin-bottom:10px}
+.gt-dot{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.35);flex-shrink:0}
+.gt-count{font-family:var(--mono);font-size:11px;font-weight:600;color:rgba(255,255,255,.55);white-space:nowrap}
 .gt-count b{color:#fff}
+.gt-toca{display:none;align-items:center;gap:5px;margin-left:6px;padding:3px 9px;border-radius:999px;
+  font-size:10px;font-weight:700;letter-spacing:.08em;color:#7ee6bd;
+  background:rgba(16,185,129,.16);border:1px solid rgba(16,185,129,.35)}
+.gt-toca.on{display:inline-flex}
+.gt-toca b{width:5px;height:5px;border-radius:50%;background:#34d399;animation:gtToca 1.4s infinite}
+.gt-title{font-family:var(--display);font-size:clamp(26px,3.6vw,40px);font-weight:700;letter-spacing:-.03em;
+  line-height:1.05;color:#fff;margin:0 0 8px;max-width:640px;text-wrap:balance;
+  animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) both}
+.gt-body{font-size:16px;line-height:1.4;color:rgba(255,255,255,.75);margin:0;max-width:560px;
+  animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .07s both}
+.gt-viz{margin-top:12px;animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .12s both}
+.gt-controls{position:absolute;right:clamp(22px,4vw,44px);bottom:40px;display:inline-flex;align-items:center;gap:8px;pointer-events:auto;
+  padding:6px 8px;border-radius:999px;background:rgba(10,13,22,.78);border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 16px 36px -4px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05) inset}
+.gt-prev,.gt-play,.gt-next{border-radius:50%;cursor:pointer;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#e2e8f0;
+  transition:border-color .2s ease,background .2s ease,transform .22s cubic-bezier(.34,1.4,.44,1),box-shadow .2s ease,color .2s ease}
+.gt-prev,.gt-play{width:42px;height:42px}
+.gt-prev:hover,.gt-play:hover{border-color:rgba(255,255,255,.36);background:rgba(255,255,255,.14);color:#fff;transform:scale(1.06)}
+.gt-prev:active,.gt-play:active,.gt-next:active{transform:scale(.92)!important}
+.gt-prev:disabled{opacity:.22;pointer-events:none;transform:none!important;border-color:rgba(255,255,255,.05);background:transparent}
+.gt-next{width:48px;height:48px;border:0;
+  background:linear-gradient(135deg,#ff7a42 0%,#f4501e 52%,#d82b04 100%);color:#fff;
+  box-shadow:0 8px 22px -4px rgba(244,80,30,.72),0 0 0 1px rgba(255,255,255,.24) inset}
+.gt-next svg{transition:transform .2s cubic-bezier(.34,1.4,.44,1)}
+.gt-next:hover{transform:scale(1.08) translateY(-1px);
+  box-shadow:0 12px 28px -4px rgba(244,80,30,.88),0 0 0 4px rgba(244,80,30,.22),0 0 0 1px rgba(255,255,255,.32) inset}
+.gt-next:hover svg{transform:translateX(2px)}
+.gt-next.gt-next-done{background:linear-gradient(135deg,#10b981 0%,#059669 100%);
+  box-shadow:0 8px 22px -4px rgba(16,185,129,.72),0 0 0 1px rgba(255,255,255,.24) inset}
+.gt-next.gt-next-done:hover{box-shadow:0 12px 28px -4px rgba(16,185,129,.88),0 0 0 4px rgba(16,185,129,.22),0 0 0 1px rgba(255,255,255,.32) inset}
+.gt-next.gt-next-done:hover svg{transform:scale(1.1)}
+.gt-next:disabled{opacity:.3;pointer-events:none}
+.gt-play{color:#ffcfb8}
+.gt-play.on{border-color:rgba(244,80,30,.85);background:rgba(244,80,30,.24);color:#ff9b66;box-shadow:0 0 18px rgba(244,80,30,.45);animation:gtPlayPulse 2s ease-in-out infinite}
+@keyframes gtPlayPulse{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.45)}50%{box-shadow:0 0 0 8px rgba(244,80,30,0)}}
+.gt-skip{position:absolute;top:14px;right:clamp(22px,4vw,44px);font-size:11.5px;font-weight:600;color:rgba(255,255,255,.5);
+  background:rgba(8,9,13,.45);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 13px;
+  cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.gt-skip:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+@media (max-width:900px){
+  .gt-dock{padding:70px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+  .gt-chap span{display:none}
+  .gt-chap.on span{display:inline}
+  .gt-title{font-size:clamp(22px,6vw,28px)}
+  .gt-body{font-size:14.5px}
+  .gt-controls{right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:4px 6px;gap:6px}
+  .gt-prev,.gt-play{width:38px;height:38px}
+  .gt-next{width:44px;height:44px}
+  .gt-skip{top:10px;right:14px}
+}
 
-.gt-title{font-size:23px;line-height:1.12;font-weight:700;letter-spacing:-.02em;color:#fff;margin:0 0 7px;text-wrap:balance}
-.gt-body{font-family:var(--display);font-weight:400;font-size:14.5px;line-height:1.5;color:#cfd4de;margin:0;max-width:430px;text-wrap:pretty}
+/* ---------- DOCK FIJO: estilos base sustituidos por la version 1d de arriba ---------- */
+/* (el layout vive en PREMIUM 1d; aqui solo queda lo que no choca) */
+.gt-content{min-width:0}
+.gt-content.swap .gt-title,.gt-content.swap .gt-body,.gt-content.swap .gt-viz{animation:none;opacity:.4;transition:opacity .15s}
 .gt-body .hl{color:#ffae7d;font-weight:600}
 
 /* micro-ilustracion (plana, sin caramelo) */
@@ -179,47 +235,12 @@
 .gt-fmt .t{font-size:11.5px;font-weight:600;color:#fff}
 .gt-fmt .s{font-size:10px;color:#9aa3b5}
 
-/* ---------- CONTROLES (posicion FIJA) ---------- */
-.gt-nav{grid-column:2;align-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.gt-skip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.03em;color:#8b93a4;background:none;border:0;cursor:pointer;padding:2px 2px}
-.gt-skip:hover{color:#fff}
-.gt-nav .row{display:flex;gap:9px;align-items:stretch}
-.gt-prev,.gt-next{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;font-weight:600;
-  border-radius:10px;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s,opacity .18s}
-.gt-prev{width:44px;height:42px;color:#cfd4de;border:1px solid rgba(255,255,255,.14);background:transparent}
-.gt-prev:hover{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.24)}
-.gt-prev:disabled{opacity:.3;pointer-events:none}
-.gt-next{min-width:128px;height:42px;padding:0 18px;color:#fff;background:var(--accent);border:1px solid var(--accent);
-  box-shadow:0 1px 0 rgba(255,255,255,.12) inset}
-.gt-next:hover{background:#ff5a2a;border-color:#ff5a2a;transform:translateY(-1px)}
-.gt-next:active{transform:none}
-.gt-next svg{width:15px;height:15px}
 
-/* ---------- RESPONSIVE — movil: hoja inferior impecable ---------- */
+
+/* ---------- RESPONSIVE — movil: ajustes finos sobre la version 1d ---------- */
 @media(max-width:760px){
   .gt-veil.on{opacity:1}
-  .gt-dock{left:0;right:0;bottom:0;width:auto;transform:none;display:block;
-    border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0;
-    padding:20px 18px calc(16px + env(safe-area-inset-bottom,0px));
-    box-shadow:0 -16px 40px -18px rgba(0,0,0,.8);
-    animation:gtSheetIn .4s cubic-bezier(.16,1,.3,1)}
-  @keyframes gtSheetIn{from{transform:translateY(20px)}to{transform:translateY(0)}}
-  .gt-dock-prog{height:3px}
-  .gt-content{grid-column:auto}
-  .gt-head{margin-bottom:8px}
-  .gt-title{font-size:20px;line-height:1.15}
-  .gt-body{font-size:14px;max-width:none}
   .gt-viz-lane,.gt-viz .v-chat,.gt-viz .v-export{max-width:none}
-  .gt-nav{grid-column:auto;align-items:stretch;margin-top:16px;gap:12px;
-    flex-direction:row-reverse;flex-wrap:wrap}
-  .gt-nav .row{flex:1;gap:10px}
-  .gt-nav .row .gt-next{flex:1;min-width:0;height:46px;font-size:14.5px}
-  .gt-nav .row .gt-prev{width:50px;height:46px}
-  .gt-skip{order:2;align-self:center;width:100%;text-align:center;padding:4px;margin-top:2px}
-}
-@media(max-width:380px){
-  .gt-title{font-size:18.5px}
-  .gt-dock{padding:18px 14px calc(14px + env(safe-area-inset-bottom,0px))}
 }
 
   /* ---------- ACCESS / INTRO GATE ---------- */
@@ -299,6 +320,44 @@
   }
   .share-modal-overlay.show .share-modal {
     transform: none;
+  }
+
+  /* --- Animaciones de entrada: modal con spring, contenido escalonado --- */
+  @keyframes sharePop{0%{opacity:0;transform:translateY(26px) scale(.94)}60%{opacity:1;transform:translateY(-4px) scale(1.012)}100%{opacity:1;transform:none}}
+  @keyframes shareRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes shareBadge{0%{opacity:0;transform:scale(.4) rotate(-8deg)}70%{transform:scale(1.15) rotate(2deg)}100%{opacity:1;transform:none}}
+  @keyframes shareGlow{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.35)}50%{box-shadow:0 0 0 9px rgba(244,80,30,0)}}
+  .share-modal-overlay.show .share-modal{animation:sharePop .5s cubic-bezier(.16,1,.3,1) both}
+  .share-modal-overlay.show .share-modal-header{animation:shareRise .45s cubic-bezier(.16,1,.3,1) .08s both}
+  .share-modal-overlay.show .share-rewards .share-reward{animation:shareRise .5s cubic-bezier(.16,1,.3,1) both}
+  .share-modal-overlay.show .share-rewards .share-reward:nth-child(1){animation-delay:.14s}
+  .share-modal-overlay.show .share-rewards .share-reward:nth-child(2){animation-delay:.22s}
+  .share-modal-overlay.show .share-col-earn{animation:shareRise .5s cubic-bezier(.16,1,.3,1) .3s both}
+  .share-modal-overlay.show .share-col-right{animation:shareRise .5s cubic-bezier(.16,1,.3,1) .38s both}
+  .share-modal-overlay.show .share-reward.hero .rw-amt{animation:shareBadge .55s cubic-bezier(.34,1.4,.44,1) .3s both}
+  .share-modal-overlay.show .share-earn .dot{animation:shareGlow 2.2s ease-in-out infinite}
+
+  /* --- Contraste y legibilidad dentro del modal --- */
+  .share-modal{color:#e8ecf3}
+  .share-modal .rw-sub,
+  .share-modal .share-demo-sub,
+  .share-modal .share-how p{color:#aab3c4}
+  .share-modal .share-demo-label,
+  .share-modal .share-howlabel{color:#c6cdd9}
+  .share-modal .share-rec-field label{color:#b9c1cf}
+  .share-modal input{color:#fff}
+  .share-modal input::placeholder{color:#77808f}
+  .share-modal .share-modal-close{color:#c6cdd9}
+  .share-modal .share-modal-close:hover{color:#fff;background:rgba(255,255,255,.07)}
+
+  /* --- Móvil: hoja inferior deslizante --- */
+  @media(max-width:720px){
+    .share-modal-overlay{align-items:flex-end;padding:0}
+    .share-modal{width:100%;max-width:none;border-radius:22px 22px 0 0;border-left:0;border-right:0;border-bottom:0;
+      max-height:calc(92vh - env(safe-area-inset-bottom,0px));padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+    .share-modal-overlay.show .share-modal{animation:shareSheet .45s cubic-bezier(.16,1,.3,1) both}
+    @keyframes shareSheet{from{opacity:0;transform:translateY(55%)}to{opacity:1;transform:none}}
+    .share-modal::before{content:"";display:block;margin:-4px auto 12px;width:44px;height:5px;border-radius:99px;background:rgba(255,255,255,.18)}
   }
   .share-modal-header {
     display: flex;
@@ -461,7 +520,7 @@
   .share-demo-sub { font-size: 11px; color: var(--text-ter); line-height: 1.45; margin: 9px 2px 0; }
   .share-demo .btn { background: rgba(255,255,255,.06); color: var(--text-sec); border: 1px solid var(--border); }
   .share-demo .btn:hover { color: #fff; border-color: var(--border-hi); }
-  /* La tarjeta −40% como recompensa principal */
+  /* La tarjeta -30% como recompensa principal */
   .share-reward.hero { border-color: rgba(244,80,30,.42); background: linear-gradient(160deg, rgba(244,80,30,.16), rgba(244,80,30,.05)); }
   @media(max-width: 720px) {
     .share-modal-body { grid-template-columns: 1fr; gap: 14px; }
@@ -694,7 +753,7 @@
 <header class="dm-bar">
   <a class="ver-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg><span>Volver</span></a>
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha<span class="dot" style="color:var(--accent,#f4501e)">.</span></span></div>
-  <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
+  <span class="dm-pill"><span class="d"></span>Demo</span>
   <div class="dm-tutsel" id="tutSel">
     <button class="dm-tut" id="tutBtnGeneral" type="button" title="Ver el recorrido general desde el principio">
       <span class="pnum">1</span>
@@ -710,7 +769,7 @@
   <button class="dm-share" id="shareBtn" type="button" style="display:none" title="Comparte Mecha y gana descuento por cada salón de tu red.">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
     <span class="lbl">Recomendar</span>
-    <span class="dm-share-badge">−40%</span>
+    <span class="dm-share-badge">-30%</span>
   </button>
   <div class="dm-bar-cta">
     <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Solicitar acceso</span>
@@ -725,7 +784,7 @@
     <div class="dm-localnote" id="localnote">
       <div class="in">
         <svg class="mk" viewBox="0 0 40 40" aria-hidden="true"><use href="#mecha-mark" /></svg>
-        <h3>Abriendo tu vista previa de Mecha</h3>
+        <h3>Abriendo tu demo de Mecha</h3>
         <p>Cargando el software para que lo recorras por dentro: agenda, fichas de cliente e informes…</p>
         <span class="dm-load-dot" aria-hidden="true"></span>
         <p class="tip" id="localTip"></p>
@@ -750,7 +809,7 @@
       <div class="share-rewards">
         <div class="share-reward hero">
           <div class="rw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg></div>
-          <div class="rw-amt">−40%<span>máx.</span></div>
+          <div class="rw-amt">-30%<span>máx.</span></div>
           <div class="rw-lbl">para ti</div>
           <div class="rw-sub">por cada salón de tu red, hasta 3 niveles</div>
         </div>
@@ -767,7 +826,7 @@
         <!-- CON sesión: tu enlace de referido + tu árbol -->
         <div id="refLoggedIn" style="display:none;">
           <div class="share-earn">
-            <div class="share-earn-label"><span class="dot"></span>Tu enlace para ganar <b>−40%</b></div>
+            <div class="share-earn-label"><span class="dot"></span>Tu enlace para ganar <b>-30%</b></div>
             <div class="share-link-row">
               <div class="share-input-wrapper">
                 <svg class="share-link-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
@@ -792,7 +851,7 @@
         <!-- ANÓNIMO: crear cuenta para obtener el enlace que gana -->
         <div id="refAnon" style="display:none;">
           <div class="share-earn">
-            <div class="share-earn-label"><span class="dot"></span>Tu enlace para ganar <b>−40%</b></div>
+            <div class="share-earn-label"><span class="dot"></span>Tu enlace para ganar <b>-30%</b></div>
             <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup" style="font-weight:700;">
               Crea tu cuenta y consíguelo
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -848,12 +907,12 @@
   <div class="dm-card">
     <a class="dm-gback" href="index.html" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></a>
     <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
-    <span class="geyebrow">Vista previa · gratis</span>
+    <span class="geyebrow">Demo · gratis</span>
     <h2>Mira cómo es <span class="em">Mecha</span> por dentro</h2>
-    <p class="gsub">Una vista previa navegable del software: muévete por la agenda, las fichas y los informes para ver cómo se ve y se usa. Algunas funciones están de muestra; al activar tu cuenta completa lo tendrás todo conectado y con la IA implementada.</p>
+    <p class="gsub">Una demo navegable del software: muévete por la agenda, las fichas y los informes para ver cómo se ve y se usa. Algunas funciones están de muestra; al activar tu cuenta completa lo tendrás todo conectado y con la IA implementada.</p>
     <div class="dm-glist">
       <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El software <b>navegable de verdad</b>, no capturas</span></div>
-      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>3 visitas gratis</b> a la vista previa con cada cuenta</span></div>
+      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>3 visitas gratis</b> a la demo con cada cuenta</span></div>
       <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sin tarjeta y con una <b>guía que te explica cada parte</b></span></div>
     </div>
     <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup">Crear cuenta gratis y entrar
@@ -938,7 +997,7 @@
     } else if (profile) {
       if(lbl) lbl.textContent = 'Recomendar';
       if(badge) badge.style.display = '';
-      shareBtn.title = 'Comparte tu enlace y gana descuento por cada salón de tu red, y por los que ellos traen (hasta −40%).';
+      shareBtn.title = 'Comparte tu enlace y gana descuento por cada salón de tu red, y por los que ellos traen (hasta -30%).';
     } else {
       if(lbl) lbl.textContent = 'Recomendar';
       if(badge) badge.style.display = '';
@@ -1318,32 +1377,97 @@
   // Reusa escHtml (definido arriba) y resalta **palabra** como <span class="hl">.
   function fmtBody(t){ return escHtml(String(t)).replace(/\*\*([^*]+)\*\*/g,'<span class="hl">$1</span>'); }
 
+  // ---- PREMIUM v2: capítulos del recorrido (4 actos para general, 3 para config)
+  var ACTS_GENERAL=[
+    {nombre:'La agenda', sub:'De un hueco vacío a una cita cobrada', desde:0, hasta:6},
+    {nombre:'Los reposos', sub:'Cómo el tinte pasa a facturar el doble', desde:7, hasta:11},
+    {nombre:'IA y avisos', sub:'La recepcionista que no duerme', desde:12, hasta:14},
+    {nombre:'Equipo e informes', sub:'Horas, comisiones y números', desde:15, hasta:15}
+  ];
+  var ACTS_CONFIG=[
+    {nombre:'Tu salón', sub:'Identidad, horarios y tarifas', desde:0, hasta:3},
+    {nombre:'Automático', sub:'Comisiones, avisos y reserva online', desde:4, hasta:8},
+    {nombre:'Equipo y cuenta', sub:'Permisos, referidos y tu plan', desde:9, hasta:10}
+  ];
+  // Pasos donde el tour para y te invita a tocar TU el software (badge TE TOCA)
+  var ACCIONES_TOCA={ 'nueva-cita':1, 'detalle-secuencia-reposo':1, 'informes-export':1, 'config-servicios':1 };
+  function actsOf(){ return STEPS===TUT_CONFIG ? ACTS_CONFIG : ACTS_GENERAL; }
+  function actoOf(i){ var A=actsOf(); for(var k=0;k<A.length;k++){ if(i>=A[k].desde && i<=A[k].hasta) return k; } return 0; }
+
+  var SVG_PREV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+  var SVG_PLAY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="transform:translateX(1px)"><path d="M7 4.5v15a1 1 0 0 0 1.54.84l12-7.5a1 1 0 0 0 0-1.68l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>';
+  var SVG_PAUSE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>';
+  var SVG_NEXT = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  var SVG_CHECK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
   // Construye el dock dentro de #gt (una sola vez).
   function buildDock(){
     var root=$('#gt'); if(!root) return;
     root.innerHTML=''+
       '<div class="gt-veil" id="gtVeil"></div>'+
       '<div class="gt-spot" id="gtSpot"></div>'+
+      '<div class="gt-acto" id="gtActo"><div class="gt-acto-in"><div class="gt-acto-k" id="gtActoK"></div><div class="gt-acto-t" id="gtActoT"></div><div class="gt-acto-s" id="gtActoS"></div></div></div>'+
       '<div class="gt-dock" id="gtDock">'+
-        '<div class="gt-dock-prog"><i id="gtProg"></i></div>'+
+        '<button class="gt-skip" id="gtSkip" type="button">Ver por libre ✕</button>'+
+        '<div class="gt-chapters" id="gtChapters"></div>'+
         '<div class="gt-content" id="gtContent">'+
-          '<div class="gt-head"><span class="gt-ic" id="gtIc"></span><span class="gt-phase-lbl" id="gtPhase"></span><span class="gt-dot"></span><span class="gt-count" id="gtCount"></span></div>'+
+          '<div class="gt-eyebrow"><span id="gtPhase"></span><span class="gt-dot"></span><span id="gtCount"></span><span class="gt-toca" id="gtToca"><b></b>TE TOCA</span></div>'+
           '<h3 class="gt-title" id="gtTitle"></h3>'+
           '<p class="gt-body" id="gtBody"></p>'+
           '<div class="gt-viz" id="gtViz"></div>'+
         '</div>'+
-        '<div class="gt-nav">'+
-          '<button class="gt-skip" id="gtSkip" type="button">Saltar guía</button>'+
-          '<div class="row"><button class="gt-prev" id="gtPrev" type="button" aria-label="Anterior"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>'+
-          '<button class="gt-next" id="gtNext" type="button">Siguiente</button></div>'+
+        '<div class="gt-controls">'+
+          '<button class="gt-prev" id="gtPrev" type="button" aria-label="Paso anterior" title="Paso anterior (←)">'+SVG_PREV+'</button>'+
+          '<button class="gt-play" id="gtPlay" type="button" title="Reproducción automática" aria-label="Reproducción automática">'+SVG_PLAY+'</button>'+
+          '<button class="gt-next" id="gtNext" type="button" aria-label="Siguiente paso" title="Siguiente paso (→)">'+SVG_NEXT+'</button>'+
         '</div>'+
+        '<div class="gt-dock-prog"><i id="gtProg"></i></div>'+
       '</div>';
     gt.root=root;
-    ['Veil','Spot','Dock','Prog','Content','Ic','Phase','Count','Title','Body','Viz','Skip','Prev','Next']
+    ['Veil','Spot','Dock','Prog','Content','Phase','Count','Title','Body','Viz','Skip','Prev','Next','Chapters','Toca','Play','Acto','ActoK','ActoT','ActoS']
       .forEach(function(k){ gt[k.charAt(0).toLowerCase()+k.slice(1)]=root.querySelector('#gt'+k); });
-    gt.skip.addEventListener('click', closeTour);
-    gt.prev.addEventListener('click', tourPrev);
-    gt.next.addEventListener('click', tourNext);
+    gt.skip.addEventListener('click', function(){ stopAutoplay(); closeTour(); });
+    gt.prev.addEventListener('click', function(){ stopAutoplay(); tourPrev(); });
+    gt.next.addEventListener('click', function(){ stopAutoplay(); tourNext(); });
+    gt.play.addEventListener('click', toggleAutoplay);
+  }
+
+  // ---- capítulos: fila de etiquetas clicables con subrayado de avance ----
+  function renderChapters(){
+    var A=actsOf(), html='';
+    for(var k=0;k<A.length;k++){
+      var activo = actoOf(ti)===k;
+      var hecho = actoOf(ti)>k;
+      html+='<button class="gt-chap'+(activo?' on':'')+(hecho?' done':'')+'" type="button" data-desde="'+A[k].desde+'" title="'+A[k].nombre+' — '+A[k].sub+'"><span>'+A[k].nombre+'</span></button>';
+    }
+    gt.chapters.innerHTML=html;
+    Array.prototype.forEach.call(gt.chapters.querySelectorAll('.gt-chap'), function(b){
+      b.addEventListener('click', function(){ if(busy) return; lockBriefly(); stopAutoplay(); ti=+b.getAttribute('data-desde'); renderStep(true); });
+    });
+  }
+
+  // ---- cortinilla de acto ----
+  var actoT=null, lastActoShown=-1;
+  function mostrarActo(n){
+    var A=actsOf()[n]; if(!A) return;
+    gt.actoK.textContent='Capítulo '+(n+1)+' de '+actsOf().length;
+    gt.actoT.textContent=A.nombre;
+    gt.actoS.textContent=A.sub;
+    gt.acto.classList.remove('on'); void gt.acto.offsetWidth; gt.acto.classList.add('on');
+    if(actoT) clearTimeout(actoT);
+    actoT=setTimeout(function(){ gt.acto.classList.remove('on'); }, 1500);
+  }
+
+  // ---- autoplay: se reproduce solo como un vídeo; cualquier input lo para ----
+  var autoTimer=null;
+  function toggleAutoplay(){ if(autoTimer) stopAutoplay(); else startAutoplay(); }
+  function startAutoplay(){
+    autoTimer=setInterval(function(){ if(!busy) tourNext(); }, 4600);
+    gt.play.innerHTML=SVG_PAUSE; gt.play.classList.add('on'); gt.play.title='Pausar reproducción';
+  }
+  function stopAutoplay(){
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+    if(gt.play){ gt.play.innerHTML=SVG_PLAY; gt.play.classList.remove('on'); gt.play.title='Reproducir solo'; }
   }
 
   function navFrame(route){ if(maqueta||!route) return; try{ if(frame.contentWindow) frame.contentWindow.postMessage({ type:'mecha-nav', route:route }, location.origin); }catch(e){} }
@@ -1398,20 +1522,29 @@
   }
 
   function fillContent(s){
-    gt.ic.innerHTML=ICONS[s.ic]||'';
     gt.phase.textContent=s.ph;
     gt.count.innerHTML='<b>'+pad2(ti+1)+'</b> / '+pad2(STEPS.length);
     gt.title.textContent=s.t;
     gt.body.innerHTML=fmtBody(s.d);
     renderViz(s.viz);
+    // re-dispara la entrada escalonada (gtLineIn) en cada paso
+    [gt.title, gt.body, gt.viz].forEach(function(el){
+      if(!el) return;
+      el.style.animation='none'; void el.offsetWidth; el.style.animation='';
+    });
   }
   function updateNav(){
     gt.prev.disabled = (ti===0);
     var last = ti===STEPS.length-1;
-    var arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    var check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    gt.next.innerHTML = (last && STEPS===TUT_GENERAL) ? ('Ver Configuración '+arrow)
-        : (last ? ('Finalizar '+check) : ('Siguiente '+arrow));
+    if(last){
+      gt.next.innerHTML = SVG_CHECK;
+      gt.next.title = (STEPS===TUT_GENERAL) ? 'Ver Configuración' : 'Finalizar tour';
+      gt.next.classList.add('gt-next-done');
+    } else {
+      gt.next.innerHTML = SVG_NEXT;
+      gt.next.title = 'Siguiente paso (→)';
+      gt.next.classList.remove('gt-next-done');
+    }
   }
   function syncSelector(){
     if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', STEPS===TUT_GENERAL);
@@ -1443,9 +1576,14 @@
 
   // Cambia de paso de forma FLUIDA: el foco se desliza, el contenido hace un
   // micro cross-fade y los controles del dock no se mueven nunca.
-  function renderStep(){
+  function renderStep(cambiaActo){
     var s=STEPS[ti];
-    setProgress(); updateNav(); syncSelector();
+    setProgress(); updateNav(); syncSelector(); renderChapters();
+    gt.toca.classList.toggle('on', !!ACCIONES_TOCA[s.action]);
+    if(cambiaActo){
+      var a=actoOf(ti);
+      if(a!==lastActoShown){ lastActoShown=a; mostrarActo(a); }
+    }
     driveSoftware(s);
     gt.content.classList.add('swap');
     if(swapTimer) clearTimeout(swapTimer);
@@ -1454,16 +1592,19 @@
 
   function tourNext(){
     if(busy) return; lockBriefly();
-    if(ti<STEPS.length-1){ ti++; renderStep(); return; }
-    if(STEPS===TUT_GENERAL){ STEPS=TUT_CONFIG; ti=0; renderStep(); }
-    else { closeTour(); }
+    if(ti<STEPS.length-1){ ti++; renderStep(true); return; }
+    if(STEPS===TUT_GENERAL){ STEPS=TUT_CONFIG; ti=0; lastActoShown=-1; renderStep(true); }
+    else { stopAutoplay(); closeTour(); }
   }
-  function tourPrev(){ if(busy) return; if(ti>0){ lockBriefly(); ti--; renderStep(); } }
+  function tourPrev(){ if(busy) return; if(ti>0){ lockBriefly(); ti--; renderStep(true); } }
   function closeTour(){
+    stopAutoplay();
     if(!gt.root) return;
     gt.root.classList.remove('show');
     if(actTimer) clearTimeout(actTimer);
     if(swapTimer) clearTimeout(swapTimer);
+    if(actoT) clearTimeout(actoT);
+    if(gt.acto) gt.acto.classList.remove('on');
     demoAction('cerrar'); hole=null; lastAct='cerrar';
   }
 
@@ -1475,7 +1616,8 @@
     ti=0; tourStarted=true; hole=null; lastAct=null; busy=false;
     gt.veil.classList.add('on'); gt.spot.classList.remove('on');
     gt.root.classList.add('show');
-    setProgress(); updateNav(); syncSelector(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
+    lastActoShown=-1;
+    setProgress(); updateNav(); syncSelector(); renderChapters(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
     navFrame(STEPS[0].route);
     var a0=STEPS[0].action||'cerrar';
     actTimer=setTimeout(function(){ demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0; }, 120);
@@ -1494,7 +1636,7 @@
     if(!gt.root || !gt.root.classList.contains('show')) return;
     var sh=$('#shareModalOverlay');
     if(sh && sh.classList.contains('show')) return; // no navegar con el modal de recomendar abierto
-    if(e.key==='ArrowRight'){ tourNext(); } else if(e.key==='ArrowLeft'){ tourPrev(); } else if(e.key==='Escape'){ closeTour(); }
+    if(e.key==='ArrowRight'){ stopAutoplay(); tourNext(); } else if(e.key==='ArrowLeft'){ stopAutoplay(); tourPrev(); } else if(e.key==='Escape'){ closeTour(); }
   });
 
   // Llamado por enterDemo: monta el dock y arranca cuando el iframe esta listo
