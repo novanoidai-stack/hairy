@@ -13,7 +13,12 @@ import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
 import { resolverSenalStaff } from "@/lib/senalStaff";
-import { validarHorarioLaboral } from "@/lib/horarios";
+import {
+  validarHorarioLaboral,
+  slotsQueCaben,
+  cabeEnAlgunaFranja,
+  franjasTexto,
+} from "@/lib/horarios";
 import { getUserProfile } from "@/lib/auth";
 import { TimeDrumPicker } from "@/components/ui/Pickers";
 import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
@@ -232,26 +237,6 @@ interface Profesional {
 // Normalizar texto: quitar tildes y pasar a minusculas para busquedas sin discriminar acentos
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-
-// Generar slots de tiempo dinámicamente
-const generarSlotsHorarios = () => {
-  const slots: string[] = [];
-  let h = HORARIO_APERTURA.horas;
-  let m = HORARIO_APERTURA.minutos;
-
-  while (
-    h < HORARIO_CIERRE.horas ||
-    (h === HORARIO_CIERRE.horas && m < HORARIO_CIERRE.minutos)
-  ) {
-    slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-    m += INTERVALO_MINUTOS;
-    if (m >= 60) {
-      m -= 60;
-      h += 1;
-    }
-  }
-  return slots;
-};
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = "#f8fafc" }: any) => {
@@ -5123,6 +5108,8 @@ export default function AgendaCalendar() {
           serviciosIni={servicios}
           profesionalesIni={profesionales}
           categoriasIni={categorias}
+          horariosProfIni={horariosProf}
+          cierresIni={cierres}
           onClose={() => {
             setShowNewCita(false);
             setNewCitaPrefill(null);
@@ -9960,6 +9947,7 @@ function DayTimeline({
                       borderRadius: 13,
                       objectFit: "cover",
                       boxShadow: `0 0 0 2px ${p.color}`,
+                      flexShrink: 0,
                     }}
                   />
                 ) : (
@@ -9976,13 +9964,26 @@ function DayTimeline({
                       color: "#fff",
                       fontSize: 12,
                       fontWeight: 700,
+                      flexShrink: 0,
                     }}
                   >
                     {p.nombre.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div
-                  style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: TOKENS.text,
+                    // Sin esto, un nombre largo + el numerito de posicion
+                    // desbordaban la cabecera y se SOLAPABAN con la columna
+                    // vecina en cuanto la rejilla se quedaba estrecha.
+                    flex: 1,
+                    minWidth: 0,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
                 >
                   {(() => {
                     const parts = p.nombre.split(" ");
@@ -10029,6 +10030,9 @@ function DayTimeline({
                       fontWeight: 700,
                       boxSizing: "border-box",
                       cursor: "pointer",
+                      flexShrink: 0,
+                      appearance: "textfield",
+                      MozAppearance: "textfield",
                     }}
                   />
                 )}
@@ -11420,6 +11424,11 @@ function NewCitaModal({
   serviciosIni,
   profesionalesIni,
   categoriasIni,
+  // Jornada de cada profesional (horarios_profesional, dia_semana 0=DOMINGO) y
+  // festivos/cierres del salon. Los trae la agenda ya cargados: la rejilla de horas
+  // sale de aqui, no de una ventana 09:00-20:00 inventada.
+  horariosProfIni,
+  cierresIni,
 }: any) {
   const { triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
@@ -11603,6 +11612,32 @@ function NewCitaModal({
   const [guardandoPuntual, setGuardandoPuntual] = useState(false);
   const [puntualErr, setPuntualErr] = useState("");
   const today = selectedDate || new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  // Turnos del profesional ESE dia. horarios_profesional.dia_semana es 0=DOMINGO
+  // (extract(dow) de Postgres), igual que Date#getDay().
+  const franjasHoy = useMemo(
+    () =>
+      selectedProf
+        ? ((horariosProfIni ?? []) as any[])
+            .filter(
+              (h: any) =>
+                h.profesional_id === selectedProf &&
+                h.dia_semana === today.getDay(),
+            )
+            .map((h: any) => ({
+              hora_inicio: h.hora_inicio,
+              hora_fin: h.hora_fin,
+              turno: h.turno,
+            }))
+        : [],
+    [horariosProfIni, selectedProf, todayKey],
+  );
+  // Festivo / cierre del salon: ese dia no se reserva a nadie.
+  const cierreDelDia = useMemo(
+    () => ((cierresIni ?? []) as any[]).find((c: any) => c.fecha === todayKey) ?? null,
+    [cierresIni, todayKey],
+  );
 
   // --- Demo guiada: el recorrido de demo.html pide rellenar el formulario paso a
   // paso (cliente -> servicio -> hora) y enfocar cada zona con un spotlight. El
@@ -14438,7 +14473,52 @@ function NewCitaModal({
                       Cargando horas disponibles...
                     </div>
                   );
-                const slots = generarSlotsHorarios();
+                // Festivo o cierre del salon: ese dia no hay horas que ofrecer.
+                if (cierreDelDia)
+                  return (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: TOKENS.textTer,
+                        padding: "10px 0",
+                      }}
+                    >
+                      El salon esta cerrado ese dia
+                      {cierreDelDia.motivo ? ` (${cierreDelDia.motivo})` : ""}.
+                    </div>
+                  );
+                // La rejilla sale de los turnos REALES del profesional ese dia y solo
+                // ofrece horas en las que la cita entera termina dentro del turno. Sin
+                // franjas configuradas se cae a la ventana del salon, que es lo que
+                // hace tambien validarHorarioLaboral al guardar.
+                const franjasParaSlots =
+                  franjasHoy.length > 0
+                    ? franjasHoy
+                    : [
+                        {
+                          hora_inicio: `${String(HORARIO_APERTURA.horas).padStart(2, "0")}:${String(HORARIO_APERTURA.minutos).padStart(2, "0")}`,
+                          hora_fin: `${String(HORARIO_CIERRE.horas).padStart(2, "0")}:${String(HORARIO_CIERRE.minutos).padStart(2, "0")}`,
+                        },
+                      ];
+                const slots = slotsQueCaben(
+                  franjasParaSlots,
+                  duracionTotal,
+                  INTERVALO_MINUTOS,
+                );
+                if (slots.length === 0)
+                  return (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: TOKENS.textTer,
+                        padding: "10px 0",
+                      }}
+                    >
+                      {franjasHoy.length === 0
+                        ? "Ese profesional no trabaja ese dia."
+                        : `No hay ningun turno donde quepan los ${duracionTotal} min del servicio (${franjasTexto(franjasParaSlots)}).`}
+                    </div>
+                  );
                 // RN-AG-070/071: añadir fin_activa exacto como slot extra si no es múltiplo de 15
                 const slotsSet = new Set(slots);
                 const extraSlots: string[] = [];
@@ -14451,13 +14531,23 @@ function NewCitaModal({
                     return;
                   const cFinActiva = new Date(c.fin_activa);
                   const cFinEspera = new Date(c.fin_espera);
-                  const cFin = new Date(c.fin);
-                  const hasSegundaFase = cFinEspera.getTime() < cFin.getTime();
                   const slotFinActiva = new Date(
                     cFinActiva.getTime() + duracionActiva * 60000,
                   );
                   // Si encaja exacto en el límite, está permitido (<= cFinEspera).
                   if (slotFinActiva > cFinEspera) return;
+                  // Y tiene que seguir cabiendo en el turno: el hueco de reposo no es
+                  // excusa para que la cita se salga por el final de la jornada.
+                  const minutosSlot =
+                    cFinActiva.getHours() * 60 + cFinActiva.getMinutes();
+                  if (
+                    !cabeEnAlgunaFranja(
+                      franjasParaSlots,
+                      minutosSlot,
+                      duracionTotal,
+                    )
+                  )
+                    return;
                   const timeStr = `${String(cFinActiva.getHours()).padStart(2, "0")}:${String(cFinActiva.getMinutes()).padStart(2, "0")}`;
                   if (!slotsSet.has(timeStr)) extraSlots.push(timeStr);
                 });
