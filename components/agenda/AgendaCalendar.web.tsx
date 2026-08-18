@@ -18021,8 +18021,13 @@ export function DetalleCitaModal({
       };
       if (seccionPorZona[zone]) setSeccionActiva(seccionPorZona[zone]);
       if (zone === "formula") setShowFormula(true);
-      if (ZONAS_SECCION[zone]) dSeccionRef.current = null;
-      setDemoZone(zone);
+      // El contenedor reenvia la accion del paso varias veces (la seccion puede
+      // tardar en montarse). Soltar el objetivo en CADA reenvio dejaba el foco
+      // parpadeando dentro del mismo paso; solo se suelta al cambiar de zona.
+      setDemoZone((prev) => {
+        if (prev !== zone && ZONAS_SECCION[zone]) dSeccionRef.current = null;
+        return zone;
+      });
     };
     window.addEventListener("mecha-demo", onDemo);
     return () => window.removeEventListener("mecha-demo", onDemo);
@@ -18042,7 +18047,7 @@ export function DetalleCitaModal({
         dSeccionRef.current = first;
         return;
       }
-      if (tries++ < 40) raf = requestAnimationFrame(pick);
+      if (tries++ < 400) raf = requestAnimationFrame(pick); // ~2-6 s segun refresco
       else dSeccionRef.current = root;
     };
     pick();
@@ -18074,7 +18079,7 @@ export function DetalleCitaModal({
           el.scrollIntoView({ behavior: "smooth", block: "center" });
         return;
       }
-      if (tries++ < 40) raf = requestAnimationFrame(intentar);
+      if (tries++ < 400) raf = requestAnimationFrame(intentar); // ~2-6 s segun refresco
     };
     intentar();
     return () => cancelAnimationFrame(raf);

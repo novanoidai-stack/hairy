@@ -688,7 +688,11 @@ export default function EquipoWeb() {
             ] as const).map((o) => (
               <button
                 key={o.value}
-                data-demo-abrir={o.value === 'rendimiento' ? 'equipo-comisiones' : undefined}
+                data-demo-abrir={
+                  o.value === 'rendimiento' ? 'equipo-comisiones'
+                  : o.value === 'fichas' ? 'equipo-fichas'
+                  : undefined
+                }
                 onClick={() => { setVistaEquipo(o.value); if (o.value !== 'fichas') setSelected(null); }}
                 style={{
                   padding: isMobile ? '8px 14px' : '7px 14px',
@@ -991,9 +995,12 @@ export default function EquipoWeb() {
         </div>
         )}
 
-        {/* Detalle del miembro a pantalla completa */}
+        {/* Detalle del miembro a pantalla completa.
+            Lleva la misma marca `equipo-fichas` que la cuadricula: el recorrido
+            de la demo enfoca "tu equipo" tanto si esta en la lista como si hay
+            una persona abierta (solo una de las dos se pinta a la vez). */}
         {vistaEquipo === 'fichas' && profSel && selected && (
-          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
+          <div data-demo="equipo-fichas" className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
             {/* Cabecera: volver · identidad · acciones */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
               <button

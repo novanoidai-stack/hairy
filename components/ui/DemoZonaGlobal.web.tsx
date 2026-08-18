@@ -56,8 +56,15 @@ export function DemoZonaGlobal() {
         setZona(null);
         return;
       }
-      targetRef.current = null;
-      setZona(action.slice('zona-'.length));
+      // Ojo: el contenedor reenvia la accion del paso varias veces (la pantalla
+      // destino puede tardar en montarse). Si en cada reenvio soltaramos el
+      // objetivo, el foco se quedaria a oscuras un instante una y otra vez
+      // durante el mismo paso. Solo se suelta al CAMBIAR de zona.
+      const nueva = action.slice('zona-'.length);
+      setZona((prev) => {
+        if (prev !== nueva) targetRef.current = null;
+        return nueva;
+      });
     };
     window.addEventListener('mecha-demo', onDemo);
     return () => window.removeEventListener('mecha-demo', onDemo);

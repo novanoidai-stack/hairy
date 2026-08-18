@@ -247,31 +247,6 @@
   .gt-viz-lane,.gt-viz .v-chat,.gt-viz .v-export{max-width:none}
 }
 
-  /* ---------- ACCESS / INTRO GATE ---------- */
-  .dm-gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;
-    background:rgba(7,10,20,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  .dm-gate.hide{display:none}
-  .dm-card{width:100%;max-width:460px;background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);
-    border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:30px 30px 26px;position:relative;overflow:hidden;animation:dmPop .5s var(--ease)}
-  .dm-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
-  @keyframes dmPop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
-  .dm-card .gmark{width:54px;height:54px;margin-bottom:16px}
-  .dm-card .geyebrow{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-hi)}
-  .dm-card h2{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.03em;margin:8px 0 8px;line-height:1.08}
-  .dm-card h2 .em{font-family:var(--serif);font-weight:400;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .dm-card .gsub{font-size:14px;color:var(--text-sec);line-height:1.55;margin-bottom:18px}
-  .dm-glist{display:flex;flex-direction:column;gap:11px;margin-bottom:22px}
-  .dm-gitem{display:flex;gap:11px;align-items:flex-start;font-size:13.5px;color:var(--text-sec);line-height:1.45}
-  .dm-gitem .ck{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
-  .dm-gitem .ck svg{width:13px;height:13px}
-  .dm-gitem b{color:var(--text);font-weight:600}
-  .dm-card .btn{margin-top:2px}
-  .dm-gsecond{font-size:13px;color:var(--text-sec);text-align:center;margin-top:15px}
-  .dm-gsecond a{color:var(--accent-hi);font-weight:600}
-  .dm-gback{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:9px;display:grid;place-items:center;color:var(--text-ter);border:1px solid var(--border)}
-  .dm-gback:hover{color:var(--text);border-color:var(--border-hi)}
-  .dm-gback svg{width:16px;height:16px}
-
   /* ---------- INTRO CINEMATOGRAFICA (pantalla negra, sin caja) ----------
      No es un aviso: es el arranque de una pelicula. Negro puro a sangre,
      barras de cine, grano sutil, y el texto entrando por lineas. Todo el
@@ -454,22 +429,6 @@
   .dm-dudas-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#c6cdd9;font-size:26px;line-height:1;cursor:pointer}
   .dm-dudas-close:hover{color:#fff}
   @media(max-width:720px){ .dm-dudas-btn span{display:none} .dm-dudas-btn{padding:8px 10px} .dm-dudas{padding:20px 16px} }
-
-  /* ---------- OUT-OF-VISITS / END ---------- */
-  .dm-end{position:fixed;inset:0;z-index:60;display:none;place-items:center;padding:24px;
-    background:rgba(7,10,20,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  .dm-end.show{display:grid;animation:dmFade .4s var(--ease)}
-  .dm-end-card{width:100%;max-width:460px;text-align:center;background:linear-gradient(180deg,var(--card-hi),var(--card));
-    border:1px solid var(--border-hi);border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:34px 30px 30px;position:relative;overflow:hidden}
-  .dm-end-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
-  .dm-end-card .ic{width:60px;height:60px;border-radius:17px;margin:0 auto 16px;display:grid;place-items:center;background:var(--grad-soft);box-shadow:0 16px 40px -14px var(--accent-glow)}
-  .dm-end-card .ic svg{width:30px;height:30px;color:#fff}
-  .dm-end-card h2{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-.03em;margin-bottom:9px}
-  .dm-end-card p{font-size:14.5px;color:var(--text-sec);line-height:1.55;margin-bottom:22px}
-  .dm-end-card p .em{font-family:var(--serif);font-style:italic;color:var(--accent-hi)}
-  .dm-end-actions{display:flex;flex-direction:column;gap:11px}
-  .dm-end-actions .ghost{font-size:13px;color:var(--text-ter);background:none}
-  .dm-end-actions .ghost:hover{color:var(--text)}
 
   @media(max-width:720px){
     .dm-stage{padding:0}
@@ -1158,41 +1117,6 @@
   </div>
 </div>
 
-<!-- ============ ACCESS / INTRO GATE ============ -->
-<div class="dm-gate hide" id="gate">
-  <div class="dm-card">
-    <a class="dm-gback" href="index.html" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></a>
-    <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
-    <span class="geyebrow">Demo · gratis</span>
-    <h2>Mira cómo es <span class="em">Mecha</span> por dentro</h2>
-    <p class="gsub">Una demo navegable del software: muévete por la agenda, las fichas y los informes para ver cómo se ve y se usa. Algunas funciones están de muestra; al activar tu cuenta completa lo tendrás todo conectado y con la IA implementada.</p>
-    <div class="dm-glist">
-      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El software <b>navegable de verdad</b>, no capturas</span></div>
-      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>3 visitas gratis</b> a la demo con cada cuenta</span></div>
-      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sin tarjeta y con una <b>guía que te explica cada parte</b></span></div>
-    </div>
-    <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup">Crear cuenta gratis y entrar
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-    </a>
-    <p class="dm-gsecond">¿Ya tienes cuenta? <a href="acceso.html?next=demo#login">Inicia sesión</a></p>
-  </div>
-</div>
-
-<!-- ============ OUT OF VISITS ============ -->
-<div class="dm-end" id="end">
-  <div class="dm-end-card">
-    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.8L20.5 9l-4.5 4 1.3 6.2L12 16.5 6.7 19.2 8 13 3.5 9l6.1-1.2z" /></svg></div>
-    <h2>Has usado tus 3 visitas</h2>
-    <p>Ya conoces Mecha por dentro. Para usarlo de verdad — con todo desbloqueado y la <span class="em">IA implementada</span> — habla con nosotros y te damos acceso de inmediato para empezar a trabajar.</p>
-    <div class="dm-end-actions">
-      <a class="btn btn-primary btn-lg" href="reservar.html">Habla con nosotros · acceso completo
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-      </a>
-      <a class="ghost" href="index.html">Volver al inicio</a>
-    </div>
-  </div>
-</div>
-
 <script src="/assets/vendor/supabase-2.45.4.js" crossorigin="anonymous"></script>
 <script src="assets/loading-tips.js"></script>
 <script src="assets/auth.js"></script>
@@ -1201,7 +1125,6 @@
   var $=function(s,c){return (c||document).querySelector(s);};
   var api=window.MechaAPI;
   var APP_URL=(api&&api.APP_URL)||'/app';
-  var VISIT_FLAG='mecha_demo_visit';
   var qs=new URLSearchParams(location.search);
   var preview=qs.get('preview')==='1';
   // Enlace compartible para el equipo: sin gate ni consumo de visitas.
@@ -1210,31 +1133,11 @@
   // En preview siempre; en share se decide tras saber si es staff.
   var maqueta=preview;
 
-  var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
-  var visitsEl=$('#visits'), visitsText=$('#visitsText');
+  var frame=$('#appFrame'), localnote=$('#localnote');
   var tutSel=$('#tutSel'), tutBtnGeneral=$('#tutBtnGeneral'), tutBtnAdvanced=$('#tutBtnAdvanced'), tutBtnConfig=$('#tutBtnConfig');
 
   function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-  function showGate(){ gate.classList.remove('hide'); }
-  function hideGate(){ gate.classList.add('hide'); }
-  function showEnd(){ end.classList.add('show'); if(visitsText) visitsText.textContent='0 visitas'; if(visitsEl) visitsEl.classList.add('low'); }
-
-  function setVisits(remaining){
-    // El chip de visitas se quito de la barra (decision de diseno): el conteo de
-    // visitas sigue funcionando por dentro (gate -> useDemoVisit -> showEnd).
-    if(!visitsText) return;
-    if(remaining===null||typeof remaining==='undefined'){ visitsText.textContent='Demo activa'; return; }
-    var n=remaining;
-    // Texto corto en móvil para que no corte la barra
-    var isMob = window.innerWidth <= 720;
-    if(isMob){
-      visitsText.textContent = n + ' visita' + (n===1?'':'s');
-    } else {
-      visitsText.textContent = n===1 ? 'Te queda 1 visita' : ('Te quedan '+n+' visitas');
-    }
-    if(n<=1) visitsEl.classList.add('low');
-  }
 
   /* ---------- enlace compartible y recomendación ---------- */
   function shareLink(){ return location.origin + location.pathname + '?share=1'; }
@@ -1459,9 +1362,7 @@
     frame.src=APP_URL+(APP_URL.indexOf('?')>=0?'&':'?')+'demo=1';
   }
 
-  function enterDemo(remaining){
-    hideGate();
-    setVisits(remaining);
+  function enterDemo(){
     mountApp();
     // Intro cinematografica (1 vez por sesion): explica que va a ver TODOS los
     // modulos, duracion estimada, que es una cuenta demo ficticia y deja elegir
@@ -1474,74 +1375,32 @@
   }
 
   /* ---------- arranque ---------- */
-  // La sesion de la demo la gestiona la PROPIA app dentro del iframe (?demo=1,
-  // sesion aislada con la cuenta demo compartida). Aqui ya no iniciamos sesion:
-  // antes, signInDemo() pisaba la sesion personal del visitante (mismo
-  // localStorage) y cada cuenta veia una demo distinta. Ese era el bug.
+  // La demo es PUBLICA: se entra sin login y sin crear cuenta. La sesion la
+  // gestiona la propia app dentro del iframe (?demo=1, sesion aislada con la
+  // cuenta demo compartida), asi que la sesion personal del visitante ni se
+  // toca ni hace falta. El registro se ofrece DESPUES (barra superior, modal de
+  // recomendar y "quiero el acceso completo"), no como peaje para mirar.
+  //
+  // Ojo: no volver a poner un muro aqui. Cualquier boton de la landing que
+  // lleve a la demo debe abrirla directamente; si exige cuenta, la promesa de
+  // "demo guiada 24/7 sin registrarte" de la web deja de ser cierta.
   function boot(){
-    // Modo publico (enlace para compartir o vista previa): carga el SOFTWARE REAL
-    // sin que el visitante inicie sesion. No gasta visitas.
-    if(preview || shareMode){
-      revealShare();
-      maqueta=false;
-      enterDemo(null);
-      return;
-    }
+    maqueta = preview;
+    enterDemo();
 
-    // Acceso directo a /demo.html: requiere sesion personal (no se entra sin login).
-    if(!api||!api.getSession){ showGate(); return; }
-
-    // Una visita por sesion de navegador: si ya entraste, no descuentes otra.
-    var saved=null;
-    try{ saved=JSON.parse(sessionStorage.getItem(VISIT_FLAG)||'null'); }catch(e){}
-    if(saved&&saved.allowed){ 
-      enterDemo(saved.remaining); 
-      // Comprobar sesión en segundo plano para personalizar referidos
+    // La sesion solo se mira para PERSONALIZAR (enlace de referido propio si ya
+    // es cliente, "Compartir demo" si es del equipo). Nunca bloquea la entrada.
+    if(api && api.getSession){
       api.getSession().then(function(s){
-        if (s) {
-          Promise.all([
-            api.isStaff?api.isStaff():Promise.resolve(false),
-            api.getProfile?api.getProfile():Promise.resolve(null)
-          ]).then(function(chk){
-            revealShare(chk[1], chk[0]);
-          });
-        } else {
-          revealShare(null, false);
-        }
-      });
-      return; 
+        if(!s){ revealShare(null, false); return; }
+        Promise.all([
+          api.isStaff?api.isStaff():Promise.resolve(false),
+          api.getProfile?api.getProfile():Promise.resolve(null)
+        ]).then(function(chk){ revealShare(chk[1], chk[0]); });
+      }).catch(function(){ revealShare(null, false); });
+    } else {
+      revealShare(null, false);
     }
-
-    api.getSession().then(function(s){
-      if(!s){ showGate(); revealShare(null, false); return; }
-      // Antes de la demo exigimos perfil completo (negocio + telefono + codigo
-      // postal). El equipo Mecha (staff) queda exento. Si falta algo, mandamos a
-      // completar datos y se vuelve solo a la demo (acceso.html?next=demo).
-      Promise.all([
-        api.isStaff?api.isStaff():Promise.resolve(false),
-        api.getProfile?api.getProfile():Promise.resolve(null)
-      ]).then(function(chk){
-        var staff=chk[0]===true, profile=chk[1];
-        revealShare(profile, staff);
-        // Datos completos obligatorios para CUALQUIER cuenta antes de la demo
-        // (negocio + telefono + codigo postal), excepto para el equipo (staff).
-        if(!staff && api.profileComplete && !api.profileComplete(profile)){
-          location.href='acceso.html?next=demo';
-          return;
-        }
-        api.useDemoVisit().then(function(res){
-          if(res&&res.allowed){
-            try{ sessionStorage.setItem(VISIT_FLAG, JSON.stringify({allowed:true,remaining:res.remaining})); }catch(e){}
-            enterDemo(res.remaining);
-          } else if(res&&res.reason==='no_profile'){
-            // cuenta sin perfil aun (confirmacion por email pendiente): la app lo resuelve al entrar
-            enterDemo(null);
-          } else {
-            showEnd();
-          }
-        });
-      });
-    });
   }
 
   /* ---------- GUIDED TOUR ---------- */

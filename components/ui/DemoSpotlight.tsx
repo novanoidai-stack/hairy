@@ -58,18 +58,28 @@ export function DemoSpotlight({
     // seccion se desmonta…) hay que APAGAR el foco. Antes se quedaba el ultimo
     // rect pintado y, tras recolocarse el panel, acababa senalando otra cosa
     // (llego a marcar "Cancelar" cuando explicaba "+ Encadenar otro").
-    // Con margen de unos frames para no parpadear en re-renderizados normales.
-    let sinObjetivo = 0;
+    //
+    // La gracia va por TIEMPO, no por frames: a 180 Hz (portatiles y monitores
+    // modernos) contar frames daba ~130 ms y apagaba el foco en los huecos
+    // normales de un re-render, asi que el paso se quedaba a oscuras a ratos.
+    const GRACIA_MS = 700;
+    let sinObjetivoDesde = 0;
+    let apagado = false;
     const measure = () => {
       const el = targetRef.current;
-      if (!el || el.getBoundingClientRect().height <= 0) {
-        if (++sinObjetivo === 24) {
+      const vivo = !!el && el.getBoundingClientRect().height > 0;
+      if (!vivo) {
+        const ahora = Date.now();
+        if (!sinObjetivoDesde) sinObjetivoDesde = ahora;
+        else if (!apagado && ahora - sinObjetivoDesde > GRACIA_MS) {
+          apagado = true;
           setRect(null);
           lastPosted = null;
           postHole(null);
         }
       } else {
-        sinObjetivo = 0;
+        sinObjetivoDesde = 0;
+        apagado = false;
       }
       if (el) {
         const r = el.getBoundingClientRect();

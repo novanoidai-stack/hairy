@@ -19,9 +19,11 @@ export async function runTier3Tests(recordResult) {
   // ==========================================
   await recordResult('T3.1', 'Pairwise Flow 1: Landing CTA -> Acceso Registration -> Auto-Redirect directly to Demo', async () => {
     // 1. Landing click simulation
+    // La demo es publica: el destino es el mismo haya sesion o no.
     const mockLandingUser = { hasSession: false };
-    const landingCtaTarget = mockLandingUser.hasSession ? 'demo.html' : 'acceso.html?next=demo#signup';
-    assert.strictEqual(landingCtaTarget, 'acceso.html?next=demo#signup', 'Unauthenticated user routed to signup with next=demo');
+    const landingCtaTarget = '/demo.html';
+    assert.strictEqual(landingCtaTarget, '/demo.html', 'Demo CTA opens the demo directly, with or without session');
+    assert.ok(!mockLandingUser.hasSession, 'Anonymous visitors get the same destination');
 
     // 2. Acceso registration simulation
     const parsedQuery = new URLSearchParams('next=demo');
@@ -62,27 +64,25 @@ export async function runTier3Tests(recordResult) {
   // ==========================================
   // FLOW 2: DIRECT DEMO VISIT -> GATE -> SIGNUP ROUTING
   // ==========================================
-  await recordResult('T3.2', 'Pairwise Flow 2: Direct unauthenticated visit to demo.html -> Gate overlay -> Signup URL', async () => {
-    const mockVisitor = { session: null, previewMode: false, shareMode: false };
-    let gateShown = false;
-    let gateSignupHref = null;
-
+  await recordResult('T3.2', 'Pairwise Flow 2: Direct unauthenticated visit to demo.html enters the demo, no gate', async () => {
+    // boot() ya no mira la sesion para dejar entrar: solo para personalizar el
+    // enlace de referido. Cualquier visitante entra directo.
     function bootDemo(visitor) {
-      if (visitor.previewMode || visitor.shareMode) {
-        return 'enter_direct';
-      }
-      if (!visitor.session) {
-        gateShown = true;
-        gateSignupHref = 'acceso.html?next=demo#signup';
-        return 'show_gate';
-      }
-      return 'enter_with_session';
+      const personaliza = visitor.session ? 'referido_propio' : 'anonimo';
+      return { entra: true, personaliza };
     }
 
-    const bootResult = bootDemo(mockVisitor);
-    assert.strictEqual(bootResult, 'show_gate', 'Unauthenticated visitor halted by gate');
-    assert.strictEqual(gateShown, true, 'Gate modal displayed');
-    assert.strictEqual(gateSignupHref, 'acceso.html?next=demo#signup', 'Gate CTA leads directly to demo signup');
+    for (const visitor of [
+      { session: null, previewMode: false, shareMode: false },
+      { session: null, previewMode: false, shareMode: true },
+      { session: { user: { id: 'u1' } }, previewMode: false, shareMode: false },
+    ]) {
+      const r = bootDemo(visitor);
+      assert.strictEqual(r.entra, true, 'Every visitor enters the demo');
+    }
+    assert.strictEqual(bootDemo({ session: null }).personaliza, 'anonimo', 'Anonymous visitor sees the generic share CTA');
+    assert.strictEqual(bootDemo({ session: { user: {} } }).personaliza, 'referido_propio', 'Logged-in visitor gets their own referral link');
+    assert.ok(!demoHtml.includes('id="gate"'), 'demo.html must not ship an access gate anymore');
   });
 
   // ==========================================
