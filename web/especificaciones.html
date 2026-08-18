@@ -320,26 +320,36 @@ Empezar gratis →
 
 <!-- Barra de navegación -->
 <nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);background:color-mix(in srgb,var(--paper) 84%,transparent);border-bottom:1px solid var(--line)">
-<div style="max-width:1220px;margin:0 auto;padding:12px 26px;display:flex;align-items:center;gap:24px">
-<a href="/index.html" style="display:flex;align-items:center;gap:10px;color:var(--ink)">
-<svg viewBox="0 0 40 40" style="width:32px;height:32px" aria-hidden="true"><defs><linearGradient id="mg5" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e0340e"/><stop offset=".5" stop-color="#ff7a2e"/><stop offset="1" stop-color="#ffcf4a"/></linearGradient></defs><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mg5)"/><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="var(--paper)" opacity=".9"/></svg>
+<div style="max-width:1220px;margin:0 auto;padding:12px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+<a href="/index.html" style="display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;flex-shrink:0">
+<svg viewBox="0 0 40 40" style="width:34px;height:34px;flex-shrink:0" aria-hidden="true">
+  <defs>
+    <linearGradient id="mGradNavEsp" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e"/>
+      <stop offset="0.5" stop-color="#ff7a2e"/>
+      <stop offset="1" stop-color="#ffcf4a"/>
+    </linearGradient>
+  </defs>
+  <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradNavEsp)"/>
+  <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity="0.95"/>
+</svg>
 <span style="font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.04em">Mecha<span style="color:var(--accent)">.</span></span>
-<span style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line-2);padding:2px 5px;border-radius:5px">OS</span>
+<span style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--line-2);padding:2px 6px;border-radius:5px;font-weight:700">OS</span>
 </a>
-<div data-navlinks style="display:flex;gap:14px;margin-left:auto;font-size:13.6px;color:var(--ink-2);align-items:center">
-<a href="/index.html#gestion" style="color:inherit">La gestión, sola</a>
-<a href="/index.html#equipo" style="color:inherit">Tu equipo</a>
+<div data-navlinks style="display:flex;gap:6px;margin:0 auto;font-size:13.5px;color:var(--ink-2);align-items:center;white-space:nowrap;flex-shrink:0">
+<a href="/index.html#gestion" style="color:inherit">Gestión</a>
+<a href="/index.html#equipo" style="color:inherit">Equipo</a>
 <a href="/index.html#todo" style="color:inherit">Todo en uno</a>
-<a href="/calculadora-comisiones.html" style="color:inherit;font-weight:600;display:inline-flex;align-items:center;gap:5px"><span style="font-size:14px">🧮</span>Calculadora comisiones</a>
+<a href="/calculadora-comisiones.html" style="color:inherit;font-weight:600;display:inline-flex;align-items:center;gap:5px"><span style="font-size:14px">🧮</span>Comisiones</a>
 <a href="/especificaciones.html" style="color:var(--accent);font-weight:700">Especificaciones</a>
 <a href="/index.html#precios" style="color:inherit">Precios</a>
 </div>
-<div style="display:flex;align-items:center;gap:11px;margin-left:auto" data-navcta>
-<button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
+<div style="display:flex;align-items:center;gap:11px;flex-shrink:0" data-navcta>
+<button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease;flex-shrink:0" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
 </button>
-<a href="/acceso.html" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
-<a href="/index.html#contacto" class="btn-grad" style="padding:9px 18px;border-radius:11px;font-size:13.6px;font-weight:700;display:inline-flex;align-items:center;gap:8px">
+<a href="/acceso.html" style="font-size:13.6px;color:var(--ink-2);white-space:nowrap;flex-shrink:0">Iniciar sesión</a>
+<a href="/index.html#contacto" class="btn-grad" style="padding:9px 18px;border-radius:11px;font-size:13.6px;font-weight:700;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0">
 <span style="background:rgba(255,255,255,.24);padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">1 Mes Gratis</span>
 Probar el software
 </a>
