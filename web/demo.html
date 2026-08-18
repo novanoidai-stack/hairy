@@ -1596,12 +1596,12 @@
     }
     gt.chapters.innerHTML=html;
     Array.prototype.forEach.call(gt.chapters.querySelectorAll('.gt-chap'), function(b){
-      b.addEventListener('click', function(){ if(busy) return; lockBriefly(); stopAutoplay(); ti=+b.getAttribute('data-desde'); renderStep(true); });
+      b.addEventListener('click', function(){ stopAutoplay(); ti=+b.getAttribute('data-desde'); renderStep(true); });
     });
   }
 
   // ---- cortinilla de acto ----
-  var actoT=null, lastActoShown=-1;
+  var lastActoShown=-1;
   function mostrarActo(n){
     var A=actsOf()[n]; if(!A) return;
     gt.actoK.textContent='Capítulo '+(n+1)+' de '+actsOf().length;
@@ -1797,6 +1797,8 @@
     if(!gt.root || !gt.root.classList.contains('show')) return;
     var sh=$('#shareModalOverlay');
     if(sh && sh.classList.contains('show')) return; // no navegar con el modal de recomendar abierto
+    var du=$('#dudasOverlay');
+    if(du && du.classList.contains('show')) return; // ni con el panel de dudas abierto
     if(e.key==='ArrowRight'){ stopAutoplay(); tourNext(); } else if(e.key==='ArrowLeft'){ stopAutoplay(); tourPrev(); } else if(e.key==='Escape'){ closeTour(); }
   });
 
@@ -1814,6 +1816,55 @@
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
   if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ bootTourEngine(); playTutorial('general'); }); }
   if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); }); }
+
+  /* ---------- INTRO: botones de entrada ---------- */
+  function closeIntro(){ var el=$('#intro'); if(el) el.classList.remove('show'); try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){} }
+  var introGuided=$('#introGuided');
+  if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); closeIntro(); startTour(); });
+  var introFree=$('#introFree');
+  if(introFree) introFree.addEventListener('click', function(){ closeIntro(); });
+
+  /* ---------- PANEL DUDAS: WhatsApp + Chispa (IA con conocimiento real) ---------- */
+  var SB_URL='https://vtrggiogjrhqtwbhbgia.supabase.co';
+  var SB_ANON=(api&&api.client&&api.client.supabaseKey)||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+  var dudasOverlay=$('#dudasOverlay'), dudasBtn=$('#dudasBtn'), dudasClose=$('#dudasClose'),
+      dudasForm=$('#dudasForm'), dudasText=$('#dudasText'), dudasEmail=$('#dudasEmail'),
+      dudasSend=$('#dudasSend'), dudasReply=$('#dudasReply'), dudasErr=$('#dudasErr');
+
+  function openDudas(){ if(!dudasOverlay) return; dudasErr.classList.remove('show'); dudasOverlay.classList.add('show'); if(dudasText) setTimeout(function(){ dudasText.focus(); }, 120); }
+  function closeDudas(){ if(dudasOverlay) dudasOverlay.classList.remove('show'); }
+  if(dudasBtn) dudasBtn.addEventListener('click', openDudas);
+  if(dudasClose) dudasClose.addEventListener('click', closeDudas);
+  if(dudasOverlay) dudasOverlay.addEventListener('click', function(e){ if(e.target===dudasOverlay) closeDudas(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && dudasOverlay && dudasOverlay.classList.contains('show')) closeDudas(); });
+
+  function fmtAi(t){ return escHtml(String(t).replace(/^#{1,6}\s+/gm,'')).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br/>'); }
+  if(dudasForm) dudasForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var q=(dudasText.value||'').trim();
+    if(q.length<3){ dudasErr.textContent='Escribe tu duda para que Chispa pueda responderla.'; dudasErr.classList.add('show'); return; }
+    var mail=(dudasEmail.value||'').trim();
+    dudasErr.classList.remove('show'); dudasReply.classList.remove('show');
+    dudasSend.disabled=true; dudasSend.textContent='Chispa está pensando…';
+    fetch(SB_URL+'/functions/v1/chispa-dudas-demo', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'apikey':SB_ANON, 'Authorization':'Bearer '+SB_ANON },
+      body: JSON.stringify({ duda:q, email:mail||undefined })
+    }).then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); }).then(function(res){
+      dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';
+      if(!res.ok || !res.j || !res.j.reply){
+        var m=(res.j&&res.j.message)?res.j.message:'No se ha podido responder ahora mismo. Escríbenos por WhatsApp y te contestamos enseguida.';
+        dudasErr.textContent=m; dudasErr.classList.add('show'); return;
+      }
+      dudasReply.innerHTML='<div class="who"><img src="assets/v4/chispa-avatar-96.png" alt="" onerror="this.style.display=\'none\'">Chispa · IA de Mecha'
+        +(res.j.emailed?'<span class="ok">✓ enviada a tu correo</span>':'')+'</div>'+fmtAi(res.j.reply);
+      dudasReply.classList.add('show');
+    }).catch(function(){
+      dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';
+      dudasErr.textContent='Sin conexión. Escríbenos por WhatsApp (+34 690 79 29 75) y te respondemos.';
+      dudasErr.classList.add('show');
+    });
+  });
 
   boot();
 })();

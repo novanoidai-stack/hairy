@@ -270,6 +270,89 @@
   .dm-gback:hover{color:var(--text);border-color:var(--border-hi)}
   .dm-gback svg{width:16px;height:16px}
 
+  /* ---------- INTRO CINEMATOGRAFICA ---------- */
+  .dm-intro{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:24px;
+    background:rgba(7,10,20,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .dm-intro.show{display:grid;animation:dmFade .4s var(--ease)}
+  @keyframes dmFade{from{opacity:0}to{opacity:1}}
+  @keyframes dmIntroUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .dm-intro-card{width:100%;max-width:560px;text-align:center;background:linear-gradient(180deg,var(--card-hi),var(--card));
+    border:1px solid var(--border-hi);border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:34px 30px 28px;position:relative;overflow:hidden}
+  .dm-intro-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+  .dm-intro.show .dm-intro-card>*{animation:dmIntroUp .5s cubic-bezier(.16,1,.3,1) both}
+  .dm-intro.show .dm-intro-card>*:nth-child(2){animation-delay:.06s}
+  .dm-intro.show .dm-intro-card>*:nth-child(3){animation-delay:.12s}
+  .dm-intro.show .dm-intro-card>*:nth-child(4){animation-delay:.18s}
+  .dm-intro.show .dm-intro-card>*:nth-child(5){animation-delay:.24s}
+  .dm-intro.show .dm-intro-card>*:nth-child(6){animation-delay:.3s}
+  .dm-intro-card .gmark{width:58px;height:58px;margin:0 auto 14px;filter:drop-shadow(0 8px 24px var(--accent-glow))}
+  .dm-intro-card .geyebrow{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-hi)}
+  .dm-intro-card h2{font-family:var(--display);font-weight:800;font-size:27px;letter-spacing:-.03em;margin:8px 0 6px;line-height:1.08;color:var(--text)}
+  .dm-intro-card .gsub{font-size:14px;color:var(--text-sec);line-height:1.55;max-width:440px;margin:0 auto 16px}
+  .dm-intro-mods{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 auto 16px;max-width:470px}
+  .dm-intro-mods span{font-size:11.5px;font-weight:600;color:#ffd9c2;background:rgba(244,80,30,.13);border:1px solid rgba(244,80,30,.32);padding:4px 10px;border-radius:999px}
+  .dm-intro-meta{display:flex;justify-content:center;gap:18px;margin-bottom:20px;flex-wrap:wrap}
+  .dm-intro-meta div{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--text-sec)}
+  .dm-intro-meta svg{width:15px;height:15px;color:var(--accent-hi);flex-shrink:0}
+  .dm-intro-actions{display:flex;flex-direction:column;gap:10px}
+  .dm-intro-free{font-size:13px;color:var(--text-sec);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:11px 16px;cursor:pointer;transition:all .2s;font-weight:600}
+  .dm-intro-free:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.06)}
+  .dm-intro-fake{font-size:11.5px;color:var(--text-ter);margin-top:13px;display:flex;align-items:center;gap:6px;justify-content:center}
+  .dm-intro-fake svg{width:13px;height:13px;flex-shrink:0}
+  @media(prefers-reduced-motion:reduce){ .dm-intro.show .dm-intro-card>*{animation:none} }
+
+  /* ---------- PANEL DUDAS (WhatsApp + IA) ---------- */
+  .dm-dudas-btn{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding:8px 14px;font-size:13px;font-weight:700;
+    border-radius:10px;color:#ffd9c2;background:rgba(244,80,30,.14);border:1px solid rgba(244,80,30,.4);cursor:pointer;
+    white-space:nowrap;transition:background .18s,border-color .18s,color .18s}
+  .dm-dudas-btn:hover{background:rgba(244,80,30,.24);border-color:rgba(244,80,30,.65);color:#fff}
+  .dm-dudas-btn svg{width:15px;height:15px;flex-shrink:0}
+  .dm-dudas-overlay{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:20px;
+    background:rgba(4,6,12,.85);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .dm-dudas-overlay.show{display:flex}
+  .dm-dudas{width:min(560px,100%);max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#101626,#0a0d18);
+    border:1px solid rgba(244,80,30,.28);border-radius:20px;padding:26px;position:relative;
+    box-shadow:0 32px 80px -20px rgba(0,0,0,.85)}
+  .dm-dudas h3{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.03em;color:#fff;margin:0 0 6px}
+  .dm-dudas .sub{font-size:13px;color:#aab3c4;line-height:1.5;margin:0 0 18px}
+  .dm-dudas-wa{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:13px;text-decoration:none;
+    background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.35);margin-bottom:18px;transition:background .2s}
+  .dm-dudas-wa:hover{background:rgba(37,211,102,.15)}
+  .dm-dudas-wa .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(37,211,102,.16);flex-shrink:0}
+  .dm-dudas-wa .ic svg{width:20px;height:20px;color:#25d366}
+  .dm-dudas-wa b{font-size:13.5px;color:#fff;display:block}
+  .dm-dudas-wa small{font-size:11.5px;color:#9fb3a6}
+  .dm-dudas-ai{border-top:1px dashed rgba(255,255,255,.1);padding-top:16px}
+  .dm-dudas-ai .aihead{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .dm-dudas-ai .aihead img{width:30px;height:30px;border-radius:50%;flex-shrink:0}
+  .dm-dudas-ai .aihead b{font-size:13.5px;color:#fff}
+  .dm-dudas-ai .aihead .tag{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:#ff8a3d;background:rgba(244,80,30,.15);padding:3px 8px;border-radius:6px}
+  .dm-dudas-ai p.desc{font-size:12.5px;color:#aab3c4;line-height:1.5;margin:0 0 14px}
+  .dm-dudas-form{display:flex;flex-direction:column;gap:10px}
+  .dm-dudas-form textarea,.dm-dudas-form input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);
+    border-radius:11px;padding:11px 13px;font-size:13.5px;color:#fff;font-family:inherit;outline:none;transition:border-color .2s}
+  .dm-dudas-form textarea{min-height:88px;resize:vertical}
+  .dm-dudas-form textarea:focus,.dm-dudas-form input:focus{border-color:rgba(244,80,30,.6);box-shadow:0 0 0 3px rgba(244,80,30,.12)}
+  .dm-dudas-form ::placeholder{color:#77808f}
+  .dm-dudas-send{border:0;border-radius:11px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,#ff7a42,#f4501e 52%,#d82b04);color:#fff;transition:transform .15s,box-shadow .2s}
+  .dm-dudas-send:hover{box-shadow:0 10px 26px -6px rgba(244,80,30,.7)}
+  .dm-dudas-send:disabled{opacity:.55;cursor:wait}
+  .dm-dudas-reply{display:none;margin-top:14px;padding:15px;border-radius:13px;font-size:13.5px;line-height:1.6;color:#e8ecf3;
+    background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);white-space:pre-wrap}
+  .dm-dudas-reply.show{display:block}
+  .dm-dudas-reply .who{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:#ff8a3d;margin-bottom:8px}
+  .dm-dudas-reply .who img{width:20px;height:20px;border-radius:50%}
+  .dm-dudas-reply .who .ok{color:#2ecc71;margin-left:auto;letter-spacing:0;text-transform:none;font-weight:600}
+  .dm-dudas-reply b{color:#ffae7d}
+  .dm-dudas-err{display:none;margin-top:12px;font-size:12.5px;color:#ff9b8a;line-height:1.45}
+  .dm-dudas-err.show{display:block}
+  .dm-dudas-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#c6cdd9;font-size:26px;line-height:1;cursor:pointer}
+  .dm-dudas-close:hover{color:#fff}
+  @media(max-width:720px){ .dm-dudas-btn span{display:none} .dm-dudas-btn{padding:8px 10px} .dm-dudas{padding:20px 16px} }
+
   /* ---------- OUT-OF-VISITS / END ---------- */
   .dm-end{position:fixed;inset:0;z-index:60;display:none;place-items:center;padding:24px;
     background:rgba(7,10,20,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -773,6 +856,10 @@
     <span class="lbl">Recomendar</span>
     <span class="dm-share-badge">-30%</span>
   </button>
+  <button class="dm-dudas-btn" id="dudasBtn" type="button" title="¿Dudas? Te respondemos por WhatsApp o al instante con nuestra IA">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="15.5" x2="12.01" y2="15.5"/></svg>
+    <span>¿Dudas?</span>
+  </button>
   <div class="dm-bar-cta">
     <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Solicitar acceso</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -798,6 +885,63 @@
     <div class="gt" id="gt"></div>
   </div>
 </main>
+
+<!-- ============ INTRO CINEMATOGRAFICA ============ -->
+<div class="dm-intro" id="intro">
+  <div class="dm-intro-card">
+    <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
+    <span class="geyebrow">Demo de Mecha</span>
+    <h2>Vas a ver <em style="font-family:var(--serif);font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">todos los módulos</em> del software</h2>
+    <p class="gsub">Un recorrido guiado, como una película: te explico cada pantalla mientras la usas. También puedes entrar y explorarlo tú solo cuando quieras.</p>
+    <div class="dm-intro-mods">
+      <span>Agenda con reposos</span><span>Fichas de cliente</span><span>Caja y cobros</span><span>Presupuestos y bonos</span><span>Equipo y fichajes</span><span>Informes</span><span>Chispa IA</span><span>Reserva online</span>
+    </div>
+    <div class="dm-intro-meta">
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>≈ 3 minutos</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>27 pasos · 2 recorridos</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Sin registro</div>
+    </div>
+    <div class="dm-intro-actions">
+      <a class="btn btn-primary btn-block btn-lg" href="#" id="introGuided">
+        Empezar el recorrido guiado
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;margin-left:4px"><polygon points="6 4 20 12 6 20"/></svg>
+      </a>
+      <button class="dm-intro-free" id="introFree" type="button">Explorar por libre ✕</button>
+    </div>
+    <p class="dm-intro-fake">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Es una cuenta demo con datos ficticios: toca, cambia y prueba sin miedo, no afecta a ningún salón real.
+    </p>
+  </div>
+</div>
+
+<!-- ============ PANEL DUDAS ============ -->
+<div class="dm-dudas-overlay" id="dudasOverlay">
+  <div class="dm-dudas" role="dialog" aria-label="Dudas sobre Mecha">
+    <button class="dm-dudas-close" id="dudasClose" type="button" aria-label="Cerrar">&times;</button>
+    <h3>¿Dudas con la demo?</h3>
+    <p class="sub">Elige cómo prefieres que te las resolvamos:</p>
+    <a class="dm-dudas-wa" href="https://wa.me/34690792975?text=Hola%2C%20estoy%20viendo%20la%20demo%20de%20Mecha%20y%20tengo%20una%20duda" target="_blank" rel="noopener">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></span>
+      <span><b>WhatsApp directo</b><small>Te responde una persona del equipo</small></span>
+    </a>
+    <div class="dm-dudas-ai">
+      <div class="aihead">
+        <img src="assets/v4/chispa-avatar-96.png" alt="Chispa" loading="lazy" onerror="this.style.display='none'">
+        <b>Chispa responde al momento</b>
+        <span class="tag">IA entrenada con todo Mecha</span>
+      </div>
+      <p class="desc">Escribe tu duda (funcionamiento, reposos, presupuestos, fichajes, VeriFactu, planes…) y una IA entrenada con <b>todo el funcionamiento interno de Mecha</b> te responde al instante. Si dejas tu correo, te envía la respuesta allí también.</p>
+      <form class="dm-dudas-form" id="dudasForm">
+        <textarea id="dudasText" placeholder="¿Cómo funcionan los tiempos de reposo? ¿Puedo cobrar con bonos? ¿Qué es VeriFactu…" required></textarea>
+        <input type="email" id="dudasEmail" placeholder="Tu correo (opcional — para recibir la respuesta por email)" />
+        <button class="dm-dudas-send" id="dudasSend" type="submit">Preguntar a Chispa</button>
+      </form>
+      <div class="dm-dudas-reply" id="dudasReply" aria-live="polite"></div>
+      <div class="dm-dudas-err" id="dudasErr"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ============ SHARE MODAL (Drive-like) ============ -->
 <div class="share-modal-overlay" id="shareModalOverlay">
@@ -1210,9 +1354,13 @@
     hideGate();
     setVisits(remaining);
     mountApp();
-    startTour();
-    // El boton de reiniciar el tutorial solo tiene sentido una vez dentro de la demo.
+    // Intro cinematografica (1 vez por sesion): explica que va a ver TODOS los
+    // modulos, duracion estimada, que es una cuenta demo ficticia y deja elegir
+    // entre recorrido guiado o explorar libre. El tour arranca desde la intro.
     if(tutSel) tutSel.style.display='inline-flex';
+    var introSeen=false;
+    try{ introSeen=sessionStorage.getItem('mecha_demo_intro')==='1'; }catch(e){}
+    if(introSeen){ startTour(); } else { var intro=$('#intro'); if(intro) intro.classList.add('show'); }
   }
 
   /* ---------- arranque ---------- */
@@ -1371,8 +1519,12 @@
   }
 
   // ---- estado del tour (dock v2) ----
+  // seq: contador de navegacion. Todo trabajo diferido comprueba su seq antes de
+  // ejecutarse; navegar SIEMPRE cancela lo pendiente y renderiza el paso actual
+  // completo. Asi, pulsar rapido (o en mitad de una animacion) nunca deja el paso
+  // "vacio" ni paneles/focos huerfanos.
   var STEPS=TUT_GENERAL, ti=0, hole=null, tourStarted=false, tourBooted=false;
-  var actTimer=null, swapTimer=null, busyTimer=null, busy=false, lastAct=null;
+  var actTimer=null, actoT=null, lastAct=null, seq=0;
   var gt={};
 
   function pad2(n){ return (n<10?'0':'')+n; }
@@ -1444,12 +1596,12 @@
     }
     gt.chapters.innerHTML=html;
     Array.prototype.forEach.call(gt.chapters.querySelectorAll('.gt-chap'), function(b){
-      b.addEventListener('click', function(){ if(busy) return; lockBriefly(); stopAutoplay(); ti=+b.getAttribute('data-desde'); renderStep(true); });
+      b.addEventListener('click', function(){ stopAutoplay(); ti=+b.getAttribute('data-desde'); renderStep(true); });
     });
   }
 
   // ---- cortinilla de acto ----
-  var actoT=null, lastActoShown=-1;
+  var lastActoShown=-1;
   function mostrarActo(n){
     var A=actsOf()[n]; if(!A) return;
     gt.actoK.textContent='Capítulo '+(n+1)+' de '+actsOf().length;
@@ -1464,7 +1616,7 @@
   var autoTimer=null;
   function toggleAutoplay(){ if(autoTimer) stopAutoplay(); else startAutoplay(); }
   function startAutoplay(){
-    autoTimer=setInterval(function(){ if(!busy) tourNext(); }, 4600);
+    autoTimer=setInterval(tourNext, 4600);
     gt.play.innerHTML=SVG_PAUSE; gt.play.classList.add('on'); gt.play.title='Pausar reproducción';
   }
   function stopAutoplay(){
@@ -1555,6 +1707,8 @@
 
   // Conduce el software: navega y, tras un respiro, abre el panel del paso.
   // Cierra el panel del grupo anterior solo si cambia de grupo (cita/detalle).
+  // El timeout lleva seq: si el usuario navega antes de que salte, se cancela y
+  // el paso NUEVO es el que manda (nada de abrir/cerrar paneles cruzados).
   function driveSoftware(s){
     navFrame(s.route);
     var a=s.action||'cerrar';
@@ -1564,7 +1718,9 @@
     var expectSpot = a!=='cerrar' && a!=='nueva-cita';
     if(!expectSpot) setHole(null);
     if(actTimer) clearTimeout(actTimer);
+    var my=seq;
     actTimer=setTimeout(function(){
+      if(my!==seq) return;
       var g=groupOf(a), lg=(lastAct==null)?null:groupOf(lastAct);
       if(lg!==null && g!==lg) demoAction('cerrar');
       if(a!=='cerrar') demoAction(a);
@@ -1572,39 +1728,37 @@
     }, 60);
   }
 
-  // Bloqueo breve: pulsar muy rapido NO debe encadenar abrir/cerrar paneles en el
-  // software (era el bug del boton "Atras"). Ignora next/prev durante la transicion.
-  function lockBriefly(){ busy=true; if(busyTimer) clearTimeout(busyTimer); busyTimer=setTimeout(function(){ busy=false; }, 240); }
-
-  // Cambia de paso de forma FLUIDA: el foco se desliza, el contenido hace un
-  // micro cross-fade y los controles del dock no se mueven nunca.
+  // Cambia de paso de forma FLUIDA y SEGURA: navegar siempre es valido (sin
+  // bloqueos), se cancela todo lo pendiente del paso anterior y el contenido se
+  // pinta SINCRONO (el paso nunca se queda "en blanco"). El foco se desliza y los
+  // controles del dock no se mueven nunca.
   function renderStep(cambiaActo){
     var s=STEPS[ti];
+    seq++;
+    if(actTimer) clearTimeout(actTimer);
+    if(actoT) clearTimeout(actoT);
     setProgress(); updateNav(); syncSelector(); renderChapters();
     gt.toca.classList.toggle('on', !!ACCIONES_TOCA[s.action]);
     if(cambiaActo){
       var a=actoOf(ti);
       if(a!==lastActoShown){ lastActoShown=a; mostrarActo(a); }
     }
+    fillContent(s);
+    gt.content.classList.remove('swap');
     driveSoftware(s);
-    gt.content.classList.add('swap');
-    if(swapTimer) clearTimeout(swapTimer);
-    swapTimer=setTimeout(function(){ fillContent(s); gt.content.classList.remove('swap'); }, 150);
   }
 
   function tourNext(){
-    if(busy) return; lockBriefly();
     if(ti<STEPS.length-1){ ti++; renderStep(true); return; }
     if(STEPS===TUT_GENERAL){ STEPS=TUT_CONFIG; ti=0; lastActoShown=-1; renderStep(true); }
     else { stopAutoplay(); closeTour(); }
   }
-  function tourPrev(){ if(busy) return; if(ti>0){ lockBriefly(); ti--; renderStep(true); } }
+  function tourPrev(){ if(ti>0){ ti--; renderStep(true); } }
   function closeTour(){
     stopAutoplay();
     if(!gt.root) return;
     gt.root.classList.remove('show');
     if(actTimer) clearTimeout(actTimer);
-    if(swapTimer) clearTimeout(swapTimer);
     if(actoT) clearTimeout(actoT);
     if(gt.acto) gt.acto.classList.remove('on');
     demoAction('cerrar'); hole=null; lastAct='cerrar';
@@ -1613,16 +1767,21 @@
   // Arranca (o reinicia) un tutorial desde el paso 1. El primer paso se pinta
   // directo (sin cross-fade) para que aparezca al instante.
   function playTutorial(which){
+    seq++;
     if(actTimer) clearTimeout(actTimer);
+    if(actoT) clearTimeout(actoT);
     STEPS = (which==='config') ? TUT_CONFIG : TUT_GENERAL;
-    ti=0; tourStarted=true; hole=null; lastAct=null; busy=false;
+    ti=0; tourStarted=true; hole=null; lastAct=null;
     gt.veil.classList.add('on'); gt.spot.classList.remove('on');
     gt.root.classList.add('show');
     lastActoShown=-1;
     setProgress(); updateNav(); syncSelector(); renderChapters(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
     navFrame(STEPS[0].route);
-    var a0=STEPS[0].action||'cerrar';
-    actTimer=setTimeout(function(){ demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0; }, 120);
+    var a0=STEPS[0].action||'cerrar', my=seq;
+    actTimer=setTimeout(function(){
+      if(my!==seq) return;
+      demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0;
+    }, 120);
   }
 
   function bootTourEngine(){ if(tourBooted) return; tourBooted=true; buildDock(); }
@@ -1638,6 +1797,8 @@
     if(!gt.root || !gt.root.classList.contains('show')) return;
     var sh=$('#shareModalOverlay');
     if(sh && sh.classList.contains('show')) return; // no navegar con el modal de recomendar abierto
+    var du=$('#dudasOverlay');
+    if(du && du.classList.contains('show')) return; // ni con el panel de dudas abierto
     if(e.key==='ArrowRight'){ stopAutoplay(); tourNext(); } else if(e.key==='ArrowLeft'){ stopAutoplay(); tourPrev(); } else if(e.key==='Escape'){ closeTour(); }
   });
 
@@ -1655,6 +1816,55 @@
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
   if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ bootTourEngine(); playTutorial('general'); }); }
   if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); }); }
+
+  /* ---------- INTRO: botones de entrada ---------- */
+  function closeIntro(){ var el=$('#intro'); if(el) el.classList.remove('show'); try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){} }
+  var introGuided=$('#introGuided');
+  if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); closeIntro(); startTour(); });
+  var introFree=$('#introFree');
+  if(introFree) introFree.addEventListener('click', function(){ closeIntro(); });
+
+  /* ---------- PANEL DUDAS: WhatsApp + Chispa (IA con conocimiento real) ---------- */
+  var SB_URL='https://vtrggiogjrhqtwbhbgia.supabase.co';
+  var SB_ANON=(api&&api.client&&api.client.supabaseKey)||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+  var dudasOverlay=$('#dudasOverlay'), dudasBtn=$('#dudasBtn'), dudasClose=$('#dudasClose'),
+      dudasForm=$('#dudasForm'), dudasText=$('#dudasText'), dudasEmail=$('#dudasEmail'),
+      dudasSend=$('#dudasSend'), dudasReply=$('#dudasReply'), dudasErr=$('#dudasErr');
+
+  function openDudas(){ if(!dudasOverlay) return; dudasErr.classList.remove('show'); dudasOverlay.classList.add('show'); if(dudasText) setTimeout(function(){ dudasText.focus(); }, 120); }
+  function closeDudas(){ if(dudasOverlay) dudasOverlay.classList.remove('show'); }
+  if(dudasBtn) dudasBtn.addEventListener('click', openDudas);
+  if(dudasClose) dudasClose.addEventListener('click', closeDudas);
+  if(dudasOverlay) dudasOverlay.addEventListener('click', function(e){ if(e.target===dudasOverlay) closeDudas(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && dudasOverlay && dudasOverlay.classList.contains('show')) closeDudas(); });
+
+  function fmtAi(t){ return escHtml(String(t).replace(/^#{1,6}\s+/gm,'')).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br/>'); }
+  if(dudasForm) dudasForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var q=(dudasText.value||'').trim();
+    if(q.length<3){ dudasErr.textContent='Escribe tu duda para que Chispa pueda responderla.'; dudasErr.classList.add('show'); return; }
+    var mail=(dudasEmail.value||'').trim();
+    dudasErr.classList.remove('show'); dudasReply.classList.remove('show');
+    dudasSend.disabled=true; dudasSend.textContent='Chispa está pensando…';
+    fetch(SB_URL+'/functions/v1/chispa-dudas-demo', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'apikey':SB_ANON, 'Authorization':'Bearer '+SB_ANON },
+      body: JSON.stringify({ duda:q, email:mail||undefined })
+    }).then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); }).then(function(res){
+      dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';
+      if(!res.ok || !res.j || !res.j.reply){
+        var m=(res.j&&res.j.message)?res.j.message:'No se ha podido responder ahora mismo. Escríbenos por WhatsApp y te contestamos enseguida.';
+        dudasErr.textContent=m; dudasErr.classList.add('show'); return;
+      }
+      dudasReply.innerHTML='<div class="who"><img src="assets/v4/chispa-avatar-96.png" alt="" onerror="this.style.display=\'none\'">Chispa · IA de Mecha'
+        +(res.j.emailed?'<span class="ok">✓ enviada a tu correo</span>':'')+'</div>'+fmtAi(res.j.reply);
+      dudasReply.classList.add('show');
+    }).catch(function(){
+      dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';
+      dudasErr.textContent='Sin conexión. Escríbenos por WhatsApp (+34 690 79 29 75) y te respondemos.';
+      dudasErr.classList.add('show');
+    });
+  });
 
   boot();
 })();

@@ -14,6 +14,7 @@ import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { GuardaIdentidad } from '@/components/acceso/GuardaIdentidad';
+import { GuardaSuscripcion } from '@/components/acceso/GuardaSuscripcion';
 import { instalarCazadorDeErrores } from '@/lib/reportarError';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
@@ -75,6 +76,8 @@ function ThemedRoot({ children, isPublicRoute }: { children: React.ReactNode; is
       {!isPublicRoute && <PrivacyConsentModal />}
       {/* Salon con un solo correo: antes de nada, quien eres (solo en panel interno, nunca en reservas publicas del marketplace). */}
       {!isPublicRoute && <GuardaIdentidad />}
+      {/* Estado de suscripcion: aviso de dias restantes en prueba y bloqueo al caducar */}
+      {!isPublicRoute && <GuardaSuscripcion />}
       {!isPublicRoute && <ChispaLauncher />}
       {!isPublicRoute && <CoachLauncher />}
       {!isPublicRoute && <TourLauncher />}

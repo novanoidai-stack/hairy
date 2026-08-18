@@ -2027,6 +2027,44 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
       desc="Cada persona de tu equipo entra con SU correo, dentro de tu salón. Tú decides qué ve cada una: Profesional ve lo suyo, Recepción lleva la agenda y los clientes, Dirección accede además a configuración e informes, y Propietario lo controla todo."
       action={<Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>{showForm ? 'Cancelar' : 'Invitar a alguien'}</Btn>}
     >
+      {/* Selector de modo de acceso al salón */}
+      {isOwner && (
+        <div style={{
+          marginBottom: 16, padding: 16, borderRadius: 14,
+          background: T.bg, border: `1px solid ${T.border}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>Modo de acceso al salón</div>
+              <div style={{ fontSize: 12.5, color: T.textSec, marginTop: 2 }}>
+                Elige cómo inicia sesión tu equipo en el software.
+              </div>
+            </div>
+            <Segmented
+              value={modoAcceso}
+              onChange={async (nuevoModo: 'individual' | 'compartido') => {
+                if (nuevoModo === modoAcceso) return;
+                const { error } = await supabase.rpc('set_acceso_salon_modo', { p_modo: nuevoModo });
+                if (error) {
+                  alert('No se pudo cambiar el modo: ' + error.message);
+                } else {
+                  setModoAcceso(nuevoModo);
+                }
+              }}
+              options={[
+                { value: 'individual', label: '📱 Cada uno con su correo' },
+                { value: 'compartido', label: '🖥️ Correo único + PIN' },
+              ]}
+            />
+          </div>
+          <div style={{ fontSize: 12, color: T.textTertiary, lineHeight: 1.45 }}>
+            {modoAcceso === 'individual'
+              ? 'Recomendado para la mayoría de salones: cada profesional entra con su correo y contraseña en su móvil.'
+              : 'Ideal para tablets en el mostrador del salón: se entra con el correo del propietario y se selecciona la ficha de cada empleado al empezar.'}
+          </div>
+        </div>
+      )}
+
       {/* Salón que entra con un solo correo: aquí el jefe pone el PIN que
           separa lo suyo (caja, informes, configuración) del resto del equipo. */}
       {modoAcceso === 'compartido' && (

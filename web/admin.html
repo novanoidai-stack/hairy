@@ -942,13 +942,55 @@
     });
   }
 
+  function getTrialInfo(p) {
+    if (isStaffAccount(p)) return { tipo: 'staff', label: 'Equipo Mecha', style: 'background:rgba(124,108,240,0.15);color:#7c6cf0;border:1px solid rgba(124,108,240,0.3)' };
+    if (p.suscripcion_estado === 'activa') {
+      return { tipo: 'activa', label: '✓ Suscripción ' + (p.plan || 'Estudio'), style: 'background:rgba(34,197,94,0.15);color:#16a34a;border:1px solid rgba(34,197,94,0.3)' };
+    }
+    if (p.trial_ends_at) {
+      var fin = new Date(p.trial_ends_at).getTime();
+      var diffMs = fin - Date.now();
+      var diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDias > 0) {
+        return {
+          tipo: 'prueba_activa',
+          dias: diffDias,
+          label: '⏳ Prueba ' + (p.plan || 'Estudio') + ' (' + diffDias + (diffDias === 1 ? ' día rest.)' : ' días rest.)'),
+          style: 'background:rgba(245,158,11,0.15);color:#d97706;border:1px solid rgba(245,158,11,0.35);font-weight:700'
+        };
+      } else {
+        var pasados = Math.abs(diffDias);
+        return {
+          tipo: 'prueba_vencida',
+          dias: diffDias,
+          label: '⚠️ Prueba Caducada (' + (pasados === 0 ? 'hoy' : 'hace ' + pasados + ' d') + ')',
+          style: 'background:rgba(239,68,68,0.15);color:#dc2626;border:1px solid rgba(239,68,68,0.35);font-weight:700'
+        };
+      }
+    }
+    var planCanon = planCanonico(p);
+    return {
+      tipo: planCanon,
+      label: esc(PLAN_TXT[planCanon] || planCanon),
+      style: planCanon === 'free' ? '' : 'background:rgba(244,80,30,0.15);color:var(--accent);border:1px solid rgba(244,80,30,0.3)'
+    };
+  }
+
   function renderCuentasStats() {
     var total = accounts.length;
     var staffN = accounts.filter(isStaffAccount).length;
-    var free = accounts.filter(function (p) { return planCanonico(p) === 'free'; }).length;
-    var esencial = accounts.filter(function (p) { return planCanonico(p) === 'esencial'; }).length;
-    var estudio = accounts.filter(function (p) { return planCanonico(p) === 'estudio'; }).length;
-    var enDemo = accounts.filter(function (p) { return p.negocio_id === 'demo_salon_001'; }).length;
+    var enPruebaActiva = accounts.filter(function (p) {
+      if (isStaffAccount(p) || p.suscripcion_estado === 'activa') return false;
+      if (!p.trial_ends_at) return false;
+      return new Date(p.trial_ends_at).getTime() > Date.now();
+    }).length;
+    var pruebasCaducadas = accounts.filter(function (p) {
+      if (isStaffAccount(p) || p.suscripcion_estado === 'activa') return false;
+      if (!p.trial_ends_at) return false;
+      return new Date(p.trial_ends_at).getTime() <= Date.now();
+    }).length;
+    var dePago = accounts.filter(function (p) { return p.suscripcion_estado === 'activa'; }).length;
+    var free = accounts.filter(function (p) { return planCanonico(p) === 'free' && !p.trial_ends_at; }).length;
     var negocios = {};
     accounts.forEach(function (p) {
       if (p.negocio_id) negocios[p.negocio_id] = true;
@@ -958,10 +1000,10 @@
     var stats = [
       { n: total, l: 'Cuentas' },
       { n: negociosUnicos, l: 'Negocios' },
-      { n: staffN, l: 'Equipo' },
-      { n: estudio, l: 'Estudio' },
-      { n: esencial, l: 'Esencial' },
-      { n: free, l: 'Gratis' }
+      { n: enPruebaActiva, l: 'Pruebas Activas' },
+      { n: pruebasCaducadas, l: 'Pruebas Vencidas' },
+      { n: dePago, l: 'De Pago' },
+      { n: staffN, l: 'Staff' }
     ];
     $('statsCue').innerHTML = stats.map(function (s) {
       return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
@@ -1012,8 +1054,8 @@
     subcuentas = subcuentas || [];
     var subaccountsCount = subcuentas.length;
     var planCanon = planCanonico(p);
-    var planClass = planCanon === 'free' ? 'free' : 'full';
     var isDemo = p.negocio_id === 'demo_salon_001';
+    var tInfo = getTrialInfo(p);
 
     var grid = '';
     grid += cell('Email', p.email, 'mail');
@@ -1021,11 +1063,19 @@
     grid += cell('Negocio', p.nombre_negocio);
     grid += cell('Identificador (negocio_id)', p.negocio_id);
     grid += cell('Código postal', p.codigo_postal);
+    if (p.trial_ends_at) {
+      grid += cell('Fin de prueba (30d)', fmtDate(p.trial_ends_at) + (tInfo.dias != null ? (tInfo.dias > 0 ? ' (' + tInfo.dias + ' d restantes)' : ' (vencida hace ' + Math.abs(tInfo.dias) + ' d)') : ''));
+    }
     grid += cell('Visitas demo usadas', p.demo_visits_used != null ? String(p.demo_visits_used) : '');
 
     var action = planCanon === 'free'
-      ? '<button class="btn-grant" data-grant="' + esc(p.id) + '">Dar acceso completo</button>'
-      : '<span class="granted-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Acceso completo activo</span>';
+      ? '<button class="btn-grant" data-grant="' + esc(p.id) + '">🎁 Dar 1 mes gratis (Plan Estudio)</button>'
+      : '<span class="granted-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Acceso salón activo</span>';
+
+    // Botón para extender prueba +30 días
+    if (!isStaffAccount(p) && p.suscripcion_estado !== 'activa') {
+      action += '<button class="btn-extend-trial" style="padding:6px 12px;font-size:12px;background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.3);border-radius:6px;cursor:pointer;font-weight:700" data-extend-user="' + esc(p.id) + '" data-days="30">+30 días prueba</button>';
+    }
 
     // Cambiar el plan contratado. Lo que incluye cada uno se aplica de verdad en
     // la app (lib/planes.ts): al cambiarlo aqui, esa cuenta gana o pierde
@@ -1090,8 +1140,7 @@
       '<div class="r-head" style="' + headerClickable + '"' + (subaccountsCount > 0 ? ' onclick="toggleSubs(event, \'' + esc(p.negocio_id) + '\', ' + subaccountsCount + ')"' : '') + '>' +
         '<div class="r-id">' +
           expandIcon +
-          (isStaffAccount(p) ? '<span class="plan staff">equipo</span>' : '') +
-          '<span class="plan ' + planClass + '">' + esc(PLAN_TXT[planCanon] || planCanon) + '</span>' +
+          '<span class="plan" style="' + tInfo.style + '">' + tInfo.label + '</span>' +
           getRoleBadgeHtml(p.role) +
           (isDemo ? '<span class="plan demo">en demo</span>' : '') +
           '<span class="r-name">' + nombreFull + '</span>' +
@@ -1421,16 +1470,43 @@
       });
     });
 
+    listEl.querySelectorAll('.btn-extend-trial').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-extend-user');
+        var days = parseInt(btn.getAttribute('data-days'), 10) || 30;
+        var p = accounts.filter(function (x) { return x.id === id; })[0];
+        var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
+        if (!window.confirm('Extender el periodo de prueba de "' + quien + '" en ' + days + ' días más (Plan Estudio)?')) return;
+        btn.disabled = true;
+        var prev = btn.textContent;
+        btn.textContent = 'Extendiendo...';
+        api.client.rpc('staff_extend_trial', { target_user_id: id, extra_days: days }).then(function (res) {
+          btn.disabled = false;
+          btn.textContent = prev;
+          if (res.error) {
+            msg($('cueMsg'), 'err', 'No se pudo extender la prueba: ' + (res.error.message || ''));
+            return;
+          }
+          msg($('cueMsg'), 'ok', 'Prueba extendida ' + days + ' días para "' + quien + '".');
+          loadCuentas();
+        }).catch(function (e) {
+          btn.disabled = false;
+          btn.textContent = prev;
+          msg($('cueMsg'), 'err', 'Error de conexión: ' + (e && e.message ? e.message : e));
+        });
+      });
+    });
+
     listEl.querySelectorAll('.btn-grant').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var id = btn.getAttribute('data-grant');
         var p = accounts.filter(function (x) { return x.id === id; })[0];
         var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
-        if (!window.confirm('Dar acceso completo a "' + quien + '"?\n\nLa cuenta pasará a plan Estudio con su propio negocio y dejará de estar limitada a la demo.')) return;
+        if (!window.confirm('Dar 1 mes gratis (Plan Estudio) a "' + quien + '"?\n\nLa cuenta pasará a plan Estudio con 30 días de prueba y su propio negocio.')) return;
         btn.disabled = true;
         var prev = btn.textContent;
         btn.textContent = 'Activando...';
-        api.client.rpc('staff_grant_full_access', { target_user_id: id }).then(function (res) {
+        api.client.rpc('staff_grant_full_access', { target_user_id: id, new_plan: 'estudio' }).then(function (res) {
           if (res.error) {
             btn.disabled = false;
             btn.textContent = prev;
@@ -1440,12 +1516,8 @@
               : 'No se pudo dar acceso: ' + m);
             return;
           }
-          var updated = res.data && res.data.length ? res.data[0] : res.data;
-          var local = accounts.filter(function (x) { return x.id === id; })[0];
-          if (local && updated) { local.plan = updated.plan; local.negocio_id = updated.negocio_id; }
-          msg($('cueMsg'), 'ok', 'Acceso completo activado' +
-            (updated && updated.negocio_id ? ' (negocio: ' + updated.negocio_id + ')' : '') + '.');
-          renderCuentas();
+          msg($('cueMsg'), 'ok', '1 Mes Gratis (Plan Estudio) activado para "' + quien + '".');
+          loadCuentas();
         });
       });
     });
