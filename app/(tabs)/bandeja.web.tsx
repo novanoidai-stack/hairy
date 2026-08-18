@@ -431,7 +431,7 @@ function BandejaScreen() {
 
         {mensaje ? <div style={{ padding: '11px 15px', borderRadius: 10, marginBottom: 14, background: T.dangerSoft, color: T.danger, fontSize: 13.5 }}>{mensaje}</div> : null}
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <div data-demo="bandeja-filtros" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           {(['abiertas', 'todas'] as const).map((k) => {
             const on = filtro === k;
             return <button key={k} onClick={() => setFiltro(k)} className="b-btn" style={{ padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec, border: `1px solid ${on ? T.primary : T.border}` }}>

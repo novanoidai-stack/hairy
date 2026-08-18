@@ -874,7 +874,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
       )}
 
       {/* KPI Cards */}
-      <div style={{ ...styles.kpiGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: isMobile ? 8 : 16 }}>
+      <div data-demo="inventario-kpis" style={{ ...styles.kpiGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: isMobile ? 8 : 16 }}>
         <div style={{ ...styles.kpiCard, borderLeft: '4px solid #0891b2', padding: isMobile ? 12 : 20, minHeight: isMobile ? 70 : 'auto' }}>
           <div style={styles.kpiContent}>
             <span style={{ ...styles.kpiLabel, fontSize: isMobile ? 9 : 11 }}>{t('inv_total_refs')}</span>
@@ -1020,7 +1020,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
       )}
 
       {/* Category Tabs */}
-      <div style={styles.categoryTabs} className="no-scrollbar">
+      <div data-demo="inventario-categorias" style={styles.categoryTabs} className="no-scrollbar">
         {categorias.map((cat) => {
           const isSelected = filtroCategoria === cat;
           return (

@@ -510,7 +510,7 @@ ${comentarios}`;
             )}
 
             {/* FILTROS */}
-            <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: isMobile ? 14 : 16, marginBottom: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div data-demo="resenas-filtros" style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: isMobile ? 14 : 16, marginBottom: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {/* Busqueda */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '9px 12px' }}>
                 <Icon name="search" size={16} color={TOKENS.textTer} />
@@ -568,7 +568,7 @@ ${comentarios}`;
                 Ninguna reseña coincide con los filtros. <button className="rs-link" onClick={() => { setFRating(0); setFPeriod('all'); setFScope('all'); setFSearch(''); }} style={{ border: 'none', background: 'none', color: TOKENS.primary, fontWeight: 700, cursor: 'pointer', fontSize: 'inherit' }}>Quitar filtros</button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              <div data-demo="resenas-lista" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
                 {filtradas.map((r, i) => (
                   <div key={r.id} className="resena-card" style={{
                     animationDelay: `${Math.min(i, 8) * 0.05}s`,

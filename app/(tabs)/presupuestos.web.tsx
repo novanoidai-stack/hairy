@@ -915,7 +915,7 @@ function PresupuestosScreen() {
             <p style={{ fontSize: 13, color: T.textTer, margin: 0 }}>Crea uno con el botón “Nuevo presupuesto”.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div data-demo="presupuestos-lista" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {filtrados.map((p, idx) => {
               const d = new Date(p.created_at);
               const dias = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));

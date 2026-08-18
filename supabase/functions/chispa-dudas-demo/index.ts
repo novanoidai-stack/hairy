@@ -398,6 +398,33 @@ export async function handler(req: Request): Promise<Response> {
 
   if (!reply) return json({ error: 'llm_empty' }, 500, req);
 
+  // 1.5) Persistir la duda ANTES de intentar el SMTP. El correo es best-effort:
+  // si falla (o faltan credenciales), la duda ya esta a salvo en `dudas_demo`
+  // y el lead no se pierde. Inserta la service_role (RLS sin politicas).
+  let persistido = false;
+  let dudaId: string | null = null;
+  if (!landing) {
+    try {
+      const { data: insertada, error: persistErr } = await admin.from('dudas_demo').insert({
+        modo: 'duda',
+        duda: duda.slice(0, 4000),
+        respuesta: reply.slice(0, 8000),
+        email: parsed.email || null,
+        telefono: parsed.telefono || null,
+        tipo_contacto: parsed.tipo,
+        ip: ip === 'unknown' ? null : ip,
+      }).select('id').single();
+      if (persistErr || !insertada) {
+        console.error('Persistencia dudas_demo fallo:', persistErr?.message);
+      } else {
+        persistido = true;
+        dudaId = insertada.id;
+      }
+    } catch (persistCatch) {
+      console.error('Persistencia dudas_demo excepcion:', String(persistCatch));
+    }
+  }
+
   // 2) Envío por correo (SMTP Hostinger / denomailer):
   // Soporte completo de fallback para SMTP_* y EMAIL_*
   const host = Deno.env.get('SMTP_HOST') || Deno.env.get('EMAIL_HOST') || 'smtp.hostinger.com';
@@ -490,9 +517,17 @@ export async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // Reflejar en la fila guardada cómo acabó el envío (best-effort).
+  if (dudaId) {
+    try {
+      await admin.from('dudas_demo').update({ emailed, email_error: emailError }).eq('id', dudaId);
+    } catch { /* no cambiar el resultado por esto */ }
+  }
+
   return json({
     reply,
     emailed,
+    persistido,
     tipo_contacto: parsed.tipo,
     email_error: emailError,
   }, 200, req);

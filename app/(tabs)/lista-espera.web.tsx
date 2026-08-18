@@ -426,7 +426,7 @@ function ListaEsperaScreen() {
                     </div>
                   </div>
                   {!resueltaOCancelada && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <div data-demo="espera-acciones" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                       <button className="le-btn" title="Subir prioridad" onClick={() => ajustarPrioridad(item, 1)} style={iconBtn(T.textSec)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
                       </button>

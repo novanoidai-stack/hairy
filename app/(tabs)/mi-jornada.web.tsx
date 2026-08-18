@@ -870,7 +870,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           )}
         </div>
 
-        <div className="mj-row" style={{ marginBottom: 16 }}>
+        <div data-demo="jornada-resumen" className="mj-row" style={{ marginBottom: 16 }}>
           {isMobile && !resumenIaOpen ? (
             <button
               onClick={() => setResumenIaOpen(true)}

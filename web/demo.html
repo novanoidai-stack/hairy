@@ -118,12 +118,12 @@
    contraste casi pleno; el dock (oscuro y solido) ya destaca de sobra. */
 .gt-veil{position:absolute;inset:0;opacity:0;background:rgba(9,11,16,.15);transition:opacity .26s ease}
 .gt-veil.on{opacity:1}
-.gt-spot{position:absolute;top:50%;left:50%;width:0;height:0;border-radius:12px;opacity:0;
+.gt-spot{position:absolute;top:0;left:0;width:100px;height:100px;border-radius:12px;opacity:0;
   box-shadow:0 0 0 9999px rgba(9,11,16,.72), 0 0 0 1px rgba(255,255,255,.22), 0 0 0 4px rgba(244,80,30,.22);
-  transform:translate3d(0,0,0);
-  transition:top .32s cubic-bezier(.16,1,.3,1), left .32s cubic-bezier(.16,1,.3,1),
-    width .32s cubic-bezier(.16,1,.3,1), height .32s cubic-bezier(.16,1,.3,1), opacity .22s ease;
-  will-change:top,left,width,height,transform,opacity}
+  transform:translate3d(-9999px,-9999px,0) scale(0);
+  transform-origin:0 0;
+  transition:transform .32s cubic-bezier(.16,1,.3,1), opacity .22s ease;
+  will-change:transform,opacity}
 .gt-spot.on{opacity:1}
 @media(prefers-reduced-motion:reduce){ .gt-spot{transition-duration:.2s} }
 
@@ -448,6 +448,7 @@
     text-transform:uppercase;color:#ff8a3d;margin-bottom:8px}
   .dm-dudas-reply .who img{width:20px;height:20px;border-radius:50%}
   .dm-dudas-reply .who .ok{color:#2ecc71;margin-left:auto;letter-spacing:0;text-transform:none;font-weight:600}
+  .dm-dudas-reply .warn-block{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);color:#ffb020;font-size:12.5px;line-height:1.5}
   .dm-dudas-reply b{color:#ffae7d}
   .dm-dudas-err{display:none;margin-top:12px;font-size:12.5px;color:#ff9b8a;line-height:1.45}
   .dm-dudas-err.show{display:block}
@@ -942,17 +943,17 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha<span class="dot" style="color:var(--accent,#f4501e)">.</span></span></div>
   <span class="dm-pill"><span class="d"></span>Demo</span>
   <div class="dm-tutsel" id="tutSel">
-    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Recorrido 1: Pilares Esenciales (≈ 3 min)">
+    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Recorrido 1 · Pilares Esenciales — el más importante, empieza por aquí (20 pasos · ≈ 2 min)">
       <span class="pnum">1</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
-      <span class="lbl">1 · Esenciales</span>
+      <span class="lbl">1 · Esenciales ★</span>
     </button>
-    <button class="dm-tut" id="tutBtnAdvanced" type="button" title="Recorrido 2: Funciones Avanzadas (≈ 4 min)">
+    <button class="dm-tut" id="tutBtnAdvanced" type="button" title="Recorrido 2: Funciones Avanzadas (26 pasos · ≈ 2 min)">
       <span class="pnum">2</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
       <span class="lbl">2 · Avanzadas</span>
     </button>
-    <button class="dm-tut" id="tutBtnConfig" type="button" title="Recorrido 3: Nueva Configuración (≈ 3 min)">
+    <button class="dm-tut" id="tutBtnConfig" type="button" title="Recorrido 3: Nueva Configuración (17 pasos · ≈ 2 min)">
       <span class="pnum">3</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
       <span class="lbl">3 · Configuración</span>
@@ -1005,8 +1006,8 @@
     <h2>El software entero, <em>por dentro</em></h2>
     <p class="gsub" id="introSub">
       No son capturas: es Mecha funcionando, con datos de un salón de prueba.
-      Tres recorridos te llevan de la mano por <b>todas las pantallas</b>, y en
-      cualquier momento puedes parar y tocar tú.
+      Tu <b>cuenta gratis</b> te abre la demo completa —sin tarjeta— y los tres
+      recorridos te llevan de la mano por <b>todas las pantallas</b>.
     </p>
 
     <div class="dm-intro-tracks" id="introTracks"><!-- lo pinta el motor del tour --></div>
@@ -1633,10 +1634,18 @@
      t:'Las que el cliente no ha confirmado', d:'Un botón deja solo las de las **próximas 48 h sin respuesta**. Son las que acaban en hueco vacío: aquí las cazas antes.'},
     {ic:'agenda', route:'/(tabs)/lista-espera', action:'zona-espera-lista', ph:'Lista de espera',
      t:'Nadie se va sin hueco', d:'Quien no encuentra sitio entra en la lista con su servicio y su prioridad. Cuando **cae una cancelación**, ya sabes a quién llamar.'},
+    {ic:'agenda', route:'/(tabs)/lista-espera', action:'zona-espera-acciones', ph:'Lista de espera',
+     t:'De la lista a la agenda en un toque', d:'Subes o bajas la prioridad con las flechas, avisas por **WhatsApp** y el botón **Agendar** abre la cita ya cargada con su clienta, su servicio y sus notas.'},
     {ic:'nueva', route:'/(tabs)/presupuestos', action:'zona-presupuestos-estados', ph:'Presupuestos',
      t:'Presupuestos que se siguen solos', d:'Borrador, enviado, **aceptado** o rechazado. La clienta lo abre desde su móvil y, al aceptarlo, te salta en Caja listo para cobrar.'},
+    {ic:'nueva', route:'/(tabs)/presupuestos', action:'zona-presupuestos-lista', ph:'Presupuestos',
+     t:'Precio, estado y seguimiento en la misma fila', d:'Cada presupuesto con su total, su estado y **aviso ámbar si lleva días sin respuesta**. Se reenvía por correo o se copia el enlace sin abrirlo.'},
     {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-stock', ph:'Inventario',
      t:'El stock avisa antes de quedarte a cero', d:'Producto de venta y producto de cabina, cada uno con su mínimo. Lo que baja del mínimo **se marca** y se propone el pedido.'},
+    {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-kpis', ph:'Inventario',
+     t:'El pulso de tu stock en cuatro números', d:'Referencias cargadas, **productos bajo mínimo**, unidades en shelf y valor total del inventario. Sabes de un vistazo si toca pedir.'},
+    {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-categorias', ph:'Inventario',
+     t:'Cada producto en su sitio', d:'Pestañas por categoría —tinte, oxidadas, cuidado capilar, venta…— para encontrar cualquier referencia **sin buscar en una lista infinita**.'},
     {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-facturas', ph:'Caja',
      t:'Registros descargables para tu gestoría', d:'Los cobros del día en **CSV**, con método de pago y propinas. La caja queda registrada, no en una libreta.'},
     {ic:'clientes', route:'/(tabs)/equipo', action:'zona-equipo-fichas', ph:'Equipo',
@@ -1645,14 +1654,22 @@
      t:'Quién factura y cuánto se lleva', d:'Ingresos, ticket medio y **comisión devengada** por persona, en servicios y en productos. Sin hojas de cálculo.'},
     {ic:'fich', route:'/(tabs)/mi-jornada', action:'zona-jornada-fichaje', ph:'Fichajes',
      t:'Fichaje legal con un toque', d:'Entrada, pausa y salida con la **hora del servidor**. Los asientos no se editan y se guardan cuatro años, como exige el art. 34.9 ET.'},
+    {ic:'ia', route:'/(tabs)/mi-jornada', action:'zona-jornada-resumen', ph:'Fichajes',
+     t:'Tu jornada, resumida con IA', d:'Citas hechas, horas y **cobros de tu día** en una tarjeta, con el resumen de Chispa. Cada profesional ve lo suyo, no la casa entera.'},
     {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-mensajes', ph:'Bandeja',
      t:'Los mensajes que llegan de fuera', d:'Contactos desde tu página pública, respuestas a presupuestos y **peticiones de ausencia** del equipo. En un sitio, no perdidos en tu WhatsApp personal.'},
+    {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-filtros', ph:'Bandeja',
+     t:'Abiertas y todas, con punto azul si no las has leído', d:'El filtro **Abiertas** deja solo las conversaciones vivas; el punto naranja marca lo sin leer. Nada se queda enterrado sin respuesta.'},
     {ic:'avisos', route:'/(tabs)/campanas', action:'zona-campanas-plantillas', ph:'Campañas',
      t:'Campañas hechas: solo cambias el texto', d:'Plantillas listas para **recuperar clientas dormidas**, felicitar cumpleaños o llenar un martes flojo.'},
     {ic:'clientes', route:'/(tabs)/campanas', action:'zona-campanas-segmento', ph:'Campañas',
      t:'A quién se lo mandas, exactamente', d:'Filtra por días sin volver, número de visitas, ticket medio o etiqueta. **No mandas a todos**: mandas a quien conviene.'},
     {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-categorias', ph:'Reseñas',
      t:'Reseñas y por qué te puntúan así', d:'No solo la nota: **trato, limpieza, facilidad de reserva y pagos** por separado. Sabes qué arreglar, no solo que algo falla.'},
+    {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-filtros', ph:'Reseñas',
+     t:'Filtra hasta dar con el porqué', d:'Por fueguitos, por periodo, por origen (**portal propio o Google**) o buscando en los comentarios. Las malas no se esconden: se estudian.'},
+    {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-lista', ph:'Reseñas',
+     t:'Cada reseña, con su contexto', d:'Nombre, fecha, lo que pedía y lo que dijo. Las de 1–2 fueguitos **destacan en neutro** para que las leas antes de que se repitan.'},
     {ic:'rep', route:'/(tabs)/informes', action:'zona-informes-kpis', ph:'Informes',
      t:'Tus números, sin interpretarlos tú', d:'Ingresos **cobrados de verdad** (no estimados), propinas, margen y ocupación. Lo previsto del catálogo va aparte y etiquetado.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', ph:'Informes',
@@ -1740,11 +1757,11 @@
   var ACTS_ESSENTIALS = ACTS_PILARES;
   var ACTS_GENERAL = ACTS_PILARES;
   var ACTS_ADVANCED=[
-    {nombre:'Citas y huecos', sub:'Buscador, confirmaciones y lista de espera', desde:0, hasta:3},
-    {nombre:'Dinero y stock', sub:'Presupuestos, inventario y registros', desde:4, hasta:6},
-    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:7, hasta:9},
-    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:10, hasta:13},
-    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:14, hasta:17}
+    {nombre:'Citas y huecos', sub:'Buscador, confirmaciones y lista de espera', desde:0, hasta:4},
+    {nombre:'Dinero y stock', sub:'Presupuestos, inventario y registros', desde:5, hasta:10},
+    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:11, hasta:14},
+    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:15, hasta:21},
+    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:22, hasta:25}
   ];
   var ACTS_CONFIG=[
     {nombre:'Tu negocio', sub:'Identidad y horarios', desde:0, hasta:1},
@@ -1780,7 +1797,7 @@
     for(var i=0;i<RECORRIDOS.length;i++){ if(RECORRIDOS[i].id===id) return RECORRIDOS[i]; }
     return RECORRIDOS[0];
   }
-  // Minutos redondeados hacia arriba, minimo 1 (ritmo del autoplay).
+  // Minutos redondeados al entero mas cercano, minimo 1 (ritmo del autoplay).
   function minutosDe(r){ return Math.max(1, Math.round(r.pasos.length*PASO_MS/60000)); }
   function totalPasos(){ var n=0; for(var i=0;i<RECORRIDOS.length;i++) n+=RECORRIDOS[i].pasos.length; return n; }
   function totalMinutos(){ var m=0; for(var i=0;i<RECORRIDOS.length;i++) m+=minutosDe(RECORRIDOS[i]); return m; }
@@ -1896,9 +1913,15 @@
       s.classList.remove('on'); gt.veil.classList.add('on');
     } else {
       gt.veil.classList.remove('on');
+      // El foco se mueve SOLO con transform (compositor, sin reflow): la caja
+      // base es 100x100 con transform-origin 0 0 y se traslada+escala al rect.
       // Si venia oculto, colocalo sin animar el tamano desde 0 (evita el "crece").
-      if(!s.classList.contains('on')){ s.style.top=(hole.top+hole.height/2)+'px'; s.style.left=(hole.left+hole.width/2)+'px'; }
-      s.style.top=hole.top+'px'; s.style.left=hole.left+'px'; s.style.width=hole.width+'px'; s.style.height=hole.height+'px';
+      var tx='translate3d('+hole.left+'px,'+hole.top+'px,0) scale('+(hole.width/100)+','+(hole.height/100)+')';
+      if(!s.classList.contains('on')){
+        s.style.transform='translate3d('+(hole.left+hole.width/2)+'px,'+(hole.top+hole.height/2)+'px,0) scale(0.001)';
+        void s.offsetWidth; // fija el punto de partida antes de la transicion
+      }
+      s.style.transform=tx;
       s.classList.add('on');
     }
   }
@@ -2159,10 +2182,10 @@
       var html='';
       for(var i=0;i<RECORRIDOS.length;i++){
         var r=RECORRIDOS[i];
-        html+='<div class="dm-itrack'+(i===0?' primero':'')+'" data-track="'+r.id+'" role="button" tabindex="0">'
+        html+='<div class="dm-itrack'+(i===0?' primero':'')+'" data-track="'+r.id+'" role="button" tabindex="0"'+(i===0?' title="El más importante: empieza por aquí"':'')+'>'
             +   '<span class="dm-it-num">'+r.n+'</span>'
             +   '<div class="dm-it-info">'
-            +     '<b>'+escHtml(r.nombre)+'</b>'
+            +     '<b>'+escHtml(r.nombre)+(i===0?' <em style="font-style:normal;color:#ff8a3d;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-left:6px">★ Recomendado</em>':'')+'</b>'
             +     '<small>'+escHtml(r.resumen)+'</small>'
             +     '<span class="dm-it-meta">'+r.pasos.length+' pasos · ≈ '+minutosDe(r)+' min</span>'
             +   '</div>'
@@ -2284,13 +2307,18 @@
         dudasErr.textContent=m; dudasErr.classList.add('show'); return;
       }
       var badge='';
+      var aviso=''; // aviso de fallo de envío, aparte del badge para no romper la cabecera
       if(res.j.emailed){
         badge='<span class="ok">✓ enviada a tu correo</span>';
       } else if(isPhone){
         badge='<span class="ok">✓ anotado para WhatsApp</span>';
+      } else if(isEmail && res.j.email_error){
+        // El correo al usuario fallo (SMTP caido o sin configurar): la respuesta
+        // esta en pantalla y la duda queda registrada, pero hay que decírselo.
+        aviso='<div class="warn-block">No hemos podido enviarte la respuesta por correo. Cópiala de aquí, o escríbenos por WhatsApp (+34 690 79 29 75) y te la repetimos.</div>';
       }
       dudasReply.innerHTML='<div class="who"><img src="assets/v4/chispa-avatar-96.png" alt="" onerror="this.style.display=\'none\'">Chispa · IA de Mecha'
-        +badge+'</div>'+fmtAi(res.j.reply);
+        +badge+'</div>'+fmtAi(res.j.reply)+aviso;
       dudasReply.classList.add('show');
     }).catch(function(){
       dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';
