@@ -2,20 +2,23 @@
 // Modular 3, seccion 5: el horario laboral se modela como una o varias franjas
 // (turnos) por dia. Una cita es valida si cabe completa dentro de ALGUNA franja.
 // RN-EQ-020: la agenda solo permite citas dentro del horario laboral.
+//
+// La aritmetica de franjas (pura, testeable) vive en ./horariosFranjas; aqui queda
+// solo lo que habla con la BD. Se reexporta para no romper los imports existentes.
 
 import { supabase } from './supabase';
 import { reportarError } from './reportarError';
+import { dentroDeAlgunaFranja, franjasTexto, type Franja } from './horariosFranjas';
 
-export interface Franja {
-  hora_inicio: string; // 'HH:MM' o 'HH:MM:SS'
-  hora_fin: string;
-  turno?: number | null;
-}
-
-function horaAMin(h: string): number {
-  const [hh, mm] = h.split(':').map(Number);
-  return hh * 60 + (mm || 0);
-}
+export {
+  dentroDeAlgunaFranja,
+  cabeEnAlgunaFranja,
+  franjasTexto,
+  slotsQueCaben,
+  horaAMin,
+  minAHora,
+} from './horariosFranjas';
+export type { Franja } from './horariosFranjas';
 
 // Carga las franjas (turnos) del profesional para un dia (0=Dom .. 6=Sab).
 export async function franjasDelDia(profesionalId: string, diaSemana: number): Promise<Franja[]> {
@@ -30,20 +33,6 @@ export async function franjasDelDia(profesionalId: string, diaSemana: number): P
     return [];
   }
   return (data as Franja[]) ?? [];
-}
-
-// True si [inicioMin, finMin] cae completo dentro de alguna franja.
-export function dentroDeAlgunaFranja(franjas: Franja[], inicioMin: number, finMin: number): boolean {
-  return franjas.some(f => inicioMin >= horaAMin(f.hora_inicio) && finMin <= horaAMin(f.hora_fin));
-}
-
-// Texto legible de las franjas, ordenadas. Ej: "09:00-14:00 y 16:00-20:00".
-export function franjasTexto(franjas: Franja[]): string {
-  return franjas
-    .slice()
-    .sort((a, b) => horaAMin(a.hora_inicio) - horaAMin(b.hora_inicio))
-    .map(f => `${f.hora_inicio.slice(0, 5)}-${f.hora_fin.slice(0, 5)}`)
-    .join(' y ');
 }
 
 // Valida una cita [inicio, fin] contra el horario laboral del profesional.

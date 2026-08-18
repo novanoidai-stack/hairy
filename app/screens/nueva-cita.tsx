@@ -12,6 +12,8 @@ import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { resolverSenalStaff } from '@/lib/senalStaff';
 import { validarHorarioLaboral } from '@/lib/horarios';
+import { citaSolapaOcupacion } from '@/lib/utils/appointment';
+import { CITA_STATUS_BLOQUEAN_SOLAPE } from '@/lib/constants';
 import { getUserProfile } from '@/lib/auth';
 import { mensajeDeError } from '@/lib/errores';
 import { useCalendarRefresh } from '@/lib/calendarContext';
@@ -158,7 +160,9 @@ export default function NuevaCitaScreen() {
       .eq('profesional_id', profSeleccionado)
       .gte('inicio', `${diaStr}T00:00:00`)
       .lt('inicio', `${diaStr}T23:59:59`)
-      .eq('estado', 'confirmada')
+      // Una cita `pendiente` ya tiene el hueco cogido: si solo se miran las
+      // confirmadas se ofrece un reposo que en realidad no esta libre.
+      .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
       .then(({ data }) => setCitasDia(data ?? []));
   }, [profSeleccionado, negocioId, inicio.toDateString()]);
 
@@ -314,50 +318,27 @@ export default function NuevaCitaScreen() {
         return;
       }
 
-      // 3. No solapar en fase activa
-      // Busca citas donde ambas fases activas se solapan
-      const { data: solapadasActivas } = await supabase
+      // 3. No pisar el trabajo real de otra cita del profesional.
+      // Antes esto eran tres consultas con filtros a pelo sobre `fin_activa`: se
+      // saltaban las citas `pendiente`, las que no tienen las fases escritas (un
+      // `.gt('fin_activa', ...)` no ve una fila con fin_activa NULL) y la segunda
+      // fase activa de la cita de enfrente. La regla vive ahora en un solo sitio.
+      const { data: candidatas } = await supabase
         .from('citas')
-        .select('id')
+        .select('id, profesional_id, inicio, fin_activa, fin_espera, fin')
         .eq('profesional_id', profSeleccionado)
-        .eq('estado', 'confirmada')
-        .lt('inicio', finActiva.toISOString())       // otra.inicio < new.fin_activa
-        .gt('fin_activa', inicio.toISOString());     // otra.fin_activa > new.inicio
+        .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
+        .lt('inicio', fin.toISOString())
+        .gt('fin', inicio.toISOString());
 
-      if (solapadasActivas && solapadasActivas.length > 0) {
+      if (
+        citaSolapaOcupacion(
+          { inicio, finActiva, finEspera, fin },
+          (candidatas ?? []) as any,
+          profSeleccionado,
+        )
+      ) {
         bloquear('El profesional ya tiene una cita activa en ese horario.');
-        return;
-      }
-
-      // 3b. No solapar segunda fase activa (si existe)
-      if (duracionActivaExtra > 0) {
-        const { data: solapadasActivas2 } = await supabase
-          .from('citas')
-          .select('id')
-          .eq('profesional_id', profSeleccionado)
-          .eq('estado', 'confirmada')
-          .lt('inicio', fin.toISOString())             // otra.inicio < new.fin
-          .gt('fin_activa', finEspera.toISOString());  // otra.fin_activa > new.fin_espera (start of active2)
-
-        if (solapadasActivas2 && solapadasActivas2.length > 0) {
-          bloquear('El profesional ya tiene una cita activa en ese horario.');
-          return;
-        }
-      }
-
-      // 4. No extender el fin si ya hay cita en fase de espera
-      // Busca citas donde la nueva empieza en su fase de espera pero intenta extender el fin
-      const { data: citasEspera } = await supabase
-        .from('citas')
-        .select('id, fin')
-        .eq('profesional_id', profSeleccionado)
-        .eq('estado', 'confirmada')
-        .lte('fin_activa', inicio.toISOString())    // otra.fin_activa <= new.inicio (new in/after wait phase)
-        .gt('fin', inicio.toISOString())            // otra.fin > new.inicio (overlap real, excluye frontera exacta)
-        .lt('fin', fin.toISOString());              // otra.fin < new.fin (new extends past)
-
-      if (citasEspera && citasEspera.length > 0) {
-        bloquear('No puedes terminar después de otra cita. El profesional sigue ocupado en esa franja.');
         return;
       }
 
