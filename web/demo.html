@@ -41,7 +41,7 @@
   .dm-share:hover{background:rgba(255,255,255,.08);border-color:rgba(255,138,61,.5);color:#fff}
   .dm-share svg{width:15px;height:15px;flex-shrink:0}
   .dm-share-badge{font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--accent-hi);background:rgba(244,80,30,.16);padding:2px 6px;border-radius:6px}
-  /* Selector de tutoriales: dos "videos" con play para lanzar/reiniciar cada recorrido */
+  /* Selector de tutoriales: 3 recorridos completos con play para lanzar/reiniciar */
   .dm-tutsel{display:none;align-items:center;gap:4px;flex-shrink:0;margin-left:auto;padding:3px;border-radius:11px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03)}
   .dm-tut{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;cursor:pointer;border:0;background:none;color:var(--text-sec);font:inherit;font-size:12.5px;font-weight:600;white-space:nowrap;transition:all .18s ease}
   .dm-tut .pnum{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.08);color:var(--text-sec);font-size:10px;font-weight:800;flex-shrink:0;transition:all .18s ease}
@@ -53,7 +53,7 @@
   .dm-tut.active svg{opacity:1}
   /* En tablet/laptop estrecho el selector va compacto (play + numero) para no
      ensanchar la cabecera; las etiquetas solo en escritorio amplio. */
-  @media(max-width:1024px){
+  @media(max-width:1100px){
     .dm-tut .lbl{display:none}
     .dm-tut{padding:6px 9px;gap:5px}
     .dm-tut svg{width:11px;height:11px;opacity:.8}
@@ -118,12 +118,12 @@
    contraste casi pleno; el dock (oscuro y solido) ya destaca de sobra. */
 .gt-veil{position:absolute;inset:0;opacity:0;background:rgba(9,11,16,.15);transition:opacity .26s ease}
 .gt-veil.on{opacity:1}
-/* Foco: oscurece MAS la zona de alrededor (mejor contraste) y se desliza rapido. */
 .gt-spot{position:absolute;top:50%;left:50%;width:0;height:0;border-radius:12px;opacity:0;
   box-shadow:0 0 0 9999px rgba(9,11,16,.72), 0 0 0 1px rgba(255,255,255,.22), 0 0 0 4px rgba(244,80,30,.22);
-  transition:top .32s cubic-bezier(.4,0,.2,1), left .32s cubic-bezier(.4,0,.2,1),
-    width .32s cubic-bezier(.4,0,.2,1), height .32s cubic-bezier(.4,0,.2,1), opacity .22s ease;
-  will-change:top,left,width,height}
+  transform:translate3d(0,0,0);
+  transition:top .32s cubic-bezier(.16,1,.3,1), left .32s cubic-bezier(.16,1,.3,1),
+    width .32s cubic-bezier(.16,1,.3,1), height .32s cubic-bezier(.16,1,.3,1), opacity .22s ease;
+  will-change:top,left,width,height,transform,opacity}
 .gt-spot.on{opacity:1}
 @media(prefers-reduced-motion:reduce){ .gt-spot{transition-duration:.2s} }
 
@@ -270,34 +270,45 @@
   .dm-gback:hover{color:var(--text);border-color:var(--border-hi)}
   .dm-gback svg{width:16px;height:16px}
 
-  /* ---------- INTRO CINEMATOGRAFICA ---------- */
+  /* ---------- INTRO CINEMATOGRAFICA PITCH-BLACK ---------- */
   .dm-intro{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:24px;
-    background:rgba(7,10,20,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-  .dm-intro.show{display:grid;animation:dmFade .4s var(--ease)}
-  @keyframes dmFade{from{opacity:0}to{opacity:1}}
-  @keyframes dmIntroUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-  .dm-intro-card{width:100%;max-width:560px;text-align:center;background:linear-gradient(180deg,var(--card-hi),var(--card));
-    border:1px solid var(--border-hi);border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:34px 30px 28px;position:relative;overflow:hidden}
+    background:radial-gradient(ellipse at 50% 35%,rgba(32,16,10,.6) 0%,#000000 80%),#000000;
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+  .dm-intro.show{display:grid;animation:dmFade .35s cubic-bezier(.16,1,.3,1)}
+  @keyframes dmFade{from{opacity:0;transform:scale(1.02)}to{opacity:1;transform:scale(1)}}
+  @keyframes dmIntroUp{from{opacity:0;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+  .dm-intro-card{width:100%;max-width:580px;text-align:center;background:linear-gradient(180deg,rgba(18,14,12,.96),rgba(8,8,10,.98));
+    border:1px solid rgba(244,80,30,.35);border-radius:var(--r-xl);box-shadow:0 30px 100px -20px rgba(0,0,0,.95),0 0 60px -10px rgba(244,80,30,.22);
+    padding:32px 28px 26px;position:relative;overflow:hidden}
   .dm-intro-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
-  .dm-intro.show .dm-intro-card>*{animation:dmIntroUp .5s cubic-bezier(.16,1,.3,1) both}
-  .dm-intro.show .dm-intro-card>*:nth-child(2){animation-delay:.06s}
-  .dm-intro.show .dm-intro-card>*:nth-child(3){animation-delay:.12s}
-  .dm-intro.show .dm-intro-card>*:nth-child(4){animation-delay:.18s}
-  .dm-intro.show .dm-intro-card>*:nth-child(5){animation-delay:.24s}
-  .dm-intro.show .dm-intro-card>*:nth-child(6){animation-delay:.3s}
-  .dm-intro-card .gmark{width:58px;height:58px;margin:0 auto 14px;filter:drop-shadow(0 8px 24px var(--accent-glow))}
-  .dm-intro-card .geyebrow{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-hi)}
-  .dm-intro-card h2{font-family:var(--display);font-weight:800;font-size:27px;letter-spacing:-.03em;margin:8px 0 6px;line-height:1.08;color:var(--text)}
-  .dm-intro-card .gsub{font-size:14px;color:var(--text-sec);line-height:1.55;max-width:440px;margin:0 auto 16px}
-  .dm-intro-mods{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 auto 16px;max-width:470px}
-  .dm-intro-mods span{font-size:11.5px;font-weight:600;color:#ffd9c2;background:rgba(244,80,30,.13);border:1px solid rgba(244,80,30,.32);padding:4px 10px;border-radius:999px}
-  .dm-intro-meta{display:flex;justify-content:center;gap:18px;margin-bottom:20px;flex-wrap:wrap}
-  .dm-intro-meta div{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--text-sec)}
-  .dm-intro-meta svg{width:15px;height:15px;color:var(--accent-hi);flex-shrink:0}
-  .dm-intro-actions{display:flex;flex-direction:column;gap:10px}
-  .dm-intro-free{font-size:13px;color:var(--text-sec);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:11px 16px;cursor:pointer;transition:all .2s;font-weight:600}
+  .dm-intro.show .dm-intro-card>*{animation:dmIntroUp .45s cubic-bezier(.16,1,.3,1) both}
+  .dm-intro.show .dm-intro-card>*:nth-child(2){animation-delay:.04s}
+  .dm-intro.show .dm-intro-card>*:nth-child(3){animation-delay:.08s}
+  .dm-intro.show .dm-intro-card>*:nth-child(4){animation-delay:.12s}
+  .dm-intro.show .dm-intro-card>*:nth-child(5){animation-delay:.16s}
+  .dm-intro.show .dm-intro-card>*:nth-child(6){animation-delay:.20s}
+  .dm-intro-markwrap{position:relative;display:inline-block;margin:0 auto 12px}
+  .dm-intro-card .gmark{width:56px;height:56px;display:block;margin:0 auto;filter:drop-shadow(0 8px 24px var(--accent-glow));animation:dmMarkHalo 2.5s ease-in-out infinite}
+  @keyframes dmMarkHalo{0%,100%{transform:scale(1);filter:drop-shadow(0 6px 20px rgba(244,80,30,.5))}50%{transform:scale(1.05);filter:drop-shadow(0 10px 32px rgba(244,80,30,.85))}}
+  .dm-intro-card .geyebrow{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-hi)}
+  .dm-intro-card h2{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.03em;margin:8px 0 6px;line-height:1.1;color:var(--text)}
+  .dm-intro-card .gsub{font-size:13.5px;color:var(--text-sec);line-height:1.5;max-width:480px;margin:0 auto 14px}
+  .dm-intro-meta{display:flex;justify-content:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .dm-intro-meta div{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-sec);background:rgba(255,255,255,.04);padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.07)}
+  .dm-intro-meta svg{width:14px;height:14px;color:var(--accent-hi);flex-shrink:0}
+  .dm-intro-tracks{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;text-align:left}
+  .dm-itrack{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:12px;background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s cubic-bezier(.16,1,.3,1)}
+  .dm-itrack:hover{background:rgba(244,80,30,.1);border-color:rgba(244,80,30,.4);transform:translate3d(0,-1px,0)}
+  .dm-it-num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(244,80,30,.2);color:#ffd9c2;font-size:11px;font-weight:800;flex-shrink:0}
+  .dm-it-info{flex:1;min-width:0}
+  .dm-it-info b{display:block;font-size:12.5px;color:#fff;font-weight:700}
+  .dm-it-info small{display:block;font-size:11px;color:#a0a7b5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dm-it-tag{font-size:11px;font-weight:700;color:var(--accent-hi);flex-shrink:0;padding:2px 8px;border-radius:6px;background:rgba(244,80,30,.12)}
+  .dm-intro-actions{display:flex;flex-direction:column;gap:9px}
+  .dm-intro-free{font-size:12.5px;color:var(--text-sec);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:10px 16px;cursor:pointer;transition:all .2s;font-weight:600}
   .dm-intro-free:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.06)}
-  .dm-intro-fake{font-size:11.5px;color:var(--text-ter);margin-top:13px;display:flex;align-items:center;gap:6px;justify-content:center}
+  .dm-intro-fake{font-size:11.5px;color:var(--text-ter);margin-top:12px;display:flex;align-items:center;gap:6px;justify-content:center}
   .dm-intro-fake svg{width:13px;height:13px;flex-shrink:0}
   @media(prefers-reduced-motion:reduce){ .dm-intro.show .dm-intro-card>*{animation:none} }
 
@@ -840,15 +851,20 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha<span class="dot" style="color:var(--accent,#f4501e)">.</span></span></div>
   <span class="dm-pill"><span class="d"></span>Demo</span>
   <div class="dm-tutsel" id="tutSel">
-    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Ver el recorrido general desde el principio">
+    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Recorrido 1: Pilares Esenciales (≈ 3 min)">
       <span class="pnum">1</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
-      <span class="lbl">Recorrido</span>
+      <span class="lbl">1 · Esenciales</span>
     </button>
-    <button class="dm-tut" id="tutBtnConfig" type="button" title="Ver el tutorial de configuracion desde el principio">
+    <button class="dm-tut" id="tutBtnAdvanced" type="button" title="Recorrido 2: Funciones Avanzadas (≈ 4 min)">
       <span class="pnum">2</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
-      <span class="lbl">Configuración</span>
+      <span class="lbl">2 · Avanzadas</span>
+    </button>
+    <button class="dm-tut" id="tutBtnConfig" type="button" title="Recorrido 3: Nueva Configuración (≈ 3 min)">
+      <span class="pnum">3</span>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
+      <span class="lbl">3 · Configuración</span>
     </button>
   </div>
   <button class="dm-share" id="shareBtn" type="button" style="display:none" title="Comparte Mecha y gana descuento por cada salón de tu red.">
@@ -889,18 +905,46 @@
 <!-- ============ INTRO CINEMATOGRAFICA ============ -->
 <div class="dm-intro" id="intro">
   <div class="dm-intro-card">
-    <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
+    <div class="dm-intro-markwrap">
+      <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
+    </div>
     <span class="geyebrow">Demo de Mecha</span>
     <h2>Vas a ver <em style="font-family:var(--serif);font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">todos los módulos</em> del software</h2>
-    <p class="gsub">Un recorrido guiado, como una película: te explico cada pantalla mientras la usas. También puedes entrar y explorarlo tú solo cuando quieras.</p>
-    <div class="dm-intro-mods">
-      <span>Agenda con reposos</span><span>Fichas de cliente</span><span>Caja y cobros</span><span>Presupuestos y bonos</span><span>Equipo y fichajes</span><span>Informes</span><span>Chispa IA</span><span>Reserva online</span>
-    </div>
+    <p class="gsub">Tu cuenta gratis con datos de prueba reales para explorar todo el potencial. Un recorrido guiado como una película interactiva paso a paso.</p>
+    
     <div class="dm-intro-meta">
-      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>≈ 3 minutos</div>
-      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>27 pasos · 2 recorridos</div>
-      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Sin registro</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>≈ 10 min · 3 recorridos</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>35 pasos completos</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Datos de prueba reales</div>
     </div>
+
+    <div class="dm-intro-tracks">
+      <div class="dm-itrack" data-track="general">
+        <span class="dm-it-num">1</span>
+        <div class="dm-it-info">
+          <b>Recorrido 1: Pilares Esenciales</b>
+          <small>Agenda, cita con reposos, ficha cliente y cobro TPV · ≈ 3 min (15 pasos)</small>
+        </div>
+        <span class="dm-it-tag">Empezar</span>
+      </div>
+      <div class="dm-itrack" data-track="advanced">
+        <span class="dm-it-num">2</span>
+        <div class="dm-it-info">
+          <b>Recorrido 2: Todas las Funciones Avanzadas</b>
+          <small>Fichajes, bonos, IA Chispa, marketing, informes · ≈ 4 min (10 pasos)</small>
+        </div>
+        <span class="dm-it-tag">Ver</span>
+      </div>
+      <div class="dm-itrack" data-track="config">
+        <span class="dm-it-num">3</span>
+        <div class="dm-it-info">
+          <b>Recorrido 3: Nueva Configuración</b>
+          <small>Identidad, tarifas, comisiones, reserva online · ≈ 3 min (10 pasos)</small>
+        </div>
+        <span class="dm-it-tag">Ver</span>
+      </div>
+    </div>
+
     <div class="dm-intro-actions">
       <a class="btn btn-primary btn-block btn-lg" href="#" id="introGuided">
         Empezar el recorrido guiado
@@ -910,7 +954,7 @@
     </div>
     <p class="dm-intro-fake">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Es una cuenta demo con datos ficticios: toca, cambia y prueba sin miedo, no afecta a ningún salón real.
+      Es tu cuenta de prueba con datos ficticios: toca, cambia y prueba sin miedo, no afecta a ningún salón real.
     </p>
   </div>
 </div>
@@ -931,10 +975,10 @@
         <b>Chispa responde al momento</b>
         <span class="tag">IA entrenada con todo Mecha</span>
       </div>
-      <p class="desc">Escribe tu duda (funcionamiento, reposos, presupuestos, fichajes, VeriFactu, planes…) y una IA entrenada con <b>todo el funcionamiento interno de Mecha</b> te responde al instante. Si dejas tu correo, te envía la respuesta allí también.</p>
-      <form class="dm-dudas-form" id="dudasForm">
+      <p class="desc">Escribe tu duda (funcionamiento, reposos, presupuestos, fichajes, VeriFactu, planes…) y una IA entrenada con <b>todo el funcionamiento interno de Mecha</b> te responde al instante. Si dejas tu email o WhatsApp, te enviamos la respuesta o te contactamos.</p>
+      <form class="dm-dudas-form" id="dudasForm" novalidate>
         <textarea id="dudasText" placeholder="¿Cómo funcionan los tiempos de reposo? ¿Puedo cobrar con bonos? ¿Qué es VeriFactu…" required></textarea>
-        <input type="email" id="dudasEmail" placeholder="Tu correo (opcional — para recibir la respuesta por email)" />
+        <input type="text" id="dudasContacto" placeholder="Tu email o WhatsApp (para enviarte la respuesta)..." autocomplete="email tel" />
         <button class="dm-dudas-send" id="dudasSend" type="submit">Preguntar a Chispa</button>
       </form>
       <div class="dm-dudas-reply" id="dudasReply" aria-live="polite"></div>
@@ -1102,8 +1146,7 @@
 
   var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
   var visitsEl=$('#visits'), visitsText=$('#visitsText');
-  var shareBtn=$('#shareBtn');
-  var tutSel=$('#tutSel'), tutBtnGeneral=$('#tutBtnGeneral'), tutBtnConfig=$('#tutBtnConfig');
+  var tutSel=$('#tutSel'), tutBtnGeneral=$('#tutBtnGeneral'), tutBtnAdvanced=$('#tutBtnAdvanced'), tutBtnConfig=$('#tutBtnConfig');
 
   function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
@@ -1449,72 +1492,94 @@
   // panel real y enfoque su zona (action). El software responde con el rect del
   // spotlight. ic = icono, ph = fase (chip del dock), t = titulo, d = cuerpo
   // (**palabra** = resaltada), viz = micro-ilustracion opcional en el dock.
-  var TUT_GENERAL=[
+  var TUT_ESSENTIALS=[
     {ic:'agenda', route:'/(tabs)', action:'cerrar', ph:'La agenda',
-     t:'Tu día entero, en una pantalla', d:'Tus **profesionales** y sus **citas**, juntos. Toca un hueco y nace una cita.'},
+     t:'Tu día entero, en una pantalla', d:'Tus **profesionales**, sillas y **citas** en un grid limpio y sin cortes. Toca cualquier hueco libre para crear una cita.'},
     {ic:'nueva', route:'/(tabs)', action:'nueva-cita', ph:'Crear una cita',
-     t:'De hueco a cita en 3 toques', d:'Tocas el hueco y se abre con la **hora ya puesta**. Cliente, servicio, hora. Listo.'},
+     t:'De hueco a cita en 3 toques', d:'Al tocar el hueco se abre con la **hora ya fijada**. Cliente, servicio y profesional. Listo en segundos.'},
     {ic:'clientes', route:'/(tabs)', action:'cita-cliente', ph:'Crear una cita',
-     t:'Elige (o crea) al cliente', d:'Lo eliges de la lista —o lo creas al vuelo. Su **ficha se rellena sola**.'},
+     t:'Elige o crea a tu clienta', d:'Búsqueda predictiva al vuelo. Su **teléfono, historial y preferencias** se vinculan automáticamente.'},
     {ic:'nueva', route:'/(tabs)', action:'cita-servicio', ph:'Crear una cita',
-     t:'El servicio pone precio y duración', d:'Marca **duración y precio** solos. Encadena varios, hasta entre profesionales.'},
+     t:'Servicio, precio y encadenamiento', d:'Calcula **duración y precio** al instante. Puedes encadenar varios servicios en orden e incluso entre distintos estilistas.'},
     {ic:'nueva', route:'/(tabs)', action:'cita-hora', ph:'Crear una cita',
-     t:'La hora, sin equivocarte', d:'Eliges un hueco libre. Arriba ves siempre **«Ahora»** y la hora elegida.'},
+     t:'La hora exacta, sin solapes', d:'Elige el hueco disponible. El sistema valida en tiempo real la disponibilidad de silla y profesional.'},
     {ic:'fich', route:'/(tabs)', action:'cita-detalle', ph:'La cita por dentro',
-     t:'Toda la cita, editable', d:'Servicio, cliente, profesional y hora. Ábrela y **cámbialo todo** en segundos.'},
+     t:'La cita por dentro', d:'Toda la información reunida y editable: servicios encadenados, profesional asignado y estado.'},
     {ic:'fich', route:'/(tabs)', action:'detalle-estado', ph:'La cita por dentro',
-     t:'El estado lo manda todo', d:'Confirmada, en curso, cobrada, no-show… **pinta la agenda** y cuenta en tus informes.'},
+     t:'El estado lo coordina todo', d:'Confirmada, en curso, cobrada, no-show… **colorea la agenda** e impacta en tus métricas de rendimiento.'},
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', ph:'Los reposos',
-     t:'1 · El trabajo inicial', d:'La primera fase: **aplicar el tinte**. Ajusta sus minutos con − y +.', viz:'reposo-1'},
+     t:'1 · Tiempo activo (aplicación)', d:'La primera fase: **aplicar el tinte**. Ajusta sus minutos con − y +.', viz:'reposo-1'},
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-reposo', ph:'Los reposos',
-     t:'2 · El reposo que te regala tiempo', d:'Mientras el tinte **actúa solo**, Mecha **libera tu agenda** y te deja atender a **otro cliente** en ese hueco.', viz:'reposo-2'},
+     t:'2 · El reposo que te regala tiempo', d:'Mientras el tinte **actúa solo**, Mecha **libera tu agenda** y te permite atender a **otro cliente** en ese hueco.', viz:'reposo-2'},
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', ph:'Los reposos',
-     t:'3 · El acabado', d:'Lavar y peinar. La cita **se parte sola** en tres bloques y aprovecha tu tiempo al **100%** sin alargar el día.', viz:'reposo-3'},
-    {ic:'clientes', route:'/(tabs)', action:'detalle-formula', ph:'La ficha',
-     t:'El color, guardado para siempre', d:'Producto, tono, tiempo y resultado. **Repite el color exacto** la próxima vez.'},
-    {ic:'avisos', route:'/(tabs)', action:'notificaciones', ph:'Los avisos',
-     t:'Nada se te escapa', d:'Citas **sin confirmar** y **cumpleaños** de la semana, juntos. Toca y la agenda salta allí.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', ph:'Las fichas',
-     t:'La ficha que lo sabe todo', d:'Fórmula, alergias, fotos e historial. **A un toque**, sin papeles.'},
-    {ic:'ia', route:'/(tabs)', action:'cerrar', ph:'Recepción con IA',
-     t:'Una recepcionista que no duerme', d:'La IA atiende **WhatsApp y teléfono**, responde y **reserva sola**, 24/7.', viz:'ia'},
-    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', ph:'El equipo',
-     t:'Tu equipo y lo que rinde', d:'Roles, turnos y **comisiones** por profesional, con quién factura más.'},
+     t:'3 · Acabado y peinado', d:'Lavado y peinado final. La cita se desglosa sola en tres bloques aprovechando tu tiempo al **100%**.', viz:'reposo-3'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-color', ph:'Ficha técnica',
+     t:'Fórmulas de color y fotos de trabajos', d:'Producto, tono, oxidante, tiempo y **fotos del resultado**. Repite el color exacto en la siguiente visita.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-notas', ph:'Ficha técnica',
+     t:'Notas técnicas y preferencias', d:'Alertas de **alergias**, preferencias personales y plantillas de notas guardadas al instante.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-historial', ph:'Ficha técnica',
+     t:'Historial de visitas y compras', d:'Historial cronológico completo de servicios anteriores, importes y productos adquiridos.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', ph:'Ficha técnica',
+     t:'Ficha técnica integral', d:'Ticket medio, frecuencia de visita y detección automática de **riesgo de fuga** con recuperación en un clic.'},
+    {ic:'rep', route:'/(tabs)/caja', action:'cerrar', ph:'Cobro y Caja',
+     t:'Cobro rápido y arqueo de caja', d:'Cobro directo con tarjeta, efectivo o Bizum, desglose de propinas y cierre diario adaptado a **VeriFactu**.'}
+  ];
+  var TUT_GENERAL = TUT_ESSENTIALS;
+
+  var TUT_ADVANCED=[
+    {ic:'fich', route:'/(tabs)/mi-jornada', action:'cerrar', ph:'Control horario',
+     t:'Control horario y fichajes legales', d:'Registro obligatorio de jornada con un toque: entrada, pausas y salida. Horas computadas e informes de inspección.'},
+    {ic:'nueva', route:'/(tabs)/presupuestos', action:'cerrar', ph:'Presupuestos y bonos',
+     t:'Presupuestos digitales y bonos', d:'Crea presupuestos firmados en pantalla por la clienta y vende **bonos multidosis** con control de sesiones restantes.'},
+    {ic:'ia', route:'/(tabs)/bandeja', action:'cerrar', ph:'Recepción IA',
+     t:'Recepcionista con IA 24/7', d:'Chispa atiende **WhatsApp, web y teléfono**, resuelve dudas frecuentes y agenda citas solas a cualquier hora.', viz:'ia'},
+    {ic:'agenda', route:'/(tabs)/lista-espera', action:'cerrar', ph:'Lista de espera',
+     t:'Cero huecos por cancelaciones', d:'Clientes en espera organizados por servicio y estilista. Al cancelarse una cita, el sistema avisa y rellena el hueco.'},
+    {ic:'avisos', route:'/(tabs)/campanas', action:'cerrar', ph:'Marketing',
+     t:'Marketing y reactivación automática', d:'Envía promociones segmentadas por WhatsApp a clientas inactivas o felicitaciones con descuento en su cumpleaños.'},
+    {ic:'fich', route:'/(tabs)/resenas', action:'cerrar', ph:'Reseñas Google',
+     t:'Reputación y reseñas en Google', d:'Pide reseñas por WhatsApp automáticamente tras cada servicio y responde con IA para mejorar tu posicionamiento.'},
+    {ic:'clientes', route:'/(tabs)/equipo', action:'cerrar', ph:'Equipo',
+     t:'Tu equipo y su rendimiento', d:'Roles, horarios y cálculo automático de **comisiones por servicios y productos**. Ranking de facturación en vivo.'},
+    {ic:'nueva', route:'/(tabs)/inventario', action:'cerrar', ph:'Inventario',
+     t:'Control de stock e insumos técnicos', d:'Diferencia entre producto de venta y uso en cabina. Alertas automáticas de stock bajo y pedidos a proveedor.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', ph:'Informes',
-     t:'Tus números, claros y descargables', d:'Ingresos, ocupación, no-shows y ticket medio. Descárgalo en **PDF** o **CSV**.', viz:'export'}
+     t:'Números claros y descargables', d:'Facturación, ocupación de sillas y ticket medio. Exportación directa a **PDF** oficial o **CSV** para tu gestoría.', viz:'export'},
+    {ic:'avisos', route:'/(tabs)/ayuda', action:'cerrar', ph:'Soporte prioritario',
+     t:'Soporte humano y puesta en marcha', d:'Soporte humano por WhatsApp en menos de 5 minutos y Chispa IA 24/7. Te configuramos todo tu salón sin coste.'}
   ];
 
   var TUT_CONFIG=[
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', ph:'Datos del negocio',
-     t:'Tu salón, tu identidad', d:'Nombre, moneda, huso horario y **colores de marca**.'},
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', ph:'Identidad',
+     t:'Tu salón, tu identidad de marca', d:'Personaliza nombre, logotipo, dirección, teléfono, moneda y paleta de colores oficial de tu negocio.'},
     {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', ph:'Horarios',
-     t:'Horarios y descansos', d:'Apertura y jornadas. Añade **pausas** y la agenda se ordena sin solapes.'},
-    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', ph:'Servicios',
-     t:'Tu catálogo y tus tarifas', d:'Precios y duraciones por profesional. Define **reposos** para liberar tu agenda.'},
+     t:'Horarios de apertura y turnos', d:'Define horarios por día, turnos del personal y pausas para que la agenda organice los huecos automáticamente.'},
+    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', ph:'Servicios y reposos',
+     t:'Catálogo, tarifas y tiempos de reposo', d:'Configura precios y duraciones personalizadas por estilista, con tiempos de reposo para maximizar ingresos.'},
     {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', ph:'Reglas de reserva',
-     t:'Las reglas del juego', d:'Antelación, cancelaciones y **prepagos** contra las ausencias.'},
+     t:'Reglas de reserva y prepagos', d:'Establece antelación mínima, políticas de cancelación y cobro de depósitos o fianzas para erradicar los no-shows.'},
     {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', ph:'Comisiones',
-     t:'Comisiones y objetivos', d:'Fijas o por %. Mide la **rentabilidad real** de cada profesional.'},
-    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', ph:'Fórmulas y plantillas',
-     t:'Plantillas que ahorran tiempo', d:'Predefine notas y fórmulas de color. Se guardan en la ficha **en segundos**.'},
+     t:'Comisiones y rentabilidad', d:'Define incentivos porcentuales o fijos por profesional para servicios y venta de productos.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', ph:'Plantillas',
+     t:'Fórmulas y plantillas de notas', d:'Guarda plantillas predefinidas de mezclas y notas técnicas para rellenar fichas de clientes en dos clics.'},
     {ic:'avisos', route:'/(tabs)/configuracion', action:'config-notificaciones', ph:'Notificaciones',
-     t:'Avisos en automático', d:'Recordatorios por **WhatsApp** —confirma, avisa y pide reseña— ya salen solos.'},
+     t:'Avisos automáticos por WhatsApp', d:'Automatiza recordatorios de cita, confirmaciones de reserva y mensajes de agradecimiento post-visita.'},
     {ic:'ia', route:'/(tabs)/configuracion', action:'config-reserva', ph:'Reserva online',
-     t:'Tu página de reservas 24/7', d:'Tus clientes reservan solos, con tu marca. Comparte **enlace o QR**.'},
-    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-referidos', ph:'Invita y gana',
-     t:'Comparte Mecha, gana descuento', d:'Tu enlace trae salones y ves crecer **tu red y tus recompensas**.'},
-    {ic:'fich', route:'/(tabs)/configuracion', action:'config-accesos', ph:'Accesos y roles',
-     t:'Tu equipo, con permisos', d:'Asigna **roles**: cada uno ve lo justo. Tú controlas dinero y ajustes.'},
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-cuenta', ph:'Tu cuenta',
-     t:'Tu plan, bajo control', d:'Plan, facturación y datos en un solo sitio. Y con esto **cierras el recorrido**.'}
+     t:'Tu página de reservas 24/7 y código QR', d:'Comparte tu enlace de reserva web o descarga el código QR listo para colocar en el escaparate de tu salón.'},
+    {ic:'fich', route:'/(tabs)/configuracion', action:'config-accesos', ph:'Roles y permisos',
+     t:'Permisos de equipo y seguridad', d:'Asigna roles a tu equipo para proteger datos sensibles de facturación y limitar accesos según el cargo.'},
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-cuenta', ph:'Plan y facturación',
+     t:'Tu cuenta y plan bajo control', d:'Gestiona tu suscripción, módulos de IA y facturación de Mecha en un único panel centralizado.'}
   ];
 
   // El modal de nueva cita es el mismo panel para 'nueva-cita' y las sub-acciones
-  // 'cita-*'; el de detalle para 'cita-detalle' y 'detalle-*'. Solo cerramos el
-  // panel cuando cambia el GRUPO (asi la transicion cita -> detalle no falla).
+  // 'cita-*'; el de detalle para 'cita-detalle' y 'detalle-*'; ficha para 'ficha' y 'cliente-*'.
+  // Solo cerramos el panel cuando cambia el GRUPO (asi la transicion cita -> detalle no falla).
   function groupOf(a){
     if(a==='cita-detalle'||(a&&a.indexOf('detalle-')===0)) return 'detalle';
     if(a==='nueva-cita'||(a&&a.indexOf('cita-')===0)) return 'cita';
+    if(a==='ficha'||(a&&a.indexOf('cliente-')===0)) return 'cliente';
+    if(a&&a.indexOf('config-')===0) return 'config';
     return a;
   }
 
@@ -1523,7 +1588,7 @@
   // ejecutarse; navegar SIEMPRE cancela lo pendiente y renderiza el paso actual
   // completo. Asi, pulsar rapido (o en mitad de una animacion) nunca deja el paso
   // "vacio" ni paneles/focos huerfanos.
-  var STEPS=TUT_GENERAL, ti=0, hole=null, tourStarted=false, tourBooted=false;
+  var STEPS=TUT_ESSENTIALS, ti=0, hole=null, tourStarted=false, tourBooted=false;
   var actTimer=null, actoT=null, lastAct=null, seq=0;
   var gt={};
 
@@ -1531,21 +1596,31 @@
   // Reusa escHtml (definido arriba) y resalta **palabra** como <span class="hl">.
   function fmtBody(t){ return escHtml(String(t)).replace(/\*\*([^*]+)\*\*/g,'<span class="hl">$1</span>'); }
 
-  // ---- PREMIUM v2: capítulos del recorrido (4 actos para general, 3 para config)
-  var ACTS_GENERAL=[
-    {nombre:'La agenda', sub:'De un hueco vacío a una cita cobrada', desde:0, hasta:6},
-    {nombre:'Los reposos', sub:'Cómo el tinte pasa a facturar el doble', desde:7, hasta:11},
-    {nombre:'IA y avisos', sub:'La recepcionista que no duerme', desde:12, hasta:14},
-    {nombre:'Equipo e informes', sub:'Horas, comisiones y números', desde:15, hasta:15}
+  // ---- PREMIUM v2: capítulos del recorrido (4 actos para esenciales, 3 para avanzadas, 3 para config)
+  var ACTS_ESSENTIALS=[
+    {nombre:'La agenda', sub:'De un hueco libre a una cita confirmada', desde:0, hasta:6},
+    {nombre:'Los reposos', sub:'Cómo facturar el doble en el mismo tiempo', desde:7, hasta:9},
+    {nombre:'Ficha técnica', sub:'Color, notas, fotos e historial', desde:10, hasta:13},
+    {nombre:'Cobro y Caja', sub:'Cobro instantáneo y cierre VeriFactu', desde:14, hasta:14}
+  ];
+  var ACTS_GENERAL = ACTS_ESSENTIALS;
+  var ACTS_ADVANCED=[
+    {nombre:'Control y Clientes', sub:'Fichajes, bonos, recepcionista IA y espera', desde:0, hasta:3},
+    {nombre:'Crecimiento', sub:'Campañas WhatsApp y reseñas en Google', desde:4, hasta:5},
+    {nombre:'Gestión y Números', sub:'Equipo, stock, informes y soporte humano', desde:6, hasta:9}
   ];
   var ACTS_CONFIG=[
-    {nombre:'Tu salón', sub:'Identidad, horarios y tarifas', desde:0, hasta:3},
-    {nombre:'Automático', sub:'Comisiones, avisos y reserva online', desde:4, hasta:8},
-    {nombre:'Equipo y cuenta', sub:'Permisos, referidos y tu plan', desde:9, hasta:10}
+    {nombre:'Tu salón', sub:'Identidad, horarios y catálogo con reposos', desde:0, hasta:2},
+    {nombre:'Reglas y Avisos', sub:'Prepagos, incentivos, plantillas y avisos', desde:3, hasta:6},
+    {nombre:'Canales y Plan', sub:'Reserva QR, roles y tu plan', desde:7, hasta:9}
   ];
   // Pasos donde el tour para y te invita a tocar TU el software (badge TE TOCA)
-  var ACCIONES_TOCA={ 'nueva-cita':1, 'detalle-secuencia-reposo':1, 'informes-export':1, 'config-servicios':1 };
-  function actsOf(){ return STEPS===TUT_CONFIG ? ACTS_CONFIG : ACTS_GENERAL; }
+  var ACCIONES_TOCA={ 'nueva-cita':1, 'detalle-secuencia-reposo':1, 'cliente-color':1, 'informes-export':1, 'config-servicios':1 };
+  function actsOf(){
+    if(STEPS===TUT_CONFIG) return ACTS_CONFIG;
+    if(STEPS===TUT_ADVANCED) return ACTS_ADVANCED;
+    return ACTS_ESSENTIALS;
+  }
   function actoOf(i){ var A=actsOf(); for(var k=0;k<A.length;k++){ if(i>=A[k].desde && i<=A[k].hasta) return k; } return 0; }
 
   var SVG_PREV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
@@ -1691,9 +1766,10 @@
     gt.prev.disabled = (ti===0);
     var last = ti===STEPS.length-1;
     if(last){
-      gt.next.innerHTML = SVG_CHECK;
-      gt.next.title = (STEPS===TUT_GENERAL) ? 'Ver Configuración' : 'Finalizar tour';
-      gt.next.classList.add('gt-next-done');
+      gt.next.innerHTML = (STEPS===TUT_CONFIG) ? SVG_CHECK : SVG_NEXT;
+      gt.next.title = (STEPS===TUT_ESSENTIALS || STEPS===TUT_GENERAL) ? 'Ver Funciones Avanzadas' : ((STEPS===TUT_ADVANCED) ? 'Ver Configuración' : 'Finalizar tour');
+      if(STEPS===TUT_CONFIG) gt.next.classList.add('gt-next-done');
+      else gt.next.classList.remove('gt-next-done');
     } else {
       gt.next.innerHTML = SVG_NEXT;
       gt.next.title = 'Siguiente paso (→)';
@@ -1701,7 +1777,8 @@
     }
   }
   function syncSelector(){
-    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', STEPS===TUT_GENERAL);
+    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', STEPS===TUT_ESSENTIALS || STEPS===TUT_GENERAL);
+    if(tutBtnAdvanced) tutBtnAdvanced.classList.toggle('active', STEPS===TUT_ADVANCED);
     if(tutBtnConfig) tutBtnConfig.classList.toggle('active', STEPS===TUT_CONFIG);
   }
 
@@ -1750,8 +1827,14 @@
 
   function tourNext(){
     if(ti<STEPS.length-1){ ti++; renderStep(true); return; }
-    if(STEPS===TUT_GENERAL){ STEPS=TUT_CONFIG; ti=0; lastActoShown=-1; renderStep(true); }
-    else { stopAutoplay(); closeTour(); }
+    if(STEPS===TUT_ESSENTIALS || STEPS===TUT_GENERAL){
+      playTutorial('advanced');
+    } else if(STEPS===TUT_ADVANCED){
+      playTutorial('config');
+    } else {
+      stopAutoplay();
+      closeTour();
+    }
   }
   function tourPrev(){ if(ti>0){ ti--; renderStep(true); } }
   function closeTour(){
@@ -1770,7 +1853,13 @@
     seq++;
     if(actTimer) clearTimeout(actTimer);
     if(actoT) clearTimeout(actoT);
-    STEPS = (which==='config') ? TUT_CONFIG : TUT_GENERAL;
+    if(which==='config'){
+      STEPS = TUT_CONFIG;
+    } else if(which==='advanced'){
+      STEPS = TUT_ADVANCED;
+    } else {
+      STEPS = TUT_ESSENTIALS;
+    }
     ti=0; tourStarted=true; hole=null; lastAct=null;
     gt.veil.classList.add('on'); gt.spot.classList.remove('on');
     gt.root.classList.add('show');
@@ -1804,31 +1893,40 @@
 
   // Llamado por enterDemo: monta el dock y arranca cuando el iframe esta listo
   // (con respaldo por tiempo para maqueta o si se pierde el evento load).
-  function startTour(){
-    if(tourStarted) return; tourStarted=true;
+  function startTour(track){
+    var which = track || 'general';
+    tourStarted=true;
     bootTourEngine();
     var fired=false;
-    function go(){ if(fired) return; fired=true; playTutorial('general'); }
+    function go(){ if(fired) return; fired=true; playTutorial(which); startAutoplay(); }
     if(frame){ frame.addEventListener('load', function(){ setTimeout(go, 300); }); }
-    setTimeout(go, 1700);
+    setTimeout(go, 500);
   }
 
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
   if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ bootTourEngine(); playTutorial('general'); }); }
+  if(tutBtnAdvanced){ tutBtnAdvanced.addEventListener('click', function(){ bootTourEngine(); playTutorial('advanced'); }); }
   if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); }); }
 
   /* ---------- INTRO: botones de entrada ---------- */
   function closeIntro(){ var el=$('#intro'); if(el) el.classList.remove('show'); try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){} }
   var introGuided=$('#introGuided');
-  if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); closeIntro(); startTour(); });
+  if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); closeIntro(); startTour('general'); });
   var introFree=$('#introFree');
   if(introFree) introFree.addEventListener('click', function(){ closeIntro(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.dm-itrack'), function(card){
+    card.addEventListener('click', function(){
+      var tr = card.getAttribute('data-track') || 'general';
+      closeIntro();
+      startTour(tr);
+    });
+  });
 
   /* ---------- PANEL DUDAS: WhatsApp + Chispa (IA con conocimiento real) ---------- */
   var SB_URL='https://vtrggiogjrhqtwbhbgia.supabase.co';
   var SB_ANON=(api&&api.client&&api.client.supabaseKey)||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
   var dudasOverlay=$('#dudasOverlay'), dudasBtn=$('#dudasBtn'), dudasClose=$('#dudasClose'),
-      dudasForm=$('#dudasForm'), dudasText=$('#dudasText'), dudasEmail=$('#dudasEmail'),
+      dudasForm=$('#dudasForm'), dudasText=$('#dudasText'), dudasContacto=$('#dudasContacto')||$('#dudasEmail'),
       dudasSend=$('#dudasSend'), dudasReply=$('#dudasReply'), dudasErr=$('#dudasErr');
 
   function openDudas(){ if(!dudasOverlay) return; dudasErr.classList.remove('show'); dudasOverlay.classList.add('show'); if(dudasText) setTimeout(function(){ dudasText.focus(); }, 120); }
@@ -1843,21 +1941,52 @@
     e.preventDefault();
     var q=(dudasText.value||'').trim();
     if(q.length<3){ dudasErr.textContent='Escribe tu duda para que Chispa pueda responderla.'; dudasErr.classList.add('show'); return; }
-    var mail=(dudasEmail.value||'').trim();
+    var rawContact=dudasContacto?(dudasContacto.value||'').trim():'';
+    var isEmail=false;
+    var isPhone=false;
+    if(rawContact){
+      if(rawContact.indexOf('@')!==-1){
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawContact)){
+          dudasErr.textContent='Por favor, introduce un correo electrónico válido.';
+          dudasErr.classList.add('show');
+          return;
+        }
+        isEmail=true;
+      } else {
+        var cleanDigits=rawContact.replace(/[\s\(\)\.-]/g,'');
+        if(!/^\+?[0-9]{9,15}$/.test(cleanDigits)){
+          dudasErr.textContent='Por favor, introduce un teléfono o email válido (9-15 dígitos).';
+          dudasErr.classList.add('show');
+          return;
+        }
+        isPhone=true;
+      }
+    }
     dudasErr.classList.remove('show'); dudasReply.classList.remove('show');
     dudasSend.disabled=true; dudasSend.textContent='Chispa está pensando…';
     fetch(SB_URL+'/functions/v1/chispa-dudas-demo', {
       method:'POST',
       headers:{ 'Content-Type':'application/json', 'apikey':SB_ANON, 'Authorization':'Bearer '+SB_ANON },
-      body: JSON.stringify({ duda:q, email:mail||undefined })
+      body: JSON.stringify({
+        duda: q,
+        contacto: rawContact||undefined,
+        email: isEmail?rawContact:undefined,
+        telefono: isPhone?rawContact.replace(/[\s\(\)\.-]/g,''):undefined
+      })
     }).then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); }).then(function(res){
       dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';
       if(!res.ok || !res.j || !res.j.reply){
         var m=(res.j&&res.j.message)?res.j.message:'No se ha podido responder ahora mismo. Escríbenos por WhatsApp y te contestamos enseguida.';
         dudasErr.textContent=m; dudasErr.classList.add('show'); return;
       }
+      var badge='';
+      if(res.j.emailed){
+        badge='<span class="ok">✓ enviada a tu correo</span>';
+      } else if(isPhone){
+        badge='<span class="ok">✓ anotado para WhatsApp</span>';
+      }
       dudasReply.innerHTML='<div class="who"><img src="assets/v4/chispa-avatar-96.png" alt="" onerror="this.style.display=\'none\'">Chispa · IA de Mecha'
-        +(res.j.emailed?'<span class="ok">✓ enviada a tu correo</span>':'')+'</div>'+fmtAi(res.j.reply);
+        +badge+'</div>'+fmtAi(res.j.reply);
       dudasReply.classList.add('show');
     }).catch(function(){
       dudasSend.disabled=false; dudasSend.textContent='Preguntar a Chispa';

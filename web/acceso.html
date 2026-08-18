@@ -567,6 +567,17 @@
 <script src="assets/phone-e164.js"></script>
 <script>
 (function () {
+  var nextDest = new URLSearchParams(location.search).get('next');
+  // La intencion de "ver demo" se guarda para que sobreviva al ida y vuelta del
+  // SSO de Google (donde el ?next=demo de la URL se puede perder).
+  var DEMO_INTENT_KEY = 'mecha_intent_demo';
+  if (nextDest === 'demo') { try { sessionStorage.setItem(DEMO_INTENT_KEY, '1'); } catch (e) {} }
+  function wantsDemo() {
+    if (nextDest === 'demo') return true;
+    try { return sessionStorage.getItem(DEMO_INTENT_KEY) === '1'; } catch (e) { return false; }
+  }
+  function clearDemoIntent() { try { sessionStorage.removeItem(DEMO_INTENT_KEY); } catch (e) {} }
+
   var tabLogin = document.getElementById('tabLogin');
   var tabSignup = document.getElementById('tabSignup');
   var paneLogin = document.getElementById('paneLogin');
@@ -577,7 +588,7 @@
     tabLogin.classList.toggle('on', !signup);
     paneSignup.classList.toggle('on', signup);
     paneLogin.classList.toggle('on', !signup);
-    try { history.replaceState(null, '', signup ? '#signup' : '#login'); } catch (e) {}
+    try { history.replaceState(null, '', (location.search || '') + (signup ? '#signup' : '#login')); } catch (e) {}
   }
   tabLogin.addEventListener('click', function () { show('login'); });
   tabSignup.addEventListener('click', function () { show('signup'); });
@@ -610,7 +621,8 @@
     if (seg) seg.style.display = 'flex';
     var authContainer = document.querySelector('.auth');
     if (authContainer) authContainer.classList.remove('logged-in');
-    show(location.hash === '#signup' ? 'signup' : 'login');
+    var isSignup = (location.hash === '#signup') || (wantsDemo() && location.hash !== '#login');
+    show(isSignup ? 'signup' : 'login');
   };
 
   // ---- Cableado Supabase (login / signup) ----
@@ -624,17 +636,6 @@
   function clearMsg(el) { if (el) { el.className = 'auth-msg'; el.textContent = ''; } }
 
   var api = window.MechaAPI;
-  var nextDest = new URLSearchParams(location.search).get('next');
-  // La intencion de "ver demo" se guarda para que sobreviva al ida y vuelta del
-  // SSO de Google (donde el ?next=demo de la URL se puede perder).
-  var DEMO_INTENT_KEY = 'mecha_intent_demo';
-  if (nextDest === 'demo') { try { sessionStorage.setItem(DEMO_INTENT_KEY, '1'); } catch (e) {} }
-  function wantsDemo() {
-    if (nextDest === 'demo') return true;
-    try { return sessionStorage.getItem(DEMO_INTENT_KEY) === '1'; } catch (e) { return false; }
-  }
-  function clearDemoIntent() { try { sessionStorage.removeItem(DEMO_INTENT_KEY); } catch (e) {} }
-
   var seg = document.querySelector('.seg');
 
   var loadTimer = null;
@@ -802,10 +803,8 @@
         } catch (e) {}
 
         endLoading(function () {
-          // Antes de la DEMO o del SOFTWARE pedimos datos a CUALQUIER cuenta
-          // (negocio + telefono + codigo postal), incluido el equipo.
+          // Si la intención es entrar a la demo guiada, redirigir directamente sin bloquear en paneComplete
           if (wantsDemo()) {
-            if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
             gotoDemo();
             return;
           }

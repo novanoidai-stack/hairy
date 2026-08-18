@@ -65,6 +65,9 @@ web/alternativa-fresha/
 # Herramientas de agente y pruebas temporales
 .agents/
 .playwright-mcp/
+playwright-report/
+playwright/.auth/
+test-results/
 .zcode/
 .env.*
 .env_*

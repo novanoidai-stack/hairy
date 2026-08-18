@@ -1,27 +1,27 @@
 // Edge Function: chispa-dudas-demo
-// Apartado "¿Dudas?" de la demo (web/demo.html). Responde dudas sobre Mecha con
-// una IA (Chispa) con conocimiento REAL del producto (kb.md, grounding estricto)
-// y ademas envia la respuesta al correo del usuario via SMTP de Hostinger
-// (mismo patron que enviar-presupuesto). Rate limit por IP con la misma RPC que
-// chispa-landing.
+// Apartado "¿Dudas?" de la demo (web/demo.html, web/demo_v2.html) y widget web.
+// Responde dudas sobre Mecha con una IA (Chispa) con conocimiento REAL del
+// producto (kb.ts, grounding estricto) y ademas envia la respuesta al correo del
+// usuario via SMTP de Hostinger (con soporte para teléfono / WhatsApp como lead).
+// Rate limit por IP con RPC check_landing_rate_limit.
 //
-// Cuerpo (POST JSON): { duda: string, email?: string, modo?: 'duda'|'landing', history?: [] }
-// - modo 'duda' (defecto): asistente técnico de la demo (responde y envía email).
+// Cuerpo (POST JSON): {
+//   duda: string,
+//   contacto?: string,
+//   email?: string,
+//   telefono?: string,
+//   modo?: 'duda'|'landing',
+//   history?: Array<{ role: string; content: string }>
+// }
+// - modo 'duda' (defecto): asistente técnico de la demo (responde y envía email si hay contacto).
 // - modo 'landing': CHISPA VENDEDORA de la landing (widget premium de index.html):
 //   responde dudas comerciales orientadas a VENDER (demo, llamada, objeciones).
-// Respuesta: { reply, emailed }
 //
-// MODELO: configurable con el secret CHISPA_MODEL (def anthropic/claude-haiku-4.5,
-// ~1$/1M in — el mejor precio/calidad probado para venta en español; alternativas
-// más baratas tipo gemini-flash-lite pierden naturalidad vendiendo. Si sale un
-// modelo más barato mejor, se cambia SOLO ese secret, sin redeploy).
-//
-// Secretos: SMTP_HOST (def smtp.hostinger.com) SMTP_PORT (def 465) SMTP_USER
-// SMTP_PASS SMTP_FROM (def = SMTP_USER) OPENROUTER_API_KEY y los estandar de
-// Supabase. Si falta el SMTP, responde igualmente en pantalla (emailed:false).
+// Respuesta: { reply, emailed, tipo_contacto?: 'email'|'telefono'|'ambos'|'none', email_error?: string|null }
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+import { KB } from './kb.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -29,10 +29,13 @@ const ALLOWED_ORIGINS = [
   'https://hairy-two.vercel.app',
   'https://www.novanoidai.com',
 ];
-function esOrigenPermitido(origin: string): boolean {
+
+export function esOrigenPermitido(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;
-  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);}
-function cors(req: Request) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+}
+
+export function cors(req: Request) {
   const origin = req.headers.get('origin') || '';
   return {
     'Access-Control-Allow-Origin': esOrigenPermitido(origin) ? origin : ALLOWED_ORIGINS[0],
@@ -41,19 +44,15 @@ function cors(req: Request) {
     'Vary': 'Origin',
   };
 }
-function json(body: unknown, status = 200, req?: Request) {
+
+export function json(body: unknown, status = 200, req?: Request) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...(req ? cors(req) : {}), 'Content-Type': 'application/json' },
   });
 }
 
-// La KB viaja como modulo TS empaquetado junto a la funcion (kb.ts): conocimiento
-// real del producto, misma fuente de verdad que los informes internos. (Leer un
-// fichero estatico con Deno.readTextFile hacia crashear el worker en Supabase.)
-import { KB } from './kb.ts';
-
-const SYSTEM_PROMPT = `Eres Chispa, la IA de Mecha (software de gestión para peluquerías y barberías). Estás resolviendo dudas DENTRO de la demo del producto: quien pregunta acaba de ver (o está viendo) el software por dentro, así que responde con detalle técnico real y honesto.
+export const SYSTEM_PROMPT = `Eres Chispa, la IA de Mecha (software de gestión para peluquerías y barberías). Estás resolviendo dudas DENTRO de la demo del producto: quien pregunta acaba de ver (o está viendo) el software por dentro, así que responde con detalle técnico real y honesto.
 
 REGLAS:
 1. Responde SOLO con lo que está en la BASE DE CONOCIMIENTO de abajo. Si algo no está, dilo con naturalidad ("eso no lo tengo confirmado") y ofrece el WhatsApp humano (+34 690 79 29 75). Prohibido inventar funciones, precios o integraciones.
@@ -64,10 +63,7 @@ REGLAS:
 BASE DE CONOCIMIENTO (única fuente de verdad):
 ${KB}`;
 
-// Modo LANDING: la misma IA, pero ENCARGADA DE VENDER (widget premium de la web).
-// Metodo heredado del chispa-landing original + KB ampliada (marketplace, pricing,
-// SEO/AIO, argumentos de venta).
-const SYSTEM_PROMPT_LANDING = `Eres Chispa, la Inteligencia Artificial de Mecha OS, un software de gestión para peluquerías, barberías y salones de belleza. Eres la ENCARGADA DE VENDER Mecha en la web: tu trabajo es que quien pregunta acabe viendo la demo o reservando una llamada, siempre con honestidad. Tu interlocutor puede ser un dueño de salón o un curioso evaluando el producto.
+export const SYSTEM_PROMPT_LANDING = `Eres Chispa, la Inteligencia Artificial de Mecha OS, un software de gestión para peluquerías, barberías y salones de belleza. Eres la ENCARGADA DE VENDER Mecha en la web: tu trabajo es que quien pregunta acabe viendo la demo o reservando una llamada, siempre con honestidad. Tu interlocutor puede ser un dueño de salón o un curioso evaluando el producto.
 
 FORMATO (obligatorio, se lee en un chat estrecho de móvil): MÁXIMO 90 palabras y 5 líneas. Nada de muros de texto: responde lo justo y remata con el siguiente paso. Usa **negrita** solo para la cifra o idea clave, guiones para listar (máx 3 puntos), sin emojis y sin encabezados markdown. Los enlaces van como [texto](url).
 
@@ -82,80 +78,273 @@ CÓMO VENDES:
 BASE DE CONOCIMIENTO (única fuente de verdad):
 ${KB}`;
 
-interface Payload {
+export interface Payload {
   duda?: string;
+  contacto?: string;
   email?: string;
-  modo?: string;
+  telefono?: string;
+  modo?: 'duda' | 'landing';
   history?: Array<{ role: string; content: string }>;
 }
 
-function emailHtml(duda: string, reply: string): string {
-  // Reply llega con **negrita** markdown -> <b>. Escape del resto.
-  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const fmt = (s: string) => esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br/>');
-  return `<div style="background:#0b0f1a;padding:28px 14px;font:14px/1.6 Arial,sans-serif;color:#e8ecf3">
-  <div style="max-width:560px;margin:0 auto">
-    <div style="text-align:center;margin-bottom:18px">
-      <span style="font:bold 24px Arial;color:#fff">Mecha<span style="color:#f4501e">.</span></span>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff8a3d;margin-top:4px">Respuesta de Chispa · IA entrenada con todo Mecha</div>
-    </div>
-    <div style="background:#101626;border:1px solid rgba(244,80,30,.28);border-radius:14px;padding:22px">
-      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8e9dbf;margin-bottom:6px">Tu duda</div>
-      <div style="color:#e8ecf3;margin-bottom:16px">${fmt(duda)}</div>
-      <div style="height:1px;background:rgba(255,255,255,.08);margin:0 0 16px"></div>
-      <div style="color:#f6f8ff">${fmt(reply)}</div>
-    </div>
-    <p style="font-size:11.5px;color:#8e9dbf;text-align:center;margin-top:14px">
-      ¿No queda resuelta? Escríbenos por WhatsApp al <a href="https://wa.me/34690792975" style="color:#ff8a3d">+34 690 79 29 75</a> y te contesta una persona.<br/>
-      Generada automáticamente por la IA de <a href="https://www.mechaa.es" style="color:#f4501e;font-weight:bold">Mecha</a>.
-    </p>
-  </div>
-</div>`;
+export interface ParsedContact {
+  email: string | null;
+  telefono: string | null;
+  tipo: 'email' | 'telefono' | 'ambos' | 'none' | 'invalid';
+  valido: boolean;
+  error?: string;
 }
 
-Deno.serve(async (req: Request) => {
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const PHONE_REGEX = /^\+?[0-9]{9,15}$/;
+
+export function parseContacto(rawContact?: string, rawEmail?: string, rawPhone?: string): ParsedContact {
+  const c = (rawContact || '').trim();
+  const e = (rawEmail || '').trim().toLowerCase();
+  const t = (rawPhone || '').trim();
+
+  let parsedEmail: string | null = e || null;
+  let parsedPhone: string | null = t || null;
+
+  if (c) {
+    if (c.includes('@')) {
+      if (!parsedEmail) parsedEmail = c.toLowerCase();
+    } else {
+      if (!parsedPhone) parsedPhone = c;
+    }
+  }
+
+  let emailValid = false;
+  let phoneValid = false;
+
+  if (parsedEmail) {
+    if (EMAIL_REGEX.test(parsedEmail)) {
+      emailValid = true;
+    } else {
+      return {
+        email: null,
+        telefono: null,
+        tipo: 'invalid',
+        valido: false,
+        error: 'El correo electrónico introducido no tiene un formato válido.',
+      };
+    }
+  }
+
+  if (parsedPhone) {
+    const cleanPhone = parsedPhone.replace(/[\s\(\)\.-]/g, '');
+    if (PHONE_REGEX.test(cleanPhone)) {
+      phoneValid = true;
+      parsedPhone = cleanPhone;
+    } else {
+      return {
+        email: null,
+        telefono: null,
+        tipo: 'invalid',
+        valido: false,
+        error: 'El teléfono debe contener entre 9 y 15 dígitos (con o sin prefijo +).',
+      };
+    }
+  }
+
+  if (!emailValid && !phoneValid) {
+    if (!c && !e && !t) {
+      return { email: null, telefono: null, tipo: 'none', valido: true };
+    }
+    return {
+      email: null,
+      telefono: null,
+      tipo: 'invalid',
+      valido: false,
+      error: 'El contacto proporcionado no es válido. Debe ser un email válido o un número de teléfono/WhatsApp de 9 a 15 dígitos.',
+    };
+  }
+
+  let tipo: 'email' | 'telefono' | 'ambos' = 'none' as any;
+  if (emailValid && phoneValid) tipo = 'ambos';
+  else if (emailValid) tipo = 'email';
+  else if (phoneValid) tipo = 'telefono';
+
+  return {
+    email: emailValid ? parsedEmail : null,
+    telefono: phoneValid ? parsedPhone : null,
+    tipo,
+    valido: true,
+  };
+}
+
+export function formatMarkdownHtml(text: string): string {
+  if (!text) return '';
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+  let t = esc(text);
+
+  // Markdown headers (# Header -> bold title)
+  t = t.replace(/^#{1,6}\s+([^\n]+)/gm, '<b style="color:#ff8a3d;font-size:15px;display:block;margin:10px 0 4px">$1</b>');
+
+  // Markdown bold **text** -> <b style="color:#ffffff">text</b>
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<b style="color:#ffffff">$1</b>');
+
+  // Markdown links [text](url) -> <a href="..." target="_blank" rel="noopener">text</a>
+  t = t.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g,
+    '<a href="$2" style="color:#f4501e;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
+  );
+
+  // Markdown bullet points (- item or * item)
+  t = t.replace(
+    /(?:^|\n)[-*]\s+([^\n]+)/g,
+    '<div style="margin:4px 0 4px 12px;line-height:1.5"><span style="color:#f4501e;font-weight:bold;margin-right:6px">&bull;</span>$1</div>'
+  );
+
+  // Multiple newlines -> clean spacing
+  t = t.replace(/\n\n+/g, '<div style="height:10px"></div>');
+
+  // Single newlines -> <br/>
+  t = t.replace(/\n/g, '<br/>');
+
+  return t;
+}
+
+export function emailHtml(duda: string, reply: string): string {
+  return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b0f1a;padding:28px 14px;font-family:Arial,sans-serif;color:#e8ecf3">
+  <tr>
+    <td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin:0 auto">
+        <tr>
+          <td align="center" style="padding-bottom:18px">
+            <span style="font:bold 26px Arial,sans-serif;color:#ffffff;letter-spacing:-0.5px">Mecha<span style="color:#f4501e">.</span></span>
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff8a3d;margin-top:6px;font-weight:600">Respuesta de Chispa · IA de Mecha</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div style="background:#101626;border:1px solid rgba(244,80,30,0.32);border-radius:14px;padding:24px">
+              <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8e9dbf;margin-bottom:8px;font-weight:bold">Tu duda sobre Mecha</div>
+              <div style="color:#e8ecf3;font-size:14px;line-height:1.5;margin-bottom:16px">${formatMarkdownHtml(duda)}</div>
+              <div style="height:1px;background:rgba(255,255,255,0.1);margin:0 0 16px 0"></div>
+              <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#ff8a3d;margin-bottom:8px;font-weight:bold">Respuesta de Chispa</div>
+              <div style="color:#f6f8ff;font-size:14px;line-height:1.6">${formatMarkdownHtml(reply)}</div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-top:16px">
+            <p style="font-size:12px;color:#8e9dbf;margin:0;line-height:1.6">
+              ¿Quieres probarlo en tu propio salón? Habla con nuestro equipo por WhatsApp al <a href="https://wa.me/34690792975" style="color:#ff8a3d;text-decoration:none;font-weight:bold">+34 690 79 29 75</a>.<br/>
+              Generada automáticamente por la IA de <a href="https://www.mechaa.es" style="color:#f4501e;font-weight:bold;text-decoration:none">Mecha</a>.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
+}
+
+export function emailLeadHtml(duda: string, reply: string, telefono: string): string {
+  const cleanDigits = telefono.replace(/[^0-9]/g, '');
+  return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b0f1a;padding:28px 14px;font-family:Arial,sans-serif;color:#e8ecf3">
+  <tr>
+    <td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin:0 auto">
+        <tr>
+          <td align="center" style="padding-bottom:18px">
+            <span style="font:bold 24px Arial,sans-serif;color:#ffffff">Mecha<span style="color:#f4501e">.</span></span>
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff8a3d;margin-top:4px;font-weight:bold">Nuevo Lead · Demo Interactiva (WhatsApp)</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div style="background:#101626;border:1px solid rgba(244,80,30,0.32);border-radius:14px;padding:22px">
+              <div style="font-size:12px;font-weight:bold;color:#25d366;margin-bottom:8px">Teléfono / WhatsApp del interesado:</div>
+              <div style="font-size:16px;font-weight:bold;color:#ffffff;margin-bottom:16px">
+                <a href="https://wa.me/${cleanDigits}" style="color:#25d366;text-decoration:none" target="_blank" rel="noopener">${telefono}</a>
+              </div>
+              <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8e9dbf;margin-bottom:6px">Duda planteada:</div>
+              <div style="color:#e8ecf3;font-size:14px;line-height:1.5;margin-bottom:16px">${formatMarkdownHtml(duda)}</div>
+              <div style="height:1px;background:rgba(255,255,255,0.1);margin:0 0 16px 0"></div>
+              <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#ff8a3d;margin-bottom:6px">Respuesta dada por Chispa:</div>
+              <div style="color:#f6f8ff;font-size:13.5px;line-height:1.6">${formatMarkdownHtml(reply)}</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
+}
+
+export async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(req) });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, req);
 
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  const rawIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  const ip = rawIp.split(',')[0].trim();
+
   const raw = await req.text();
   if (raw.length > 5000) return json({ error: 'payload_too_large' }, 400, req);
+
   let body: Payload;
-  try { body = JSON.parse(raw); } catch { return json({ error: 'bad_json' }, 400, req); }
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return json({ error: 'bad_json' }, 400, req);
+  }
 
   const duda = (body.duda || '').trim();
-  const email = (body.email || '').trim().toLowerCase();
-  if (!duda || duda.length < 3) return json({ error: 'missing_duda' }, 400, req);
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'bad_email' }, 400, req);
+  if (!duda || duda.length < 3) {
+    return json({ error: 'missing_duda', message: 'Escribe tu duda para que Chispa pueda responderla.' }, 400, req);
+  }
+
+  // Validación dual de contacto (email o teléfono)
+  const parsed = parseContacto(body.contacto, body.email, body.telefono);
+  if (!parsed.valido) {
+    return json({ error: 'bad_contact', message: parsed.error || 'Contacto no válido' }, 400, req);
+  }
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { autoRefreshToken: false, persistSession: false } });
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 
-  // Rate limit: comparte presupuesto con el widget de la landing (15/hora por IP).
+  // Rate limit: comparte límite con el widget de la landing (15/hora por IP).
   if (ip !== 'unknown') {
     const { data: ok, error: rlErr } = await admin.rpc('check_landing_rate_limit', { p_ip: ip });
-    if (!rlErr && !ok) {
-      return json({ error: 'rate_limit_exceeded', message: 'Has alcanzado el límite de preguntas. Escríbenos por WhatsApp (+34 690 79 29 75) y te respondemos.' }, 429, req);
+    if (!rlErr && ok === false) {
+      return json({
+        error: 'rate_limit_exceeded',
+        message: 'Has alcanzado el límite de preguntas. Escríbenos por WhatsApp (+34 690 79 29 75) y te respondemos.',
+      }, 429, req);
     }
   }
 
   const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
   if (!OPENROUTER_API_KEY) return json({ error: 'missing_api_key' }, 500, req);
 
-  // 1) Respuesta de la IA con grounding en la KB. Modo 'landing' = Chispa
-  // vendedora (prompt comercial, con historial de conversacion); modo normal =
-  // asistente tecnico de la demo (email + respuesta larga).
+  // 1) Respuesta de la IA con grounding en la KB.
+  // - Modo 'landing' = Chispa vendedora (prompt comercial, con historial).
+  // - Modo 'duda' = Asistente técnico de la demo (email + respuesta detallada).
   const landing = body.modo === 'landing';
   const system = landing ? SYSTEM_PROMPT_LANDING : SYSTEM_PROMPT;
   const history = landing && Array.isArray(body.history)
-    ? body.history.filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-8)
+    ? body.history
+        .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+        .slice(-8)
     : [];
+
   let reply = '';
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENROUTER_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         model: Deno.env.get('CHISPA_MODEL') || 'anthropic/claude-haiku-4.5',
         messages: [
@@ -167,49 +356,110 @@ Deno.serve(async (req: Request) => {
         temperature: landing ? 0.5 : 0.3,
       }),
     });
+
     if (!res.ok) {
       console.error('LLM API Error:', await res.text());
       return json({ error: 'llm_error' }, 500, req);
     }
+
     const data = await res.json();
     reply = data.choices?.[0]?.message?.content || '';
   } catch (e) {
     console.error('Unexpected LLM error:', e);
     return json({ error: 'internal_error' }, 500, req);
   }
+
   if (!reply) return json({ error: 'llm_empty' }, 500, req);
 
-  // 2) Envio por correo (opcional): SMTP Hostinger con denomailer. Si falla, la
-  // respuesta en pantalla ya se ha dado; informamos con emailed:false.
-  // 2) Envio por correo (opcional y SOLO modo duda: el widget publico de venta
-  // no usa SMTP para que nadie abuse del envio). Si falla, la respuesta en
-  // pantalla ya se ha dado; informamos con emailed:false.
+  // 2) Envío por correo (SMTP Hostinger / denomailer):
+  // Soporte completo de fallback para SMTP_* y EMAIL_*
+  const host = Deno.env.get('SMTP_HOST') || Deno.env.get('EMAIL_HOST') || 'smtp.hostinger.com';
+  const port = Number(Deno.env.get('SMTP_PORT') || Deno.env.get('EMAIL_PORT') || '465');
+  const user = Deno.env.get('SMTP_USER') || Deno.env.get('EMAIL_USER') || '';
+  const pass = Deno.env.get('SMTP_PASS') || Deno.env.get('EMAIL_PASS') || '';
+  const rawFrom = Deno.env.get('SMTP_FROM') || Deno.env.get('EMAIL_FROM') || user || 'contacto@mechaa.es';
+  const fromHeader = rawFrom.includes('<') ? rawFrom : `Mecha <${rawFrom}>`;
+  const supportEmail = Deno.env.get('MECHA_CONTACTO_EMAIL') || 'contacto@mechaa.es';
+
   let emailed = false;
-  if (email && !landing) {
-    try {
-      const smtp = new SMTPClient({
-        connection: {
-          hostname: Deno.env.get('SMTP_HOST') || 'smtp.hostinger.com',
-          port: Number(Deno.env.get('SMTP_PORT') || 465),
-          tls: true,
-          auth: {
-            username: Deno.env.get('SMTP_USER') || '',
-            password: Deno.env.get('SMTP_PASS') || '',
+  let emailError: string | null = null;
+
+  // Solo se envían correos en modo 'duda' (la landing no dispara SMTP para evitar abusos).
+  if (!landing) {
+    // 2.a) Si el usuario proporcionó un correo válido, enviarle la respuesta
+    if (parsed.email) {
+      if (!user || !pass) {
+        console.warn('SMTP credentials not configured (missing SMTP_USER/EMAIL_USER or SMTP_PASS/EMAIL_PASS)');
+        emailError = 'smtp_not_configured';
+      } else {
+        try {
+          const smtp = new SMTPClient({
+            connection: {
+              hostname: host,
+              port,
+              tls: port === 465,
+              auth: {
+                username: user,
+                password: pass,
+              },
+            },
+          });
+
+          await smtp.send({
+            from: fromHeader,
+            replyTo: supportEmail,
+            to: parsed.email,
+            subject: 'Mecha · Respuesta de Chispa a tu duda',
+            html: emailHtml(duda, reply),
+          });
+
+          await smtp.close();
+          emailed = true;
+        } catch (smtpErr) {
+          console.error('SMTP send error:', smtpErr);
+          emailError = 'send_failed';
+        }
+      }
+    }
+
+    // 2.b) Si el usuario proporcionó un teléfono / WhatsApp, notificar al equipo de Mecha como lead
+    if (parsed.telefono && user && pass) {
+      try {
+        const leadSmtp = new SMTPClient({
+          connection: {
+            hostname: host,
+            port,
+            tls: port === 465,
+            auth: {
+              username: user,
+              password: pass,
+            },
           },
-        },
-      });
-      await smtp.send({
-        from: Deno.env.get('SMTP_FROM') || Deno.env.get('SMTP_USER') || 'contacto@mechaa.es',
-        to: email,
-        subject: 'Mecha · Respuesta de Chispa a tu duda',
-        htmlContent: emailHtml(duda, reply),
-      });
-      await smtp.close();
-      emailed = true;
-    } catch (e) {
-      console.error('SMTP send error:', e);
+        });
+
+        await leadSmtp.send({
+          from: fromHeader,
+          replyTo: supportEmail,
+          to: supportEmail,
+          subject: `[Lead Demo] Nueva duda de WhatsApp: ${parsed.telefono}`,
+          html: emailLeadHtml(duda, reply, parsed.telefono),
+        });
+
+        await leadSmtp.close();
+      } catch (leadErr) {
+        console.error('Lead notification SMTP error:', leadErr);
+      }
     }
   }
 
-  return json({ reply, emailed }, 200, req);
-});
+  return json({
+    reply,
+    emailed,
+    tipo_contacto: parsed.tipo,
+    email_error: emailError,
+  }, 200, req);
+}
+
+if (import.meta.main) {
+  Deno.serve(handler);
+}

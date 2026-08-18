@@ -28,6 +28,7 @@ import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import { ColorTryOnModal } from '@/components/clientes/ColorTryOnModal.web';
 import { InstagramPostModal } from '@/components/clientes/InstagramPostModal.web';
+import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -311,9 +312,12 @@ function ClientesWeb() {
   const [activeTab, setActiveTab] = useState<Tab>('resumen');
   const [activeTagFilter, setActiveTagFilter] = useState<string>('Todos');
   const [panelExpanded, setPanelExpanded] = useState(false);
-  // Demo guiada: si la guia pide abrir una ficha antes de que carguen los clientes,
-  // dejamos la peticion pendiente y la resolvemos en cuanto haya datos.
-  const demoFichaPending = useRef(false);
+  const [demoZone, setDemoZone] = useState<'color' | 'notas' | 'historial' | 'resumen' | null>(null);
+  const demoPendingAction = useRef<string | null>(null);
+  const colorZoneRef = useRef<HTMLDivElement | null>(null);
+  const notasZoneRef = useRef<HTMLDivElement | null>(null);
+  const historialZoneRef = useRef<HTMLDivElement | null>(null);
+  const resumenZoneRef = useRef<HTMLDivElement | null>(null);
 
   // Sesion 7 V2: pastilla de riesgo/fuga ACCIONABLE (Recuperar/Avisar de un
   // clic) + Q&A de ficha. Estado por ficha abierta; se resetea al cambiar de
@@ -597,26 +601,53 @@ function ClientesWeb() {
     }
   }, [params?.clienteId, clientes]);
 
-  // Demo guiada: abrir/cerrar la ficha de un cliente de ejemplo desde la guia.
+  // Demo guiada: abrir/cerrar la ficha y saltar entre pestanas (color, notas, historial, resumen).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onDemo = (e: Event) => {
       const action = (e as CustomEvent).detail?.action;
-      if (action === 'ficha') {
-        // En el tour abrimos la ficha del primer cliente. El modo "expandido"
-        // (ancho completo, estilo escritorio) agranda de mas en movil: alli la
-        // ficha ya ocupa toda la pantalla, asi que solo lo activamos en escritorio.
-        const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
+      if (typeof action !== 'string') return;
+      const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
+
+      if (action === 'cliente-color') {
         if (clientes.length > 0) {
-          setSelected(clientes[0].id);
-          setActiveTab('resumen');
+          setSelected((prev) => prev || clientes[0].id);
+          setActiveTab('color');
+          setDemoZone('color');
           setPanelExpanded(wide);
         } else {
-          // Aun no hay datos: lo resolvemos cuando lleguen.
-          demoFichaPending.current = true;
+          demoPendingAction.current = action;
+        }
+      } else if (action === 'cliente-notas') {
+        if (clientes.length > 0) {
+          setSelected((prev) => prev || clientes[0].id);
+          setActiveTab('notas');
+          setDemoZone('notas');
+          setPanelExpanded(wide);
+        } else {
+          demoPendingAction.current = action;
+        }
+      } else if (action === 'cliente-historial') {
+        if (clientes.length > 0) {
+          setSelected((prev) => prev || clientes[0].id);
+          setActiveTab('historial');
+          setDemoZone('historial');
+          setPanelExpanded(wide);
+        } else {
+          demoPendingAction.current = action;
+        }
+      } else if (action === 'ficha' || action === 'cliente-resumen') {
+        if (clientes.length > 0) {
+          setSelected((prev) => prev || clientes[0].id);
+          setActiveTab('resumen');
+          setDemoZone('resumen');
+          setPanelExpanded(wide);
+        } else {
+          demoPendingAction.current = action;
         }
       } else if (action === 'cerrar') {
         setSelected(null);
+        setDemoZone(null);
         setPanelExpanded(false);
       }
     };
@@ -626,14 +657,59 @@ function ClientesWeb() {
 
   // Resuelve una peticion de ficha que llego antes de tener clientes cargados.
   useEffect(() => {
-    if (demoFichaPending.current && clientes.length > 0) {
-      demoFichaPending.current = false;
+    if (demoPendingAction.current && clientes.length > 0) {
+      const act = demoPendingAction.current;
+      demoPendingAction.current = null;
       const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
       setSelected(clientes[0].id);
-      setActiveTab('resumen');
+      if (act === 'cliente-color') {
+        setActiveTab('color');
+        setDemoZone('color');
+      } else if (act === 'cliente-notas') {
+        setActiveTab('notas');
+        setDemoZone('notas');
+      } else if (act === 'cliente-historial') {
+        setActiveTab('historial');
+        setDemoZone('historial');
+      } else {
+        setActiveTab('resumen');
+        setDemoZone('resumen');
+      }
       setPanelExpanded(wide);
     }
   }, [clientes]);
+
+  useEffect(() => {
+    if (!demoZone) return;
+    const map: Record<string, { current: HTMLElement | null }> = {
+      color: colorZoneRef,
+      notas: notasZoneRef,
+      historial: historialZoneRef,
+      resumen: resumenZoneRef,
+    };
+    const el = map[demoZone]?.current;
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [demoZone, activeTab]);
+
+  const demoRefMap: Record<string, { current: HTMLElement | null }> = {
+    color: colorZoneRef,
+    notas: notasZoneRef,
+    historial: historialZoneRef,
+    resumen: resumenZoneRef,
+  };
+  const demoActiveRef = (demoZone && demoRefMap[demoZone]) || resumenZoneRef;
+  const demoLabel =
+    demoZone === 'color'
+      ? 'Fórmulas de color y fotos'
+      : demoZone === 'notas'
+      ? 'Notas técnicas y alergias'
+      : demoZone === 'historial'
+      ? 'Historial de visitas y compras'
+      : demoZone === 'resumen'
+      ? 'Ficha técnica integral'
+      : '';
 
   const c = clientes.find((x) => x.id === selected) || null;
   const alerts = useMemo(() => (c ? computeAlerts(c) : []), [c]);
@@ -950,6 +1026,13 @@ function ClientesWeb() {
         {/* Detail panel */}
         {c && (
           <div key={c.id} className="m-slide-right" style={{ borderLeft: isMobile ? 'none' : `1px solid ${TOKENS.border}`, padding: isMobile ? (panelExpanded ? '24px 0 96px' : '12px 0 96px') : (panelExpanded ? '24px 0' : 24), overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
+          <DemoSpotlight
+            targetRef={demoActiveRef}
+            active={!!demoZone}
+            label={demoLabel}
+            padding={12}
+            radius={14}
+          />
           <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : (isMobile ? '0 16px' : 0) }}>
             {/* Toggle expand / Back button. En movil la barra queda fija (sticky)
                 para que "Volver al listado" siga a mano aunque se baje por la ficha. */}
@@ -1282,29 +1365,43 @@ function ClientesWeb() {
               // Modo compacto: contenido segun pestaña activa
               <div key={activeTab} className="m-tab-content">
                 {activeTab === 'resumen' && (
-                  <>
+                  <div ref={resumenZoneRef}>
                     <ResumenTab cliente={c} citas={citas} servicios={servicios} />
                     <NotasClienteSection cliente={c} plantillas={plantillasNota} onUpdated={(updated) => {
                       setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                     }} />
                     <div style={{ marginTop: 14 }}><FotosClienteSection cliente={c} negocioId={negocioId} /></div>
-                  </>
+                  </div>
                 )}
-                {activeTab === 'notas' && <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
-                  setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
-                  triggerRefresh();
-                }} />}
-                {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />}
-                {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />}
+                {activeTab === 'notas' && (
+                  <div ref={notasZoneRef}>
+                    <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
+                      setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+                      triggerRefresh();
+                    }} />
+                  </div>
+                )}
+                {activeTab === 'color' && (
+                  <div ref={colorZoneRef}>
+                    <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />
+                  </div>
+                )}
+                {activeTab === 'historial' && (
+                  <div ref={historialZoneRef}>
+                    <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />
+                  </div>
+                )}
                 {activeTab === 'productos' && <ProductosTab cliente={c} profesionales={profesionales} />}
               </div>
             ) : (
               // Modo expandido: todas las secciones a la vez en cuadricula
               <div className="m-tab-content m-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 {/* Fila 1: Resumen (banda completa) */}
-                <Panel title="Resumen" accent={TOKENS.primary}>
-                  <ResumenTab cliente={c} citas={citas} servicios={servicios} />
-                </Panel>
+                <div ref={resumenZoneRef}>
+                  <Panel title="Resumen" accent={TOKENS.primary}>
+                    <ResumenTab cliente={c} citas={citas} servicios={servicios} />
+                  </Panel>
+                </div>
 
                 {/* Fila 1.5: Notas y preferencias persistentes del cliente */}
                 <Panel title="Notas y preferencias" accent={TOKENS.primary}>
@@ -1339,21 +1436,27 @@ function ClientesWeb() {
 
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
                 <div style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : '1fr 1fr', gap: 18 }}>
-                  <Panel title="Alergias" accent={TOKENS.danger}>
-                    <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
-                      setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
-                      triggerRefresh();
-                    }} />
-                  </Panel>
-                  <Panel title="Color / Química" accent={TOKENS.violet}>
-                    <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />
-                  </Panel>
+                  <div ref={notasZoneRef}>
+                    <Panel title="Alergias" accent={TOKENS.danger}>
+                      <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
+                        setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+                        triggerRefresh();
+                      }} />
+                    </Panel>
+                  </div>
+                  <div ref={colorZoneRef}>
+                    <Panel title="Color / Química" accent={TOKENS.violet}>
+                      <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />
+                    </Panel>
+                  </div>
                 </div>
 
                 {/* Fila 3: Historial completo */}
-                <Panel title="Historial completo" accent={TOKENS.success}>
-                  <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />
-                </Panel>
+                <div ref={historialZoneRef}>
+                  <Panel title="Historial completo" accent={TOKENS.success}>
+                    <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />
+                  </Panel>
+                </div>
 
                 {/* Fila 4: Productos comprados por el cliente */}
                 <Panel title="Productos comprados" accent={TOKENS.primary}>

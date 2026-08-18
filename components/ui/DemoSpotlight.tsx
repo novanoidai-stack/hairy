@@ -91,7 +91,9 @@ export function DemoSpotlight({
           borderRadius: radius,
           boxShadow:
             '0 0 0 9999px rgba(4,3,2,0.85), 0 0 0 2px rgba(244,80,30,0.95), 0 0 34px 6px rgba(244,80,30,0.42)',
-          transition: 'top 0.4s cubic-bezier(0.34,1.56,0.64,1), left 0.4s cubic-bezier(0.34,1.56,0.64,1), width 0.4s ease, height 0.4s ease, opacity 0.3s ease',
+          transform: 'translate3d(0, 0, 0)',
+          willChange: 'top, left, width, height, opacity',
+          transition: 'top 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
           opacity: active ? 1 : 0,
         }}
       />
