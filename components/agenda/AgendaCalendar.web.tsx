@@ -7354,16 +7354,19 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
             top: 2,
             right: 2,
             zIndex: 8,
-            padding: "1px 5px",
+            padding: "1.5px 6px",
             borderRadius: 999,
-            background: "#f59e0b",
+            background: "#ea580c",
             color: "#fff",
-            fontSize: 8.5,
+            fontSize: 9,
             fontWeight: 800,
-            lineHeight: 1.5,
+            lineHeight: 1.3,
             whiteSpace: "nowrap",
             pointerEvents: "none",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            boxShadow: "0 1px 4px rgba(234,88,12,0.35)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 2,
           }}
         >
           +{cita._desbordaMin}′
@@ -9811,14 +9814,11 @@ function DayTimeline({
           const rIni = new Date(h.fin_activa).getTime();
           const rFin = new Date(h.fin_espera).getTime();
           if (rFin <= rIni) continue;
-          // Para ser anidada (nested), la cita debe encajar de verdad dentro del reposo
-          // (tolerancia de 2 minutos). Si dura mas que el reposo o se sale, no es
-          // anidada: se reparte en su propio carril normal sin deformar la tarjeta.
-          const cabeEnReposo =
-            cIni >= rIni - 2 * 60000 && cFin <= rFin + 2 * 60000;
-          if (!cabeEnReposo) continue;
           const solape = Math.min(cFin, rFin) - Math.max(cIni, rIni);
           if (solape <= 0) continue;
+          // El grueso de la cita cae dentro del reposo (o empieza dentro de el).
+          // Se anida visualmente dentro del host, aprovechando el hueco y sobresaliendo si dura mas.
+          if (solape * 2 < cFin - cIni && (cIni < rIni || cIni >= rFin)) continue;
           if (solape > mejorSolape) {
             mejorSolape = solape;
             mejor = h;
