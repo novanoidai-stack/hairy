@@ -8512,6 +8512,14 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
           return d;
         };
         const salonCerrado: any[] = [];
+        const rejillaIniSalon = new Date(selectedDateObj);
+        rejillaIniSalon.setHours(START_H, 0, 0, 0);
+        const rejillaFinSalon = new Date(selectedDateObj);
+        rejillaFinSalon.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+
+        let abreSalon: Date | null = null;
+        let cierraSalon: Date | null = null;
+
         if (salonCerradoTodoElDia) {
           const diaIni = new Date(selectedDateObj);
           diaIni.setHours(START_H, 0, 0, 0);
@@ -8532,12 +8540,8 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
           horarioSalonHoy.apertura &&
           horarioSalonHoy.cierre
         ) {
-          const rejillaIniSalon = new Date(selectedDateObj);
-          rejillaIniSalon.setHours(START_H, 0, 0, 0);
-          const rejillaFinSalon = new Date(selectedDateObj);
-          rejillaFinSalon.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-          const abreSalon = alDia(horarioSalonHoy.apertura);
-          const cierraSalon = alDia(horarioSalonHoy.cierre);
+          abreSalon = alDia(horarioSalonHoy.apertura);
+          cierraSalon = alDia(horarioSalonHoy.cierre);
           if (abreSalon > rejillaIniSalon) {
             salonCerrado.push({
               id: `salon-antes-${prof.id}`,
@@ -8589,49 +8593,48 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
           (h: any) => h.profesional_id === prof.id,
         );
         const fueraJornada: any[] = [];
+
+        // Ventana en la que el salón está abierto hoy (para no duplicar bloqueos antes de que el salón abra o después de que cierre)
+        const salonAbreEfectivo = abreSalon && abreSalon > rejillaIniSalon ? abreSalon : rejillaIniSalon;
+        const salonCierraEfectivo = cierraSalon && cierraSalon < rejillaFinSalon ? cierraSalon : rejillaFinSalon;
+
         if (
           tieneAlgunHorario &&
           profHorarios.length === 0 &&
           !salonCerradoTodoElDia
         ) {
-          const rejillaIni = new Date(selectedDateObj);
-          rejillaIni.setHours(START_H, 0, 0, 0);
-          const rejillaFin = new Date(selectedDateObj);
-          rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
-          fueraJornada.push({
-            id: `jornada-libra-${prof.id}`,
-            profesional_id: prof.id,
-            inicio: rejillaIni.toISOString(),
-            fin: rejillaFin.toISOString(),
-            tipo: "fuera_jornada",
-            motivo: "No trabaja este dia",
-          });
+          if (salonCierraEfectivo > salonAbreEfectivo) {
+            fueraJornada.push({
+              id: `jornada-libra-${prof.id}`,
+              profesional_id: prof.id,
+              inicio: salonAbreEfectivo.toISOString(),
+              fin: salonCierraEfectivo.toISOString(),
+              tipo: "fuera_jornada",
+              motivo: "No trabaja este día",
+            });
+          }
         }
         if (profHorarios.length > 0 && !salonCerradoTodoElDia) {
-          const rejillaIni = new Date(selectedDateObj);
-          rejillaIni.setHours(START_H, 0, 0, 0);
-          const rejillaFin = new Date(selectedDateObj);
-          rejillaFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
           const entra = alDia(profHorarios[0].hora_inicio);
           const sale = alDia(
             profHorarios[profHorarios.length - 1].hora_fin,
           );
-          if (entra > rejillaIni) {
+          if (entra > salonAbreEfectivo) {
             fueraJornada.push({
               id: `jornada-ini-${prof.id}`,
               profesional_id: prof.id,
-              inicio: rejillaIni.toISOString(),
+              inicio: salonAbreEfectivo.toISOString(),
               fin: entra.toISOString(),
               tipo: "fuera_jornada",
               motivo: `Entra a las ${profHorarios[0].hora_inicio.slice(0, 5)}`,
             });
           }
-          if (sale < rejillaFin) {
+          if (sale < salonCierraEfectivo) {
             fueraJornada.push({
               id: `jornada-fin-${prof.id}`,
               profesional_id: prof.id,
               inicio: sale.toISOString(),
-              fin: rejillaFin.toISOString(),
+              fin: salonCierraEfectivo.toISOString(),
               tipo: "fuera_jornada",
               motivo: `Termina a las ${profHorarios[profHorarios.length - 1].hora_fin.slice(0, 5)}`,
             });
@@ -8666,7 +8669,7 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   new Date(o.inicio).getTime() < bFinMs &&
                   new Date(o.fin).getTime() > bIniMs,
               ).length;
-            const labelOffset = labelRow * 14;
+            const labelOffset = labelRow * 32;
             const bloqueoDayStart = new Date(selectedDateObj);
             bloqueoDayStart.setHours(START_H, 0, 0, 0);
             const bloqueoDayEnd = new Date(selectedDateObj);
@@ -8714,6 +8717,7 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   zIndex: 1 + labelRow,
                   padding: "4px 6px",
                   overflow: "hidden",
+                  boxSizing: "border-box",
                 }}
               >
                 {cabeEtiqueta && (
@@ -8724,10 +8728,14 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                       marginTop: labelOffset,
-                      background: `${bColor}26`,
+                      background: `${bColor}2b`,
+                      border: `1px solid ${bColor}44`,
                       borderRadius: 4,
-                      padding: "1px 4px",
+                      padding: "1px 5px",
                       width: "fit-content",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      lineHeight: "14px",
                     }}
                   >
                     {BLOQUEO_LABELS[b.tipo] || b.tipo}
@@ -8737,12 +8745,14 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   blockHeight > labelOffset + 32 && (
                     <div
                       style={{
-                        fontSize: 9,
+                        fontSize: 9.5,
                         color: TOKENS.textSec,
-                        marginTop: 1,
+                        marginTop: 2,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
+                        paddingLeft: 2,
+                        lineHeight: "13px",
                       }}
                     >
                       {b.motivo}
