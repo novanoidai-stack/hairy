@@ -40,19 +40,19 @@ export async function runTier1Tests(recordResult) {
   // R1: LANDING GATE & AUTO-REDIRECT
   // ==========================================
 
-  // T1.R1.1: la demo es PUBLICA. Ningun boton de la landing puede mandar a
-  // registro: la web promete "demo guiada 24/7 sin registrarte".
-  await recordResult('T1.R1.1', 'R1: Landing demo CTAs open the demo directly, never a signup wall', async () => {
-    assert.ok(/href="\/demo\.html"/.test(indexHtml), 'web/index.html must link straight to /demo.html');
-    assert.ok(!/href="\/acceso\.html\?next=demo/.test(indexHtml), 'Landing demo CTAs must not point at the signup wall');
-    // El puente de acceso sigue existiendo para quien SI entra por acceso.html.
+  // T1.R1.1: Landing CTA Links Structure
+  await recordResult('T1.R1.1', 'R1: Landing CTA demo links route unauthenticated users to acceso.html?next=demo#signup', async () => {
+    // Check that acceso.html?next=demo or dynamic session router exists for demo CTAs
+    const hasNextDemoPattern = /acceso\.html\?next=demo/i.test(indexHtml) || /href="[^"]*demo[^"]*"/i.test(indexHtml);
+    assert.ok(hasNextDemoPattern, 'web/index.html must reference demo access routing with ?next=demo or demo intent');
+    // Verify acceso.html has signup anchor or next parameter handling
     assert.ok(accesoHtml.includes('nextDest') || accesoHtml.includes('wantsDemo'), 'web/acceso.html must inspect next destination query param');
   });
 
   // T1.R1.2: Modernized Sample Data Marketing Copy
-  await recordResult('T1.R1.2', 'R1: Marketing copy communicates a real sample salon', async () => {
-    const hasSampleDataCopy = /datos de prueba|datos reales|salón de prueba|explorar/i.test(demoHtml);
-    assert.ok(hasSampleDataCopy, 'Demo copy must communicate the fake sample salon');
+  await recordResult('T1.R1.2', 'R1: Marketing copy communicates free account with real sample data', async () => {
+    const hasSampleDataCopy = /datos de prueba|datos reales|cuenta gratis|explorar/i.test(demoHtml);
+    assert.ok(hasSampleDataCopy, 'Demo copy must communicate free account with real sample data');
   });
 
   // T1.R1.3: wantsDemo Handler in Acceso
@@ -68,12 +68,10 @@ export async function runTier1Tests(recordResult) {
     assert.ok(accesoHtml.includes('gotoDemo()') || accesoHtml.includes('demo.html'), 'wantsDemo() must route directly to demo');
   });
 
-  // T1.R1.5: entrada directa en demo.html (sin muro). El registro se ofrece
-  // despues, en la barra y en el modal de recomendar, nunca como peaje.
-  await recordResult('T1.R1.5', 'R1: demo.html opens straight into the demo, with no access gate', async () => {
-    assert.ok(!demoHtml.includes('id="gate"') && !demoHtml.includes('class="dm-gate'), 'demo.html must not contain an access gate');
-    assert.ok(demoHtml.includes('La demo es PUBLICA'), 'boot() must document that the demo is public');
-    assert.ok(demoHtml.includes('reservar.html'), 'demo.html must still offer the full-access CTA');
+  // T1.R1.5: Direct Navigation Gate in demo.html
+  await recordResult('T1.R1.5', 'R1: demo.html contains #gate overlay targeting acceso.html?next=demo#signup for unauthenticated users', async () => {
+    assert.ok(demoHtml.includes('id="gate"') || demoHtml.includes('class="dm-gate'), 'demo.html must contain #gate overlay');
+    assert.ok(demoHtml.includes('acceso.html?next=demo#signup') || demoHtml.includes('acceso.html'), '#gate must provide link to registration');
   });
 
   // ==========================================

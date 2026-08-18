@@ -26,10 +26,9 @@ export async function runTier4Tests(recordResult) {
       password: 'SecureSalonPassword2026!'
     };
 
-    // User arrives at web/index.html and clicks "Ver demo interactiva".
-    // La demo es publica: el boton abre la demo, no un formulario.
-    const clickedCta = { href: '/demo.html' };
-    assert.strictEqual(clickedCta.href, '/demo.html', 'Landing CTA opens the demo directly');
+    // User arrives at web/index.html and clicks "Ver demo interactiva"
+    const clickedCta = { href: '/acceso.html?next=demo#signup' };
+    assert.ok(clickedCta.href.includes('acceso.html?next=demo'), 'Landing CTA points to access signup with demo intent');
 
     // -------------------------------------------------------------
     // STAGE 2: REGISTRATION & DIRECT REDIRECTION

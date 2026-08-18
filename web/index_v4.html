@@ -112,7 +112,7 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
 </button>
 <a href="/acceso.html" id="navLogin" style="font-size:13.6px;color:var(--ink-2)">Iniciar sesión</a>
-<a href="/demo.html" data-demo-link class="btn-grad" style="padding:10px 18px;border-radius:11px;font-size:13.6px;font-weight:600">Ver demo gratis</a>
+<a href="/acceso.html?next=demo#signup" data-demo-link class="btn-grad" style="padding:10px 18px;border-radius:11px;font-size:13.6px;font-weight:600">Ver demo gratis</a>
 </div>
 </div>
 </nav>
@@ -128,7 +128,7 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 <h1 class="reveal on" style="font-family:var(--display);font-weight:700;font-size:clamp(42px,6vw,84px);line-height:1.0;letter-spacing:-.038em;margin:0 0 24px;text-wrap:balance">Tu salón trabaja mientras duermes.<br /><span style="font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent)">Él te cuenta la mañana siguiente.</span></h1>
 <p class="reveal on" style="font-size:clamp(16.5px,1.5vw,20px);color:var(--ink-2);max-width:640px;margin:0 auto 30px;text-wrap:pretty">Agenda que entiende los reposos, caja con VeriFactu, fichajes legales, tu portal de reservas sin comisión — y una IA que atiende WhatsApp y teléfono 24/7.</p>
 <div class="reveal on" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-bottom:22px">
-<a href="/demo.html" data-demo-link class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:16px 30px;border-radius:14px;font-weight:600;font-size:16px">Ver la demo gratis <span>→</span></a>
+<a href="/acceso.html?next=demo#signup" data-demo-link class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:16px 30px;border-radius:14px;font-weight:600;font-size:16px">Ver la demo gratis <span>→</span></a>
 <a href="#dentro" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 30px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">Ver el software</a>
 </div>
 <p class="reveal on" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 22px;font-size:13px;color:var(--ink-3);margin:0 0 46px">
@@ -636,7 +636,7 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 
 </div>
 </div>
-<p style="text-align:center;font-size:11.5px;color:var(--ink-3);margin:14px 0 0">Capturas del producto real. Pruébalo tú mismo, sin registrarte, en la <a href="/demo.html" data-demo-link>demo guiada</a>.</p>
+<p style="text-align:center;font-size:11.5px;color:var(--ink-3);margin:14px 0 0">Capturas del producto real. Pruébalo tú mismo con tu cuenta gratis en la <a href="/acceso.html?next=demo#signup" data-demo-link>demo guiada</a>.</p>
 </div>
 </section>
 
@@ -846,11 +846,11 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 <span style="font-size:13.5px;color:rgba(255,255,255,.62)">Sin llamadas. Escribes tu duda y te contestamos por correo hoy mismo.</span>
 <span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Escribir ahora →</span>
 </a>
-<a href="/demo.html" data-demo-link style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(244,80,30,.5);background:linear-gradient(160deg,rgba(244,80,30,.22),rgba(255,255,255,.03));color:var(--paper)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+<a href="/acceso.html?next=demo#signup" data-demo-link style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:18px;border:1px solid rgba(244,80,30,.5);background:linear-gradient(160deg,rgba(244,80,30,.22),rgba(255,255,255,.03));color:var(--paper)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
 <span style="font-size:22px">⚡</span>
 <b style="font-family:var(--display);font-size:17px">Verlo yo mismo ahora</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.7)">3 recorridos guiados (55 pasos) sobre Mecha real. Sin registro.</span>
-<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Entrar a la demo gratis →</span>
+<span style="font-size:13.5px;color:rgba(255,255,255,.7)">Tu cuenta gratis con datos de prueba reales para explorar todo el potencial.</span>
+<span style="font-size:13px;font-weight:700;color:var(--accent-hi);margin-top:4px">Pruébalo con tu cuenta gratis →</span>
 </a>
 </div>
 </div>
@@ -1054,7 +1054,7 @@ setInterval(sweep,400);
     }
     var demoLinks = document.querySelectorAll('[data-demo-link], a[href*="acceso.html?next=demo"], a[href*="demo.html"], a[href="/demo"]');
     demoLinks.forEach(function(link){
-      link.href = '/demo.html';
+      link.href = hasSession ? '/demo.html' : '/acceso.html?next=demo#signup';
     });
   }
   api.getSession().then(function(s){ if(s) syncSession(s); });
