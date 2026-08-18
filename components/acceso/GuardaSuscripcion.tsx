@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Linking } from 'react-native';
 import { useSegments, useRouter } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile, isStaff } from '@/lib/auth';
@@ -66,14 +66,21 @@ export function GuardaSuscripcion() {
   const trialEndsAt = perfil.trial_ends_at ? new Date(perfil.trial_ends_at) : null;
   const now = new Date();
 
-  // Si no tiene fecha de fin de prueba o no está en prueba/free
-  if (!trialEndsAt) {
+  // Estados que deben bloquear aunque falte o discrepe la fecha: 'caducada'
+  // (marcada por p0-007 al vencer la prueba) y 'cancelada' (suscripción de
+  // pago extinguida). Sin esto, una cuenta cancelada con fecha de trial vieja
+  // en el futuro volvería a ver el banner de "1 mes gratis".
+  const estadoBloqueado =
+    perfil.suscripcion_estado === 'caducada' || perfil.suscripcion_estado === 'cancelada';
+
+  // Si no tiene fecha de fin de prueba ni estado bloqueante, no hay nada que mostrar
+  if (!trialEndsAt && !estadoBloqueado) {
     return null;
   }
 
-  const diffMs = trialEndsAt.getTime() - now.getTime();
+  const diffMs = trialEndsAt ? trialEndsAt.getTime() - now.getTime() : -1;
   const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  const trialVencido = diasRestantes <= 0;
+  const trialVencido = estadoBloqueado || diasRestantes <= 0;
 
   // 3) BLOQUEO TOTAL SI LA PRUEBA HA CADUCADO
   if (trialVencido) {
@@ -116,12 +123,15 @@ export function GuardaSuscripcion() {
             <TouchableOpacity
               style={s.btnPrimary}
               onPress={() => {
-                if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                  const msg = encodeURIComponent(
-                    `Hola Alexandru, quiero activar mi suscripción a Mecha OS para mi salón "${perfil.nombre_negocio || perfil.email}".`
-                  );
-                  window.open(`https://wa.me/34690792975?text=${msg}`, '_blank');
-                }
+              const msg = encodeURIComponent(
+                `Hola Alexandru, quiero activar mi suscripción a Mecha OS para mi salón "${perfil.nombre_negocio || perfil.email}".`
+              );
+              const url = `https://wa.me/34690792975?text=${msg}`;
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.open(url, '_blank');
+              } else {
+                Linking.openURL(url).catch(() => {});
+              }
               }}
             >
               <Ionicons name="logo-whatsapp" size={18} color="#fff" style={{ marginRight: 8 }} />
@@ -131,11 +141,14 @@ export function GuardaSuscripcion() {
             <TouchableOpacity
               style={s.btnSecondary}
               onPress={() => {
-                if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                  window.location.href = `mailto:contacto@mechaa.es?subject=${encodeURIComponent(
-                    'Activar suscripción Mecha OS - ' + (perfil.nombre_negocio || perfil.email)
-                  )}&body=${encodeURIComponent('Hola equipo,\n\nQuiero activar el plan para mi salón.\n\nEmail: ' + perfil.email)}`;
-                }
+              const url = `mailto:contacto@mechaa.es?subject=${encodeURIComponent(
+                'Activar suscripción Mecha OS - ' + (perfil.nombre_negocio || perfil.email)
+              )}&body=${encodeURIComponent('Hola equipo,\n\nQuiero activar el plan para mi salón.\n\nEmail: ' + perfil.email)}`;
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.location.href = url;
+              } else {
+                Linking.openURL(url).catch(() => {});
+              }
               }}
             >
               <Ionicons name="mail" size={18} color={T.text} style={{ marginRight: 8 }} />
@@ -145,10 +158,12 @@ export function GuardaSuscripcion() {
             <TouchableOpacity
               style={s.btnLogout}
               onPress={async () => {
-                await supabase.auth.signOut();
-                if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                  window.location.href = '/acceso.html';
-                }
+              await supabase.auth.signOut();
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.location.href = '/acceso.html';
+              } else {
+                router.replace('/acceso' as never);
+              }
               }}
             >
               <Ionicons name="log-out-outline" size={16} color="#dc2626" style={{ marginRight: 6 }} />
@@ -178,11 +193,7 @@ export function GuardaSuscripcion() {
 
         <TouchableOpacity
           style={s.trialBtn}
-          onPress={() => {
-            if (Platform.OS === 'web' && typeof window !== 'undefined') {
-              router.push('/(tabs)/configuracion' as never);
-            }
-          }}
+          onPress={() => router.push('/(tabs)/configuracion' as never)}
         >
           <Text style={s.trialBtnTx}>Ver planes & contratar →</Text>
         </TouchableOpacity>
@@ -261,7 +272,7 @@ const s = StyleSheet.create({
     ...Platform.select({
       web: {
         backdropFilter: 'blur(20px)',
-        cursor: 'default',
+        cursor: 'auto' as const,
       },
     }),
   },

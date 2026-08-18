@@ -831,6 +831,63 @@ nav{
   color:var(--ink)!important;
   background:var(--accent-soft);
 }
+[data-navlinks] a.active{
+  color:var(--accent)!important;
+  font-weight:700!important;
+  background:var(--accent-soft);
+}
+#navLogin{
+  font-size:13.5px!important;
+  font-weight:600!important;
+  color:var(--ink-2)!important;
+  white-space:nowrap!important;
+  padding:7px 14px!important;
+  border-radius:10px!important;
+  border:1px solid var(--line-2)!important;
+  background:var(--card)!important;
+  text-decoration:none!important;
+  transition:all .2s ease!important;
+  cursor:pointer!important;
+  display:inline-flex!important;
+  align-items:center!important;
+}
+#navLogin:hover{
+  color:var(--ink)!important;
+  background:var(--accent-soft)!important;
+  border-color:rgba(244,80,30,.25)!important;
+}
+#navDemo{
+  padding:8px 16px!important;
+  border-radius:11px!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  white-space:nowrap!important;
+  flex-shrink:0!important;
+  text-decoration:none!important;
+  cursor:pointer!important;
+  background:linear-gradient(120deg,var(--accent),var(--accent-hi))!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px -6px rgba(244,80,30,.55),0 0 0 1px rgba(255,255,255,.2) inset!important;
+  transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s ease!important;
+}
+#navDemo:hover{
+  transform:translateY(-2px)!important;
+  box-shadow:0 14px 28px -6px rgba(244,80,30,.7),0 0 0 1px rgba(255,255,255,.3) inset!important;
+  color:#fff!important;
+}
+#navDemo .nav-badge-pill{
+  background:rgba(255,255,255,.24);
+  padding:2px 7px;
+  border-radius:5px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#fff;
+}
 
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
 .chip-ok{padding:4px 10px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-weight:600;font-size:12px;display:inline-block}
@@ -925,13 +982,13 @@ Explorar directorio de salones Mecha →
 <a href="#precios">Precios</a>
 <a href="#contacto">Contacto</a>
 </div>
-<div style="display:flex;align-items:center;gap:8px;flex-shrink:0" data-navcta>
+<div style="display:flex;align-items:center;gap:10px;flex-shrink:0" data-navcta>
 <button type="button" class="theme-toggle-btn" onclick="toggleTema()" title="Modo Claro activo (clic para modo Oscuro)" style="width:32px;height:32px;border-radius:9px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease;flex-shrink:0" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 </button>
 <a href="/acceso.html" id="navLogin">Iniciar sesión</a>
-<a href="#contacto" id="navDemo" class="btn-grad">
-<span style="background:rgba(255,255,255,.24);padding:2px 6px;border-radius:5px;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">1 Mes Gratis</span>
+<a href="#contacto" id="navDemo">
+<span class="nav-badge-pill">1 Mes Gratis</span>
 <span>Probar</span>
 </a>
 </div>
@@ -1309,7 +1366,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 
 <div style="padding:18px 20px;background:linear-gradient(135deg,rgba(15,155,108,.16),var(--paper));border-top:2px solid var(--ok);display:flex;align-items:center;justify-content:space-between;gap:14px">
 <div>
-<div style="font-weight:800;color:var(--ink);font-size:15px">Con Mecha OS (Todo incluido)</div>
+<div style="font-weight:800;color:var(--ink);font-size:15px">Con Mecha OS · desde Plan Esencial</div>
 <div style="font-size:11.5px;color:var(--ok);font-weight:700">🎁 1er mes gratis · Sin comisiones ni permanencia</div>
 </div>
 <div style="text-align:right">
@@ -1414,7 +1471,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px">
 <a href="#contacto" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:700;font-size:16px;animation:mPulse 3s ease-in-out infinite">🎁 Empezar 1 mes completamente gratis</a>
-<a href="/demo.html" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver recorrido guiado de 16 pasos</a>
+<a href="/demo.html" class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver recorrido guiado de 27 pasos</a>
 </div>
 <p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">También te lo enseñamos en directo en 10 minutos, con tus servicios y tus precios: <a href="#contacto">reservar una demo guiada</a>.</p>
 </div>
@@ -1693,7 +1750,7 @@ Tienes <b>30 días completamente gratis sin tarjeta ni permanencia</b> tanto si 
 <span style="position:absolute;top:14px;right:14px;background:var(--lav);color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em">Sin Registro</span>
 <span style="font-size:28px">▶</span>
 <b style="font-family:var(--display);font-size:18px;color:#fff">Ver demo interactiva</b>
-<span style="font-size:13.5px;color:rgba(255,255,255,.82);line-height:1.45">Recorrido guiado de 16 pasos en vivo con un salón real de ejemplo. Pruébalo ahora mismo en tu navegador sin instalar nada.</span>
+<span style="font-size:13.5px;color:rgba(255,255,255,.82);line-height:1.45">Recorrido guiado de 27 pasos en vivo con un salón real de ejemplo. Pruébalo ahora mismo en tu navegador sin instalar nada.</span>
 <span style="font-size:13px;font-weight:700;color:#9f8eff;margin-top:auto">Entrar a la demo gratis →</span>
 </a>
 
@@ -1795,7 +1852,7 @@ Nos llega directamente al equipo fundador y te responderemos por WhatsApp o corr
 <div style="padding:16px;border-radius:14px;background:rgba(124,108,240,.12);border:1px solid rgba(124,108,240,.3)">
 <div style="font-size:12.5px;font-weight:700;color:#9f8eff;margin-bottom:4px">▶ ¿Quieres ver cómo funciona antes?</div>
 <div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:8px">
-Entra ahora a la demo guiada interactiva de 16 pasos sin necesidad de registrarte.
+Entra ahora a la demo guiada interactiva de 27 pasos sin necesidad de registrarte.
 </div>
 <a href="/demo.html" style="display:inline-flex;align-items:center;gap:5px;color:#fff;font-weight:700;font-size:12.5px;text-decoration:underline">Ver demo guiada ahora →</a>
 </div>
