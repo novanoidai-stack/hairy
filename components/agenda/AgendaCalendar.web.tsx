@@ -9811,11 +9811,14 @@ function DayTimeline({
           const rIni = new Date(h.fin_activa).getTime();
           const rFin = new Date(h.fin_espera).getTime();
           if (rFin <= rIni) continue;
+          // Para ser anidada (nested), la cita debe encajar de verdad dentro del reposo
+          // (tolerancia de 2 minutos). Si dura mas que el reposo o se sale, no es
+          // anidada: se reparte en su propio carril normal sin deformar la tarjeta.
+          const cabeEnReposo =
+            cIni >= rIni - 2 * 60000 && cFin <= rFin + 2 * 60000;
+          if (!cabeEnReposo) continue;
           const solape = Math.min(cFin, rFin) - Math.max(cIni, rIni);
           if (solape <= 0) continue;
-          // El grueso de la cita tiene que caer dentro del reposo. Si solo lo
-          // roza (p.ej. 5' de una cita de 60'), es una cita normal que choca.
-          if (solape * 2 < cFin - cIni) continue;
           if (solape > mejorSolape) {
             mejorSolape = solape;
             mejor = h;
@@ -9823,8 +9826,6 @@ function DayTimeline({
         }
         c._nested = !!mejor;
         c._hostId = mejor ? mejor.id : null;
-        // Minutos que la cita se sale del hueco (0 = encaja justa). Se pinta
-        // encajada igualmente, con un aviso: bloquear el arrastre era peor.
         c._desbordaMin = mejor
           ? Math.max(
               0,
@@ -9989,16 +9990,6 @@ function DayTimeline({
           // oculto => las citas se aplastaban con muchos profesionales.
           overflowX: "auto",
           width: "100%",
-          // Con profesionales de vacaciones ocultos la agenda SE ENCOGE: no
-          // ocupa el ancho completo dejando columnas gigantes, sino el minimo
-          // de las columnas visibles + un pelin para la fila de avatares.
-          ...(profsVacaciones.length > 0
-            ? {
-                maxWidth: `${
-                  (profesionales.length || 1) * MIN_COL_W + 56 + 150
-                }px`,
-              }
-            : {}),
           WebkitOverflowScrolling: "touch",
         }}
       >
@@ -12313,9 +12304,9 @@ function NewCitaModal({
     );
   }
 
-  // RN-AG-072: detectar si la hora seleccionada aprovecha un reposo existente
+  // RN-AG-072: detectar si la hora seleccionada cae dentro del tiempo de reposo de otra cita
   const citaHostReposo =
-    inicio && finActiva && selectedProf
+    inicio && selectedProf
       ? citasHoyVivas.find((c: any) => {
           if (
             c.profesional_id !== selectedProf ||
@@ -12325,14 +12316,7 @@ function NewCitaModal({
             return false;
           const cFinActiva = new Date(c.fin_activa);
           const cFinEspera = new Date(c.fin_espera);
-          const cFin = new Date(c.fin);
-          const hasSegundaFase = cFinEspera.getTime() < cFin.getTime();
-          return (
-            inicio! >= cFinActiva &&
-            (hasSegundaFase
-              ? finActiva! < cFinEspera
-              : finActiva! <= cFinEspera)
-          );
+          return inicio! >= cFinActiva && inicio! < cFinEspera;
         })
       : null;
 
@@ -15193,38 +15177,92 @@ function NewCitaModal({
             </div>
           )}
 
-          {/* RN-AG-072: info banner cuando la hora aprovecha un reposo */}
-          {citaHostReposo && horaActual && (
-            <div
-              style={{
-                padding: "10px 12px",
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.25)",
-                borderRadius: 10,
-                marginTop: 8,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <span
+          {/* RN-AG-072: info banner cuando la hora cae en un reposo */}
+          {citaHostReposo && horaActual && (() => {
+            const cFinActiva = new Date(citaHostReposo.fin_activa);
+            const cFinEspera = new Date(citaHostReposo.fin_espera);
+            const durReposoMin = Math.round(
+              (cFinEspera.getTime() - cFinActiva.getTime()) / 60000,
+            );
+            const hostCli =
+              clientes.find((cl: any) => cl.id === citaHostReposo.cliente_id)
+                ?.nombre || "otra cita";
+            const cabe = finActiva
+              ? finActiva.getTime() <= cFinEspera.getTime() + 2 * 60000
+              : true;
+
+            if (cabe) {
+              return (
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    background: "rgba(16,185,129,0.08)",
+                    border: "1px solid rgba(16,185,129,0.25)",
+                    borderRadius: 10,
+                    marginTop: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 999,
+                      background: "#10b981",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "#059669",
+                      lineHeight: "1.4",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Esta hora aprovecha el tiempo de reposo de {hostCli} ({durReposoMin} min). El profesional atenderá este servicio mientras la cita anterior reposa.
+                  </span>
+                </div>
+              );
+            }
+
+            return (
+              <div
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: "#f59e0b",
-                  flexShrink: 0,
+                  padding: "10px 12px",
+                  background: "rgba(245,158,11,0.08)",
+                  border: "1px solid rgba(245,158,11,0.3)",
+                  borderRadius: 10,
+                  marginTop: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
-              />
-              <span
-                style={{ fontSize: 11, color: "#f59e0b", lineHeight: "1.4" }}
               >
-                Esta hora aprovecha el tiempo de reposo de otra cita. El
-                profesional atendera este servicio mientras la cita anterior
-                reposa.
-              </span>
-            </div>
-          )}
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: "#f59e0b",
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: "#b45309",
+                    lineHeight: "1.4",
+                    fontWeight: 600,
+                  }}
+                >
+                  Aviso: Este servicio ({duracionTotal} min) supera el tiempo de reposo de {hostCli} ({durReposoMin} min). Se organizará en carril paralelo al terminar el reposo.
+                </span>
+              </div>
+            );
+          })()}
 
           {/* Total estimado */}
           {selectedCliente &&
