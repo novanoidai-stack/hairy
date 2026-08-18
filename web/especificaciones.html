@@ -160,13 +160,13 @@
 <style>
 :root{
   --paper:#fdf6f0;
-  --paper-2:#fff;
+  --paper-2:#ffffff;
   --ink:#15100b;
-  --ink-2:#5d5349;
-  --ink-3:#8d8278;
+  --ink-2:#4a423a;
+  --ink-3:#7d7268;
   --line:rgba(21,16,11,.10);
-  --line-2:rgba(21,16,11,.20);
-  --card:#fff;
+  --line-2:rgba(21,16,11,.18);
+  --card:#ffffff;
   --accent:#f4501e;
   --accent-hi:#ff8a3d;
   --gold:#ffcf4a;
@@ -182,20 +182,22 @@
   --body:'Inter',system-ui,-apple-system,sans-serif;
 }
 body[data-theme="dark"]{
-  --paper:#0a0908;
-  --paper-2:#12100e;
-  --ink:#f8f4ee;
-  --ink-2:#b0a69c;
-  --ink-3:#8b8177;
-  --line:rgba(255,255,255,.10);
-  --line-2:rgba(255,255,255,.20);
-  --card:#171311;
-  --accent-soft:rgba(244,80,30,.16);
-  --ok-soft:rgba(15,155,108,.17);
-  --lav-soft:rgba(124,108,240,.2);
-  --shadow:0 30px 70px -30px rgba(0,0,0,.85);
-  --shadow-s:0 8px 20px -12px rgba(0,0,0,.8);
+  --paper:#0c0a09;
+  --paper-2:#161210;
+  --ink:#ffffff;
+  --ink-2:#e2dcda;
+  --ink-3:#b2a69d;
+  --line:rgba(255,255,255,.14);
+  --line-2:rgba(255,255,255,.26);
+  --card:#181513;
+  --accent-soft:rgba(244,80,30,.22);
+  --ok-soft:rgba(15,155,108,.24);
+  --lav-soft:rgba(124,108,240,.24);
+  --shadow:0 30px 70px -30px rgba(0,0,0,.9);
+  --shadow-s:0 8px 20px -12px rgba(0,0,0,.85);
 }
+.sec-dark{background:#0e0c0a!important;color:#fdfcfb!important}
+.sec-dark-footer{background:#080706!important;color:rgba(255,255,255,.75)!important;border-top:1px solid rgba(255,255,255,.12)!important}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
@@ -206,7 +208,7 @@ body{
   line-height:1.55;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
-  transition:background .35s ease,color .35s ease;
+  transition:background .3s ease,color .3s ease;
 }
 body::before{
   content:"";
@@ -345,8 +347,8 @@ Empezar gratis →
 <a href="/index.html#precios" style="color:inherit">Precios</a>
 </div>
 <div style="display:flex;align-items:center;gap:11px;flex-shrink:0" data-navcta>
-<button type="button" onclick="toggleTema()" title="Fondo claro / oscuro" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease;flex-shrink:0" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+<button type="button" class="theme-toggle-btn" onclick="toggleTema()" title="Modo Claro activo (clic para modo Oscuro)" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease;flex-shrink:0" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 </button>
 <a href="/acceso.html" style="font-size:13.6px;color:var(--ink-2);white-space:nowrap;flex-shrink:0">Iniciar sesión</a>
 <a href="/index.html#contacto" class="btn-grad" style="padding:9px 18px;border-radius:11px;font-size:13.6px;font-weight:700;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0">
@@ -574,21 +576,21 @@ El software operativo más especializado para peluquerías, barberías y salones
 </section>
 
 <!-- ═══════════ CTA FINAL ═══════════ -->
-<section style="padding:clamp(48px,6vw,88px) 26px;background:var(--ink);color:var(--paper);position:relative;overflow:hidden">
+<section class="sec-dark" style="padding:clamp(48px,6vw,88px) 26px;position:relative;overflow:hidden">
 <div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(244,80,30,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
 <div style="position:relative;max-width:980px;margin:0 auto;text-align:center">
 <span class="badge-free" style="margin-bottom:14px">Prueba Sin Riesgo</span>
-<h2 style="font-family:var(--display);font-size:clamp(30px,4vw,50px);font-weight:700;letter-spacing:-.03em;margin:0 0 14px">
+<h2 style="font-family:var(--display);font-size:clamp(30px,4vw,50px);font-weight:700;letter-spacing:-.03em;margin:0 0 14px;color:#fff">
 Pruébalo todo en tu salón <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">1 mes completamente gratis</span>
 </h2>
-<p style="font-size:17px;color:rgba(255,255,255,.75);max-width:640px;margin:0 auto 28px">
+<p style="font-size:17px;color:rgba(255,255,255,.85);max-width:640px;margin:0 auto 28px">
 Sin tarjeta de crédito, sin permanencia y con la migración de tu software anterior incluida gratis.
 </p>
 <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:14px">
 <a href="/index.html#contacto" class="btn-grad" style="padding:16px 30px;border-radius:13px;font-weight:700;font-size:16px">
 🎁 Empezar 1 mes gratis
 </a>
-<a href="/demo.html" style="display:inline-flex;align-items:center;gap:8px;padding:16px 26px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:var(--paper);font-weight:600;font-size:16px" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+<a href="/demo.html" style="display:inline-flex;align-items:center;gap:8px;padding:16px 26px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-weight:600;font-size:16px" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
 ▶ Ver demo guiada de 16 pasos
 </a>
 <a href="https://wa.me/34690792975?text=Hola,%20quiero%20informacion%20sobre%20las%20especificaciones%20de%20Mecha" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:16px 26px;border-radius:13px;background:rgba(37,211,102,.16);border:1px solid rgba(37,211,102,.45);color:#25d366;font-weight:700;font-size:16px" onmouseover="this.style.background='rgba(37,211,102,.25)'" onmouseout="this.style.background='rgba(37,211,102,.16)'">
@@ -599,21 +601,21 @@ Sin tarjeta de crédito, sin permanencia y con la migración de tu software ante
 </section>
 
 <!-- ═══════════ FOOTER ═══════════ -->
-<footer style="padding:44px 26px 36px;background:var(--ink);color:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.1)">
+<footer class="sec-dark-footer" style="padding:44px 26px 36px">
 <div style="max-width:1080px;margin:0 auto">
 <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;font-size:13.5px">
-<span style="font-family:var(--display);font-weight:800;font-size:20px;color:var(--paper)">Mecha<span style="color:var(--accent)">.</span></span>
+<span style="font-family:var(--display);font-weight:800;font-size:20px;color:#ffffff">Mecha<span style="color:var(--accent)">.</span></span>
 <div style="display:flex;flex-wrap:wrap;gap:18px">
-<a href="/index.html" style="color:inherit">Inicio</a>
-<a href="/demo.html" style="color:inherit">Probar software</a>
-<a href="/especificaciones.html" style="color:inherit">Especificaciones</a>
-<a href="/calculadora-comisiones.html" style="color:inherit">Calculadora comisiones</a>
-<a href="/salones.html" style="color:inherit">Directorio de salones</a>
-<a href="https://wa.me/34690792975" target="_blank" rel="noopener" style="color:inherit">WhatsApp (+34 690 79 29 75)</a>
-<a href="/privacidad.html" style="color:inherit">Privacidad</a>
-<a href="/terminos.html" style="color:inherit">Términos</a>
+<a href="/index.html" style="color:rgba(255,255,255,.85)">Inicio</a>
+<a href="/demo.html" style="color:rgba(255,255,255,.85)">Probar software</a>
+<a href="/especificaciones.html" style="color:rgba(255,255,255,.85)">Especificaciones</a>
+<a href="/calculadora-comisiones.html" style="color:rgba(255,255,255,.85)">Calculadora comisiones</a>
+<a href="/salones.html" style="color:rgba(255,255,255,.85)">Directorio de salones</a>
+<a href="https://wa.me/34690792975" target="_blank" rel="noopener" style="color:rgba(255,255,255,.85)">WhatsApp (+34 690 79 29 75)</a>
+<a href="/privacidad.html" style="color:rgba(255,255,255,.85)">Privacidad</a>
+<a href="/terminos.html" style="color:rgba(255,255,255,.85)">Términos</a>
 </div>
-<span>© 2026 Mecha OS · Novanoid AI</span>
+<span style="color:rgba(255,255,255,.65)">© 2026 Mecha OS · Novanoid AI</span>
 </div>
 </div>
 </footer>
@@ -621,20 +623,34 @@ Sin tarjeta de crédito, sin permanencia y con la migración de tu software ante
 </main>
 
 <script>
-// Toggle Theme (Dark / Light)
+function updateThemeIcons(){
+  var isDark = document.body.getAttribute('data-theme') === 'dark';
+  document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+    btn.innerHTML = isDark
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="#ffcf4a" stroke-width="2" style="width:17px;height:17px"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    btn.title = isDark ? 'Modo Oscuro activo (clic para modo Claro)' : 'Modo Claro activo (clic para modo Oscuro)';
+  });
+}
+
 function toggleTema(){
   var b=document.body;
-  if(b.hasAttribute('data-theme')){
+  if(b.getAttribute('data-theme')==='dark'){
     b.removeAttribute('data-theme');
-    localStorage.setItem('mecha_theme','light');
+    try{localStorage.setItem('mecha_theme','light');}catch(e){}
   } else {
     b.setAttribute('data-theme','dark');
-    localStorage.setItem('mecha_theme','dark');
+    try{localStorage.setItem('mecha_theme','dark');}catch(e){}
   }
+  updateThemeIcons();
 }
-if(localStorage.getItem('mecha_theme')==='dark'||(!localStorage.getItem('mecha_theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
-  document.body.setAttribute('data-theme','dark');
-}
+
+try{
+  if(localStorage.getItem('mecha_theme')==='dark'||(!localStorage.getItem('mecha_theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    document.body.setAttribute('data-theme','dark');
+  }
+}catch(e){}
+updateThemeIcons();
 
 // Cursor spotlight
 var glow=document.getElementById('cursorGlow');
@@ -662,7 +678,7 @@ function filterSpecs(cat, btn){
   var cards=document.querySelectorAll('#specsGrid > div');
   cards.forEach(function(card){
     if(cat==='all'||card.getAttribute('data-cat')===cat){
-      card.style.display='block';
+      card.style.display='flex';
     } else {
       card.style.display='none';
     }
