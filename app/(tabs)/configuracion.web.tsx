@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef, type ReactNode } from 'react';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
-import { getUserProfile, canAccessConfig } from '@/lib/auth';
+import { getUserProfile, canAccessConfig, isStaff } from '@/lib/auth';
 import { roleOf } from '@/lib/permissions';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
@@ -2211,6 +2211,11 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
     : '--';
   const plazasLibres = Math.max(0, 10 - profCount);
 
+  const [esStaff, setEsStaff] = useState(false);
+  useEffect(() => {
+    isStaff().then(setEsStaff).catch(() => setEsStaff(false));
+  }, []);
+
   // Edicion del perfil propio (RLS "users can update own profile").
   const [nombre, setNombre] = useState(a?.nombre || '');
   const [apellido, setApellido] = useState(a?.apellido || '');
@@ -2371,6 +2376,41 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
           </div>
         </FieldRow>
       </Section>
+
+      {esStaff && (
+        <Section title="Panel de Staff Mecha" desc="Acceso exclusivo para el equipo interno y fundadores de Mecha OS.">
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 16, padding: '16px 20px', borderRadius: 14,
+            background: 'linear-gradient(135deg, rgba(124,108,240,0.12), rgba(244,80,30,0.08))',
+            border: '1px solid rgba(124,108,240,0.3)', flexWrap: 'wrap',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 42, height: 42, borderRadius: 11,
+                background: 'linear-gradient(135deg, #7c6cf0, #f4501e)',
+                display: 'grid', placeItems: 'center', color: '#fff', fontSize: 20, flexShrink: 0,
+              }}>
+                🛡️
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>Panel de Control & Solicitudes Staff</div>
+                <div style={{ fontSize: 12.5, color: T.textSec, marginTop: 2 }}>
+                  Gestionar solicitudes, altas de salones, estado de cuentas y fichas del directorio público.
+                </div>
+              </div>
+            </div>
+            <Btn
+              variant="primary"
+              size="md"
+              icon="chevron-right"
+              onClick={() => { window.location.href = '/admin.html'; }}
+            >
+              Abrir Panel de Staff
+            </Btn>
+          </div>
+        </Section>
+      )}
 
       <Section title="Negocio" desc="El salon al que pertenece esta cuenta. El nombre del salon se edita en General.">
         <FieldRow label="Nombre del salon" hint="Se edita desde General > Datos del negocio.">

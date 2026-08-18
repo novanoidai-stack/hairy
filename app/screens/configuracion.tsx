@@ -10,7 +10,7 @@ import { useTheme } from '@/lib/theme';
 import { useThemeMode } from '@/lib/themeContext';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
-import { getUserProfile } from '@/lib/auth';
+import { getUserProfile, isStaff } from '@/lib/auth';
 import { Topbar, Card, Btn, Loading } from '@/components/ui/DesignComponents';
 import { TText, TTextInput } from '@/components/ui/TText';
 
@@ -39,6 +39,7 @@ export default function ConfiguracionScreen() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [loading, setLoading] = useState(true);
   const [negocioId, setNegocioId] = useState('');
+  const [esStaff, setEsStaff] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editando, setEditando] = useState<Servicio | null>(null);
@@ -48,6 +49,7 @@ export default function ConfiguracionScreen() {
   useEffect(() => { cargar(); }, []);
 
   async function cargar() {
+    isStaff().then(setEsStaff).catch(() => setEsStaff(false));
     const profile = await getUserProfile();
     if (!profile?.negocio_id) { setLoading(false); return; }
     setNegocioId(profile.negocio_id);
@@ -276,6 +278,27 @@ export default function ConfiguracionScreen() {
         <View style={s.section}>
           <TText style={[s.sectionTitle, { color: c.text }]}>Cuenta</TText>
           <Card>
+            {esStaff && Platform.OS === 'web' && (
+              <>
+                <TouchableOpacity
+                  style={s.settingRow}
+                  onPress={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/admin.html';
+                    }
+                  }}
+                >
+                  <View style={s.settingLeft}>
+                    <View style={[s.settingIcon, { backgroundColor: '#7c3aed22' }]}>
+                      <Ionicons name="shield-checkmark" size={18} color="#8b5cf6" />
+                    </View>
+                    <TText style={[s.settingLabel, { color: c.text, fontWeight: '700' }]}>Panel de Staff & Solicitudes</TText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={c.textTertiary} />
+                </TouchableOpacity>
+                <View style={[s.divider, { backgroundColor: c.border }]} />
+              </>
+            )}
             {Platform.OS === 'web' && (
               <>
                 <TouchableOpacity style={s.settingRow} onPress={volverAlSitioWeb}>
