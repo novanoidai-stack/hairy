@@ -132,14 +132,14 @@ export function GuardaSuscripcion() {
               style={s.btnSecondary}
               onPress={() => {
                 if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                  window.location.href = `mailto:soporte@mechaa.es?subject=${encodeURIComponent(
+                  window.location.href = `mailto:contacto@mechaa.es?subject=${encodeURIComponent(
                     'Activar suscripción Mecha OS - ' + (perfil.nombre_negocio || perfil.email)
                   )}&body=${encodeURIComponent('Hola equipo,\n\nQuiero activar el plan para mi salón.\n\nEmail: ' + perfil.email)}`;
                 }
               }}
             >
               <Ionicons name="mail" size={18} color={T.text} style={{ marginRight: 8 }} />
-              <Text style={s.btnSecondaryTx}>Contactar por correo (soporte@mechaa.es)</Text>
+              <Text style={s.btnSecondaryTx}>Contactar por correo (contacto@mechaa.es)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

@@ -105,7 +105,7 @@
     <p class="lead">En Mecha tratamos los datos de tu peluquería y de tus clientes con el mismo cuidado con el que tú los atiendes. Aquí te explicamos qué datos manejamos, para qué, y qué derechos tienes — en lenguaje claro.</p>
     <p class="legal-meta">Última actualización: junio de 2026</p>
     <div class="legal-disc">
-      <strong>Identidad fiscal pendiente.</strong> Los datos de identificación del responsable (razón social, NIF y domicilio) están <strong>pendientes de cumplimentar</strong> y se completarán antes del lanzamiento comercial. Para cualquier asunto relacionado con tus datos, el canal de contacto válido es <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>.
+      <strong>Identidad fiscal en tramitación.</strong> El titular responsable del tratamiento es <strong>Mecha OS Technologies, S.L.</strong> (en constitución). Para cualquier asunto relacionado con tus datos o ejercicio de derechos, el canal de contacto oficial es <a href="mailto:contacto@mechaa.es">contacto@mechaa.es</a> (o por WhatsApp al <strong>+34 690 79 29 75</strong>).
     </div>
   </header>
 
@@ -126,7 +126,7 @@
       <div class="k">Responsable del Servicio</div>
       <div class="v">Denominación social: <strong>Mecha OS Technologies, S.L.</strong> (en constitución).<br />
       NIF y Domicilio Social: <strong>Pendiente de inscripción mercantil definitiva</strong> (se publicarán e inscribirán antes del lanzamiento de la fase comercial de cobro).<br />
-      Correo electrónico de contacto: <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> · Teléfono de atención: <a href="tel:+34690792975">+34 690 792 975</a></div>
+      Correo electrónico de contacto: <a href="mailto:contacto@mechaa.es">contacto@mechaa.es</a> · Teléfono de atención: <a href="tel:+34690792975">+34 690 792 975</a></div>
     </div>
 
     <h3>Qué datos tratamos</h3>
@@ -178,7 +178,7 @@
   <section class="legal-sec" id="derechos">
     <span class="eyebrow">02 · Tus derechos</span>
     <h2>Tus derechos (RGPD)</h2>
-    <p>Tanto los propietarios de los salones como sus clientes finales pueden ejercer gratuitamente y en cualquier momento sus derechos de protección de datos dirigiéndose al correo electrónico <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> adjuntando una copia de su DNI o documento equivalente para acreditar su identidad:</p>
+    <p>Tanto los propietarios de los salones como sus clientes finales pueden ejercer gratuitamente y en cualquier momento sus derechos de protección de datos dirigiéndose al correo electrónico <a href="mailto:contacto@mechaa.es">contacto@mechaa.es</a> adjuntando una copia de su DNI o documento equivalente para acreditar su identidad:</p>
     <div class="rights-grid">
       <div class="right-card"><div class="rt">Acceso</div><div class="rd">Saber qué datos específicos tratamos y obtener un extracto en formato digital.</div></div>
       <div class="right-card"><div class="rt">Rectificación</div><div class="rd">Actualizar o corregir información errónea de la ficha del salón o cliente.</div></div>
@@ -194,7 +194,7 @@
     <p>En Mecha garantizamos de forma absoluta la efectividad del Derecho de Supresión. Hemos estructurado el procedimiento de eliminación física de la siguiente manera:</p>
     <ul>
       <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación por el Salón (Propietario):</strong> Desde el panel de configuración de la cuenta (Tu cuenta · Cambiar plan / Eliminar cuenta), el propietario del salón puede activar la baja del tenant. Este proceso ejecuta automáticamente un borrado en cascada en Supabase que purga: perfiles de profesionales, horarios de turnos, bloqueos de agenda, citas históricas y la base de datos local de clientes asociados a su `negocio_id`.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación por el Cliente Final:</strong> El cliente final del salón puede solicitar al responsable del salón o directamente a Mecha (enviando un email a <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>) el borrado de sus datos personales. Al confirmarse, Mecha eliminará el registro del cliente en la tabla `clientes`, lo que destruirá su nombre, teléfono, email, notas de profesional, fórmulas de color y las fotos almacenadas en el bucket `cliente-fotos` de Supabase Storage de manera permanente.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación por el Cliente Final:</strong> El cliente final del salón puede solicitar al responsable del salón o directamente a Mecha (enviando un email a <a href="mailto:contacto@mechaa.es">contacto@mechaa.es</a>) el borrado de sus datos personales. Al confirmarse, Mecha eliminará el registro del cliente en la tabla `clientes`, lo que destruirá su nombre, teléfono, email, notas de profesional, fórmulas de color y las fotos almacenadas en el bucket `cliente-fotos` de Supabase Storage de manera permanente.</span></li>
       <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación de fotos en Storage:</strong> Los archivos de imagen vinculados en la tabla `cliente_fotos` se purgan físicamente del backend de almacenamiento (Supabase Storage) tras la confirmación de la baja del cliente, sin posibilidad de recuperación.</span></li>
       <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Plazo de tramitación:</strong> Todas las solicitudes directas de eliminación de datos se completarán en un plazo máximo de 30 días a partir de la recepción de la solicitud de identidad confirmada, enviándose una confirmación por correo electrónico al solicitante.</span></li>
     </ul>
