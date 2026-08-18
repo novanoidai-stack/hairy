@@ -80,6 +80,7 @@ const TITULO: Record<string, string> = {
   reserva_llamada: 'Llamada agendada',
   mensaje: 'Mensaje desde la web',
   quiero_software: 'Quiere el software',
+  calculadora: 'Lead desde la calculadora de comisiones',
 };
 
 function correoParaNosotros(d: Record<string, string>): string {

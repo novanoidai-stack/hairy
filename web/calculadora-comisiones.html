@@ -237,6 +237,38 @@ a{text-decoration:none;color:inherit}
 @keyframes mPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.6}}
 @keyframes mAurora{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
+/* Reglas base del navbar (copiadas de index.html): sin ellas los enlaces de
+   [data-navlinks] se envuelven en varias líneas y la barra colapsa. */
+[data-navlinks]{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+[data-navlinks] a{
+  padding:6px 11px;
+  border-radius:999px;
+  transition:color .2s ease,background .2s ease;
+  white-space:nowrap;
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  font-size:13.5px;
+  font-weight:500;
+  color:var(--ink-2);
+  text-decoration:none;
+}
+[data-navlinks] a:hover{
+  color:var(--ink)!important;
+  background:var(--accent-soft);
+}
+[data-navlinks] a.active{
+  color:var(--accent)!important;
+  font-weight:700!important;
+  background:var(--accent-soft);
+}
+
 #navLogin{
   font-size:13.5px!important;
   font-weight:600!important;
@@ -1003,8 +1035,29 @@ $('leadForm').addEventListener('submit', async (e) => {
     msg.textContent = 'No se ha podido enviar. Escríbenos a contacto@mechaa.es o por WhatsApp al +34 690 79 29 75.';
     return;
   }
+
+  // Aviso por correo (edge notificar-solicitud): a NOSOTROS con los datos del
+  // lead y al cliente con la confirmación. Antes solo se insertaba la
+  // solicitud en la base y el mensaje de éxito prometía un correo que nunca
+  // se enviaba.
+  let confirmacion = false;
+  try {
+    const r = await api.client.functions.invoke('notificar-solicitud', {
+      body: {
+        tipo: 'calculadora',
+        nombre,
+        email,
+        salon: salon || null,
+        mensaje: `Lead desde la calculadora de comisiones. Cálculo: ${JSON.stringify(ultimoResultado ?? {})}`,
+      },
+    });
+    confirmacion = !!(r && r.data && r.data.confirmacion);
+  } catch (_e) { /* el lead ya está en la base; el correo es best-effort */ }
+
   msg.style.color = 'var(--ok)';
-  msg.textContent = `✓ Desglose y plantilla enviados a ${email}.`;
+  msg.textContent = confirmacion
+    ? `✓ Desglose y plantilla enviados a ${email}.`
+    : '✓ Recibido. Te enviaremos el desglose a tu correo en breve.';
   $('leadForm').reset();
 });
 
