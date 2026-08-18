@@ -79,6 +79,8 @@ export function CobroSheet(props: CobroSheetProps) {
   const [metodo, setMetodo] = useState<CobroMetodo>('efectivo');
   const [efectivoSplit, setEfectivoSplit] = useState(''); // parte en efectivo cuando metodo='mixto'
   const [descuento, setDescuento] = useState('');
+  // El descuento puede ser importe fijo (€) o porcentaje sobre lo pendiente.
+  const [descuentoTipo, setDescuentoTipo] = useState<'eur' | 'pct'>('eur');
   const [propina, setPropina] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [cobroCompletado, setCobroCompletado] = useState(false);
@@ -271,14 +273,24 @@ export function CobroSheet(props: CobroSheetProps) {
   const pendienteBaseCents = 'pendienteCents' in props ? props.pendienteCents : 0;
   const pendienteCents = pendienteBaseCents + lineasBaseCents;
   const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
-  const descuentoCents = Math.round(aEntero(descuento) * 100);
+  // Base sobre la que se aplica el descuento: con bono la cita la cubre el bono,
+  // asi que el % se calcula solo sobre los productos extra del ticket.
+  const baseDescuentoCents = usarBono ? lineasBaseCents : pendienteCents;
+  const descuentoCents =
+    descuentoTipo === 'pct'
+      ? Math.round((baseDescuentoCents * Math.min(100, aEntero(descuento))) / 100)
+      : Math.round(aEntero(descuento) * 100);
   const propinaCents = Math.round(aEntero(propina) * 100);
   // Saldo de tarjeta regalo aplicable al cobro (no puede exceder el neto antes de propina)
   const netoCents = Math.max(0, pendienteCents - descuentoCents);
   const trAplicadoCents = trUsarSaldo && trTarjeta
     ? Math.min(trTarjeta.saldo_actual_cents, netoCents)
     : 0;
-  const totalCents = usarBono ? propinaCents : (netoCents - trAplicadoCents) + propinaCents;
+  // Con bono: la cita la cubre el bono (0 €), pero los productos extra del
+  // ticket SI se cobran, menos el descuento aplicado, mas la propina.
+  const totalCents = usarBono
+    ? Math.max(0, lineasBaseCents - descuentoCents) + propinaCents
+    : (netoCents - trAplicadoCents) + propinaCents;
   // Split efectivo+datafono (solo cobro de 1 cita). El datafono es el resto: siempre cuadra.
   const puedeMixto = props.mode === 'cita' && props.citaIds.length === 1;
   const efectivoSplitCents = Math.min(Math.max(0, Math.round(aEntero(efectivoSplit) * 100)), totalCents);
@@ -346,10 +358,21 @@ export function CobroSheet(props: CobroSheetProps) {
         setCobroCompletado(true);
       } else {
         if (usarBono && bonoDisponible && props.citaIds.length === 1) {
+          // Productos extra del ticket: el bono cubre la cita, pero los
+          // productos (y su descuento) se cobran a parte dentro del mismo cobro.
+          const lineasExtraBono = lineas.map((l) => ({
+            nombre: l.nombre,
+            precio_cents: Math.round(aEntero(l.precio) * 100),
+            cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
+            ref_id: (l as any).ref_id,
+          }));
           const { data, error: rpcErr } = await supabase.rpc('consumir_bono_cita', {
             p_cita_id: props.citaIds[0],
             p_bono_id: bonoDisponible.id,
-            p_propina_cents: propinaCents
+            p_propina_cents: propinaCents,
+            p_lineas_extra: lineasExtraBono,
+            p_descuento_cents: descuentoCents,
+            p_metodo: metodo === 'mixto' ? 'efectivo' : metodo,
           });
           if (rpcErr) throw rpcErr;
           setUltimoCobroIds([data as string]);
@@ -689,10 +712,34 @@ export function CobroSheet(props: CobroSheetProps) {
                   <span style={{ fontSize: 12.5, color: T.success }}>incluida (no se vuelve a cobrar)</span>
                 </div>
               )}
+            </>
+          )}
+          {/* El descuento se muestra tambien con bono: aplica a los productos
+              extra del ticket (la cita la cubre el bono). */}
+          {(
+            <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                <label style={{ fontSize: 12.5, color: T.textSec }}>Descuento (€)</label>
-                <input type="text" inputMode="decimal" value={descuento} onChange={(e) => setDescuento(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+                <label style={{ fontSize: 12.5, color: T.textSec }}>Descuento</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setDescuentoTipo(descuentoTipo === 'eur' ? 'pct' : 'eur')}
+                    title={descuentoTipo === 'eur' ? 'Cambiar a porcentaje' : 'Cambiar a euros'}
+                    style={{ padding: '8px 10px', background: descuentoTipo === 'pct' ? T.primarySoft : T.bgCard, border: `1px solid ${descuentoTipo === 'pct' ? T.primary : T.border}`, borderRadius: 8, color: descuentoTipo === 'pct' ? T.primaryHi : T.textSec, fontSize: 13, fontWeight: 700, cursor: 'pointer', minWidth: 34 }}
+                  >
+                    {descuentoTipo === 'eur' ? '€' : '%'}
+                  </button>
+                  <input type="text" inputMode="decimal" value={descuento} onChange={(e) => setDescuento(e.target.value.replace(/[^0-9.,]/g, ''))} placeholder="0" style={{ width: 72, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+                </div>
               </div>
+              {descuentoCents > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: 11, color: T.textTer }}>
+                    −{(descuentoCents / 100).toFixed(2)} €{descuentoTipo === 'pct' ? ` (${descuento.replace(',', '.')}%)` : ''}
+                    {usarBono ? ' sobre los productos' : ''}
+                  </span>
+                </div>
+              )}
             </>
           )}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 }}>

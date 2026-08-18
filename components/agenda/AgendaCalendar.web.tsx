@@ -107,7 +107,10 @@ import {
   esCanceladaONoShow,
   esSinConfirmar48h,
 } from "@/lib/citasMetrics";
-import { isTimeSlotOccupied } from "@/lib/utils/appointment";
+import {
+  isTimeSlotOccupied,
+  citaSolapaOcupacion,
+} from "@/lib/utils/appointment";
 import { ESTADO_CITA_UI, metaEstadoCita } from "@/lib/citasEstadoUi";
 
 const ANIMATIONS = `
@@ -1612,6 +1615,24 @@ export default function AgendaCalendar() {
     [profesionales],
   );
 
+  // Profesionales de VACACIONES el dia seleccionado (bloqueo tipo 'vacaciones'
+  // que cubre el dia completo). Su columna no se pinta en la rejilla: arriba
+  // queda su avatar en gris para que se sepa que existen pero no trabajan, y
+  // la agenda se encoge al haber menos columnas.
+  const vacacionesHoySet = useMemo(() => {
+    const dayStart = new Date(selectedDateObj);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(selectedDateObj);
+    dayEnd.setHours(23, 59, 59, 999);
+    const set = new Set<string>();
+    for (const b of bloqueos as any[]) {
+      if (b?.tipo !== "vacaciones" || !b.profesional_id) continue;
+      if (new Date(b.inicio) <= dayEnd && new Date(b.fin) >= dayStart)
+        set.add(b.profesional_id);
+    }
+    return set;
+  }, [bloqueos, selectedDateObj]);
+
   // Tipos de bloqueo que de verdad aparecen en el dia seleccionado (bloqueos de
   // BD + salon cerrado + fuera de jornada + pausas virtuales). La leyenda de
   // la rejilla pinta solo estos: con los 8 tipos fijos la barra ensuciaba la
@@ -1836,9 +1857,76 @@ export default function AgendaCalendar() {
   }, [isMobile, visibleProfs, selectedProf]);
 
   const timelineProfs = useMemo(() => {
-    if (selectedProf === "todos") return visibleProfs;
-    return visibleProfs.filter((p) => p.id === selectedProf);
-  }, [visibleProfs, selectedProf]);
+    const base =
+      selectedProf === "todos"
+        ? visibleProfs
+        : visibleProfs.filter((p) => p.id === selectedProf);
+    // Los de vacaciones no llevan columna hoy.
+    return base.filter((p: any) => !vacacionesHoySet.has(p.id));
+  }, [visibleProfs, selectedProf, vacacionesHoySet]);
+
+  // Avatares de vacaciones para la fila superior de la rejilla (solo en "todos":
+  // si filtraste por una persona, la de vacaciones no pinta nada).
+  const profsVacacionesHoy = useMemo(
+    () =>
+      (selectedProf === "todos" ? visibleProfs : []).filter((p: any) =>
+        vacacionesHoySet.has(p.id),
+      ),
+    [visibleProfs, selectedProf, vacacionesHoySet],
+  );
+
+  // ── Orden de columnas con el raton ─────────────────────────────────────
+  // El orden elegido se guarda en localStorage por negocio y se reaplica al
+  // cargar. Se reordena el array completo (la rejilla puede estar paginada),
+  // respetando las posiciones de quienes no estan en la pagina visible.
+  const ORDEN_PROF_KEY = `agenda:ordenProf:${negocioId}`;
+  const aplicarOrdenGuardado = (lista: any[]) => {
+    try {
+      const saved: string[] = JSON.parse(
+        localStorage.getItem(ORDEN_PROF_KEY) || "[]",
+      );
+      if (!Array.isArray(saved) || saved.length < 2) return lista;
+      const rank = (id: string) => {
+        const i = saved.indexOf(id);
+        return i === -1 ? saved.length : i;
+      };
+      return [...lista].sort(
+        (a: any, b: any) => rank(a.id) - rank(b.id),
+      );
+    } catch {
+      return lista;
+    }
+  };
+  // Reaplicar el orden guardado cuando llega el catalogo (una sola pasada).
+  const [ordenAplicado, setOrdenAplicado] = useState(false);
+  useEffect(() => {
+    if (ordenAplicado || profesionales.length === 0) return;
+    setOrdenAplicado(true);
+    setProfesionales((prev) => aplicarOrdenGuardado(prev));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profesionales.length, ordenAplicado]);
+
+  const reorderProfs = (idsPagina: string[]) => {
+    setProfesionales((prev) => {
+      const map = new Map(prev.map((p: any) => [p.id, p]));
+      const pagina = idsPagina.filter((id) => map.has(id));
+      const enPagina = new Set(pagina);
+      let k = 0;
+      const result: any[] = [];
+      for (const p of prev) {
+        result.push(enPagina.has(p.id) ? map.get(pagina[k++]) : p);
+      }
+      try {
+        localStorage.setItem(
+          ORDEN_PROF_KEY,
+          JSON.stringify(result.map((p: any) => p.id)),
+        );
+      } catch {
+        /* localStorage no disponible */
+      }
+      return result;
+    });
+  };
 
   // Paginacion de columnas en la vista Dia: con "Todos" y muchos profesionales, las
   // columnas se aprietan. Se muestran de PROF_PAGE_SIZE en PROF_PAGE_SIZE con un pager.
@@ -4895,6 +4983,8 @@ export default function AgendaCalendar() {
                 <DayTimelineMemo
                   citas={filtered}
                   profesionales={pagedTimelineProfs}
+                  onReorderProfs={reorderProfs}
+                  profsVacaciones={profsVacacionesHoy}
                   servicios={servicios}
                   clientes={clientes}
                   servicioMap={servicioMap}
@@ -8809,6 +8899,10 @@ function DayTimeline({
   // Map cita_id -> propuesta de cambio pendiente (Fase 3). Pinta el badge
   // "Cambio propuesto HH:MM" en la cita original.
   propuestaPorCitaId = new Map(),
+  // Reordenar columnas arrastrando la cabecera con el raton.
+  onReorderProfs,
+  // Profesionales de vacaciones hoy: sin columna, pero con avatar inactivo arriba.
+  profsVacaciones = [],
 }: any) {
   const { isMobile, isTablet } = useResponsive();
   // Para recargar la rejilla cuando al soltar una cita descubrimos que el hueco
@@ -8843,6 +8937,19 @@ function DayTimeline({
   // este ancho la cita se deformaba (texto, precio, avatar se aplastaban). Con
   // 200px cabe cómodamente y el contenedor hace scroll lateral si hace falta.
   const MIN_COL_W = 200;
+  // ── Posicion manual de columnas ────────────────────────────────────────
+  // Cada cabecera lleva un numerito: escribes 1 y esa persona pasa a ser la
+  // primera columna. Sin drag&drop: mas directo y funciona tambien en tactil.
+  const fijarPosProf = (id: string, pos: number) => {
+    if (!onReorderProfs) return;
+    const ids: string[] = profesionales.map((p: any) => p.id);
+    const from = ids.indexOf(id);
+    if (from < 0) return;
+    const to = Math.max(0, Math.min(ids.length - 1, Math.round(pos) - 1));
+    if (to === from) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    onReorderProfs(ids);
+  };
   const START_H = HORARIO_APERTURA.horas;
   // Al abrir la agenda del dia de HOY, llevar la vista a la hora actual. Antes
   // arrancaba siempre en la hora de apertura: por la tarde el salon veia la
@@ -9710,9 +9817,103 @@ function DayTimeline({
           // oculto => las citas se aplastaban con muchos profesionales.
           overflowX: "auto",
           width: "100%",
+          // Con profesionales de vacaciones ocultos la agenda SE ENCOGE: no
+          // ocupa el ancho completo dejando columnas gigantes, sino el minimo
+          // de las columnas visibles + un pelin para la fila de avatares.
+          ...(profsVacaciones.length > 0
+            ? {
+                maxWidth: `${
+                  (profesionales.length || 1) * MIN_COL_W + 56 + 150
+                }px`,
+              }
+            : {}),
           WebkitOverflowScrolling: "touch",
         }}
       >
+        {/* Profesionales de vacaciones hoy: sin columna, pero visibles como
+            avatares inactivos para que se sepa que no trabajan. */}
+        {profsVacaciones.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+              padding: "8px 12px",
+              borderBottom: `1px dashed ${TOKENS.border}`,
+              background: "#fafaf8",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: TOKENS.textSec,
+                textTransform: "uppercase",
+                letterSpacing: 0.4,
+              }}
+            >
+              De vacaciones
+            </span>
+            {profsVacaciones.map((p: any) => (
+              <span
+                key={p.id}
+                title={`${p.nombre} — de vacaciones (sin columna hoy)`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "3px 10px 3px 4px",
+                  borderRadius: 99,
+                  background: "#f1efec",
+                  border: `1px solid ${TOKENS.border}`,
+                  opacity: 0.65,
+                }}
+              >
+                {p.foto_perfil ? (
+                  <img
+                    src={p.foto_perfil}
+                    alt={p.nombre}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
+                      objectFit: "cover",
+                      filter: "grayscale(1)",
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
+                      background: "#c9c4bd",
+                      color: "#fff",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {p.nombre.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: TOKENS.textSec,
+                    textDecoration: "line-through",
+                  }}
+                >
+                  {p.nombre.split(" ")[0]}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
         <div
           style={{
             // Ancho mínimo del lienzo: N columnas * MIN_COL_W + columna de
@@ -9737,9 +9938,10 @@ function DayTimeline({
                 background: "#ffffff",
               }}
             />
-            {profesionales.map((p: any) => (
+            {profesionales.map((p: any, idx: number) => (
               <div
                 key={p.id}
+                title={onReorderProfs ? `${p.nombre} — cambia el numerito para mover su posición` : p.nombre}
                 style={{
                   padding: "12px 14px",
                   borderLeft: `1px solid ${TOKENS.border}`,
@@ -9795,6 +9997,41 @@ function DayTimeline({
                     return parts[0];
                   })()}
                 </div>
+                {/* Posicion de la columna: escribe 1 y pasa a ser la primera. */}
+                {onReorderProfs && (
+                  <input
+                    key={`${p.id}:${idx}`}
+                    type="number"
+                    min={1}
+                    max={profesionales.length}
+                    defaultValue={idx + 1}
+                    title="Posición en la agenda (1 = primera columna)"
+                    onClick={(e) => e.stopPropagation()}
+                    onBlur={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v)) fijarPosProf(p.id, v);
+                      e.target.value = String(
+                        profesionales.findIndex((x: any) => x.id === p.id) + 1,
+                      );
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                    }}
+                    style={{
+                      width: 30,
+                      padding: "2px 2px",
+                      textAlign: "center",
+                      background: "#fafaf8",
+                      border: `1px solid ${TOKENS.border}`,
+                      borderRadius: 6,
+                      color: TOKENS.textSec,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      boxSizing: "border-box",
+                      cursor: "pointer",
+                    }}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -12055,29 +12292,28 @@ function NewCitaModal({
         // pintadas en dos columnas (ver CITA_STATUS_BLOQUEAN_SOLAPE).
         const { data: candidatas } = await supabase
           .from("citas")
-          .select("id, inicio, fin_activa, fin_espera, fin")
+          .select("id, profesional_id, inicio, fin_activa, fin_espera, fin")
           .eq("profesional_id", cita.profesional_id)
           .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
           .lt("inicio", cita.fin)
           .gt("fin", cita.inicio);
 
-        const solapadas = (candidatas || []).filter((c: any) => {
-          const ci = new Date(c.inicio);
-          const cfa = new Date(c.fin_activa);
-          const cfe = c.fin_espera ? new Date(c.fin_espera) : null;
-          const cf = new Date(c.fin);
-          if (ci < cFinActiva && cfa > cInicio) return true;
-          if (
-            cfe &&
-            cf.getTime() > cfe.getTime() &&
-            cfe < cFinActiva &&
-            cf > cInicio
-          )
-            return true;
-          return false;
-        });
+        // Las DOS fases activas de la cita nueva contra las DOS de cada cita ya
+        // puesta. Aqui habia una copia a mano de la regla que solo miraba la
+        // primera fase de la nueva y se saltaba la segunda regla entera cuando la
+        // otra cita no tenia fin_espera: por ahi entraban los solapes.
+        const solapa = citaSolapaOcupacion(
+          {
+            inicio: cInicio,
+            finActiva: cFinActiva,
+            finEspera: cFinEspera,
+            fin: cFin,
+          },
+          (candidatas || []) as any,
+          cita.profesional_id,
+        );
 
-        if (solapadas.length > 0) {
+        if (solapa) {
           const profName =
             profesionales.find((p: any) => p.id === cita.profesional_id)
               ?.nombre || "Profesional";
@@ -12089,13 +12325,16 @@ function NewCitaModal({
         }
 
         // Check intra-group overlap (same prof doing multiple services in chain)
-        const intraConflict = citasAGuardar.some((prev: any, j: number) => {
-          if (j >= i || prev.profesional_id !== cita.profesional_id)
-            return false;
-          const prevInicio = new Date(prev.inicio);
-          const prevFinActiva = new Date(prev.fin_activa);
-          return cInicio < prevFinActiva && cFinActiva > prevInicio;
-        });
+        const intraConflict = citaSolapaOcupacion(
+          {
+            inicio: cInicio,
+            finActiva: cFinActiva,
+            finEspera: cFinEspera,
+            fin: cFin,
+          },
+          citasAGuardar.slice(0, i) as any,
+          cita.profesional_id,
+        );
         if (intraConflict) {
           const profName =
             profesionales.find((p: any) => p.id === cita.profesional_id)
@@ -12194,16 +12433,21 @@ function NewCitaModal({
           // Solape activa-activa contra las citas que ocupan hueco en DB
           const { data: cand } = await supabase
             .from("citas")
-            .select("inicio, fin_activa, fin_espera, fin")
+            .select("id, profesional_id, inicio, fin_activa, fin_espera, fin")
             .eq("profesional_id", base.profesional_id)
             .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
             .lt("inicio", oFin.toISOString())
             .gt("fin", oInicio.toISOString());
-          const choca = (cand || []).some((c: any) => {
-            const ci = new Date(c.inicio);
-            const cfa = new Date(c.fin_activa);
-            return ci < oFinActiva && cfa > oInicio;
-          });
+          const choca = citaSolapaOcupacion(
+            {
+              inicio: oInicio,
+              finActiva: oFinActiva,
+              finEspera: oFinEspera,
+              fin: oFin,
+            },
+            (cand || []) as any,
+            base.profesional_id,
+          );
           if (choca) {
             omitidas.push(fechaTxt);
             continue;

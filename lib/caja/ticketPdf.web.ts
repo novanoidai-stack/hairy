@@ -164,6 +164,12 @@ export async function generarTicketPdf(data: TicketPdfData): Promise<Blob> {
     y += negrita ? 6 : 4.5;
   };
 
+  // Cobros con bono: la linea de servicio llega marcada "(Bono)" desde
+  // consumir_bono_cita. Se avisa explicitamente para que el cliente vea
+  // que el servicio lo cubria un bono y solo se cobran productos/propina.
+  const usaBono = data.lineas.some((li) => /\(bono\)/i.test(li.nombre || ''));
+  if (usaBono) fila('Servicio cubierto por bono', '0,00 EUR');
+
   if (data.descuentoCents > 0) fila('Descuento', `-${eur(data.descuentoCents)}`);
   if (data.propinaCents > 0) fila('Propina', eur(data.propinaCents));
 

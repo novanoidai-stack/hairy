@@ -460,6 +460,8 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
               );
               return (
                 <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 10, marginBottom: 14 }}>
+                  {(lineasPorCobro[selected.cobro_id] ?? []).some((l: any) => /\(bono\)/i.test(l.nombre || '')) &&
+                    fila('Servicio cubierto por bono', '0,00 €')}
                   {selected.descuento_cents > 0 && fila('Descuento', `-${eur(selected.descuento_cents)} €`)}
                   {selected.propina_cents > 0 && fila('Propina', `${eur(selected.propina_cents)} €`)}
                   {fila('Base imponible (orient.)', `${eur(baseConIva - cuota)} €`)}
