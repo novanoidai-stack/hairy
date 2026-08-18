@@ -22,6 +22,8 @@ export function AppointmentCard({ cita, top, height, onPress }: Props) {
   const { c } = useTheme();
   const bg = cita.color + '22';
   const border = cita.color;
+  const isCobrada = !!cita.cobrada;
+  const isCompletadaSinCobrar = !isCobrada && cita.estado === 'completada';
   const estadoColor = ESTADO_COLORS[cita.estado];
   const compact = height < 48;
 
@@ -39,7 +41,19 @@ export function AppointmentCard({ cita, top, height, onPress }: Props) {
       ]}
       activeOpacity={0.8}
     >
-      <View style={[s.estadoDot, { backgroundColor: estadoColor }]} />
+      <View style={{ position: 'absolute', top: 4, right: 4, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+        {isCobrada && (
+          <View style={{ backgroundColor: '#10b981', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 1 }}>
+            <TText style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>✓ €</TText>
+          </View>
+        )}
+        {isCompletadaSinCobrar && (
+          <View style={{ backgroundColor: '#f59e0b', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 1 }}>
+            <TText style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>⚠️</TText>
+          </View>
+        )}
+        <View style={[s.estadoDot, { backgroundColor: estadoColor }]} />
+      </View>
       <TText style={[s.cliente, { color: border }]} numberOfLines={1}>
         {cita.clienteNombre}
       </TText>

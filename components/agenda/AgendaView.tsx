@@ -25,6 +25,7 @@ export interface Cita {
   fin: Date;
   color: string;
   estado: 'confirmada' | 'completada' | 'cancelada' | 'no_presentada';
+  cobrada?: boolean | null;
 }
 
 export interface Profesional {

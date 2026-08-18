@@ -220,6 +220,8 @@ interface Cita {
   profesional_id: string;
   servicio_id?: string;
   cliente_id?: string;
+  cobrada?: boolean | null;
+  cobro_id?: string | null;
   profesionales?: { nombre: string; color: string };
   servicios?: { nombre: string };
   clientes?: { nombre: string };
@@ -1946,8 +1948,15 @@ export default function AgendaCalendar() {
         : citasHoy.filter((c) => c.profesional_id === selectedProf);
     if (filterServicio !== "todos")
       result = result.filter((c) => c.servicio_id === filterServicio);
-    if (filterEstado !== "todos")
+    if (filterEstado === "cobradas") {
+      result = result.filter((c) => !!c.cobrada);
+    } else if (filterEstado === "sin_cobrar") {
+      result = result.filter(
+        (c) => !c.cobrada && c.estado !== CITA_STATUS.CANCELADA,
+      );
+    } else if (filterEstado !== "todos") {
       result = result.filter((c) => c.estado === filterEstado);
+    }
     return result;
   }, [citasHoy, selectedProf, filterServicio, filterEstado]);
 
@@ -2659,9 +2668,13 @@ export default function AgendaCalendar() {
           <span style={{ flex: 1, textAlign: "left" }}>
             {filterEstado === "todos"
               ? "Estado"
-              : filterEstado === "no_presentada"
-                ? "No presentada"
-                : filterEstado.charAt(0).toUpperCase() + filterEstado.slice(1)}
+              : filterEstado === "cobradas"
+                ? "Cobradas"
+                : filterEstado === "sin_cobrar"
+                  ? "Pendientes de cobro"
+                  : filterEstado === "no_presentada"
+                    ? "No presentada"
+                    : filterEstado.charAt(0).toUpperCase() + filterEstado.slice(1)}
           </span>
           <svg
             width="12"
@@ -2689,9 +2702,24 @@ export default function AgendaCalendar() {
                 dot: TOKENS.textTer,
               },
               {
+                value: "cobradas",
+                label: "✓ Cobradas (Pagadas)",
+                dot: "#10b981",
+              },
+              {
+                value: "sin_cobrar",
+                label: "⚠️ Pendientes de cobro",
+                dot: "#f59e0b",
+              },
+              {
                 value: CITA_STATUS.CONFIRMADA,
                 label: "Confirmada",
                 dot: TOKENS.primaryHi,
+              },
+              {
+                value: CITA_STATUS.PENDIENTE,
+                label: "Pendiente",
+                dot: "#e08a00",
               },
               {
                 value: CITA_STATUS.COMPLETADA,
@@ -7088,6 +7116,8 @@ function areCardPropsEqual(
 ): boolean {
   if (prev.cita?.id !== next.cita?.id) return false;
   if (prev.cita?.estado !== next.cita?.estado) return false;
+  if (prev.cita?.cobrada !== next.cita?.cobrada) return false;
+  if (prev.cita?.cobro_id !== next.cita?.cobro_id) return false;
   if (prev.cita?.inicio !== next.cita?.inicio) return false;
   if (prev.cita?.fin !== next.cita?.fin) return false;
   if (prev.cita?._lane !== next.cita?._lane) return false;
@@ -7585,6 +7615,10 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
             cita.estado === CITA_STATUS.COMPLETADA;
           const esNoShow =
             cita.estado === CITA_STATUS.NO_PRESENTADA;
+          const isCobrada = !!cita.cobrada;
+          const isCompletadaSinCobrar =
+            !cancelada && !isCobrada && esCompletada;
+
           let icon: any = null;
           if (
             !cancelada &&
@@ -7769,6 +7803,42 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                     {timeStrCompact}
                   </span>
                   {chainBadge}
+                  {isCobrada && !cancelada && (
+                    <span
+                      title="Cita cobrada"
+                      style={{
+                        fontSize: 8.5,
+                        fontWeight: 900,
+                        background: "rgba(16,185,129,0.2)",
+                        border: "1px solid rgba(16,185,129,0.6)",
+                        color: "#059669",
+                        padding: "0 4px",
+                        borderRadius: 999,
+                        flexShrink: 0,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      ✓ €
+                    </span>
+                  )}
+                  {isCompletadaSinCobrar && (
+                    <span
+                      title="Cita completada pero pendiente de cobro"
+                      style={{
+                        fontSize: 8.5,
+                        fontWeight: 900,
+                        background: "rgba(245,158,11,0.22)",
+                        border: "1px solid rgba(245,158,11,0.7)",
+                        color: "#b45309",
+                        padding: "0 4px",
+                        borderRadius: 999,
+                        flexShrink: 0,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      ⚠️ Sin cobrar
+                    </span>
+                  )}
                   {stylistAvatar}
                   {icon}
                   <span
@@ -7875,6 +7945,48 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                     </span>
                   )}
                   {chainBadge}
+                  {isCobrada && !cancelada && (
+                    <span
+                      title="Cita cobrada"
+                      style={{
+                        fontSize: 8.5,
+                        fontWeight: 900,
+                        background: "rgba(16,185,129,0.18)",
+                        border: "1px solid rgba(16,185,129,0.55)",
+                        color: "#059669",
+                        padding: "1px 5px",
+                        borderRadius: 999,
+                        flexShrink: 0,
+                        lineHeight: 1.2,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 2,
+                      }}
+                    >
+                      ✓ €
+                    </span>
+                  )}
+                  {isCompletadaSinCobrar && (
+                    <span
+                      title="Cita completada pero pendiente de cobro"
+                      style={{
+                        fontSize: 8.5,
+                        fontWeight: 900,
+                        background: "rgba(245,158,11,0.2)",
+                        border: "1px solid rgba(245,158,11,0.65)",
+                        color: "#b45309",
+                        padding: "1px 5px",
+                        borderRadius: 999,
+                        flexShrink: 0,
+                        lineHeight: 1.2,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 2,
+                      }}
+                    >
+                      ⚠️ Sin cobrar
+                    </span>
+                  )}
                   {!superNarrow &&
                     height > 30 &&
                     stylistAvatar}
@@ -8031,6 +8143,76 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                     }}
                   >
                     {chainBadge}
+                    {isCobrada && !cancelada && (
+                      <span
+                        title="Cita cobrada"
+                        style={{
+                          fontSize: 9.5,
+                          fontWeight: 800,
+                          background: "rgba(16,185,129,0.16)",
+                          border: "1px solid rgba(16,185,129,0.45)",
+                          color: "#059669",
+                          padding: "1.5px 6px",
+                          borderRadius: 6,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3,
+                          flexShrink: 0,
+                          letterSpacing: 0.2,
+                          boxShadow: "0 1px 2px rgba(16,185,129,0.12)",
+                        }}
+                      >
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Cobrada
+                      </span>
+                    )}
+                    {isCompletadaSinCobrar && (
+                      <span
+                        title="Atención: Cita completada pero pendiente de cobro"
+                        style={{
+                          fontSize: 9.5,
+                          fontWeight: 800,
+                          background: "rgba(245,158,11,0.18)",
+                          border: "1px solid rgba(245,158,11,0.55)",
+                          color: "#b45309",
+                          padding: "1.5px 6px",
+                          borderRadius: 6,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3,
+                          flexShrink: 0,
+                          letterSpacing: 0.2,
+                          boxShadow: "0 1px 2px rgba(245,158,11,0.15)",
+                        }}
+                      >
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Sin cobrar
+                      </span>
+                    )}
                     {height > 30 && stylistAvatar}
                     {icon}
                   </div>
@@ -11291,6 +11473,46 @@ function DayListView({
                       {cli?.nombre ?? "Cliente"}
                     </span>
                     <CitaEstadoBadge estado={cita.estado} />
+                    {cita.cobrada && !cancelada && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.4,
+                          color: "#059669",
+                          background: "rgba(16,185,129,0.16)",
+                          border: "1px solid rgba(16,185,129,0.4)",
+                          padding: "2px 6px",
+                          borderRadius: 6,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3,
+                        }}
+                      >
+                        ✓ Cobrada
+                      </span>
+                    )}
+                    {!cita.cobrada && cita.estado === "completada" && !cancelada && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.4,
+                          color: "#b45309",
+                          background: "rgba(245,158,11,0.18)",
+                          border: "1px solid rgba(245,158,11,0.5)",
+                          padding: "2px 6px",
+                          borderRadius: 6,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3,
+                        }}
+                      >
+                        ⚠️ Sin cobrar
+                      </span>
+                    )}
                   </div>
                   <div
                     style={{
@@ -16755,10 +16977,40 @@ export function DetalleCitaModal({
   const [showChainForm, setShowChainForm] = useState(false);
   const [chainServicioId, setChainServicioId] = useState<string | null>(null);
   const [chainProfId, setChainProfId] = useState<string | null>(null);
+  const [chainServicioSearch, setChainServicioSearch] = useState("");
   const [chainGuardando, setChainGuardando] = useState(false);
   const [chainErr, setChainErr] = useState("");
   const [historial, setHistorial] = useState<any[]>([]);
   const [showHistorial, setShowHistorial] = useState(true);
+
+  // Agrupación de servicios por categoría con colores y filtro de búsqueda para encadenar
+  const gruposServicioEncadenar = useMemo(() => {
+    let baseList = servicios || [];
+    if (chainServicioSearch.trim()) {
+      const q = norm(chainServicioSearch);
+      baseList = baseList.filter((s: any) =>
+        norm(s?.nombre || "").includes(q),
+      );
+    }
+    const grupos = (categorias || [])
+      .map((cat: any) => ({
+        key: cat.id,
+        nombre: cat.nombre,
+        color: cat.color as string | null,
+        items: baseList.filter((s: any) => s.categoria_id === cat.id),
+      }))
+      .filter((g: any) => g.items.length > 0);
+    const sinCategoria = baseList.filter((s: any) => !s.categoria_id);
+    if (sinCategoria.length > 0) {
+      grupos.push({
+        key: "__sin_categoria__",
+        nombre: "Sin categoría",
+        color: null,
+        items: sinCategoria,
+      });
+    }
+    return grupos;
+  }, [servicios, categorias, chainServicioSearch]);
 
   useEffect(() => {
     supabase
@@ -19353,6 +19605,7 @@ export function DetalleCitaModal({
                             setShowChainForm(true);
                             setChainServicioId(null);
                             setChainProfId(null);
+                            setChainServicioSearch("");
                             setChainErr("");
                           }}
                           style={{
@@ -19428,7 +19681,10 @@ export function DetalleCitaModal({
                             </div>
                             <button
                               className="m-btn-icon"
-                              onClick={() => setShowChainForm(false)}
+                              onClick={() => {
+                                setShowChainForm(false);
+                                setChainServicioSearch("");
+                              }}
                               style={{
                                 background: "none",
                                 border: "none",
@@ -19442,7 +19698,7 @@ export function DetalleCitaModal({
                             </button>
                           </div>
 
-                          {/* Servicio */}
+                          {/* Servicio con Buscador y Categorías */}
                           <div>
                             <div
                               style={{
@@ -19455,45 +19711,240 @@ export function DetalleCitaModal({
                             >
                               Servicio
                             </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 5,
-                              }}
-                            >
-                              {servicios.map((s: any) => (
+
+                            {/* Buscador de servicios */}
+                            <div style={{ position: "relative", marginBottom: 8 }}>
+                              <input
+                                type="text"
+                                placeholder="Buscar servicio a encadenar..."
+                                value={chainServicioSearch}
+                                onChange={(e) =>
+                                  setChainServicioSearch(e.target.value)
+                                }
+                                style={{
+                                  width: "100%",
+                                  padding: "7px 10px 7px 28px",
+                                  background: TOKENS.bgCard,
+                                  border: `1px solid ${TOKENS.border}`,
+                                  borderRadius: 8,
+                                  color: TOKENS.text,
+                                  fontSize: 11.5,
+                                  boxSizing: "border-box",
+                                  outline: "none",
+                                  transition: "all 0.15s ease",
+                                }}
+                                onFocus={(e) => {
+                                  e.currentTarget.style.borderColor = "#e0340e";
+                                  e.currentTarget.style.boxShadow =
+                                    "0 0 0 2px rgba(244,80,30,0.15)";
+                                }}
+                                onBlur={(e) => {
+                                  e.currentTarget.style.borderColor =
+                                    TOKENS.border;
+                                  e.currentTarget.style.boxShadow = "none";
+                                }}
+                              />
+                              <svg
+                                width="13"
+                                height="13"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke={TOKENS.textTer}
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{
+                                  position: "absolute",
+                                  left: 9,
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                  pointerEvents: "none",
+                                }}
+                              >
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                              </svg>
+                              {chainServicioSearch && (
                                 <button
-                                  key={s.id}
-                                  className="m-chip"
-                                  onClick={() => {
-                                    setChainServicioId(s.id);
-                                    setChainErr("");
-                                  }}
+                                  type="button"
+                                  onClick={() => setChainServicioSearch("")}
                                   style={{
-                                    padding: "5px 10px",
-                                    borderRadius: 6,
-                                    fontSize: 11,
-                                    fontWeight: 600,
+                                    position: "absolute",
+                                    right: 6,
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    background: "none",
+                                    border: "none",
+                                    color: TOKENS.textTer,
                                     cursor: "pointer",
-                                    border:
-                                      chainServicioId === s.id
-                                        ? "1px solid #e0340e"
-                                        : `1px solid ${TOKENS.border}`,
-                                    background:
-                                      chainServicioId === s.id
-                                        ? "rgba(192,38,10,0.15)"
-                                        : TOKENS.bgCard,
-                                    color:
-                                      chainServicioId === s.id
-                                        ? "#e0340e"
-                                        : TOKENS.text,
-                                    transition: "all 0.15s",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    padding: "2px 4px",
                                   }}
                                 >
-                                  {s.nombre}
+                                  ✕
                                 </button>
-                              ))}
+                              )}
+                            </div>
+
+                            {/* Lista ordenada por categorías */}
+                            <div
+                              style={{
+                                maxHeight: 200,
+                                overflowY: "auto",
+                                paddingRight: 2,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 8,
+                              }}
+                            >
+                              {gruposServicioEncadenar.length === 0 ? (
+                                <div
+                                  style={{
+                                    fontSize: 11,
+                                    color: TOKENS.textTer,
+                                    textAlign: "center",
+                                    padding: "10px 0",
+                                    fontStyle: "italic",
+                                  }}
+                                >
+                                  No se encontraron servicios
+                                </div>
+                              ) : (
+                                gruposServicioEncadenar.map((grupo: any) => {
+                                  const gColor = grupo.color
+                                    ? categoryColorHex(grupo.color)
+                                    : "#e0340e";
+                                  return (
+                                    <div key={grupo.key}>
+                                      {!(
+                                        gruposServicioEncadenar.length === 1 &&
+                                        grupo.key === "__sin_categoria__"
+                                      ) && (
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 5,
+                                            marginBottom: 4,
+                                            fontSize: 9.5,
+                                            fontWeight: 700,
+                                            color: TOKENS.textTer,
+                                            textTransform: "uppercase",
+                                            letterSpacing: 0.5,
+                                          }}
+                                        >
+                                          <span
+                                            style={{
+                                              width: 6,
+                                              height: 6,
+                                              borderRadius: 99,
+                                              background: gColor || "#94a3b8",
+                                              flexShrink: 0,
+                                            }}
+                                          />
+                                          {grupo.nombre}
+                                        </div>
+                                      )}
+                                      <div
+                                        style={{
+                                          display: "grid",
+                                          gridTemplateColumns:
+                                            "repeat(auto-fill, minmax(130px, 1fr))",
+                                          gap: 5,
+                                        }}
+                                      >
+                                        {grupo.items.map((s: any) => {
+                                          const isSelected =
+                                            chainServicioId === s.id;
+                                          const durTotal =
+                                            (s.duracion_activa_min || 0) +
+                                            (s.duracion_espera_min || 0) +
+                                            (s.duracion_activa_extra_min || 0) ||
+                                            30;
+                                          return (
+                                            <button
+                                              key={s.id}
+                                              type="button"
+                                              className="m-chip"
+                                              onClick={() => {
+                                                setChainServicioId(
+                                                  isSelected ? null : s.id,
+                                                );
+                                                setChainErr("");
+                                              }}
+                                              style={{
+                                                padding: "6px 8px",
+                                                borderRadius: 7,
+                                                fontSize: 11,
+                                                fontWeight: 600,
+                                                cursor: "pointer",
+                                                textAlign: "left",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 2,
+                                                border: isSelected
+                                                  ? `1.5px solid ${gColor || "#e0340e"}`
+                                                  : `1px solid ${TOKENS.border}`,
+                                                background: isSelected
+                                                  ? `${gColor || "#e0340e"}18`
+                                                  : TOKENS.bgCard,
+                                                color: isSelected
+                                                  ? gColor || "#e0340e"
+                                                  : TOKENS.text,
+                                                borderLeft: `3px solid ${gColor || "#94a3b8"}`,
+                                                boxShadow: isSelected
+                                                  ? `0 2px 6px ${gColor || "#e0340e"}22`
+                                                  : "none",
+                                                transition: "all 0.15s ease",
+                                              }}
+                                            >
+                                              <span
+                                                style={{
+                                                  overflow: "hidden",
+                                                  textOverflow: "ellipsis",
+                                                  whiteSpace: "nowrap",
+                                                  width: "100%",
+                                                  fontWeight: isSelected
+                                                    ? 700
+                                                    : 600,
+                                                }}
+                                              >
+                                                {s.nombre}
+                                              </span>
+                                              <div
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  justifyContent:
+                                                    "space-between",
+                                                  fontSize: 9.5,
+                                                  color: isSelected
+                                                    ? gColor || "#e0340e"
+                                                    : TOKENS.textTer,
+                                                  fontWeight: 500,
+                                                }}
+                                              >
+                                                <span>{durTotal} min</span>
+                                                <span
+                                                  style={{
+                                                    fontWeight: 700,
+                                                    color: TOKENS.success,
+                                                  }}
+                                                >
+                                                  {s.precio != null
+                                                    ? `${s.precio}€`
+                                                    : ""}
+                                                </span>
+                                              </div>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              )}
                             </div>
                           </div>
 
@@ -22810,7 +23261,19 @@ function WeekView({
       if (selectedProf !== "todos" && c.profesional_id !== selectedProf) return;
       if (filterServicio !== "todos" && c.servicio_id !== filterServicio)
         return;
-      if (filterEstado !== "todos" && c.estado !== filterEstado) return;
+      if (filterEstado === "cobradas" && !c.cobrada) return;
+      if (
+        filterEstado === "sin_cobrar" &&
+        (c.cobrada || c.estado === "cancelada")
+      )
+        return;
+      if (
+        filterEstado !== "todos" &&
+        filterEstado !== "cobradas" &&
+        filterEstado !== "sin_cobrar" &&
+        c.estado !== filterEstado
+      )
+        return;
       map[cd].push(c);
     });
     return map;
@@ -23271,17 +23734,66 @@ function WeekView({
                               )}
                             </span>
                           </div>
-                          {done && (
-                            <span
-                              style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: 999,
-                                background: TOKENS.success,
-                                flexShrink: 0,
-                              }}
-                            />
-                          )}
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 3,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {c.cobrada && !cancel && (
+                              <span
+                                title="Cita cobrada"
+                                style={{
+                                  fontSize: 8,
+                                  fontWeight: 800,
+                                  background: "rgba(16,185,129,0.18)",
+                                  color: "#059669",
+                                  border: "1px solid rgba(16,185,129,0.45)",
+                                  padding: "1px 4px",
+                                  borderRadius: 4,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 2,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                ✓ Cobrada
+                              </span>
+                            )}
+                            {done && !c.cobrada && !cancel && (
+                              <span
+                                title="Completada sin cobrar"
+                                style={{
+                                  fontSize: 8,
+                                  fontWeight: 800,
+                                  background: "rgba(245,158,11,0.2)",
+                                  color: "#b45309",
+                                  border: "1px solid rgba(245,158,11,0.55)",
+                                  padding: "1px 4px",
+                                  borderRadius: 4,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 2,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                ⚠️ Sin cobrar
+                              </span>
+                            )}
+                            {done && c.cobrada && (
+                              <span
+                                style={{
+                                  width: 6,
+                                  height: 6,
+                                  borderRadius: 999,
+                                  background: TOKENS.success,
+                                  flexShrink: 0,
+                                }}
+                              />
+                            )}
+                          </div>
                         </div>
 
                         <div
@@ -23504,7 +24016,19 @@ function MonthView({
         return false;
       if (filterServicio !== "todos" && c.servicio_id !== filterServicio)
         return false;
-      if (filterEstado !== "todos" && c.estado !== filterEstado) return false;
+      if (filterEstado === "cobradas" && !c.cobrada) return false;
+      if (
+        filterEstado === "sin_cobrar" &&
+        (c.cobrada || c.estado === "cancelada")
+      )
+        return false;
+      if (
+        filterEstado !== "todos" &&
+        filterEstado !== "cobradas" &&
+        filterEstado !== "sin_cobrar" &&
+        c.estado !== filterEstado
+      )
+        return false;
       const d = new Date(c.inicio);
       return d.getMonth() === month && d.getFullYear() === year;
     });

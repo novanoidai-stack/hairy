@@ -130,7 +130,13 @@ function CitasCRMScreen() {
         else if (dateRange === 'mes') { start = startOfMonth(now); end = endOfMonth(now); }
         if (start && end) q = q.gte('inicio', start.toISOString()).lte('inicio', end.toISOString());
       }
-      if (statusFilter !== 'todos' && !soloSinConfirmar) q = q.eq('estado', statusFilter);
+      if (statusFilter === 'cobradas') {
+        q = q.eq('cobrada', true);
+      } else if (statusFilter === 'sin_cobrar') {
+        q = q.or('cobrada.is.null,cobrada.eq.false').neq('estado', 'cancelada');
+      } else if (statusFilter !== 'todos' && !soloSinConfirmar) {
+        q = q.eq('estado', statusFilter);
+      }
       if (profFilter !== 'todos') q = q.eq('profesional_id', profFilter);
       if (srvFilter !== 'todos') q = q.eq('servicio_id', srvFilter);
 
@@ -265,9 +271,11 @@ function CitasCRMScreen() {
             { value: 'mes', label: 'Este mes' }, { value: 'todo', label: 'Historico' },
           ]} />
         </div>
-        <div style={{ width: 170, flexShrink: 0 }}>
+        <div style={{ width: 180, flexShrink: 0 }}>
           <SSelect width="100%" value={statusFilter} onChange={setStatusFilter} options={[
             { value: 'todos', label: 'Todos los estados' },
+            { value: 'cobradas', label: '✓ Cobradas (Pagadas)' },
+            { value: 'sin_cobrar', label: '⚠️ Pendientes de cobro' },
             ...ESTADOS.map((e) => ({ value: e.value, label: e.label })),
           ]} />
         </div>
@@ -311,9 +319,17 @@ function CitasCRMScreen() {
               return (
                 <div key={c.id} onClick={() => setSelectedCita(c)}
                   style={{ background: T.bgPanel, border: `1px solid ${T.border}`, borderLeft: `4px solid ${colorServicio(c.servicio_id)}`, borderRadius: 12, padding: '12px 14px', cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <div style={{ fontWeight: 700, color: T.text, fontSize: 14 }}>{cli?.nombre || 'Anonimo'}</div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: em?.color, background: `${em?.color || T.textTer}22`, padding: '3px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{em?.label || c.estado}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: em?.color, background: `${em?.color || T.textTer}22`, padding: '3px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{em?.label || c.estado}</span>
+                      {c.cobrada && c.estado !== 'cancelada' && (
+                        <span style={{ fontSize: 10, fontWeight: 800, color: '#059669', background: 'rgba(16,185,129,0.16)', border: '1px solid rgba(16,185,129,0.4)', padding: '2px 6px', borderRadius: 6, textTransform: 'uppercase' }}>✓ Cobrada</span>
+                      )}
+                      {!c.cobrada && c.estado === 'completada' && (
+                        <span style={{ fontSize: 10, fontWeight: 800, color: '#b45309', background: 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.5)', padding: '2px 6px', borderRadius: 6, textTransform: 'uppercase' }}>⚠️ Sin cobrar</span>
+                      )}
+                    </div>
                   </div>
                   <div style={{ fontSize: 12.5, color: T.textSec, marginTop: 3 }}>{srv?.nombre || 'Sin servicio'}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12, color: T.textTer }}>
@@ -328,7 +344,7 @@ function CitasCRMScreen() {
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
             <thead>
               <tr style={{ borderBottom: `2px solid ${T.border}`, textAlign: 'left' }}>
-                {['Fecha / Hora', 'Cliente', 'Servicio', 'Profesional', 'Estado', 'Canal', 'Importe', 'Confirmada'].map((h) => (
+                {['Fecha / Hora', 'Cliente', 'Servicio', 'Profesional', 'Estado y Cobro', 'Canal', 'Importe', 'Confirmada'].map((h) => (
                   <th key={h} style={{ padding: '10px 8px', color: T.textSec, fontSize: 12.5, fontWeight: 700 }}>{h}</th>
                 ))}
               </tr>
@@ -368,7 +384,19 @@ function CitasCRMScreen() {
                       ) : '-'}
                     </td>
                     <td style={{ padding: '12px 8px', fontSize: 12.5 }}>
-                      <span style={{ color: em?.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4, padding: '4px 8px', background: `${em?.color || T.textTer}22`, borderRadius: 6 }}>{em?.label || c.estado}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                        <span style={{ color: em?.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4, padding: '4px 8px', background: `${em?.color || T.textTer}22`, borderRadius: 6 }}>{em?.label || c.estado}</span>
+                        {c.cobrada && c.estado !== 'cancelada' && (
+                          <span style={{ color: '#059669', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4, padding: '3px 6px', background: 'rgba(16,185,129,0.16)', border: '1px solid rgba(16,185,129,0.4)', borderRadius: 6, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            ✓ Cobrada
+                          </span>
+                        )}
+                        {!c.cobrada && c.estado === 'completada' && (
+                          <span style={{ color: '#b45309', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4, padding: '3px 6px', background: 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.5)', borderRadius: 6, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            ⚠️ Sin cobrar
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td style={{ padding: '12px 8px', fontSize: 12.5, color: T.textSec }}>{c.canal ? (CANAL_LABEL[c.canal] || c.canal) : '-'}</td>
                     <td style={{ padding: '12px 8px', fontSize: 13.5, color: T.text, fontWeight: 600 }}>
@@ -418,7 +446,7 @@ function CitasCRMScreen() {
                 <Fila k="Canal" v={c.canal ? (CANAL_LABEL[c.canal] || c.canal) : '-'} />
                 <Fila k="Confirmada por cliente" v={c.confirmada_cliente ? 'Si' : 'No'} />
                 <Fila k="Importe" v={c.importe_final != null ? eur(c.importe_final) : (srv?.precio ? eur(srv.precio) : '-')} />
-                <Fila k="Cobrada" v={c.cobrada ? 'Si' : 'No'} />
+                <Fila k="Cobrada" v={c.cobrada ? <span style={{ color: '#059669', fontWeight: 700 }}>✓ Sí (Cobrada)</span> : (c.estado === 'completada' ? <span style={{ color: '#b45309', fontWeight: 700 }}>⚠️ No (Pendiente de cobro)</span> : <span style={{ color: T.textTer }}>No</span>)} />
                 {cli?.telefono && <Fila k="Telefono" v={cli.telefono} />}
                 {c.notas && <Fila k="Notas" v={c.notas} />}
               </div>
