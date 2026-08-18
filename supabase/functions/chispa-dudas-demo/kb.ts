@@ -65,7 +65,7 @@ Tabs principales: Agenda (/(tabs)), Clientes (/(tabs)/clientes), Equipo (/(tabs)
 - Migración desde Booksy/Fresha: importación puntual de clientes e historial desde Excel exportado o foto de la agenda ("Migración Mágica", ~10 min). NO existe integración/sincronización continua con Booksy/Fresha, y las reseñas de esos marketplaces no son exportables (decirlo sin rodeos).
 
 ## 5. Cómo probar / acceder
-- Demo: mechaa.es → "Ver demo" (3 visitas gratis, cuenta demo con datos ficticios, tour guiado de 16 pasos + tutorial de configuración de 11 pasos, o explorar libre).
+- Demo: mechaa.es → "Ver demo" (3 visitas gratis, cuenta demo con datos ficticios). Tres recorridos guiados encadenados, 55 pasos en total (~6 min): 1) Los pilares — agenda, la cita entera por dentro (extras, encadenado, productos, cobro, estados), reposos, ficha de cliente y caja (20 pasos); 2) Todas las pantallas — citas, lista de espera, presupuestos, inventario, equipo y comisiones, fichajes, bandeja, campañas, reseñas, informes, IA y ayuda (18 pasos); 3) La configuración — las 17 pestañas de Ajustes (17 pasos). Se puede pausar, saltar pasos o explorar libre en cualquier momento.
 - Cuenta completa: crear cuenta gratis (1 mes sin tarjeta) o hablar con el equipo (reservar.html / WhatsApp +34 690 79 29 75) para activar el salón y dar de alta el equipo.
 
 ## 6. Landing y marketing (mechaa.es)

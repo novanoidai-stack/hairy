@@ -398,7 +398,7 @@ ${comentarios}`;
         ) : (
           <>
             {/* STATS POR SUBCATEGORIA — una columna: la barra llega hasta el numero, en la misma fila */}
-            <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: isMobile ? '16px 18px' : '18px 24px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div data-demo="resenas-categorias" style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: isMobile ? '16px 18px' : '18px 24px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: TOKENS.textSec }}>Valoración por categorías</div>
               {stats.map((s, i) => {
                 const isMecha = s.group === 'mecha';

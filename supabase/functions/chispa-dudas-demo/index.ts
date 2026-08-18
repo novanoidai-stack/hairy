@@ -245,8 +245,38 @@ export function emailHtml(duda: string, reply: string): string {
 </table>`;
 }
 
-export function emailLeadHtml(duda: string, reply: string, telefono: string): string {
-  const cleanDigits = telefono.replace(/[^0-9]/g, '');
+// Aviso al equipo. Se manda SIEMPRE que alguien pregunta desde la demo (no solo
+// cuando deja telefono): la duda es el lead. Muestra el canal de vuelta segun lo
+// que haya dejado —WhatsApp clicable, correo con mailto, o ninguno— y la
+// respuesta que ya le dio Chispa, para no repetirla ni contradecirla.
+export function emailLeadHtml(
+  duda: string,
+  reply: string,
+  contacto: { email: string | null; telefono: string | null },
+): string {
+  const cleanDigits = (contacto.telefono || '').replace(/[^0-9]/g, '');
+  const lineas: string[] = [];
+  if (contacto.telefono) {
+    lineas.push(
+      `<div style="font-size:12px;font-weight:bold;color:#25d366;margin-bottom:6px">WhatsApp / teléfono:</div>
+       <div style="font-size:16px;font-weight:bold;color:#ffffff;margin-bottom:14px">
+         <a href="https://wa.me/${cleanDigits}" style="color:#25d366;text-decoration:none" target="_blank" rel="noopener">${contacto.telefono}</a>
+       </div>`,
+    );
+  }
+  if (contacto.email) {
+    lineas.push(
+      `<div style="font-size:12px;font-weight:bold;color:#ff8a3d;margin-bottom:6px">Correo:</div>
+       <div style="font-size:16px;font-weight:bold;color:#ffffff;margin-bottom:14px">
+         <a href="mailto:${contacto.email}" style="color:#ff8a3d;text-decoration:none">${contacto.email}</a>
+       </div>`,
+    );
+  }
+  if (lineas.length === 0) {
+    lineas.push(
+      `<div style="font-size:13px;color:#8e9dbf;margin-bottom:14px">Sin datos de contacto: preguntó de forma anónima.</div>`,
+    );
+  }
   return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b0f1a;padding:28px 14px;font-family:Arial,sans-serif;color:#e8ecf3">
   <tr>
     <td align="center">
@@ -254,16 +284,13 @@ export function emailLeadHtml(duda: string, reply: string, telefono: string): st
         <tr>
           <td align="center" style="padding-bottom:18px">
             <span style="font:bold 24px Arial,sans-serif;color:#ffffff">Mecha<span style="color:#f4501e">.</span></span>
-            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff8a3d;margin-top:4px;font-weight:bold">Nuevo Lead · Demo Interactiva (WhatsApp)</div>
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff8a3d;margin-top:4px;font-weight:bold">Nueva duda desde la demo</div>
           </td>
         </tr>
         <tr>
           <td>
             <div style="background:#101626;border:1px solid rgba(244,80,30,0.32);border-radius:14px;padding:22px">
-              <div style="font-size:12px;font-weight:bold;color:#25d366;margin-bottom:8px">Teléfono / WhatsApp del interesado:</div>
-              <div style="font-size:16px;font-weight:bold;color:#ffffff;margin-bottom:16px">
-                <a href="https://wa.me/${cleanDigits}" style="color:#25d366;text-decoration:none" target="_blank" rel="noopener">${telefono}</a>
-              </div>
+              ${lineas.join('')}
               <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8e9dbf;margin-bottom:6px">Duda planteada:</div>
               <div style="color:#e8ecf3;font-size:14px;line-height:1.5;margin-bottom:16px">${formatMarkdownHtml(duda)}</div>
               <div style="height:1px;background:rgba(255,255,255,0.1);margin:0 0 16px 0"></div>
@@ -422,8 +449,16 @@ export async function handler(req: Request): Promise<Response> {
       }
     }
 
-    // 2.b) Si el usuario proporcionó un teléfono / WhatsApp, notificar al equipo de Mecha como lead
-    if (parsed.telefono && user && pass) {
+    // 2.b) Aviso al equipo: SIEMPRE que alguien pregunta desde la demo, deje el
+    // contacto que deje (o ninguno). Antes solo salia si habia telefono, asi que
+    // las dudas con correo —o sin contacto— no llegaban a nadie: la duda ES el
+    // lead y no puede depender del canal que elija el visitante.
+    if (user && pass) {
+      const quien = parsed.telefono
+        ? parsed.telefono
+        : (parsed.email || 'sin contacto');
+      // Asunto con un trozo de la duda: se tria la bandeja de un vistazo.
+      const resumen = duda.replace(/\s+/g, ' ').slice(0, 60) + (duda.length > 60 ? '…' : '');
       try {
         const leadSmtp = new SMTPClient({
           connection: {
@@ -439,16 +474,19 @@ export async function handler(req: Request): Promise<Response> {
 
         await leadSmtp.send({
           from: fromHeader,
-          replyTo: supportEmail,
+          // Responder al correo del interesado si lo dejo; si no, al buzon del equipo.
+          replyTo: parsed.email || supportEmail,
           to: supportEmail,
-          subject: `[Lead Demo] Nueva duda de WhatsApp: ${parsed.telefono}`,
-          html: emailLeadHtml(duda, reply, parsed.telefono),
+          subject: `[Demo] Duda de ${quien}: ${resumen}`,
+          html: emailLeadHtml(duda, reply, { email: parsed.email, telefono: parsed.telefono }),
         });
 
         await leadSmtp.close();
       } catch (leadErr) {
         console.error('Lead notification SMTP error:', leadErr);
       }
+    } else {
+      console.warn('Aviso al equipo NO enviado: faltan credenciales SMTP.');
     }
   }
 

@@ -14,7 +14,7 @@ export async function runTier4Tests(recordResult) {
   // ==========================================
   // REAL-WORLD WORKLOAD 1: COMPLETE SALON OWNER ONBOARDING JOURNEY
   // ==========================================
-  await recordResult('T4.1', 'Workload 1: Complete Salon Owner Journey across Landing, Auth, 3 Tracks (15 Screens + 10 Configs), and Doubt Modal', async () => {
+  await recordResult('T4.1', 'Workload 1: Complete Salon Owner Journey across Landing, Auth, 3 Tracks (20 + 18 + 17 pasos), and Doubt Modal', async () => {
     // -------------------------------------------------------------
     // STAGE 1: LANDING PAGE ARRIVAL & DEMO CONVERSION
     // -------------------------------------------------------------

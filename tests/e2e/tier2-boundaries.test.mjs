@@ -134,8 +134,12 @@ export async function runTier2Tests(recordResult) {
   });
 
   // T2.R2.5: Missing Brand Mark SVG Fallback
-  await recordResult('T2.R2.5', 'R2-Boundary: Missing brand SVG resource does not break intro card layout', async () => {
-    assert.ok(demoHtml.includes('dm-intro-card'), 'Intro card must be a self-contained layout container');
+  // La intro ya no es una tarjeta: es una pantalla negra a sangre (`dm-intro-in`
+  // dentro de `dm-intro`). Lo que se comprueba es que siga habiendo un
+  // contenedor propio para el contenido y que el fondo negro no dependa del SVG.
+  await recordResult('T2.R2.5', 'R2-Boundary: Missing brand SVG resource does not break intro layout', async () => {
+    assert.ok(demoHtml.includes('dm-intro-in'), 'Intro must keep a self-contained layout container');
+    assert.ok(/\.dm-intro\{[^}]*background:#000/.test(demoHtml), 'Intro background must be pitch black by CSS, not by asset');
   });
 
   // ==========================================

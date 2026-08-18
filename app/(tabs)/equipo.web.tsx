@@ -680,7 +680,7 @@ export default function EquipoWeb() {
           las dos ultimas: son datos de todo el centro. */}
       {(!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar')) && (
         <div style={{ padding: isMobile ? '12px 16px 0' : '16px 32px 0' }}>
-          <div style={{ display: 'inline-flex', background: TOKENS.bg, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap', gap: 2 }}>
+          <div data-demo="equipo-vistas" style={{ display: 'inline-flex', background: TOKENS.bg, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap', gap: 2 }}>
             {([
               { value: 'fichas', label: 'Fichas' },
               { value: 'rendimiento', label: 'Rendimiento' },
@@ -688,6 +688,7 @@ export default function EquipoWeb() {
             ] as const).map((o) => (
               <button
                 key={o.value}
+                data-demo-abrir={o.value === 'rendimiento' ? 'equipo-comisiones' : undefined}
                 onClick={() => { setVistaEquipo(o.value); if (o.value !== 'fichas') setSelected(null); }}
                 style={{
                   padding: isMobile ? '8px 14px' : '7px 14px',
@@ -726,7 +727,9 @@ export default function EquipoWeb() {
             enseña lo tuyo. Todo lo del equipo se gestiona desde aqui. */}
         {vistaEquipo !== 'fichas' && (
           <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 96px' : 24, height: '100%' }}>
-            {vistaEquipo === 'rendimiento' && <RendimientoEquipo isMobile={isMobile} />}
+            {vistaEquipo === 'rendimiento' && (
+              <div data-demo="equipo-comisiones"><RendimientoEquipo isMobile={isMobile} /></div>
+            )}
             {vistaEquipo === 'horario' && (
               <>
                 <div style={{ fontSize: 12.5, color: TOKENS.textSec, lineHeight: 1.55, marginBottom: 14, maxWidth: 760 }}>
@@ -750,7 +753,7 @@ export default function EquipoWeb() {
 
         {vistaEquipo === 'fichas' && !(profSel && selected) && (
         <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 96px' : 24, height: '100%' }}>
-          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'), gap: isMobile ? 12 : 16 }}>
+          <div data-demo="equipo-fichas" onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'), gap: isMobile ? 12 : 16 }}>
             {profesionales.map((p, idx) => {
               const isSel = p.id === selected;
               return (

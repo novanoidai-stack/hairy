@@ -11877,11 +11877,14 @@ function NewCitaModal({
   // modal escucha las sub-acciones (cita-cliente / cita-servicio / cita-hora /
   // cita-reposo), auto-selecciona valores de ejemplo y marca la zona a iluminar.
   const [demoZone, setDemoZone] = useState<
-    "cliente" | "servicio" | "hora" | "reposo" | null
+    "cliente" | "servicio" | "hora" | "reposo" | "addons" | "encadenar" | null
   >(null);
   const clienteZoneRef = useRef<HTMLElement | null>(null);
   const servicioZoneRef = useRef<HTMLElement | null>(null);
   const horaZoneRef = useRef<HTMLElement | null>(null);
+  // Extras (add-ons) y encadenado: el recorrido los explica como pasos propios.
+  const addonsZoneRef = useRef<HTMLElement | null>(null);
+  const encadenarZoneRef = useRef<HTMLElement | null>(null);
   const pendingDemoRef = useRef<string | null>(null);
   const dataRef = useRef<{
     clientes: any[];
@@ -11921,32 +11924,60 @@ function NewCitaModal({
     setTimeout(tryPick, 220);
   };
 
+  // Servicio que enseña la demo: el de mayor precio del catalogo. En un salon
+  // real es el servicio estrella (color/mechas), el que tiene extras y tiempo de
+  // reposo, asi que el recorrido cuenta la historia completa. Coger servicios[0]
+  // dejaba una barba de 12 EUR con un solo extra y sin reposo.
+  const servicioDemo = (servicios: any[]): any =>
+    servicios.reduce(
+      (mejor: any, s: any) =>
+        !mejor || Number(s?.precio ?? 0) > Number(mejor?.precio ?? 0) ? s : mejor,
+      null,
+    );
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const applyZone = (action: string) => {
       const d = dataRef.current;
+      const srv = servicioDemo(d.servicios);
       if (action === "cita-cliente") {
         if (d.clientes[0]) setSelectedCliente(d.clientes[0].id);
         setDemoZone("cliente");
       } else if (action === "cita-servicio") {
         if (d.clientes[0])
           setSelectedCliente((p: any) => p || d.clientes[0].id);
-        if (d.servicios[0]) setSelectedServicio(d.servicios[0].id);
+        if (srv) setSelectedServicio(srv.id);
         setDemoZone("servicio");
       } else if (action === "cita-hora") {
-        if (d.servicios[0])
-          setSelectedServicio((p: any) => p || d.servicios[0].id);
+        if (srv) setSelectedServicio((p: any) => p || srv.id);
         if (d.profesionales[0])
           setSelectedProf((p: string) => p || d.profesionales[0].id);
         setDemoZone("hora");
         pickDemoSlot("hora");
       } else if (action === "cita-reposo") {
-        if (d.servicios[0])
-          setSelectedServicio((p: any) => p || d.servicios[0].id);
+        if (srv) setSelectedServicio((p: any) => p || srv.id);
         if (d.profesionales[0])
           setSelectedProf((p: string) => p || d.profesionales[0].id);
         setDemoZone("reposo");
         pickDemoSlot("reposo");
+      } else if (action === "cita-addons") {
+        // Los extras solo se pintan con un servicio elegido: lo aseguramos.
+        if (d.clientes[0])
+          setSelectedCliente((p: any) => p || d.clientes[0].id);
+        if (srv) setSelectedServicio((p: any) => p || srv.id);
+        if (d.profesionales[0])
+          setSelectedProf((p: string) => p || d.profesionales[0].id);
+        setDemoZone("addons");
+      } else if (action === "cita-encadenar") {
+        // "+ Encadenar otro" solo aparece con el formulario completo (cliente,
+        // servicio, profesional y hora), asi que rellenamos todo y elegimos hueco.
+        if (d.clientes[0])
+          setSelectedCliente((p: any) => p || d.clientes[0].id);
+        if (srv) setSelectedServicio((p: any) => p || srv.id);
+        if (d.profesionales[0])
+          setSelectedProf((p: string) => p || d.profesionales[0].id);
+        pickDemoSlot("hora");
+        setDemoZone("encadenar");
       } else if (action === "cerrar") {
         setDemoZone(null);
       }
@@ -11976,19 +12007,38 @@ function NewCitaModal({
     }
   }, [clientes, servicios, profesionales]);
 
+  // Mapa unico zona -> ref (lo usan el scroll y el spotlight).
+  const demoZoneRefs: Record<string, { current: HTMLElement | null }> = {
+    cliente: clienteZoneRef,
+    servicio: servicioZoneRef,
+    hora: horaZoneRef,
+    reposo: horaZoneRef,
+    addons: addonsZoneRef,
+    encadenar: encadenarZoneRef,
+  };
+
   // Centra la zona enfocada dentro del modal para que el spotlight la recorte bien.
+  // Reintenta unos frames: zonas como los extras o "+ Encadenar otro" aparecen
+  // justo despues de que el paso rellene el formulario, no en el mismo tick.
   useEffect(() => {
     if (!demoZone) return;
-    const ref =
-      demoZone === "cliente"
-        ? clienteZoneRef
-        : demoZone === "servicio"
-          ? servicioZoneRef
-          : horaZoneRef;
-    const el = ref.current;
-    if (el && typeof el.scrollIntoView === "function") {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    const ref = demoZoneRefs[demoZone] || horaZoneRef;
+    let tries = 0;
+    let raf = 0;
+    const intentar = () => {
+      const el = ref.current;
+      if (el && el.getBoundingClientRect().height > 0) {
+        if (typeof el.scrollIntoView === "function")
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      // Hasta ~4 s: "+ Encadenar otro" solo aparece con el formulario completo,
+      // y la hora se elige sola tras unos reintentos.
+      if (tries++ < 240) raf = requestAnimationFrame(intentar);
+    };
+    intentar();
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoZone]);
 
 
@@ -12961,12 +13011,7 @@ function NewCitaModal({
     );
 
   const clienteSeleccionado = clientes.find((c) => c.id === selectedCliente);
-  const demoZoneRef =
-    demoZone === "cliente"
-      ? clienteZoneRef
-      : demoZone === "servicio"
-        ? servicioZoneRef
-        : horaZoneRef;
+  const demoZoneRef = (demoZone && demoZoneRefs[demoZone]) || horaZoneRef;
   const demoZoneLabel =
     demoZone === "cliente"
       ? "Elige cliente"
@@ -12976,7 +13021,11 @@ function NewCitaModal({
           ? "Elige la hora"
           : demoZone === "reposo"
             ? "Tiempos muertos"
-            : "";
+            : demoZone === "addons"
+              ? "Extras del servicio"
+              : demoZone === "encadenar"
+                ? "Encadenar otro servicio"
+                : "";
 
   const isMobileOrTablet = isMobile || isTablet;
 
@@ -14435,7 +14484,12 @@ function NewCitaModal({
 
           {/* Add-ons opcionales (5.6) */}
           {selectedServicio && addonsDisponibles.length > 0 && (
-            <div style={{ marginBottom: 14 }}>
+            <div
+              ref={(el) => {
+                addonsZoneRef.current = el as HTMLElement | null;
+              }}
+              style={{ marginBottom: 14 }}
+            >
               <div
                 style={{
                   fontSize: 11,
@@ -15892,6 +15946,9 @@ function NewCitaModal({
               </button>
               {puedeEncadenar && (
                 <button
+                  ref={(el) => {
+                    encadenarZoneRef.current = el as HTMLElement | null;
+                  }}
                   onClick={handleEncadenarServicio}
                   style={{
                     padding: "9px 18px",
@@ -17931,6 +17988,18 @@ export function DetalleCitaModal({
   const dSeqRepRef = useRef<HTMLDivElement | null>(null);
   const dSeqAct2Ref = useRef<HTMLDivElement | null>(null);
   const dFormRef = useRef<HTMLElement | null>(null);
+  // Zonas "de seccion completa" (resumen, notas, productos, pagos, historial):
+  // no tienen un bloque suelto al que apuntar, asi que el foco va al primer
+  // bloque real del cuerpo de la seccion, que se resuelve al montarse.
+  const dBodyRef = useRef<HTMLDivElement | null>(null);
+  const dSeccionRef = useRef<HTMLElement | null>(null);
+  // Solo las secciones que EXISTEN en el rail (ver RAIL_ITEMS): productos,
+  // pagos e historial. No hay seccion "resumen" ni "notas" sueltas.
+  const ZONAS_SECCION: Record<string, SeccionCita> = {
+    productos: "productos",
+    pagos: "pagos",
+    historial: "historial",
+  };
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onDemo = (e: Event) => {
@@ -17948,14 +18017,38 @@ export function DetalleCitaModal({
         "secuencia-reposo": "servicio",
         "secuencia-activo2": "servicio",
         formula: "color",
+        ...ZONAS_SECCION,
       };
       if (seccionPorZona[zone]) setSeccionActiva(seccionPorZona[zone]);
       if (zone === "formula") setShowFormula(true);
+      if (ZONAS_SECCION[zone]) dSeccionRef.current = null;
       setDemoZone(zone);
     };
     window.addEventListener("mecha-demo", onDemo);
     return () => window.removeEventListener("mecha-demo", onDemo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Resuelve el objetivo de las zonas de seccion completa: el primer hijo real
+  // del cuerpo, en cuanto tenga altura (la seccion acaba de montarse).
+  useEffect(() => {
+    if (!demoZone || !ZONAS_SECCION[demoZone]) return;
+    let tries = 0;
+    let raf = 0;
+    const pick = () => {
+      const root = dBodyRef.current;
+      const first = root?.firstElementChild as HTMLElement | null;
+      if (first && first.getBoundingClientRect().height > 0) {
+        dSeccionRef.current = first;
+        return;
+      }
+      if (tries++ < 40) raf = requestAnimationFrame(pick);
+      else dSeccionRef.current = root;
+    };
+    pick();
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoZone, seccionActiva]);
   useEffect(() => {
     if (!demoZone) return;
     const m: Record<string, { current: HTMLElement | null }> = {
@@ -17967,10 +18060,25 @@ export function DetalleCitaModal({
       "secuencia-reposo": dSeqRepRef,
       "secuencia-activo2": dSeqAct2Ref,
       formula: dFormRef,
+      productos: dSeccionRef,
+      pagos: dSeccionRef,
+      historial: dSeccionRef,
     };
-    const el = m[demoZone]?.current;
-    if (el && typeof el.scrollIntoView === "function")
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Reintenta: la seccion recien activada tarda un frame en montarse.
+    let tries = 0;
+    let raf = 0;
+    const intentar = () => {
+      const el = m[demoZone]?.current;
+      if (el && el.getBoundingClientRect().height > 0) {
+        if (typeof el.scrollIntoView === "function")
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      if (tries++ < 40) raf = requestAnimationFrame(intentar);
+    };
+    intentar();
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoZone]);
   const demoRefMap: Record<string, { current: HTMLElement | null }> = {
     cliente: dCliRef,
@@ -17981,6 +18089,9 @@ export function DetalleCitaModal({
     "secuencia-reposo": dSeqRepRef,
     "secuencia-activo2": dSeqAct2Ref,
     formula: dFormRef,
+    productos: dSeccionRef,
+    pagos: dSeccionRef,
+    historial: dSeccionRef,
   };
   const demoActiveRef = (demoZone && demoRefMap[demoZone]) || dSeqRef;
   const demoLabel =
@@ -18000,7 +18111,13 @@ export function DetalleCitaModal({
                   ? "3 · Segundo tiempo activo (acabado)"
                   : demoZone === "formula"
                     ? "Fórmula guardada"
-                    : "";
+                    : demoZone === "productos"
+                      ? "Productos vendidos"
+                      : demoZone === "pagos"
+                        ? "Cobro desde la cita"
+                        : demoZone === "historial"
+                          ? "Historial del cliente"
+                          : "";
 
   const isMobileOrTablet = isMobile || isTablet;
 
@@ -18648,6 +18765,7 @@ export function DetalleCitaModal({
               </div>
             )}
             <div
+              ref={dBodyRef}
               style={{
                 flex: 1,
                 minWidth: 0,

@@ -245,7 +245,7 @@ function CitasCRMScreen() {
       )}
 
       {/* Resumen */}
-      <div style={{ display: 'flex', gap: isMobile ? 8 : 12, padding: isMobile ? '12px 16px' : '14px 32px', background: T.bg, flexShrink: 0, overflowX: 'auto' }}>
+      <div data-demo="citas-stats" style={{ display: 'flex', gap: isMobile ? 8 : 12, padding: isMobile ? '12px 16px' : '14px 32px', background: T.bg, flexShrink: 0, overflowX: 'auto' }}>
         {[
           { label: 'Citas', value: String(stats.total), color: T.text },
           { label: 'Confirmadas', value: String(stats.confirmadas), color: T.success },
@@ -261,7 +261,7 @@ function CitasCRMScreen() {
       </div>
 
       {/* Filtros */}
-      <div style={{ position: 'relative', zIndex: 10, padding: isMobile ? '0 16px 12px' : '0 32px 14px', background: T.bg, display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, overflowX: isMobile ? 'auto' : 'visible', flexWrap: isMobile ? 'nowrap' : 'wrap' }}>
+      <div data-demo="citas-filtros" style={{ position: 'relative', zIndex: 10, padding: isMobile ? '0 16px 12px' : '0 32px 14px', background: T.bg, display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, overflowX: isMobile ? 'auto' : 'visible', flexWrap: isMobile ? 'nowrap' : 'wrap' }}>
         <div style={{ minWidth: 200, flex: isMobile ? '0 0 auto' : '1 1 200px', maxWidth: 280 }}>
           <STextInput value={search} onChange={setSearch} placeholder="Buscar cliente, telefono o servicio..." />
         </div>
@@ -293,6 +293,7 @@ function CitasCRMScreen() {
         </div>
         <button
           className="btn-interactive"
+          data-demo="citas-sinconfirmar"
           onClick={() => setSoloSinConfirmar((v) => !v)}
           title="Citas de las proximas 48h confirmadas por el salon pero sin respuesta del cliente (mismo criterio que la campana de avisos y la agenda)"
           style={{ flexShrink: 0, padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',

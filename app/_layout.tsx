@@ -18,6 +18,7 @@ import { GuardaSuscripcion } from '@/components/acceso/GuardaSuscripcion';
 import { instalarCazadorDeErrores } from '@/lib/reportarError';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
+import { DemoZonaGlobal } from '@/components/ui/DemoZonaGlobal';
 import { ProximaAccionLauncher } from '@/components/chispa/ProximaAccionLauncher';
 import { CoachLauncher } from '@/components/chispa/CoachLauncher';
 import { TourLauncher } from '@/components/chispa/TourLauncher';
@@ -335,6 +336,15 @@ export default function RootLayout() {
   // sin acoplarse al puente. Solo aceptamos mensajes del mismo origen.
   useEffect(() => {
     if (!isWeb || typeof window === 'undefined') return;
+    // La pantalla destino puede tardar en montarse (pantallas grandes como
+    // Configuracion, o datos por red). Si la accion llega antes de que exista su
+    // escucha, se pierde y el paso se queda sin foco. Por eso la repetimos un
+    // par de veces: todas las acciones de la demo son idempotentes.
+    const reenvios: ReturnType<typeof setTimeout>[] = [];
+    let ultima = '';
+    const emitir = (accion: string) => {
+      window.dispatchEvent(new CustomEvent('mecha-demo', { detail: { action: accion } }));
+    };
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       const data = e.data as { type?: string; route?: string; action?: string } | null;
@@ -342,11 +352,22 @@ export default function RootLayout() {
       if (data.type === 'mecha-nav' && typeof data.route === 'string') {
         router.push(data.route as never);
       } else if (data.type === 'mecha-demo' && typeof data.action === 'string') {
-        window.dispatchEvent(new CustomEvent('mecha-demo', { detail: { action: data.action } }));
+        const accion = data.action;
+        ultima = accion;
+        while (reenvios.length) clearTimeout(reenvios.pop()!);
+        emitir(accion);
+        if (accion !== 'cerrar') {
+          [900, 2000, 3400].forEach((ms) => {
+            reenvios.push(setTimeout(() => { if (ultima === accion) emitir(accion); }, ms));
+          });
+        }
       }
     };
     window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
+    return () => {
+      window.removeEventListener('message', onMessage);
+      while (reenvios.length) clearTimeout(reenvios.pop()!);
+    };
   }, [isWeb]);
 
   if (!isWeb && !fontsLoaded) {
@@ -381,6 +402,8 @@ export default function RootLayout() {
         <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
       </Stack>
+      {/* Foco guiado generico de la demo: enfoca cualquier `data-demo` de cualquier pantalla. */}
+      {isWeb && IS_DEMO_MODE && <DemoZonaGlobal />}
       {isWeb && <Analytics />}
       {isWeb && <SpeedInsights />}
     </ThemedRoot>

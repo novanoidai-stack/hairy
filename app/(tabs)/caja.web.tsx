@@ -1115,6 +1115,7 @@ function CajaScreen() {
             );
             return (
               <div
+                data-demo="caja-arqueo"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
@@ -1148,6 +1149,7 @@ function CajaScreen() {
         {/* Registros descargables (CSV) — solo propietario/dirección */}
         {canSeeAll && cobrosHoy.length > 0 && (
           <div
+            data-demo="caja-facturas"
             style={{
               background: T.card,
               border: `1px solid ${T.borderHi}`,
@@ -1433,6 +1435,7 @@ function CajaScreen() {
         {/* Lista de citas pendientes de cobro — solo propietario/dirección */}
         {canSeeAll && (
           <div
+            data-demo="caja-cobro"
             style={{
               background: T.card,
               border: `1px solid ${T.border}`,

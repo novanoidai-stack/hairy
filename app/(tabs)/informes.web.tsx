@@ -1922,7 +1922,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                 {/* ============================================================= */}
                 {/* 9.10: Dashboard KPIs                                          */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: isMobile ? 14 : 24 }}>
+            <div data-demo="informes-kpis" style={{ marginBottom: isMobile ? 14 : 24 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.textSec, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rendimiento Global</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
                 {[

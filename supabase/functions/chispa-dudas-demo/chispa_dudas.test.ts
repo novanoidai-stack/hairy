@@ -140,12 +140,33 @@ Deno.test('emailLeadHtml: formatea lead de WhatsApp para el equipo', () => {
   const reply = 'El plan Salón cuesta 49 €/mes e incluye hasta 5 empleados y todas las funciones.';
   const tel = '+34 690 79 29 75';
 
-  const html = emailLeadHtml(duda, reply, tel);
+  const html = emailLeadHtml(duda, reply, { email: null, telefono: tel });
 
-  assertStringIncludes(html, 'Nuevo Lead · Demo Interactiva');
+  assertStringIncludes(html, 'Nueva duda desde la demo');
   assertStringIncludes(html, '+34 690 79 29 75');
   assertStringIncludes(html, 'wa.me/34690792975');
   assertStringIncludes(html, 'El plan Salón cuesta');
+});
+
+Deno.test('emailLeadHtml: tambien avisa al equipo cuando solo hay correo', () => {
+  const html = emailLeadHtml('¿Migráis desde Booksy?', 'Sí, migración puntual de datos.', {
+    email: 'ana@salon.es',
+    telefono: null,
+  });
+
+  assertStringIncludes(html, 'Nueva duda desde la demo');
+  assertStringIncludes(html, 'mailto:ana@salon.es');
+  assertStringIncludes(html, '¿Migráis desde Booksy?');
+});
+
+Deno.test('emailLeadHtml: avisa igual sin ningun dato de contacto', () => {
+  const html = emailLeadHtml('¿Qué es VeriFactu?', 'Es el sistema de facturación verificable.', {
+    email: null,
+    telefono: null,
+  });
+
+  assertStringIncludes(html, 'Nueva duda desde la demo');
+  assertStringIncludes(html, 'Sin datos de contacto');
 });
 
 Deno.test('esOrigenPermitido: valida origenes CORS oficiales y locales', () => {

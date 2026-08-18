@@ -307,7 +307,7 @@ function CampanasScreen() {
               titulo="Empieza por una plantilla"
               desc="Rellena el segmento y un mensaje base. Luego lo cambias a tu gusto."
             >
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0,1fr))', gap: 10 }}>
+              <div data-demo="campanas-plantillas" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0,1fr))', gap: 10 }}>
                 {PLANTILLAS.map((p) => (
                   <button key={p.titulo} className="m-card-hover" onClick={() => aplicarPlantilla(p)}
                     style={{ textAlign: 'left', background: T.cardHi, border: `1.5px solid ${T.border}`, borderRadius: 12, padding: '12px 14px', cursor: 'pointer' }}>
@@ -341,7 +341,7 @@ function CampanasScreen() {
                 </button>
               ) : undefined}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0,1fr))', gap: 12 }}>
+              <div data-demo="campanas-segmento" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0,1fr))', gap: 12 }}>
                 <Campo label="Sin volver (días)" hint="Dormidas">
                   <NumberInput value={seg.inactividad_dias ?? ''} onChange={setSegNum('inactividad_dias')} />
                 </Campo>

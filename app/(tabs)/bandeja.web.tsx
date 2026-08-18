@@ -491,7 +491,7 @@ function BandejaScreen() {
             <p style={{ fontSize: 13, color: T.textTer, margin: 0 }}>Aparecerán aquí los rechazos/cambios de presupuestos y los mensajes de tu página de contacto.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div data-demo="bandeja-mensajes" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {filtradas.map((c, idx) => {
               const sinLeerRow = !c.leido_at;
               return (

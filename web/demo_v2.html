@@ -202,7 +202,9 @@
   .gt-chap span{display:none}
   .gt-chap.on span{display:inline}
   .gt-title{font-size:clamp(22px,6vw,28px)}
-  .gt-body{font-size:14.5px}
+  /* Reserva el hueco de los controles: el texto se metia debajo del play. */
+  .gt-body{font-size:14.5px;padding-right:120px}
+  .gt-title{padding-right:8px}
   .gt-controls{right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:4px 6px;gap:6px}
   .gt-prev,.gt-play{width:38px;height:38px}
   .gt-next{width:44px;height:44px}
@@ -270,47 +272,136 @@
   .dm-gback:hover{color:var(--text);border-color:var(--border-hi)}
   .dm-gback svg{width:16px;height:16px}
 
-  /* ---------- INTRO CINEMATOGRAFICA PITCH-BLACK ---------- */
-  .dm-intro{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:24px;
-    background:radial-gradient(ellipse at 50% 35%,rgba(32,16,10,.6) 0%,#000000 80%),#000000;
-    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-  .dm-intro.show{display:grid;animation:dmFade .35s cubic-bezier(.16,1,.3,1)}
-  @keyframes dmFade{from{opacity:0;transform:scale(1.02)}to{opacity:1;transform:scale(1)}}
-  @keyframes dmIntroUp{from{opacity:0;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-  .dm-intro-card{width:100%;max-width:580px;text-align:center;background:linear-gradient(180deg,rgba(18,14,12,.96),rgba(8,8,10,.98));
-    border:1px solid rgba(244,80,30,.35);border-radius:var(--r-xl);box-shadow:0 30px 100px -20px rgba(0,0,0,.95),0 0 60px -10px rgba(244,80,30,.22);
-    padding:32px 28px 26px;position:relative;overflow:hidden}
-  .dm-intro-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
-  .dm-intro.show .dm-intro-card>*{animation:dmIntroUp .45s cubic-bezier(.16,1,.3,1) both}
-  .dm-intro.show .dm-intro-card>*:nth-child(2){animation-delay:.04s}
-  .dm-intro.show .dm-intro-card>*:nth-child(3){animation-delay:.08s}
-  .dm-intro.show .dm-intro-card>*:nth-child(4){animation-delay:.12s}
-  .dm-intro.show .dm-intro-card>*:nth-child(5){animation-delay:.16s}
-  .dm-intro.show .dm-intro-card>*:nth-child(6){animation-delay:.20s}
-  .dm-intro-markwrap{position:relative;display:inline-block;margin:0 auto 12px}
-  .dm-intro-card .gmark{width:56px;height:56px;display:block;margin:0 auto;filter:drop-shadow(0 8px 24px var(--accent-glow));animation:dmMarkHalo 2.5s ease-in-out infinite}
-  @keyframes dmMarkHalo{0%,100%{transform:scale(1);filter:drop-shadow(0 6px 20px rgba(244,80,30,.5))}50%{transform:scale(1.05);filter:drop-shadow(0 10px 32px rgba(244,80,30,.85))}}
-  .dm-intro-card .geyebrow{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-hi)}
-  .dm-intro-card h2{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.03em;margin:8px 0 6px;line-height:1.1;color:var(--text)}
-  .dm-intro-card .gsub{font-size:13.5px;color:var(--text-sec);line-height:1.5;max-width:480px;margin:0 auto 14px}
-  .dm-intro-meta{display:flex;justify-content:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
-  .dm-intro-meta div{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-sec);background:rgba(255,255,255,.04);padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.07)}
-  .dm-intro-meta svg{width:14px;height:14px;color:var(--accent-hi);flex-shrink:0}
-  .dm-intro-tracks{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;text-align:left}
-  .dm-itrack{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:12px;background:rgba(255,255,255,.035);
-    border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s cubic-bezier(.16,1,.3,1)}
-  .dm-itrack:hover{background:rgba(244,80,30,.1);border-color:rgba(244,80,30,.4);transform:translate3d(0,-1px,0)}
-  .dm-it-num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(244,80,30,.2);color:#ffd9c2;font-size:11px;font-weight:800;flex-shrink:0}
+  /* ---------- INTRO CINEMATOGRAFICA (pantalla negra, sin caja) ----------
+     No es un aviso: es el arranque de una pelicula. Negro puro a sangre,
+     barras de cine, grano sutil, y el texto entrando por lineas. Todo el
+     movimiento va con transform/opacity (compuesto en GPU) para no bajar de
+     60 fps ni provocar reflows. */
+  .dm-intro{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:0;
+    background:#000;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;-webkit-font-smoothing:antialiased}
+  .dm-intro::-webkit-scrollbar{display:none}
+  .dm-intro.show{display:grid}
+  /* Halo calido que respira detras del texto (solo opacidad/escala) */
+  .dm-intro::before{content:"";position:absolute;left:50%;top:44%;width:120vmax;height:120vmax;
+    transform:translate3d(-50%,-50%,0);pointer-events:none;
+    background:radial-gradient(circle,rgba(244,80,30,.20) 0%,rgba(244,80,30,.07) 26%,transparent 62%);
+    animation:dmHalo 9s ease-in-out infinite;will-change:transform,opacity}
+  @keyframes dmHalo{0%,100%{opacity:.65;transform:translate3d(-50%,-50%,0) scale(1)}50%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.08)}}
+  /* Barras de cine: entran arriba y abajo y se quedan */
+  .dm-cinebar{position:absolute;left:0;right:0;height:7vh;background:#000;z-index:3;pointer-events:none;
+    box-shadow:0 0 40px 10px rgba(0,0,0,.9)}
+  .dm-cinebar.t{top:0;transform:translate3d(0,-100%,0)}
+  .dm-cinebar.b{bottom:0;transform:translate3d(0,100%,0)}
+  .dm-intro.show .dm-cinebar{animation:dmBarIn .8s cubic-bezier(.16,1,.3,1) .05s forwards}
+  @keyframes dmBarIn{to{transform:translate3d(0,0,0)}}
+  /* Vineteado + grano finisimo para que el negro no se vea "plano" */
+  .dm-intro::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+    background:radial-gradient(ellipse at 50% 45%,transparent 46%,rgba(0,0,0,.75) 100%)}
+
+  .dm-intro-in{position:relative;z-index:4;width:100%;max-width:660px;text-align:center;padding:24px 22px}
+  /* Entrada por lineas: desenfoque + subida (cine, no "modal") */
+  @keyframes dmLine{from{opacity:0;transform:translate3d(0,26px,0);filter:blur(10px)}
+    to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
+  .dm-intro.show .dm-intro-in>*{animation:dmLine .8s cubic-bezier(.16,1,.3,1) both;will-change:transform,opacity,filter}
+  .dm-intro.show .dm-intro-in>*:nth-child(1){animation-delay:.15s}
+  .dm-intro.show .dm-intro-in>*:nth-child(2){animation-delay:.3s}
+  .dm-intro.show .dm-intro-in>*:nth-child(3){animation-delay:.45s}
+  .dm-intro.show .dm-intro-in>*:nth-child(4){animation-delay:.62s}
+  .dm-intro.show .dm-intro-in>*:nth-child(5){animation-delay:.78s}
+  .dm-intro.show .dm-intro-in>*:nth-child(6){animation-delay:.94s}
+  .dm-intro.show .dm-intro-in>*:nth-child(7){animation-delay:1.08s}
+
+  .dm-intro-markwrap{position:relative;display:block;margin:0 auto 18px}
+  .dm-intro .gmark{width:54px;height:54px;display:block;margin:0 auto;
+    filter:drop-shadow(0 8px 30px rgba(244,80,30,.75));animation:dmMarkHalo 3.2s ease-in-out infinite;will-change:transform}
+  @keyframes dmMarkHalo{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .dm-intro .geyebrow{display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;
+    letter-spacing:.34em;text-transform:uppercase;color:#ff9b66;margin-bottom:14px}
+  .dm-intro h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,5.4vw,54px);
+    letter-spacing:-.035em;margin:0 0 14px;line-height:1.03;color:#fff;text-wrap:balance}
+  .dm-intro h2 em{font-family:var(--serif);font-style:italic;font-weight:400;
+    background:linear-gradient(100deg,#ffcf4a,#ff7a2e 55%,#f4501e);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .dm-intro .gsub{font-size:15px;color:rgba(255,255,255,.62);line-height:1.55;max-width:520px;margin:0 auto 22px}
+  .dm-intro .gsub b{color:#fff;font-weight:600}
+
+  .dm-intro-tracks{display:flex;flex-direction:column;gap:8px;margin:0 auto 20px;text-align:left;max-width:520px}
+  .dm-itrack{display:flex;align-items:center;gap:13px;padding:11px 15px;border-radius:13px;
+    background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);cursor:pointer;
+    transition:background .22s ease,border-color .22s ease,transform .22s cubic-bezier(.16,1,.3,1);
+    will-change:transform}
+  .dm-itrack:hover{background:rgba(244,80,30,.13);border-color:rgba(244,80,30,.5);transform:translate3d(0,-2px,0)}
+  .dm-itrack.primero{background:rgba(244,80,30,.11);border-color:rgba(244,80,30,.42)}
+  .dm-it-num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;
+    background:rgba(244,80,30,.24);color:#ffd9c2;font-size:11.5px;font-weight:800;flex-shrink:0}
   .dm-it-info{flex:1;min-width:0}
-  .dm-it-info b{display:block;font-size:12.5px;color:#fff;font-weight:700}
-  .dm-it-info small{display:block;font-size:11px;color:#a0a7b5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dm-it-tag{font-size:11px;font-weight:700;color:var(--accent-hi);flex-shrink:0;padding:2px 8px;border-radius:6px;background:rgba(244,80,30,.12)}
-  .dm-intro-actions{display:flex;flex-direction:column;gap:9px}
-  .dm-intro-free{font-size:12.5px;color:var(--text-sec);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:10px 16px;cursor:pointer;transition:all .2s;font-weight:600}
-  .dm-intro-free:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.06)}
-  .dm-intro-fake{font-size:11.5px;color:var(--text-ter);margin-top:12px;display:flex;align-items:center;gap:6px;justify-content:center}
+  .dm-it-info b{display:block;font-size:13px;color:#fff;font-weight:700;letter-spacing:-.01em}
+  .dm-it-info small{display:block;font-size:11.5px;color:rgba(255,255,255,.5);margin-top:3px;line-height:1.4}
+  .dm-it-meta{display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.04em;
+    color:#ff9b66;margin-top:5px}
+  .dm-it-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#ffd9c2;
+    flex-shrink:0;padding:4px 9px;border-radius:7px;background:rgba(244,80,30,.2)}
+  .dm-it-tag svg{width:9px;height:9px}
+
+  .dm-intro-actions{display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto}
+  .dm-intro-free{font-size:12.5px;color:rgba(255,255,255,.55);background:transparent;
+    border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 16px;cursor:pointer;
+    transition:color .2s,border-color .2s,background .2s;font-weight:600}
+  .dm-intro-free:hover{color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.05)}
+  .dm-intro-fake{font-size:11.5px;color:rgba(255,255,255,.38);margin:14px auto 0;display:flex;
+    align-items:center;gap:6px;justify-content:center;max-width:520px;line-height:1.5;text-align:left}
   .dm-intro-fake svg{width:13px;height:13px;flex-shrink:0}
-  @media(prefers-reduced-motion:reduce){ .dm-intro.show .dm-intro-card>*{animation:none} }
+  /* Salida "de cine": el negro se abre y deja ver el software ya en marcha */
+  .dm-intro.exit{animation:dmIntroOut .55s cubic-bezier(.7,0,.84,0) forwards;pointer-events:none}
+  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.09)}}
+  @media(max-width:720px){
+    .dm-cinebar{height:4.5vh}
+    .dm-intro .gsub{font-size:13.5px;margin-bottom:18px}
+    .dm-intro-in{padding:18px}
+  }
+  /* Pantallas bajas (portatiles 13", movil en horizontal): la intro se compacta
+     para que el boton de "explorar por libre" y el aviso de datos ficticios
+     sigan a la vista sin tener que bajar. */
+  @media(max-height:880px){
+    .dm-intro h2{font-size:clamp(26px,3.6vw,38px);margin-bottom:10px}
+    .dm-intro .gsub{font-size:13.5px;margin-bottom:16px}
+    .dm-intro .gmark{width:42px;height:42px}
+    .dm-intro-markwrap{margin-bottom:12px}
+    .dm-intro .geyebrow{margin-bottom:10px}
+    .dm-itrack{padding:9px 13px}
+    .dm-intro-tracks{gap:7px;margin-bottom:16px}
+    .dm-cinebar{height:4vh}
+  }
+  @media(max-height:700px){
+    .dm-intro-in{padding:14px 20px}
+    .dm-intro h2{font-size:26px}
+    .dm-intro .gsub{display:none}
+    .dm-cinebar{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .dm-intro::before,.dm-intro .gmark{animation:none}
+    .dm-intro.show .dm-intro-in>*{animation-duration:.01ms;animation-delay:0s}
+    .dm-intro.show .dm-cinebar{animation-duration:.01ms}
+    .dm-intro.exit{animation-duration:.01ms}
+  }
+
+  /* Aviso de cookies: en la demo vive ARRIBA. Abajo se comia el texto del
+     recorrido y los botones de reproduccion (el dock ocupa toda la franja
+     inferior). Sigue siendo el mismo aviso, solo cambia de sitio.
+     Y mientras esta la intro cinematografica se aparta: es pantalla negra a
+     sangre y cualquier caja encima rompe la entrada. Vuelve al cerrarla. */
+  .mck-bar-wrap{top:70px;bottom:auto!important;max-width:720px;
+    animation:none!important;transform:translate(-50%,0)!important}
+  body.dm-intro-on .mck-bar-wrap{display:none!important}
+  @media(max-width:900px){
+    .mck-bar-wrap{left:10px!important;right:10px!important;top:58px;width:auto!important;
+      transform:none!important;max-width:none}
+    /* Compacto: en movil el aviso ocupaba media pantalla sobre el software. */
+    .mck-bar{padding:12px 14px!important;gap:10px!important}
+    .mck-txt{font-size:12px!important;line-height:1.4!important}
+    .mck-bar .mck-btn{padding:8px 12px!important;font-size:12.5px!important}
+  }
 
   /* ---------- PANEL DUDAS (WhatsApp + IA) ---------- */
   .dm-dudas-btn{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding:8px 14px;font-size:13px;font-weight:700;
@@ -902,59 +993,34 @@
   </div>
 </main>
 
-<!-- ============ INTRO CINEMATOGRAFICA ============ -->
+<!-- ============ INTRO CINEMATOGRAFICA (pantalla negra) ============ -->
 <div class="dm-intro" id="intro">
-  <div class="dm-intro-card">
+  <span class="dm-cinebar t" aria-hidden="true"></span>
+  <span class="dm-cinebar b" aria-hidden="true"></span>
+  <div class="dm-intro-in">
     <div class="dm-intro-markwrap">
       <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
     </div>
-    <span class="geyebrow">Demo de Mecha</span>
-    <h2>Vas a ver <em style="font-family:var(--serif);font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">todos los módulos</em> del software</h2>
-    <p class="gsub">Tu cuenta gratis con datos de prueba reales para explorar todo el potencial. Un recorrido guiado como una película interactiva paso a paso.</p>
-    
-    <div class="dm-intro-meta">
-      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>≈ 10 min · 3 recorridos</div>
-      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>35 pasos completos</div>
-      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Datos de prueba reales</div>
-    </div>
+    <span class="geyebrow" id="introEyebrow">Demo interactiva · Mecha</span>
+    <h2>El software entero, <em>por dentro</em></h2>
+    <p class="gsub" id="introSub">
+      No son capturas: es Mecha funcionando, con datos de un salón de prueba.
+      Tres recorridos te llevan de la mano por <b>todas las pantallas</b>, y en
+      cualquier momento puedes parar y tocar tú.
+    </p>
 
-    <div class="dm-intro-tracks">
-      <div class="dm-itrack" data-track="general">
-        <span class="dm-it-num">1</span>
-        <div class="dm-it-info">
-          <b>Recorrido 1: Pilares Esenciales</b>
-          <small>Agenda, cita con reposos, ficha cliente y cobro TPV · ≈ 3 min (15 pasos)</small>
-        </div>
-        <span class="dm-it-tag">Empezar</span>
-      </div>
-      <div class="dm-itrack" data-track="advanced">
-        <span class="dm-it-num">2</span>
-        <div class="dm-it-info">
-          <b>Recorrido 2: Todas las Funciones Avanzadas</b>
-          <small>Fichajes, bonos, IA Chispa, marketing, informes · ≈ 4 min (10 pasos)</small>
-        </div>
-        <span class="dm-it-tag">Ver</span>
-      </div>
-      <div class="dm-itrack" data-track="config">
-        <span class="dm-it-num">3</span>
-        <div class="dm-it-info">
-          <b>Recorrido 3: Nueva Configuración</b>
-          <small>Identidad, tarifas, comisiones, reserva online · ≈ 3 min (10 pasos)</small>
-        </div>
-        <span class="dm-it-tag">Ver</span>
-      </div>
-    </div>
+    <div class="dm-intro-tracks" id="introTracks"><!-- lo pinta el motor del tour --></div>
 
     <div class="dm-intro-actions">
       <a class="btn btn-primary btn-block btn-lg" href="#" id="introGuided">
-        Empezar el recorrido guiado
+        <span id="introGuidedLbl">Empezar el recorrido</span>
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;margin-left:4px"><polygon points="6 4 20 12 6 20"/></svg>
       </a>
-      <button class="dm-intro-free" id="introFree" type="button">Explorar por libre ✕</button>
+      <button class="dm-intro-free" id="introFree" type="button">Prefiero explorar por libre</button>
     </div>
     <p class="dm-intro-fake">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Es tu cuenta de prueba con datos ficticios: toca, cambia y prueba sin miedo, no afecta a ningún salón real.
+      <span>Salón de prueba con datos ficticios: toca, mueve y cambia lo que quieras. No afecta a ningún salón real.</span>
     </p>
   </div>
 </div>
@@ -975,10 +1041,10 @@
         <b>Chispa responde al momento</b>
         <span class="tag">IA entrenada con todo Mecha</span>
       </div>
-      <p class="desc">Escribe tu duda (funcionamiento, reposos, presupuestos, fichajes, VeriFactu, planes…) y una IA entrenada con <b>todo el funcionamiento interno de Mecha</b> te responde al instante. Si dejas tu email o WhatsApp, te enviamos la respuesta o te contactamos.</p>
+      <p class="desc">Escribe tu duda (funcionamiento, reposos, presupuestos, fichajes, VeriFactu, planes…) y una IA entrenada con <b>todo el funcionamiento interno de Mecha</b> te responde al instante. Déjanos <b>tu correo o tu WhatsApp</b>: te mandamos la respuesta y, si hace falta, te contesta una persona del equipo.</p>
       <form class="dm-dudas-form" id="dudasForm" novalidate>
         <textarea id="dudasText" placeholder="¿Cómo funcionan los tiempos de reposo? ¿Puedo cobrar con bonos? ¿Qué es VeriFactu…" required></textarea>
-        <input type="text" id="dudasContacto" placeholder="Tu email o WhatsApp (para enviarte la respuesta)..." autocomplete="email tel" />
+        <input type="text" id="dudasContacto" placeholder="Tu correo o tu WhatsApp (obligatorio)" autocomplete="email tel" required aria-required="true" />
         <button class="dm-dudas-send" id="dudasSend" type="submit">Preguntar a Chispa</button>
       </form>
       <div class="dm-dudas-reply" id="dudasReply" aria-live="polite"></div>
@@ -1403,7 +1469,8 @@
     if(tutSel) tutSel.style.display='inline-flex';
     var introSeen=false;
     try{ introSeen=sessionStorage.getItem('mecha_demo_intro')==='1'; }catch(e){}
-    if(introSeen){ startTour(); } else { var intro=$('#intro'); if(intro) intro.classList.add('show'); }
+    if(introSeen){ startTour(); }
+    else { var intro=$('#intro'); if(intro){ intro.classList.add('show'); document.body.classList.add('dm-intro-on'); } }
   }
 
   /* ---------- arranque ---------- */
@@ -1492,94 +1559,157 @@
   // panel real y enfoque su zona (action). El software responde con el rect del
   // spotlight. ic = icono, ph = fase (chip del dock), t = titulo, d = cuerpo
   // (**palabra** = resaltada), viz = micro-ilustracion opcional en el dock.
-  var TUT_ESSENTIALS=[
+  // ---------------------------------------------------------------------------
+  // LOS TRES RECORRIDOS
+  // 1) PILARES: el flujo real de un dia de salon, con la cita entera por dentro
+  //    (extras, encadenado, productos, cobro, estados, reposos), la ficha y la caja.
+  // 2) TODAS LAS PANTALLAS: una a una, con foco en lo concreto de cada una.
+  // 3) CONFIGURACION: las 17 pestanas actuales de Ajustes.
+  //
+  // route  = pantalla del software a la que navega el paso.
+  // action = lo que le pedimos a la app: abrir un panel ('nueva-cita',
+  //          'cita-detalle'), enfocar una sub-zona ('detalle-pagos',
+  //          'cliente-color'), una pestana de Ajustes ('config-<tab>') o
+  //          cualquier zona marcada con data-demo en el codigo ('zona-<clave>').
+  // ic = icono · ph = fase (chip del dock) · t = titulo · d = cuerpo
+  // (**palabra** = resaltada) · viz = micro-ilustracion opcional del dock.
+  var TUT_PILARES=[
+    // --- Acto 1: la agenda y el nacimiento de una cita ---
     {ic:'agenda', route:'/(tabs)', action:'cerrar', ph:'La agenda',
-     t:'Tu día entero, en una pantalla', d:'Tus **profesionales**, sillas y **citas** en un grid limpio y sin cortes. Toca cualquier hueco libre para crear una cita.'},
+     t:'Tu día entero, en una pantalla', d:'Una columna por profesional y las citas en su hora. El color es el **estado** de cada una. Toca cualquier hueco libre y empieza una cita.'},
     {ic:'nueva', route:'/(tabs)', action:'nueva-cita', ph:'Crear una cita',
-     t:'De hueco a cita en 3 toques', d:'Al tocar el hueco se abre con la **hora ya fijada**. Cliente, servicio y profesional. Listo en segundos.'},
+     t:'Del hueco a la cita, sin escribir la hora', d:'El hueco que tocas entra ya con **fecha, hora y profesional puestos**. Solo queda decir quién viene y a qué.'},
     {ic:'clientes', route:'/(tabs)', action:'cita-cliente', ph:'Crear una cita',
-     t:'Elige o crea a tu clienta', d:'Búsqueda predictiva al vuelo. Su **teléfono, historial y preferencias** se vinculan automáticamente.'},
+     t:'La clienta: elígela o créala aquí mismo', d:'Buscas por nombre o teléfono. Si es nueva, se crea sin salir de la cita y **su ficha nace con ella**.'},
     {ic:'nueva', route:'/(tabs)', action:'cita-servicio', ph:'Crear una cita',
-     t:'Servicio, precio y encadenamiento', d:'Calcula **duración y precio** al instante. Puedes encadenar varios servicios en orden e incluso entre distintos estilistas.'},
+     t:'El servicio trae precio y duración', d:'Del catálogo salen **duración y precio**, y la duración puede ser distinta para cada profesional. Nada de calcular a mano.'},
+    {ic:'nueva', route:'/(tabs)', action:'cita-addons', ph:'Crear una cita',
+     t:'Los extras se suman solos', d:'Tratamiento, hidratación, recogido… cada **extra** añade sus minutos y su precio al total, y la cita se recoloca sola en la agenda.'},
+    {ic:'nueva', route:'/(tabs)', action:'cita-encadenar', ph:'Crear una cita',
+     t:'Encadena varios servicios seguidos', d:'Color + corte + peinado en una sola visita, uno detrás de otro y **hasta con profesionales distintos**. Mecha vigila que no se solapen.'},
     {ic:'nueva', route:'/(tabs)', action:'cita-hora', ph:'Crear una cita',
-     t:'La hora exacta, sin solapes', d:'Elige el hueco disponible. El sistema valida en tiempo real la disponibilidad de silla y profesional.'},
+     t:'La hora exacta, sin solapes', d:'Solo se ofrecen huecos reales: silla libre, profesional libre y dentro del horario del salón. Si algo choca, **no te deja pisarlo**.'},
+    // --- Acto 2: la cita por dentro ---
     {ic:'fich', route:'/(tabs)', action:'cita-detalle', ph:'La cita por dentro',
-     t:'La cita por dentro', d:'Toda la información reunida y editable: servicios encadenados, profesional asignado y estado.'},
-    {ic:'fich', route:'/(tabs)', action:'detalle-estado', ph:'La cita por dentro',
-     t:'El estado lo coordina todo', d:'Confirmada, en curso, cobrada, no-show… **colorea la agenda** e impacta en tus métricas de rendimiento.'},
+     t:'Abre la cita y lo tienes todo', d:'Servicio, cliente, tiempos, color, productos, pagos e historial. Todo **editable** desde el mismo sitio, sin ir a otra pantalla.'},
+    {ic:'avisos', route:'/(tabs)', action:'detalle-estado', ph:'La cita por dentro',
+     t:'El estado manda. Y el cliente confirma solo', d:'Pendiente, **confirmada**, en curso, cobrada, no-show. Cuando el cliente responde al WhatsApp de recordatorio, la cita se marca confirmada **sin que toques nada**.'},
+    {ic:'clientes', route:'/(tabs)', action:'detalle-productos', ph:'La cita por dentro',
+     t:'Los productos que se lleva', d:'Champú, mascarilla, cera… se apuntan en la cita, **suben el ticket**, descuentan del inventario y cuentan para la comisión de quien vende.'},
+    {ic:'rep', route:'/(tabs)', action:'detalle-pagos', ph:'La cita por dentro',
+     t:'Cobra aquí mismo, o luego en Caja', d:'Efectivo, tarjeta o Bizum desde la propia cita, con **propina** y con la señal ya descontada. Si prefieres cobrar al salir, la cita te espera en **Caja**.'},
+    // --- Acto 3: los reposos (el diferencial) ---
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', ph:'Los reposos',
-     t:'1 · Tiempo activo (aplicación)', d:'La primera fase: **aplicar el tinte**. Ajusta sus minutos con − y +.', viz:'reposo-1'},
+     t:'1 · El trabajo activo', d:'La primera fase: **aplicar el tinte**. Sus minutos se ajustan con − y +, y solo esos minutos te ocupan a ti.', viz:'reposo-1'},
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-reposo', ph:'Los reposos',
-     t:'2 · El reposo que te regala tiempo', d:'Mientras el tinte **actúa solo**, Mecha **libera tu agenda** y te permite atender a **otro cliente** en ese hueco.', viz:'reposo-2'},
+     t:'2 · El reposo que te devuelve horas', d:'Mientras el tinte **actúa solo**, tú no estás ocupada: Mecha **libera ese hueco** y te deja atender a otra clienta encima.', viz:'reposo-2'},
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', ph:'Los reposos',
-     t:'3 · Acabado y peinado', d:'Lavado y peinado final. La cita se desglosa sola en tres bloques aprovechando tu tiempo al **100%**.', viz:'reposo-3'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-color', ph:'Ficha técnica',
-     t:'Fórmulas de color y fotos de trabajos', d:'Producto, tono, oxidante, tiempo y **fotos del resultado**. Repite el color exacto en la siguiente visita.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-notas', ph:'Ficha técnica',
-     t:'Notas técnicas y preferencias', d:'Alertas de **alergias**, preferencias personales y plantillas de notas guardadas al instante.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-historial', ph:'Ficha técnica',
-     t:'Historial de visitas y compras', d:'Historial cronológico completo de servicios anteriores, importes y productos adquiridos.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', ph:'Ficha técnica',
-     t:'Ficha técnica integral', d:'Ticket medio, frecuencia de visita y detección automática de **riesgo de fuga** con recuperación en un clic.'},
-    {ic:'rep', route:'/(tabs)/caja', action:'cerrar', ph:'Cobro y Caja',
-     t:'Cobro rápido y arqueo de caja', d:'Cobro directo con tarjeta, efectivo o Bizum, desglose de propinas y cierre diario adaptado a **VeriFactu**.'}
+     t:'3 · El acabado', d:'Lavar y peinar. La cita vive partida en **tres bloques** y tu día se llena sin alargarse ni una hora.', viz:'reposo-3'},
+    // --- Acto 4: la ficha de la clienta ---
+    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', ph:'La ficha',
+     t:'La ficha que se acuerda por ti', d:'Datos, etiquetas, ticket medio, cada cuánto viene y **aviso si lleva tiempo sin volver**. Se rellena sola con cada cita.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-color', ph:'La ficha',
+     t:'La fórmula de color, guardada', d:'Marca, tono, oxidante, proporción, tiempo y **foto del resultado**. La próxima vez repites el color exacto aunque la atienda otra persona.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-notas', ph:'La ficha',
+     t:'Alergias y manías, siempre a la vista', d:'**Alergias** marcadas, preferencias y cómo le gusta el secado. Con plantillas para no escribir lo mismo cada vez.'},
+    {ic:'fich', route:'/(tabs)/clientes', action:'cliente-historial', ph:'La ficha',
+     t:'Todo lo que ha pasado con ella', d:'Cada visita, qué se hizo, quién la atendió, qué pagó y qué se llevó. **Sin buscar en papeles ni en el móvil.**'},
+    // --- Acto 5: el dinero ---
+    {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-cobro', ph:'Cobro y caja',
+     t:'Lo que queda por cobrar, en una lista', d:'Las citas ya hechas y sin cobrar te esperan aquí. Puedes **cobrar varias juntas** de la misma clienta, con sus productos incluidos.'},
+    {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-arqueo', ph:'Cobro y caja',
+     t:'El arqueo del día, cuadrado solo', d:'Cobrado hoy, efectivo, datáfono, propinas e IVA estimado. **Cierras el día en 10 segundos** y descargas el registro cuando quieras.'}
   ];
-  var TUT_GENERAL = TUT_ESSENTIALS;
+  // Alias historicos: el selector de la barra y los enlaces antiguos usan 'general'.
+  var TUT_ESSENTIALS = TUT_PILARES;
+  var TUT_GENERAL = TUT_PILARES;
 
   var TUT_ADVANCED=[
-    {ic:'fich', route:'/(tabs)/mi-jornada', action:'cerrar', ph:'Control horario',
-     t:'Control horario y fichajes legales', d:'Registro obligatorio de jornada con un toque: entrada, pausas y salida. Horas computadas e informes de inspección.'},
-    {ic:'nueva', route:'/(tabs)/presupuestos', action:'cerrar', ph:'Presupuestos y bonos',
-     t:'Presupuestos digitales y bonos', d:'Crea presupuestos firmados en pantalla por la clienta y vende **bonos multidosis** con control de sesiones restantes.'},
-    {ic:'ia', route:'/(tabs)/bandeja', action:'cerrar', ph:'Recepción IA',
-     t:'Recepcionista con IA 24/7', d:'Chispa atiende **WhatsApp, web y teléfono**, resuelve dudas frecuentes y agenda citas solas a cualquier hora.', viz:'ia'},
-    {ic:'agenda', route:'/(tabs)/lista-espera', action:'cerrar', ph:'Lista de espera',
-     t:'Cero huecos por cancelaciones', d:'Clientes en espera organizados por servicio y estilista. Al cancelarse una cita, el sistema avisa y rellena el hueco.'},
-    {ic:'avisos', route:'/(tabs)/campanas', action:'cerrar', ph:'Marketing',
-     t:'Marketing y reactivación automática', d:'Envía promociones segmentadas por WhatsApp a clientas inactivas o felicitaciones con descuento en su cumpleaños.'},
-    {ic:'fich', route:'/(tabs)/resenas', action:'cerrar', ph:'Reseñas Google',
-     t:'Reputación y reseñas en Google', d:'Pide reseñas por WhatsApp automáticamente tras cada servicio y responde con IA para mejorar tu posicionamiento.'},
-    {ic:'clientes', route:'/(tabs)/equipo', action:'cerrar', ph:'Equipo',
-     t:'Tu equipo y su rendimiento', d:'Roles, horarios y cálculo automático de **comisiones por servicios y productos**. Ranking de facturación en vivo.'},
-    {ic:'nueva', route:'/(tabs)/inventario', action:'cerrar', ph:'Inventario',
-     t:'Control de stock e insumos técnicos', d:'Diferencia entre producto de venta y uso en cabina. Alertas automáticas de stock bajo y pedidos a proveedor.'},
+    {ic:'agenda', route:'/(tabs)/citas', action:'zona-citas-stats', ph:'Citas',
+     t:'Todas tus citas, en tabla', d:'La misma información que la agenda pero en lista: cuántas hay, **cuántas confirmadas, cuántos no-shows** y cuánto suman.'},
+    {ic:'agenda', route:'/(tabs)/citas', action:'zona-citas-filtros', ph:'Citas',
+     t:'Busca cualquier cita en segundos', d:'Por cliente, teléfono, servicio, profesional, fecha o estado. Incluido **cobradas y pendientes de cobro**.'},
+    {ic:'avisos', route:'/(tabs)/citas', action:'zona-citas-sinconfirmar', ph:'Citas',
+     t:'Las que el cliente no ha confirmado', d:'Un botón deja solo las de las **próximas 48 h sin respuesta**. Son las que acaban en hueco vacío: aquí las cazas antes.'},
+    {ic:'agenda', route:'/(tabs)/lista-espera', action:'zona-espera-lista', ph:'Lista de espera',
+     t:'Nadie se va sin hueco', d:'Quien no encuentra sitio entra en la lista con su servicio y su prioridad. Cuando **cae una cancelación**, ya sabes a quién llamar.'},
+    {ic:'nueva', route:'/(tabs)/presupuestos', action:'zona-presupuestos-estados', ph:'Presupuestos',
+     t:'Presupuestos que se siguen solos', d:'Borrador, enviado, **aceptado** o rechazado. La clienta lo abre desde su móvil y, al aceptarlo, te salta en Caja listo para cobrar.'},
+    {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-stock', ph:'Inventario',
+     t:'El stock avisa antes de quedarte a cero', d:'Producto de venta y producto de cabina, cada uno con su mínimo. Lo que baja del mínimo **se marca** y se propone el pedido.'},
+    {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-facturas', ph:'Caja',
+     t:'Registros descargables para tu gestoría', d:'Los cobros del día en **CSV**, con método de pago y propinas. La caja queda registrada, no en una libreta.'},
+    {ic:'clientes', route:'/(tabs)/equipo', action:'zona-equipo-fichas', ph:'Equipo',
+     t:'Tu equipo, ficha a ficha', d:'Cada profesional con su color en la agenda, su categoría, sus servicios y su **cuenta de acceso** propia si la necesita.'},
+    {ic:'rep', route:'/(tabs)/equipo', action:'zona-equipo-comisiones', ph:'Equipo',
+     t:'Quién factura y cuánto se lleva', d:'Ingresos, ticket medio y **comisión devengada** por persona, en servicios y en productos. Sin hojas de cálculo.'},
+    {ic:'fich', route:'/(tabs)/mi-jornada', action:'zona-jornada-fichaje', ph:'Fichajes',
+     t:'Fichaje legal con un toque', d:'Entrada, pausa y salida con la **hora del servidor**. Los asientos no se editan y se guardan cuatro años, como exige el art. 34.9 ET.'},
+    {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-mensajes', ph:'Bandeja',
+     t:'Los mensajes que llegan de fuera', d:'Contactos desde tu página pública, respuestas a presupuestos y **peticiones de ausencia** del equipo. En un sitio, no perdidos en tu WhatsApp personal.'},
+    {ic:'avisos', route:'/(tabs)/campanas', action:'zona-campanas-plantillas', ph:'Campañas',
+     t:'Campañas hechas: solo cambias el texto', d:'Plantillas listas para **recuperar clientas dormidas**, felicitar cumpleaños o llenar un martes flojo.'},
+    {ic:'clientes', route:'/(tabs)/campanas', action:'zona-campanas-segmento', ph:'Campañas',
+     t:'A quién se lo mandas, exactamente', d:'Filtra por días sin volver, número de visitas, ticket medio o etiqueta. **No mandas a todos**: mandas a quien conviene.'},
+    {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-categorias', ph:'Reseñas',
+     t:'Reseñas y por qué te puntúan así', d:'No solo la nota: **trato, limpieza, facilidad de reserva y pagos** por separado. Sabes qué arreglar, no solo que algo falla.'},
+    {ic:'rep', route:'/(tabs)/informes', action:'zona-informes-kpis', ph:'Informes',
+     t:'Tus números, sin interpretarlos tú', d:'Ingresos **cobrados de verdad** (no estimados), propinas, margen y ocupación. Lo previsto del catálogo va aparte y etiquetado.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', ph:'Informes',
-     t:'Números claros y descargables', d:'Facturación, ocupación de sillas y ticket medio. Exportación directa a **PDF** oficial o **CSV** para tu gestoría.', viz:'export'},
-    {ic:'avisos', route:'/(tabs)/ayuda', action:'cerrar', ph:'Soporte prioritario',
-     t:'Soporte humano y puesta en marcha', d:'Soporte humano por WhatsApp en menos de 5 minutos y Chispa IA 24/7. Te configuramos todo tu salón sin coste.'}
+     t:'Descárgalo y mándalo', d:'El informe entero en **PDF** con tu marca o en **CSV** para tu gestor. En un clic.', viz:'export'},
+    {ic:'ia', route:'/(tabs)/ayuda', action:'zona-ia-hub', ph:'La IA',
+     t:'Chispa: la recepcionista que no duerme', d:'Contesta **WhatsApp y teléfono**, resuelve dudas y **reserva sola** a las 23:40. Aquí ves exactamente qué hace y qué no.', viz:'ia'},
+    {ic:'avisos', route:'/(tabs)/ayuda', action:'zona-ayuda-manuales', ph:'Ayuda',
+     t:'Manual de cada pantalla, dentro', d:'Cada módulo tiene su guía a un clic, y el equipo humano contesta por WhatsApp. **No te dejamos sola con el software.**'}
   ];
 
   var TUT_CONFIG=[
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', ph:'Identidad',
-     t:'Tu salón, tu identidad de marca', d:'Personaliza nombre, logotipo, dirección, teléfono, moneda y paleta de colores oficial de tu negocio.'},
-    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', ph:'Horarios',
-     t:'Horarios de apertura y turnos', d:'Define horarios por día, turnos del personal y pausas para que la agenda organice los huecos automáticamente.'},
-    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', ph:'Servicios y reposos',
-     t:'Catálogo, tarifas y tiempos de reposo', d:'Configura precios y duraciones personalizadas por estilista, con tiempos de reposo para maximizar ingresos.'},
-    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', ph:'Reglas de reserva',
-     t:'Reglas de reserva y prepagos', d:'Establece antelación mínima, políticas de cancelación y cobro de depósitos o fianzas para erradicar los no-shows.'},
-    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', ph:'Comisiones',
-     t:'Comisiones y rentabilidad', d:'Define incentivos porcentuales o fijos por profesional para servicios y venta de productos.'},
-    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', ph:'Plantillas',
-     t:'Fórmulas y plantillas de notas', d:'Guarda plantillas predefinidas de mezclas y notas técnicas para rellenar fichas de clientes en dos clics.'},
-    {ic:'avisos', route:'/(tabs)/configuracion', action:'config-notificaciones', ph:'Notificaciones',
-     t:'Avisos automáticos por WhatsApp', d:'Automatiza recordatorios de cita, confirmaciones de reserva y mensajes de agradecimiento post-visita.'},
-    {ic:'ia', route:'/(tabs)/configuracion', action:'config-reserva', ph:'Reserva online',
-     t:'Tu página de reservas 24/7 y código QR', d:'Comparte tu enlace de reserva web o descarga el código QR listo para colocar en el escaparate de tu salón.'},
-    {ic:'fich', route:'/(tabs)/configuracion', action:'config-accesos', ph:'Roles y permisos',
-     t:'Permisos de equipo y seguridad', d:'Asigna roles a tu equipo para proteger datos sensibles de facturación y limitar accesos según el cargo.'},
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-cuenta', ph:'Plan y facturación',
-     t:'Tu cuenta y plan bajo control', d:'Gestiona tu suscripción, módulos de IA y facturación de Mecha en un único panel centralizado.'}
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', ph:'Negocio',
+     t:'Tu salón, tu identidad', d:'Nombre, dirección, teléfono, moneda y **marca**. Es lo que sale en tus facturas, en tu portal de reservas y en tus WhatsApp.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', ph:'Negocio',
+     t:'Horarios y descansos del salón', d:'Apertura y cierre por día, con **pausa de mediodía**. La agenda no ofrece huecos fuera de aquí, ni por error ni desde el portal.'},
+    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', ph:'Operativa',
+     t:'El catálogo: precios, tiempos y reposos', d:'Cada servicio con su precio, su duración —**distinta por profesional si hace falta**— y su tiempo de reposo. Aquí nacen los huecos productivos.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', ph:'Operativa',
+     t:'Las reglas de la agenda', d:'Antelación mínima, hasta cuándo se puede cancelar, si se reserva sin confirmar. **Tú pones los límites**, el software los aplica.'},
+    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', ph:'Operativa',
+     t:'Comisiones y objetivos', d:'Porcentaje o cantidad fija, por servicio y por producto. Se calcula solo con cada cobro y aparece en **Equipo → Rendimiento**.'},
+    {ic:'rep', route:'/(tabs)/configuracion', action:'config-pagos', ph:'Operativa',
+     t:'Cobros, señales y facturación', d:'Métodos de pago, **señal para reservar** (adiós no-shows) y los datos fiscales de tus facturas.'},
+    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-presupuestos', ph:'Operativa',
+     t:'Presupuestos a tu medida', d:'Conceptos habituales, textos legales y validez. Salen con tu marca y la clienta los acepta desde el móvil.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', ph:'Operativa',
+     t:'Plantillas de notas y fórmulas', d:'Lo que escribes siempre, escrito una vez. Rellenas una ficha en **dos toques** en vez de en dos minutos.'},
+    {ic:'ia', route:'/(tabs)/configuracion', action:'config-migracion_magica', ph:'Operativa',
+     t:'Traerte tus datos, sin teclear', d:'Sube tu Excel —o una **foto de tu agenda de papel**— y la IA saca clientes y citas. Es lo que hace que estrenar Mecha no cueste una semana.'},
+    {ic:'avisos', route:'/(tabs)/configuracion', action:'config-notificaciones', ph:'Comunicación',
+     t:'Los WhatsApp que salen solos', d:'Confirmación al reservar, **recordatorio antes de la cita** y petición de reseña después. Decides cuáles y cuándo.'},
+    {ic:'fich', route:'/(tabs)/configuracion', action:'config-politicas', ph:'Comunicación',
+     t:'Políticas y consentimientos', d:'Cancelación, privacidad y los **consentimientos que firma la clienta** (fotos, tratamientos). Guardados con fecha, como toca.'},
+    {ic:'ia', route:'/(tabs)/configuracion', action:'config-reserva', ph:'Comunicación',
+     t:'Tu página de reservas 24/7', d:'Enlace propio y **QR** para el escaparate o el espejo. Tus clientas reservan solas, con tu marca y **sin comisiones** de nadie.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-recompensas', ph:'Comunicación',
+     t:'Fidelización: que vuelvan', d:'Puntos por visita o por gasto y recompensas que eliges tú. Se aplica solo al cobrar.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-referidos', ph:'Cuenta',
+     t:'Invita a otros salones y paga menos', d:'Tu enlace propio: por cada salón que entra contigo **baja tu cuota**, hasta tres niveles. Y quien entra también gana.'},
+    {ic:'fich', route:'/(tabs)/configuracion', action:'config-accesos', ph:'Cuenta',
+     t:'Quién entra y qué puede ver', d:'Cada persona con su correo y su **rol**. La caja, los informes y los ajustes solo los ve quien tú decidas.'},
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-cuenta', ph:'Cuenta',
+     t:'Tu plan y tu facturación', d:'Plan, addon de IA, método de pago y facturas. **Sin permanencia**: se cambia o se cancela desde aquí.'},
+    {ic:'avisos', route:'/(tabs)/configuracion', action:'config-soporte', ph:'Cuenta',
+     t:'Y si algo falla, una persona', d:'Soporte por WhatsApp y correo desde dentro del software. Con esto **cierras el recorrido**: ya has visto Mecha entero.'}
   ];
 
   // El modal de nueva cita es el mismo panel para 'nueva-cita' y las sub-acciones
   // 'cita-*'; el de detalle para 'cita-detalle' y 'detalle-*'; ficha para 'ficha' y 'cliente-*'.
+  // 'zona-*' es el foco generico (cualquier data-demo de cualquier pantalla).
   // Solo cerramos el panel cuando cambia el GRUPO (asi la transicion cita -> detalle no falla).
   function groupOf(a){
     if(a==='cita-detalle'||(a&&a.indexOf('detalle-')===0)) return 'detalle';
     if(a==='nueva-cita'||(a&&a.indexOf('cita-')===0)) return 'cita';
     if(a==='ficha'||(a&&a.indexOf('cliente-')===0)) return 'cliente';
     if(a&&a.indexOf('config-')===0) return 'config';
+    if(a&&a.indexOf('zona-')===0) return 'zona';
     return a;
   }
 
@@ -1588,39 +1718,74 @@
   // ejecutarse; navegar SIEMPRE cancela lo pendiente y renderiza el paso actual
   // completo. Asi, pulsar rapido (o en mitad de una animacion) nunca deja el paso
   // "vacio" ni paneles/focos huerfanos.
-  var STEPS=TUT_ESSENTIALS, ti=0, hole=null, tourStarted=false, tourBooted=false;
+  var STEPS=TUT_PILARES, ti=0, hole=null, tourStarted=false, tourBooted=false;
   var actTimer=null, actoT=null, lastAct=null, seq=0;
+  // spotWait/spotSeq: control del salvavidas del foco (ver driveSoftware).
+  // reintentos: reenvios de la accion cuando el paso cambia de pantalla.
+  var spotWait=null, spotSeq=-1, reintentos=[];
   var gt={};
 
   function pad2(n){ return (n<10?'0':'')+n; }
   // Reusa escHtml (definido arriba) y resalta **palabra** como <span class="hl">.
   function fmtBody(t){ return escHtml(String(t)).replace(/\*\*([^*]+)\*\*/g,'<span class="hl">$1</span>'); }
 
-  // ---- PREMIUM v2: capítulos del recorrido (4 actos para esenciales, 3 para avanzadas, 3 para config)
-  var ACTS_ESSENTIALS=[
-    {nombre:'La agenda', sub:'De un hueco libre a una cita confirmada', desde:0, hasta:6},
-    {nombre:'Los reposos', sub:'Cómo facturar el doble en el mismo tiempo', desde:7, hasta:9},
-    {nombre:'Ficha técnica', sub:'Color, notas, fotos e historial', desde:10, hasta:13},
-    {nombre:'Cobro y Caja', sub:'Cobro instantáneo y cierre VeriFactu', desde:14, hasta:14}
+  // ---- capitulos de cada recorrido (los rangos DEBEN cubrir todos los pasos) ----
+  var ACTS_PILARES=[
+    {nombre:'La agenda', sub:'Del hueco vacío a la cita completa', desde:0, hasta:6},
+    {nombre:'La cita por dentro', sub:'Estados, productos y cobro', desde:7, hasta:10},
+    {nombre:'Los reposos', sub:'La hora muerta que pasa a facturar', desde:11, hasta:13},
+    {nombre:'La ficha', sub:'Color, alergias e historial', desde:14, hasta:17},
+    {nombre:'Cobro y caja', sub:'Cobrar y cuadrar el día', desde:18, hasta:19}
   ];
-  var ACTS_GENERAL = ACTS_ESSENTIALS;
+  var ACTS_ESSENTIALS = ACTS_PILARES;
+  var ACTS_GENERAL = ACTS_PILARES;
   var ACTS_ADVANCED=[
-    {nombre:'Control y Clientes', sub:'Fichajes, bonos, recepcionista IA y espera', desde:0, hasta:3},
-    {nombre:'Crecimiento', sub:'Campañas WhatsApp y reseñas en Google', desde:4, hasta:5},
-    {nombre:'Gestión y Números', sub:'Equipo, stock, informes y soporte humano', desde:6, hasta:9}
+    {nombre:'Citas y huecos', sub:'Buscador, confirmaciones y lista de espera', desde:0, hasta:3},
+    {nombre:'Dinero y stock', sub:'Presupuestos, inventario y registros', desde:4, hasta:6},
+    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:7, hasta:9},
+    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:10, hasta:13},
+    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:14, hasta:17}
   ];
   var ACTS_CONFIG=[
-    {nombre:'Tu salón', sub:'Identidad, horarios y catálogo con reposos', desde:0, hasta:2},
-    {nombre:'Reglas y Avisos', sub:'Prepagos, incentivos, plantillas y avisos', desde:3, hasta:6},
-    {nombre:'Canales y Plan', sub:'Reserva QR, roles y tu plan', desde:7, hasta:9}
+    {nombre:'Tu negocio', sub:'Identidad y horarios', desde:0, hasta:1},
+    {nombre:'Operativa', sub:'Catálogo, reglas, comisiones y datos', desde:2, hasta:8},
+    {nombre:'Comunicación', sub:'Avisos, políticas, reservas y fidelización', desde:9, hasta:12},
+    {nombre:'Tu cuenta', sub:'Referidos, roles, plan y soporte', desde:13, hasta:16}
   ];
   // Pasos donde el tour para y te invita a tocar TU el software (badge TE TOCA)
-  var ACCIONES_TOCA={ 'nueva-cita':1, 'detalle-secuencia-reposo':1, 'cliente-color':1, 'informes-export':1, 'config-servicios':1 };
-  function actsOf(){
-    if(STEPS===TUT_CONFIG) return ACTS_CONFIG;
-    if(STEPS===TUT_ADVANCED) return ACTS_ADVANCED;
-    return ACTS_ESSENTIALS;
+  var ACCIONES_TOCA={ 'nueva-cita':1, 'cita-addons':1, 'detalle-secuencia-reposo':1, 'detalle-pagos':1, 'cliente-color':1, 'informes-export':1, 'config-servicios':1 };
+
+  // ---- catalogo de recorridos: una sola fuente de verdad ----
+  // De aqui salen el selector de la barra, las tarjetas de la intro, el
+  // encadenado entre recorridos y las duraciones (nunca escritas a mano: se
+  // calculan con el ritmo real del autoplay, asi no pueden quedar desfasadas).
+  var PASO_MS = 5400;                    // ritmo del autoplay
+  var RECORRIDOS = [
+    { id:'pilares',  alias:'general',  n:1, nombre:'Los pilares',
+      resumen:'Agenda, la cita entera por dentro, reposos, ficha y caja',
+      gancho:'Empezar', pasos:TUT_PILARES,  actos:ACTS_PILARES },
+    { id:'advanced', alias:'advanced', n:2, nombre:'Todas las pantallas',
+      resumen:'Citas, espera, presupuestos, stock, equipo, campañas, reseñas, informes e IA',
+      gancho:'Lo que nadie más tiene', pasos:TUT_ADVANCED, actos:ACTS_ADVANCED },
+    { id:'config',   alias:'config',   n:3, nombre:'La configuración',
+      resumen:'Las 17 pestañas de Ajustes: así se adapta a TU salón',
+      gancho:'Hasta el último detalle', pasos:TUT_CONFIG,  actos:ACTS_CONFIG }
+  ];
+  function recorridoDe(steps){
+    for(var i=0;i<RECORRIDOS.length;i++){ if(RECORRIDOS[i].pasos===steps) return RECORRIDOS[i]; }
+    return RECORRIDOS[0];
   }
+  function recorridoPorId(id){
+    if(id==='general') id='pilares';
+    for(var i=0;i<RECORRIDOS.length;i++){ if(RECORRIDOS[i].id===id) return RECORRIDOS[i]; }
+    return RECORRIDOS[0];
+  }
+  // Minutos redondeados hacia arriba, minimo 1 (ritmo del autoplay).
+  function minutosDe(r){ return Math.max(1, Math.round(r.pasos.length*PASO_MS/60000)); }
+  function totalPasos(){ var n=0; for(var i=0;i<RECORRIDOS.length;i++) n+=RECORRIDOS[i].pasos.length; return n; }
+  function totalMinutos(){ var m=0; for(var i=0;i<RECORRIDOS.length;i++) m+=minutosDe(RECORRIDOS[i]); return m; }
+
+  function actsOf(){ return recorridoDe(STEPS).actos; }
   function actoOf(i){ var A=actsOf(); for(var k=0;k<A.length;k++){ if(i>=A[k].desde && i<=A[k].hasta) return k; } return 0; }
 
   var SVG_PREV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
@@ -1691,7 +1856,12 @@
   var autoTimer=null;
   function toggleAutoplay(){ if(autoTimer) stopAutoplay(); else startAutoplay(); }
   function startAutoplay(){
-    autoTimer=setInterval(tourNext, 4600);
+    // Idempotente a proposito: si ya habia un intervalo y lo pisabamos, quedaban
+    // DOS (o tres) tourNext por ciclo. Cada uno incrementa seq, y el trabajo
+    // diferido de 60 ms se cancela solo -> el software no recibia la accion del
+    // paso y el foco no aparecia nunca. Reiniciar siempre desde cero.
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+    autoTimer=setInterval(tourNext, PASO_MS);
     gt.play.innerHTML=SVG_PAUSE; gt.play.classList.add('on'); gt.play.title='Pausar reproducción';
   }
   function stopAutoplay(){
@@ -1699,7 +1869,19 @@
     if(gt.play){ gt.play.innerHTML=SVG_PLAY; gt.play.classList.remove('on'); gt.play.title='Reproducir solo'; }
   }
 
-  function navFrame(route){ if(maqueta||!route) return; try{ if(frame.contentWindow) frame.contentWindow.postMessage({ type:'mecha-nav', route:route }, location.origin); }catch(e){} }
+  // Navegar SOLO cuando cambia de pantalla. Hacer router.push a la ruta en la que
+  // ya estamos remonta la pantalla: la pantalla nueva registra su escucha DESPUES
+  // de que llegue la accion del paso, asi que el paso se perdia y no salia el
+  // foco. Se notaba sobre todo en Configuracion, donde 17 pasos seguidos viven
+  // en la misma ruta. Devuelve true si ha habido navegacion real.
+  var rutaActual=null;
+  function navFrame(route){
+    if(maqueta||!route) return false;
+    if(route===rutaActual) return false;
+    rutaActual=route;
+    try{ if(frame.contentWindow) frame.contentWindow.postMessage({ type:'mecha-nav', route:route }, location.origin); }catch(e){}
+    return true;
+  }
   function demoAction(action){ if(maqueta||!action) return; try{ if(frame.contentWindow) frame.contentWindow.postMessage({ type:'mecha-demo', action:action }, location.origin); }catch(e){} }
 
   // El software nos manda el rect a iluminar (coords del viewport del iframe).
@@ -1762,14 +1944,24 @@
       el.style.animation='none'; void el.offsetWidth; el.style.animation='';
     });
   }
+  // Recorrido que viene despues del actual (null si es el ultimo).
+  function siguienteRecorrido(){
+    var r=recorridoDe(STEPS);
+    for(var i=0;i<RECORRIDOS.length;i++){
+      if(RECORRIDOS[i]===r) return RECORRIDOS[i+1] || null;
+    }
+    return null;
+  }
   function updateNav(){
     gt.prev.disabled = (ti===0);
     var last = ti===STEPS.length-1;
     if(last){
-      gt.next.innerHTML = (STEPS===TUT_CONFIG) ? SVG_CHECK : SVG_NEXT;
-      gt.next.title = (STEPS===TUT_ESSENTIALS || STEPS===TUT_GENERAL) ? 'Ver Funciones Avanzadas' : ((STEPS===TUT_ADVANCED) ? 'Ver Configuración' : 'Finalizar tour');
-      if(STEPS===TUT_CONFIG) gt.next.classList.add('gt-next-done');
-      else gt.next.classList.remove('gt-next-done');
+      var sig=siguienteRecorrido();
+      gt.next.innerHTML = sig ? SVG_NEXT : SVG_CHECK;
+      gt.next.title = sig
+        ? ('Siguiente recorrido: ' + sig.nombre + ' (' + sig.pasos.length + ' pasos · ≈ ' + minutosDe(sig) + ' min)')
+        : 'Terminar el recorrido';
+      gt.next.classList.toggle('gt-next-done', !sig);
     } else {
       gt.next.innerHTML = SVG_NEXT;
       gt.next.title = 'Siguiente paso (→)';
@@ -1777,9 +1969,10 @@
     }
   }
   function syncSelector(){
-    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', STEPS===TUT_ESSENTIALS || STEPS===TUT_GENERAL);
-    if(tutBtnAdvanced) tutBtnAdvanced.classList.toggle('active', STEPS===TUT_ADVANCED);
-    if(tutBtnConfig) tutBtnConfig.classList.toggle('active', STEPS===TUT_CONFIG);
+    var r=recorridoDe(STEPS);
+    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', r.id==='pilares');
+    if(tutBtnAdvanced) tutBtnAdvanced.classList.toggle('active', r.id==='advanced');
+    if(tutBtnConfig) tutBtnConfig.classList.toggle('active', r.id==='config');
   }
 
   // Conduce el software: navega y, tras un respiro, abre el panel del paso.
@@ -1787,12 +1980,14 @@
   // El timeout lleva seq: si el usuario navega antes de que salte, se cancela y
   // el paso NUEVO es el que manda (nada de abrir/cerrar paneles cruzados).
   function driveSoftware(s){
-    navFrame(s.route);
+    var navego=navFrame(s.route);
     var a=s.action||'cerrar';
     // Pasos SIN foco (pantalla completa o solo-abrir-modal): vuelve al velo suave
     // ya, para que el foco del paso anterior no se quede pegado al ir/volver.
     // En pasos CON foco no tocamos el hueco: el spot se desliza al llegar el nuevo.
-    var expectSpot = a!=='cerrar' && a!=='nueva-cita';
+    // 'nueva-cita' y 'cita-detalle' solo ABREN un panel: no hay zona que enfocar,
+    // asi que soltamos el foco ya y no dejamos el del paso anterior encima.
+    var expectSpot = a!=='cerrar' && a!=='nueva-cita' && a!=='cita-detalle';
     if(!expectSpot) setHole(null);
     if(actTimer) clearTimeout(actTimer);
     var my=seq;
@@ -1803,6 +1998,31 @@
       if(a!=='cerrar') demoAction(a);
       lastAct=a;
     }, 60);
+    // Si acabamos de cambiar de pantalla, la pantalla destino puede tardar en
+    // montarse (datos por red) y perderse el mensaje. Reintentamos la accion un
+    // par de veces: todas son idempotentes, asi que repetirlas no hace nada raro.
+    if(reintentos.length){ reintentos.forEach(clearTimeout); reintentos.length=0; }
+    if(navego && a!=='cerrar'){
+      [650, 1500, 2600, 4000].forEach(function(ms){
+        reintentos.push(setTimeout(function(){
+          if(my!==seq) return;
+          if(spotSeq===my) return;   // ya hay foco: no hace falta insistir
+          demoAction(a);
+        }, ms));
+      });
+    }
+    // Salvavidas: si la zona de este paso no existe en la pantalla (datos vacios,
+    // permiso distinto, pantalla aun cargando), el software nunca manda su rect.
+    // Sin esto se quedaria pegado el foco del paso ANTERIOR, senalando algo que
+    // no tiene nada que ver. Pasado el margen, volvemos al velo suave.
+    if(spotWait) clearTimeout(spotWait);
+    if(expectSpot){
+      spotWait=setTimeout(function(){
+        if(my!==seq) return;      // ya se navego: manda el paso nuevo
+        if(spotSeq===my) return;  // el rect llego a tiempo
+        setHole(null);
+      }, navego ? 4800 : 1600);
+    }
   }
 
   // Cambia de paso de forma FLUIDA y SEGURA: navegar siempre es valido (sin
@@ -1827,14 +2047,11 @@
 
   function tourNext(){
     if(ti<STEPS.length-1){ ti++; renderStep(true); return; }
-    if(STEPS===TUT_ESSENTIALS || STEPS===TUT_GENERAL){
-      playTutorial('advanced');
-    } else if(STEPS===TUT_ADVANCED){
-      playTutorial('config');
-    } else {
-      stopAutoplay();
-      closeTour();
-    }
+    // Fin del recorrido: encadena con el siguiente y, si no hay, cierra.
+    var sig=siguienteRecorrido();
+    if(sig){ playTutorial(sig.id); return; }
+    stopAutoplay();
+    closeTour();
   }
   function tourPrev(){ if(ti>0){ ti--; renderStep(true); } }
   function closeTour(){
@@ -1843,6 +2060,8 @@
     gt.root.classList.remove('show');
     if(actTimer) clearTimeout(actTimer);
     if(actoT) clearTimeout(actoT);
+    if(spotWait) clearTimeout(spotWait);
+    if(reintentos.length){ reintentos.forEach(clearTimeout); reintentos.length=0; }
     if(gt.acto) gt.acto.classList.remove('on');
     demoAction('cerrar'); hole=null; lastAct='cerrar';
   }
@@ -1853,24 +2072,36 @@
     seq++;
     if(actTimer) clearTimeout(actTimer);
     if(actoT) clearTimeout(actoT);
-    if(which==='config'){
-      STEPS = TUT_CONFIG;
-    } else if(which==='advanced'){
-      STEPS = TUT_ADVANCED;
-    } else {
-      STEPS = TUT_ESSENTIALS;
-    }
+    STEPS = recorridoPorId(which).pasos;
     ti=0; tourStarted=true; hole=null; lastAct=null;
     gt.veil.classList.add('on'); gt.spot.classList.remove('on');
     gt.root.classList.add('show');
     lastActoShown=-1;
     setProgress(); updateNav(); syncSelector(); renderChapters(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
+    // Cortinilla del capitulo 1 nada mas arrancar: sin esto el primer rotulo no
+    // salia hasta el tercer paso (lastActoShown solo se comparaba en renderStep).
+    lastActoShown=0; mostrarActo(0);
+    // Al (re)arrancar forzamos navegacion aunque sea la misma ruta: puede venir
+    // de otro recorrido y hay que asegurar que el paso 1 aterriza donde toca.
+    rutaActual=null;
     navFrame(STEPS[0].route);
     var a0=STEPS[0].action||'cerrar', my=seq;
     actTimer=setTimeout(function(){
       if(my!==seq) return;
       demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0;
     }, 120);
+    // Mismo reintento que en driveSoftware: la pantalla del paso 1 casi siempre
+    // acaba de montarse y puede perderse el primer mensaje.
+    if(reintentos.length){ reintentos.forEach(clearTimeout); reintentos.length=0; }
+    if(a0!=='cerrar'){
+      [700, 1600, 2700, 4100].forEach(function(ms){
+        reintentos.push(setTimeout(function(){
+          if(my!==seq) return;
+          if(spotSeq===my) return;
+          demoAction(a0);
+        }, ms));
+      });
+    }
   }
 
   function bootTourEngine(){ if(tourBooted) return; tourBooted=true; buildDock(); }
@@ -1880,6 +2111,7 @@
     if(ev.origin !== location.origin) return;
     var d = ev.data; if(!d || d.type !== 'mecha-spotlight') return;
     if(!gt.root) return;
+    if(d.rect) spotSeq=seq;   // este paso SI tiene foco: desactiva el salvavidas
     setHole(d.rect||null);
   });
   document.addEventListener('keydown', function(e){
@@ -1892,35 +2124,99 @@
   });
 
   // Llamado por enterDemo: monta el dock y arranca cuando el iframe esta listo
-  // (con respaldo por tiempo para maqueta o si se pierde el evento load).
+  // (con respaldo por tiempo por si se pierde el evento load).
+  //
+  // El arranque es lo que el visitante percibe como "fluido": la intro negra se
+  // abre (dmIntroOut) mientras el software ya esta navegando por debajo, asi que
+  // cuando el negro termina de irse el paso 1 ya esta puesto y el PLAY encendido.
   function startTour(track){
-    var which = track || 'general';
+    var which = track || 'pilares';
     tourStarted=true;
     bootTourEngine();
     var fired=false;
-    function go(){ if(fired) return; fired=true; playTutorial(which); startAutoplay(); }
-    if(frame){ frame.addEventListener('load', function(){ setTimeout(go, 300); }); }
-    setTimeout(go, 500);
+    function go(){
+      if(fired) return; fired=true;
+      playTutorial(which);
+      startAutoplay();   // arranca reproduciendose, como un video
+    }
+    if(frame){ frame.addEventListener('load', function(){ setTimeout(go, 250); }); }
+    setTimeout(go, 450);
   }
 
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
-  if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ bootTourEngine(); playTutorial('general'); }); }
-  if(tutBtnAdvanced){ tutBtnAdvanced.addEventListener('click', function(){ bootTourEngine(); playTutorial('advanced'); }); }
-  if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); }); }
+  if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ bootTourEngine(); playTutorial('pilares'); startAutoplay(); }); }
+  if(tutBtnAdvanced){ tutBtnAdvanced.addEventListener('click', function(){ bootTourEngine(); playTutorial('advanced'); startAutoplay(); }); }
+  if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); startAutoplay(); }); }
 
-  /* ---------- INTRO: botones de entrada ---------- */
-  function closeIntro(){ var el=$('#intro'); if(el) el.classList.remove('show'); try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){} }
+  /* ---------- INTRO: se pinta desde RECORRIDOS ----------
+     Duracion y numero de pasos NO se escriben a mano en el HTML: se calculan
+     aqui. Asi no puede volver a pasar que la intro prometa "27 pasos" y el
+     recorrido tenga otros tantos. */
+  var SVG_PLAY_MINI = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>';
+  function pintarIntro(){
+    var cont=$('#introTracks');
+    if(cont){
+      var html='';
+      for(var i=0;i<RECORRIDOS.length;i++){
+        var r=RECORRIDOS[i];
+        html+='<div class="dm-itrack'+(i===0?' primero':'')+'" data-track="'+r.id+'" role="button" tabindex="0">'
+            +   '<span class="dm-it-num">'+r.n+'</span>'
+            +   '<div class="dm-it-info">'
+            +     '<b>'+escHtml(r.nombre)+'</b>'
+            +     '<small>'+escHtml(r.resumen)+'</small>'
+            +     '<span class="dm-it-meta">'+r.pasos.length+' pasos · ≈ '+minutosDe(r)+' min</span>'
+            +   '</div>'
+            +   '<span class="dm-it-tag">'+SVG_PLAY_MINI+escHtml(r.gancho)+'</span>'
+            + '</div>';
+      }
+      cont.innerHTML=html;
+    }
+    var lbl=$('#introGuidedLbl');
+    if(lbl) lbl.textContent='Ver los 3 recorridos ('+totalPasos()+' pasos · ≈ '+totalMinutos()+' min)';
+    var eb=$('#introEyebrow');
+    if(eb) eb.textContent='Demo interactiva · '+totalPasos()+' pasos guiados';
+    // Cada tarjeta arranca SU recorrido; el resto sigue a un clic en la barra.
+    Array.prototype.forEach.call(document.querySelectorAll('.dm-itrack'), function(card){
+      function lanzar(){ salirIntro(card.getAttribute('data-track') || 'pilares'); }
+      card.addEventListener('click', lanzar);
+      card.addEventListener('keydown', function(e){
+        if(e.key==='Enter' || e.key===' '){ e.preventDefault(); lanzar(); }
+      });
+    });
+  }
+
+  // Salida de la intro: el negro se abre (medio segundo) mientras el tour ya
+  // esta arrancando por debajo. Nada de cortes secos.
+  function salirIntro(track){
+    var el=$('#intro');
+    try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){}
+    if(track) startTour(track);
+    if(!el){ return; }
+    el.classList.add('exit');
+    setTimeout(function(){
+      el.classList.remove('show'); el.classList.remove('exit');
+      document.body.classList.remove('dm-intro-on');
+    }, 560);
+  }
+  function closeIntro(){ salirIntro(null); }
+
   var introGuided=$('#introGuided');
-  if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); closeIntro(); startTour('general'); });
+  if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); salirIntro('pilares'); });
   var introFree=$('#introFree');
   if(introFree) introFree.addEventListener('click', function(){ closeIntro(); });
-  Array.prototype.forEach.call(document.querySelectorAll('.dm-itrack'), function(card){
-    card.addEventListener('click', function(){
-      var tr = card.getAttribute('data-track') || 'general';
-      closeIntro();
-      startTour(tr);
-    });
-  });
+
+  // Titulos del selector de la barra, tambien desde RECORRIDOS.
+  (function(){
+    var botones=[tutBtnGeneral, tutBtnAdvanced, tutBtnConfig];
+    for(var i=0;i<RECORRIDOS.length;i++){
+      var b=botones[i], r=RECORRIDOS[i];
+      if(!b) continue;
+      b.title = 'Recorrido '+r.n+': '+r.nombre+' — '+r.pasos.length+' pasos · ≈ '+minutosDe(r)+' min';
+      var lb=b.querySelector('.lbl');
+      if(lb) lb.textContent = r.n+' · '+r.nombre;
+    }
+  })();
+  pintarIntro();
 
   /* ---------- PANEL DUDAS: WhatsApp + Chispa (IA con conocimiento real) ---------- */
   var SB_URL='https://vtrggiogjrhqtwbhbgia.supabase.co';
@@ -1944,7 +2240,15 @@
     var rawContact=dudasContacto?(dudasContacto.value||'').trim():'';
     var isEmail=false;
     var isPhone=false;
-    if(rawContact){
+    // El contacto es OBLIGATORIO: sin el, la duda llega al equipo pero no hay
+    // forma de contestarla, que era justo el agujero que tenia este panel.
+    if(!rawContact){
+      dudasErr.textContent='Déjanos tu correo o tu WhatsApp para poder responderte.';
+      dudasErr.classList.add('show');
+      if(dudasContacto) dudasContacto.focus();
+      return;
+    }
+    {
       if(rawContact.indexOf('@')!==-1){
         if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawContact)){
           dudasErr.textContent='Por favor, introduce un correo electrónico válido.';

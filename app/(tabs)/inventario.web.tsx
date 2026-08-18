@@ -888,7 +888,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
           )}
         </div>
 
-        <div style={{
+        <div data-demo="inventario-stock" style={{
           ...styles.kpiCard,
           borderLeft: `4px solid ${alertasCount > 0 ? TOKENS.danger : TOKENS.success}`,
           padding: isMobile ? 12 : 20,

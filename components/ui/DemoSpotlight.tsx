@@ -46,9 +46,31 @@ export function DemoSpotlight({
       } catch (e) { /* cross-origin: ignorar */ }
     };
 
+    // Latido: ademas de emitir cuando el hueco cambia, reenviamos el mismo rect
+    // cada poco. El contenedor (demo.html) usa esas senales para saber que el
+    // paso SI tiene foco; sin latido, dos pasos seguidos cuyo objetivo cae en el
+    // mismo sitio (tipico entre pestanas de Ajustes) no emitian nada y el
+    // contenedor daba el foco por perdido y lo apagaba.
+    const LATIDO_MS = 400;
+    let lastSent = 0;
     let raf = 0;
+    // Si el objetivo desaparece (el boton al que apuntaba deja de existir, la
+    // seccion se desmonta…) hay que APAGAR el foco. Antes se quedaba el ultimo
+    // rect pintado y, tras recolocarse el panel, acababa senalando otra cosa
+    // (llego a marcar "Cancelar" cuando explicaba "+ Encadenar otro").
+    // Con margen de unos frames para no parpadear en re-renderizados normales.
+    let sinObjetivo = 0;
     const measure = () => {
       const el = targetRef.current;
+      if (!el || el.getBoundingClientRect().height <= 0) {
+        if (++sinObjetivo === 24) {
+          setRect(null);
+          lastPosted = null;
+          postHole(null);
+        }
+      } else {
+        sinObjetivo = 0;
+      }
       if (el) {
         const r = el.getBoundingClientRect();
         // Evita parpadeos cuando aun no esta colocado (height 0)
@@ -56,10 +78,13 @@ export function DemoSpotlight({
           setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
           // Hueco iluminado (con el padding visual aplicado), en coords del viewport del iframe.
           const hole = { top: r.top - padding, left: r.left - padding, width: r.width + padding * 2, height: r.height + padding * 2 };
-          if (!lastPosted ||
+          const ahora = Date.now();
+          const cambio = !lastPosted ||
               Math.abs(hole.top - lastPosted.top) > 1 || Math.abs(hole.left - lastPosted.left) > 1 ||
-              Math.abs(hole.width - lastPosted.width) > 1 || Math.abs(hole.height - lastPosted.height) > 1) {
+              Math.abs(hole.width - lastPosted.width) > 1 || Math.abs(hole.height - lastPosted.height) > 1;
+          if (cambio || ahora - lastSent > LATIDO_MS) {
             lastPosted = hole;
+            lastSent = ahora;
             postHole(hole);
           }
         }

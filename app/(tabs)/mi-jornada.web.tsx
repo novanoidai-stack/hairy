@@ -811,7 +811,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           </div>
         )}
 
-        <div className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
+        <div data-demo="jornada-fichaje" className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Icon name="clock" size={18} color={fichado ? T.success : T.textTer} />

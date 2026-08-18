@@ -480,7 +480,12 @@ export default function ConfiguracionWeb() {
         // tour tenga sitio en la zona oscura y no tape lo enfocado.
         const header = first.querySelector('header') as HTMLElement | null;
         demoTargetRef.current = (header && header.getBoundingClientRect().height > 0) ? header : first;
-      } else if (tries++ < 30) {
+      } else if (tries++ < 240) {
+        // Hasta ~4 s: la primera vez que el recorrido entra en Ajustes la
+        // pantalla acaba de montarse y aun no hay contenido que medir. Con solo
+        // 30 frames (medio segundo) el primer paso se quedaba sin foco, y como
+        // ni la accion ni la pestana cambian despues, este efecto no se volvia
+        // a ejecutar: el foco no aparecia nunca.
         raf = requestAnimationFrame(pick);
       } else {
         demoTargetRef.current = root;

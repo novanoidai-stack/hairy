@@ -896,7 +896,7 @@ function PresupuestosScreen() {
         )}
 
         {/* Filtros + búsqueda */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
+        <div data-demo="presupuestos-estados" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
           {FILTROS.map(([k, lbl]) => {
             const on = filtro === k;
             return <button key={k} onClick={() => setFiltro(k)} className="p-btn" style={{ padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec, border: `1px solid ${on ? T.primary : T.border}` }}>{lbl}</button>;

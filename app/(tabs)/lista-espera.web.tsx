@@ -266,7 +266,7 @@ function ListaEsperaScreen() {
         )}
 
         {/* Filtros */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div data-demo="espera-lista" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {([
               { k: 'activas', label: `Activas (${conteo.esperando + conteo.avisado})` },

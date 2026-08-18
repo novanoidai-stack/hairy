@@ -333,6 +333,7 @@ export default function AyudaScreen() {
         </button>
 
         <button
+          data-demo-abrir="ia-hub"
           onClick={() => setCatSel('hub_ia')}
           style={{
             padding: '8px 16px',
@@ -351,14 +352,14 @@ export default function AyudaScreen() {
       </div>
 
       {catSel === 'hub_ia' && (
-        <div style={{ marginBottom: 32 }}>
+        <div data-demo="ia-hub" style={{ marginBottom: 32 }}>
           <HubIA negocioId={negocioId} rolStr={rolStr} />
         </div>
       )}
 
       {/* ── Sección de Manuales ── */}
       {catSel !== 'faqs' && catSel !== 'hub_ia' && (
-        <div style={{ marginBottom: 32 }}>
+        <div data-demo="ayuda-manuales" style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 14 }}>
             {catSel === 'todas'
               ? 'Guías de uso por módulo'
