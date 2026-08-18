@@ -71,13 +71,24 @@ export const CITA_STATUS_ACTIVOS: CitaStatus[] = [
 // validacion: se dejaba crear otra encima y luego el repartidor de columnas las
 // pintaba en paralelo. Ese era el bug de la "doble columna".
 //
-// Entran `pendiente` (aun sin confirmar, pero el hueco ya es suyo) y `confirmada`.
-// NO entran `cancelada` ni `no_presentada`: ahi el hueco vuelve a estar libre de
-// verdad. Tampoco `completada`, a proposito: apuntar a posteriori un trabajo ya
-// hecho es un flujo real del mostrador y no debe chocar consigo mismo.
+// Entran `pendiente` (aun sin confirmar, pero el hueco ya es suyo), `confirmada`
+// y `completada`. NO entran `cancelada` ni `no_presentada`: ahi el hueco vuelve a
+// estar libre de verdad.
+//
+// `completada` estuvo fuera a proposito ("apuntar a posteriori un trabajo ya
+// hecho"), y esa excepcion resucito la doble columna por otra puerta: el cron
+// autocompleta las citas en cuanto pasan de hora, asi que una cita recien
+// terminada dejaba de bloquear mientras SEGUIA pintando carril (no esta en
+// CITA_STATUS_SIN_LANE). Se podia crear encima de ella y la columna se partia en
+// dos. El trabajo se hizo: ese rato la profesional estuvo ocupada y cuenta.
+//
+// OJO: esta lista dice "ocupa sitio", NO "sigue pendiente de resolver". Para eso
+// esta `sigueViva`; confundirlas hace que una cita ya cerrada salga como vencida
+// o que un retraso intente empujar citas que ya terminaron.
 export const CITA_STATUS_BLOQUEAN_SOLAPE: CitaStatus[] = [
   CITA_STATUS.PENDIENTE,
   CITA_STATUS.CONFIRMADA,
+  CITA_STATUS.COMPLETADA,
 ];
 
 // Estados que NO se pintan como columna propia en la rejilla: no compiten por
@@ -94,6 +105,12 @@ export const bloqueaSolape = (estado?: string | null): boolean =>
 
 export const sinCarrilPropio = (estado?: string | null): boolean =>
   (CITA_STATUS_SIN_LANE as string[]).includes(estado ?? '');
+
+// Cita VIVA: aun no se ha resuelto (ni completada, ni cancelada, ni no-show).
+// Es lo que quieren "citas vencidas por resolver" y "mover la cola por retraso",
+// que NO es lo mismo que ocupar hueco (ver CITA_STATUS_BLOQUEAN_SOLAPE).
+export const sigueViva = (estado?: string | null): boolean =>
+  (CITA_STATUS_ACTIVOS as string[]).includes(estado ?? '');
 
 export const CITA_CANAL = {
   MANUAL: 'manual',

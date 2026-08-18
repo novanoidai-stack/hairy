@@ -99,7 +99,7 @@ import {
   CITA_CARD_DETAILS_MIN_HEIGHT,
   CITA_STATUS,
   CITA_STATUS_BLOQUEAN_SOLAPE,
-  bloqueaSolape,
+  sigueViva,
   sinCarrilPropio,
   LOCALE,
   OCUPACION_MAX_PER_MES,
@@ -1346,7 +1346,9 @@ export default function AgendaCalendar() {
       const vencidas = citas.filter((c) => {
         // Pendiente cuenta: una cita que se ha pasado sin confirmar es
         // justamente la que hay que resolver (completar o marcar no-show).
-        if (!bloqueaSolape(c.estado)) return false;
+        // Aqui va `sigueViva` y no `bloqueaSolape`: una completada ocupa su
+        // hueco pero ya esta resuelta, no hay nada que reclamar.
+        if (!sigueViva(c.estado)) return false;
         const inicio = new Date(c.inicio);
         return inicio < ahora && inicio.toDateString() === hoyStr;
       });
@@ -6012,8 +6014,9 @@ export default function AgendaCalendar() {
             (c) =>
               c.profesional_id === showRetrasoProf &&
               // Si vamos con retraso hay que mover TODA la cola del dia, no solo
-              // lo confirmado: las pendientes tambien ocupan su hora.
-              bloqueaSolape(c.estado),
+              // lo confirmado: las pendientes tambien ocupan su hora. Las ya
+              // completadas no se tocan, que esas ya pasaron.
+              sigueViva(c.estado),
           );
 
           function retrasarTodas(minutos: number) {
@@ -11638,6 +11641,13 @@ function NewCitaModal({
     () => ((cierresIni ?? []) as any[]).find((c: any) => c.fecha === todayKey) ?? null,
     [cierresIni, todayKey],
   );
+  // Las citas ya completadas siguen ocupando su hueco, pero se tratan aparte al
+  // pintar la rejilla: una hora tapada solo por una cita TERMINADA se ensena
+  // marcada en vez de desaparecer, para que se vea por que no estaba libre.
+  const citasHoyVivas = useMemo(
+    () => (citasHoy ?? []).filter((c: any) => sigueViva(c.estado)),
+    [citasHoy],
+  );
 
   // --- Demo guiada: el recorrido de demo.html pide rellenar el formulario paso a
   // paso (cliente -> servicio -> hora) y enfocar cada zona con un spotlight. El
@@ -11799,7 +11809,7 @@ function NewCitaModal({
         supabase
           .from("citas")
           .select(
-            "id, inicio, fin, fin_activa, fin_espera, profesional_id, grupo_id, orden_en_grupo",
+            "id, inicio, fin, fin_activa, fin_espera, profesional_id, grupo_id, orden_en_grupo, estado",
           )
           .eq("negocio_id", negocioId)
           .gte("inicio", `${todayStr}T00:00:00`)
@@ -12084,7 +12094,7 @@ function NewCitaModal({
   // RN-AG-072: detectar si la hora seleccionada aprovecha un reposo existente
   const citaHostReposo =
     inicio && finActiva && selectedProf
-      ? citasHoy.find((c: any) => {
+      ? citasHoyVivas.find((c: any) => {
           if (
             c.profesional_id !== selectedProf ||
             !c.fin_activa ||
@@ -14522,7 +14532,9 @@ function NewCitaModal({
                 // RN-AG-070/071: añadir fin_activa exacto como slot extra si no es múltiplo de 15
                 const slotsSet = new Set(slots);
                 const extraSlots: string[] = [];
-                citasHoy.forEach((c: any) => {
+                // Solo las citas VIVAS ofrecen hueco de reposo: el reposo de una
+                // cita que ya termino no es un hueco donde encajar nada.
+                citasHoyVivas.forEach((c: any) => {
                   if (
                     c.profesional_id !== selectedProf ||
                     !c.fin_activa ||
@@ -14562,7 +14574,7 @@ function NewCitaModal({
                   const slotFinActiva = new Date(
                     slotInicio.getTime() + duracionActiva * 60000,
                   );
-                  const encajaEnReposo = citasHoy.some((c: any) => {
+                  const encajaEnReposo = citasHoyVivas.some((c: any) => {
                     if (
                       c.profesional_id !== selectedProf ||
                       !c.fin_activa ||
@@ -14705,42 +14717,102 @@ function NewCitaModal({
                         const testFinActiva = new Date(
                           testInicio.getTime() + duracionActiva * 60000,
                         );
-                        const occupied1 = isTimeSlotOccupied(
-                          testInicio,
-                          testFinActiva,
-                          citasHoy,
-                          selectedProf,
+                        const inicioFase2 = new Date(
+                          testInicio.getTime() +
+                            (duracionActiva + duracionEspera) * 60000,
                         );
-                        const occupied2 =
-                          duracionActivaExtra > 0 &&
-                          isTimeSlotOccupied(
-                            new Date(
-                              testInicio.getTime() +
-                                (duracionActiva + duracionEspera) * 60000,
-                            ),
-                            new Date(
-                              testInicio.getTime() + duracionTotal * 60000,
-                            ),
-                            citasHoy,
-                            selectedProf,
-                          );
                         const testFin = new Date(
                           testInicio.getTime() + duracionTotal * 60000,
                         );
+                        // Choque con lo que sigue vivo (pendiente/confirmada):
+                        // esas horas ni se ensenan.
+                        const pisaViva =
+                          isTimeSlotOccupied(
+                            testInicio,
+                            testFinActiva,
+                            citasHoyVivas,
+                            selectedProf,
+                          ) ||
+                          (duracionActivaExtra > 0 &&
+                            isTimeSlotOccupied(
+                              inicioFase2,
+                              testFin,
+                              citasHoyVivas,
+                              selectedProf,
+                            ));
+                        // Choque solo con una cita ya TERMINADA: se ensena, pero
+                        // marcada y sin poder elegirla. Asi se ve que ese rato la
+                        // profesional estuvo trabajando, en vez de que la hora
+                        // desaparezca sin explicacion.
+                        const pisaTerminada =
+                          !pisaViva &&
+                          (isTimeSlotOccupied(
+                            testInicio,
+                            testFinActiva,
+                            citasHoy,
+                            selectedProf,
+                          ) ||
+                            (duracionActivaExtra > 0 &&
+                              isTimeSlotOccupied(
+                                inicioFase2,
+                                testFin,
+                                citasHoy,
+                                selectedProf,
+                              )));
                         const blockedByAusencia = bloqueosProfHoy.some(
                           (b: any) =>
                             new Date(b.inicio) < testFin &&
                             new Date(b.fin) > testInicio,
                         );
 
-                        if (occupied1 || occupied2 || blockedByAusencia)
-                          return null;
+                        if (pisaViva || blockedByAusencia) return null;
 
                         // Resaltar en naranja tambien el hueco prellenado al clicar en la rejilla
                         const selected =
                           (selectedHora === time && !horaPersonalizada) ||
                           (useCustomHora && horaPersonalizada === time);
                         const esReposo = reposaSlots.has(time);
+
+                        if (pisaTerminada)
+                          return (
+                            <button
+                              key={time}
+                              data-slot={time}
+                              data-reposo="0"
+                              data-terminada="1"
+                              disabled
+                              title="La profesional ya atendio una cita a esa hora"
+                              style={{
+                                width: "100%",
+                                padding: "5px 0 4px",
+                                borderRadius: 8,
+                                background: "rgba(148,163,184,0.06)",
+                                border: `1px dashed ${TOKENS.border}`,
+                                color: TOKENS.textTer,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                cursor: "not-allowed",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <span style={{ textDecoration: "line-through" }}>
+                                {time}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 8,
+                                  fontWeight: 700,
+                                  letterSpacing: 0.4,
+                                  color: TOKENS.textTer,
+                                }}
+                              >
+                                terminada
+                              </span>
+                            </button>
+                          );
 
                         return (
                           <button

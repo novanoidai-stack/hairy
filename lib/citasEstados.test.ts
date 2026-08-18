@@ -11,6 +11,7 @@ import {
   CITA_STATUS_SIN_LANE,
   bloqueaSolape,
   sinCarrilPropio,
+  sigueViva,
 } from './constants.ts';
 import { esActiva } from './citasMetrics.ts';
 import { ESTADO_CITA_UI, metaEstadoCita } from './citasEstadoUi.ts';
@@ -26,6 +27,24 @@ Deno.test('una cita pendiente ocupa hueco (era la causa de la doble columna)', (
 Deno.test('cancelada y no-show liberan el hueco', () => {
   assertEquals(bloqueaSolape(CITA_STATUS.CANCELADA), false);
   assertEquals(bloqueaSolape(CITA_STATUS.NO_PRESENTADA), false);
+});
+
+Deno.test('una cita completada sigue ocupando su hueco', () => {
+  // El trabajo se hizo: ese rato la profesional estuvo ocupada. Como el cron
+  // autocompleta en cuanto pasa la hora, dejarla fuera abria una ventana en la
+  // que se podia crear otra cita encima de la que acababa de terminar; luego el
+  // reparto de carriles (donde completada SI cuenta) partia la columna en dos.
+  assertEquals(bloqueaSolape(CITA_STATUS.COMPLETADA), true);
+});
+
+Deno.test('ocupar hueco y seguir viva son cosas distintas', () => {
+  // Ojo al reusar la lista equivocada: "vencidas por resolver" y "mover la cola
+  // por un retraso" quieren las VIVAS; una completada ya esta resuelta.
+  assertEquals(sigueViva(CITA_STATUS.PENDIENTE), true);
+  assertEquals(sigueViva(CITA_STATUS.CONFIRMADA), true);
+  assertEquals(sigueViva(CITA_STATUS.COMPLETADA), false);
+  assertEquals(sigueViva(CITA_STATUS.CANCELADA), false);
+  assertEquals(sigueViva(null), false);
 });
 
 Deno.test('bloqueaSolape aguanta null/undefined/estado desconocido', () => {
