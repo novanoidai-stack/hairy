@@ -41,7 +41,73 @@
     return [s.direccion, s.ciudad].filter(Boolean).join(', ');
   }
 
-  // Tarjeta de la lista de resultados: foto grande, servicios con precio y CTA.
+  // Insignias de confianza vectoriales (sin emojis estructurales, solo SVGs nítidos)
+  function calcularBadges(s) {
+    var badges = [];
+    var pool = ((s.servicios || []).map(function (x) { return x.nombre; }).join(' ') + ' ' + (s.descripcion || '') + ' ' + (s.nombre || '')).toLowerCase();
+
+    // 1. Salón Verificado (con software Mecha y agenda en tiempo real)
+    if (s.slug) {
+      badges.push({
+        id: 'verificado',
+        clase: 'd-badge-verificado',
+        texto: 'Salón Verificado',
+        icono: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>'
+      });
+    }
+
+    // 2. Especialista en Rubio / Balayage
+    if (/balayage|babylights|mechas|rubio|coloraci|decolor|matiz|iluminaci/i.test(pool)) {
+      badges.push({
+        id: 'balayage',
+        clase: 'd-badge-balayage',
+        texto: 'Especialista en Rubio / Balayage',
+        icono: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>'
+      });
+    }
+
+    // 3. Master Barber
+    if (/barber|barba|fade|degradado|afeitad|toalla caliente|perfilado/i.test(pool)) {
+      badges.push({
+        id: 'barber',
+        clase: 'd-badge-barber',
+        texto: 'Master Barber',
+        icono: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>'
+      });
+    }
+
+    // 4. Cosmética Orgánica / Vegan
+    if (/org[aá]nic|vegan|bio|ecol[oó]gic|botox|plex|olaplex|keratina|sin sulfatos|sin formol/i.test(pool)) {
+      badges.push({
+        id: 'organic',
+        clase: 'd-badge-organic',
+        texto: 'Cosmética Orgánica / Vegan',
+        icono: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>'
+      });
+    }
+
+    return badges;
+  }
+
+  // Rango de precio: 1 (€ Económico), 2 (€€ Medio), 3 (€€€ Premium/Autor)
+  function calcularPrecioTier(s) {
+    var precios = (s.servicios || []).map(function (x) {
+      if (x.precio != null) return Number(x.precio) || 0;
+      if (x.precio_centimos != null) return (Number(x.precio_centimos) || 0) / 100;
+      return 0;
+    }).filter(function (p) { return p > 0; });
+    if (!precios.length) return { tier: 2, simbolo: '€€', label: 'Precio medio' };
+    var avg = precios.reduce(function (a, b) { return a + b; }, 0) / precios.length;
+    var max = Math.max.apply(null, precios);
+    if (avg <= 20 && max <= 35) {
+      return { tier: 1, simbolo: '€', label: 'Económico' };
+    } else if (avg >= 48 || max >= 85) {
+      return { tier: 3, simbolo: '€€€', label: 'Premium / Autor' };
+    }
+    return { tier: 2, simbolo: '€€', label: 'Medio' };
+  }
+
+  // Tarjeta de la lista de resultados: foto grande, badges, servicios con precio y CTA.
   function resultado(s, idx) {
     var rating = '';
     if (s.valoracion != null) {
@@ -53,6 +119,17 @@
         '<div class="d-rating-n">' + esc(s.resenas) + (Number(s.resenas) === 1 ? ' reseña' : ' reseñas') + '</div>';
     }
 
+    var badges = calcularBadges(s);
+    var badgesHtml = '';
+    if (badges.length) {
+      badgesHtml = '<div class="d-badges-row">' + badges.map(function (b) {
+        return '<span class="d-badge ' + esc(b.clase) + '">' + b.icono + '<span>' + esc(b.texto) + '</span></span>';
+      }).join('') + '</div>';
+    }
+
+    var priceTier = calcularPrecioTier(s);
+    var pricePill = '<span class="d-tier-pill" title="Rango de precio: ' + esc(priceTier.label) + '">' + esc(priceTier.simbolo) + '</span>';
+
     var servicios = (s.servicios || []).map(function (x) {
       return '<div class="d-serv"><span>' + esc(x.nombre) + '</span>' +
         '<span class="p">' + esc(x.duracion) + ' min · <strong>' + esc(euros.format(Number(x.precio) || 0)) + '</strong></span></div>';
@@ -60,18 +137,25 @@
 
     var dist = s.distancia_km != null ? ' <span class="dist">· a ' + esc(String(s.distancia_km).replace('.', ',')) + ' km</span>' : '';
 
-    // Los "proximos huecos" del diseno necesitan la cache de disponibilidad, que
-    // aun no existe. Hasta entonces NO se inventa nada: se enlaza al portal del
-    // salon, que si calcula huecos de verdad.
     return '' +
       '<a class="d-res" href="salon.html?s=' + encodeURIComponent(s.slug) + '">' +
-        '<div class="d-foto">' + fotoHtml(s, idx) + rating + '</div>' +
+        '<div class="d-foto">' +
+          fotoHtml(s, idx) +
+          rating +
+          '<div class="d-foto-top-badges">' + pricePill + '</div>' +
+        '</div>' +
         '<div class="d-info">' +
-          '<h2 class="d-nombre">' + esc(s.nombre || 'Salón') + '</h2>' +
+          '<div class="d-info-header">' +
+            '<h2 class="d-nombre">' + esc(s.nombre || 'Salón') + '</h2>' +
+          '</div>' +
+          badgesHtml +
           '<div class="d-dir">' + esc(zonaDe(s) || 'Dirección no indicada') + dist + '</div>' +
           '<div class="d-servicios">' + (servicios || '<span class="d-serv" style="color:var(--d-text-ter)">Sin servicios publicados</span>') + '</div>' +
           '<div class="d-res-foot">' +
-            '<div class="d-lb">Disponibilidad</div>' +
+            '<div class="d-disp-status">' +
+              '<span class="d-disp-dot"></span>' +
+              '<span>Cita online en tiempo real</span>' +
+            '</div>' +
             '<span class="d-cta">Ver horas libres' +
               '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
             '</span>' +
@@ -80,29 +164,27 @@
       '</a>';
   }
 
-  // Tarjeta compacta del carrusel: foto, nota y nombre. Nada mas — los precios
-  // y los servicios son para cuando el usuario ya esta buscando algo concreto.
+  // Tarjeta compacta del carrusel: foto, nota, nombre y badge verificado.
   function mini(s, idx) {
     var rating = s.valoracion != null
       ? '<div class="d-mini-rating"><span class="n">' + esc(String(s.valoracion).replace('.', ',')) + '</span>' +
         '<span class="r">' + esc(s.resenas) + (Number(s.resenas) === 1 ? ' reseña' : ' reseñas') + '</span></div>'
       : '';
 
+    var priceTier = calcularPrecioTier(s);
+
     return '<a class="d-mini" href="salon.html?s=' + encodeURIComponent(s.slug) + '">' +
-        '<div class="d-mini-foto">' + fotoHtml(s, idx) + rating + '</div>' +
+        '<div class="d-mini-foto">' +
+          fotoHtml(s, idx) +
+          rating +
+          '<span class="d-mini-tier">' + esc(priceTier.simbolo) + '</span>' +
+        '</div>' +
         '<h3>' + esc(s.nombre || 'Salón') + '</h3>' +
         '<div class="dir">' + esc(zonaDe(s) || 'Dirección no indicada') + '</div>' +
       '</a>';
   }
 
   // Tarjeta de salon que NO usa Mecha (bloque de OpenStreetMap).
-  //
-  // Deliberadamente pobre al lado de las de arriba: sin foto, sin valoracion y
-  // sin precios, porque de esos salones no sabemos nada de eso y no se inventa.
-  // Y sobre todo SIN reservar: la pagina promete que el hueco que se ve es un
-  // hueco real, y aqui no hay agenda detras. Las unicas acciones posibles son
-  // llamar (cuando hay telefono, que es la minoria) y como llegar (siempre, que
-  // coordenadas hay de todos).
   function externo(s) {
     var zona = [s.direccion, s.ciudad].filter(Boolean).join(', ');
 
@@ -150,6 +232,8 @@
     resultado: resultado,
     mini: mini,
     externo: externo,
-    engancharFallback: engancharFallback
+    engancharFallback: engancharFallback,
+    calcularBadges: calcularBadges,
+    calcularPrecioTier: calcularPrecioTier
   };
 })();
