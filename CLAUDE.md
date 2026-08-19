@@ -47,9 +47,15 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      (credenciales públicas a propósito). La sesión personal del visitante NO se toca.
    - Solo cuenta como demo si va EMBEBIDA en iframe del mismo origen; `/app?demo=1` directo no.
    - `demo.publico` está EXENTA del límite de 3 visitas (los prospectos free no).
-   - Las cuentas nuevas (web y nativo) nacen en `demo_salon_001` plan free; el negocio propio
-     se asigna al dar acceso completo (`staff_grant_full_access`). NUNCA crear perfiles con
-     `negocio_id` propio en el signup.
+   - **DEROGADO el 19 ago 2026** (antes: "las cuentas nuevas nacen en `demo_salon_001` plan
+     free"). Hoy el alta es AUTOSERVICIO: `handle_new_user` crea `negocio_id` propio con
+     `generar_negocio_id_unico()` y sella `plan='esencial'`, `suscripcion_estado='prueba'` y
+     `trial_ends_at = now()+30d`. `free` ya solo significa **prueba agotada**. El trigger NO
+     crea perfil si `auth.users.invited_at` no es nulo: esas altas son invitaciones de
+     empleado y el perfil lo crea `crear-acceso-empleado` con el negocio y el plan heredados
+     (si lo creara el trigger, ese upsert seria un UPDATE y `guard_profile_identity_columns`
+     le revertiria negocio_id/role/plan en silencio, tambien para service_role).
+     `staff_grant_full_access` sigue existiendo para los salones que preconfiguramos nosotros.
 2. **Portal público de reserva:** `/app/r/<slug>` (+ reseñas en `/app/resena/<slug>`).
    Anónimo; todo pasa por RPCs `security definer` (`portal_info`, `disponibilidad_publica`,
    `crear_cita_publica`, `crear_resena_publica`, `resenas_publicas`) con **anti-abuso en

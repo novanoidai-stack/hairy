@@ -132,6 +132,35 @@ export function SeccionSuscripcion({ userId, role }: { userId: string; role: str
 
   const totalElegido = PLAN_PRECIO_EUR[planElegido] + IA_PRECIO_EUR[iaElegida];
 
+  // Peticion del addon de IA para quien AUN no puede contratarlo solo: sin
+  // suscripcion de Stripe, cambiar-addon-ia responde 409 'sin_suscripcion'. En vez
+  // de un callejon sin salida, se deja una solicitud en la bandeja y nos avisa por
+  // correo la edge notificar-solicitud.
+  const [pidiendoIa, setPidiendoIa] = useState(false);
+  const [avisoIa, setAvisoIa] = useState<string | null>(null);
+
+  const solicitarIa = useCallback(async () => {
+    setPidiendoIa(true);
+    setAvisoIa(null);
+    const { data: perfil } = await supabase
+      .from('profiles')
+      .select('email, nombre, nombre_negocio, phone')
+      .eq('id', userId)
+      .maybeSingle();
+    const { error: err } = await supabase.rpc('crear_solicitud_publica', {
+      p_tipo: 'addon_ia',
+      p_nombre: perfil?.nombre ?? '',
+      p_salon: perfil?.nombre_negocio ?? '',
+      p_email: perfil?.email ?? '',
+      p_telefono: perfil?.phone ?? null,
+      p_nota: 'Pide los Recepcionistas IA desde Ajustes (cuenta sin suscripcion activa).',
+    });
+    setPidiendoIa(false);
+    setAvisoIa(err
+      ? 'No se pudo enviar la solicitud. Intentalo de nuevo.'
+      : 'Recibido. Te contactamos para activar los Recepcionistas IA.');
+  }, [userId]);
+
   const contratar = useCallback(async () => {
     if (demo || !esOwner) return;
     setError(''); setYendoA('checkout');
@@ -406,6 +435,27 @@ export function SeccionSuscripcion({ userId, role }: { userId: string; role: str
             Stripe: Mecha no guarda ningun dato de tu tarjeta.
           </p>
         </>
+      )}
+
+      {!demo && !tieneSuscripcionStripe && iaActual === 'ninguna' && (
+        <FieldRow
+          label="¿Necesitas los Recepcionistas IA?"
+          hint="Contestan WhatsApp y el telefono del salon y dan cita solos. Se activan aparte del plan: escribenos y lo montamos contigo."
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <Btn
+              variant="soft"
+              size="md"
+              onClick={solicitarIa}
+              disabled={pidiendoIa || avisoIa !== null}
+            >
+              {pidiendoIa ? 'Enviando...' : 'Quiero los Recepcionistas IA'}
+            </Btn>
+            {avisoIa && (
+              <span style={{ fontSize: 12.5, color: T.textSec }}>{avisoIa}</span>
+            )}
+          </div>
+        </FieldRow>
       )}
     </Section>
   );

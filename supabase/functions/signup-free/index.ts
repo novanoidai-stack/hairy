@@ -42,14 +42,6 @@ function json(body: unknown, status = 200, req?: Request) {
 }
 
 
-// Todas las cuentas gratis comparten el MISMO negocio_id: la demo real.
-// Asi cada visitante entra con su propia cuenta (medimos conversion) pero ve
-// los mismos datos (clientes, profesionales, citas) en modo solo lectura.
-// La escritura (INSERT/UPDATE/DELETE) la bloquea RLS para los visitantes de
-// este negocio compartido; la cuenta demo@hairy.app queda exenta y conserva
-// permisos de edicion para curar los datos de la demo.
-const DEMO_NEGOCIO_ID = 'demo_salon_001';
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Proteccion contra contrasenas filtradas, hecha por nuestra cuenta.
@@ -202,19 +194,17 @@ Deno.serve(async (req: Request) => {
   const user = created.user;
   if (!user) return json({ error: 'create_failed' }, 500, req);
 
-  // 2) Perfil owner / plan free (service_role salta RLS). Best-effort.
-  const negocioId = DEMO_NEGOCIO_ID;
-  const { error: pErr } = await admin.from('profiles').insert({
-    id: user.id,
-    email,
-    nombre,
-    nombre_negocio: salon,
-    negocio_id: negocioId,
-    phone: telefono,
-    role: 'owner',
-    plan: 'free',
-  });
-  if (pErr) console.error('profile insert failed:', pErr.message);
+  // 2) El perfil ya lo ha creado el trigger handle_new_user, con salon propio,
+  // plan esencial y 30 dias de prueba. Aqui solo se lee para devolver el
+  // negocio_id real al cliente: un insert desde aqui no ganaria nunca, porque el
+  // trigger inserta antes con `on conflict (id) do nothing`.
+  const { data: perfil, error: pErr } = await admin
+    .from('profiles')
+    .select('negocio_id')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (pErr) console.error('profile read failed:', pErr.message);
+  const negocioId = perfil?.negocio_id ?? null;
 
   // 3) Lead de signup (no bloquea el alta).
   const { error: sErr } = await admin.from('solicitudes').insert({

@@ -530,6 +530,21 @@
               <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg><input type="text" id="cpCp" placeholder="28010" inputmode="numeric" autocomplete="postal-code" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" /></div>
             </div>
           </div>
+          <div class="field" style="margin-top:4px">
+            <label>¿Cómo entrará tu equipo?</label>
+            <label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer;margin-bottom:8px;font-weight:400">
+              <input type="radio" name="cpModo" value="individual" checked style="margin-top:3px" />
+              <span>Cada profesional con su propio correo
+                <small style="display:block;color:#8a7d70">Cada uno ve lo suyo y queda registrado quién hace qué.</small>
+              </span>
+            </label>
+            <label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer;font-weight:400">
+              <input type="radio" name="cpModo" value="compartido" style="margin-top:3px" />
+              <span>Un solo correo para todo el salón
+                <small style="display:block;color:#8a7d70">Más simple si trabajáis desde un único ordenador.</small>
+              </span>
+            </label>
+          </div>
           <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px" id="cpBtn">Guardar y continuar</button>
           <div class="auth-msg" id="cpMsg"></div>
         </form>
@@ -959,6 +974,15 @@
           cpBtn.disabled = false; cpBtn.textContent = prev;
           return;
         }
+        // Modo de acceso del equipo. No bloquea la entrada: si falla se puede
+        // cambiar despues en Ajustes > Equipo, que usa esta misma RPC.
+        var modoEl = document.querySelector('input[name="cpModo"]:checked');
+        if (modoEl && api.client && api.client.rpc) {
+          api.client.rpc('set_acceso_salon_modo', { p_modo: modoEl.value }).then(function (rm) {
+            if (rm && rm.error) console.error('set_acceso_salon_modo:', rm.error.message);
+          });
+        }
+
         // Datos completos: si venia a por la demo, a la demo; si es equipo, elige;
         // si no, segun su plan.
         if (wantsDemo()) { gotoDemo(); return; }

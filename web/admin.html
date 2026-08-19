@@ -383,7 +383,7 @@
       </div>
       <select class="ad-sel" id="fPlan">
         <option value="">Todos los planes</option>
-        <option value="free">Gratis (solo demo)</option>
+        <option value="free">Sin contratar (prueba agotada)</option>
         <option value="esencial">Esencial</option>
         <option value="estudio">Estudio</option>
       </select>
@@ -1084,7 +1084,6 @@
       return new Date(p.trial_ends_at).getTime() <= Date.now();
     }).length;
     var dePago = accounts.filter(function (p) { return p.suscripcion_estado === 'activa'; }).length;
-    var free = accounts.filter(function (p) { return planCanonico(p) === 'free' && !p.trial_ends_at; }).length;
     var negocios = {};
     accounts.forEach(function (p) {
       if (p.negocio_id) negocios[p.negocio_id] = true;
@@ -1570,7 +1569,7 @@
         var days = parseInt(btn.getAttribute('data-days'), 10) || 30;
         var p = accounts.filter(function (x) { return x.id === id; })[0];
         var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
-        if (!window.confirm('Extender el periodo de prueba de "' + quien + '" en ' + days + ' días más (Plan Estudio)?')) return;
+        if (!window.confirm('Extender el periodo de prueba de "' + quien + '" en ' + days + ' días más?')) return;
         btn.disabled = true;
         var prev = btn.textContent;
         btn.textContent = 'Extendiendo...';

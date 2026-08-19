@@ -93,7 +93,7 @@ export function GuardaSuscripcion() {
 
           <Text style={s.lockTitle}>Tu periodo de prueba de 30 días ha finalizado</Text>
           <Text style={s.lockSubtitle}>
-            Esperamos que hayas disfrutado de Mecha OS con el <Text style={{ fontWeight: '800', color: '#f4501e' }}>Plan Estudio completo</Text>. Para continuar gestionando tu salón y desbloquear tus datos, elige tu plan:
+            Esperamos que hayas disfrutado de Mecha OS con el <Text style={{ fontWeight: '800', color: '#f4501e' }}>Plan Esencial completo</Text>. Para continuar gestionando tu salón y desbloquear tus datos, elige tu plan:
           </Text>
 
           {/* Comparativa rápida de planes */}
@@ -184,7 +184,7 @@ export function GuardaSuscripcion() {
             <Text style={s.trialPillTx}>1 MES GRATIS</Text>
           </View>
           <Text style={s.trialTx}>
-            Prueba gratuita del <Text style={{ fontWeight: '800' }}>Plan Estudio completo</Text>: te quedan{' '}
+            Prueba gratuita del <Text style={{ fontWeight: '800' }}>Plan Esencial completo</Text>: te quedan{' '}
             <Text style={{ fontWeight: '800', color: '#ffcf4a' }}>
               {diasRestantes} {diasRestantes === 1 ? 'día' : 'días'}
             </Text>
