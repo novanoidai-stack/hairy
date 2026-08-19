@@ -142,17 +142,7 @@ export const BIBLIOTECA_PROMPTS: PromptBiblioteca[] = [
     categoria: 'general',
     paginas: ['/presupuestos'],
   },
-  {
-    id: 'configurar-salon',
-    icono: '⚙️',
-    label: 'Poner en marcha el salón',
-    prompt: 'Quiero poner en marcha mi salón y configurar los datos del negocio, servicios, equipo y horarios.',
-    descripcion: 'Inicia el asistente paso a paso del onboarding del salón.',
-    categoria: 'general',
-    paginas: ['/configuracion'],
-    soloGestor: true,
-  },
-  {
+    {
     id: 'que-puedes-hacer',
     icono: '✨',
     label: '¿Qué sabes hacer?',

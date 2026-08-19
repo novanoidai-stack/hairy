@@ -50,6 +50,12 @@ const HILO_KEY_PREFIX = 'mecha-chispa-hilo:';
 // se ofrece una sola vez por navegador mientras el nucleo del negocio no este
 // completo. Retirado ese overlay (Sesion 2 V2): el flujo vive dentro de Chispa.
 const ONBOARDING_AUTO_KEY_PREFIX = 'mecha-chispa-onboarding-auto:';
+
+// Chispa ya no hace la puesta en marcha. La unica via es el asistente
+// (components/onboarding/AsistentePuestaEnMarcha.web.tsx): formulario + checklist.
+// Los tres puntos de entrada (auto-disparo, ?onboarding_ia=1 y deteccion de
+// intencion en el chat) quedan gateados por esta constante.
+const CHISPA_HACE_ONBOARDING = false;
 // Modo conversacion (voz manos libres): preferencia por navegador, igual
 // patron que motorVoz/vozActiva en useChispaVoz.web.ts.
 const MODO_CONVERSACION_KEY = 'mecha-chispa-modo-conversacion';
@@ -718,7 +724,8 @@ export default function ChispaPanel({
   // reciente para que iniciarConfigGuiada() vea el ultimo estado.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handler = () => { setAbierto(true); iniciarConfigGuiada(); };
+    // Chispa ya no arranca la puesta en marcha: solo abre el panel.
+    const handler = () => { setAbierto(true); if (CHISPA_HACE_ONBOARDING) iniciarConfigGuiada(); };
     window.addEventListener(CHISPA_CONFIG_GUIADA_EVENT, handler);
     // Apertura simple (sin config guiada): el hub "Que hace la IA" abre el chat
     // en su sitio en vez de navegar a una ruta inexistente (?chispa=1).
@@ -731,6 +738,7 @@ export default function ChispaPanel({
   });
 
   useEffect(() => {
+    if (!CHISPA_HACE_ONBOARDING) return;
     if (onboarding_ia !== '1' || !esGestorOnboarding || configGuiada) return;
     setAbierto(true);
     iniciarConfigGuiada();
@@ -742,6 +750,11 @@ export default function ChispaPanel({
   // de localStorage hace que sea seguro que este efecto se re-evalue varias
   // veces mientras onbStatus va cargando.
   useEffect(() => {
+    // El onboarding ya NO lo hace Chispa: la puesta en marcha vive en el
+    // asistente (components/onboarding/AsistentePuestaEnMarcha.web.tsx), que es
+    // formulario + checklist. Se deja el efecto desactivado en vez de borrarlo
+    // para no tocar las dependencias de hooks del resto del panel.
+    if (!CHISPA_HACE_ONBOARDING) return;
     if (IS_DEMO_MODE || typeof window === 'undefined') return;
     if (!esGestorOnboarding || !onbStatus.ready || onbStatus.coreDone) return;
     if (abierto || configGuiada) return;
@@ -1051,7 +1064,7 @@ export default function ChispaPanel({
     // Gateado por rol igual que el auto-disparo: solo el gestor (owner/admin)
     // configura el negocio; un profesional que lo pida cae al chat normal (que
     // es role-aware en el edge) en vez de entrar a un flujo que RLS le bloquearia.
-    if (!imagenB64 && esGestorOnboarding && detectaIntencionConfigGuiada(t)) {
+    if (CHISPA_HACE_ONBOARDING && !imagenB64 && esGestorOnboarding && detectaIntencionConfigGuiada(t)) {
       setMensajes((m) => [...m, { role: 'user', content: t, ts: ahora() }]);
       setTexto('');
       iniciarConfigGuiada();

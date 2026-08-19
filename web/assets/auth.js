@@ -315,7 +315,7 @@
       if (!uid) return null;
       var res = await client
         .from('profiles')
-        .select('id, plan, role, negocio_id, nombre, nombre_negocio, phone, codigo_postal, email, codigo_referido, referido_por, descuento_pct, descuento_referido_aplicado')
+        .select('id, plan, role, negocio_id, nombre, nombre_negocio, phone, codigo_postal, email, codigo_referido, referido_por, descuento_pct, descuento_referido_aplicado, suscripcion_estado, trial_ends_at')
         .eq('id', uid)
         .maybeSingle();
       if (res.error) return null;
@@ -372,6 +372,28 @@
     } catch (e) { return { allowed: false, remaining: 0, reason: 'error' }; }
   }
 
+  // Estado de acceso de la cuenta, para decidir que ofrece el boton "Acceder".
+  // Devuelve: acceso 'completo' (nos lo configuro el staff / suscripcion activa),
+  // 'prueba' (trial en curso, con dias restantes) o 'agotado' (prueba terminada).
+  async function estadoAcceso() {
+    var perfil = await getProfile();
+    if (!perfil) return null;
+    var estado = perfil.suscripcion_estado || null;
+    var finTrial = perfil.trial_ends_at ? new Date(perfil.trial_ends_at) : null;
+    var dias = null;
+    if (finTrial && !isNaN(finTrial)) {
+      // Se redondea hacia arriba: si quedan 28,4 dias, al usuario le quedan 29.
+      dias = Math.ceil((finTrial.getTime() - Date.now()) / 86400000);
+      if (dias < 0) dias = 0;
+    }
+    var tipo;
+    if (estado === 'activa' || estado === 'activo') tipo = 'completo';
+    else if (perfil.plan === 'free') tipo = 'agotado';
+    else if (estado === 'prueba') tipo = (dias !== null && dias <= 0) ? 'agotado' : 'prueba';
+    else tipo = 'completo';
+    return { tipo: tipo, dias: dias, plan: perfil.plan, role: perfil.role, perfil: perfil };
+  }
+
   function goToApp() {
     var qs = new URLSearchParams(window.location.search);
     if (qs.get('next') === 'migrar' || qs.get('migrar') === 'true') {
@@ -402,6 +424,7 @@
     profileComplete: profileComplete,
     useDemoVisit: useDemoVisit,
     demoVisitsStatus: demoVisitsStatus,
-    goToApp: goToApp
+    goToApp: goToApp,
+    estadoAcceso: estadoAcceso
   };
 })();
