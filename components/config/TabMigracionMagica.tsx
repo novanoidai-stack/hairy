@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
-import { Section, Btn } from '@/components/ui/SettingsAtoms';
+import { Section, Btn, SettingsIcon } from '@/components/ui/SettingsAtoms';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { extractDocumentContent } from '@/lib/documentExtractor';
 import { CATEGORY_COLOR_TOKENS } from '@/lib/categoryColors';
@@ -16,6 +16,66 @@ interface ImportState {
   archivo: File | null;
   data: any | null;
   resultado: { creadas: number; errores: string[] } | null;
+}
+
+// Resumen legible de lo que la IA (o el parser local) ha sacado del archivo:
+// cuanto de cada cosa y una muestra corta para reconocerlo de un vistazo.
+function ResumenExtraccion({ data }: { data: any }) {
+  const grupos: { titulo: string; filas: string[]; total: number }[] = [];
+
+  const clientes = (data?.clientes ?? []) as any[];
+  const servicios = (data?.servicios ?? []) as any[];
+  const citas = (data?.citas ?? []) as any[];
+  const lineas = (data?.lineas ?? []) as any[];
+
+  if (clientes.length) grupos.push({
+    titulo: 'Clientes', total: clientes.length,
+    filas: clientes.slice(0, 4).map((c) => [c.nombre, c.telefono].filter(Boolean).join(' · ')),
+  });
+  if (servicios.length) grupos.push({
+    titulo: 'Servicios', total: servicios.length,
+    filas: servicios.slice(0, 4).map((s) => {
+      const precio = Number(s.precio) > 0 ? `${s.precio} EUR` : 'sin precio';
+      return `${s.nombre} · ${precio} · ${s.duracion_min || 30} min`;
+    }),
+  });
+  if (citas.length) grupos.push({
+    titulo: 'Citas', total: citas.length,
+    filas: citas.slice(0, 4).map((c) => `${c.fecha || ''} ${c.hora_inicio || ''} · ${c.servicio_nombre || ''}`.trim()),
+  });
+  if (lineas.length) grupos.push({
+    titulo: 'Productos', total: lineas.length,
+    filas: lineas.slice(0, 4).map((l) => `${l.nombre} · ${l.cantidad || 1} ud.`),
+  });
+
+  if (grupos.length === 0) {
+    return (
+      <div style={{ padding: 14, borderRadius: 10, background: T.bgCard, border: `1px solid ${T.border}`, marginBottom: 16, fontSize: 13, color: T.textSec }}>
+        No se ha reconocido ningun dato en el archivo.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+      {grupos.map((g) => (
+        <div key={g.titulo} style={{ borderRadius: 10, background: T.bgCard, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '11px 14px', borderBottom: `1px solid ${T.border}` }}>
+            <span style={{ fontSize: 20, fontWeight: 800, color: T.primary }}>{g.total}</span>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>{g.titulo}</span>
+          </div>
+          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {g.filas.map((f, i) => (
+              <div key={i} style={{ fontSize: 12.5, color: T.textSec }}>{f}</div>
+            ))}
+            {g.total > g.filas.length && (
+              <div style={{ fontSize: 12, color: T.textTertiary }}>y {g.total - g.filas.length} mas...</div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
@@ -275,7 +335,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = T.primary; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
               >
-                <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
+                <div style={{ marginBottom: 8, color: T.primary }}><SettingsIcon name="calendar" size={24} /></div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Booksy / Fresha</div>
                 <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>CSV o Excel con la agenda</div>
               </button>
@@ -289,7 +349,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = T.primary; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
               >
-                <div style={{ fontSize: 24, marginBottom: 8 }}>📋</div>
+                <div style={{ marginBottom: 8, color: T.primary }}><SettingsIcon name="scissors" size={24} /></div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Lista de Precios</div>
                 <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Foto, Excel, CSV, Word o PDF</div>
               </button>
@@ -303,7 +363,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = T.primary; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
               >
-                <div style={{ fontSize: 24, marginBottom: 8 }}>📦</div>
+                <div style={{ marginBottom: 8, color: T.primary }}><SettingsIcon name="copy" size={24} /></div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Albarán / Factura</div>
                 <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Foto, Excel, CSV, Word o PDF</div>
               </button>
@@ -338,7 +398,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                 input.click();
               }}
             >
-              <div style={{ fontSize: 32, marginBottom: 8 }}>📁</div>
+              <div style={{ marginBottom: 8, color: T.primary }}><SettingsIcon name="upload" size={30} /></div>
               <div style={{ fontSize: 14, color: T.text }}>Haz clic o arrastra tu archivo aquí</div>
               <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>
                 Soporta Word (.docx), Excel (.xlsx), CSV, PDF, TXT o imágenes (JPG, PNG)
@@ -349,7 +409,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
 
         {state.paso === 'procesando' && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <div style={{ fontSize: 24, marginBottom: 16 }}>✨</div>
+            <div style={{ marginBottom: 16, color: T.primary }}><SettingsIcon name="upload" size={24} /></div>
             <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>La IA está analizando tu archivo...</div>
             <div style={{ fontSize: 13, color: T.textSec, marginTop: 8 }}>Esto puede tomar unos segundos.</div>
           </div>
@@ -367,11 +427,10 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               Vista previa de la extracción
             </div>
 
-            <div style={{ background: T.bgCard, borderRadius: 10, overflow: 'hidden', marginBottom: 16, border: `1px solid ${T.border}` }}>
-              <pre style={{ margin: 0, padding: 16, fontSize: 12, color: T.text, maxHeight: 400, overflow: 'auto', background: T.bgCard }}>
-                {JSON.stringify(state.data, null, 2)}
-              </pre>
-            </div>
+            {/* Antes aqui se volcaba el JSON crudo. Quien migra su salon no lee
+                JSON: necesita saber CUANTO entra y ver una muestra reconocible
+                para fiarse antes de confirmar. */}
+            <ResumenExtraccion data={state.data} />
 
             <Btn variant="primary" onClick={ejecutarImportacion}>
               Confirmar e Importar

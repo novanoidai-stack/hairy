@@ -17,11 +17,18 @@ export interface ServicioMigrado {
   categoria?: string;
 }
 
+// MISMO contrato que devuelve la edge migracion-magica cuando la IA interpreta
+// el archivo: fecha 'YYYY-MM-DD' + hora_inicio 'HH:MM'. No es cosmetico. Antes
+// aqui se devolvia `inicio` en ISO y el importador (TabMigracionMagica) solo lee
+// fecha/hora_inicio, asi que TODAS las citas del fallback local se descartaban en
+// silencio: el usuario veia clientes y servicios importados, y ni una cita, sin
+// un solo error por pantalla. Si se cambia un lado, hay que cambiar el otro.
 export interface CitaMigrada {
   cliente_nombre: string;
   cliente_telefono?: string | null;
   servicio_nombre: string;
-  inicio: string; // ISO string
+  fecha: string;        // YYYY-MM-DD
+  hora_inicio: string;  // HH:MM
   duracion_min?: number;
   precio?: number;
   estado?: string;
@@ -32,6 +39,8 @@ export interface ResultadoMigracionParseada {
   servicios: ServicioMigrado[];
   citas: CitaMigrada[];
 }
+
+const dosDigitos = (n: number): string => String(n).padStart(2, '0');
 
 /**
  * Normaliza nombres de columnas removiendo tildes, espacios y caracteres especiales
@@ -164,13 +173,21 @@ export function parsearMigracionLocal(rawContent: string, filename: string = '')
     }
 
     if (nombre && servicio && fechaRaw) {
-      citas.push({
-        cliente_nombre: nombre,
-        cliente_telefono: tel || null,
-        servicio_nombre: servicio,
-        inicio: new Date(fechaRaw).isValid() ? new Date(fechaRaw).toISOString() : new Date().toISOString(),
-        precio: parseFloat((precioRaw || '0').replace(',', '.')) || 0,
-      });
+      // Una fecha ilegible NO se sustituye por "ahora": eso metia citas fantasma
+      // en el dia de la importacion. Sin fecha valida, no hay cita.
+      const cuando = new Date(fechaRaw);
+      if (cuando.isValid()) {
+        citas.push({
+          cliente_nombre: nombre,
+          cliente_telefono: tel || null,
+          servicio_nombre: servicio,
+          fecha: `${cuando.getFullYear()}-${dosDigitos(cuando.getMonth() + 1)}-${dosDigitos(cuando.getDate())}`,
+          // Si el origen solo traia fecha (sin hora), queda 00:00 y el importador
+          // la coloca a esa hora: es visible y corregible, a diferencia de perderla.
+          hora_inicio: `${dosDigitos(cuando.getHours())}:${dosDigitos(cuando.getMinutes())}`,
+          precio: parseFloat((precioRaw || '0').replace(',', '.')) || 0,
+        });
+      }
     }
   }
 

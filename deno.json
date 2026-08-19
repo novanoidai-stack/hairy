@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts lib/utils/appointment.test.ts lib/horariosFranjas.test.ts"
+    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts lib/utils/appointment.test.ts lib/horariosFranjas.test.ts lib/migracionParserLocal.test.ts"
   },
   "exclude": [
     "node_modules/",
