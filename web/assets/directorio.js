@@ -106,7 +106,12 @@
     servicio: null,        // ID del servicio técnico
     disponibilidad: null,  // 'hoy' | 'manana' | 'semana' | null
     precio: null,          // 1 | 2 | 3 | null
-    orden: 'recomendados'  // 'recomendados' | 'valoracion' | 'precio_asc' | 'precio_desc'
+    orden: 'recomendados', // 'recomendados' | 'valoracion' | 'precio_asc' | 'precio_desc'
+    lat: null,
+    lng: null,
+    modoVista: 'lista',    // 'lista' | 'mapa' (móvil)
+    salonesMecha: [],
+    salonesExternos: []
   };
 
   function leerUrl() {
@@ -119,6 +124,10 @@
     estado.disponibilidad = p.get('disp') || null;
     estado.precio = p.get('precio') ? Number(p.get('precio')) : null;
     estado.orden = p.get('orden') || 'recomendados';
+    if (p.get('lat') && p.get('lng')) {
+      estado.lat = Number(p.get('lat'));
+      estado.lng = Number(p.get('lng'));
+    }
 
     $('q').value = estado.q;
     $('ciudad').value = estado.ciudad;
@@ -134,6 +143,10 @@
     if (estado.disponibilidad) p.set('disp', estado.disponibilidad);
     if (estado.precio) p.set('precio', String(estado.precio));
     if (estado.orden && estado.orden !== 'recomendados') p.set('orden', estado.orden);
+    if (estado.lat && estado.lng) {
+      p.set('lat', String(estado.lat));
+      p.set('lng', String(estado.lng));
+    }
 
     var qs = p.toString();
     var url = qs ? '?' + qs : location.pathname;
@@ -142,17 +155,28 @@
   }
 
   function buscando() {
-    return !!(estado.q || estado.ciudad || estado.barrio || (estado.macroCat && estado.macroCat !== 'Todos') || estado.servicio || estado.disponibilidad || estado.precio);
+    return !!(estado.q || estado.ciudad || estado.barrio || (estado.macroCat && estado.macroCat !== 'Todos') || estado.servicio || estado.disponibilidad || estado.precio || (estado.lat && estado.lng));
   }
 
   function actualizarModoHome() {
     var b = buscando();
     [['hero-texto', b], ['secciones-home', b], ['destacados', b],
-     ['controls', !b], ['count', !b], ['list', !b]
+     ['directorio-split', !b], ['btn-toggle-vista', !b]
     ].forEach(function (par) {
       var el = $(par[0]);
       if (el) el.hidden = par[1];
     });
+
+    var previewCard = $('mapa-preview-card');
+    if (previewCard && !b) previewCard.hidden = true;
+
+    if (b) {
+      if (window.MechaMapa) {
+        window.MechaMapa.inicializar('mapa-container').then(function () {
+          window.MechaMapa.recalcularTamano();
+        }).catch(function () {});
+      }
+    }
   }
 
   // 1. Renderizar Macro-Categorías
@@ -387,6 +411,12 @@
       var salones = (data && data.salones) || [];
       var total = (data && data.total) || 0;
       totalExternos = total;
+      estado.salonesExternos = salones;
+
+      if (window.MechaMapa && window.MechaMapa.actualizarSalones && buscando()) {
+        window.MechaMapa.actualizarSalones(estado.salonesMecha, estado.salonesExternos, { ajustarZoom: false });
+      }
+
       if (!salones.length) { sec.hidden = true; return; }
 
       $('externos-lista').innerHTML = salones.map(function (s) {
@@ -456,7 +486,6 @@
         var zona = (s.direccion + ' ' + s.ciudad + ' ' + s.descripcion + ' ' + s.nombre).toLowerCase();
         return normalizarTexto(zona).indexOf(bNorm) !== -1;
       });
-      // Si hay coincidencias específicas en el barrio, las mostramos
       if (filtradosBarrio.length > 0) {
         resultado = filtradosBarrio;
       }
@@ -516,6 +545,8 @@
       p_texto: textoParam,
       p_ciudad: estado.ciudad || null,
       p_categoria: catParam,
+      p_lat: estado.lat,
+      p_lng: estado.lng,
       p_limit: 20,
       p_offset: 0
     }).then(function (data) {
@@ -536,6 +567,11 @@
 
       var salonesFiltrados = filtrarYOrdenarSalones(salonesRaw);
       var total = salonesFiltrados.length;
+      estado.salonesMecha = salonesFiltrados;
+
+      if (window.MechaMapa && window.MechaMapa.actualizarSalones) {
+        window.MechaMapa.actualizarSalones(estado.salonesMecha, estado.salonesExternos);
+      }
 
       if (!total) {
         $('count').textContent = '';
@@ -547,6 +583,9 @@
           estado.q = ''; estado.ciudad = ''; estado.barrio = null;
           estado.macroCat = 'Todos'; estado.servicio = null;
           estado.disponibilidad = null; estado.precio = null; estado.orden = 'recomendados';
+          estado.lat = null; estado.lng = null;
+          var btnGeo = $('btn-cerca-de-mi');
+          if (btnGeo) btnGeo.classList.remove('on');
           $('q').value = ''; $('ciudad').value = '';
           pintarMacroCategorias();
           pintarPildorasServicios();
@@ -599,7 +638,11 @@
       var nuevaCiudad = $('ciudad').value.trim();
       if (normalizarTexto(nuevaCiudad) !== normalizarTexto(estado.ciudad)) {
         estado.ciudad = nuevaCiudad;
-        estado.barrio = null; // Reiniciar barrio al cambiar de ciudad
+        estado.barrio = null;
+        estado.lat = null;
+        estado.lng = null;
+        var btnGeo = $('btn-cerca-de-mi');
+        if (btnGeo) btnGeo.classList.remove('on');
       }
       pintarBarrios();
       pintarControles();
@@ -607,6 +650,116 @@
       actualizarModoHome();
       buscar();
     });
+
+    // Botón "Salones cerca de mí" (Geolocalización HTML5)
+    var btnGeo = $('btn-cerca-de-mi');
+    if (btnGeo) {
+      btnGeo.addEventListener('click', function () {
+        btnGeo.classList.add('loading');
+        var toast = $('geo-toast');
+        if (toast) toast.hidden = true;
+
+        if (window.MechaMapa && window.MechaMapa.geolocalizar) {
+          window.MechaMapa.geolocalizar(
+            function (coords) {
+              btnGeo.classList.remove('loading');
+              btnGeo.classList.add('on');
+              estado.lat = coords.lat;
+              estado.lng = coords.lng;
+              estado.barrio = null;
+              $('ciudad').value = '';
+              estado.ciudad = '';
+              pintarBarrios();
+              pintarControles();
+              escribirUrl(true);
+              actualizarModoHome();
+              buscar();
+            },
+            function (err) {
+              btnGeo.classList.remove('loading');
+              btnGeo.classList.remove('on');
+              if (toast) {
+                toast.innerHTML = '<div class="d-toast-msg">' +
+                  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+                  '<span>' + esc(err) + '</span>' +
+                  '<button type="button" class="d-toast-close" id="btn-cerrar-toast">&times;</button>' +
+                '</div>';
+                toast.hidden = false;
+                var btnCerrarToast = $('btn-cerrar-toast');
+                if (btnCerrarToast) {
+                  btnCerrarToast.addEventListener('click', function () { toast.hidden = true; });
+                }
+                setTimeout(function () { if ($('ciudad')) $('ciudad').focus(); }, 150);
+              }
+            }
+          );
+        }
+      });
+    }
+
+    // Botón flotante para alternar vista en móvil
+    var btnToggle = $('btn-toggle-vista');
+    if (btnToggle) {
+      btnToggle.addEventListener('click', function () {
+        var split = $('directorio-split');
+        if (!split) return;
+
+        if (estado.modoVista === 'lista') {
+          estado.modoVista = 'mapa';
+          split.classList.add('d-show-map');
+          var icMap = btnToggle.querySelector('.ic-map');
+          var icList = btnToggle.querySelector('.ic-list');
+          if (icMap) icMap.style.display = 'none';
+          if (icList) icList.style.display = 'inline-flex';
+          var txt = btnToggle.querySelector('.d-toggle-txt');
+          if (txt) txt.textContent = 'Ver Lista';
+          if (window.MechaMapa) {
+            window.MechaMapa.inicializar('mapa-container').then(function () {
+              window.MechaMapa.recalcularTamano();
+            });
+          }
+        } else {
+          estado.modoVista = 'lista';
+          split.classList.remove('d-show-map');
+          var icMap2 = btnToggle.querySelector('.ic-map');
+          var icList2 = btnToggle.querySelector('.ic-list');
+          if (icMap2) icMap2.style.display = 'inline-flex';
+          if (icList2) icList2.style.display = 'none';
+          var txt2 = btnToggle.querySelector('.d-toggle-txt');
+          if (txt2) txt2.textContent = 'Ver Mapa';
+          var preview = $('mapa-preview-card');
+          if (preview) preview.hidden = true;
+        }
+      });
+    }
+
+    // Callback de "Buscar en esta zona" desde el mapa
+    if (window.MechaMapa && window.MechaMapa.alBuscarEnEstaZona) {
+      window.MechaMapa.alBuscarEnEstaZona(function (zona) {
+        estado.lat = zona.lat;
+        estado.lng = zona.lng;
+        buscar();
+      });
+    }
+
+    // Sincronización Hover lista -> mapa
+    var listEl = $('list');
+    if (listEl) {
+      listEl.addEventListener('mouseover', function (e) {
+        var card = e.target.closest ? e.target.closest('.d-res') : null;
+        if (card && window.MechaMapa) {
+          var slug = card.getAttribute('data-slug');
+          if (slug) window.MechaMapa.resaltarSalon(slug);
+        }
+      });
+      listEl.addEventListener('mouseout', function (e) {
+        var card = e.target.closest ? e.target.closest('.d-res') : null;
+        if (card && window.MechaMapa) {
+          var slug = card.getAttribute('data-slug');
+          if (slug) window.MechaMapa.desresaltarSalon(slug);
+        }
+      });
+    }
 
     // Cambios dinámicos al teclear en el campo "Dónde"
     $('ciudad').addEventListener('input', function () {
@@ -630,12 +783,11 @@
 
     // Manejador centralizado de clics para micro-filtros
     document.addEventListener('click', function (ev) {
-      // 1. Clic en Macro Categoría (Todos, Peluquería, Barbería, Estética)
       var macroBtn = ev.target.closest ? ev.target.closest('[data-macro]') : null;
       if (macroBtn) {
         var cat = macroBtn.getAttribute('data-macro');
         estado.macroCat = cat;
-        estado.servicio = null; // resetear servicio técnico al cambiar de macro categoría
+        estado.servicio = null;
         pintarMacroCategorias();
         pintarPildorasServicios();
         pintarControles();
@@ -645,12 +797,10 @@
         return;
       }
 
-      // 2. Clic en Píldora de Servicio Técnico
       var servBtn = ev.target.closest ? ev.target.closest('[data-serv]') : null;
       if (servBtn) {
         var servId = servBtn.getAttribute('data-serv');
         estado.servicio = estado.servicio === servId ? null : servId;
-        // Si se activó un servicio técnico, aseguramos su macro categoría
         if (estado.servicio) {
           var sObj = SERVICIOS_TECNICOS.find(function (x) { return x.id === estado.servicio; });
           if (sObj) estado.macroCat = sObj.cat;
@@ -665,7 +815,6 @@
         return;
       }
 
-      // 3. Clic en Barrio / Distrito
       var barrioBtn = ev.target.closest ? ev.target.closest('[data-barrio]') : null;
       if (barrioBtn) {
         var barrioVal = barrioBtn.getAttribute('data-barrio');
@@ -678,7 +827,6 @@
         return;
       }
 
-      // 4. Clic en Rango de Precio (€, €€, €€€)
       var precioBtn = ev.target.closest ? ev.target.closest('[data-precio]') : null;
       if (precioBtn) {
         var pVal = Number(precioBtn.getAttribute('data-precio'));
@@ -689,13 +837,16 @@
         return;
       }
 
-      // 5. Clic en Ciudad (sección ciudades o chips)
       var ciudadLink = ev.target.closest ? ev.target.closest('[data-ciudad]') : null;
       if (ciudadLink) {
         ev.preventDefault();
         var cVal = ciudadLink.getAttribute('data-ciudad');
         estado.ciudad = cVal;
         estado.barrio = null;
+        estado.lat = null;
+        estado.lng = null;
+        var btnGeo2 = $('btn-cerca-de-mi');
+        if (btnGeo2) btnGeo2.classList.remove('on');
         $('ciudad').value = cVal;
         pintarBarrios();
         pintarControles();

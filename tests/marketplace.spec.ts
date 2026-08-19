@@ -84,7 +84,7 @@ test.describe('Marketplace E2E Suite - mechaa.es/salones.html', () => {
     await expect(destacados).toBeAttached();
     await expect(carrusel).toBeAttached();
 
-    const catButtons = page.locator('button[data-cat]');
+    const catButtons = page.locator('button[data-macro], button[data-serv], button[data-cat]');
     await catButtons.first().waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
     const count = await catButtons.count();
     expect(count).toBeGreaterThan(0);
@@ -93,7 +93,7 @@ test.describe('Marketplace E2E Suite - mechaa.es/salones.html', () => {
     for (let i = 0; i < count; i++) {
       const btn = catButtons.nth(i);
       if (await btn.isVisible().catch(() => false)) {
-        const catName = await btn.getAttribute('data-cat');
+        const catName = (await btn.getAttribute('data-macro')) || (await btn.getAttribute('data-serv')) || (await btn.getAttribute('data-cat'));
         console.log(`Clicking category filter button: ${catName}`);
         await btn.click({ force: true });
         clicked = true;
@@ -164,6 +164,10 @@ test.describe('Marketplace E2E Suite - mechaa.es/salones.html', () => {
       const searchForm = page.locator('form#form');
       await expect(searchForm).toBeVisible();
 
+      // Verify geolocation button is present
+      const geoBtn = page.locator('#btn-cerca-de-mi');
+      await expect(geoBtn).toBeVisible();
+
       // Verify auxiliary links are hidden on small mobile (<=560px)
       if (bp.width <= 560) {
         const ayudaLink = page.locator('#dAyuda');
@@ -174,8 +178,31 @@ test.describe('Marketplace E2E Suite - mechaa.es/salones.html', () => {
     });
   }
 
+  // --- Tier 3: Interactive Map & Geolocation Controls ---
+  test('6. Interactive Map Container, Split-View & Geolocation Button', async ({ page }) => {
+    await gotoSalones(page);
+
+    const geoBtn = page.locator('#btn-cerca-de-mi');
+    await expect(geoBtn).toBeVisible();
+
+    // Trigger search
+    const ciudadInput = page.locator('input#ciudad');
+    await ciudadInput.fill('Madrid');
+    await page.locator('form#form button[type="submit"]').click();
+    await page.waitForTimeout(1200);
+
+    const splitLayout = page.locator('#directorio-split');
+    await expect(splitLayout).toBeAttached();
+
+    const mapContainer = page.locator('#mapa-container');
+    await expect(mapContainer).toBeAttached();
+
+    const mapWrap = page.locator('#mapa-wrap');
+    await expect(mapWrap).toBeAttached();
+  });
+
   // --- Tier 4: Salon Directory Search E2E Flow ---
-  test('6. Complete Salon Directory Search & Navigation Flow', async ({ page }) => {
+  test('7. Complete Salon Directory Search & Navigation Flow', async ({ page }) => {
     await gotoSalones(page);
 
     // Mock search RPC response to ensure deterministic execution

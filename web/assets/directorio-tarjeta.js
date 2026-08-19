@@ -135,10 +135,19 @@
         '<span class="p">' + esc(x.duracion) + ' min · <strong>' + esc(euros.format(Number(x.precio) || 0)) + '</strong></span></div>';
     }).join('');
 
-    var dist = s.distancia_km != null ? ' <span class="dist">· a ' + esc(String(s.distancia_km).replace('.', ',')) + ' km</span>' : '';
+    var distHtml = '';
+    if (s.distancia_km != null) {
+      if (window.MechaMapa && window.MechaMapa.formatearDistanciaYTiempo) {
+        var dInfo = window.MechaMapa.formatearDistanciaYTiempo(s.distancia_km);
+        if (dInfo) distHtml = ' <span class="dist">· ' + esc(dInfo.badge) + '</span>';
+      }
+      if (!distHtml) {
+        distHtml = ' <span class="dist">· a ' + esc(String(s.distancia_km).replace('.', ',')) + ' km</span>';
+      }
+    }
 
     return '' +
-      '<a class="d-res" href="salon.html?s=' + encodeURIComponent(s.slug) + '">' +
+      '<a class="d-res" data-slug="' + esc(s.slug || '') + '" href="salon.html?s=' + encodeURIComponent(s.slug) + '">' +
         '<div class="d-foto">' +
           fotoHtml(s, idx) +
           rating +
@@ -149,7 +158,7 @@
             '<h2 class="d-nombre">' + esc(s.nombre || 'Salón') + '</h2>' +
           '</div>' +
           badgesHtml +
-          '<div class="d-dir">' + esc(zonaDe(s) || 'Dirección no indicada') + dist + '</div>' +
+          '<div class="d-dir">' + esc(zonaDe(s) || 'Dirección no indicada') + distHtml + '</div>' +
           '<div class="d-servicios">' + (servicios || '<span class="d-serv" style="color:var(--d-text-ter)">Sin servicios publicados</span>') + '</div>' +
           '<div class="d-res-foot">' +
             '<div class="d-disp-status">' +

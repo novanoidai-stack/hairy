@@ -107,8 +107,15 @@
           <input id="ciudad" type="text" placeholder="Madrid, Barcelona, Valencia, barrio..." />
         </span>
       </label>
+      <button type="button" class="d-btn-geo" id="btn-cerca-de-mi" title="Salones cerca de mi ubicación actual">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        <span>Cerca de mí</span>
+      </button>
       <button type="submit">Buscar</button>
     </form>
+
+    <!-- Toast / Aviso de Geolocalización -->
+    <div id="geo-toast" class="d-geo-toast" hidden></div>
 
     <!-- Micro-Filtros Geográficos: Selector de Barrios contextual -->
     <div class="d-barrios-wrap" id="barrios-container" hidden>
@@ -143,26 +150,53 @@
     </div>
   </section>
 
-  <!-- Barra interactiva de controles y filtros -->
-  <div class="d-controls" id="controls"></div>
+  <!-- Vista dividida de resultados (Split-View lista a la izquierda, mapa a la derecha) -->
+  <div class="d-split-layout" id="directorio-split" hidden>
+    <div class="d-split-list" id="split-list">
+      <!-- Barra interactiva de controles y filtros -->
+      <div class="d-controls" id="controls"></div>
 
-  <div class="d-count" id="count"></div>
-  <div class="d-list" id="list"></div>
+      <div class="d-count" id="count"></div>
+      <div class="d-list" id="list"></div>
 
-  <!-- Salones que NO usan Mecha, de OpenStreetMap. Bloque aparte y siempre
-       DEBAJO: no compiten en el mismo ranking que los de Mecha y en ellos no se
-       puede reservar. La atribucion a OSM es obligatoria por la licencia ODbL,
-       no es decorativa: no quitarla. -->
-  <section class="d-sec d-ext-sec" id="externos" hidden>
-    <h2>También en tu zona</h2>
-    <p class="sub" id="externos-sub">Peluquerías que todavía no trabajan con Mecha. Aquí no puedes reservar online, pero sí llamar.</p>
-    <div class="d-ext-reclama">
-      <p><strong>¿Es tu salón?</strong> Actívalo en Mecha y pasa a aceptar reservas online, con tu agenda de verdad detrás.</p>
-      <a class="d-btn-ghost" href="/index.html#precios">Activar mi salón</a>
+      <!-- Salones que NO usan Mecha, de OpenStreetMap -->
+      <section class="d-sec d-ext-sec" id="externos" hidden>
+        <h2>También en tu zona</h2>
+        <p class="sub" id="externos-sub">Peluquerías que todavía no trabajan con Mecha. Aquí no puedes reservar online, pero sí llamar.</p>
+        <div class="d-ext-reclama">
+          <p><strong>¿Es tu salón?</strong> Actívalo en Mecha y pasa a aceptar reservas online, con tu agenda de verdad detrás.</p>
+          <a class="d-btn-ghost" href="/index.html#precios">Activar mi salón</a>
+        </div>
+        <div class="d-ext-grid" id="externos-lista"></div>
+        <p class="d-atrib">Los datos de estos salones vienen de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, &copy; sus colaboradores, bajo licencia ODbL.</p>
+      </section>
     </div>
-    <div class="d-ext-grid" id="externos-lista"></div>
-    <p class="d-atrib">Los datos de estos salones vienen de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, &copy; sus colaboradores, bajo licencia ODbL.</p>
-  </section>
+
+    <!-- Columna interactiva del Mapa -->
+    <div class="d-split-map" id="split-map">
+      <div class="d-mapa-sticky" id="mapa-wrap">
+        <div id="mapa-container" class="d-mapa-canvas"></div>
+        <button type="button" id="mapa-buscar-zona" class="d-btn-buscar-zona" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Buscar en esta zona</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón flotante para alternar vista en móvil -->
+  <button type="button" id="btn-toggle-vista" class="d-floating-toggle" aria-label="Alternar vista mapa y lista" hidden>
+    <span class="d-toggle-ic ic-map">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    </span>
+    <span class="d-toggle-ic ic-list" style="display:none">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </span>
+    <span class="d-toggle-txt">Ver Mapa</span>
+  </button>
+
+  <!-- Tarjeta flotante inferior de vista previa en móvil al pulsar un marcador -->
+  <div id="mapa-preview-card" class="d-mapa-preview-card" hidden></div>
 
   <!-- Solo en la home del directorio: se ocultan en cuanto hay una busqueda. -->
   <div id="secciones-home">
@@ -370,6 +404,7 @@
 </footer>
 
 <script src="assets/directorio-tarjeta.js"></script>
+<script src="assets/directorio-mapa.js"></script>
 <script src="assets/directorio.js"></script>
 <script src="assets/directorio-contacto.js"></script>
 </body>
