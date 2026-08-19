@@ -212,6 +212,9 @@
   @media (max-width:560px){
     .ad-top{padding-top:6px}
     .card-row{padding:16px}
+    /* El panel de analisis IA se genera con estilo inline a 2 columnas fijas:
+       en movil aplastaba cada columna a ~150px (texto y barras ilegibles). */
+    .ai-analysis-grid{grid-template-columns:1fr!important}
   }
 </style>
 </head>

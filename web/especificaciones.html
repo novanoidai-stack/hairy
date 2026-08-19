@@ -350,6 +350,76 @@ a{text-decoration:none;color:inherit}
   .banner-top-free .banner-sub,.banner-top-free .banner-sep,.banner-top-free .banner-dir{display:none!important}
   .banner-top-free-in{justify-content:center!important}
 }
+
+/* ============================================================
+   MENU MOVIL (hamburguesa + panel lateral deslizante)
+   ============================================================ */
+.mnav-toggle{
+  display:none;width:40px;height:40px;border-radius:10px;
+  border:1px solid var(--line-2);background:var(--card);
+  place-items:center;cursor:pointer;position:relative;flex-shrink:0;
+  transition:background .2s ease,border-color .2s ease;
+}
+.mnav-toggle:hover{background:var(--accent-soft);border-color:var(--accent)}
+.mnav-toggle span,.mnav-toggle span::before,.mnav-toggle span::after{
+  content:"";display:block;width:18px;height:2px;background:var(--ink);border-radius:2px;position:absolute;
+  transition:transform .3s cubic-bezier(.22,.61,.36,1),opacity .2s ease,background .2s ease;
+}
+.mnav-toggle span{position:relative}
+.mnav-toggle span::before{top:-6px}
+.mnav-toggle span::after{bottom:-6px}
+body.mnav-open .mnav-toggle{background:var(--accent-soft);border-color:var(--accent)}
+body.mnav-open .mnav-toggle span{background:transparent}
+body.mnav-open .mnav-toggle span::before{transform:translateY(6px) rotate(45deg)}
+body.mnav-open .mnav-toggle span::after{transform:translateY(-6px) rotate(-45deg)}
+body.mnav-open{overflow:hidden}
+.mnav-scrim{position:fixed;inset:0;z-index:90;background:rgba(21,16,11,.45);opacity:0;pointer-events:none;
+  transition:opacity .35s cubic-bezier(.16,1,.3,1)}
+body[data-theme="dark"] .mnav-scrim{background:rgba(0,0,0,.6)}
+body.mnav-open .mnav-scrim{opacity:1;pointer-events:auto}
+.mnav-panel{
+  position:fixed;top:0;right:0;z-index:95;height:100vh;height:100dvh;width:min(87vw,340px);
+  display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top) + 70px);
+  background:var(--paper-2);border-left:1px solid var(--line);
+  box-shadow:-30px 0 64px -26px rgba(21,16,11,.35);
+  transform:translateX(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;
+}
+body.mnav-open .mnav-panel{transform:none}
+.mnav-links{display:flex;flex-direction:column;gap:3px;padding:14px 14px 10px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mnav-links a{
+  display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:13px;font-size:16px;font-weight:600;
+  color:var(--ink-2);border:1px solid transparent;text-decoration:none;opacity:0;transform:translateX(14px);
+  transition:color .2s ease,background .2s ease,border-color .2s ease,opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1);
+}
+.mnav-links a.active{color:var(--accent);background:var(--accent-soft);font-weight:700}
+.mnav-links a:hover,.mnav-links a:active{color:var(--ink);background:var(--accent-soft)}
+.mnav-links a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+body.mnav-open .mnav-links a{opacity:1;transform:none}
+body.mnav-open .mnav-links a:nth-child(2){transition-delay:.05s}
+body.mnav-open .mnav-links a:nth-child(3){transition-delay:.09s}
+body.mnav-open .mnav-links a:nth-child(4){transition-delay:.13s}
+body.mnav-open .mnav-links a:nth-child(5){transition-delay:.17s}
+body.mnav-open .mnav-links a:nth-child(6){transition-delay:.21s}
+body.mnav-open .mnav-links a:nth-child(7){transition-delay:.25s}
+.mnav-foot{display:flex;flex-direction:column;gap:10px;padding:14px 18px calc(env(safe-area-inset-bottom) + 18px);border-top:1px solid var(--line)}
+.mnav-foot .mnav-login{
+  display:flex;align-items:center;justify-content:center;width:100%;text-align:center;font-size:15px;font-weight:600;
+  color:var(--ink-2);padding:12px;border-radius:11px;border:1px solid var(--line-2);text-decoration:none;
+  transition:color .2s ease,border-color .2s ease,background .2s ease;
+}
+.mnav-foot .mnav-login:hover{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
+.mnav-foot .mnav-cta{
+  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;text-align:center;font-size:15px;font-weight:700;
+  color:#fff;padding:13px;border-radius:11px;background:linear-gradient(120deg,var(--accent),var(--accent-hi));
+  box-shadow:0 8px 20px -6px rgba(244,80,30,.55);text-decoration:none;
+}
+.mnav-theme{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:13.5px;font-weight:600;
+  color:var(--ink-2);padding:10px;border-radius:11px;border:1px dashed var(--line-2);background:none;cursor:pointer;
+}
+.mnav-theme:hover{color:var(--ink);border-color:var(--accent)}
+@media(prefers-reduced-motion:reduce){.mnav-panel{transition:none}.mnav-links a{opacity:1;transform:none}}
+@media (max-width:980px){.mnav-toggle{display:grid!important}}
 </style>
 </head>
 <body>
@@ -403,8 +473,33 @@ Explorar directorio de salones Mecha →
 <span>Probar</span>
 </a>
 </div>
+<button type="button" class="mnav-toggle" id="mnavToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mnavPanel">
+<span></span>
+</button>
 </div>
 </nav>
+
+<div class="mnav-scrim" id="mnavScrim"></div>
+<div class="mnav-panel" id="mnavPanel" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+<nav class="mnav-links" aria-label="Secciones">
+<a href="/index.html#gestion">Gestión</a>
+<a href="/index.html#equipo">Equipo</a>
+<a href="/index.html#todo">Todo en uno</a>
+<a href="/demo.html"><span style="font-size:13px">▶</span>Demo</a>
+<a href="/calculadora-comisiones.html"><span style="font-size:14px">🧮</span>Comisiones</a>
+<a href="/especificaciones.html" class="active" aria-current="page">Especificaciones</a>
+<a href="/index.html#precios">Precios</a>
+<a href="/index.html#contacto">Contacto</a>
+</nav>
+<div class="mnav-foot">
+<button type="button" class="mnav-theme" onclick="toggleTema()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+Cambiar tema
+</button>
+<a href="/acceso.html" class="mnav-login">Iniciar sesión</a>
+<a href="/index.html#contacto" class="mnav-cta">🎁 1 Mes Gratis — Probar</a>
+</div>
+</div>
 
 <main>
 
@@ -698,6 +793,33 @@ try{
   }
 }catch(e){}
 updateThemeIcons();
+
+/* Menu movil: panel lateral deslizante (hamburguesa <-> X). */
+(function(){
+  var toggle = document.getElementById('mnavToggle');
+  var panel  = document.getElementById('mnavPanel');
+  var scrim  = document.getElementById('mnavScrim');
+  if(!toggle || !panel || !scrim) return;
+  function openMenu(){
+    document.body.classList.add('mnav-open');
+    toggle.setAttribute('aria-expanded','true');
+    toggle.setAttribute('aria-label','Cerrar menú');
+  }
+  function closeMenu(){
+    document.body.classList.remove('mnav-open');
+    toggle.setAttribute('aria-expanded','false');
+    toggle.setAttribute('aria-label','Abrir menú');
+  }
+  toggle.addEventListener('click', function(){
+    document.body.classList.contains('mnav-open') ? closeMenu() : openMenu();
+  });
+  scrim.addEventListener('click', closeMenu);
+  panel.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeMenu); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && document.body.classList.contains('mnav-open')) closeMenu();
+  });
+  window.addEventListener('resize', function(){ if(window.innerWidth > 980) closeMenu(); });
+})();
 
 // Cursor spotlight
 var glow=document.getElementById('cursorGlow');

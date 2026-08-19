@@ -906,6 +906,15 @@ nav{
   section,[id]{padding-left:18px!important;padding-right:18px!important}
   .qrow{grid-template-columns:1fr 1fr!important}
   .phone-wrap{max-width:100%!important}
+  /* El widget del aro de progreso + la lista de tareas iba en 2 columnas con la
+     primera fija a 150px: en movil dejaba ~90-110px para icono+texto+badge de
+     cada tarea, ilegible. Se apila: aro arriba, lista abajo a ancho completo. */
+  #mHeroGauge{grid-template-columns:1fr!important}
+  /* Formulario de contacto: la cuadricula 2 columnas (formulario + canales)
+     no tenia tope movil (a diferencia de .grid2) y dejaba pares de campos
+     (nombre/salon, telefono/email) en ~70px cada uno. Se apila todo. */
+  #contactFormGrid{grid-template-columns:1fr!important}
+  .cf-row2{grid-template-columns:1fr!important}
   .banner-top-free .banner-sub{display:none!important}
   .banner-top-free .banner-sep{display:none!important}
   .banner-top-free .banner-dir{display:none!important}
@@ -1180,7 +1189,7 @@ Cambiar tema
 <b style="font-family:var(--display);font-size:15px">Gestión de hoy · en piloto automático</b>
 <span style="margin-left:auto;font-size:11px;color:var(--ink-3)">jueves, 15 oct</span>
 </div>
-<div style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:0">
+<div id="mHeroGauge" style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:0">
 <div style="padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--paper)">
 <div style="position:relative;width:118px;height:118px">
 <svg viewBox="0 0 128 128" style="width:118px;height:118px;transform:rotate(-90deg)"><circle cx="64" cy="64" r="56" fill="none" stroke="var(--line)" stroke-width="11"/><circle cx="64" cy="64" r="56" fill="none" stroke="url(#mg5)" stroke-width="11" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352" style="animation:mRing 1.6s cubic-bezier(.22,.61,.36,1) .3s forwards"/></svg>
@@ -1437,7 +1446,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 
 <!-- Comparativa premium: tu salón hoy vs con Mecha (una sola vista, sin tablas) -->
 <div class="reveal cmp2" style="border:1px solid var(--line-2);border-radius:24px;background:var(--card);box-shadow:var(--shadow);overflow:hidden">
-<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;padding:16px 26px;background:var(--paper);border-bottom:1px solid var(--line);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700">
+<div class="cmp2-head" style="display:grid;grid-template-columns:1.2fr 1fr 1fr;padding:16px 26px;background:var(--paper);border-bottom:1px solid var(--line);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700">
 <span>Lo que tu salón paga (y sufre) hoy</span>
 <span>Herramientas sueltas</span>
 <span style="color:var(--accent)">Con Mecha</span>
@@ -1819,7 +1828,7 @@ Tienes <b>30 días completamente gratis sin tarjeta ni permanencia</b> tanto si 
 </div>
 
 <!-- Formulario Directo al Staff + Contactos de Comunicación -->
-<div class="reveal" style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:clamp(22px,3.5vw,36px);align-items:start">
+<div id="contactFormGrid" class="reveal" style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:clamp(22px,3.5vw,36px);align-items:start">
 
 <!-- Formulario de Contacto -->
 <div>
@@ -1832,7 +1841,7 @@ Nos llega directamente al equipo fundador y te responderemos por WhatsApp o corr
 </p>
 
 <form id="contactStaffForm" novalidate style="display:flex;flex-direction:column;gap:12px">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  <div class="cf-row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div>
       <label for="cNombre" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Tu nombre *</label>
       <input id="cNombre" type="text" required placeholder="Carlos Ocaña" style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none" />
@@ -1843,7 +1852,7 @@ Nos llega directamente al equipo fundador y te responderemos por WhatsApp o corr
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  <div class="cf-row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div>
       <label for="cTelefono" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Teléfono / WhatsApp *</label>
       <input id="cTelefono" type="tel" required placeholder="+34 600 000 000" style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none" />
@@ -2043,6 +2052,10 @@ Tu cuenta gratis con datos de prueba reales para explorar todo el potencial.
   .cmp2-ic{display:none}
   .cmp2-val,.cmp2-val.ok{flex-direction:row;align-items:center;gap:10px;flex-basis:100%}
   .cmp2-bar{flex:1}
+  /* La cabecera de la comparativa iba en 3 columnas fr sin tope: la primera
+     ("Lo que tu salon paga (y sufre) hoy") se aplastaba a ~47px, casi una
+     letra por linea. Se apila, igual que las filas de abajo. */
+  .cmp2-head{grid-template-columns:1fr!important;gap:4px;padding:12px 18px!important}
 }
 </style>
 
