@@ -224,7 +224,12 @@ export default function AsistentePuestaEnMarcha({
       if (!r.ok) throw new Error(r.resumen);
       // Que el equipo herede el horario del salon: sin horario propio no genera
       // huecos reservables, y ese es el fallo que mas deja la agenda vacia.
-      await ejecutarAccion('aplicar_horario_profesionales', {}, ctx);
+      // `aplicar: true` es obligatorio: sin ese argumento la accion responde
+      // "sin aplicar por ahora" y devuelve ok, asi que no se nota que no hizo nada.
+      const r2 = await ejecutarAccion('aplicar_horario_profesionales', { aplicar: true }, ctx);
+      // Si el salon aun no tiene horario, esto falla y es normal (se puede haber
+      // saltado ese bloque): no se corta el asistente por ello.
+      if (!r2.ok) console.warn('horario del equipo sin aplicar:', r2.resumen);
       return;
     }
   }, [ctx, equipo, presetHorario, servicios]);
@@ -385,7 +390,7 @@ export default function AsistentePuestaEnMarcha({
                     />
                   </div>
                   <Pie
-                    isMobile={isMobile} guardando={guardando} error={error}
+                    isMobile={isMobile} guardando={guardando} cargando={false} error={error}
                     onContinuar={continuar} onSaltar={() => irA(idx + 1)}
                     ajustesEn="Más tarde en: Ajustes > Accesos y roles"
                   />
@@ -450,7 +455,7 @@ export default function AsistentePuestaEnMarcha({
                   </div>
 
                   <Pie
-                    isMobile={isMobile} guardando={guardando} error={error}
+                    isMobile={isMobile} guardando={guardando} cargando={cargandoBloque && !bloque.especial} error={error}
                     onContinuar={continuar} onSaltar={() => irA(idx + 1)}
                     ajustesEn={`Más tarde en: ${bloque.ajustesEn}`}
                   />
@@ -585,9 +590,11 @@ function MapaLateral({ bloques, actual, hechos, onIr }: {
   );
 }
 
-function Pie({ isMobile, guardando, error, onContinuar, onSaltar, ajustesEn }: {
+function Pie({ isMobile, guardando, cargando, error, onContinuar, onSaltar, ajustesEn }: {
   isMobile: boolean;
   guardando: boolean;
+  // Mientras el bloque carga sus valores no se puede guardar: se escribiria vacio.
+  cargando: boolean;
   error: string;
   onContinuar: () => void;
   onSaltar: () => void;
@@ -604,8 +611,8 @@ function Pie({ isMobile, guardando, error, onContinuar, onSaltar, ajustesEn }: {
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <Cta isMobile={false} onClick={onContinuar} disabled={guardando}>
-          {guardando ? 'Guardando...' : 'Guardar y seguir'}
+        <Cta isMobile={false} onClick={onContinuar} disabled={guardando || cargando}>
+          {guardando ? 'Guardando...' : cargando ? 'Cargando...' : 'Guardar y seguir'}
         </Cta>
         {(
           <button

@@ -450,22 +450,36 @@ export async function guardarBloque(
   const claves = CLAVES_CONFIG[id];
   if (claves) {
     const parcial: Record<string, any> = {};
-    for (const k of claves) parcial[k] = valores[k];
-    await guardarConfig(negocioId, parcial);
+    for (const k of claves) {
+      // Las claves sin valor NO se escriben. Pasa cuando se avanza antes de que
+      // el bloque termine de cargar: se guardaba `undefined` en cada clave, que
+      // al serializar el jsonb desaparece, y el paso quedaba sin efecto sin que
+      // nadie viera un error. Ademas, escribir undefined sobre un valor bueno
+      // seria borrarlo.
+      if (valores[k] !== undefined) parcial[k] = valores[k];
+    }
+    if (Object.keys(parcial).length > 0) await guardarConfig(negocioId, parcial);
     return;
   }
 
   if (id === 'fiscal') {
-    const { error } = await supabase.from('config_fiscal').upsert({
-      negocio_id: negocioId,
-      razon_social: valores.razon_social || null,
-      nif: valores.nif || null,
-      domicilio_fiscal: valores.domicilio_fiscal || null,
-      tipo_iva_defecto: Number(valores.tipo_iva_defecto) || 21,
-      territorio: valores.territorio || 'comun',
-      aplica_verifactu: valores.aplica_verifactu !== false,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'negocio_id' });
+    // Via RPC, NO upsert directo: config_fiscal solo tiene politica de SELECT
+    // para el cliente. Es deliberado — son los datos con los que se emiten
+    // facturas verificables ante Hacienda, y se escriben por una funcion que
+    // valida y deja rastro. Un upsert directo devuelve "No tienes permisos".
+    const { error } = await supabase.rpc('upsert_config_fiscal', {
+      p_negocio_id: negocioId,
+      p_nif: valores.nif || null,
+      p_razon_social: valores.razon_social || null,
+      p_domicilio_fiscal: valores.domicilio_fiscal || null,
+      p_regimen_iva: 'general',
+      p_tipo_iva_defecto: Number(valores.tipo_iva_defecto) || 21,
+      p_territorio: valores.territorio || 'comun',
+      p_serie_defecto: 'A',
+      p_modalidad: 'verifactu',
+      p_aplica_verifactu: valores.aplica_verifactu !== false,
+      p_proveedor_fiscal: null,
+    });
     if (error) throw error;
     return;
   }
