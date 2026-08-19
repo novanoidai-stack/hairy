@@ -279,6 +279,7 @@ export default function AyudaScreen() {
         }}
       >
         <button
+          data-demo-abrir="ayuda-manuales"
           onClick={() => setCatSel('todas')}
           style={{
             padding: '8px 16px',

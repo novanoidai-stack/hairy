@@ -892,36 +892,297 @@ nav{
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
 .chip-ok{padding:4px 10px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-weight:600;font-size:12px;display:inline-block}
 .conn{position:relative;height:64px;display:grid;place-items:center}
-.conn>div{width:2px;height:100%;transform-origin:top;transition:transform .2s linear;box-shadow:0 0 8px rgba(244,80,30,.35)}
+/* ============================================================
+   ESTILOS BASE DEL STICKY CTA ([data-sticky-cta])
+   ============================================================ */
+[data-sticky-cta]{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:65;
+  transform:translateY(120%);
+  transition:transform .4s cubic-bezier(.22,.61,.36,1), background .3s ease;
+  padding:10px 20px calc(env(safe-area-inset-bottom, 0px) + 10px);
+  background:color-mix(in srgb, var(--paper-2) 90%, transparent);
+  backdrop-filter:blur(18px) saturate(160%);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  border-top:1px solid var(--line);
+  box-shadow:0 -8px 28px rgba(0,0,0,.12);
+  will-change:transform;
+}
+body[data-theme="dark"] [data-sticky-cta]{
+  background:color-mix(in srgb, var(--paper-2) 92%, transparent);
+  border-top:1px solid var(--line-2);
+  box-shadow:0 -10px 36px rgba(0,0,0,.5);
+}
 
 @media (max-width:980px){
-  .grid2{grid-template-columns:minmax(0,1fr)!important;gap:26px!important}
+  .grid2{grid-template-columns:minmax(0,1fr)!important;gap:22px!important}
   [data-navlinks]{display:none!important}
-  [data-navcta]{display:none!important}
-  [data-cmprow]{grid-template-columns:minmax(0,1.4fr)!important}
-  [data-cmprow]>div:nth-child(2){display:none!important}
-  .conn{height:44px!important}
+  #navLogin, #navDemo{display:none!important}
+  .conn{height:36px!important}
 }
+
+/* Breakpoint ampliado para comparativa y formulario staff (tablets ≤860px) */
+@media (max-width:860px){
+  .cmp-head-desk{display:none!important}
+  [data-cmprow]{
+    display:flex!important;
+    flex-direction:column!important;
+    padding:14px 14px!important;
+    gap:6px!important;
+    border-bottom:1px solid var(--line)!important;
+  }
+  [data-cmprow] > div{
+    padding:0!important;
+    background:transparent!important;
+  }
+  [data-cmprow] .cmp-tema{
+    font-weight:700!important;
+    font-size:13.5px!important;
+    color:var(--ink)!important;
+    margin-bottom:2px!important;
+  }
+  [data-cmprow] .cmp-otros{
+    display:flex!important;
+    gap:7px!important;
+    align-items:flex-start!important;
+    font-size:12px!important;
+    color:var(--ink-3)!important;
+    line-height:1.35!important;
+  }
+  [data-cmprow] .cmp-mecha{
+    display:flex!important;
+    gap:7px!important;
+    align-items:flex-start!important;
+    font-size:12.5px!important;
+    font-weight:600!important;
+    color:var(--ok)!important;
+    background:var(--ok-soft)!important;
+    padding:6px 10px!important;
+    border-radius:8px!important;
+    margin-top:3px!important;
+    line-height:1.35!important;
+  }
+  #contactFormGrid{
+    grid-template-columns:1fr!important;
+    padding:clamp(18px, 4vw, 28px)!important;
+    gap:22px!important;
+  }
+  #contactFormGrid > div:last-child{
+    border-left:none!important;
+    border-top:1px solid rgba(255,255,255,.12)!important;
+    padding-left:0!important;
+    padding-top:20px!important;
+  }
+}
+
+@media (max-width:768px){
+  /* Chispa FAB flotante elevado para convivir con el sticky CTA */
+  #chispaFab{
+    bottom:calc(66px + env(safe-area-inset-bottom, 0px))!important;
+    right:14px!important;
+    width:48px!important;
+    height:48px!important;
+  }
+  #chispaFab img{
+    width:30px!important;
+    height:30px!important;
+  }
+  #chispaChat{
+    bottom:calc(120px + env(safe-area-inset-bottom, 0px))!important;
+    right:12px!important;
+    left:12px!important;
+    width:auto!important;
+    max-width:420px!important;
+  }
+  footer.sec-dark-footer{
+    padding-bottom:calc(76px + env(safe-area-inset-bottom, 0px))!important;
+  }
+}
+
 @media (max-width:640px){
-  section,[id]{padding-left:18px!important;padding-right:18px!important}
+  section,[id]{padding-left:16px!important;padding-right:16px!important}
   .qrow{grid-template-columns:1fr 1fr!important}
-  .phone-wrap{max-width:100%!important}
-  /* El widget del aro de progreso + la lista de tareas iba en 2 columnas con la
-     primera fija a 150px: en movil dejaba ~90-110px para icono+texto+badge de
-     cada tarea, ilegible. Se apila: aro arriba, lista abajo a ancho completo. */
+  
+  /* Touch target en navegación */
+  .theme-toggle-btn{width:36px!important;height:36px!important}
+  .mnav-toggle{width:38px!important;height:38px!important}
+
+  /* Tipografía fluida */
+  h1{font-size:clamp(30px, 8.5vw, 42px)!important}
+  
+  /* Botones Hero full width */
+  #heroCta, [data-demo-link].hov-card{
+    width:100%!important;
+    justify-content:center!important;
+    text-align:center!important;
+    padding:14px 18px!important;
+    font-size:14.5px!important;
+  }
+
+  /* Hero Gauge compacto y centrado */
   #mHeroGauge{grid-template-columns:1fr!important}
-  /* Formulario de contacto: la cuadricula 2 columnas (formulario + canales)
-     no tenia tope movil (a diferencia de .grid2) y dejaba pares de campos
-     (nombre/salon, telefono/email) en ~70px cada uno. Se apila todo. */
-  #contactFormGrid{grid-template-columns:1fr!important}
-  .cf-row2{grid-template-columns:1fr!important}
-  .banner-top-free .banner-sub{display:none!important}
-  .banner-top-free .banner-sep{display:none!important}
-  .banner-top-free .banner-dir{display:none!important}
-  .banner-top-free-in{justify-content:center!important}
-  [data-sticky-cta]{padding:10px 14px!important}
+  #mHeroGauge .gauge-wrap{width:92px!important;height:92px!important;margin:0 auto}
+  #mHeroGauge .gauge-wrap svg{width:92px!important;height:92px!important}
+  #mHeroGauge .gauge-pct{font-size:24px!important}
+  #mHeroGauge > div:last-child{min-height:auto!important;padding:10px!important}
+  .qrow-item, #mHeroGauge .qrow-item{padding:8px 10px!important;border-radius:10px!important}
+
+  /* Sección #gestion: Evitar overflow horizontal por minmax(300px) */
+  #gestion .reveal > div[style*="minmax(300px"]{
+    grid-template-columns:1fr!important;
+  }
+  #gestion [style*="border-radius:20px"]{
+    padding:16px 14px!important;
+  }
+  #gestion [style*="minmax(200px"]{
+    grid-template-columns:1fr!important;
+  }
+  #gestion [style*="minmax(200px"] > div{
+    border-right:none!important;
+    border-bottom:1px solid var(--line)!important;
+    padding:14px 16px!important;
+  }
+  #gestion [style*="minmax(200px"] > div:last-child{
+    border-bottom:none!important;
+  }
+  #gestion a.btn-grad{
+    width:100%!important;
+    justify-content:center!important;
+  }
+
+  /* Sección #equipo: métricas de jornada compactas */
+  #equipo div[style*="grid-template-columns:repeat(3,1fr)"]{
+    gap:6px!important;
+  }
+  #equipo div[style*="grid-template-columns:repeat(3,1fr)"] > div{
+    padding:8px 4px!important;
+  }
+  #equipo div[style*="grid-template-columns:repeat(3,1fr)"] div[style*="font-size:19px"]{
+    font-size:16px!important;
+  }
+  #equipo div[style*="grid-template-columns:repeat(3,1fr)"] div[style*="font-size:11px"]{
+    font-size:10px!important;
+  }
+  #equipo a[href="/calculadora-comisiones.html"]{
+    width:100%!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+
+  /* Totalizador inferior .cmp2 (145 € -> 39 €) apilado vertical */
+  .cmp2 > div[style*="grid-template-columns:1fr auto 1fr"]{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    text-align:center!important;
+    gap:10px!important;
+    padding:16px!important;
+  }
+  .cmp2 > div[style*="grid-template-columns:1fr auto 1fr"] svg{
+    transform:rotate(90deg)!important;
+  }
+
+  /* Calculadora (#cuentas) */
+  #cuentas .grid2 > div{
+    padding:20px 16px!important;
+    border-radius:18px!important;
+  }
+  #cuentas .grid2 > div:last-child > div[style*="grid-template-columns: 1fr 1fr"] > div{
+    padding:10px 8px!important;
+    min-height:64px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:space-between!important;
+  }
+
+  /* Precios (#precios) */
+  #precios .hov-card{
+    padding:22px 16px 18px!important;
+  }
+  #precios .reveal > div[style*="grid-template-columns"]{
+    gap:24px!important;
+  }
+
+  /* Mockup de WhatsApp en móvil: altura compacta, limpio y ergonómico */
+  .phone-wrap{
+    max-width:100%!important;
+    border-radius:24px!important;
+    padding:7px!important;
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.5)!important;
+  }
+  .phone-wrap > div{
+    height:390px!important;
+    border-radius:18px!important;
+  }
+  .phone-wrap .wapp-u, .phone-wrap .wapp-b{
+    font-size:12px!important;
+    padding:6px 9px!important;
+    line-height:1.35!important;
+  }
+  .phone-wrap #chat{
+    padding:8px 8px 10px!important;
+    gap:5px!important;
+    overscroll-behavior-y:contain!important;
+  }
+  .phone-wrap #chatChips{
+    overscroll-behavior-x:contain!important;
+  }
+  .phone-wrap .wapp-chip{
+    font-size:10.5px!important;
+    padding:4px 8px!important;
+  }
+  .phone-wrap form{
+    padding:6px 8px 8px!important;
+  }
+  .phone-wrap form button[type="submit"]{
+    width:34px!important;
+    height:34px!important;
+  }
+  .phone-wrap form button[type="submit"] svg{
+    width:16px!important;
+    height:16px!important;
+  }
+
+  /* Prevenir auto-zoom de iOS Safari en inputs */
+  #chatInput,
+  #contactStaffForm input,
+  #contactStaffForm select,
+  #contactStaffForm textarea{
+    font-size:16px!important;
+  }
+
+  /* Formulario de contacto */
+  .cf-row2{grid-template-columns:1fr!important;gap:8px!important}
+  
+  /* Banner superior: ultrafino y limpio */
+  .banner-top-free{
+    padding:5px 12px!important;
+    font-size:11px!important;
+  }
+  .banner-top-free a{
+    font-size:11px!important;
+  }
+  
+  /* Sticky CTA inferior: barra esbelta y no intrusiva */
+  [data-sticky-cta]{
+    padding:8px 14px calc(env(safe-area-inset-bottom, 0px) + 8px)!important;
+  }
   [data-sticky-cta] .sticky-desk-only{display:none!important}
+  [data-sticky-cta] .badge-free{padding:2px 7px!important;font-size:9.5px!important}
+  [data-sticky-cta] .btn-grad{
+    padding:8px 14px!important;
+    font-size:12.5px!important;
+    border-radius:10px!important;
+  }
 }
+
+@media (hover: hover){
+  [data-cmprow]:hover{background:var(--accent-soft)}
+}
+
 .badge-free{
   display:inline-flex;
   align-items:center;
@@ -942,21 +1203,22 @@ nav{
   background:linear-gradient(90deg,#15100b,#281d15 45%,#15100b);
   border-bottom:1px solid rgba(244,80,30,.25);
   color:var(--paper);
-  font-size:13px;
-  padding:9px 24px;
+  font-size:12px;
+  padding:6px 16px;
   position:relative;
   z-index:75;
+  text-align:center;
 }
 
 /* ============================================================
    MENU MOVIL (hamburguesa + panel lateral deslizante)
    Se activa a partir de los 980px, el mismo corte en el que
-   [data-navlinks] y [data-navcta] se ocultan del todo arriba.
+   [data-navlinks] y los CTA largos se ocultan.
    ============================================================ */
 .mnav-toggle{
   display:none;
-  width:40px;height:40px;
-  border-radius:10px;
+  width:36px;height:36px;
+  border-radius:9px;
   border:1px solid var(--line-2);
   background:var(--card);
   place-items:center;
@@ -969,19 +1231,19 @@ nav{
 .mnav-toggle span,.mnav-toggle span::before,.mnav-toggle span::after{
   content:"";
   display:block;
-  width:18px;height:2px;
+  width:16px;height:2px;
   background:var(--ink);
   border-radius:2px;
   position:absolute;
   transition:transform .3s cubic-bezier(.22,.61,.36,1),opacity .2s ease,background .2s ease;
 }
 .mnav-toggle span{position:relative}
-.mnav-toggle span::before{top:-6px}
-.mnav-toggle span::after{bottom:-6px}
+.mnav-toggle span::before{top:-5px}
+.mnav-toggle span::after{bottom:-5px}
 body.mnav-open .mnav-toggle{background:var(--accent-soft);border-color:var(--accent)}
 body.mnav-open .mnav-toggle span{background:transparent}
-body.mnav-open .mnav-toggle span::before{transform:translateY(6px) rotate(45deg)}
-body.mnav-open .mnav-toggle span::after{transform:translateY(-6px) rotate(-45deg)}
+body.mnav-open .mnav-toggle span::before{transform:translateY(5px) rotate(45deg)}
+body.mnav-open .mnav-toggle span::after{transform:translateY(-5px) rotate(-45deg)}
 body.mnav-open{overflow:hidden}
 
 .mnav-scrim{
@@ -996,72 +1258,72 @@ body.mnav-open .mnav-scrim{opacity:1;pointer-events:auto}
 .mnav-panel{
   position:fixed;top:0;right:0;z-index:95;
   height:100vh;height:100dvh;
-  width:min(87vw,340px);
+  width:min(86vw,320px);
   display:flex;flex-direction:column;
-  padding-top:calc(env(safe-area-inset-top) + 70px);
+  padding-top:calc(env(safe-area-inset-top, 0px) + 60px);
   background:var(--paper-2);
   border-left:1px solid var(--line);
-  box-shadow:-30px 0 64px -26px rgba(21,16,11,.35);
+  box-shadow:-24px 0 54px -20px rgba(21,16,11,.35);
   transform:translateX(100%);
-  transition:transform .42s cubic-bezier(.16,1,.3,1);
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
   will-change:transform;
   overflow:hidden;
 }
 body.mnav-open .mnav-panel{transform:none}
 .mnav-links{
   display:flex;flex-direction:column;gap:3px;
-  padding:14px 14px 10px;
+  padding:12px 14px 10px;
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
 .mnav-links a{
   display:flex;align-items:center;gap:10px;
-  padding:14px 16px;
-  border-radius:13px;
-  font-size:16px;font-weight:600;
+  padding:12px 14px;
+  border-radius:11px;
+  font-size:15px;font-weight:600;
   color:var(--ink-2);
   border:1px solid transparent;
   text-decoration:none;
-  opacity:0;transform:translateX(14px);
+  opacity:0;transform:translateX(12px);
   transition:color .2s ease,background .2s ease,border-color .2s ease,
-    opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1);
+    opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1);
 }
 .mnav-links a:hover,.mnav-links a:active{color:var(--ink);background:var(--accent-soft)}
 .mnav-links a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 body.mnav-open .mnav-links a{opacity:1;transform:none}
-body.mnav-open .mnav-links a:nth-child(2){transition-delay:.05s}
-body.mnav-open .mnav-links a:nth-child(3){transition-delay:.09s}
-body.mnav-open .mnav-links a:nth-child(4){transition-delay:.13s}
-body.mnav-open .mnav-links a:nth-child(5){transition-delay:.17s}
-body.mnav-open .mnav-links a:nth-child(6){transition-delay:.21s}
-body.mnav-open .mnav-links a:nth-child(7){transition-delay:.25s}
+body.mnav-open .mnav-links a:nth-child(2){transition-delay:.04s}
+body.mnav-open .mnav-links a:nth-child(3){transition-delay:.08s}
+body.mnav-open .mnav-links a:nth-child(4){transition-delay:.12s}
+body.mnav-open .mnav-links a:nth-child(5){transition-delay:.16s}
+body.mnav-open .mnav-links a:nth-child(6){transition-delay:.20s}
+body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 .mnav-foot{
-  display:flex;flex-direction:column;gap:10px;
-  padding:14px 18px calc(env(safe-area-inset-bottom) + 18px);
+  display:flex;flex-direction:column;gap:9px;
+  padding:12px 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
   border-top:1px solid var(--line);
 }
 .mnav-foot .mnav-login{
   display:flex;align-items:center;justify-content:center;
   width:100%;text-align:center;
-  font-size:15px;font-weight:600;color:var(--ink-2);
-  padding:12px;border-radius:11px;
+  font-size:14px;font-weight:600;color:var(--ink-2);
+  padding:11px;border-radius:10px;
   border:1px solid var(--line-2);
   text-decoration:none;
   transition:color .2s ease,border-color .2s ease,background .2s ease;
 }
 .mnav-foot .mnav-login:hover{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
 .mnav-foot .mnav-cta{
-  display:flex;align-items:center;justify-content:center;gap:7px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
   width:100%;text-align:center;
-  font-size:15px;font-weight:700;color:#fff;
-  padding:13px;border-radius:11px;
+  font-size:14.5px;font-weight:700;color:#fff;
+  padding:12px;border-radius:10px;
   background:linear-gradient(120deg,var(--accent),var(--accent-hi));
-  box-shadow:0 8px 20px -6px rgba(244,80,30,.55);
+  box-shadow:0 6px 18px -4px rgba(244,80,30,.5);
   text-decoration:none;
 }
 .mnav-theme{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;font-size:13.5px;font-weight:600;color:var(--ink-2);
-  padding:10px;border-radius:11px;border:1px dashed var(--line-2);
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;font-size:13px;font-weight:600;color:var(--ink-2);
+  padding:9px;border-radius:10px;border:1px dashed var(--line-2);
   background:none;cursor:pointer;
 }
 .mnav-theme:hover{color:var(--ink);border-color:var(--accent)}
@@ -1081,18 +1343,18 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.25s}
 
 <!-- Barra destacada: Directorio de salones Mecha -->
 <div class="banner-top-free">
-<div class="banner-top-free-in" style="max-width:1220px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px;text-align:center">
-<span style="font-size:13px;color:rgba(255,255,255,.9)">¿Buscas cita en una barbería o salón?</span>
-<a href="/salones.html" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--accent-hi);text-decoration:none;font-size:13px">
-Explorar directorio de salones Mecha →
+<div class="banner-top-free-in" style="max-width:1220px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;flex-wrap:wrap">
+<span style="color:rgba(255,255,255,.9)">¿Buscas cita en una barbería o salón?</span>
+<a href="/salones.html" style="display:inline-flex;align-items:center;gap:4px;font-weight:700;color:var(--accent-hi);text-decoration:none">
+Explorar salones Mecha →
 </a>
 </div>
 </div>
 
 <nav style="position:sticky;top:0;z-index:70;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);background:color-mix(in srgb,var(--paper) 84%,transparent);border-bottom:1px solid var(--line)">
-<div style="max-width:1220px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box">
-<a href="/index.html" style="display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;flex-shrink:0">
-<svg viewBox="0 0 40 40" style="width:32px;height:32px;flex-shrink:0" aria-hidden="true">
+<div style="max-width:1220px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box">
+<a href="/index.html" style="display:flex;align-items:center;gap:7px;color:var(--ink);text-decoration:none;flex-shrink:0">
+<svg viewBox="0 0 40 40" style="width:28px;height:28px;flex-shrink:0" aria-hidden="true">
   <defs>
     <linearGradient id="mGradNav" x1="0" y1="1" x2="0" y2="0">
       <stop offset="0" stop-color="#e0340e"/>
@@ -1103,8 +1365,8 @@ Explorar directorio de salones Mecha →
   <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradNav)"/>
   <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity="0.95"/>
 </svg>
-<span style="font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.04em">Mecha<span style="color:var(--accent)">.</span></span>
-<span style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--line-2);padding:2px 5px;border-radius:5px;font-weight:700">OS</span>
+<span style="font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.04em">Mecha<span style="color:var(--accent)">.</span></span>
+<span style="font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--line-2);padding:1px 4px;border-radius:4px;font-weight:700">OS</span>
 </a>
 <div data-navlinks>
 <a href="#gestion">Gestión</a>
@@ -1116,8 +1378,8 @@ Explorar directorio de salones Mecha →
 <a href="#precios">Precios</a>
 <a href="#contacto">Contacto</a>
 </div>
-<div style="display:flex;align-items:center;gap:10px;flex-shrink:0" data-navcta>
-<button type="button" class="theme-toggle-btn" onclick="toggleTema()" title="Modo Claro activo (clic para modo Oscuro)" style="width:32px;height:32px;border-radius:9px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease;flex-shrink:0" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
+<div style="display:flex;align-items:center;gap:8px;flex-shrink:0" data-navcta>
+<button type="button" class="theme-toggle-btn" onclick="toggleTema()" title="Modo Claro / Oscuro" style="width:32px;height:32px;border-radius:9px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;transition:transform .25s ease;flex-shrink:0" onmouseover="this.style.transform='rotate(45deg)'" onmouseout="this.style.transform='none'">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 </button>
 <a href="/acceso.html" id="navLogin">Iniciar sesión</a>
@@ -1125,32 +1387,32 @@ Explorar directorio de salones Mecha →
 <span class="nav-badge-pill">1 Mes Gratis</span>
 <span>Probar</span>
 </a>
-</div>
 <button type="button" class="mnav-toggle" id="mnavToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mnavPanel">
 <span></span>
 </button>
 </div>
+</div>
 </nav>
 
-<div class="mnav-scrim" id="mnavScrim"></div>
+<div class="mnav-scrim" id="mnavScrim" onclick="cerrarMenuMovil()"></div>
 <div class="mnav-panel" id="mnavPanel" role="dialog" aria-modal="true" aria-label="Menú de navegación">
 <nav class="mnav-links" aria-label="Secciones">
-<a href="#gestion">Gestión</a>
-<a href="#equipo">Equipo</a>
-<a href="#todo">Todo en uno</a>
-<a href="/acceso.html?next=demo#signup" data-demo-link><span style="font-size:13px">▶</span>Demo</a>
-<a href="/calculadora-comisiones.html"><span style="font-size:14px">🧮</span>Comisiones</a>
-<a href="/especificaciones.html">Especificaciones</a>
-<a href="#precios">Precios</a>
-<a href="#contacto">Contacto</a>
+<a href="#gestion" onclick="cerrarMenuMovil()">🗓️ Gestión a tu medida</a>
+<a href="#equipo" onclick="cerrarMenuMovil()">👥 Equipo & Fichajes</a>
+<a href="#todo" onclick="cerrarMenuMovil()">⚡ Todo en uno</a>
+<a href="/acceso.html?next=demo#signup" data-demo-link onclick="cerrarMenuMovil()">▶ Demo interactiva <span style="font-size:10px;font-weight:800;color:var(--ok);background:var(--ok-soft);padding:2px 6px;border-radius:4px;margin-left:auto">Gratis</span></a>
+<a href="/calculadora-comisiones.html" onclick="cerrarMenuMovil()">🧮 Calculadora comisiones</a>
+<a href="/especificaciones.html" onclick="cerrarMenuMovil()">📋 Especificaciones</a>
+<a href="#precios" onclick="cerrarMenuMovil()">🏷️ Precios</a>
+<a href="#contacto" onclick="cerrarMenuMovil()">💬 Contacto & Soporte</a>
 </nav>
 <div class="mnav-foot">
-<button type="button" class="mnav-theme" onclick="toggleTema()">
+<button type="button" class="mnav-theme theme-toggle-btn" id="mnavTheme" onclick="toggleTema()">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-Cambiar tema
+Cambiar tema claro / oscuro
 </button>
-<a href="/acceso.html" class="mnav-login">Iniciar sesión</a>
-<a href="#contacto" class="mnav-cta">🎁 1 Mes Gratis — Probar</a>
+<a href="/acceso.html" class="mnav-login" onclick="cerrarMenuMovil()">Iniciar sesión</a>
+<a href="#contacto" class="mnav-cta" onclick="cerrarMenuMovil()">🎁 1 Mes Gratis — Empezar</a>
 </div>
 </div>
 
@@ -1168,8 +1430,8 @@ Cambiar tema
 <span style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>
 🎁 1 Mes Gratis si te registras o nos contactas · Sin tarjeta
 </div>
-<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">El salón que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">se lleva solo</span></h1>
-<p style="font-size:clamp(19px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:560px;margin:0 0 26px;text-wrap:pretty">Ninguna agenda sabe lo que tarda un tinte. <b style="color:var(--ink)">Mecha sí</b>: vende los <b style="color:var(--ink)">reposos</b>, llena tu agenda con la <b style="color:var(--ink)">lista de espera</b> y la <b style="color:var(--ink)">IA atiende el WhatsApp</b> por ti.</p>
+<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(34px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">El salón que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">se lleva solo</span></h1>
+<p style="font-size:clamp(16px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:560px;margin:0 0 26px;text-wrap:pretty">Ninguna agenda sabe lo que tarda un tinte. <b style="color:var(--ink)">Mecha sí</b>: vende los <b style="color:var(--ink)">reposos</b>, llena tu agenda con la <b style="color:var(--ink)">lista de espera</b> y la <b style="color:var(--ink)">IA atiende el WhatsApp</b> por ti.</p>
 <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px">
 <a href="/acceso.html" id="heroCta" class="btn-grad" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:13px;font-weight:700;font-size:15.5px">🎁 Empezar 1 mes gratis (Registro rápido) <span>→</span></a>
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 24px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">▶ Ver demo interactiva gratis</a>
@@ -1191,10 +1453,20 @@ Cambiar tema
 </div>
 <div id="mHeroGauge" style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:0">
 <div style="padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--paper)">
-<div style="position:relative;width:118px;height:118px">
-<svg viewBox="0 0 128 128" style="width:118px;height:118px;transform:rotate(-90deg)"><circle cx="64" cy="64" r="56" fill="none" stroke="var(--line)" stroke-width="11"/><circle cx="64" cy="64" r="56" fill="none" stroke="url(#mg5)" stroke-width="11" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352" style="animation:mRing 1.6s cubic-bezier(.22,.61,.36,1) .3s forwards"/></svg>
+<div class="gauge-wrap" style="position:relative;width:118px;height:118px">
+<svg viewBox="0 0 128 128" style="width:118px;height:118px;transform:rotate(-90deg)">
+<defs>
+<linearGradient id="mg5" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#f4501e"/>
+<stop offset="60%" stop-color="#ff8a3d"/>
+<stop offset="100%" stop-color="#ffcf4a"/>
+</linearGradient>
+</defs>
+<circle cx="64" cy="64" r="56" fill="none" stroke="var(--line)" stroke-width="11"/>
+<circle cx="64" cy="64" r="56" fill="none" stroke="url(#mg5)" stroke-width="11" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352" style="animation:mRing 1.6s cubic-bezier(.22,.61,.36,1) .3s forwards"/>
+</svg>
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-<b style="font-family:var(--display);font-size:30px;letter-spacing:-.03em;line-height:1"><span data-count="90" data-suffix="%">90%</span></b>
+<b class="gauge-pct" style="font-family:var(--display);font-size:30px;letter-spacing:-.03em;line-height:1"><span data-count="90" data-suffix="%">90%</span></b>
 <span style="font-size:10.5px;color:var(--ink-3);text-align:center;line-height:1.2">de la gestión<br />hecha sola</span>
 </div>
 </div>
@@ -1207,27 +1479,27 @@ Cambiar tema
 <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">12 citas confirmadas por WhatsApp</div><div style="font-size:11px;color:var(--ink-3)">sin escribir un mensaje</div></div>
 <span style="font-size:11px;color:var(--ok);font-weight:600">−38 min</span>
 </div>
-<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 2s infinite">
+<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 2s infinite">
 <span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 2s infinite;flex:none">✓</span>
 <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Reposo del tinte vendido</div><div style="font-size:11px;color:var(--ink-3)">corte encajado desde la lista de espera</div></div>
 <span style="font-size:11px;color:var(--ok);font-weight:600">+18 €</span>
 </div>
-<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 4s infinite">
+<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 4s infinite">
 <span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 4s infinite;flex:none">✓</span>
 <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">9 facturas VeriFactu enviadas a la AEAT</div><div style="font-size:11px;color:var(--ink-3)">con su QR y su hash encadenado</div></div>
 <span style="font-size:11px;color:var(--ok);font-weight:600">−45 min</span>
 </div>
-<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 6s infinite">
+<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 6s infinite">
 <span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 6s infinite;flex:none">✓</span>
 <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Jornada del equipo registrada</div><div style="font-size:11px;color:var(--ink-3)">3 fichajes, 1,9 h extra, comisiones al día</div></div>
 <span style="font-size:11px;color:var(--ok);font-weight:600">−25 min</span>
 </div>
-<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 8s infinite">
+<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 8s infinite">
 <span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 8s infinite;flex:none">✓</span>
 <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Caja cuadrada y arqueo cerrado</div><div style="font-size:11px;color:var(--ink-3)">1.284 € · propinas y comisiones repartidas</div></div>
 <span style="font-size:11px;color:var(--ok);font-weight:600">−40 min</span>
 </div>
-<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 10s infinite">
+<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 10s infinite">
 <span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 10s infinite;flex:none">✓</span>
 <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Informe del mes listo</div><div style="font-size:11px;color:var(--ink-3)">ocupación, margen y fugas, en PDF</div></div>
 <span style="font-size:11px;color:var(--ok);font-weight:600">−30 min</span>
@@ -1551,7 +1823,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Las apps tipo <b>Booksy</b> o <b>Fresha</b> se centran en la agenda. Facturar, fichar, comisionar o el stock lo sigues haciendo tú.</p>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:22px;overflow:hidden;background:var(--card);box-shadow:var(--shadow)">
-<div data-cmprow style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);background:var(--paper);border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">
+<div data-cmprow class="cmp-head-desk" style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);background:var(--paper);border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">
 <div style="padding:14px 18px">Lo que necesita un salón</div>
 <div style="padding:14px 18px">Apps de citas (Booksy, Fresha…)</div>
 <div style="padding:14px 18px;color:var(--accent);font-weight:700">Mecha</div>
@@ -1628,7 +1900,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 </div>
 <div class="reveal grid2" style="grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,3vw,36px);align-items:center">
 <div class="phone-wrap" style="position:relative;width:100%;max-width:342px;margin:0 auto;border-radius:44px;padding:11px;background:linear-gradient(160deg,#2b2723,#100e0c);box-shadow:0 40px 80px -34px rgba(21,16,11,.6),0 0 0 1px rgba(255,255,255,.06) inset">
-<div style="position:relative;border-radius:34px;overflow:hidden;background:#0f1014;display:flex;flex-direction:column;height:540px">
+<div class="phone-screen" style="position:relative;border-radius:34px;overflow:hidden;background:#0f1014;display:flex;flex-direction:column;height:540px">
 <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:96px;height:26px;border-radius:99px;background:#000;z-index:5"></div>
 <div style="display:flex;align-items:center;padding:11px 20px 4px;font-size:11.5px;font-weight:600;color:#fff">
 <span style="width:64px">23:40</span><span style="flex:1"></span>
@@ -1999,15 +2271,15 @@ Tu cuenta gratis con datos de prueba reales para explorar todo el potencial.
 </main>
 
 <!-- CTA fijo inferior -->
-<div data-sticky-cta style="position:fixed;left:0;right:0;bottom:0;z-index:80;transform:translateY(120%);transition:transform .45s cubic-bezier(.22,.61,.36,1);padding:12px 20px;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(0,0,0,.08)">
-<div style="max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px">
-<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:260px">
-<span class="badge-free" style="background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-weight:800;padding:4px 10px;border-radius:999px;font-size:11px">1 Mes Gratis</span>
-<span style="font-size:13.5px;color:var(--ink-2)"><b style="color:var(--ink)">Pruébala 1 mes gratis sin tarjeta ni permanencia.</b> <span class="sticky-desk-only">El 90% de la gestión hecha sola · O entra a la demo guiada.</span></span>
+<div data-sticky-cta>
+<div class="sticky-inner" style="max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;min-width:0">
+<span class="badge-free">1 Mes Gratis</span>
+<span class="sticky-text" style="font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:var(--ink)">Pruébala 30 días sin tarjeta.</b> <span class="sticky-desk-only">El 90% de la gestión hecha sola · O entra a la demo guiada.</span></span>
 </div>
-<div style="display:flex;align-items:center;gap:10px">
-<a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card sticky-desk-only" style="padding:9px 16px;border-radius:11px;border:1px solid var(--line-2);font-weight:600;font-size:13.5px;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px">▶ Ver Demo</a>
-<a href="#contacto" class="btn-grad" style="padding:10px 20px;border-radius:11px;font-weight:700;font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">🎁 Empezar 1 mes gratis →</a>
+<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+<a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card sticky-desk-only" style="padding:8px 14px;border-radius:10px;border:1px solid var(--line-2);font-weight:600;font-size:13px;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:5px">▶ Ver Demo</a>
+<a href="#contacto" class="btn-grad" style="padding:8px 16px;border-radius:10px;font-weight:700;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">🎁 Empezar mes gratis →</a>
 </div>
 </div>
 </div>
@@ -2047,15 +2319,62 @@ Tu cuenta gratis con datos de prueba reales para explorar todo el potencial.
 .cmp2-bar.mecha{background:linear-gradient(90deg,var(--ok),#25d366)}
 .reveal.on .cmp2-bar{width:var(--w)}
 .cmp2-row.time .cmp2-bar{height:9px}
+
 @media(max-width:720px){
-  .cmp2-row{flex-wrap:wrap;padding:14px 18px;gap:8px 10px}
-  .cmp2-ic{display:none}
-  .cmp2-val,.cmp2-val.ok{flex-direction:row;align-items:center;gap:10px;flex-basis:100%}
-  .cmp2-bar{flex:1}
-  /* La cabecera de la comparativa iba en 3 columnas fr sin tope: la primera
-     ("Lo que tu salon paga (y sufre) hoy") se aplastaba a ~47px, casi una
-     letra por linea. Se apila, igual que las filas de abajo. */
-  .cmp2-head{grid-template-columns:1fr!important;gap:4px;padding:12px 18px!important}
+  .cmp2-head{display:none!important}
+  .cmp2-row{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    padding:11px 14px!important;
+    gap:6px 10px!important;
+  }
+  .cmp2-ic{display:none!important}
+  .cmp2-lab{
+    grid-column:1 / -1!important;
+    margin-bottom:2px!important;
+  }
+  .cmp2-lab b{font-size:13px!important}
+  .cmp2-lab small{font-size:11px!important;color:var(--ink-3)!important;display:block!important;margin-top:1px!important}
+  .cmp2-val{
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:3px!important;
+    font-size:11.5px!important;
+    background:rgba(21,16,11,.04)!important;
+    padding:6px 8px!important;
+    border-radius:8px!important;
+  }
+  .cmp2-val:not(.ok)::before{
+    content:"Herramientas sueltas";
+    display:block;
+    font-size:9.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ink-3);
+    margin-bottom:1px;
+  }
+  .cmp2-val.ok::before{
+    content:"Con Mecha";
+    display:block;
+    font-size:9.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ok);
+    margin-bottom:1px;
+  }
+  body[data-theme="dark"] .cmp2-val{
+    background:rgba(255,255,255,.05)!important;
+  }
+  .cmp2-val.ok{
+    background:var(--ok-soft)!important;
+  }
+  .cmp2-bar{
+    height:5px!important;
+    width:var(--w, 100%)!important;
+    max-width:100%!important;
+  }
 }
 </style>
 
@@ -2109,6 +2428,7 @@ updateThemeIcons();
     toggle.setAttribute('aria-expanded','false');
     toggle.setAttribute('aria-label','Abrir menú');
   }
+  window.cerrarMenuMovil = closeMenu;
   toggle.addEventListener('click', function(){
     document.body.classList.contains('mnav-open') ? closeMenu() : openMenu();
   });
@@ -2271,10 +2591,10 @@ const FILAS=[
   { tema:"Trabajo de gestión que te queda", otros:"Casi todo: confirmar, cobrar, facturar, cuadrar, fichar", mecha:"Un 10%: mirar el día y decidir dos cosas" }
 ];
 document.getElementById("cmpBody").innerHTML=FILAS.map(f=>
-  '<div data-cmprow style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid var(--line);font-size:14px" onmouseover="this.style.background=\'var(--accent-soft)\'" onmouseout="this.style.background=\'none\'">'+
-  '<div style="padding:15px 18px;font-weight:600">'+f.tema+'</div>'+
-  '<div style="padding:15px 18px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start"><span style="color:var(--ink-3);font-weight:700">✕</span><span>'+f.otros+'</span></div>'+
-  '<div style="padding:15px 18px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start;background:var(--accent-soft)"><span style="color:var(--ok);font-weight:700">✓</span><span>'+f.mecha+'</span></div></div>'
+  '<div data-cmprow style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid var(--line);font-size:14px">'+
+  '<div class="cmp-tema" style="padding:15px 18px;font-weight:600">'+f.tema+'</div>'+
+  '<div class="cmp-otros" style="padding:15px 18px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start"><span style="color:#ef4444;font-weight:800;flex:none">✕</span><span>'+f.otros+'</span></div>'+
+  '<div class="cmp-mecha" style="padding:15px 18px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start;background:var(--accent-soft)"><span style="color:var(--ok);font-weight:800;flex:none">✓</span><span>'+f.mecha+'</span></div></div>'
 ).join("");
 
 /* calculadora */

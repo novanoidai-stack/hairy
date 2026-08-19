@@ -473,13 +473,14 @@ export default function ConfiguracionWeb() {
     let raf = 0;
     const pick = () => {
       const root = contentRef.current;
+      const sectionHeader = root?.querySelector('section > header, .section-header') as HTMLElement | null;
       const first = root?.firstElementChild as HTMLElement | null;
-      if (first && first.getBoundingClientRect().height > 0) {
+      const target = sectionHeader || (first?.querySelector('header, h2') as HTMLElement | null) || first;
+      if (target && target.getBoundingClientRect().height > 0) {
         // Enfoca un trozo CONCRETO y corto (la cabecera de la primera seccion:
         // titulo + descripcion) en vez de toda la seccion, para que el texto del
         // tour tenga sitio en la zona oscura y no tape lo enfocado.
-        const header = first.querySelector('header') as HTMLElement | null;
-        demoTargetRef.current = (header && header.getBoundingClientRect().height > 0) ? header : first;
+        demoTargetRef.current = target;
       } else if (tries++ < 240) {
         // Hasta ~4 s: la primera vez que el recorrido entra en Ajustes la
         // pantalla acaba de montarse y aun no hay contenido que medir. Con solo

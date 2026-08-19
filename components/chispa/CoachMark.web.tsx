@@ -62,7 +62,14 @@ export function CoachMark({
 
   let bubbleStyle: CSSProperties;
   if (isMobile) {
-    bubbleStyle = { position: 'fixed', left: 12, right: 12, bottom: 92, maxWidth: 520, margin: '0 auto' };
+    // Si el elemento resaltado está en la mitad inferior de la pantalla o taparía la burbuja abajo,
+    // colocamos la burbuja arriba para no tapar jamás lo que se está explicando.
+    const elementoAbajo = ringTop + ringH / 2 > vh * 0.45 || (ringTop + ringH > vh - 220);
+    if (elementoAbajo) {
+      bubbleStyle = { position: 'fixed', left: 12, right: 12, top: 16, maxWidth: 520, margin: '0 auto' };
+    } else {
+      bubbleStyle = { position: 'fixed', left: 12, right: 12, bottom: 84, maxWidth: 520, margin: '0 auto' };
+    }
   } else {
     const debajo = ringTop + ringH + 12 + 190 < vh;
     const top = debajo ? ringTop + ringH + 12 : Math.max(12, ringTop - 12 - 190);

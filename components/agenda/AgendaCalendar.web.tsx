@@ -671,6 +671,7 @@ export default function AgendaCalendar() {
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [dayViewType, setDayViewType] = useState<"grid" | "list">("grid");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // userId (extracted explicitly for event tracking)
   const userId = userProfile?.id || "";
@@ -3253,6 +3254,509 @@ export default function AgendaCalendar() {
     </div>
   );
 
+  const numFiltrosActivos =
+    (filterServicio !== "todos" ? 1 : 0) +
+    (filterEstado !== "todos" ? 1 : 0) +
+    (verCanceladas ? 1 : 0) +
+    (ensenar ? 1 : 0) +
+    (searchQuery.trim().length > 0 ? 1 : 0);
+
+  // Mini-barra de controles ultracompacta para móvil (1 sola línea limpia)
+  const miniBarraAgendaMobile = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 6,
+        width: "100%",
+        marginTop: 2,
+        marginBottom: 8,
+      }}
+    >
+      {/* Selector vista Día / Semana */}
+      <div
+        style={{
+          display: "flex",
+          background: TOKENS.bgCard,
+          border: `1px solid ${TOKENS.border}`,
+          borderRadius: 9,
+          overflow: "hidden",
+          flexShrink: 0,
+        }}
+      >
+        {(["day", "week"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            style={{
+              padding: "5px 10px",
+              fontSize: 12,
+              fontWeight: view === v ? 700 : 500,
+              background: view === v ? roleTheme.primarySoft : "transparent",
+              color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
+              border: "none",
+              cursor: "pointer",
+              borderRight: v !== "week" ? `1px solid ${TOKENS.border}` : "none",
+            }}
+          >
+            {v === "day" ? "Día" : "Semana"}
+          </button>
+        ))}
+      </div>
+
+      {/* Botón rápido Hoy */}
+      <button
+        onClick={handleToday}
+        title="Ir a hoy"
+        aria-label="Ir a hoy"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          padding: "5px 8px",
+          background: TOKENS.bgCard,
+          border: `1px solid ${TOKENS.border}`,
+          color: TOKENS.text,
+          borderRadius: 9,
+          cursor: "pointer",
+          fontSize: 11.5,
+          fontWeight: 600,
+          flexShrink: 0,
+        }}
+      >
+        <Icon name="calendar" size={12} color={TOKENS.text} />
+        <span>Hoy</span>
+      </button>
+
+      {/* Botón Filtros con Badge de activos */}
+      <button
+        onClick={() => setMobileFiltersOpen(true)}
+        title="Abrir filtros de agenda"
+        aria-label="Filtros de agenda"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
+          padding: "5px 9px",
+          background: numFiltrosActivos > 0 ? "rgba(244,80,30,0.12)" : TOKENS.bgCard,
+          border: `1px solid ${numFiltrosActivos > 0 ? TOKENS.primary : TOKENS.border}`,
+          color: numFiltrosActivos > 0 ? TOKENS.primaryHi : TOKENS.textSec,
+          borderRadius: 9,
+          cursor: "pointer",
+          fontSize: 11.5,
+          fontWeight: numFiltrosActivos > 0 ? 700 : 600,
+          position: "relative",
+          flexShrink: 0,
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <span>Filtros</span>
+        {numFiltrosActivos > 0 && (
+          <span
+            style={{
+              minWidth: 15,
+              height: 15,
+              padding: "0 3px",
+              borderRadius: 999,
+              background: TOKENS.primary,
+              color: "#fff",
+              fontSize: 9.5,
+              fontWeight: 800,
+              lineHeight: "15px",
+              textAlign: "center",
+            }}
+          >
+            {numFiltrosActivos}
+          </span>
+        )}
+      </button>
+
+      {/* Botón Organizar / Auto */}
+      <button
+        onClick={() => setShowOrganizar(true)}
+        title="Organizar la agenda"
+        aria-label="Organizar la agenda"
+        style={{
+          position: "relative",
+          padding: "5px 8px",
+          background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
+          border: "1px solid rgba(244,80,30,0.3)",
+          color: TOKENS.text,
+          borderRadius: 9,
+          cursor: "pointer",
+          fontSize: 11.5,
+          fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          flexShrink: 0,
+        }}
+      >
+        <Icon name="list" size={12} color={TOKENS.text} />
+        <span>Auto</span>
+        {problemasAgenda.length > 0 && (
+          <span
+            style={{
+              position: "absolute",
+              top: -4,
+              right: -4,
+              minWidth: 15,
+              height: 15,
+              padding: "0 3px",
+              borderRadius: 999,
+              background: TOKENS.primary,
+              color: "#fff",
+              fontSize: 9,
+              fontWeight: 800,
+              lineHeight: "15px",
+              textAlign: "center",
+            }}
+          >
+            {problemasAgenda.length > 9 ? "9+" : problemasAgenda.length}
+          </span>
+        )}
+      </button>
+
+      {/* Botón Buscar / Lupa rápida */}
+      <button
+        onClick={() => setMobileFiltersOpen(true)}
+        title="Buscar cita"
+        aria-label="Buscar cita"
+        style={{
+          display: "grid",
+          placeItems: "center",
+          width: 29,
+          height: 29,
+          background: TOKENS.bgCard,
+          border: `1px solid ${TOKENS.border}`,
+          borderRadius: 9,
+          color: searchQuery ? TOKENS.primaryHi : TOKENS.textSec,
+          cursor: "pointer",
+          flexShrink: 0,
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </div>
+  );
+
+  // Panel Bottom Sheet de Filtros para Móvil
+  const modalFiltrosMovil = isMobile && mobileFiltersOpen && (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2000,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
+        animation: "fadeIn 0.2s ease",
+      }}
+      onClick={() => setMobileFiltersOpen(false)}
+    >
+      <div
+        style={{
+          background: TOKENS.bgCard,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          borderTop: `1px solid ${TOKENS.border}`,
+          padding: "18px 18px calc(env(safe-area-inset-bottom, 0px) + 18px)",
+          maxHeight: "85vh",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          boxShadow: "0 -10px 40px rgba(0,0,0,0.4)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Cabecera del modal */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 16 }}>⚡</span>
+            <b style={{ fontSize: 16, color: TOKENS.text }}>Filtros de la agenda</b>
+            {numFiltrosActivos > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primaryHi, background: roleTheme.primarySoft, padding: "2px 7px", borderRadius: 6 }}>
+                {numFiltrosActivos} activo{numFiltrosActivos > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setMobileFiltersOpen(false)}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: TOKENS.textSec,
+              fontSize: 20,
+              cursor: "pointer",
+              padding: "4px 8px",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Buscador de citas en móvil */}
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: TOKENS.textSec, marginBottom: 6 }}>
+            Buscar cliente, servicio o notas
+          </label>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: TOKENS.bg,
+              border: `1px solid ${TOKENS.border}`,
+              borderRadius: 10,
+              padding: "8px 12px",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={TOKENS.textSec} strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Escribe para buscar..."
+              style={{
+                flex: 1,
+                border: "none",
+                background: "transparent",
+                color: TOKENS.text,
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                style={{ border: "none", background: "transparent", color: TOKENS.textSec, cursor: "pointer", fontSize: 14 }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {/* Si hay resultados de búsqueda */}
+          {searchResults.length > 0 && searchQuery && (
+            <div style={{ marginTop: 8, maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+              {searchResults.map((c: any) => {
+                const fecha = new Date(c.inicio);
+                const cli = clientes.find((cl: any) => cl.id === c.cliente_id);
+                const srv = servicios.find((s: any) => s.id === c.servicio_id);
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => {
+                      setSelectedDate(fecha.getDate());
+                      setCurrentMonth(new Date(fecha.getFullYear(), fecha.getMonth()));
+                      setView("day");
+                      setMobileFiltersOpen(false);
+                    }}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      background: TOKENS.bg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      fontSize: 12.5,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div>
+                      <b style={{ color: TOKENS.text }}>{cli?.nombre || "Cita"}</b>
+                      <div style={{ fontSize: 11, color: TOKENS.textSec }}>{srv?.nombre}</div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primary }}>
+                      {fecha.toLocaleDateString(LOCALE, { day: "numeric", month: "short" })} {fmtHHMM(fecha)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Selector de Servicio */}
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: TOKENS.textSec, marginBottom: 6 }}>
+            Filtrar por Servicio
+          </label>
+          <select
+            value={filterServicio}
+            onChange={(e) => setFilterServicio(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: TOKENS.bg,
+              border: `1px solid ${filterServicio !== "todos" ? TOKENS.primary : TOKENS.border}`,
+              color: TOKENS.text,
+              fontSize: 13.5,
+              outline: "none",
+            }}
+          >
+            <option value="todos">Todos los servicios</option>
+            {servicios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.nombre} {s.precio != null ? `(${s.precio} €)` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Selector de Estado */}
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: TOKENS.textSec, marginBottom: 6 }}>
+            Filtrar por Estado
+          </label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {[
+              { value: "todos", label: "Todos" },
+              { value: "cobradas", label: "✓ Cobradas" },
+              { value: "sin_cobrar", label: "⚠️ Sin cobrar" },
+              { value: CITA_STATUS.CONFIRMADA, label: "Confirmadas" },
+              { value: CITA_STATUS.PENDIENTE, label: "Pendientes" },
+              { value: CITA_STATUS.COMPLETADA, label: "Completadas" },
+              { value: CITA_STATUS.NO_PRESENTADA, label: "No presentadas" },
+            ].map((st) => (
+              <button
+                key={st.value}
+                type="button"
+                onClick={() => setFilterEstado(st.value)}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: `1px solid ${filterEstado === st.value ? TOKENS.primary : TOKENS.border}`,
+                  background: filterEstado === st.value ? roleTheme.primarySoft : TOKENS.bg,
+                  color: filterEstado === st.value ? roleTheme.primaryHi : TOKENS.text,
+                  fontSize: 12,
+                  fontWeight: filterEstado === st.value ? 700 : 500,
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Toggles: Citas canceladas y Modo Enséñamelo */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            onClick={() => setVerCanceladas((v) => !v)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: verCanceladas ? TOKENS.dangerSoft : TOKENS.bg,
+              border: `1px solid ${verCanceladas ? TOKENS.danger : TOKENS.border}`,
+              cursor: "pointer",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: verCanceladas ? TOKENS.danger : TOKENS.text }}>
+                Mostrar citas canceladas
+              </div>
+              <div style={{ fontSize: 11, color: TOKENS.textSec }}>Ver huecos cancelados en la línea temporal</div>
+            </div>
+            <Icon name={verCanceladas ? "eye" : "eyeOff"} size={16} color={verCanceladas ? TOKENS.danger : TOKENS.textSec} />
+          </div>
+
+          <div
+            onClick={() => {
+              if (ensenar) {
+                setEnsenar(false);
+                setProblemaEnfocado(null);
+              } else {
+                setEnsenar(true);
+                enfocarProblema(0);
+              }
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: ensenar ? roleTheme.primarySoft : TOKENS.bg,
+              border: `1px solid ${ensenar ? TOKENS.primary : TOKENS.border}`,
+              cursor: "pointer",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: ensenar ? roleTheme.primaryHi : TOKENS.text }}>
+                Modo Enséñamelo
+              </div>
+              <div style={{ fontSize: 11, color: TOKENS.textSec }}>Resaltar solapes, huecos y retrasos en directo</div>
+            </div>
+            <Icon name="zap" size={16} color={ensenar ? TOKENS.primary : TOKENS.textSec} />
+          </div>
+        </div>
+
+        {/* Botones inferiores */}
+        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+          {numFiltrosActivos > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setFilterServicio("todos");
+                setFilterEstado("todos");
+                setVerCanceladas(false);
+                setEnsenar(false);
+                setSearchQuery("");
+              }}
+              style={{
+                flex: 1,
+                padding: "12px",
+                borderRadius: 10,
+                border: `1px solid ${TOKENS.border}`,
+                background: TOKENS.bg,
+                color: TOKENS.danger,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Limpiar
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(false)}
+            style={{
+              flex: 2,
+              padding: "12px",
+              borderRadius: 10,
+              border: "none",
+              background: `linear-gradient(120deg, ${TOKENS.primary}, ${roleTheme.primaryHi})`,
+              color: "#fff",
+              fontSize: 13.5,
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: `0 4px 14px ${roleTheme.primaryGlow}`,
+            }}
+          >
+            Ver agenda
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div
       style={{
@@ -4633,9 +5137,9 @@ export default function AgendaCalendar() {
                 </div>
               </div>
 
-              {/* Movil: la barra de controles va aqui, a ancho completo. En
-                  pantalla completa se esconde (es lo que mas alto ocupa). */}
-              {isMobile && !movilFullscreen && barraControlesAgenda}
+              {/* Móvil: Mini-barra de navegación ultracompacta (1 sola línea limpia) */}
+              {isMobile && !movilFullscreen && miniBarraAgendaMobile}
+              {modalFiltrosMovil}
 
               {/* Selector de profesional en movil: la MISMA cuadricula de
                   avatares que en escritorio, en una tira que se desliza en

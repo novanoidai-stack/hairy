@@ -237,6 +237,16 @@
   .gt-prev,.gt-play{width:42px;height:42px}
   .gt-next{width:48px;height:48px}
   .gt-skip{top:10px;right:14px}
+  .gt-dock.dock-top{
+    top:0!important;
+    bottom:auto!important;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 18px 28px!important;
+    background:linear-gradient(0deg,rgba(8,9,13,0) 0%,rgba(8,9,13,.86) 16%,rgba(8,9,13,.98) 32%,#08090d 100%)!important;
+  }
+  .gt-dock.dock-top .gt-dock-prog{
+    bottom:auto!important;
+    top:0!important;
+  }
 }
 
 /* ---------- DOCK FIJO: estilos base sustituidos por la version 1d de arriba ---------- */
@@ -327,110 +337,133 @@
   }
 
   /* ---------- INTRO CINEMATOGRAFICA (pantalla negra, sin caja) ----------
-     No es un aviso: es el arranque de una pelicula. Negro puro a sangre,
-     barras de cine, grano sutil, y el texto entrando por lineas. Todo el
-     movimiento va con transform/opacity (compuesto en GPU) para no bajar de
-     60 fps ni provocar reflows. */
+     Experiencia ultra-cinemática, minimalista y mobile-first.
+     Negro profundo con resplandor cálido de Mecha, tipografía cuidada,
+     chips de recorridos compactos y botón principal con foco cinematográfico. */
   .dm-intro{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:0;
-    background:#000;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    background:#04060b;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
     scrollbar-width:none;-webkit-font-smoothing:antialiased}
   .dm-intro::-webkit-scrollbar{display:none}
   .dm-intro.show{display:grid}
-  /* Halo calido que respira detras del texto (solo opacidad/escala) */
-  .dm-intro::before{content:"";position:absolute;left:50%;top:44%;width:120vmax;height:120vmax;
+
+  /* Halo cálido sutil de Mecha que respira suavemente en el centro */
+  .dm-intro::before{content:"";position:absolute;left:50%;top:50%;width:min(900px,130vw);height:min(900px,130vw);
     transform:translate3d(-50%,-50%,0);pointer-events:none;
-    background:radial-gradient(circle,rgba(244,80,30,.20) 0%,rgba(244,80,30,.07) 26%,transparent 62%);
-    animation:dmHalo 9s ease-in-out infinite;will-change:transform,opacity}
-  @keyframes dmHalo{0%,100%{opacity:.65;transform:translate3d(-50%,-50%,0) scale(1)}50%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.08)}}
-  /* Barras de cine: entran arriba y abajo y se quedan */
-  .dm-cinebar{position:absolute;left:0;right:0;height:7vh;background:#000;z-index:3;pointer-events:none;
-    box-shadow:0 0 40px 10px rgba(0,0,0,.9)}
+    background:radial-gradient(circle,rgba(244,80,30,.18) 0%,rgba(255,122,46,.07) 32%,transparent 65%);
+    animation:dmHalo 8s ease-in-out infinite;will-change:transform,opacity}
+  @keyframes dmHalo{0%,100%{opacity:.7;transform:translate3d(-50%,-50%,0) scale(1)}50%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.06)}}
+
+  /* Viñeteado cinematográfico */
+  .dm-intro::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+    background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(3,5,10,.82) 100%)}
+
+  /* Barras de cine estilizadas y proporcionadas */
+  .dm-cinebar{position:absolute;left:0;right:0;height:clamp(12px,3vh,24px);background:#020306;z-index:3;pointer-events:none;
+    box-shadow:0 0 25px 8px rgba(0,0,0,.95)}
   .dm-cinebar.t{top:0;transform:translate3d(0,-100%,0)}
   .dm-cinebar.b{bottom:0;transform:translate3d(0,100%,0)}
-  .dm-intro.show .dm-cinebar{animation:dmBarIn .8s cubic-bezier(.16,1,.3,1) .05s forwards}
+  .dm-intro.show .dm-cinebar{animation:dmBarIn .7s cubic-bezier(.16,1,.3,1) .05s forwards}
   @keyframes dmBarIn{to{transform:translate3d(0,0,0)}}
-  /* Vineteado + grano finisimo para que el negro no se vea "plano" */
-  .dm-intro::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
-    background:radial-gradient(ellipse at 50% 45%,transparent 46%,rgba(0,0,0,.75) 100%)}
 
-  .dm-intro-in{position:relative;z-index:4;width:100%;max-width:660px;text-align:center;padding:24px 22px}
-  /* Entrada por lineas: desenfoque + subida (cine, no "modal") */
-  @keyframes dmLine{from{opacity:0;transform:translate3d(0,26px,0);filter:blur(10px)}
+  /* Contenedor central: compacto y sin scroll */
+  .dm-intro-in{position:relative;z-index:4;width:100%;max-width:540px;text-align:center;
+    padding:clamp(16px,3.2vh,32px) clamp(16px,4vw,26px);display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+  /* Animación de entrada escalonada suave */
+  @keyframes dmLine{from{opacity:0;transform:translate3d(0,20px,0);filter:blur(8px)}
     to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
-  .dm-intro.show .dm-intro-in>*{animation:dmLine .8s cubic-bezier(.16,1,.3,1) both;will-change:transform,opacity,filter}
-  .dm-intro.show .dm-intro-in>*:nth-child(1){animation-delay:.15s}
-  .dm-intro.show .dm-intro-in>*:nth-child(2){animation-delay:.3s}
-  .dm-intro.show .dm-intro-in>*:nth-child(3){animation-delay:.45s}
-  .dm-intro.show .dm-intro-in>*:nth-child(4){animation-delay:.62s}
-  .dm-intro.show .dm-intro-in>*:nth-child(5){animation-delay:.78s}
-  .dm-intro.show .dm-intro-in>*:nth-child(6){animation-delay:.94s}
-  .dm-intro.show .dm-intro-in>*:nth-child(7){animation-delay:1.08s}
+  .dm-intro.show .dm-intro-in>*{animation:dmLine .75s cubic-bezier(.16,1,.3,1) both;will-change:transform,opacity,filter}
+  .dm-intro.show .dm-intro-in>*:nth-child(1){animation-delay:.10s}
+  .dm-intro.show .dm-intro-in>*:nth-child(2){animation-delay:.22s}
+  .dm-intro.show .dm-intro-in>*:nth-child(3){animation-delay:.34s}
+  .dm-intro.show .dm-intro-in>*:nth-child(4){animation-delay:.48s}
+  .dm-intro.show .dm-intro-in>*:nth-child(5){animation-delay:.62s}
+  .dm-intro.show .dm-intro-in>*:nth-child(6){animation-delay:.74s}
 
-  .dm-intro-markwrap{position:relative;display:block;margin:0 auto 18px}
-  .dm-intro .gmark{width:54px;height:54px;display:block;margin:0 auto;
-    filter:drop-shadow(0 8px 30px rgba(244,80,30,.75));animation:dmMarkHalo 3.2s ease-in-out infinite;will-change:transform}
-  @keyframes dmMarkHalo{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-  .dm-intro .geyebrow{display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;
-    letter-spacing:.34em;text-transform:uppercase;color:#ff9b66;margin-bottom:14px}
-  .dm-intro h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,5.4vw,54px);
-    letter-spacing:-.035em;margin:0 0 14px;line-height:1.03;color:#fff;text-wrap:balance}
+  /* Encabezado con Logo y Badge */
+  .dm-intro-markwrap{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto clamp(8px,1.6vh,14px)}
+  .dm-intro .gmark{width:clamp(32px,4.5vw,42px);height:clamp(32px,4.5vw,42px);display:block;
+    filter:drop-shadow(0 6px 20px rgba(244,80,30,.7));animation:dmMarkHalo 3.2s ease-in-out infinite;will-change:transform}
+  @keyframes dmMarkHalo{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  .dm-intro .geyebrow{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;
+    letter-spacing:.18em;text-transform:uppercase;color:#ff9b66;background:rgba(244,80,30,.12);border:1px solid rgba(244,80,30,.28);
+    padding:4px 10px;border-radius:999px}
+  .dm-intro .geyebrow::before{content:"";width:5px;height:5px;border-radius:50%;background:#ff8a3d;box-shadow:0 0 8px #f4501e}
+
+  .dm-intro h2{font-family:var(--display);font-weight:800;font-size:clamp(24px,4.6vw,42px);
+    letter-spacing:-.035em;margin:0 0 clamp(6px,1.2vh,10px);line-height:1.06;color:#fff;text-wrap:balance}
   .dm-intro h2 em{font-family:var(--serif);font-style:italic;font-weight:400;
     background:linear-gradient(100deg,#ffcf4a,#ff7a2e 55%,#f4501e);
     -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .dm-intro .gsub{font-size:15px;color:rgba(255,255,255,.62);line-height:1.55;max-width:520px;margin:0 auto 22px}
+  .dm-intro .gsub{font-size:clamp(13px,1.8vw,14.5px);color:rgba(255,255,255,.68);line-height:1.45;max-width:440px;margin:0 auto clamp(12px,2vh,18px);text-wrap:pretty}
   .dm-intro .gsub b{color:#fff;font-weight:600}
 
-  .dm-intro-tracks{display:flex;flex-direction:column;gap:8px;margin:0 auto 20px;text-align:left;max-width:520px}
-  .dm-itrack{display:flex;align-items:center;gap:13px;padding:11px 15px;border-radius:13px;
-    background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);cursor:pointer;
-    transition:background .22s ease,border-color .22s ease,transform .22s cubic-bezier(.16,1,.3,1);
-    will-change:transform}
-  .dm-itrack:hover{background:rgba(244,80,30,.13);border-color:rgba(244,80,30,.5);transform:translate3d(0,-2px,0)}
-  .dm-itrack.primero{background:rgba(244,80,30,.11);border-color:rgba(244,80,30,.42)}
-  .dm-it-num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;
-    background:rgba(244,80,30,.24);color:#ffd9c2;font-size:11.5px;font-weight:800;flex-shrink:0}
-  .dm-it-info{flex:1;min-width:0}
-  .dm-it-info b{display:block;font-size:13px;color:#fff;font-weight:700;letter-spacing:-.01em}
-  .dm-it-info small{display:block;font-size:11.5px;color:rgba(255,255,255,.5);margin-top:3px;line-height:1.4}
-  .dm-it-meta{display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.04em;
-    color:#ff9b66;margin-top:5px}
-  .dm-it-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#ffd9c2;
-    flex-shrink:0;padding:4px 9px;border-radius:7px;background:rgba(244,80,30,.2)}
-  .dm-it-tag svg{width:9px;height:9px}
+  /* Píldoras/chips minimalistas de recorridos */
+  .dm-intro-tracks{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;margin:0 auto clamp(14px,2.4vh,22px);width:100%;max-width:480px}
+  .dm-ipill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);color:#e2e8f0;font-size:12px;font-weight:600;
+    cursor:pointer;transition:all .2s cubic-bezier(.16,1,.3,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .dm-ipill:hover{background:rgba(244,80,30,.18);border-color:rgba(244,80,30,.55);color:#fff;transform:translateY(-1.5px);box-shadow:0 4px 16px rgba(244,80,30,.22)}
+  .dm-ipill.primero{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.35);color:#fff}
+  .dm-ipill-n{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;
+    background:rgba(244,80,30,.28);color:#ffd9c2;font-size:10px;font-weight:800;font-family:var(--mono)}
+  .dm-ipill-txt{letter-spacing:-.01em}
+  .dm-ipill-time{font-family:var(--mono);font-size:10.5px;color:rgba(255,255,255,.45);font-weight:500}
+  .dm-ipill:hover .dm-ipill-time{color:#ffb188}
 
-  .dm-intro-actions{display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto}
-  .dm-intro-free{font-size:12.5px;color:rgba(255,255,255,.55);background:transparent;
-    border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 16px;cursor:pointer;
-    transition:color .2s,border-color .2s,background .2s;font-weight:600}
-  .dm-intro-free:hover{color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.05)}
-  .dm-intro-fake{font-size:11.5px;color:rgba(255,255,255,.38);margin:14px auto 0;display:flex;
-    align-items:center;gap:6px;justify-content:center;max-width:520px;line-height:1.5;text-align:left}
-  .dm-intro-fake svg{width:13px;height:13px;flex-shrink:0}
-  /* Salida "de cine": el negro se abre y deja ver el software ya en marcha */
-  .dm-intro.exit{animation:dmIntroOut .55s cubic-bezier(.7,0,.84,0) forwards;pointer-events:none}
-  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.09)}}
-  @media(max-width:720px){
-    .dm-cinebar{height:4.5vh}
-    .dm-intro .gsub{font-size:13.5px;margin-bottom:18px}
-    .dm-intro-in{padding:18px}
+  /* Botones de acción */
+  .dm-intro-actions{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:360px;margin:0 auto}
+  .dm-intro-btn-play{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:12px 22px;border-radius:12px;
+    font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:#fff;
+    background:linear-gradient(135deg,#ff7a2e 0%,#f4501e 55%,#d93809 100%);
+    border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px -6px rgba(244,80,30,.75),0 0 0 1px rgba(255,255,255,.15) inset;
+    cursor:pointer;transition:all .22s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
+  .dm-intro-btn-play:hover{transform:translateY(-2px);box-shadow:0 14px 38px -4px rgba(244,80,30,.92),0 0 0 1px rgba(255,255,255,.3) inset;filter:brightness(1.06)}
+  .dm-intro-btn-play:active{transform:translateY(0)}
+  .dm-intro-btn-play svg{width:14px;height:14px;fill:currentColor;flex-shrink:0;transition:transform .2s ease}
+  .dm-intro-btn-play:hover svg{transform:scale(1.15)}
+
+  .dm-intro-free{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12.5px;color:rgba(255,255,255,.52);
+    background:transparent;border:none;padding:5px 12px;border-radius:8px;cursor:pointer;transition:color .2s,background .2s;font-weight:500}
+  .dm-intro-free:hover{color:#fff;background:rgba(255,255,255,.06)}
+  .dm-intro-free svg{transition:transform .2s ease}
+  .dm-intro-free:hover svg{transform:translateX(2px)}
+
+  /* Pie discreto */
+  .dm-intro-fake{font-size:11px;color:rgba(255,255,255,.34);margin:clamp(8px,1.5vh,14px) auto 0;display:inline-flex;
+    align-items:center;gap:6px;justify-content:center;max-width:440px;line-height:1.4;text-align:center}
+  .dm-intro-fake svg{width:12px;height:12px;flex-shrink:0;opacity:.7}
+
+  /* Salida de cine */
+  .dm-intro.exit{animation:dmIntroOut .5s cubic-bezier(.7,0,.84,0) forwards;pointer-events:none}
+  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.08)}}
+
+  /* Ajustes en pantallas compactas y móvil */
+  @media(max-width:480px){
+    .dm-intro-in{padding:12px 14px}
+    .dm-intro-markwrap{gap:8px;margin-bottom:8px}
+    .dm-intro .gmark{width:32px;height:32px}
+    .dm-intro .geyebrow{font-size:9.5px;padding:3px 8px;letter-spacing:.14em}
+    .dm-intro h2{font-size:24px;margin-bottom:6px}
+    .dm-intro .gsub{font-size:12.5px;margin-bottom:12px;line-height:1.4}
+    .dm-intro-tracks{gap:5px;margin-bottom:14px}
+    .dm-ipill{padding:5px 9px;font-size:11px;gap:5px}
+    .dm-ipill-n{width:15px;height:15px;font-size:9px}
+    .dm-ipill-time{font-size:9.5px}
+    .dm-intro-actions{max-width:300px;gap:6px}
+    .dm-intro-btn-play{padding:11px 18px;font-size:13.5px}
+    .dm-intro-free{font-size:12px;padding:4px 10px}
+    .dm-intro-fake{font-size:10px;margin-top:6px}
+    .dm-cinebar{height:10px}
   }
-  /* Pantallas bajas (portatiles 13", movil en horizontal): la intro se compacta
-     para que el boton de "explorar por libre" y el aviso de datos ficticios
-     sigan a la vista sin tener que bajar. */
-  @media(max-height:880px){
-    .dm-intro h2{font-size:clamp(26px,3.6vw,38px);margin-bottom:10px}
-    .dm-intro .gsub{font-size:13.5px;margin-bottom:16px}
-    .dm-intro .gmark{width:42px;height:42px}
-    .dm-intro-markwrap{margin-bottom:12px}
-    .dm-intro .geyebrow{margin-bottom:10px}
-    .dm-itrack{padding:9px 13px}
-    .dm-intro-tracks{gap:7px;margin-bottom:16px}
-    .dm-cinebar{height:4vh}
-  }
-  @media(max-height:700px){
-    .dm-intro-in{padding:14px 20px}
-    .dm-intro h2{font-size:26px}
-    .dm-intro .gsub{display:none}
+  @media(max-height:680px){
+    .dm-intro-in{padding:10px 14px}
+    .dm-intro-markwrap{margin-bottom:6px}
+    .dm-intro h2{font-size:22px;margin-bottom:4px}
+    .dm-intro .gsub{font-size:12px;margin-bottom:10px}
+    .dm-intro-tracks{margin-bottom:12px;gap:4px}
+    .dm-intro-btn-play{padding:10px 16px;font-size:13px}
+    .dm-intro-fake{display:none}
     .dm-cinebar{display:none}
   }
   @media(prefers-reduced-motion:reduce){
@@ -1055,27 +1088,34 @@
   <div class="dm-intro-in">
     <div class="dm-intro-markwrap">
       <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
+      <span class="geyebrow" id="introEyebrow">Demo interactiva · Mecha</span>
     </div>
-    <span class="geyebrow" id="introEyebrow">Demo interactiva · Mecha</span>
+    
     <h2>El software entero, <em>por dentro</em></h2>
+    
     <p class="gsub" id="introSub">
-      No son capturas: es Mecha funcionando, con datos de un salón de prueba.
-      Tu <b>cuenta gratis</b> te abre la demo completa —sin tarjeta— y los tres
-      recorridos te llevan de la mano por <b>todas las pantallas</b>.
+      Aprende cómo funciona el software en <b>3 breves recorridos</b> interactivos.
     </p>
 
-    <div class="dm-intro-tracks" id="introTracks"><!-- lo pinta el motor del tour --></div>
+    <!-- Indicador de duraciones limpio y minimalista (chips/píldoras) -->
+    <div class="dm-intro-tracks" id="introTracks" role="group" aria-label="Recorridos disponibles">
+      <!-- Generado dinámicamente desde RECORRIDOS con sus minutos estimados -->
+    </div>
 
     <div class="dm-intro-actions">
-      <a class="btn btn-primary btn-block btn-lg" href="#" id="introGuided">
-        <span id="introGuidedLbl">Empezar el recorrido</span>
-        <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;margin-left:4px"><polygon points="6 4 20 12 6 20"/></svg>
-      </a>
-      <button class="dm-intro-free" id="introFree" type="button">Prefiero explorar por libre</button>
+      <button class="dm-intro-btn-play" id="introGuided" type="button">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>
+        <span id="introGuidedLbl">Reproducir tutorial completo</span>
+      </button>
+      <button class="dm-intro-free" id="introFree" type="button">
+        <span>Explorar por libre</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
     </div>
+    
     <p class="dm-intro-fake">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>Salón de prueba con datos ficticios: toca, mueve y cambia lo que quieras. No afecta a ningún salón real.</span>
+      <span>Salón de prueba ficticio · Puedes probar y tocar todo libremente</span>
     </p>
   </div>
 </div>
@@ -1248,7 +1288,7 @@
   </div>
 </div>
 
-<script src="/assets/vendor/supabase-2.45.4.js" crossorigin="anonymous"></script>
+<script src="assets/vendor/supabase-2.45.4.js" crossorigin="anonymous"></script>
 <script src="assets/loading-tips.js"></script>
 <script src="assets/auth.js"></script>
 <script>
@@ -1713,7 +1753,7 @@
     {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-mensajes', ph:'Bandeja',
      t:'Los mensajes que llegan de fuera', d:'Contactos desde tu página pública, respuestas a presupuestos y **peticiones de ausencia** del equipo. En un sitio, no perdidos en tu WhatsApp personal.'},
     {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-filtros', ph:'Bandeja',
-     t:'Abiertas y todas, con punto azul si no las has leído', d:'El filtro **Abiertas** deja solo las conversaciones vivas; el punto naranja marca lo sin leer. Nada se queda enterrado sin respuesta.'},
+     t:'Abiertas y todas, con punto naranja si no las has leído', d:'El filtro **Abiertas** deja solo las conversaciones vivas; el punto naranja marca lo sin leer. Nada se queda enterrado sin respuesta.'},
     {ic:'avisos', route:'/(tabs)/campanas', action:'zona-campanas-plantillas', ph:'Campañas',
      t:'Campañas hechas: solo cambias el texto', d:'Plantillas listas para **recuperar clientas dormidas**, felicitar cumpleaños o llenar un martes flojo.'},
     {ic:'clientes', route:'/(tabs)/campanas', action:'zona-campanas-segmento', ph:'Campañas',
@@ -1965,6 +2005,7 @@
       // Paso de pantalla completa (sin foco): velo suave para que la app SIGA
       // siendo legible, y el dock manda con el texto.
       s.classList.remove('on'); gt.veil.classList.add('on');
+      if(gt.dock) gt.dock.classList.remove('dock-top');
     } else {
       gt.veil.classList.remove('on');
       // El foco se mueve SOLO con transform (compositor, sin reflow): la caja
@@ -1977,6 +2018,14 @@
       }
       s.style.transform=tx;
       s.classList.add('on');
+
+      // Si el elemento enfocado está en la mitad inferior y en móvil taparía el dock,
+      // el dock se desliza a la parte superior para que el foco quede 100% visible.
+      if(gt.dock){
+        var vh = window.innerHeight || 700;
+        var overlapsBottom = (hole.top + hole.height) > (vh - 240);
+        gt.dock.classList.toggle('dock-top', overlapsBottom && window.innerWidth <= 900);
+      }
     }
   }
 
@@ -2146,6 +2195,7 @@
   // Arranca (o reinicia) un tutorial desde el paso 1. El primer paso se pinta
   // directo (sin cross-fade) para que aparezca al instante.
   function playTutorial(which){
+    bootTourEngine();
     seq++;
     if(actTimer) clearTimeout(actTimer);
     if(actoT) clearTimeout(actoT);
@@ -2226,37 +2276,30 @@
   if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); startAutoplay(); }); }
 
   /* ---------- INTRO: se pinta desde RECORRIDOS ----------
-     Duracion y numero de pasos NO se escriben a mano en el HTML: se calculan
-     aqui. Asi no puede volver a pasar que la intro prometa "27 pasos" y el
-     recorrido tenga otros tantos. */
-  var SVG_PLAY_MINI = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>';
+     Duracion y numero de pasos calculados dinámicamente. */
   function pintarIntro(){
     var cont=$('#introTracks');
     if(cont){
       var html='';
       for(var i=0;i<RECORRIDOS.length;i++){
         var r=RECORRIDOS[i];
-        html+='<div class="dm-itrack'+(i===0?' primero':'')+'" data-track="'+r.id+'" role="button" tabindex="0"'+(i===0?' title="El más importante: empieza por aquí"':'')+'>'
-            +   '<span class="dm-it-num">'+r.n+'</span>'
-            +   '<div class="dm-it-info">'
-            +     '<b>'+escHtml(r.nombre)+(i===0?' <em style="font-style:normal;color:#ff8a3d;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-left:6px">★ Recomendado</em>':'')+'</b>'
-            +     '<small>'+escHtml(r.resumen)+'</small>'
-            +     '<span class="dm-it-meta">'+r.pasos.length+' pasos · ≈ '+minutosDe(r)+' min</span>'
-            +   '</div>'
-            +   '<span class="dm-it-tag">'+SVG_PLAY_MINI+escHtml(r.gancho)+'</span>'
-            + '</div>';
+        html+='<button type="button" class="dm-ipill'+(i===0?' primero':'')+'" data-track="'+r.id+'" title="Recorrido '+r.n+': '+escHtml(r.nombre)+' ('+minutosDe(r)+' min)">'
+            +   '<span class="dm-ipill-n">'+r.n+'</span>'
+            +   '<span class="dm-ipill-txt">'+escHtml(r.nombre)+'</span>'
+            +   '<span class="dm-ipill-time">≈ '+minutosDe(r)+' min</span>'
+            + '</button>';
       }
       cont.innerHTML=html;
     }
     var lbl=$('#introGuidedLbl');
-    if(lbl) lbl.textContent='Ver demo completa';
+    if(lbl) lbl.textContent='Reproducir tutorial completo';
     var eb=$('#introEyebrow');
-    if(eb) eb.textContent='Demo interactiva · 3 recorridos guiados';
-    // Cada tarjeta arranca SU recorrido; el resto sigue a un clic en la barra.
-    Array.prototype.forEach.call(document.querySelectorAll('.dm-itrack'), function(card){
-      function lanzar(){ salirIntro(card.getAttribute('data-track') || 'pilares'); }
-      card.addEventListener('click', lanzar);
-      card.addEventListener('keydown', function(e){
+    if(eb) eb.textContent='Demo interactiva · Mecha';
+    // Cada píldora arranca SU recorrido si el usuario hace clic directo en ella
+    Array.prototype.forEach.call(document.querySelectorAll('.dm-ipill, .dm-itrack'), function(pill){
+      function lanzar(){ salirIntro(pill.getAttribute('data-track') || 'pilares'); }
+      pill.addEventListener('click', lanzar);
+      pill.addEventListener('keydown', function(e){
         if(e.key==='Enter' || e.key===' '){ e.preventDefault(); lanzar(); }
       });
     });
@@ -2290,10 +2333,11 @@
       if(!b) continue;
       b.title = 'Recorrido '+r.n+': '+r.nombre+' — '+r.pasos.length+' pasos · ≈ '+minutosDe(r)+' min';
       var lb=b.querySelector('.lbl');
-      if(lb) lb.textContent = r.n+' · '+r.nombre;
     }
   })();
   pintarIntro();
+  window.playTutorial = playTutorial;
+  window.startTour = startTour;
 
   /* ---------- PANEL DUDAS: WhatsApp + Chispa (IA con conocimiento real) ---------- */
   var SB_URL='https://vtrggiogjrhqtwbhbgia.supabase.co';

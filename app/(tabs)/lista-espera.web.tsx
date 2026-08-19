@@ -370,7 +370,13 @@ function ListaEsperaScreen() {
                     </div>
 
                     {!resueltaOCancelada && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                      <div data-demo="espera-acciones" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                        <button className="le-btn" onClick={() => {
+                          window.dispatchEvent(new CustomEvent('agenda-nueva-cita', { detail: { clienteId: item.cliente_id, servicioId: item.servicio_id, notas: item.nota, profId: item.profesional_id, waitlistId: item.id } }));
+                          router.push('/(tabs)');
+                        }} style={{ ...pillBtn(T.primary, T.primarySoft), flex: 2, justifyContent: 'center' }}>
+                          <Icon name="plus" size={14} color={T.primary} /> Agendar
+                        </button>
                         {item.telefono && (
                           <button className="le-btn" title="Abrir WhatsApp" onClick={() => abrirWhatsApp(item.telefono)} style={{ ...iconBtn(T.success), flex: 1, minWidth: 40 }}>
                             <Icon name="phone" size={15} color={T.success} />
