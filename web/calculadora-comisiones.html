@@ -136,7 +136,7 @@ a{text-decoration:none;color:inherit}
 .calc-step{
   background:var(--card);border:1px solid var(--line-2);border-radius:24px;
   padding:clamp(20px,3vw,32px);box-shadow:var(--shadow-s);margin-bottom:24px;
-  position:relative;
+  position:relative;min-width:0;max-width:100%;
 }
 .calc-step-header{
   display:flex;align-items:center;gap:14px;margin-bottom:20px;border-bottom:1px solid var(--line);padding-bottom:16px;flex-wrap:wrap;
@@ -159,10 +159,10 @@ a{text-decoration:none;color:inherit}
 }
 
 .calc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.calc-field{display:flex;flex-direction:column;gap:6px}
+.calc-field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .calc-field label{font-size:13px;font-weight:700;color:var(--ink)}
 .calc-input,.calc-select{
-  width:100%;font-family:var(--body);font-size:14.5px;font-weight:600;
+  width:100%;min-width:0;box-sizing:border-box;font-family:var(--body);font-size:14.5px;font-weight:600;
   padding:11px 14px;border-radius:12px;border:1px solid var(--line-2);
   background:var(--paper);color:var(--ink);transition:all .2s ease;outline:none;
 }
@@ -325,18 +325,31 @@ a{text-decoration:none;color:inherit}
 @media (max-width:980px){
   [data-navlinks]{display:none!important}
   [data-navcta]{display:none!important}
-  .team-row{grid-template-columns:1fr 1fr;gap:8px}
+  .team-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
   .team-row-head{display:none}
   /* La cuadricula de la calculadora era fija a 2 columnas sin tope: por debajo
      de 980px se aplastaba a ~150px por lado (formulario y resultados
      ilegibles). Se apila a una columna. */
   #calcLayoutGrid{grid-template-columns:1fr!important}
+  /* Item de rejilla sin min-width:0: su min-content (inputs numericos ~170px
+     cada uno) ensanchaba la columna a 664px y sacaba el paso 1 de pantalla. */
+  #calcLayoutGrid > div{min-width:0}
+  /* Los inputs numericos tienen un ancho intrinseco (~170px) que, via
+     min-content, ensanchaba las rejillas hijas y sacaba TODO el paso 1 fuera
+     de la pantalla en movil (664px en un viewport de 360). Columnas 1fr =
+     minmax(auto,1fr): se cambian a minmax(0,1fr) para que encojan. */
+  .calc-step div[style*="grid-template-columns"]{min-width:0}
 }
 @media (max-width:640px){
   section{padding-left:16px!important;padding-right:16px!important}
   .banner-top-free .banner-sub,.banner-top-free .banner-sep,.banner-top-free .banner-dir{display:none!important}
   .banner-top-free-in{justify-content:center!important}
-  .team-row{grid-template-columns:1fr}
+  .team-row{grid-template-columns:minmax(0,1fr)}
+  /* Filas de tramos progresivos (inline 1fr 1fr 1fr 32px) y parejas de
+     campos: a 1fr no encogen por el min-content de los inputs. */
+  [data-tramo]{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 28px!important}
+  .calc-grid{grid-template-columns:1fr!important}
+  .result-cards{grid-template-columns:1fr!important}
 }
 
 /* ============================================================

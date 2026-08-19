@@ -199,7 +199,10 @@ body[data-theme="dark"]{
 .sec-dark{background:#0e0c0a!important;color:#fdfcfb!important}
 .sec-dark-footer{background:#080706!important;color:rgba(255,255,255,.75)!important;border-top:1px solid rgba(255,255,255,.12)!important}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+/* El panel lateral del menu movil (position:fixed fuera de pantalla) ensancha
+   el html y dejaba 32px de scroll horizontal en movil aunque body llevase
+   overflow-x:hidden: se corta tambien en html. */
+html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   margin:0;
   background:var(--paper);
