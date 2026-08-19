@@ -1982,7 +1982,7 @@
       var sig=siguienteRecorrido();
       gt.next.innerHTML = sig ? SVG_NEXT : SVG_CHECK;
       gt.next.title = sig
-        ? ('Siguiente recorrido: ' + sig.nombre + ' (' + sig.pasos.length + ' pasos · ≈ ' + minutosDe(sig) + ' min)')
+        ? ('Siguiente recorrido: ' + sig.nombre)
         : 'Terminar el recorrido';
       gt.next.classList.toggle('gt-next-done', !sig);
     } else {
@@ -2195,9 +2195,9 @@
       cont.innerHTML=html;
     }
     var lbl=$('#introGuidedLbl');
-    if(lbl) lbl.textContent='Ver los 3 recorridos ('+totalPasos()+' pasos · ≈ '+totalMinutos()+' min)';
+    if(lbl) lbl.textContent='Ver demo completa';
     var eb=$('#introEyebrow');
-    if(eb) eb.textContent='Demo interactiva · '+totalPasos()+' pasos guiados';
+    if(eb) eb.textContent='Demo interactiva · 3 recorridos guiados';
     // Cada tarjeta arranca SU recorrido; el resto sigue a un clic en la barra.
     Array.prototype.forEach.call(document.querySelectorAll('.dm-itrack'), function(card){
       function lanzar(){ salirIntro(card.getAttribute('data-track') || 'pilares'); }

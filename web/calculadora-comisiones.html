@@ -1003,6 +1003,58 @@ $('addTramo').addEventListener('click', () => {
 });
 
 // Captura de email
+// Resumen legible del último cálculo para el correo: sin JSON crudo, con los
+// números tal y como los ve el usuario en pantalla.
+function resumenCalculoParaEmail() {
+  const r = ultimoResultado;
+  if (!r) return '(sin cálculo hecho)';
+  if (r.modo === 'sillon') {
+    const x = r.resultado;
+    const lines = [
+      'MODO: Alquiler de sillón',
+      `· Alquiler base: ${eur.format(x.alquilerBase ?? 0)}`,
+      `· IVA: ${eur.format(x.iva ?? 0)}`,
+      `· Retención IRPF: ${eur.format(x.retencion ?? 0)}`,
+      `· Total factura (lo que cobra el salón): ${eur.format(x.totalFactura ?? 0)}`,
+    ];
+    if (x.quedaAlProfesional !== null && x.quedaAlProfesional !== undefined) {
+      lines.push(`· Le queda al profesional: ${eur.format(x.quedaAlProfesional)}`);
+    }
+    if (x.equivalenteEnComisionPct !== null && x.equivalenteEnComisionPct !== undefined) {
+      lines.push(`· Equivale a una comisión del ${x.equivalenteEnComisionPct}%`);
+    }
+    return lines.join('\n');
+  }
+  const c = r.config || {};
+  const t = r.totales || {};
+  const lines = [
+    'MODO: Comisiones de equipo',
+    `· Modelo: ${c.modelo === 'tramos' ? 'escalonado por tramos' : 'porcentaje fijo'}`,
+  ];
+  if (c.modelo === 'tramos') {
+    (c.tramos || []).forEach((tr, i) => {
+      lines.push(`  Tramo ${i + 1}: desde ${eur.format(tr.desde || 0)}${tr.hasta ? ` hasta ${eur.format(tr.hasta)}` : ' en adelante'} → ${tr.porcentaje}%`);
+    });
+  } else {
+    lines.push(`· Comisión: ${c.porcentaje ?? 0}%`);
+  }
+  lines.push(
+    `· IVA ${c.ivaPct ?? 21}% ${c.ivaIncluido ? '(los importes lo incluyen; se descuenta antes de comisionar)' : '(los importes no lo incluyen)'}`,
+    `· Propinas ${c.propinasComisionables ? 'comisionables' : 'no comisionables'}`,
+    '',
+    'RESULTADOS (al mes):',
+    `· Facturación: ${eur.format(t.facturacion ?? 0)}`,
+    `· Base sin IVA: ${eur.format(t.baseSinIva ?? 0)}`,
+    `· Comisiones: ${eur.format(t.comisiones ?? 0)}`,
+    `· Fijos: ${eur.format(t.fijos ?? 0)}`,
+    `· Nóminas del equipo: ${eur.format(t.brutoTrabajadores ?? 0)}`,
+    `· Coste total empresa: ${eur.format(t.costeEmpresa ?? 0)}`,
+    `· Margen neto salón: ${eur.format(t.margenSalon ?? 0)} (${t.margenPct ?? 0}%)`,
+  );
+  if (t.propinas > 0) lines.push(`· Propinas: ${eur.format(t.propinas)}`);
+  return lines.join('\n');
+}
+
 $('leadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = $('leadMsg');
@@ -1022,6 +1074,7 @@ $('leadForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Enviando…';
 
   const api = window.MechaAPI;
+  const resumen = resumenCalculoParaEmail();
   const meta = { origen: 'calculadora-comisiones', calculo: ultimoResultado };
   const res = api && api.insertSolicitud
     ? await api.insertSolicitud({ tipo: 'calculadora', nombre, salon, email, telefono: null, nota: null, meta })
@@ -1048,7 +1101,7 @@ $('leadForm').addEventListener('submit', async (e) => {
         nombre,
         email,
         salon: salon || null,
-        mensaje: `Lead desde la calculadora de comisiones. Cálculo: ${JSON.stringify(ultimoResultado ?? {})}`,
+        mensaje: `Lead desde la calculadora de comisiones.\n\nResultados del cálculo:\n${resumen}`,
       },
     });
     confirmacion = !!(r && r.data && r.data.confirmacion);

@@ -22,3 +22,11 @@ alter table public.dudas_demo enable row level security;
 
 -- Indice para revisar las dudas recientes de un vistazo.
 create index if not exists dudas_demo_created_at_idx on public.dudas_demo (created_at desc);
+
+-- El panel de staff (admin.html) lee las dudas de la demo con la sesion del
+-- usuario, igual que hace con solicitudes: SELECT solo para staff.
+drop policy if exists dudas_demo_select_staff on public.dudas_demo;
+create policy dudas_demo_select_staff on public.dudas_demo
+  for select to authenticated using (public.is_staff());
+
+grant select on public.dudas_demo to authenticated;

@@ -274,7 +274,8 @@
   </div>
 
   <div class="ad-tabs">
-    <button class="ad-tab active" id="tabSol" data-view="solicitudes">Solicitudes<span class="badge" id="badgeSol">0</span></button>
+    <button class="ad-tab active" id="tabSol" data-view="solicitudes">Leads<span class="badge" id="badgeSol">0</span></button>
+    <button class="ad-tab" id="tabDud" data-view="dudas">Dudas demo<span class="badge" id="badgeDud"></span></button>
     <button class="ad-tab" id="tabCue" data-view="cuentas">Cuentas<span class="badge" id="badgeCue">0</span></button>
     <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef"></span></button>
     <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes"></span></button>
@@ -313,6 +314,24 @@
     <div class="ad-count" id="countRes">Cargando...</div>
     <div class="ad-list" id="listRes"></div>
     <div class="ad-msg" id="resMsg" style="margin-top:16px"></div>
+  </div>
+
+  <!-- VISTA: DUDAS DEMO (leads con duda + respuesta de Chispa) -->
+  <div id="view-dudas" style="display:none">
+    <div class="ad-stats" id="statsDud"></div>
+    <div class="ad-tools">
+      <div class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="qDud" placeholder="Buscar por contacto o texto de la duda..." />
+      </div>
+      <button class="ad-refresh" id="refreshDudBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+    <div class="ad-count" id="countDud">Cargando...</div>
+    <div class="ad-list" id="listDud"></div>
+    <div class="ad-msg" id="dudMsg" style="margin-top:16px"></div>
   </div>
 
   <!-- VISTA: SOLICITUDES -->
@@ -681,6 +700,74 @@
       });
   }
 
+  // ---------- DUDAS DEMO ----------
+  // Leads que llegan por el panel de dudas de la demo (tabla dudas_demo):
+  // contacto, la duda, la respuesta de Chispa y si el correo salió bien.
+  var dudasLoaded = false, dudasRows = [];
+  function loadDudas() {
+    var listEl = $('listDud');
+    listEl.innerHTML = '<div class="ad-loading">Cargando dudas de la demo...</div>';
+    clearMsg($('dudMsg'));
+    api.client.from('dudas_demo').select('*').order('created_at', { ascending: false }).limit(200)
+      .then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '';
+          msg($('dudMsg'), 'err', 'No se pudieron cargar las dudas: ' + (res.error.message || ''));
+          return;
+        }
+        dudasRows = res.data || [];
+        dudasLoaded = true;
+        renderDudas();
+      });
+  }
+  function renderDudas() {
+    var q = ($('qDud').value || '').trim().toLowerCase();
+    var rows = dudasRows.filter(function (r) {
+      if (!q) return true;
+      return [r.email, r.telefono, r.duda, r.respuesta].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    var conRespuesta = dudasRows.filter(function (r) { return !!r.respuesta; }).length;
+    var conEmail = dudasRows.filter(function (r) { return !!r.email; }).length;
+    $('statsDud').innerHTML = [
+      { n: dudasRows.length, l: 'Total' },
+      { n: conEmail, l: 'Con email' },
+      { n: conRespuesta, l: 'Respondidas' },
+      { n: dudasRows.filter(function (r) { return r.emailed; }).length, l: 'Correo OK' }
+    ].map(function (s) { return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>'; }).join('');
+    var bd = $('badgeDud'); if (bd) bd.textContent = dudasRows.length;
+    $('countDud').textContent = rows.length + ' de ' + dudasRows.length + ' dudas';
+    if (!rows.length) {
+      $('listDud').innerHTML = '<div class="ad-empty">No hay dudas que coincidan con la búsqueda.</div>';
+      return;
+    }
+    $('listDud').innerHTML = rows.map(function (r) {
+      var contacto = r.email
+        ? '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>'
+        : (r.telefono ? '<a href="tel:' + esc(r.telefono) + '">' + esc(r.telefono) + '</a>' : '<span class="v empty">—</span>');
+      var wa = r.telefono
+        ? '<a class="r-act" href="https://wa.me/' + esc(String(r.telefono).replace(/^\+/, '')) + '" target="_blank" rel="noopener">WhatsApp</a>' : '';
+      return '<div class="card-row">' +
+        '<div class="r-head">' +
+          '<div class="r-id">' +
+            '<span class="tag" style="background:rgba(244,80,30,.12);color:var(--accent,#f4501e)">Duda demo</span>' +
+            (r.email || r.telefono ? '<span class="r-name">' + esc(r.email || r.telefono) + '</span>' : '<span class="r-name">Sin contacto</span>') +
+            (r.email_error ? '<span class="tag" style="background:rgba(224,52,14,.12);color:#e0340e">correo fallido</span>' : (r.emailed ? '<span class="tag" style="background:rgba(15,155,108,.12);color:#0f9b6c">correo OK</span>' : '')) +
+          '</div>' +
+          '<span class="r-when">' + fmtDate(r.created_at) + '</span>' +
+        '</div>' +
+        '<div class="r-grid">' +
+          '<div class="r-cell"><div class="k">Contacto</div><div class="v">' + contacto + '</div></div>' +
+          '<div class="r-cell"><div class="k">Canal</div><div class="v">' + esc(r.tipo_contacto || '—') + '</div></div>' +
+        '</div>' +
+        (r.duda ? '<div class="r-note"><b>Duda:</b> ' + esc(r.duda) + '</div>' : '') +
+        (r.respuesta ? '<div class="r-note" style="opacity:.8"><b>Respuesta de Chispa:</b> ' + esc(String(r.respuesta).slice(0, 600)) + (String(r.respuesta).length > 600 ? '…' : '') + '</div>' : '') +
+        '<div class="r-foot">' + wa + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  var qDud = $('qDud'); if (qDud) qDud.addEventListener('input', renderDudas);
+  var rd = $('refreshDudBtn'); if (rd) rd.addEventListener('click', loadDudas);
+
   function renderStats() {
     var total = rows.length;
     var nuevas = rows.filter(function (r) { return r.estado === 'nueva'; }).length;
@@ -739,9 +826,12 @@
     if (r.meta && typeof r.meta === 'object') {
       Object.keys(r.meta).forEach(function (k) {
         var v = r.meta[k];
-        if (v !== null && v !== undefined && v !== '') {
-          grid += cell(k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '), typeof v === 'object' ? JSON.stringify(v) : String(v));
-        }
+        if (v === null || v === undefined || v === '') return;
+        // El calculo completo de la calculadora no se vuelca en crudo: basta
+        // con saber que venia con el (los numeros van en la nota del correo).
+        if (k === 'calculo') { grid += cell('Calculo', 'Adjunto (detalles en el correo)'); return; }
+        if (k === 'origen') return; // se pinta como chip en la cabecera
+        grid += cell(k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '), typeof v === 'object' ? JSON.stringify(v) : String(v));
       });
     }
 
@@ -776,6 +866,7 @@
       '<div class="r-head">' +
         '<div class="r-id">' +
           '<span class="tag ' + esc(r.tipo) + '">' + (TIPO_LABEL[r.tipo] || esc(r.tipo)) + '</span>' +
+          (r.meta && r.meta.origen ? '<span class="tag" style="background:rgba(124,108,240,.14);color:#7c6cf0">' + esc(r.meta.origen) + '</span>' : '') +
           '<span class="r-name">' + (esc(r.nombre) || 'Sin nombre') + '</span>' +
           (r.salon ? '<span class="r-salon">· ' + esc(r.salon) + '</span>' : '') +
         '</div>' +
@@ -2191,6 +2282,8 @@
       .then(function (r) { if (!r.error) pon('badgeRes', r.count); }).catch(function () {});
     api.client.from('profiles').select('id', { count: 'exact', head: true })
       .then(function (r) { if (!r.error) pon('badgeCue', r.count); }).catch(function () {});
+    api.client.from('dudas_demo').select('id', { count: 'exact', head: true })
+      .then(function (r) { if (!r.error) pon('badgeDud', r.count); }).catch(function () {});
   }
 
   function switchView(view) {
@@ -2202,7 +2295,10 @@
     var mov = view === 'movimientos';
     var err = view === 'errores';
     var sup = view === 'soporte';
+    var dud = view === 'dudas';
 
+    $('tabDud').classList.toggle('active', dud);
+    $('view-dudas').style.display = dud ? 'block' : 'none';
     $('tabErr').classList.toggle('active', err);
     $('view-errores').style.display = err ? 'block' : 'none';
     $('tabSup').classList.toggle('active', sup);
@@ -2222,6 +2318,7 @@
     $('view-movimientos').style.display = mov ? 'block' : 'none';
 
     if (cue && !cuentasLoaded) loadCuentas();
+    if (dud && !dudasLoaded) loadDudas();
     if (ref && !referidosLoaded) loadReferidos();
     if (res && !resenasLoaded) loadResenas();
     if (stf && !staffLoaded) loadStaff();
@@ -2230,6 +2327,7 @@
     if (sup) loadSoporte();
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
+  var td = $('tabDud'); if (td) td.addEventListener('click', function () { switchView('dudas'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
   var tr = $('tabRef'); if (tr) tr.addEventListener('click', function () { switchView('referidos'); });
   var tres = $('tabRes'); if (tres) tres.addEventListener('click', function () { switchView('resenas'); });
