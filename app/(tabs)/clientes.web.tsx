@@ -29,6 +29,7 @@ import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import { ColorTryOnModal } from '@/components/clientes/ColorTryOnModal.web';
 import { InstagramPostModal } from '@/components/clientes/InstagramPostModal.web';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
+import { traerAlFoco } from '@/lib/demoScroll';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -318,6 +319,7 @@ function ClientesWeb() {
   const notasZoneRef = useRef<HTMLDivElement | null>(null);
   const historialZoneRef = useRef<HTMLDivElement | null>(null);
   const resumenZoneRef = useRef<HTMLDivElement | null>(null);
+  const cabeceraFichaRef = useRef<HTMLDivElement | null>(null);
 
   // Sesion 7 V2: pastilla de riesgo/fuga ACCIONABLE (Recuperar/Avisar de un
   // clic) + Q&A de ficha. Estado por ficha abierta; se resetea al cambiar de
@@ -607,14 +609,14 @@ function ClientesWeb() {
     const onDemo = (e: Event) => {
       const action = (e as CustomEvent).detail?.action;
       if (typeof action !== 'string') return;
-      const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
-
       if (action === 'cliente-color') {
         if (clientes.length > 0) {
           setSelected((prev) => prev || clientes[0].id);
           setActiveTab('color');
           setDemoZone('color');
-          setPanelExpanded(wide);
+          // La ficha se queda en su panel normal, con la lista de clientas al
+          // lado: expandida a pantalla completa parecia otra pantalla distinta.
+          setPanelExpanded(false);
         } else {
           demoPendingAction.current = action;
         }
@@ -623,7 +625,9 @@ function ClientesWeb() {
           setSelected((prev) => prev || clientes[0].id);
           setActiveTab('notas');
           setDemoZone('notas');
-          setPanelExpanded(wide);
+          // La ficha se queda en su panel normal, con la lista de clientas al
+          // lado: expandida a pantalla completa parecia otra pantalla distinta.
+          setPanelExpanded(false);
         } else {
           demoPendingAction.current = action;
         }
@@ -632,7 +636,9 @@ function ClientesWeb() {
           setSelected((prev) => prev || clientes[0].id);
           setActiveTab('historial');
           setDemoZone('historial');
-          setPanelExpanded(wide);
+          // La ficha se queda en su panel normal, con la lista de clientas al
+          // lado: expandida a pantalla completa parecia otra pantalla distinta.
+          setPanelExpanded(false);
         } else {
           demoPendingAction.current = action;
         }
@@ -641,7 +647,9 @@ function ClientesWeb() {
           setSelected((prev) => prev || clientes[0].id);
           setActiveTab('resumen');
           setDemoZone('resumen');
-          setPanelExpanded(wide);
+          // La ficha se queda en su panel normal, con la lista de clientas al
+          // lado: expandida a pantalla completa parecia otra pantalla distinta.
+          setPanelExpanded(false);
         } else {
           demoPendingAction.current = action;
         }
@@ -660,7 +668,6 @@ function ClientesWeb() {
     if (demoPendingAction.current && clientes.length > 0) {
       const act = demoPendingAction.current;
       demoPendingAction.current = null;
-      const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
       setSelected(clientes[0].id);
       if (act === 'cliente-color') {
         setActiveTab('color');
@@ -675,29 +682,42 @@ function ClientesWeb() {
         setActiveTab('resumen');
         setDemoZone('resumen');
       }
-      setPanelExpanded(wide);
+      setPanelExpanded(false);
     }
   }, [clientes]);
 
+  // Trae a la vista la zona que explica el recorrido. Reintenta hasta que exista:
+  // la pestana acaba de cambiar y su contenido tarda uno o varios frames en
+  // montarse, asi que al primer intento la ref casi siempre es null. Sin el
+  // reintento la ficha se quedaba con el scroll de la pestana anterior y el foco
+  // apuntaba a algo fuera de pantalla (se veia la ficha entera en negro).
   useEffect(() => {
     if (!demoZone) return;
     const map: Record<string, { current: HTMLElement | null }> = {
       color: colorZoneRef,
       notas: notasZoneRef,
       historial: historialZoneRef,
-      resumen: resumenZoneRef,
+      resumen: cabeceraFichaRef,
     };
-    const el = map[demoZone]?.current;
-    if (el && typeof el.scrollIntoView === 'function') {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    let raf = 0;
+    let intentos = 0;
+    const intentar = () => {
+      const el = map[demoZone]?.current;
+      if (el && el.getBoundingClientRect().height > 0 && typeof el.scrollIntoView === 'function') {
+        traerAlFoco(el);
+        return;
+      }
+      if (intentos++ < 400) raf = requestAnimationFrame(intentar);
+    };
+    intentar();
+    return () => cancelAnimationFrame(raf);
   }, [demoZone, activeTab]);
 
   const demoRefMap: Record<string, { current: HTMLElement | null }> = {
     color: colorZoneRef,
     notas: notasZoneRef,
     historial: historialZoneRef,
-    resumen: resumenZoneRef,
+    resumen: cabeceraFichaRef,
   };
   const demoActiveRef = (demoZone && demoRefMap[demoZone]) || resumenZoneRef;
   const demoLabel =
@@ -1084,7 +1104,9 @@ function ClientesWeb() {
                 ? c.primeraVisita.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
                 : null;
               return (
-                <div style={{ position: 'relative', overflow: 'hidden', background: panelExpanded ? 'linear-gradient(135deg,#ffffff 0%,#fff7f2 58%,#ffe9dc 100%)' : TOKENS.bgCard, border: `1px solid ${panelExpanded ? 'rgba(244,80,30,0.20)' : TOKENS.border}`, borderRadius: panelExpanded ? 20 : 16, padding: panelExpanded ? 28 : (isMobile ? 16 : 18), marginBottom: 14, boxShadow: panelExpanded ? '0 18px 48px rgba(244,80,30,0.10), 0 2px 10px rgba(40,30,24,0.06)' : '0 1px 3px rgba(40,30,24,0.05)' }}>
+                // Cabecera de la ficha: nombre, etiquetas, ticket medio y ritmo.
+                // Es lo que enfoca el paso "la ficha" del recorrido guiado.
+                <div ref={cabeceraFichaRef} style={{ position: 'relative', overflow: 'hidden', background: panelExpanded ? 'linear-gradient(135deg,#ffffff 0%,#fff7f2 58%,#ffe9dc 100%)' : TOKENS.bgCard, border: `1px solid ${panelExpanded ? 'rgba(244,80,30,0.20)' : TOKENS.border}`, borderRadius: panelExpanded ? 20 : 16, padding: panelExpanded ? 28 : (isMobile ? 16 : 18), marginBottom: 14, boxShadow: panelExpanded ? '0 18px 48px rgba(244,80,30,0.10), 0 2px 10px rgba(40,30,24,0.06)' : '0 1px 3px rgba(40,30,24,0.05)' }}>
                   {panelExpanded && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg,#e0340e,#ff7a2e,#ffcf4a)' }} />}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <Avatar name={c.nombre} size={panelExpanded ? 66 : 56} />
@@ -1365,8 +1387,14 @@ function ClientesWeb() {
               // Modo compacto: contenido segun pestaña activa
               <div key={activeTab} className="m-tab-content">
                 {activeTab === 'resumen' && (
-                  <div ref={resumenZoneRef}>
-                    <ResumenTab cliente={c} citas={citas} servicios={servicios} />
+                  <div>
+                    {/* El foco del recorrido apunta SOLO al resumen: si envolvia
+                        tambien notas y fotos, el bloque medi­a media pantalla y
+                        centrarlo dejaba a la vista el trozo de abajo (fotos y
+                        consentimientos) en vez de la cabecera de la ficha. */}
+                    <div ref={resumenZoneRef}>
+                      <ResumenTab cliente={c} citas={citas} servicios={servicios} />
+                    </div>
                     <NotasClienteSection cliente={c} plantillas={plantillasNota} onUpdated={(updated) => {
                       setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                     }} />

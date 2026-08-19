@@ -37,6 +37,7 @@ import {
   estadoLegible, type CuentaEquipo, type RolInvitable,
 } from '@/lib/equipoAccesos';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
+import { traerAlFoco } from '@/lib/demoScroll';
 import { useAppLang } from '@/lib/hooks/useAppLang';
 import { APP_LANGS, type AppLang } from '@/lib/appI18n';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
@@ -465,34 +466,43 @@ export default function ConfiguracionWeb() {
   }, []);
 
   // Tras cambiar de pestana/accion, apunta el spotlight a la primera sub-seccion
-  // real del contenido (no al panel entero). Se reintenta unos frames porque la
-  // pestana acaba de montarse.
+  // real del contenido (no al panel entero) y la trae a la vista.
+  //
+  // Va en vigilancia CONTINUA, no en un reintento que se agota: la pestana se
+  // vuelve a pintar sola (carga de datos, autoguardado) y el nodo apuntado se
+  // queda huerfano. Antes, cuando eso pasaba, el foco se apagaba a mitad de paso
+  // y ya no volvia nunca, porque ni la accion ni la pestana habian cambiado.
   useEffect(() => {
     if (demoActionName === null) { demoTargetRef.current = null; return; }
-    let tries = 0;
     let raf = 0;
-    const pick = () => {
+    let ultimo = 0;
+    let vacios = 0;
+    const elegir = () => {
       const root = contentRef.current;
       const sectionHeader = root?.querySelector('section > header, .section-header') as HTMLElement | null;
       const first = root?.firstElementChild as HTMLElement | null;
+      // Un trozo CONCRETO y corto (la cabecera de la primera seccion: titulo +
+      // descripcion), no la seccion entera: asi el foco cabe y se entiende.
       const target = sectionHeader || (first?.querySelector('header, h2') as HTMLElement | null) || first;
       if (target && target.getBoundingClientRect().height > 0) {
-        // Enfoca un trozo CONCRETO y corto (la cabecera de la primera seccion:
-        // titulo + descripcion) en vez de toda la seccion, para que el texto del
-        // tour tenga sitio en la zona oscura y no tape lo enfocado.
+        if (demoTargetRef.current !== target) traerAlFoco(target);
         demoTargetRef.current = target;
-      } else if (tries++ < 240) {
-        // Hasta ~4 s: la primera vez que el recorrido entra en Ajustes la
-        // pantalla acaba de montarse y aun no hay contenido que medir. Con solo
-        // 30 frames (medio segundo) el primer paso se quedaba sin foco, y como
-        // ni la accion ni la pestana cambian despues, este efecto no se volvia
-        // a ejecutar: el foco no aparecia nunca.
-        raf = requestAnimationFrame(pick);
-      } else {
-        demoTargetRef.current = root;
+        vacios = 0;
+        return;
       }
+      // Si en ~5 s no aparece nada que enfocar, nos quedamos con el panel.
+      if (vacios++ > 34 && root) demoTargetRef.current = root;
     };
-    pick();
+    const vigilar = (t: number) => {
+      raf = requestAnimationFrame(vigilar);
+      if (t - ultimo < 150) return;
+      ultimo = t;
+      const actual = demoTargetRef.current;
+      if (actual && actual.isConnected && actual.getBoundingClientRect().height > 0) return;
+      elegir();
+    };
+    elegir();
+    raf = requestAnimationFrame(vigilar);
     return () => cancelAnimationFrame(raf);
   }, [demoActionName, tab]);
 

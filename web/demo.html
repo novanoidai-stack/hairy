@@ -129,18 +129,31 @@
   font-family:var(--display);-webkit-font-smoothing:antialiased}
 .gt.show{display:block}
 
-/* ---------- FOCO / SPOTLIGHT (cutout nitido, sin adornos) ---------- */
-/* Velo MUY suave para pasos de pantalla completa (sin foco): la app se lee con
-   contraste casi pleno; el dock (oscuro y solido) ya destaca de sobra. */
-.gt-veil{position:absolute;inset:0;opacity:0;background:rgba(9,11,16,.15);transition:opacity .26s ease}
+/* ---------- FOCO / SPOTLIGHT (cutout nitido, sin adornos) ----------
+   UN SOLO foco en toda la demo: lo dibuja el contenedor. El software, cuando va
+   embebido aqui, solo MIDE y nos manda el rect (DemoSpotlight no pinta nada).
+   Antes pintaban los dos a la vez y, como el de dentro y el de fuera no van
+   sincronizados al pixel, se veian dos recuadros desplazados y el doble de
+   oscuridad. Ademas la caja iba a 100x100 escalada con transform, asi que el
+   borde y la sombra se estiraban con ella y el foco salia borroso y deforme;
+   ahora va en pixeles reales (una caja absoluta no provoca reflow de nada). */
+/* Velo para pasos de PANTALLA (sin foco): la app se lee casi a pleno contraste,
+   solo se rebaja un pelo para que el dock destaque. */
+.gt-veil{position:absolute;inset:0;opacity:0;background:rgba(9,11,16,.14);transition:opacity .3s ease}
 .gt-veil.on{opacity:1}
-.gt-spot{position:absolute;top:0;left:0;width:100px;height:100px;border-radius:12px;opacity:0;
-  box-shadow:0 0 0 9999px rgba(9,11,16,.72), 0 0 0 1px rgba(255,255,255,.22), 0 0 0 4px rgba(244,80,30,.22);
-  transform:translate3d(-9999px,-9999px,0) scale(0);
-  transform-origin:0 0;
-  transition:transform .32s cubic-bezier(.16,1,.3,1), opacity .22s ease;
-  will-change:transform,opacity}
+.gt-spot{position:absolute;top:0;left:0;width:0;height:0;border-radius:14px;opacity:0;
+  box-shadow:0 0 0 9999px rgba(9,11,16,.70), 0 0 0 1.5px rgba(255,255,255,.30), 0 0 0 5px rgba(244,80,30,.28);
+  transition:top .38s cubic-bezier(.16,1,.3,1), left .38s cubic-bezier(.16,1,.3,1),
+             width .38s cubic-bezier(.16,1,.3,1), height .38s cubic-bezier(.16,1,.3,1),
+             opacity .24s ease}
 .gt-spot.on{opacity:1}
+/* Foco SUAVE: se usa al senalar la entrada del menu de cada pantalla. Marca el
+   boton sin apagar la pantalla, que es justo lo que hay que ver en ese paso
+   (antes el foco tapaba de negro la pantalla que se estaba presentando). */
+.gt-spot.suave{box-shadow:0 0 0 9999px rgba(9,11,16,.34), 0 0 0 1.5px rgba(255,255,255,.38), 0 0 0 5px rgba(244,80,30,.34)}
+/* Al aparecer por primera vez no animamos la geometria: si no, el foco "crece"
+   desde 0x0 en la esquina y parece que salta. */
+.gt-spot.jump{transition:opacity .24s ease}
 @media(prefers-reduced-motion:reduce){ .gt-spot{transition-duration:.2s} }
 
 /* ---------- PREMIUM 1d "Subtítulo de película": sin caja, frase enorme sobre velo ---------- */
@@ -154,47 +167,57 @@
 .gt-acto-k{font-family:var(--display);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:#ff8a3d;margin-bottom:12px}
 .gt-acto-t{font-family:var(--display);font-size:clamp(30px,4.2vw,50px);font-weight:700;letter-spacing:-.03em;line-height:1.05;text-wrap:balance}
 .gt-acto-s{font-size:15.5px;color:rgba(255,255,255,.6);margin-top:10px}
-.gt-dock{position:absolute;left:0;right:0;bottom:0;pointer-events:auto;
-  padding:clamp(64px,9vh,110px) clamp(22px,4vw,44px) 24px;
-  background:linear-gradient(180deg,transparent,rgba(8,9,13,.42) 34%,rgba(8,9,13,.92));
-  border:0;border-radius:0;box-shadow:none;backdrop-filter:none}
-.gt-dock-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.10)}
-.gt-dock-prog i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .55s cubic-bezier(.4,0,.2,1)}
-.gt-chapters{display:flex;gap:2px 16px;margin:0 0 14px;flex-wrap:wrap}
-.gt-chap{position:relative;border:0;background:transparent;color:rgba(255,255,255,.42);
-  font-size:11px;font-weight:600;cursor:pointer;padding:3px 0;letter-spacing:.02em}
+/* ---------- DOCK: tarjeta compacta que NUNCA tapa lo que se explica ----------
+   Antes era una franja a todo lo ancho con 110px de degradado: en portatil se
+   comia el tercio inferior de la app (el rail del detalle de cita, los botones
+   de guardar) y en movil casi media pantalla. Ahora es una tarjeta acotada que
+   se coloca en la esquina con mas sitio libre respecto al foco (ver colocaDock). */
+.gt-dock{position:absolute;left:24px;bottom:24px;pointer-events:auto;
+  width:min(430px,calc(100% - 48px));
+  padding:15px 18px 13px;
+  background:rgba(11,13,19,.93);
+  border:1px solid rgba(255,255,255,.13);border-radius:18px;
+  box-shadow:0 26px 64px -14px rgba(0,0,0,.82),0 0 0 1px rgba(255,255,255,.04) inset;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  transition:left .4s cubic-bezier(.16,1,.3,1),right .4s cubic-bezier(.16,1,.3,1),
+             top .4s cubic-bezier(.16,1,.3,1),bottom .4s cubic-bezier(.16,1,.3,1)}
+.gt-dock.pos-top{top:24px;bottom:auto}
+.gt-dock.pos-right{left:auto;right:24px}
+.gt-dock-prog{position:absolute;left:14px;right:14px;bottom:7px;height:2.5px;border-radius:2px;background:rgba(255,255,255,.10)}
+.gt-dock-prog i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .5s cubic-bezier(.4,0,.2,1)}
+.gt-chapters{display:flex;gap:2px 14px;margin:0 0 9px;flex-wrap:wrap}
+.gt-chap{position:relative;border:0;background:transparent;color:rgba(255,255,255,.40);
+  font-size:10.5px;font-weight:600;cursor:pointer;padding:2px 0;letter-spacing:.01em}
 .gt-chap:hover{color:#cfd4de}
 .gt-chap.on{color:#fff}
 .gt-chap.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:2px}
-.gt-chap.done{color:rgba(255,255,255,.6)}
-.gt-eyebrow{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.18em;
-  text-transform:uppercase;color:#ff9b66;margin-bottom:10px}
+.gt-chap.done{color:rgba(255,255,255,.58)}
+.gt-eyebrow{display:flex;align-items:center;gap:9px;font-size:10px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:#ff9b66;margin-bottom:7px}
 .gt-dot{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.35);flex-shrink:0}
-.gt-count{font-family:var(--mono);font-size:11px;font-weight:600;color:rgba(255,255,255,.55);white-space:nowrap}
+.gt-count{font-family:var(--mono);font-size:10.5px;font-weight:600;color:rgba(255,255,255,.55);white-space:nowrap}
 .gt-count b{color:#fff}
-.gt-toca{display:none;align-items:center;gap:5px;margin-left:6px;padding:3px 9px;border-radius:999px;
-  font-size:10px;font-weight:700;letter-spacing:.08em;color:#7ee6bd;
+.gt-toca{display:none;align-items:center;gap:5px;margin-left:2px;padding:3px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:700;letter-spacing:.08em;color:#7ee6bd;
   background:rgba(16,185,129,.16);border:1px solid rgba(16,185,129,.35)}
 .gt-toca.on{display:inline-flex}
 .gt-toca b{width:5px;height:5px;border-radius:50%;background:#34d399;animation:gtToca 1.4s infinite}
-.gt-title{font-family:var(--display);font-size:clamp(26px,3.6vw,40px);font-weight:700;letter-spacing:-.03em;
-  line-height:1.05;color:#fff;margin:0 0 8px;max-width:640px;text-wrap:balance;
+.gt-title{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:-.025em;
+  line-height:1.12;color:#fff;margin:0 0 6px;text-wrap:balance;
   animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) both}
-.gt-body{font-size:16px;line-height:1.4;color:rgba(255,255,255,.75);margin:0;max-width:560px;
+.gt-body{font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.76);margin:0;
   animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .07s both}
-.gt-viz{margin-top:12px;animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .12s both}
-.gt-controls{position:absolute;right:clamp(22px,4vw,44px);bottom:40px;display:inline-flex;align-items:center;gap:8px;pointer-events:auto;
-  padding:6px 8px;border-radius:999px;background:rgba(10,13,22,.78);border:1px solid rgba(255,255,255,.14);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  box-shadow:0 16px 36px -4px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05) inset}
+.gt-viz{margin-top:10px;animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .12s both}
+/* Controles EN FLUJO dentro de la tarjeta: nunca se salen ni tapan el cuerpo. */
+.gt-controls{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin:12px 0 4px;pointer-events:auto}
 .gt-prev,.gt-play,.gt-next{border-radius:50%;cursor:pointer;display:grid;place-items:center;
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#e2e8f0;
   transition:border-color .2s ease,background .2s ease,transform .22s cubic-bezier(.34,1.4,.44,1),box-shadow .2s ease,color .2s ease}
-.gt-prev,.gt-play{width:42px;height:42px}
+.gt-prev,.gt-play{width:38px;height:38px}
 .gt-prev:hover,.gt-play:hover{border-color:rgba(255,255,255,.36);background:rgba(255,255,255,.14);color:#fff;transform:scale(1.06)}
 .gt-prev:active,.gt-play:active,.gt-next:active{transform:scale(.92)!important}
 .gt-prev:disabled{opacity:.22;pointer-events:none;transform:none!important;border-color:rgba(255,255,255,.05);background:transparent}
-.gt-next{width:48px;height:48px;border:0;
+.gt-next{width:44px;height:44px;border:0;
   background:linear-gradient(135deg,#ff7a42 0%,#f4501e 52%,#d82b04 100%);color:#fff;
   box-shadow:0 8px 22px -4px rgba(244,80,30,.72),0 0 0 1px rgba(255,255,255,.24) inset}
 .gt-next svg{transition:transform .2s cubic-bezier(.34,1.4,.44,1)}
@@ -209,44 +232,41 @@
 .gt-play{color:#ffcfb8}
 .gt-play.on{border-color:rgba(244,80,30,.85);background:rgba(244,80,30,.24);color:#ff9b66;box-shadow:0 0 18px rgba(244,80,30,.45);animation:gtPlayPulse 2s ease-in-out infinite}
 @keyframes gtPlayPulse{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.45)}50%{box-shadow:0 0 0 8px rgba(244,80,30,0)}}
-.gt-skip{position:absolute;top:14px;right:clamp(22px,4vw,44px);font-size:11.5px;font-weight:600;color:rgba(255,255,255,.5);
-  background:rgba(8,9,13,.45);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 13px;
-  cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.gt-skip:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+/* "Ver por libre" vive DENTRO de la tarjeta, a la izquierda de los controles:
+   suelto por la pantalla se cruzaba con la barra de la app y con el foco. */
+.gt-skip{margin-right:auto;font-size:11.5px;font-weight:600;color:rgba(255,255,255,.48);
+  background:transparent;border:0;border-radius:8px;padding:6px 2px;cursor:pointer;white-space:nowrap}
+.gt-skip:hover{color:#fff}
 @media (max-width:900px){
-  .gt-dock{display:flex;flex-direction:column;align-items:flex-start;
-    padding:42px 18px calc(18px + env(safe-area-inset-bottom,0px));
-    background:linear-gradient(180deg,rgba(8,9,13,0) 0%,rgba(8,9,13,.86) 16%,rgba(8,9,13,.98) 32%,#08090d 100%);
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-  .gt-chapters{display:flex;align-items:center;gap:6px;margin:0 0 10px;flex-wrap:nowrap;overflow-x:auto}
-  .gt-chap{padding:4px 0;display:inline-flex;align-items:center}
+  /* Movil: hoja inferior acotada. El limite de altura es lo que garantiza que
+     SIEMPRE se vea la app por encima; si el texto es largo, la hoja hace scroll
+     en vez de crecer y comerse la pantalla. */
+  .gt-dock{left:0;right:0;bottom:0;top:auto;width:auto;
+    max-height:min(42vh,330px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+    border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;
+    padding:13px 16px calc(11px + env(safe-area-inset-bottom,0px))}
+  .gt-dock.pos-right{right:0;left:0}
+  .gt-dock.dock-top,.gt-dock.pos-top{top:0;bottom:auto;
+    border-radius:0 0 20px 20px;border-top:0;border-bottom:1px solid rgba(255,255,255,.13);
+    padding:calc(11px + env(safe-area-inset-top,0px)) 16px 15px}
+  .gt-dock-prog{left:12px;right:12px;bottom:5px}
+  .gt-dock.dock-top .gt-dock-prog,.gt-dock.pos-top .gt-dock-prog{bottom:auto;top:5px}
+  .gt-chapters{display:flex;align-items:center;gap:6px;margin:0 0 8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .gt-chapters::-webkit-scrollbar{display:none}
+  .gt-chap{padding:4px 0;display:inline-flex;align-items:center;flex-shrink:0}
   .gt-chap span{display:none}
   .gt-chap::before{content:"";display:block;width:14px;height:3px;border-radius:2px;background:rgba(255,255,255,.2);transition:all .2s}
   .gt-chap.done::before{background:rgba(255,255,255,.55)}
   .gt-chap.on::before{display:none}
   .gt-chap.on span{display:inline;color:#fff}
   .gt-chap.on::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--accent);border-radius:2px}
-  .gt-title{font-size:clamp(20px,5.5vw,26px);padding-right:0;margin:0 0 6px}
-  /* Controles EN FLUJO, debajo del texto: nunca tapan el cuerpo (antes el texto
-     se metia debajo de play/siguiente y habia que reservarle 120px de margen,
-     que dejaba lineas cortisimas en movil). */
-  .gt-body{font-size:clamp(13.5px,3.8vw,15px);line-height:1.42;padding-right:0}
+  .gt-title{font-size:19px;margin:0 0 5px}
+  .gt-body{font-size:13.5px;line-height:1.45}
   .gt-viz{max-width:none}
   .gt-content{width:100%}
-  .gt-controls{position:static;align-self:flex-start;margin:14px 0 8px;right:auto;bottom:auto}
-  .gt-prev,.gt-play{width:42px;height:42px}
-  .gt-next{width:48px;height:48px}
-  .gt-skip{top:10px;right:14px}
-  .gt-dock.dock-top{
-    top:0!important;
-    bottom:auto!important;
-    padding:calc(14px + env(safe-area-inset-top,0px)) 18px 28px!important;
-    background:linear-gradient(0deg,rgba(8,9,13,0) 0%,rgba(8,9,13,.86) 16%,rgba(8,9,13,.98) 32%,#08090d 100%)!important;
-  }
-  .gt-dock.dock-top .gt-dock-prog{
-    bottom:auto!important;
-    top:0!important;
-  }
+  .gt-controls{margin:11px 0 3px}
+  .gt-prev,.gt-play{width:38px;height:38px}
+  .gt-next{width:44px;height:44px}
 }
 
 /* ---------- DOCK FIJO: estilos base sustituidos por la version 1d de arriba ---------- */
@@ -287,15 +307,15 @@
   /* Movil en horizontal (pantalla muy baja): el dock no puede comerse la app;
      compacta titulos, cuerpo y controles para que todo quepa sin scroll. */
   @media(max-width:900px) and (max-height:520px){
-    .gt-dock{padding:24px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(8,9,13,.95)}
-    .gt-title{font-size:18.5px;margin-bottom:4px}
+    .gt-dock{max-height:56vh;padding:10px 14px calc(8px + env(safe-area-inset-bottom,0px))}
+    .gt-title{font-size:16.5px;margin-bottom:3px}
     .gt-body{font-size:12.5px;line-height:1.35}
     .gt-viz{display:none!important}
-    .gt-controls{margin:8px 0 4px}
-    .gt-prev,.gt-play{width:36px;height:36px}
-    .gt-next{width:40px;height:40px}
+    .gt-controls{margin:8px 0 3px}
+    .gt-prev,.gt-play{width:34px;height:34px}
+    .gt-next{width:38px;height:38px}
     .gt-chapters{margin-bottom:6px}
-    .gt-skip{top:6px;right:10px;font-size:10.5px;padding:4px 10px}
+    .gt-skip{font-size:10.5px}
   }
 
   /* ---------- ACCESS / INTRO GATE ---------- */
@@ -1670,7 +1690,9 @@
   // (**palabra** = resaltada) · viz = micro-ilustracion opcional del dock.
   var TUT_PILARES=[
     // --- Acto 1: la agenda y el nacimiento de una cita ---
-    {ic:'agenda', route:'/(tabs)', action:'cerrar', ph:'La agenda',
+    {ic:'org', route:'/(tabs)', action:'zona-nav-agenda', ph:'La agenda',
+     t:'Todo el software vive en este menú', d:'Cada icono es una pantalla: agenda, clientes, caja, informes… Empezamos por la primera, la **agenda**, que es donde pasa el día.'},
+    {ic:'agenda', route:'/(tabs)', action:'pantalla', ph:'La agenda',
      t:'Tu día entero, en una pantalla', d:'Una columna por profesional y las citas en su hora. El color es el **estado** de cada una. Toca cualquier hueco libre y empieza una cita.'},
     {ic:'nueva', route:'/(tabs)', action:'nueva-cita', ph:'Crear una cita',
      t:'Del hueco a la cita, sin escribir la hora', d:'El hueco que tocas entra ya con **fecha, hora y profesional puestos**. Solo queda decir quién viene y a qué.'},
@@ -1687,6 +1709,8 @@
     // --- Acto 2: la cita por dentro ---
     {ic:'fich', route:'/(tabs)', action:'cita-detalle', ph:'La cita por dentro',
      t:'Abre la cita y lo tienes todo', d:'Servicio, cliente, tiempos, color, productos, pagos e historial. Todo **editable** desde el mismo sitio, sin ir a otra pantalla.'},
+    {ic:'rep', route:'/(tabs)', action:'detalle-hueco-reposo', ph:'La cita por dentro',
+     t:'Esta cita tiene reposo: por eso se ve distinta', d:'Hemos abierto a propósito una cita **con tinte**. Arriba aparece un aviso que una cita normal no tiene: **quién está ocupando su reposo**. Lo entenderemos entero en el capítulo 3.'},
     {ic:'avisos', route:'/(tabs)', action:'detalle-estado', ph:'La cita por dentro',
      t:'El estado manda. Y el cliente confirma solo', d:'Pendiente, **confirmada**, en curso, cobrada, no-show. Cuando el cliente responde al WhatsApp de recordatorio, la cita se marca confirmada **sin que toques nada**.'},
     {ic:'clientes', route:'/(tabs)', action:'detalle-productos', ph:'La cita por dentro',
@@ -1701,6 +1725,10 @@
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', ph:'Los reposos',
      t:'3 · El acabado', d:'Lavar y peinar. La cita vive partida en **tres bloques** y tu día se llena sin alargarse ni una hora.', viz:'reposo-3'},
     // --- Acto 4: la ficha de la clienta ---
+    {ic:'org', route:'/(tabs)/clientes', action:'zona-nav-clientes', ph:'La ficha',
+     t:'Segunda pantalla: Clientes', d:'Se entra por aquí, en el menú. Es tu **fichero entero**: quien viene, cada cuánto y qué se le hace.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'pantalla', ph:'La ficha',
+     t:'Así es la pantalla de Clientes', d:'Toda tu cartera en una lista, con buscador y etiquetas. Se puede **importar desde Excel** de golpe. Abre una cualquiera y veamos su ficha.'},
     {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', ph:'La ficha',
      t:'La ficha que se acuerda por ti', d:'Datos, etiquetas, ticket medio, cada cuánto viene y **aviso si lleva tiempo sin volver**. Se rellena sola con cada cita.'},
     {ic:'clientes', route:'/(tabs)/clientes', action:'cliente-color', ph:'La ficha',
@@ -1710,6 +1738,8 @@
     {ic:'fich', route:'/(tabs)/clientes', action:'cliente-historial', ph:'La ficha',
      t:'Todo lo que ha pasado con ella', d:'Cada visita, qué se hizo, quién la atendió, qué pagó y qué se llevó. **Sin buscar en papeles ni en el móvil.**'},
     // --- Acto 5: el dinero ---
+    {ic:'org', route:'/(tabs)/caja', action:'zona-nav-caja', ph:'Cobro y caja',
+     t:'Tercera pantalla: Caja', d:'También en el menú. Aquí acaba el día: lo que se ha cobrado, cómo se ha cobrado y **cuánto queda por cobrar**.'},
     {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-cobro', ph:'Cobro y caja',
      t:'Lo que queda por cobrar, en una lista', d:'Las citas ya hechas y sin cobrar te esperan aquí. Puedes **cobrar varias juntas** de la misma clienta, con sus productos incluidos.'},
     {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-arqueo', ph:'Cobro y caja',
@@ -1720,54 +1750,78 @@
   var TUT_GENERAL = TUT_PILARES;
 
   var TUT_ADVANCED=[
+    {ic:'org', route:'/(tabs)/citas', action:'zona-nav-citas', ph:'Citas',
+     t:'Pantalla de Citas', d:'En el menú, debajo de la agenda. Es la **misma información en tabla**: se busca, se filtra y se exporta.'},
     {ic:'agenda', route:'/(tabs)/citas', action:'zona-citas-stats', ph:'Citas',
      t:'Todas tus citas, en tabla', d:'La misma información que la agenda pero en lista: cuántas hay, **cuántas confirmadas, cuántos no-shows** y cuánto suman.'},
     {ic:'agenda', route:'/(tabs)/citas', action:'zona-citas-filtros', ph:'Citas',
      t:'Busca cualquier cita en segundos', d:'Por cliente, teléfono, servicio, profesional, fecha o estado. Incluido **cobradas y pendientes de cobro**.'},
     {ic:'avisos', route:'/(tabs)/citas', action:'zona-citas-sinconfirmar', ph:'Citas',
      t:'Las que el cliente no ha confirmado', d:'Un botón deja solo las de las **próximas 48 h sin respuesta**. Son las que acaban en hueco vacío: aquí las cazas antes.'},
+    {ic:'org', route:'/(tabs)/lista-espera', action:'zona-nav-lista-espera', ph:'Lista de espera',
+     t:'Pantalla de Lista de espera', d:'Aquí van las clientas que se quedaron **sin hueco**. Es la red que recoge lo que la agenda no puede meter hoy.'},
     {ic:'agenda', route:'/(tabs)/lista-espera', action:'zona-espera-lista', ph:'Lista de espera',
      t:'Nadie se va sin hueco', d:'Quien no encuentra sitio entra en la lista con su servicio y su prioridad. Cuando **cae una cancelación**, ya sabes a quién llamar.'},
     {ic:'agenda', route:'/(tabs)/lista-espera', action:'zona-espera-acciones', ph:'Lista de espera',
      t:'De la lista a la agenda en un toque', d:'Subes o bajas la prioridad con las flechas, avisas por **WhatsApp** y el botón **Agendar** abre la cita ya cargada con su clienta, su servicio y sus notas.'},
+    {ic:'org', route:'/(tabs)/presupuestos', action:'zona-nav-presupuestos', ph:'Presupuestos',
+     t:'Pantalla de Presupuestos', d:'Para los trabajos grandes: extensiones, novias, cambios de color. Se manda y la clienta lo **acepta desde el móvil**.'},
     {ic:'nueva', route:'/(tabs)/presupuestos', action:'zona-presupuestos-estados', ph:'Presupuestos',
      t:'Presupuestos que se siguen solos', d:'Borrador, enviado, **aceptado** o rechazado. La clienta lo abre desde su móvil y, al aceptarlo, te salta en Caja listo para cobrar.'},
     {ic:'nueva', route:'/(tabs)/presupuestos', action:'zona-presupuestos-lista', ph:'Presupuestos',
      t:'Precio, estado y seguimiento en la misma fila', d:'Cada presupuesto con su total, su estado y **aviso ámbar si lleva días sin respuesta**. Se reenvía por correo o se copia el enlace sin abrirlo.'},
+    {ic:'org', route:'/(tabs)/inventario', action:'zona-nav-inventario', ph:'Inventario',
+     t:'Pantalla de Inventario', d:'Todo tu producto: el de **venta** y el de **cabina**. Se descuenta solo con cada cita cobrada.'},
     {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-stock', ph:'Inventario',
      t:'El stock avisa antes de quedarte a cero', d:'Producto de venta y producto de cabina, cada uno con su mínimo. Lo que baja del mínimo **se marca** y se propone el pedido.'},
     {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-kpis', ph:'Inventario',
      t:'El pulso de tu stock en cuatro números', d:'Referencias cargadas, **productos bajo mínimo**, unidades en shelf y valor total del inventario. Sabes de un vistazo si toca pedir.'},
     {ic:'nueva', route:'/(tabs)/inventario', action:'zona-inventario-categorias', ph:'Inventario',
      t:'Cada producto en su sitio', d:'Pestañas por categoría —tinte, oxidadas, cuidado capilar, venta…— para encontrar cualquier referencia **sin buscar en una lista infinita**.'},
+    {ic:'org', route:'/(tabs)/caja', action:'zona-nav-caja', ph:'Caja',
+     t:'Volvemos a Caja, por lo fiscal', d:'Ya vimos cobrar y cuadrar. Queda lo que le interesa a tu **gestoría**: el registro descargable.'},
     {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-facturas', ph:'Caja',
      t:'Registros descargables para tu gestoría', d:'Los cobros del día en **CSV**, con método de pago y propinas. La caja queda registrada, no en una libreta.'},
+    {ic:'org', route:'/(tabs)/equipo', action:'zona-nav-equipo', ph:'Equipo',
+     t:'Pantalla de Equipo', d:'Tu gente: fichas, horarios, comisiones y accesos. Una pantalla, **tres vistas** dentro.'},
     {ic:'clientes', route:'/(tabs)/equipo', action:'zona-equipo-fichas', ph:'Equipo',
      t:'Tu equipo, ficha a ficha', d:'Cada profesional con su color en la agenda, su categoría, sus servicios y su **cuenta de acceso** propia si la necesita.'},
     {ic:'rep', route:'/(tabs)/equipo', action:'zona-equipo-comisiones', ph:'Equipo',
      t:'Quién factura y cuánto se lleva', d:'Ingresos, ticket medio y **comisión devengada** por persona, en servicios y en productos. Sin hojas de cálculo.'},
+    {ic:'org', route:'/(tabs)/mi-jornada', action:'zona-nav-mi-jornada', ph:'Fichajes',
+     t:'Pantalla de Mi jornada', d:'La que abre cada profesional al llegar: **su** día, su fichaje y sus números. No ve la casa entera.'},
     {ic:'fich', route:'/(tabs)/mi-jornada', action:'zona-jornada-fichaje', ph:'Fichajes',
      t:'Fichaje legal con un toque', d:'Entrada, pausa y salida con la **hora del servidor**. Los asientos no se editan y se guardan cuatro años, como exige el art. 34.9 ET.'},
     {ic:'ia', route:'/(tabs)/mi-jornada', action:'zona-jornada-resumen', ph:'Fichajes',
      t:'Tu jornada, resumida con IA', d:'Citas hechas, horas y **cobros de tu día** en una tarjeta, con el resumen de Chispa. Cada profesional ve lo suyo, no la casa entera.'},
+    {ic:'org', route:'/(tabs)/bandeja', action:'zona-nav-bandeja', ph:'Bandeja',
+     t:'Pantalla de Bandeja', d:'Todo lo que entra de fuera acaba aquí: contactos del portal, respuestas y peticiones del equipo.'},
     {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-mensajes', ph:'Bandeja',
      t:'Los mensajes que llegan de fuera', d:'Contactos desde tu página pública, respuestas a presupuestos y **peticiones de ausencia** del equipo. En un sitio, no perdidos en tu WhatsApp personal.'},
     {ic:'avisos', route:'/(tabs)/bandeja', action:'zona-bandeja-filtros', ph:'Bandeja',
      t:'Abiertas y todas, con punto naranja si no las has leído', d:'El filtro **Abiertas** deja solo las conversaciones vivas; el punto naranja marca lo sin leer. Nada se queda enterrado sin respuesta.'},
+    {ic:'org', route:'/(tabs)/campanas', action:'zona-nav-campanas', ph:'Campañas',
+     t:'Pantalla de Campañas', d:'Para llenar los días flojos y **recuperar clientas** que no vuelven. Con plantillas hechas.'},
     {ic:'avisos', route:'/(tabs)/campanas', action:'zona-campanas-plantillas', ph:'Campañas',
      t:'Campañas hechas: solo cambias el texto', d:'Plantillas listas para **recuperar clientas dormidas**, felicitar cumpleaños o llenar un martes flojo.'},
     {ic:'clientes', route:'/(tabs)/campanas', action:'zona-campanas-segmento', ph:'Campañas',
      t:'A quién se lo mandas, exactamente', d:'Filtra por días sin volver, número de visitas, ticket medio o etiqueta. **No mandas a todos**: mandas a quien conviene.'},
+    {ic:'org', route:'/(tabs)/resenas', action:'zona-nav-resenas', ph:'Reseñas',
+     t:'Pantalla de Reseñas', d:'Lo que dicen tus clientas, con **nota por categorías**. Del portal propio y de Google, juntas.'},
     {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-categorias', ph:'Reseñas',
      t:'Reseñas y por qué te puntúan así', d:'No solo la nota: **trato, limpieza, facilidad de reserva y pagos** por separado. Sabes qué arreglar, no solo que algo falla.'},
     {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-filtros', ph:'Reseñas',
      t:'Filtra hasta dar con el porqué', d:'Por fueguitos, por periodo, por origen (**portal propio o Google**) o buscando en los comentarios. Las malas no se esconden: se estudian.'},
     {ic:'fich', route:'/(tabs)/resenas', action:'zona-resenas-lista', ph:'Reseñas',
      t:'Cada reseña, con su contexto', d:'Nombre, fecha, lo que pedía y lo que dijo. Las de 1–2 fueguitos **destacan en neutro** para que las leas antes de que se repitan.'},
+    {ic:'org', route:'/(tabs)/informes', action:'zona-nav-informes', ph:'Informes',
+     t:'Pantalla de Informes', d:'Tus números de verdad: ingresos cobrados, margen, ocupación y **registros** para tu gestoría.'},
     {ic:'rep', route:'/(tabs)/informes', action:'zona-informes-kpis', ph:'Informes',
      t:'Tus números, sin interpretarlos tú', d:'Ingresos **cobrados de verdad** (no estimados), propinas, margen y ocupación. Lo previsto del catálogo va aparte y etiquetado.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', ph:'Informes',
      t:'Descárgalo y mándalo', d:'El informe entero en **PDF** con tu marca o en **CSV** para tu gestor. En un clic.', viz:'export'},
+    {ic:'org', route:'/(tabs)/ayuda', action:'zona-nav-ayuda', ph:'La IA',
+     t:'Pantalla de Ayuda e IA', d:'La última del menú: los manuales de cada pantalla y el panel de **Chispa**, la recepcionista de IA.'},
     {ic:'ia', route:'/(tabs)/ayuda', action:'zona-ia-hub', ph:'La IA',
      t:'Chispa: la recepcionista que no duerme', d:'Contesta **WhatsApp y teléfono**, resuelve dudas y **reserva sola** a las 23:40. Aquí ves exactamente qué hace y qué no.', viz:'ia'},
     {ic:'avisos', route:'/(tabs)/ayuda', action:'zona-ayuda-manuales', ph:'Ayuda',
@@ -1775,6 +1829,8 @@
   ];
 
   var TUT_CONFIG=[
+    {ic:'org', route:'/(tabs)/configuracion', action:'pantalla', ph:'Negocio',
+     t:'Ajustes: 17 pestañas, una pantalla', d:'Aquí se adapta Mecha a TU salón. A la izquierda están todas las pestañas; las vamos a abrir **una a una**.'},
     {ic:'org', route:'/(tabs)/configuracion', action:'config-general', ph:'Negocio',
      t:'Tu salón, tu identidad', d:'Nombre, dirección, teléfono, moneda y **marca**. Es lo que sale en tus facturas, en tu portal de reservas y en tus WhatsApp.'},
     {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', ph:'Negocio',
@@ -1842,26 +1898,26 @@
 
   // ---- capitulos de cada recorrido (los rangos DEBEN cubrir todos los pasos) ----
   var ACTS_PILARES=[
-    {nombre:'La agenda', sub:'Del hueco vacío a la cita completa', desde:0, hasta:6},
-    {nombre:'La cita por dentro', sub:'Estados, productos y cobro', desde:7, hasta:10},
-    {nombre:'Los reposos', sub:'La hora muerta que pasa a facturar', desde:11, hasta:13},
-    {nombre:'La ficha', sub:'Color, alergias e historial', desde:14, hasta:17},
-    {nombre:'Cobro y caja', sub:'Cobrar y cuadrar el día', desde:18, hasta:19}
+    {nombre:'La agenda', sub:'Del hueco vacío a la cita completa', desde:0, hasta:7},
+    {nombre:'La cita por dentro', sub:'Estados, productos y cobro', desde:8, hasta:12},
+    {nombre:'Los reposos', sub:'La hora muerta que pasa a facturar', desde:13, hasta:15},
+    {nombre:'La ficha', sub:'Color, alergias e historial', desde:16, hasta:21},
+    {nombre:'Cobro y caja', sub:'Cobrar y cuadrar el día', desde:22, hasta:24}
   ];
   var ACTS_ESSENTIALS = ACTS_PILARES;
   var ACTS_GENERAL = ACTS_PILARES;
   var ACTS_ADVANCED=[
-    {nombre:'Citas y huecos', sub:'Buscador, confirmaciones y lista de espera', desde:0, hasta:4},
-    {nombre:'Dinero y stock', sub:'Presupuestos, inventario y registros', desde:5, hasta:10},
-    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:11, hasta:14},
-    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:15, hasta:21},
-    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:22, hasta:25}
+    {nombre:'Citas y huecos', sub:'Buscador, confirmaciones y lista de espera', desde:0, hasta:6},
+    {nombre:'Dinero y stock', sub:'Presupuestos, inventario y registros', desde:7, hasta:15},
+    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:16, hasta:21},
+    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:22, hasta:31},
+    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:32, hasta:37}
   ];
   var ACTS_CONFIG=[
-    {nombre:'Tu negocio', sub:'Identidad y horarios', desde:0, hasta:1},
-    {nombre:'Operativa', sub:'Catálogo, reglas, comisiones y datos', desde:2, hasta:8},
-    {nombre:'Comunicación', sub:'Avisos, políticas, reservas y fidelización', desde:9, hasta:12},
-    {nombre:'Tu cuenta', sub:'Referidos, roles, plan y soporte', desde:13, hasta:16}
+    {nombre:'Tu negocio', sub:'Identidad y horarios', desde:0, hasta:2},
+    {nombre:'Operativa', sub:'Catálogo, reglas, comisiones y datos', desde:3, hasta:9},
+    {nombre:'Comunicación', sub:'Avisos, políticas, reservas y fidelización', desde:10, hasta:13},
+    {nombre:'Tu cuenta', sub:'Referidos, roles, plan y soporte', desde:14, hasta:17}
   ];
   // Pasos donde el tour para y te invita a tocar TU el software (badge TE TOCA)
   var ACCIONES_TOCA={ 'nueva-cita':1, 'cita-addons':1, 'detalle-secuencia-reposo':1, 'detalle-pagos':1, 'cliente-color':1, 'informes-export':1, 'config-servicios':1 };
@@ -1870,7 +1926,10 @@
   // De aqui salen el selector de la barra, las tarjetas de la intro, el
   // encadenado entre recorridos y las duraciones (nunca escritas a mano: se
   // calculan con el ritmo real del autoplay, asi no pueden quedar desfasadas).
-  var PASO_MS = 5400;                    // ritmo del autoplay
+  // Ritmo MEDIO real de un paso (asentarse + leerlo). Solo se usa para estimar
+  // los minutos de cada recorrido en la intro; el autoplay ya no va a intervalo
+  // fijo (ver programarAvance).
+  var PASO_MS = 7200;
   var RECORRIDOS = [
     { id:'pilares',  alias:'general',  n:1, nombre:'Los pilares',
       resumen:'Agenda, la cita entera por dentro, reposos, ficha y caja',
@@ -1913,7 +1972,6 @@
       '<div class="gt-spot" id="gtSpot"></div>'+
       '<div class="gt-acto" id="gtActo"><div class="gt-acto-in"><div class="gt-acto-k" id="gtActoK"></div><div class="gt-acto-t" id="gtActoT"></div><div class="gt-acto-s" id="gtActoS"></div></div></div>'+
       '<div class="gt-dock" id="gtDock">'+
-        '<button class="gt-skip" id="gtSkip" type="button">Ver por libre ✕</button>'+
         '<div class="gt-chapters" id="gtChapters"></div>'+
         '<div class="gt-content" id="gtContent">'+
           '<div class="gt-eyebrow"><span id="gtPhase"></span><span class="gt-dot"></span><span id="gtCount"></span><span class="gt-toca" id="gtToca"><b></b>TE TOCA</span></div>'+
@@ -1922,6 +1980,7 @@
           '<div class="gt-viz" id="gtViz"></div>'+
         '</div>'+
         '<div class="gt-controls">'+
+          '<button class="gt-skip" id="gtSkip" type="button">Ver por libre ✕</button>'+
           '<button class="gt-prev" id="gtPrev" type="button" aria-label="Paso anterior" title="Paso anterior (←)">'+SVG_PREV+'</button>'+
           '<button class="gt-play" id="gtPlay" type="button" title="Reproducción automática" aria-label="Reproducción automática">'+SVG_PLAY+'</button>'+
           '<button class="gt-next" id="gtNext" type="button" aria-label="Siguiente paso" title="Siguiente paso (→)">'+SVG_NEXT+'</button>'+
@@ -1964,20 +2023,49 @@
   }
 
   // ---- autoplay: se reproduce solo como un vídeo; cualquier input lo para ----
-  var autoTimer=null;
-  function toggleAutoplay(){ if(autoTimer) stopAutoplay(); else startAutoplay(); }
-  function startAutoplay(){
-    // Idempotente a proposito: si ya habia un intervalo y lo pisabamos, quedaban
-    // DOS (o tres) tourNext por ciclo. Cada uno incrementa seq, y el trabajo
-    // diferido de 60 ms se cancela solo -> el software no recibia la accion del
-    // paso y el foco no aparecia nunca. Reiniciar siempre desde cero.
-    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
-    autoTimer=setInterval(tourNext, PASO_MS);
-    gt.play.innerHTML=SVG_PAUSE; gt.play.classList.add('on'); gt.play.title='Pausar reproducción';
+  //
+  // El reloj NO va a intervalo fijo. Antes era un setInterval de 5,4 s: si el
+  // software tardaba en cargar (primer arranque, cambio de pantalla con datos
+  // por red), el recorrido se comia pasos enteros contando el tiempo mientras
+  // no habia nada que ver. Ahora cada paso espera a estar ASENTADO (foco puesto,
+  // o agotado el margen del salvavidas) y solo entonces empieza a contar su
+  // tiempo de lectura, proporcional a lo que hay que leer.
+  var autoOn=false, autoTimer=null, iframeListo=false, pasoInicio=0, ultimoNavego=false;
+  function pintarPlay(){
+    if(!gt.play) return;
+    gt.play.innerHTML = autoOn ? SVG_PAUSE : SVG_PLAY;
+    gt.play.classList.toggle('on', autoOn);
+    gt.play.title = autoOn ? 'Pausar reproducción' : 'Reproducir solo';
   }
+  function toggleAutoplay(){ if(autoOn) stopAutoplay(); else startAutoplay(); }
+  function startAutoplay(){ autoOn=true; pintarPlay(); programarAvance(); }
   function stopAutoplay(){
-    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
-    if(gt.play){ gt.play.innerHTML=SVG_PLAY; gt.play.classList.remove('on'); gt.play.title='Reproducir solo'; }
+    autoOn=false;
+    if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
+    pintarPlay();
+  }
+  // Cuanto damos de margen al software antes de dar el paso por asentado.
+  function margenDe(s){
+    var a=s.action||'cerrar';
+    var esperaFoco = a!=='cerrar' && a!=='nueva-cita' && a!=='cita-detalle' && a!=='pantalla';
+    if(esperaFoco) return ultimoNavego ? 4800 : 1600;
+    return ultimoNavego ? 1500 : 500;
+  }
+  // Tiempo de lectura del paso: lo que cuesta leerlo de verdad, no un fijo.
+  function lecturaDe(s){
+    var n=(s.t||'').length + (s.d||'').length;
+    return Math.min(10500, Math.max(4200, 1400 + n*28));
+  }
+  function programarAvance(){
+    if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
+    if(!autoOn || !gt.root || !gt.root.classList.contains('show')) return;
+    var my=seq;
+    (function esperar(){
+      if(my!==seq || !autoOn) return;
+      var asentado = iframeListo && (spotSeq===my || Date.now()-pasoInicio >= margenDe(STEPS[ti]));
+      if(!asentado){ autoTimer=setTimeout(esperar, 200); return; }
+      autoTimer=setTimeout(function(){ if(my===seq && autoOn) tourNext(); }, lecturaDe(STEPS[ti]));
+    })();
   }
 
   // Navegar SOLO cuando cambia de pantalla. Hacer router.push a la ruta en la que
@@ -1998,35 +2086,82 @@
   // El software nos manda el rect a iluminar (coords del viewport del iframe).
   // Como #gt es position:absolute inset:0 dentro de .dm-appwrap (= el iframe),
   // usamos el rect directamente, sin sumar el offset de la barra.
-  function setHole(rect){ hole = rect ? {top:rect.top,left:rect.left,width:rect.width,height:rect.height} : null; drawSpot(); }
+  // Un rect solo vale si esta DENTRO del area visible del iframe. Si el software
+  // manda algo que se ha ido de pantalla (una ficha con scroll a medio camino,
+  // una seccion que se desmonta) pintarlo dejaba un agujero fuera de cuadro: la
+  // sombra de 9999px teñia TODA la app de negro y no se veia nada. En ese caso
+  // preferimos no enfocar (velo suave) a enfocar mal.
+  // Devuelve el rect RECORTADO a lo que se ve, o null si no vale la pena.
+  // Los bloques largos (la parrilla de manuales, un listado entero) miden mas
+  // que la pantalla: enfocarlos tal cual dejaba el agujero desbordado. Y un rect
+  // que se ha ido de pantalla no se enfoca: se prefiere velo a foco equivocado.
+  function rectUsable(r){
+    if(!r || !(r.width>8) || !(r.height>8)) return null;
+    var st=$('.dm-appwrap'), vw=st?st.clientWidth:window.innerWidth, vh=st?st.clientHeight:window.innerHeight;
+    var m=10;
+    var x1=Math.max(m, r.left), y1=Math.max(m, r.top);
+    var x2=Math.min(vw-m, r.left+r.width), y2=Math.min(vh-m, r.top+r.height);
+    if(x2-x1 < 24 || y2-y1 < 24) return null;   // practicamente no se ve
+    return {top:y1, left:x1, width:x2-x1, height:y2-y1};
+  }
+
+  function setHole(rect){
+    hole = rectUsable(rect);
+    drawSpot();
+  }
   function drawSpot(){
     var s=gt.spot;
     if(!hole){
-      // Paso de pantalla completa (sin foco): velo suave para que la app SIGA
-      // siendo legible, y el dock manda con el texto.
+      // Paso de PANTALLA (sin foco): velo suave, la app se lee entera. Es lo que
+      // permite "ensenar la pantalla" y no solo un trocito de ella.
       s.classList.remove('on'); gt.veil.classList.add('on');
-      if(gt.dock) gt.dock.classList.remove('dock-top');
+      colocaDock(null);
     } else {
       gt.veil.classList.remove('on');
-      // El foco se mueve SOLO con transform (compositor, sin reflow): la caja
-      // base es 100x100 con transform-origin 0 0 y se traslada+escala al rect.
-      // Si venia oculto, colocalo sin animar el tamano desde 0 (evita el "crece").
-      var tx='translate3d('+hole.left+'px,'+hole.top+'px,0) scale('+(hole.width/100)+','+(hole.height/100)+')';
+      // Geometria en pixeles reales: nitido a cualquier tamano (con transform y
+      // scale se estiraban el borde y la sombra y el foco salia deforme).
+      // Si venia apagado, salta al sitio sin animar (si no, "crece" desde 0x0).
       if(!s.classList.contains('on')){
-        s.style.transform='translate3d('+(hole.left+hole.width/2)+'px,'+(hole.top+hole.height/2)+'px,0) scale(0.001)';
-        void s.offsetWidth; // fija el punto de partida antes de la transicion
+        s.classList.add('jump');
+        setTimeout(function(){ if(s) s.classList.remove('jump'); }, 60);
       }
-      s.style.transform=tx;
+      s.style.top=hole.top+'px'; s.style.left=hole.left+'px';
+      s.style.width=hole.width+'px'; s.style.height=hole.height+'px';
+      var aq=(STEPS[ti]&&STEPS[ti].action)||'';
+      s.classList.toggle('suave', aq.indexOf('zona-nav-')===0);
       s.classList.add('on');
-
-      // Si el elemento enfocado está en la mitad inferior y en móvil taparía el dock,
-      // el dock se desliza a la parte superior para que el foco quede 100% visible.
-      if(gt.dock){
-        var vh = window.innerHeight || 700;
-        var overlapsBottom = (hole.top + hole.height) > (vh - 240);
-        gt.dock.classList.toggle('dock-top', overlapsBottom && window.innerWidth <= 900);
-      }
+      colocaDock(hole);
     }
+  }
+
+  // Coloca la tarjeta del dock en el hueco libre mas grande respecto al foco.
+  // En movil solo decide arriba/abajo; en escritorio tambien izquierda/derecha.
+  // Sin esto, el dock tapaba justo lo que el paso estaba explicando (el rail del
+  // detalle de cita, los botones de guardar, la mitad baja de la agenda).
+  function colocaDock(h){
+    var d=gt.dock; if(!d) return;
+    var st=$('.dm-appwrap');
+    var vw=st?st.clientWidth:window.innerWidth, vh=st?st.clientHeight:window.innerHeight;
+    var movil = vw<=900;
+    if(!h){
+      // Sin foco: abajo en movil, abajo-izquierda en escritorio (sitio de siempre).
+      d.classList.remove('pos-top','dock-top','pos-right');
+      return;
+    }
+    var alto = d.offsetHeight || (movil?260:200), ancho = d.offsetWidth || 430;
+    var margen = 18;
+    var arriba = h.top, abajo = vh - (h.top + h.height);
+    // Vertical: nos vamos al lado con mas aire, y solo si de verdad cabe.
+    var ponerArriba = arriba > abajo && arriba > alto + margen;
+    if(abajo < alto + margen && arriba > alto + margen) ponerArriba = true;
+    d.classList.toggle('pos-top', ponerArriba);
+    d.classList.toggle('dock-top', ponerArriba && movil);
+    if(movil){ d.classList.remove('pos-right'); return; }
+    // Horizontal (escritorio): si ni arriba ni abajo hay aire suficiente, al
+    // menos que no comparta columna con el foco.
+    var izq = h.left, der = vw - (h.left + h.width);
+    var apretado = (arriba < alto + margen) && (abajo < alto + margen);
+    d.classList.toggle('pos-right', apretado ? (der > izq) : (izq < ancho + margen && der > izq));
   }
 
   function setProgress(){ var pct = STEPS.length>1 ? (ti/(STEPS.length-1))*100 : 100; gt.prog.style.width = pct.toFixed(2)+'%'; }
@@ -2107,7 +2242,12 @@
   // el paso NUEVO es el que manda (nada de abrir/cerrar paneles cruzados).
   function driveSoftware(s){
     var navego=navFrame(s.route);
+    ultimoNavego=navego;
+    // 'pantalla' = paso de PANTALLA COMPLETA: cierra paneles y foco y deja ver el
+    // modulo entero. Es el paso que faltaba: el recorrido saltaba de detalle en
+    // detalle y nunca ensenaba la pantalla en si.
     var a=s.action||'cerrar';
+    if(a==='pantalla') a='cerrar';
     // Pasos SIN foco (pantalla completa o solo-abrir-modal): vuelve al velo suave
     // ya, para que el foco del paso anterior no se quede pegado al ir/volver.
     // En pasos CON foco no tocamos el hueco: el spot se desliza al llegar el nuevo.
@@ -2157,7 +2297,7 @@
   // controles del dock no se mueven nunca.
   function renderStep(cambiaActo){
     var s=STEPS[ti];
-    seq++;
+    seq++; pasoInicio=Date.now();
     if(actTimer) clearTimeout(actTimer);
     if(actoT) clearTimeout(actoT);
     setProgress(); updateNav(); syncSelector(); renderChapters();
@@ -2169,6 +2309,7 @@
     fillContent(s);
     gt.content.classList.remove('swap');
     driveSoftware(s);
+    programarAvance();   // el reloj del autoplay se rearma con CADA paso
   }
 
   function tourNext(){
@@ -2211,8 +2352,10 @@
     // Al (re)arrancar forzamos navegacion aunque sea la misma ruta: puede venir
     // de otro recorrido y hay que asegurar que el paso 1 aterriza donde toca.
     rutaActual=null;
+    pasoInicio=Date.now(); ultimoNavego=true;
     navFrame(STEPS[0].route);
     var a0=STEPS[0].action||'cerrar', my=seq;
+    if(a0==='pantalla') a0='cerrar';
     actTimer=setTimeout(function(){
       if(my!==seq) return;
       demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0;
@@ -2229,6 +2372,7 @@
         }, ms));
       });
     }
+    programarAvance();
   }
 
   function bootTourEngine(){ if(tourBooted) return; tourBooted=true; buildDock(); }
@@ -2266,8 +2410,13 @@
       playTutorial(which);
       startAutoplay();   // arranca reproduciendose, como un video
     }
-    if(frame){ frame.addEventListener('load', function(){ setTimeout(go, 250); }); }
-    setTimeout(go, 450);
+    // El paso 1 no arranca su reloj hasta que el iframe ha cargado: si no, el
+    // recorrido empezaba a contar sobre una pantalla en blanco.
+    if(frame){ frame.addEventListener('load', function(){ iframeListo=true; setTimeout(go, 250); }); }
+    setTimeout(function(){ go(); }, 450);
+    // Respaldo por si el evento load se pierde (cache, bfcache): a los 6 s damos
+    // el software por cargado y el recorrido sigue solo igualmente.
+    setTimeout(function(){ iframeListo=true; }, 6000);
   }
 
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.

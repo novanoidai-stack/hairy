@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Enfoque tipo "spotlight" para la demo guiada: oscurece toda la app y deja
 // clara solo la zona que se esta explicando (con borde luminoso de acento).
@@ -28,6 +28,17 @@ export function DemoSpotlight({
   label?: string;
 }) {
   const [rect, setRect] = useState<Rect | null>(null);
+  // Embebido en la demo guiada: aqui NO pintamos (lo hace el contenedor), asi
+  // que tampoco guardamos el rect en estado. Si no, el bucle de medida provocaba
+  // un re-render por frame de toda la pantalla para nada.
+  const embebido = typeof window !== 'undefined' && window.parent !== window;
+  // El objetivo se lee SIEMPRE desde aqui. Las pantallas construyen su mapa de
+  // zonas en cada render, asi que el objeto `targetRef` que nos llega es nuevo
+  // cada vez; si estuviera en las dependencias del efecto, este se re-montaria
+  // en cada render y su limpieza mandaria `null` al contenedor. Resultado: el
+  // foco parpadeaba y a menudo se quedaba APAGADO en medio de un paso.
+  const objetivo = useRef(targetRef);
+  objetivo.current = targetRef;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -66,14 +77,14 @@ export function DemoSpotlight({
     let sinObjetivoDesde = 0;
     let apagado = false;
     const measure = () => {
-      const el = targetRef.current;
+      const el = objetivo.current.current;
       const vivo = !!el && el.getBoundingClientRect().height > 0;
       if (!vivo) {
         const ahora = Date.now();
         if (!sinObjetivoDesde) sinObjetivoDesde = ahora;
         else if (!apagado && ahora - sinObjetivoDesde > GRACIA_MS) {
           apagado = true;
-          setRect(null);
+          if (!embebido) setRect(null);
           lastPosted = null;
           postHole(null);
         }
@@ -85,7 +96,7 @@ export function DemoSpotlight({
         const r = el.getBoundingClientRect();
         // Evita parpadeos cuando aun no esta colocado (height 0)
         if (r.width > 0 && r.height > 0) {
-          setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+          if (!embebido) setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
           // Hueco iluminado (con el padding visual aplicado), en coords del viewport del iframe.
           const hole = { top: r.top - padding, left: r.left - padding, width: r.width + padding * 2, height: r.height + padding * 2 };
           const ahora = Date.now();
@@ -103,7 +114,13 @@ export function DemoSpotlight({
     };
     measure();
     return () => { cancelAnimationFrame(raf); postHole(null); };
-  }, [active, targetRef, padding]);
+  }, [active, padding, embebido]);
+
+  // Dentro de la demo guiada el foco lo pinta el CONTENEDOR (demo.html) con el
+  // rect que le mandamos: aqui solo medimos. Pintarlo tambien nosotros dejaba
+  // DOS recuadros a la vez —el de dentro y el de fuera nunca van sincronizados
+  // al pixel— y el doble de oscuridad encima del software.
+  if (embebido) return null;
 
   if (!rect) return null;
 

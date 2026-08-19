@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DemoSpotlight } from './DemoSpotlight';
+import { traerAlFoco } from '@/lib/demoScroll';
 
 // Enfoque guiado GENERICO para la demo (web).
 //
@@ -98,13 +99,24 @@ export function DemoZonaGlobal() {
     // haber MAS de un elemento con la misma clave (uno oculto, otro visible).
     // Nos quedamos con el primero que este realmente pintado.
     const visible = (): HTMLElement | null => {
-      const todos = document.querySelectorAll(`[data-demo="${zona}"]`);
-      for (let i = 0; i < todos.length; i++) {
-        const cand = todos[i] as HTMLElement;
-        const r = cand.getBoundingClientRect();
-        if (r.height > 0 && r.width > 0) return cand;
-      }
-      return null;
+      // `zona-nav-<pantalla>` enfoca el BOTON del menu por el que se llega a esa
+      // pantalla. Los items del menu (lateral y barra movil) ya vienen marcados
+      // con data-coach, asi que reusamos esa marca en vez de duplicarla.
+      const esNav = zona.indexOf('nav-') === 0;
+      const primeroPintado = (sel: string): HTMLElement | null => {
+        const todos = document.querySelectorAll(sel);
+        for (let i = 0; i < todos.length; i++) {
+          const cand = todos[i] as HTMLElement;
+          const r = cand.getBoundingClientRect();
+          if (r.height > 0 && r.width > 0) return cand;
+        }
+        return null;
+      };
+      if (!esNav) return primeroPintado(`[data-demo="${zona}"]`);
+      // En movil la barra solo lleva cinco pestanas: el resto de pantallas viven
+      // dentro de "Mas". Si la pestana de esta pantalla no esta en la barra,
+      // enfocamos "Mas", que es por donde se llega de verdad.
+      return primeroPintado(`[data-coach="${zona}"]`) || primeroPintado('[data-coach="nav-mas"]');
     };
     // Vigilamos mientras la zona este activa (la pantalla puede re-renderizar y
     // cambiar el nodo), pero consultando el DOM solo cada ~120 ms: el rAF suelto
@@ -120,7 +132,12 @@ export function DemoZonaGlobal() {
       targetRef.current = el;
       if (!scrolled && typeof el.scrollIntoView === 'function') {
         scrolled = true;
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Los items del menu solo se acercan lo justo ('nearest'): centrarlos
+        // moveria la pantalla de debajo sin motivo, pero sin nada de scroll los
+        // ultimos del menu lateral (Resenas, Informes, Ayuda) se quedaban fuera
+        // de pantalla y su paso se quedaba sin foco.
+        if (zona.indexOf('nav-') === 0) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        else traerAlFoco(el);
       }
     };
     raf = requestAnimationFrame(buscar);

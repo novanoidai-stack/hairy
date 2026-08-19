@@ -22,6 +22,7 @@ import {
 import { getUserProfile } from "@/lib/auth";
 import { TimeDrumPicker } from "@/components/ui/Pickers";
 import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
+import { traerAlFoco } from "@/lib/demoScroll";
 import { useCalendarRefresh } from "@/lib/calendarContext";
 import { syncAlergiasACliente } from "@/lib/syncAlergias";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
@@ -12576,8 +12577,7 @@ function NewCitaModal({
     const intentar = () => {
       const el = ref.current;
       if (el && el.getBoundingClientRect().height > 0) {
-        if (typeof el.scrollIntoView === "function")
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        traerAlFoco(el);
         return;
       }
       // Hasta ~4 s: "+ Encadenar otro" solo aparece con el formulario completo,
@@ -18536,6 +18536,11 @@ export function DetalleCitaModal({
   const dSeqRepRef = useRef<HTMLDivElement | null>(null);
   const dSeqAct2Ref = useRef<HTMLDivElement | null>(null);
   const dFormRef = useRef<HTMLElement | null>(null);
+  // Aviso "en el reposo de esta cita": solo existe cuando la cita TIENE reposo y
+  // alguien lo aprovecha. El recorrido guiado abre a proposito una cita asi, y
+  // esta cabecera es lo primero que cambia respecto a una cita normal: hay que
+  // explicarla, no dejar que sorprenda.
+  const dHuecoRef = useRef<HTMLDivElement | null>(null);
   // Zonas "de seccion completa" (resumen, notas, productos, pagos, historial):
   // no tienen un bloque suelto al que apuntar, asi que el foco va al primer
   // bloque real del cuerpo de la seccion, que se resuelve al montarse.
@@ -18612,6 +18617,7 @@ export function DetalleCitaModal({
       "secuencia-activo": dSeqActRef,
       "secuencia-reposo": dSeqRepRef,
       "secuencia-activo2": dSeqAct2Ref,
+      "hueco-reposo": dHuecoRef,
       formula: dFormRef,
       productos: dSeccionRef,
       pagos: dSeccionRef,
@@ -18623,8 +18629,7 @@ export function DetalleCitaModal({
     const intentar = () => {
       const el = m[demoZone]?.current;
       if (el && el.getBoundingClientRect().height > 0) {
-        if (typeof el.scrollIntoView === "function")
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        traerAlFoco(el);
         return;
       }
       if (tries++ < 400) raf = requestAnimationFrame(intentar); // ~2-6 s segun refresco
@@ -18641,6 +18646,7 @@ export function DetalleCitaModal({
     "secuencia-activo": dSeqActRef,
     "secuencia-reposo": dSeqRepRef,
     "secuencia-activo2": dSeqAct2Ref,
+    "hueco-reposo": dHuecoRef,
     formula: dFormRef,
     productos: dSeccionRef,
     pagos: dSeccionRef,
@@ -18662,6 +18668,8 @@ export function DetalleCitaModal({
                 ? "2 · Tiempo de reposo (hueco libre)"
                 : demoZone === "secuencia-activo2"
                   ? "3 · Segundo tiempo activo (acabado)"
+                  : demoZone === "hueco-reposo"
+                    ? "Otra cita dentro de este reposo"
                   : demoZone === "formula"
                     ? "Fórmula guardada"
                     : demoZone === "productos"
@@ -19017,6 +19025,7 @@ export function DetalleCitaModal({
               `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
             return (
               <div
+                ref={dHuecoRef}
                 style={{
                   margin: isMobileOrTablet ? "14px 18px 0" : "18px 32px 0",
                   padding: "12px 14px",

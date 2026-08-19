@@ -150,12 +150,14 @@ export function MobileTabBar({ state }: TabBarProps) {
     <>
       <View style={s.bar}>
         {primaryItems.map(renderTab)}
-        {/* Boton "Mas": abre la hoja con el resto de secciones */}
+        {/* Boton "Mas": abre la hoja con el resto de secciones. Lleva
+            data-coach="nav-mas" porque el recorrido guiado lo enfoca cuando la
+            pantalla que presenta no tiene pestana propia en movil. */}
         <TouchableOpacity
           style={s.tab}
           onPress={() => setMoreOpen(true)}
           activeOpacity={0.7}
-          {...({ accessibilityRole: 'button', accessibilityLabel: 'Más opciones' } as any)}
+          {...({ accessibilityRole: 'button', accessibilityLabel: 'Más opciones', dataSet: { coach: 'nav-mas' } } as any)}
         >
           <View>
             <Ionicons
