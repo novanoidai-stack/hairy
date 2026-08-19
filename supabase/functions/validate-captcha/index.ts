@@ -6,6 +6,8 @@
 // de navegador (saltable llamando al RPC directo) y exige prueba emitida por el
 // servidor.
 //
+// Rate limit: maximo 5 peticiones por minuto por IP.
+//
 // POST { token: string, contexto?: 'cita'|'resena'|'solicitud' }
 // -> 200 { ok: true, captcha_token: uuid } | { ok: false, error }
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -35,6 +37,25 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, error: 'method_not_allowed' }, 405, req);
   if (!SECRET) return json({ ok: false, error: 'captcha_no_configurado' }, 500, req);
 
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+
+  // Rate Limiting por IP: max 5 intentos por minuto
+  if (ip) {
+    try {
+      const { data: rateOk, error: rateErr } = await admin.rpc('rate_limit_ok', {
+        p_bucket: 'validate_captcha_ip',
+        p_clave: ip,
+        p_max: 5,
+        p_ventana: '1 minute',
+      });
+      if (!rateErr && rateOk === false) {
+        return json({ ok: false, error: 'rate_limit_exceeded', message: 'Demasiadas solicitudes. Espera un minuto.' }, 429, req);
+      }
+    } catch (e) {
+      console.warn('Error comprobando rate limit en validate-captcha:', e);
+    }
+  }
+
   let body: { token?: string; contexto?: string };
   try {
     body = await req.json();
@@ -45,11 +66,10 @@ Deno.serve(async (req) => {
   if (!token) return json({ ok: false, error: 'token_missing' }, 400, req);
   const contexto = ['cita', 'resena', 'solicitud'].includes(body.contexto || '') ? body.contexto! : 'general';
 
-  // Verificar con Cloudflare Turnstile.
+  // Verificar con Cloudflare Turnstile
   const form = new URLSearchParams();
   form.append('secret', SECRET);
   form.append('response', token);
-  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
   if (ip) form.append('remoteip', ip);
 
   let data: { success?: boolean; 'error-codes'?: string[] };

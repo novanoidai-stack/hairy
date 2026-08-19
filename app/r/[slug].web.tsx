@@ -7,7 +7,7 @@ import { ConsentBanner } from '@/components/portal/ConsentBanner';
 import { makeT, localeOf, type TFn } from '@/lib/portalI18n';
 import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
-  unirseListaEsperaPublica,
+  unirseListaEsperaPublica, crearResenaPublica, normalizarTelefonoE164,
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
 import { reportarError } from '@/lib/reportarError';
@@ -103,11 +103,13 @@ function claveADate(k: string): Date { const [y, m, d] = k.split('-').map(Number
 
 // Fila de servicio del paso 1. Se comparte entre el acordeon por categoria y la
 // lista plana de resultados de busqueda (ahi si se muestra a que categoria pertenece).
-function ServicioFila({ sv, selected, mostrarPrecio, conCategoria, onClick }: {
-  sv: PortalServicio; selected: boolean; mostrarPrecio: boolean; conCategoria?: boolean; onClick: () => void;
+function ServicioFila({ sv, selected, mostrarPrecio, conCategoria, demoAbrir, onClick }: {
+  sv: PortalServicio; selected: boolean; mostrarPrecio: boolean; conCategoria?: boolean; demoAbrir?: string; onClick: () => void;
 }) {
   return (
-    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: 12, background: selected ? T.primarySoft : '#fff', border: `1.5px solid ${selected ? T.primary : T.border}`, borderRadius: 16, cursor: 'pointer', textAlign: 'left' }}>
+    // demoAbrir: el recorrido guiado pulsa este servicio para poder enseñar los
+    // pasos que solo existen DESPUES de elegirlo (profesional y hora).
+    <button onClick={onClick} data-demo-abrir={demoAbrir} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: 12, background: selected ? T.primarySoft : '#fff', border: `1.5px solid ${selected ? T.primary : T.border}`, borderRadius: 16, cursor: 'pointer', textAlign: 'left' }}>
       <span style={{ display: 'inline-flex', width: 64, height: 64, borderRadius: 14, background: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {sv.foto_url ? <img src={sv.foto_url} alt="" style={{ width: '100%', height: '100%', borderRadius: 14, objectFit: 'cover' }} /> : <Icon name="scissors" size={24} color="#ccc" />}
       </span>
@@ -150,6 +152,41 @@ function gcalLink(servicioNombre: string, negocioNombre: string, inicioISO: stri
   });
   if (direccion) p.set('location', direccion);
   return `https://calendar.google.com/calendar/render?${p.toString()}`;
+}
+
+function appleCalendarDownload(servicioNombre: string, negocioNombre: string, inicioISO: string, durMin: number, direccion?: string | null) {
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const ini = new Date(inicioISO);
+  const fin = new Date(ini.getTime() + durMin * 60000);
+  const now = fmt(new Date());
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Mecha//Portal Reserva//ES',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${Date.now()}-${Math.random().toString(36).slice(2, 9)}@mechaa.es`,
+    `DTSTAMP:${now}`,
+    `DTSTART:${fmt(ini)}`,
+    `DTEND:${fmt(fin)}`,
+    `SUMMARY:${servicioNombre} · ${negocioNombre}`,
+    `DESCRIPTION:Reserva de ${servicioNombre} en ${negocioNombre}`,
+    direccion ? `LOCATION:${direccion}` : '',
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter(Boolean).join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reserva-${negocioNombre.toLowerCase().replace(/[^a-z0-9]/g, '-')}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 const ANIM = `
@@ -436,7 +473,14 @@ export default function PortalReservaWeb() {
     if (!servicio || !slotSel) return;
     setError('');
     if (!nombre.trim()) { setError(t('err_nombre')); return; }
-    if (telefono.trim().length < 6) { setError(t('err_tel')); return; }
+    
+    // Normalización y validación estricta de teléfono E.164
+    const normTel = normalizarTelefonoE164(telefono);
+    if (!normTel.esValido) {
+      setError('Por favor, indica un número de teléfono móvil válido (+34 o internacional).');
+      return;
+    }
+
     if (!consent) {
       setError(t('err_consent'));
       setConsentFallo(true);
@@ -449,12 +493,20 @@ export default function PortalReservaWeb() {
       const captchaToken = await obtenerCaptchaToken();
 
       const r = await crearCitaPublica({
-        slug, servicioId: servicio.id, profesionalId: slotSel.profesional_id, inicioISO: slotSel.slot,
-        clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
-        clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
-        consentimientoDatos: consent, consienteIa: consentIa, captchaToken,
+        slug,
+        servicioId: servicio.id,
+        profesionalId: slotSel.profesional_id,
+        inicioISO: slotSel.slot,
+        clienteNombre: nombre.trim(),
+        clienteTelefono: normTel.e164,
+        clienteEmail: email.trim() || undefined,
+        notas: notas.trim() || undefined,
+        consentimientoDatos: consent,
+        consienteIa: consentIa,
+        captchaToken,
       });
-      setResultado(r); setStep('confirmado');
+      setResultado(r);
+      setStep('confirmado');
       // El formulario deja paso a una tarjeta mas corta: sin esto la pagina se
       // queda a la altura de las opiniones y la clienta no llega a ver el "confirmada".
       requestAnimationFrame(() => exitoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
@@ -478,11 +530,32 @@ export default function PortalReservaWeb() {
     else window.location.href = '/salones.html';
   }, []);
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!rPuntuacion) { setRError('Elige una valoración para el salón.'); return; }
     setRError('');
-    // Mock save review
-    setReviewSubmitted(true);
+    try {
+      const captchaToken = await obtenerCaptchaToken();
+      await crearResenaPublica({
+        slug,
+        puntuacion: rPuntuacion,
+        comentario: rComentario.trim() || undefined,
+        autorNombre: rNombre.trim() || undefined,
+        profesionalId: rProfesionalId || null,
+        servicioId: servicio?.id || null,
+        captchaToken,
+        salonTrato: rTrato || null,
+        salonProductos: rProductos || null,
+        profesionalPuntuacion: rProfesionalPuntuacion || null,
+        mechaPuntuacion: rMechaPuntuacion || null,
+        mechaFacilidad: rMechaFacilidad || null,
+        mechaDisponibilidad: rMechaDisponibilidad || null,
+        mechaPagos: rMechaPagos || null,
+        mechaMejora: rMechaMejora.trim() || null,
+      });
+      setReviewSubmitted(true);
+    } catch (e: any) {
+      setRError(e?.message || 'No se pudo registrar la reseña. Inténtalo más tarde.');
+    }
   };
 
   function elegirServicio(sv: PortalServicio) {
@@ -614,7 +687,7 @@ export default function PortalReservaWeb() {
         </div>
       </header>
 
-      <div style={{ position: 'relative', height: 236, overflow: 'hidden' }}>
+      <div data-demo="portal-cabecera" style={{ position: 'relative', height: 236, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg,#3a2a20 0%,#1c1814 100%)' }}>
           {/* Foto de fondo elegida por el salon en Ajustes > Portal. Sin ella, degradado de marca. */}
           {info.negocio.fondo_portal_url && <img src={info.negocio.fondo_portal_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
@@ -642,7 +715,9 @@ export default function PortalReservaWeb() {
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 32, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     {/* 1. Servicio */}
-                    <div style={{ marginBottom: 22 }}>
+                    {/* Las marcas data-demo son las que enfoca el capitulo del
+                        portal en el recorrido guiado de demo.html. */}
+                    <div data-demo="portal-servicios" style={{ marginBottom: 22 }}>
                       <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>1 · Servicio</div>
                       <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: -0.3, marginBottom: 12 }}>¿Qué te apetece hoy?</div>
                       {/* Buscador: con catalogos de 50 servicios es la via rapida. */}
@@ -702,7 +777,7 @@ export default function PortalReservaWeb() {
                                 {abierta && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: '0 10px 10px' }}>
                                     {g.servicios.map(sv => (
-                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} onClick={() => elegirServicio(sv)} />
+                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} demoAbrir={g.servicios[0]?.id === sv.id ? 'portal-profesional portal-hora' : undefined} onClick={() => elegirServicio(sv)} />
                                     ))}
                                   </div>
                                 )}
@@ -715,7 +790,7 @@ export default function PortalReservaWeb() {
 
                     {/* 2. Profesional */}
                     {servicioElegido && (
-                      <div ref={pasoProfRef} style={{ marginBottom: 22, scrollMarginTop: 12 }}>
+                      <div ref={pasoProfRef} data-demo="portal-profesional" style={{ marginBottom: 22, scrollMarginTop: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi }}>2 · Profesional</div>
                           <button onClick={() => setServicio(null)} style={{ background: 'none', border: 'none', color: '#5c5249', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Cambiar servicio</button>
@@ -740,7 +815,7 @@ export default function PortalReservaWeb() {
 
                     {/* 3. Fecha y hora */}
                     {servicioElegido && (
-                      <div style={{ marginBottom: 6 }}>
+                      <div data-demo="portal-hora" style={{ marginBottom: 6 }}>
                         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>3 · Fecha y hora</div>
                         <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 12 }}>¿Cuándo te viene bien?</div>
                         
@@ -789,13 +864,48 @@ export default function PortalReservaWeb() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(84px,1fr))', gap: 7 }}>
                               {fr.items.map(s => {
                                 const sel = slotSel?.slot === s.slot;
-                                // La RPC ya garantiza que el servicio CABE en el hueco de
-                                // reposo; aqui solo se distingue visualmente. Borde discontinuo
-                                // para no meter texto que descuadre la rejilla.
                                 const reposo = !!s.en_reposo;
+                                const titleText = reposo
+                                  ? `⚡ Hueco Express: Hueco optimizado durante el tiempo de reposo técnico del salón — Aprovecha un hueco entre servicios${s.reposo_disponible_min ? ` (${s.reposo_disponible_min} min libres)` : ''}`
+                                  : undefined;
                                 return (
-                                  <button key={s.slot} onClick={() => setSlotSel(s)} title={reposo ? `Aprovecha un hueco entre servicios${s.reposo_disponible_min ? ` (${s.reposo_disponible_min} min libres)` : ''}` : undefined} style={{ padding: '10px 6px', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: sel ? 'none' : `1.5px ${reposo ? 'dashed' : 'solid'} ` + (reposo ? T.primary : T.border), background: sel ? T.primary : '#fff', color: sel ? '#fff' : T.text, boxShadow: sel ? '0 7px 16px rgba(0,0,0,0.18)' : 'none' }}>
-                                    {fmtHora(s.slot, loc)}
+                                  <button
+                                    key={s.slot}
+                                    onClick={() => setSlotSel(s)}
+                                    title={titleText}
+                                    style={{
+                                      padding: '10px 6px',
+                                      borderRadius: 12,
+                                      fontSize: 14,
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      border: sel ? 'none' : `1.5px ${reposo ? 'dashed' : 'solid'} ` + (reposo ? T.primary : T.border),
+                                      background: sel ? T.primary : reposo ? T.primarySoft : '#fff',
+                                      color: sel ? '#fff' : T.text,
+                                      boxShadow: sel ? '0 7px 16px rgba(0,0,0,0.18)' : 'none',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                  >
+                                    {reposo && (
+                                      <span
+                                        title="Hueco optimizado durante el tiempo de reposo técnico del salón"
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          fontSize: 9,
+                                          fontWeight: 800,
+                                          color: sel ? '#fff' : T.primaryHi,
+                                          marginBottom: 2,
+                                          whiteSpace: 'nowrap',
+                                        }}
+                                      >
+                                        ⚡ Hueco Express
+                                      </span>
+                                    )}
+                                    <div>{fmtHora(s.slot, loc)}</div>
                                     <span style={{ display: profId === ANY_PRO ? 'block' : 'none', fontSize: 9.5, fontWeight: 500, opacity: 0.75, marginTop: 1 }}>{s.profesional_nombre.split(' ')[0]}</span>
                                   </button>
                                 );
@@ -807,7 +917,7 @@ export default function PortalReservaWeb() {
                           <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 12, background: T.primarySoft, border: `1px dashed ${T.primary}`, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: T.primaryHi }}>
                             <Icon name="scissors" size={15} color={T.primary} />
                             <span>
-                              <strong>Hueco express:</strong> Aprovecha el tiempo de reposo de un servicio técnico previo{slotSel.reposo_disponible_min ? ` (${slotSel.reposo_disponible_min} min libres)` : ''}.
+                              <strong>⚡ Hueco Express:</strong> Hueco optimizado durante el tiempo de reposo técnico del salón{slotSel.reposo_disponible_min ? ` (${slotSel.reposo_disponible_min} min libres)` : ''}.
                             </span>
                           </div>
                         )}
@@ -916,10 +1026,21 @@ export default function PortalReservaWeb() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Profesional</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{slotSel!.profesional_nombre}</span></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Cuándo</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}</span></div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'rgba(15,157,107,0.1)', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#0f9d6b', margin: '0 auto 16px' }}>
+                    <Icon name="check" size={14} color="#0f9d6b" /> Confirmación enviada por WhatsApp
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 320, margin: '0 auto' }}>
                     <a href={gcalLink(servicio!.nombre, info.negocio.nombre || 'tu salon', slotSel!.slot, servicio!.duracion, info.negocio.direccion)} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
                       <Icon name="calendar" size={16} color={T.primary} /> Añadir a Google Calendar
                     </a>
+                    <button onClick={() => appleCalendarDownload(servicio!.nombre, info.negocio.nombre || 'tu salon', slotSel!.slot, servicio!.duracion, info.negocio.direccion)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                      <Icon name="calendar" size={16} color={T.primary} /> Añadir a Apple Calendar
+                    </button>
+                    {resultado?.cita_id && (
+                      <a href={`/app/cita/${resultado.cita_id}?s=${slug}&tel=${encodeURIComponent(telefono)}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: T.primarySoft, border: `1.5px solid ${T.primary}`, color: T.primaryHi, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                        <Icon name="edit" size={16} color={T.primaryHi} /> Gestionar o cancelar mi cita
+                      </a>
+                    )}
                     {/* La resena se pide DESPUES de que la clienta haya visto la confirmacion,
                         y solo si ella decide bajar: nunca arrastrandola sin avisar. */}
                     <button

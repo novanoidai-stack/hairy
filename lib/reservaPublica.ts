@@ -76,7 +76,8 @@ export interface CrearCitaArgs {
   notas?: string;
   consentimientoDatos?: boolean;
   consienteIa?: boolean;
-  captchaToken?: string; // Token de reCAPTCHA v3
+  captchaToken?: string; // Token de Turnstile / CAPTCHA
+  canal?: string;
 }
 
 // Cabecera + servicios reservables + profesionales del salon. null si el portal no existe / esta apagado.
@@ -137,13 +138,13 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_servicio_id: args.servicioId,
     p_profesional_id: args.profesionalId,
     p_inicio: args.inicioISO,
-    p_cliente_nombre: args.clienteNombre,
-    p_cliente_telefono: args.clienteTelefono,
-    p_cliente_email: args.clienteEmail ?? null,
+    p_nombre: args.clienteNombre,
+    p_telefono: args.clienteTelefono,
+    p_email: args.clienteEmail ?? null,
     p_notas: args.notas ?? null,
-    p_consentimiento_datos: args.consentimientoDatos ?? true,
     p_consiente_ia: args.consienteIa ?? false,
-    p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
+    p_captcha_token: args.captchaToken ?? null,
+    p_canal: args.canal ?? 'web',
   });
   if (error) {
     reportarError(error, { origen: 'portal', tipo: 'operativo' });
@@ -501,3 +502,37 @@ export async function actualizarConsentimientoIa(args: {
   });
   if (error) throw error;
 }
+
+/**
+ * Normaliza y valida teléfonos para reservas y notificaciones por WhatsApp.
+ * Valida formato E.164 (+34...) y asegura números móviles válidos (6XX / 7XX en España).
+ */
+export function normalizarTelefonoE164(tel: string): { e164: string; esValido: boolean; esMovilEspana: boolean } {
+  const clean = (tel || '').trim();
+  if (!clean) return { e164: '', esValido: false, esMovilEspana: false };
+  const digitsOnly = clean.replace(/\D/g, '');
+
+  // Móvil España con prefijo 34 o 0034 (11 dígitos)
+  if (/^34[67]\d{8}$/.test(digitsOnly)) {
+    return { e164: `+${digitsOnly}`, esValido: true, esMovilEspana: true };
+  }
+  // Móvil España directo 9 dígitos (6XX o 7XX)
+  if (/^[67]\d{8}$/.test(digitsOnly)) {
+    return { e164: `+34${digitsOnly}`, esValido: true, esMovilEspana: true };
+  }
+
+  // Internacional con signo +
+  if (clean.startsWith('+') && digitsOnly.length >= 8 && digitsOnly.length <= 15) {
+    const esEs = /^34[67]\d{8}$/.test(digitsOnly);
+    return { e164: `+${digitsOnly}`, esValido: true, esMovilEspana: esEs };
+  }
+
+  // Si tiene longitud suficiente pero sin prefijo internacional
+  if (digitsOnly.length >= 8 && digitsOnly.length <= 15) {
+    const esMovil = digitsOnly.length === 9 && (digitsOnly.startsWith('6') || digitsOnly.startsWith('7'));
+    return { e164: esMovil ? `+34${digitsOnly}` : `+${digitsOnly}`, esValido: true, esMovilEspana: esMovil };
+  }
+
+  return { e164: clean, esValido: false, esMovilEspana: false };
+}
+

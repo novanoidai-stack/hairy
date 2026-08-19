@@ -322,4 +322,76 @@ test.describe('Portal de reservas — Public Booking E2E Suite', () => {
       }
     }
   });
+
+  test('10. Pantalla de éxito incluye Google/Apple Calendar, aviso WhatsApp y enlace a gestión de cita', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    const today = new Date().toISOString().split('T')[0];
+
+    await page.route('**/rest/v1/rpc/portal_dias_disponibles*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{ dia: today }]),
+      });
+    });
+
+    await page.route('**/rest/v1/rpc/disponibilidad_publica*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            profesional_id: '00000000-0000-0000-0000-000000000001',
+            profesional_nombre: 'Laura Martinez',
+            slot: `${today}T11:00:00.000Z`,
+            en_reposo: true,
+            reposo_disponible_min: 30,
+          },
+        ]),
+      });
+    });
+
+    await page.route('**/rest/v1/rpc/crear_cita_publica*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          cita_id: '00000000-0000-0000-0000-000000000099',
+          cliente_id: '00000000-0000-0000-0000-000000000088',
+          estado: 'confirmada',
+          deposito_requerido: false,
+          deposito_importe: 0,
+          inicio: `${today}T11:00:00.000Z`,
+          fin: `${today}T11:30:00.000Z`,
+        }),
+      });
+    });
+
+    await abrirYElegirServicio(page, /Corte caballero|Corte/i);
+
+    // Slot con badge Express
+    const slotBtn = page.getByTitle(/hueco entre servicios/i).first();
+    await expect(slotBtn).toBeVisible({ timeout: 20000 });
+    expect(await slotBtn.innerText()).toContain('Hueco Express');
+    await slotBtn.click();
+
+    // Rellenar formulario
+    await page.locator('input[placeholder*="nombre" i]').first().fill('Laura Gómez');
+    await page.locator('input[placeholder*="600" i]').first().fill('612345678');
+    
+    // Checkbox de consentimiento
+    const consentLabel = page.locator('.rp-consent');
+    await consentLabel.click();
+
+    // Confirmar
+    const confirmBtn = page.locator('button').filter({ hasText: /Confirmar reserva/i }).first();
+    await confirmBtn.click();
+
+    // Validar pantalla de éxito
+    await expect(page.locator('text=¡Reserva confirmada!')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Confirmación enviada por WhatsApp')).toBeVisible();
+    await expect(page.locator('text=Añadir a Google Calendar')).toBeVisible();
+    await expect(page.locator('text=Añadir a Apple Calendar')).toBeVisible();
+    await expect(page.locator('text=Gestionar o cancelar mi cita')).toBeVisible();
+  });
 });

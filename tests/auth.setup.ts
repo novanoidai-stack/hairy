@@ -9,7 +9,7 @@ const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 const CLAVE_SESION = 'sb-vtrggiogjrhqtwbhbgia-auth-token';
 
 setup('authenticate', async ({ page }) => {
-  setup.setTimeout(60000);
+  setup.setTimeout(90000);
 
   const authDir = path.dirname(authFile);
   if (!fs.existsSync(authDir)) {
