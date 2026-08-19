@@ -116,7 +116,9 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   /* Listado de opciones (chooser staff / pantalla free) */
   .choice-list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
-  .choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px;border-radius:14px;border:1px solid var(--border-hi);background:var(--card);transition:border-color .2s,background .2s,transform .15s}
+  /* Vale para <button> y para <a> (frContratar lleva a #precios): de ahi
+     text-decoration/cursor/color, que un enlace no hereda del boton. */
+  .choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px;border-radius:14px;border:1px solid var(--border-hi);background:var(--card);transition:border-color .2s,background .2s,transform .15s;text-decoration:none;cursor:pointer;color:var(--text);box-sizing:border-box}
   .choice:hover{border-color:var(--accent);background:rgba(255,255,255,.05);transform:translateY(-1px)}
   .choice:disabled{opacity:.55;pointer-events:none}
   .choice-ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);flex-shrink:0}
@@ -494,19 +496,29 @@
         <p class="auth-foot"><a href="#" id="chLogout">Cerrar sesión</a></p>
       </div>
 
-      <!-- FREE (cuenta gratuita, sin software) -->
+      <!-- FREE = PRUEBA AGOTADA.
+           Ojo: desde el autoservicio (19 ago 2026) 'free' ya NO es el estado de
+           una cuenta nueva — las altas nacen en 'esencial' con 30 dias de prueba
+           y entran directas al software. Aqui solo cae quien ya la ha consumido,
+           via caducar_pruebas_vencidas(). Por eso el panel ya no ofrece
+           "solicitar acceso": no hay nada que un humano tenga que activar. -->
       <div class="pane" id="paneFree">
-        <h2 class="auth-h">Tu cuenta gratuita</h2>
-        <p class="auth-p">Explora Mecha con la demo guiada. Cuando quieras todo el software para tu salón, pídenos acceso y lo activamos.</p>
+        <h2 class="auth-h">Tu prueba ha terminado</h2>
+        <p class="auth-p">Tu salón, tus clientas y tu agenda siguen intactos. Reactiva Mecha y sigues justo donde lo dejaste.</p>
         <div class="choice-list">
-          <button class="choice primary" type="button" id="frDemo">
-            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg></span>
-            <span class="choice-tx"><strong>Ver la demo</strong><small id="frDemoSub">Recorrido guiado del producto</small></span>
+          <a class="choice primary" id="frContratar" href="/index.html#precios">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4" /><path d="M4 6v12a2 2 0 0 0 2 2h14v-4" /><path d="M18 12a2 2 0 0 0 0 4h4v-4z" /></svg></span>
+            <span class="choice-tx"><strong>Reactivar mi cuenta</strong><small>Desde 39 €/mes · sin permanencia</small></span>
+            <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
+          </a>
+          <button class="choice" type="button" id="frRequest">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
+            <span class="choice-tx"><strong>Hablar con nosotros</strong><small>Te llamamos y resolvemos dudas antes de decidir</small></span>
             <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
           </button>
-          <button class="choice" type="button" id="frRequest">
-            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></span>
-            <span class="choice-tx"><strong>Solicitar acceso completo</strong><small>Activamos todo el software para tu salón</small></span>
+          <button class="choice" type="button" id="frDemo">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg></span>
+            <span class="choice-tx"><strong>Ver la demo</strong><small id="frDemoSub">Recorrido guiado del producto</small></span>
             <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
           </button>
         </div>
@@ -757,6 +769,9 @@
   }
 
   // Solo 'free' se queda en la pantalla limitada; el resto entra al software.
+  // Desde el autoservicio (19 ago 2026) un alta nueva nace en 'esencial' con
+  // suscripcion_estado 'prueba' y 30 dias, asi que cae por gotoApp() y entra al
+  // software sin que nadie le active nada. 'free' = prueba ya consumida.
   // Los trabajadores invitados entran siempre directo al software de su salon.
   function routeByPlan(profile) {
     if (esTrabajador(profile)) { gotoApp(); return; }
@@ -905,10 +920,14 @@
     if (esDelEquipo) {
       var hFree = document.querySelector('#paneFree .auth-h');
       var pFree = document.querySelector('#paneFree .auth-p');
-      if (hFree) hFree.textContent = 'Tu salón aún no tiene el software activo';
-      if (pFree) pFree.textContent = 'Tu cuenta ya está lista. En cuanto la persona que gestiona el salón active Mecha, podrás entrar con este mismo correo.';
+      if (hFree) hFree.textContent = 'La suscripción del salón ha caducado';
+      if (pFree) pFree.textContent = 'Tu cuenta sigue activa. En cuanto la persona que gestiona el salón reactive Mecha, entrarás con este mismo correo.';
+      // Un trabajador no paga la suscripcion del salon: ni contratar ni pedir
+      // llamada comercial son cosas suyas.
       var btnReq = document.getElementById('frRequest');
       if (btnReq) btnReq.style.display = 'none';
+      var btnCon = document.getElementById('frContratar');
+      if (btnCon) btnCon.style.display = 'none';
     }
     if (freeInit) return; freeInit = true;
     if (api && api.demoVisitsStatus) {
@@ -941,10 +960,10 @@
           salon: (prof && prof.nombre_negocio) || '',
           email: email || '',
           telefono: (prof && prof.phone) || '',
-          nota: 'Solicita acceso completo al software (cuenta free).'
+          nota: 'Prueba de 30 dias agotada: pide llamada antes de reactivar.'
         }).then(function (r) {
           if (r && r.error) { msg(freeMsg, 'err', 'No se pudo enviar. Inténtalo de nuevo.'); if (btn) btn.disabled = false; return; }
-          msg(freeMsg, 'ok', 'Recibido. Te contactaremos muy pronto para activar tu acceso completo.');
+          msg(freeMsg, 'ok', 'Recibido. Te llamamos muy pronto para resolver tus dudas.');
         });
       });
     });

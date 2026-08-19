@@ -6,6 +6,7 @@ import {
   useCallback,
   memo,
   useDeferredValue,
+  Fragment,
 } from "react";
 import { TimelineNowIndicator } from "./TimelineNowIndicator.web";
 import { createPortal } from "react-dom";
@@ -1824,25 +1825,56 @@ export default function AgendaCalendar() {
     [problemasAgenda, selectedProf],
   );
 
-  // Scroll a la zona enfocada. El timeout deja que la columna se monte cuando
-  // acabamos de cambiar de profesional.
+  // Scroll a la zona enfocada + latido para que el ojo la encuentre.
+  //
+  // Antes esto era UN solo intento a ciegas a los 160 ms: si la columna del
+  // profesional aun no se habia montado (enfocarProblema cambia selectedProf, y
+  // en movil solo existe la columna del elegido), querySelector devolvia null y
+  // no pasaba absolutamente nada — ni scroll ni latido, sin ningun aviso. Eso es
+  // lo que hacia parecer que "Enseñamelo" no funcionaba: acertaba o no segun lo
+  // que tardase el render.
+  //
+  // Ahora se reintenta por frame hasta que el nodo existe, con tope de ~2 s.
   useEffect(() => {
     if (!problemaEnfocado || typeof document === "undefined") return;
-    const t = setTimeout(() => {
+
+    let rafId = 0;
+    let quitarLatido: ReturnType<typeof setTimeout> | undefined;
+    let nodoConLatido: HTMLElement | null = null;
+    const limite = Date.now() + 2000;
+
+    const intentar = () => {
       const nodo = document.querySelector(
         `[data-mecha-zona="${problemaEnfocado}"]`,
       ) as HTMLElement | null;
-      if (nodo) {
-        nodo.scrollIntoView({
-          block: "center",
-          inline: "center",
-          behavior: "smooth",
-        });
-        nodo.classList.add("mecha-pulse-focus");
-        setTimeout(() => nodo.classList.remove("mecha-pulse-focus"), 5000);
+
+      if (!nodo) {
+        if (Date.now() < limite) rafId = requestAnimationFrame(intentar);
+        return;
       }
-    }, 160);
-    return () => clearTimeout(t);
+
+      nodo.scrollIntoView({
+        block: "center",
+        inline: "center",
+        behavior: "smooth",
+      });
+      nodo.classList.add("mecha-pulse-focus");
+      nodoConLatido = nodo;
+      quitarLatido = setTimeout(() => {
+        nodo.classList.remove("mecha-pulse-focus");
+        nodoConLatido = null;
+      }, 5000);
+    };
+
+    rafId = requestAnimationFrame(intentar);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      // Sin esto el latido de la zona anterior se quedaba encendido al saltar al
+      // problema siguiente: dos zonas resaltadas a la vez.
+      if (quitarLatido) clearTimeout(quitarLatido);
+      if (nodoConLatido) nodoConLatido.classList.remove("mecha-pulse-focus");
+    };
   }, [problemaEnfocado, selectedProf, zonasResaltadas]);
 
   // El rail se colapsa si railCollapsed=true o si estamos en movil. En tablet ya no
@@ -3318,22 +3350,26 @@ export default function AgendaCalendar() {
           flexShrink: 0,
         }}
       >
-        {(["day", "week"] as const).map((v) => (
+        {/* Mes tambien en movil: la barra de escritorio (barraControlesAgenda) no
+            se pinta aqui, asi que sin este tercer segmento la vista de mes era
+            sencillamente inalcanzable desde el telefono. Etiquetas cortas para
+            que los tres quepan en 375 px junto al resto de controles. */}
+        {(["day", "week", "month"] as const).map((v) => (
           <button
             key={v}
             onClick={() => setView(v)}
             style={{
-              padding: "5px 10px",
+              padding: "5px 9px",
               fontSize: 12,
               fontWeight: view === v ? 700 : 500,
               background: view === v ? roleTheme.primarySoft : "transparent",
               color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
               border: "none",
               cursor: "pointer",
-              borderRight: v !== "week" ? `1px solid ${TOKENS.border}` : "none",
+              borderRight: v !== "month" ? `1px solid ${TOKENS.border}` : "none",
             }}
           >
-            {v === "day" ? "Día" : "Semana"}
+            {v === "day" ? "Día" : v === "week" ? "Sem." : "Mes"}
           </button>
         ))}
       </div>
@@ -3453,29 +3489,24 @@ export default function AgendaCalendar() {
         )}
       </button>
 
-      {/* Botón Buscar / Lupa rápida */}
-      <button
-        onClick={() => setMobileFiltersOpen(true)}
-        title="Buscar cita"
-        aria-label="Buscar cita"
+      {/* La lupa suelta se retiro: abria exactamente la misma hoja que "Filtros",
+          que ya lleva el buscador como primer campo. Ocupaba ancho sin anadir
+          nada, y la busqueda activa ya cuenta en el badge de filtros.
+          El hueco que deja lo ocupa el recuento del dia, que antes vivia en una
+          linea propia bajo la fecha. */}
+      <span
         style={{
-          display: "grid",
-          placeItems: "center",
-          width: 29,
-          height: 29,
-          background: TOKENS.bgCard,
-          border: `1px solid ${TOKENS.border}`,
-          borderRadius: 9,
-          color: searchQuery ? TOKENS.primaryHi : TOKENS.textSec,
-          cursor: "pointer",
-          flexShrink: 0,
+          fontSize: 10.5,
+          color: TOKENS.textSec,
+          fontWeight: 600,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          minWidth: 0,
         }}
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-      </button>
+        {totalActivasHoy}/{confirmadasHoy} conf.
+      </span>
     </div>
   );
 
@@ -3738,6 +3769,33 @@ export default function AgendaCalendar() {
             </div>
             <Icon name="zap" size={16} color={ensenar ? TOKENS.primary : TOKENS.textSec} />
           </div>
+
+          {/* Cerrar el salon: en escritorio es un boton de la barra de titulo;
+              en movil esa fila no da para mas, asi que la accion vive aqui. */}
+          <div
+            onClick={() => {
+              setMobileFiltersOpen(false);
+              setShowCierreSalon(true);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.25)",
+              cursor: "pointer",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>
+                Cerrar el salón
+              </div>
+              <div style={{ fontSize: 11, color: TOKENS.textSec }}>Festivo, obras o cierre puntual</div>
+            </div>
+            <Icon name="x" size={16} color="#ef4444" />
+          </div>
         </div>
 
         {/* Botones inferiores */}
@@ -3827,13 +3885,19 @@ export default function AgendaCalendar() {
       >
         <div
           style={{
+            // En movil esto es una COLUMNA, no una fila: el aviso de cierre y la
+            // leyenda cuelgan debajo del titulo (por eso llevan marginTop). Como
+            // fila se sentaban al lado de "Agenda" y, con los cinco controles de
+            // la derecha, acababan tapandolo.
             display: "flex",
-            alignItems: "center",
-            gap: 12,
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "flex-start" : "center",
+            gap: isMobile ? 0 : 12,
             minWidth: 0,
+            flex: isMobile ? "1 1 0" : undefined,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
             <h1
               style={{
                 margin: 0,
@@ -3899,7 +3963,10 @@ export default function AgendaCalendar() {
               a simple vista si una franja atenuada era "fuera de turno de esta
               persona" o "el salon entero cerrado" — colores parecidos, motivos
               muy distintos. */}
-          {view === "day" && bloqueoTiposHoy.size > 0 && (
+          {/* Fuera de movil: alli esta leyenda robaba una o dos lineas enteras de
+              la cabecera para explicar colores que ya se ven en la rejilla, y el
+              alto es justo lo que le falta al calendario en pantalla pequena. */}
+          {!isMobile && view === "day" && bloqueoTiposHoy.size > 0 && (
             <div
               style={{
                 display: "flex",
@@ -4108,7 +4175,12 @@ export default function AgendaCalendar() {
           }}
         >
           {/* Boton Ocultar Filtros eliminado. En movil no pliega ningun rail
-              (no lo hay): apaga la barra de titulo y la de controles. */}
+              (no lo hay): apaga la barra de titulo y la de controles.
+              En MOVIL no se pinta aqui: habia dos botones identicos de pantalla
+              completa, este y el de la fila de la fecha. El de abajo es el que
+              manda, porque es el unico que sigue visible una vez esta barra se
+              oculta. */}
+          {!isMobile && (
           <button
             onClick={alternarPantallaCompleta}
             title={
@@ -4164,8 +4236,12 @@ export default function AgendaCalendar() {
               </span>
             )}
           </button>
+          )}
           {/* Boton Organizar movido abajo */}
           {/* Boton Hoy movido abajo */}
+          {/* "Cerrar salon" no cabe en la fila de movil junto al titulo, la
+              campana, la lista de espera y "Cita": vive en la hoja de filtros. */}
+          {!isMobile && (
           <button
             onClick={() => setShowCierreSalon(true)}
             title="Cerrar salon"
@@ -4196,6 +4272,7 @@ export default function AgendaCalendar() {
             <Icon name="x" size={15} color="#ef4444" />
             {!isMobile && "Cerrar salon"}
           </button>
+          )}
           <button
             className="m-btn-primary"
             onClick={() => {
@@ -4895,12 +4972,12 @@ export default function AgendaCalendar() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: isMobile ? 8 : 12,
                     minWidth: 0,
-                    // Red de seguridad: si un titulo largo no cupiera junto a las
-                    // flechas, baja de linea en vez de desbordar.
-                    flexWrap: isMobile ? "wrap" : "nowrap",
-                    rowGap: isMobile ? 8 : 0,
+                    // En movil NO envuelve: la fecha se recorta con puntos
+                    // suspensivos antes que llevarse una fila entera de alto.
+                    flexWrap: "nowrap",
+                    rowGap: 0,
                     flex: isMobile ? 1 : undefined,
                   }}
                 >
@@ -5002,9 +5079,10 @@ export default function AgendaCalendar() {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
+                        gap: isMobile ? 6 : 8,
                         marginBottom: 0,
-                        flexWrap: "wrap",
+                        flexWrap: isMobile ? "nowrap" : "wrap",
+                        minWidth: 0,
                       }}
                     >
                       <h2
@@ -5014,6 +5092,11 @@ export default function AgendaCalendar() {
                           fontWeight: 700,
                           letterSpacing: -0.3,
                           textTransform: "capitalize",
+                          // La fecha es el dato que da sentido a toda la pantalla:
+                          // si algo tiene que encogerse en esta fila, no es ella.
+                          ...(isMobile
+                            ? { whiteSpace: "nowrap" as const, flexShrink: 0 }
+                            : null),
                         }}
                       >
                         {view === "month"
@@ -5022,7 +5105,10 @@ export default function AgendaCalendar() {
                               year: "numeric",
                             })
                           : selectedDateObj.toLocaleDateString(LOCALE, {
-                              weekday: "long",
+                              // En movil el dia de la semana va abreviado: con el
+                              // nombre largo la fecha no cabia junto a las flechas
+                              // y bajaba de linea, gastando una fila entera.
+                              weekday: isMobile ? "short" : "long",
                               day: "numeric",
                               month: "short",
                             })}
@@ -5040,9 +5126,12 @@ export default function AgendaCalendar() {
                         </span>
                       )}
 
+                      {/* En movil el contador NO va aqui: viaja a la mini-barra
+                          de controles. Puesto en esta fila le robaba el ancho a
+                          la fecha, que acababa recortada ("Jue, 20 A..."). */}
                       {!isMobile && barraControlesAgenda}
                     </div>
-                    {!movilFullscreen && (
+                    {!isMobile && (
                       <div
                         style={{
                           fontSize: 11.5,
@@ -5826,26 +5915,33 @@ export default function AgendaCalendar() {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => {
-                    setProblemaEnfocado(null);
-                    setShowOrganizar(true);
-                  }}
-                  style={{
-                    padding: "5px 11px",
-                    borderRadius: 999,
-                    border: "none",
-                    background: TOKENS.primary,
-                    color: "#fff",
-                    fontSize: 11.5,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
-                  }}
-                >
-                  Arreglar
-                </button>
+                {/* "Arreglar" solo si hay algo que aplicar. Un 'hueco_vacio'
+                    llega con estrategias vacia a proposito (es informativo: te
+                    ensena que ese rato esta libre, no hay nada roto), y ofrecer
+                    ahi un boton de arreglar prometia una accion inexistente.
+                    La regla la marca el propio tipo en lib/organizarAgenda.ts. */}
+                {(!enfocado || enfocado.estrategias.length > 0) && (
+                  <button
+                    onClick={() => {
+                      setProblemaEnfocado(null);
+                      setShowOrganizar(true);
+                    }}
+                    style={{
+                      padding: "5px 11px",
+                      borderRadius: 999,
+                      border: "none",
+                      background: TOKENS.primary,
+                      color: "#fff",
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Arreglar
+                  </button>
+                )}
               </>
             );
           })()}
@@ -18971,42 +19067,128 @@ export function DetalleCitaModal({
                     renglones y los puntos se quedaban colgando al final de cada
                     uno ("Maria Garcia ·"), que era lo que se veia mal. */}
                 {isMobileOrTablet ? (
+                  // Tres lineas jerarquizadas en vez de una rejilla 2x3 de
+                  // etiquetas. La rejilla gastaba ~134 px para cinco datos
+                  // (cada uno con su rotulo en mayusculas encima) y quedaba
+                  // dentada, porque "Servicio" ocupaba las dos columnas y el
+                  // resto caia a media fila. Aqui los rotulos sobran: un nombre
+                  // se lee como un nombre y una hora como una hora.
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
-                      gap: "10px 14px",
-                      marginTop: 12,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                      marginTop: 8,
+                      minWidth: 0,
                     }}
                   >
-                    <DatoCita
-                      etiqueta="Servicio"
-                      valor={selectedServicio?.nombre || "—"}
-                      color={selectedServicioColor}
-                      anchoCompleto
-                    />
-                    <DatoCita
-                      etiqueta="Profesional"
-                      valor={selectedProf?.nombre || "—"}
-                    />
-                    <DatoCita etiqueta="Cuándo" valor={citaDate} />
-                    <DatoCita
-                      etiqueta="Hora"
-                      valor={`${citaHora} - ${citaFinHora}`}
-                    />
-                    <DatoCita
-                      etiqueta="Duración y precio"
-                      valor={`${totalMin} min · ${selectedServicio?.precio ?? 0} €`}
-                      destacado
-                    />
-                    {espera > 0 && (
-                      <div style={{ gridColumn: "1 / -1" }}>
-                        <DatoCita
-                          etiqueta="Fases"
-                          valor={`${activo}m activo · ${espera}m reposo${activo2 > 0 ? ` · ${activo2}m activo` : ""}`}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        minWidth: 0,
+                        fontSize: 13.5,
+                        fontWeight: 700,
+                        color: TOKENS.text,
+                      }}
+                    >
+                      {selectedServicioColor && (
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: 99,
+                            background: selectedServicioColor,
+                            flexShrink: 0,
+                          }}
                         />
-                      </div>
-                    )}
+                      )}
+                      <span
+                        style={{
+                          minWidth: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={selectedServicio?.nombre || "—"}
+                      >
+                        {selectedServicio?.nombre || "—"}
+                      </span>
+                    </div>
+                    {/* Separadores intercalados, nunca al final: el bullet es un
+                        elemento entre pareja y pareja, asi que no quedan puntos
+                        colgando cuando la linea envuelve. */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: 6,
+                        fontSize: 12,
+                        color: TOKENS.textSec,
+                        minWidth: 0,
+                      }}
+                    >
+                      {[
+                        selectedProf?.nombre || "—",
+                        citaDate,
+                        `${citaHora} - ${citaFinHora}`,
+                      ].map((txt, i) => (
+                        <Fragment key={i}>
+                          {i > 0 && (
+                            <span
+                              style={{
+                                width: 3,
+                                height: 3,
+                                borderRadius: 99,
+                                background: TOKENS.textTer,
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
+                          <span style={{ whiteSpace: "nowrap" }}>{txt}</span>
+                        </Fragment>
+                      ))}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        flexWrap: "wrap",
+                        gap: 8,
+                        marginTop: 2,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: TOKENS.text,
+                          letterSpacing: -0.2,
+                        }}
+                      >
+                        {totalMin} min
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: TOKENS.primaryHi,
+                          letterSpacing: -0.2,
+                        }}
+                      >
+                        {selectedServicio?.precio ?? 0} €
+                      </span>
+                      {espera > 0 && (
+                        <span
+                          style={{ fontSize: 11.5, color: TOKENS.textSec }}
+                        >
+                          {activo}m activo · {espera}m reposo
+                          {activo2 > 0 ? ` · ${activo2}m activo` : ""}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ) : (
                 <>
