@@ -73,7 +73,7 @@ import { CobroSheet } from "@/components/pos/CobroSheet";
 import { useOnboardingStatus } from "@/lib/hooks/useOnboardingStatus";
 import { OnboardingCard } from "@/components/onboarding/OnboardingCard.web";
 import OnboardingPanel from "@/components/onboarding/OnboardingPanel.web";
-import BienvenidaPrimeraVez from "@/components/onboarding/BienvenidaPrimeraVez.web";
+import AsistentePuestaEnMarcha from "@/components/onboarding/AsistentePuestaEnMarcha.web";
 import { ONBOARDING_STEPS, type OnboardingStepId } from "@/lib/onboarding";
 import {
   CHISPA_CONFIG_GUIADA_EVENT,
@@ -886,6 +886,24 @@ export default function AgendaCalendar() {
     }, [refreshClientesFuga]),
   );
 
+  // ¿Este salon ya vio el asistente de puesta en marcha? Se consulta SOLO, con su
+  // propia peticion, y no dentro del cargador general de la agenda: ese carga
+  // citas y clientes, asi que va detras del muro de consentimiento de privacidad
+  // y de mas datos. El asistente no ensena datos de clientes (pregunta la
+  // configuracion del salon), asi que debe poder salir antes que todo eso.
+  useEffect(() => {
+    if (!onboardingEligible || !negocioId) return;
+    let vivo = true;
+    supabase
+      .from("negocio_config").select("config").eq("negocio_id", negocioId).maybeSingle()
+      .then(({ data }) => {
+        if (!vivo) return;
+        const cfg = (data?.config ?? {}) as Record<string, unknown>;
+        setBienvenidaVista(cfg.bienvenidaVista === true);
+      });
+    return () => { vivo = false; };
+  }, [negocioId, onboardingEligible]);
+
   // Reapertura del panel desde Ajustes (navega con ?onboarding=1).
   useEffect(() => {
     if (obParams?.onboarding === "1" && onboardingEligible)
@@ -1178,7 +1196,6 @@ export default function AgendaCalendar() {
         });
         setNegocioId(negocioId);
         setUserProfile(profile || null);
-        setBienvenidaVista(cfg.bienvenidaVista === true);
 
         if (profResult.error) console.error("Prof error:", profResult.error);
         if (citaResult.error) console.error("Cita error:", citaResult.error);
@@ -5893,7 +5910,7 @@ export default function AgendaCalendar() {
         && bienvenidaVista === false
         && onboarding.ready
         && !onboarding.coreDone && (
-        <BienvenidaPrimeraVez
+        <AsistentePuestaEnMarcha
           isMobile={isMobile}
           negocioId={negocioId}
           nombre={userProfile?.nombre ?? ""}
