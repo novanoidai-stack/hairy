@@ -2058,8 +2058,8 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
                 }
               }}
               options={[
-                { value: 'individual', label: '📱 Cada uno con su correo' },
-                { value: 'compartido', label: '🖥️ Correo único + PIN' },
+                { value: 'individual', label: 'Cada uno con su correo' },
+                { value: 'compartido', label: 'Correo único + PIN' },
               ]}
             />
           </div>

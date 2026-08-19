@@ -73,6 +73,7 @@ import { CobroSheet } from "@/components/pos/CobroSheet";
 import { useOnboardingStatus } from "@/lib/hooks/useOnboardingStatus";
 import { OnboardingCard } from "@/components/onboarding/OnboardingCard.web";
 import OnboardingPanel from "@/components/onboarding/OnboardingPanel.web";
+import BienvenidaPrimeraVez from "@/components/onboarding/BienvenidaPrimeraVez.web";
 import { ONBOARDING_STEPS, type OnboardingStepId } from "@/lib/onboarding";
 import {
   CHISPA_CONFIG_GUIADA_EVENT,
@@ -670,6 +671,9 @@ export default function AgendaCalendar() {
   const [capturaHoldAuto, setCapturaHoldAuto] = useState(true); // depositoNoShowCapturaAuto: capturar la fianza retenida al marcar no-show
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<any | null>(null);
+  // null = todavia no sabemos si este salon ya vio la bienvenida (negocio_config).
+  // Mientras sea null no se pinta nada: es preferible a que aparezca y se quite.
+  const [bienvenidaVista, setBienvenidaVista] = useState<boolean | null>(null);
   const [dayViewType, setDayViewType] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -1174,6 +1178,7 @@ export default function AgendaCalendar() {
         });
         setNegocioId(negocioId);
         setUserProfile(profile || null);
+        setBienvenidaVista(cfg.bienvenidaVista === true);
 
         if (profResult.error) console.error("Prof error:", profResult.error);
         if (citaResult.error) console.error("Cita error:", citaResult.error);
@@ -5881,6 +5886,28 @@ export default function AgendaCalendar() {
         padding={8}
         radius={16}
       />
+      {/* Bienvenida de primera vez. Solo al duenio de un salon real, solo si este
+          salon no la ha visto nunca y aun no esta operativo: a un salon ya montado
+          (los que preconfiguramos nosotros) no se le interrumpe con esto. */}
+      {onboardingEligible
+        && bienvenidaVista === false
+        && onboarding.ready
+        && !onboarding.coreDone && (
+        <BienvenidaPrimeraVez
+          isMobile={isMobile}
+          negocioId={negocioId}
+          nombre={userProfile?.nombre ?? ""}
+          nombreSalon={userProfile?.nombre_negocio ?? ""}
+          trialEndsAt={userProfile?.trial_ends_at ?? null}
+          onCerrar={(abrirChecklist) => {
+            setBienvenidaVista(true);
+            if (abrirChecklist) {
+              setShowOnboardingPanel(true);
+              onboarding.refresh();
+            }
+          }}
+        />
+      )}
       {showOnboardingPanel && (
         <OnboardingPanel
           isMobile={isMobile}
