@@ -80,36 +80,30 @@ export async function runSeoTestSuite() {
   ];
 
   // Descubre las paginas SEO/AIO generadas (artefactos de build de
-  // generate-seo): landings de nicho/modulo/comparativa, paginas de ciudad y
-  // fichas de salon prerender. Se descubren por glob en web/.
-  const LANDING_DIRS = [
-    'software-barberia', 'software-estetica', 'verifactu-peluqueria',
-    'agenda-inteligente-peluqueria', 'fichaje-legal-peluqueria',
-    'reducir-no-shows-peluqueria', 'alternativa-booksy', 'alternativa-fresha',
-    'alternativa-treatwell', 'alternativa-square-appointments',
-    'software-unas-manicura', 'software-peluqueria-canina'
-  ];
+  // generate-seo): landings de nicho/modulo/comparativa, paginas de ciudad,
+  // matriz /{ciudad}/{servicio} y fichas de salon prerender.
   function discoverGeneratedPages() {
     const pages = [];
-    let entries = [];
-    try { entries = fs.readdirSync(webDir, { withFileTypes: true }); } catch (_) { return pages; }
-    for (const e of entries) {
-      if (!e.isDirectory()) continue;
-      const isLanding = LANDING_DIRS.includes(e.name);
-      const isCity = e.name.startsWith('peluquerias-en-');
-      if ((isLanding || isCity) && fs.existsSync(path.join(webDir, e.name, 'index.html'))) {
-        pages.push({ file: `${e.name}/index.html`, route: `/${e.name}`, kind: 'landing' });
-      }
-    }
-    const salonDir = path.join(webDir, 'salon');
-    if (fs.existsSync(salonDir) && fs.statSync(salonDir).isDirectory()) {
-      for (const d of fs.readdirSync(salonDir, { withFileTypes: true })) {
-        if (!d.isDirectory()) continue;
-        if (fs.existsSync(path.join(salonDir, d.name, 'index.html'))) {
-          pages.push({ file: `salon/${d.name}/index.html`, route: `/salon/${d.name}`, kind: 'salon', slug: d.name });
+    function scan(relPath) {
+      const fullPath = path.join(webDir, relPath);
+      let entries = [];
+      try { entries = fs.readdirSync(fullPath, { withFileTypes: true }); } catch (_) { return; }
+      for (const e of entries) {
+        if (!e.isDirectory()) continue;
+        if (e.name === 'app' || e.name === 'assets' || e.name === 'node_modules' || e.name.startsWith('.')) continue;
+
+        const subRel = relPath ? `${relPath}/${e.name}` : e.name;
+        const indexPath = path.join(webDir, subRel, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          const route = `/${subRel}`;
+          const isSalon = subRel.startsWith('salon/');
+          const kind = isSalon ? 'salon' : (subRel.startsWith('peluquerias-en-') ? 'city' : 'landing');
+          pages.push({ file: `${subRel}/index.html`, route, kind, slug: isSalon ? e.name : undefined });
         }
+        scan(subRel);
       }
     }
+    scan('');
     return pages;
   }
 
@@ -485,18 +479,18 @@ export async function runSeoTestSuite() {
         failures.push(`Schema #${idx + 1} (@type=${schema['@type']}) invalid @context "${ctx}"`);
       }
 
-      const type = schema['@type'];
-      if (type === 'SoftwareApplication' || type === 'WebApplication') {
-        if (!schema.name) failures.push(`Schema #${idx + 1} (${type}) missing mandatory property "name"`);
-        if (!schema.url) failures.push(`Schema #${idx + 1} (${type}) missing mandatory property "url"`);
-      } else if (type === 'Organization') {
+      const types = Array.isArray(schema['@type']) ? schema['@type'] : [schema['@type']];
+      if (types.includes('SoftwareApplication') || types.includes('WebApplication')) {
+        if (!schema.name) failures.push(`Schema #${idx + 1} (${types.join('+')}) missing mandatory property "name"`);
+        if (!schema.url) failures.push(`Schema #${idx + 1} (${types.join('+')}) missing mandatory property "url"`);
+      } else if (types.includes('Organization')) {
         if (!schema.name) failures.push(`Schema #${idx + 1} (Organization) missing mandatory property "name"`);
         if (!schema.url) failures.push(`Schema #${idx + 1} (Organization) missing mandatory property "url"`);
-      } else if (type === 'BreadcrumbList') {
+      } else if (types.includes('BreadcrumbList')) {
         if (!Array.isArray(schema.itemListElement)) failures.push(`Schema #${idx + 1} (BreadcrumbList) missing mandatory array "itemListElement"`);
-      } else if (type === 'LocalBusiness' || type === 'HairSalon') {
-        if (!schema.name) failures.push(`Schema #${idx + 1} (${type}) missing mandatory property "name"`);
-        if (!schema.url) failures.push(`Schema #${idx + 1} (${type}) missing mandatory property "url"`);
+      } else if (types.includes('LocalBusiness') || types.includes('HairSalon') || types.includes('BeautySalon')) {
+        if (!schema.name) failures.push(`Schema #${idx + 1} (${types.join('+')}) missing mandatory property "name"`);
+        if (!schema.url) failures.push(`Schema #${idx + 1} (${types.join('+')}) missing mandatory property "url"`);
       }
     });
 
@@ -507,7 +501,7 @@ export async function runSeoTestSuite() {
   }
 
   // T2.6.1 - Generated SEO Pages Integrity (canonical por slug, JSON-LD, robots)
-  // Verifica que las paginas generadas (landings, ciudades, fichas prerender)
+  // Verifica que las paginas generadas (landings, ciudades, fichas prerender, 2D)
   // tienen canonical coincidente con su ruta (no la generica /salon), robots
   // indexable y JSON-LD que parsea.
   try {
@@ -544,7 +538,7 @@ export async function runSeoTestSuite() {
 
   // T3.1.1 - Sitemap & Canonical URL Parity (estricta)
   // Cada URL del sitemap debe tener una pagina HTML cuyo canonical coincida
-  // exactamente. Incluye estaticas + landings + ciudades + fichas prerender.
+  // exactamente. Incluye estaticas + landings + ciudades + fichas prerender + 2D.
   try {
     const sitemapPath = path.join(webDir, 'sitemap.xml');
     const xml = fs.readFileSync(sitemapPath, 'utf8');
@@ -571,21 +565,17 @@ export async function runSeoTestSuite() {
   try {
     const robotsPath = path.join(webDir, 'robots.txt');
     const robotsTxt = fs.readFileSync(robotsPath, 'utf8');
-    const match = robotsTxt.match(/Sitemap:\s*([^\s]+)/i);
     const failures = [];
 
-    if (!match) {
-      failures.push('robots.txt missing Sitemap directive');
-    } else {
-      const sitemapDirective = match[1].trim();
-      const expectedSitemapUrl = 'https://www.mechaa.es/sitemap.xml';
-      if (sitemapDirective !== expectedSitemapUrl) {
-        failures.push(`robots.txt Sitemap directive "${sitemapDirective}" does not match "${expectedSitemapUrl}"`);
-      }
+    if (!robotsTxt.includes('Sitemap: https://www.mechaa.es/sitemap.xml')) {
+      failures.push('robots.txt missing Sitemap directive https://www.mechaa.es/sitemap.xml');
+    }
+    if (!robotsTxt.includes('Sitemap: https://www.mechaa.es/sitemap-marketplace.xml')) {
+      failures.push('robots.txt missing Sitemap directive https://www.mechaa.es/sitemap-marketplace.xml');
     }
 
     const passed = failures.length === 0;
-    recordResult('tier3', 'T3.1.2', 'Robots.txt & Sitemap URL Parity', passed, passed ? 'Sitemap directive in robots.txt matches sitemap URL' : failures.join('; '));
+    recordResult('tier3', 'T3.1.2', 'Robots.txt & Sitemap URL Parity', passed, passed ? 'Sitemap directives in robots.txt match sitemaps URLs' : failures.join('; '));
   } catch (err) {
     recordResult('tier3', 'T3.1.2', 'Robots.txt & Sitemap URL Parity', false, err.message);
   }

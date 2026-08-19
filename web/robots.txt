@@ -21,6 +21,15 @@ Allow: /llms-full.txt
 Allow: /salones
 Allow: /salon/*
 Allow: /peluquerias-en-*
+Allow: /*/balayage
+Allow: /*/mechas-babylights
+Allow: /*/alisado-keratina
+Allow: /*/barberias-degradado
+Allow: /*/barberias/degradado
+Allow: /*/afeitado-clasico
+Allow: /*/unas-semipermanentes
+Allow: /*/tratamiento-olaplex
+Allow: /*/botox-capilar
 Allow: /software-*
 Allow: /alternativa-*
 Allow: /verifactu-*
@@ -45,3 +54,4 @@ Disallow: /app/
 # https://www.mechaa.es/llms-full.txt
 
 Sitemap: https://www.mechaa.es/sitemap.xml
+Sitemap: https://www.mechaa.es/sitemap-marketplace.xml

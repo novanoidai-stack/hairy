@@ -8,6 +8,7 @@ import { fetchSalones } from './seo/data.mjs';
 import { prerenderSalons } from './seo/prerender-salons.mjs';
 import { generateCityPages } from './seo/generate-city-pages.mjs';
 import { generateLandingPages } from './seo/generate-landing-pages.mjs';
+import { generateSeoPages } from './seo/generate-seo-pages.mjs';
 
 async function main() {
   const t0 = Date.now();
@@ -18,8 +19,9 @@ async function main() {
   const salonSlugs = prerenderSalons(salones);
   const cities = generateCityPages(salones);
   const landings = generateLandingPages();
+  const serviceCityPages = generateSeoPages(salones);
 
-  console.log(`——— SEO/AIO build ok (${Date.now() - t0}ms): ${salonSlugs.length} fichas, ${cities.length} ciudades, ${landings.length} landings ———`);
+  console.log(`——— SEO/AIO build ok (${Date.now() - t0}ms): ${salonSlugs.length} fichas, ${cities.length} ciudades, ${landings.length} landings, ${serviceCityPages.length} landings locales 2D ———`);
 }
 
 main().catch(err => {

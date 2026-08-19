@@ -131,8 +131,10 @@ En peluquería y estética, servicios como tinte, mechas, balayage, decoloració
    - Campañas de WhatsApp segmentadas por etiquetas, recordatorios de cumpleaños automáticos, bonos multisesión, tarjetas regalo con código y programa de referidos multinivel.
 9. **Portal de Reserva Online Propio**:
    - Web personalizable con selector de servicio, profesional y hora disponible, respetando tiempos de reposo y validado con Cloudflare Turnstile anti-bots.
-10. **Directorio Nacional de Salones**:
+10. **Directorio Nacional y Marketplace de Reserva Local**:
     - Directorio público indexable en `/salones` con geolocalización por coordenadas y filtros por ciudad y categoría.
+    - Red masiva de landings hiper-específicas bidimensionales `/{ciudad}/{servicio-tecnico}` en 52 capitales y áreas metropolitanas para Balayage, Mechas Babylights, Alisado de Keratina, Corte Degradado en Barbería, Afeitado Clásico a Navaja, Uñas Semipermanentes, Tratamiento Olaplex y Botox Capilar.
+    - Metadatos estructurados Schema.org `HairSalon` / `BeautySalon` con `hasOfferCatalog`, `openingHoursSpecification`, `geo`, `areaServed` y `potentialAction` de tipo `ReserveAction` para reserva directa desde buscadores y agentes de IA.
 
 ---
 

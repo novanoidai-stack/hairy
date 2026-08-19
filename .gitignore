@@ -49,18 +49,68 @@ __pycache__/
 web/assets/comisiones/
 
 # Paginas SEO/AIO generadas (artefactos de build). El source-of-truth vive en
-# scripts/seo/*.mjs (pages.mjs, data.mjs, render.mjs). Se regeneran con
-# `npm run generate:seo`. web/salon.html (la plantilla) SI se versiona.
+# scripts/seo/*.mjs (pages.mjs, data.mjs, render.mjs, services-data.mjs, generate-seo-pages.mjs).
+# Se regeneran con `npm run generate:seo`. web/salon.html (la plantilla) SI se versiona.
 web/salon/*/
 web/peluquerias-en-*/
-web/software-barberia/
-web/software-estetica/
-web/verifactu-peluqueria/
-web/agenda-inteligente-peluqueria/
-web/fichaje-legal-peluqueria/
-web/reducir-no-shows-peluqueria/
-web/alternativa-booksy/
-web/alternativa-fresha/
+web/software-*/
+web/alternativa-*/
+web/verifactu-*/
+web/agenda-*/
+web/fichaje-*/
+web/reducir-*/
+web/a-coruna/
+web/alicante/
+web/almeria/
+web/badajoz/
+web/badalona/
+web/barcelona/
+web/bilbao/
+web/burgos/
+web/caceres/
+web/cadiz/
+web/cartagena/
+web/ciudad-real/
+web/cordoba/
+web/elche/
+web/fuenlabrada/
+web/getafe/
+web/gijon/
+web/girona/
+web/granada/
+web/huelva/
+web/jaen/
+web/jerez-de-la-frontera/
+web/las-palmas-de-gran-canaria/
+web/leganes/
+web/leon/
+web/logrono/
+web/lugo/
+web/madrid/
+web/malaga/
+web/marbella/
+web/murcia/
+web/ourense/
+web/oviedo/
+web/palencia/
+web/palma-de-mallorca/
+web/pamplona/
+web/pontevedra/
+web/sabadell/
+web/salamanca/
+web/san-sebastian/
+web/santa-cruz-de-tenerife/
+web/santander/
+web/sevilla/
+web/tarragona/
+web/terrassa/
+web/toledo/
+web/valencia/
+web/valladolid/
+web/vigo/
+web/vitoria-gasteiz/
+web/zamora/
+web/zaragoza/
 
 # Herramientas de agente y pruebas temporales
 .agents/
@@ -73,6 +123,5 @@ test-results/
 .env_*
 *.bak*
 /*.png
-
 
 .vercel-token.txt
