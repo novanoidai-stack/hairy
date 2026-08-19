@@ -1050,17 +1050,17 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha<span class="dot" style="color:var(--accent,#f4501e)">.</span></span></div>
   <span class="dm-pill"><span class="d"></span>Demo</span>
   <div class="dm-tutsel" id="tutSel">
-    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Recorrido 1 · Pilares Esenciales — el más importante, empieza por aquí (20 pasos · ≈ 2 min)">
+    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Recorrido 1 · Pilares Esenciales — el más importante, empieza por aquí (29 pasos · ≈ 3 min)">
       <span class="pnum">1</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
       <span class="lbl">1 · Esenciales ★</span>
     </button>
-    <button class="dm-tut" id="tutBtnAdvanced" type="button" title="Recorrido 2: Funciones Avanzadas (26 pasos · ≈ 2 min)">
+    <button class="dm-tut" id="tutBtnAdvanced" type="button" title="Recorrido 2: Funciones Avanzadas (41 pasos · ≈ 5 min)">
       <span class="pnum">2</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
       <span class="lbl">2 · Avanzadas</span>
     </button>
-    <button class="dm-tut" id="tutBtnConfig" type="button" title="Recorrido 3: Nueva Configuración (17 pasos · ≈ 2 min)">
+    <button class="dm-tut" id="tutBtnConfig" type="button" title="Recorrido 3: Nueva Configuración (18 pasos · ≈ 2 min)">
       <span class="pnum">3</span>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
       <span class="lbl">3 · Configuración</span>
@@ -1743,7 +1743,19 @@
     {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-cobro', ph:'Cobro y caja',
      t:'Lo que queda por cobrar, en una lista', d:'Las citas ya hechas y sin cobrar te esperan aquí. Puedes **cobrar varias juntas** de la misma clienta, con sus productos incluidos.'},
     {ic:'rep', route:'/(tabs)/caja', action:'zona-caja-arqueo', ph:'Cobro y caja',
-     t:'El arqueo del día, cuadrado solo', d:'Cobrado hoy, efectivo, datáfono, propinas e IVA estimado. **Cierras el día en 10 segundos** y descargas el registro cuando quieras.'}
+     t:'El arqueo del día, cuadrado solo', d:'Cobrado hoy, efectivo, datáfono, propinas e IVA estimado. **Cierras el día en 10 segundos** y descargas el registro cuando quieras.'},
+    // --- Acto 6: el portal publico (donde entra la cita sin que tu hagas nada) ---
+    // Es la otra mitad de la historia: hasta aqui el recorrido enseña el software
+    // por dentro, y esto es lo que ve la CLIENTA. Vive en otra ruta (/r/<slug>),
+    // que el puente de navegacion acepta igual que las pantallas de la app.
+    {ic:'org', route:'/r/demo', action:'zona-portal-cabecera', ph:'Tu portal',
+     t:'Y esto es lo que ve tu clienta', d:'Tu **página de reservas** propia, con tu nombre y tus fotos. Se comparte por WhatsApp, por Instagram o con un QR en el mostrador. **Sin comisiones y sin intermediarios.**'},
+    {ic:'nueva', route:'/r/demo', action:'zona-portal-servicios', ph:'Tu portal',
+     t:'Tu catálogo, con sus precios y sus tiempos', d:'Sale de tu pantalla de Servicios: lo que cambias ahí, cambia aquí. Puedes **esconder los precios** o dejar fuera del portal los servicios que prefieras dar tú.'},
+    {ic:'clientes', route:'/r/demo', action:'zona-portal-profesional', ph:'Tu portal',
+     t:'Con quién quiere ir', d:'La clienta elige profesional o deja **"cualquiera disponible"**. Cada quien solo aparece en los servicios que hace de verdad, con su propia duración.'},
+    {ic:'agenda', route:'/r/demo', action:'zona-portal-hora', ph:'Tu portal',
+     t:'Solo huecos que existen de verdad', d:'Los mismos que tu agenda: horario del salón, silla libre y **el reposo de otra cita ya aprovechado**. Reserva a las 23:40 y por la mañana la tienes en la agenda, confirmada.'}
   ];
   // Alias historicos: el selector de la barra y los enlaces antiguos usan 'general'.
   var TUT_ESSENTIALS = TUT_PILARES;
@@ -1786,6 +1798,8 @@
      t:'Pantalla de Equipo', d:'Tu gente: fichas, horarios, comisiones y accesos. Una pantalla, **tres vistas** dentro.'},
     {ic:'clientes', route:'/(tabs)/equipo', action:'zona-equipo-fichas', ph:'Equipo',
      t:'Tu equipo, ficha a ficha', d:'Cada profesional con su color en la agenda, su categoría, sus servicios y su **cuenta de acceso** propia si la necesita.'},
+    {ic:'clientes', route:'/(tabs)/equipo', action:'zona-equipo-ficha', ph:'Equipo',
+     t:'Y esto es una ficha por dentro', d:'Abrimos una: **datos, categoría, servicios que hace, horario y comisión**. Aquí también se le da (o se le quita) su cuenta de acceso, sin llamar a nadie.'},
     {ic:'rep', route:'/(tabs)/equipo', action:'zona-equipo-comisiones', ph:'Equipo',
      t:'Quién factura y cuánto se lleva', d:'Ingresos, ticket medio y **comisión devengada** por persona, en servicios y en productos. Sin hojas de cálculo.'},
     {ic:'org', route:'/(tabs)/mi-jornada', action:'zona-nav-mi-jornada', ph:'Fichajes',
@@ -1818,6 +1832,10 @@
      t:'Pantalla de Informes', d:'Tus números de verdad: ingresos cobrados, margen, ocupación y **registros** para tu gestoría.'},
     {ic:'rep', route:'/(tabs)/informes', action:'zona-informes-kpis', ph:'Informes',
      t:'Tus números, sin interpretarlos tú', d:'Ingresos **cobrados de verdad** (no estimados), propinas, margen y ocupación. Lo previsto del catálogo va aparte y etiquetado.'},
+    {ic:'rep', route:'/(tabs)/informes', action:'zona-informes-evolucion', ph:'Informes',
+     t:'Y cómo va la cosa mes a mes', d:'Ingresos y volumen de citas **en el tiempo**, no un número suelto. Cada gráfica se explica sola: debajo te dice qué está diciendo con TUS datos.'},
+    {ic:'rep', route:'/(tabs)/informes', action:'zona-informes-ocupacion', ph:'Informes',
+     t:'Quién trabaja qué, y a qué horas', d:'El reparto de las citas por profesional, por servicio y por franja. Es lo que te dice **qué día flojea** y a quién le sobra o le falta agenda.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', ph:'Informes',
      t:'Descárgalo y mándalo', d:'El informe entero en **PDF** con tu marca o en **CSV** para tu gestor. En un clic.', viz:'export'},
     {ic:'org', route:'/(tabs)/ayuda', action:'zona-nav-ayuda', ph:'La IA',
@@ -1902,16 +1920,17 @@
     {nombre:'La cita por dentro', sub:'Estados, productos y cobro', desde:8, hasta:12},
     {nombre:'Los reposos', sub:'La hora muerta que pasa a facturar', desde:13, hasta:15},
     {nombre:'La ficha', sub:'Color, alergias e historial', desde:16, hasta:21},
-    {nombre:'Cobro y caja', sub:'Cobrar y cuadrar el día', desde:22, hasta:24}
+    {nombre:'Cobro y caja', sub:'Cobrar y cuadrar el día', desde:22, hasta:24},
+    {nombre:'Tu portal', sub:'Lo que ve tu clienta al reservar', desde:25, hasta:28}
   ];
   var ACTS_ESSENTIALS = ACTS_PILARES;
   var ACTS_GENERAL = ACTS_PILARES;
   var ACTS_ADVANCED=[
     {nombre:'Citas y huecos', sub:'Buscador, confirmaciones y lista de espera', desde:0, hasta:6},
     {nombre:'Dinero y stock', sub:'Presupuestos, inventario y registros', desde:7, hasta:15},
-    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:16, hasta:21},
-    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:22, hasta:31},
-    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:32, hasta:37}
+    {nombre:'Equipo', sub:'Fichas, comisiones y fichajes', desde:16, hasta:22},
+    {nombre:'Clientes y marketing', sub:'Bandeja, campañas y reseñas', desde:23, hasta:32},
+    {nombre:'Números e IA', sub:'Informes, Chispa y soporte', desde:33, hasta:40}
   ];
   var ACTS_CONFIG=[
     {nombre:'Tu negocio', sub:'Identidad y horarios', desde:0, hasta:2},

@@ -1325,10 +1325,20 @@ export default function AgendaCalendar() {
           // Lo ideal para el tour: una cita real con reposo Y formula (cuenta toda
           // la historia). Si no la hay, sintetizamos una de ejemplo para que estado,
           // secuencia y formula nunca queden vacios.
+          // Del DIA QUE SE ESTA VIENDO, ademas. La agenda carga tambien citas de
+          // otros dias, asi que el recorrido acababa abriendo una del mes pasado:
+          // se veia una fecha vieja en la cabecera y le faltaba lo que el paso
+          // siguiente promete (los productos que se lleva, que solo tiene la cita
+          // preparada de hoy).
+          const hoyKey = new Date().toDateString();
+          const esDeHoy = (c: any) =>
+            c?.inicio && new Date(c.inicio).toDateString() === hoyKey;
+          const mejor = (filtro: (c: any) => boolean) =>
+            pool.find((c: any) => esDeHoy(c) && filtro(c)) || pool.find(filtro);
           const pick =
-            pool.find((c: any) => conReposo(c) && conFormula(c)) ||
-            pool.find(conReposo) ||
-            pool.find(conFormula) ||
+            mejor((c: any) => conReposo(c) && conFormula(c)) ||
+            mejor(conReposo) ||
+            mejor(conFormula) ||
             buildDemoCita();
           if (pick) {
             setSelectedCitaEdit(pick);
@@ -12449,6 +12459,11 @@ function NewCitaModal({
     const tryPick = () => {
       tries++;
       const zone = horaZoneRef.current;
+      // Los huecos son un interruptor: volver a pulsar el que ya esta puesto lo
+      // APAGA. El recorrido pasa por dos pasos seguidos que eligen hora (encadenar
+      // y luego la hora), asi que el segundo deseleccionaba lo del primero y se
+      // veia como un parpadeo raro. Si ya hay hora elegida, no se toca nada.
+      if (zone && zone.querySelector('button[data-slot][data-sel="1"]')) return;
       const btn = zone
         ? kind === "reposo"
           ? (zone.querySelector(
@@ -12477,6 +12492,23 @@ function NewCitaModal({
   // real es el servicio estrella (color/mechas), el que tiene extras y tiempo de
   // reposo, asi que el recorrido cuenta la historia completa. Coger servicios[0]
   // dejaba una barba de 12 EUR con un solo extra y sin reposo.
+  // Clienta que enseña la demo al crear la cita: la de ficha mas completa, no la
+  // primera por orden alfabetico. Con el fichero de la demo lleno (cientos de
+  // nombres) esa primera era un senor cualquiera sin datos, y justo despues el
+  // recorrido elige un servicio de color: no pegaba ni con cola.
+  const clienteDemo = (clientes: any[]): any => {
+    if (!clientes.length) return null;
+    const relleno = (c: any) =>
+      (c?.alergias ? 2 : 0) +
+      (c?.notas ? 2 : 0) +
+      ((c?.etiquetas?.length ?? 0) > 0 ? 1 : 0) +
+      (Number(c?.ticket_medio ?? 0) > 0 ? 1 : 0);
+    return clientes.reduce(
+      (mejor: any, c: any) => (relleno(c) > relleno(mejor) ? c : mejor),
+      clientes[0],
+    );
+  };
+
   const servicioDemo = (servicios: any[]): any =>
     servicios.reduce(
       (mejor: any, s: any) =>
@@ -12489,12 +12521,12 @@ function NewCitaModal({
     const applyZone = (action: string) => {
       const d = dataRef.current;
       const srv = servicioDemo(d.servicios);
+      const cli = clienteDemo(d.clientes);
       if (action === "cita-cliente") {
-        if (d.clientes[0]) setSelectedCliente(d.clientes[0].id);
+        if (cli) setSelectedCliente(cli.id);
         setDemoZone("cliente");
       } else if (action === "cita-servicio") {
-        if (d.clientes[0])
-          setSelectedCliente((p: any) => p || d.clientes[0].id);
+        if (cli) setSelectedCliente((p: any) => p || cli.id);
         if (srv) setSelectedServicio(srv.id);
         setDemoZone("servicio");
       } else if (action === "cita-hora") {
@@ -12511,8 +12543,7 @@ function NewCitaModal({
         pickDemoSlot("reposo");
       } else if (action === "cita-addons") {
         // Los extras solo se pintan con un servicio elegido: lo aseguramos.
-        if (d.clientes[0])
-          setSelectedCliente((p: any) => p || d.clientes[0].id);
+        if (cli) setSelectedCliente((p: any) => p || cli.id);
         if (srv) setSelectedServicio((p: any) => p || srv.id);
         if (d.profesionales[0])
           setSelectedProf((p: string) => p || d.profesionales[0].id);
@@ -12520,13 +12551,15 @@ function NewCitaModal({
       } else if (action === "cita-encadenar") {
         // "+ Encadenar otro" solo aparece con el formulario completo (cliente,
         // servicio, profesional y hora), asi que rellenamos todo y elegimos hueco.
-        if (d.clientes[0])
-          setSelectedCliente((p: any) => p || d.clientes[0].id);
+        if (cli) setSelectedCliente((p: any) => p || cli.id);
         if (srv) setSelectedServicio((p: any) => p || srv.id);
         if (d.profesionales[0])
           setSelectedProf((p: string) => p || d.profesionales[0].id);
-        pickDemoSlot("hora");
+        // Primero la zona y luego el hueco: si se elige el hueco antes, el
+        // formulario crece (aparece "+ Encadenar otro") DESPUES de que el foco
+        // haya medido, y el recuadro se queda donde ya no hay nada.
         setDemoZone("encadenar");
+        pickDemoSlot("hora");
       } else if (action === "cerrar") {
         setDemoZone(null);
       }
@@ -12574,10 +12607,15 @@ function NewCitaModal({
     const ref = demoZoneRefs[demoZone] || horaZoneRef;
     let tries = 0;
     let raf = 0;
+    // Segundo pase: el paso rellena el formulario y el modal sigue creciendo un
+    // poco despues (extras, hueco elegido, "+ Encadenar otro"). Con un solo
+    // scroll el bloque acababa desplazado; se reasienta una vez mas al final.
+    let reasentar = 0;
     const intentar = () => {
       const el = ref.current;
       if (el && el.getBoundingClientRect().height > 0) {
         traerAlFoco(el);
+        reasentar = window.setTimeout(() => traerAlFoco(ref.current), 700);
         return;
       }
       // Hasta ~4 s: "+ Encadenar otro" solo aparece con el formulario completo,
@@ -12585,7 +12623,10 @@ function NewCitaModal({
       if (tries++ < 240) raf = requestAnimationFrame(intentar);
     };
     intentar();
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(reasentar);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoZone]);
 
@@ -13608,14 +13649,20 @@ function NewCitaModal({
           maxWidth: isMobileOrTablet ? "100%" : 580,
           // dvh (no vh): en movil el alto de la barra del navegador NO se descuenta
           // con vh, y el fondo del modal (con el boton Reservar) quedaba cortado.
-          height: isMobileOrTablet ? "92dvh" : "auto",
-          maxHeight: isMobileOrTablet ? "92dvh" : "90vh",
+          //
+          // PANTALLA COMPLETA en movil (100dvh, sin esquinas redondeadas): crear
+          // una cita es un formulario largo —clienta, servicio, extras,
+          // encadenados y rejilla de horas— y en una hoja al 92 % se veian dos
+          // campos y media rejilla. El 8 % que se dejaba de fondo oscuro no
+          // aportaba nada y costaba una fila de huecos.
+          height: isMobileOrTablet ? "100dvh" : "auto",
+          maxHeight: isMobileOrTablet ? "100dvh" : "90vh",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
           background: TOKENS.bgPanel,
           border: isMobileOrTablet ? "none" : `1px solid ${TOKENS.borderHi}`,
-          borderRadius: isMobileOrTablet ? "24px 24px 0 0" : 18,
+          borderRadius: isMobileOrTablet ? 0 : 18,
           boxShadow:
             "0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)",
           animation: isMobileOrTablet
@@ -15637,6 +15684,7 @@ function NewCitaModal({
                             key={time}
                             data-slot={time}
                             data-reposo={esReposo ? "1" : "0"}
+                            data-sel={selected ? "1" : "0"}
                             onClick={() => {
                               setHoraPersonalizada("");
                               selected
@@ -16775,6 +16823,75 @@ const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
 // labelCorto: version para el rail horizontal de movil. Con las etiquetas largas
 // la barra medía 770px dentro de 390 y cuatro de las seis secciones quedaban
 // fuera de pantalla tras un scroll lateral que no se veia venir.
+// Un dato de la cabecera de la cita en MOVIL: etiqueta arriba, valor debajo.
+// Sustituye a la linea corrida de "valor · valor · valor", que en una pantalla
+// estrecha se partia en cinco renglones y dejaba los puntos separadores
+// colgando al final de cada uno.
+function DatoCita({
+  etiqueta,
+  valor,
+  color,
+  destacado,
+  anchoCompleto,
+}: {
+  etiqueta: string;
+  valor: string;
+  color?: string | null;
+  destacado?: boolean;
+  anchoCompleto?: boolean;
+}) {
+  return (
+    <div style={{ minWidth: 0, gridColumn: anchoCompleto ? "1 / -1" : undefined }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: 0.6,
+          textTransform: "uppercase",
+          color: TOKENS.textTer,
+          marginBottom: 2,
+        }}
+      >
+        {etiqueta}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          minWidth: 0,
+          fontSize: destacado ? 14.5 : 13.5,
+          fontWeight: destacado ? 800 : 600,
+          color: destacado ? TOKENS.primaryHi : TOKENS.text,
+        }}
+      >
+        {color && (
+          <span
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: 99,
+              background: color,
+              flexShrink: 0,
+            }}
+          />
+        )}
+        <span
+          style={{
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={valor}
+        >
+          {valor}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const RAIL_ITEMS: { id: SeccionCita; label: string; labelCorto: string }[] = [
   { id: "servicio", label: "Servicio y tiempos", labelCorto: "Servicio" },
   { id: "cliente", label: "Cliente", labelCorto: "Cliente" },
@@ -18587,21 +18704,27 @@ export function DetalleCitaModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Resuelve el objetivo de las zonas de seccion completa: el primer hijo real
-  // del cuerpo, en cuanto tenga altura (la seccion acaba de montarse).
+  // Zonas de seccion completa (productos, pagos, historial): el objetivo es el
+  // CUERPO del panel, no su contenido.
+  //
+  // Antes se apuntaba al primer hijo real, y ese bloque es mas alto que el panel:
+  // el recuadro del foco se salia por abajo de la pantalla y dejaba a la vista
+  // dos productos y medio, justo lo contrario de lo que explicaba el paso. El
+  // cuerpo tiene altura acotada (es el que scrollea), asi que el hueco cae
+  // siempre entero dentro del panel. Ademas lo subimos arriba del todo para que
+  // la seccion empiece por su principio y no a medio scroll del paso anterior.
   useEffect(() => {
     if (!demoZone || !ZONAS_SECCION[demoZone]) return;
     let tries = 0;
     let raf = 0;
     const pick = () => {
       const root = dBodyRef.current;
-      const first = root?.firstElementChild as HTMLElement | null;
-      if (first && first.getBoundingClientRect().height > 0) {
-        dSeccionRef.current = first;
+      if (root && root.getBoundingClientRect().height > 0) {
+        dSeccionRef.current = root;
+        root.scrollTop = 0;
         return;
       }
       if (tries++ < 400) raf = requestAnimationFrame(pick); // ~2-6 s segun refresco
-      else dSeccionRef.current = root;
     };
     pick();
     return () => cancelAnimationFrame(raf);
@@ -18712,7 +18835,10 @@ export function DetalleCitaModal({
         className="m-modal-enter"
         style={{
           background: TOKENS.bgPanel,
-          borderRadius: isMobileOrTablet ? "20px 20px 0 0" : 16,
+          // Pantalla completa en movil, igual que el modal de crear cita: el
+          // detalle es largo (rail de secciones + cuerpo con scroll) y el
+          // resquicio de hoja solo restaba alto util.
+          borderRadius: isMobileOrTablet ? 0 : 16,
           maxWidth: 1040,
           width: isMobileOrTablet ? "100%" : "95%",
           // La hoja sube casi hasta arriba: el detalle de la cita es largo y a
@@ -18721,8 +18847,8 @@ export function DetalleCitaModal({
           // quede SIEMPRE anclado abajo y el cuerpo scrollee por dentro.
           // 98dvh en movil: aprovecha todo el alto posible (pide "subir un
           // poquito mas") dejando solo un resquicio para ver que es una hoja.
-          height: isMobileOrTablet ? "98dvh" : "86vh",
-          maxHeight: isMobileOrTablet ? "98dvh" : "86vh",
+          height: isMobileOrTablet ? "100dvh" : "86vh",
+          maxHeight: isMobileOrTablet ? "100dvh" : "86vh",
           overflow: "hidden",
           border: isMobileOrTablet ? "none" : `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,
@@ -18840,6 +18966,50 @@ export function DetalleCitaModal({
                   {/* Riesgo de no-show de la clienta (Sesion 7): discreto, solo equipo. */}
                   <RiesgoNoShowIndicator riesgo={riesgoCliente} compact />
                 </div>
+                {/* En MOVIL los datos de la cita van en rejilla con su etiqueta.
+                    En una linea de puntos separadores se apelotonaban en cinco
+                    renglones y los puntos se quedaban colgando al final de cada
+                    uno ("Maria Garcia ·"), que era lo que se veia mal. */}
+                {isMobileOrTablet ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
+                      gap: "10px 14px",
+                      marginTop: 12,
+                    }}
+                  >
+                    <DatoCita
+                      etiqueta="Servicio"
+                      valor={selectedServicio?.nombre || "—"}
+                      color={selectedServicioColor}
+                      anchoCompleto
+                    />
+                    <DatoCita
+                      etiqueta="Profesional"
+                      valor={selectedProf?.nombre || "—"}
+                    />
+                    <DatoCita etiqueta="Cuándo" valor={citaDate} />
+                    <DatoCita
+                      etiqueta="Hora"
+                      valor={`${citaHora} - ${citaFinHora}`}
+                    />
+                    <DatoCita
+                      etiqueta="Duración y precio"
+                      valor={`${totalMin} min · ${selectedServicio?.precio ?? 0} €`}
+                      destacado
+                    />
+                    {espera > 0 && (
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <DatoCita
+                          etiqueta="Fases"
+                          valor={`${activo}m activo · ${espera}m reposo${activo2 > 0 ? ` · ${activo2}m activo` : ""}`}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                <>
                 <div
                   style={{
                     fontSize: 12,
@@ -18968,6 +19138,8 @@ export function DetalleCitaModal({
                     </>
                   )}
                 </div>
+                </>
+                )}
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

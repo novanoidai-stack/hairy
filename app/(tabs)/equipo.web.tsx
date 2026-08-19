@@ -764,6 +764,10 @@ export default function EquipoWeb() {
                 <div
                   key={p.id}
                   className="equipo-card"
+                  // La demo abre la ficha de la primera persona del equipo para
+                  // poder ensenar lo que hay DENTRO de una ficha, no solo la
+                  // rejilla de tarjetas.
+                  data-demo-abrir={idx === 0 ? 'equipo-ficha' : undefined}
                   onClick={() => setSelected(p.id)}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 12px 40px ${p.color}33, 0 0 0 1px ${p.color}44`; e.currentTarget.style.borderColor = `${p.color}88`; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = isSel ? `0 0 0 1px ${p.color}66, 0 8px 30px ${p.color}22` : 'none'; e.currentTarget.style.borderColor = isSel ? `${p.color}66` : TOKENS.border; }}
@@ -996,11 +1000,13 @@ export default function EquipoWeb() {
         )}
 
         {/* Detalle del miembro a pantalla completa.
-            Lleva la misma marca `equipo-fichas` que la cuadricula: el recorrido
-            de la demo enfoca "tu equipo" tanto si esta en la lista como si hay
-            una persona abierta (solo una de las dos se pinta a la vez). */}
+            Lleva DOS marcas de demo: `equipo-fichas` (para que el paso general de
+            "tu equipo" siga teniendo foco aunque haya alguien abierto) y
+            `equipo-ficha`, que es el paso propio de la ficha del profesional —
+            el recorrido se quedaba en la rejilla de tarjetas y nunca ensenaba lo
+            que hay dentro, que es lo que de verdad se contrata. */}
         {vistaEquipo === 'fichas' && profSel && selected && (
-          <div data-demo="equipo-fichas" className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
+          <div data-demo="equipo-fichas" data-demo-alt="equipo-ficha" className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
             {/* Cabecera: volver · identidad · acciones */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
               <button

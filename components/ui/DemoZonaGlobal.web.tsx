@@ -30,6 +30,7 @@ const ETIQUETAS: Record<string, string> = {
   'caja-facturas': 'Registros descargables',
   'equipo-vistas': 'Fichas · rendimiento · horario',
   'equipo-fichas': 'Tu equipo',
+  'equipo-ficha': 'La ficha del profesional',
   'equipo-comisiones': 'Rendimiento y comisiones',
   'jornada-fichaje': 'Fichaje de jornada',
   'jornada-resumen': 'Resumen de jornada IA',
@@ -41,6 +42,12 @@ const ETIQUETAS: Record<string, string> = {
   'resenas-filtros': 'Filtros de opiniones',
   'resenas-lista': 'Reseñas de clientes',
   'informes-kpis': 'Tus números del periodo',
+  'informes-evolucion': 'Evolución mes a mes',
+  'informes-ocupacion': 'Reparto de las citas',
+  'portal-cabecera': 'Tu página de reservas',
+  'portal-servicios': 'Tu catálogo, tal y como lo ve la clienta',
+  'portal-profesional': 'Elegir con quién',
+  'portal-hora': 'Solo huecos reales',
   'ia-hub': 'Qué hace la IA',
   'ayuda-manuales': 'Manuales y guías',
 };
@@ -89,7 +96,10 @@ export function DemoZonaGlobal() {
     let abierto = false;
     const abrir = () => {
       if (abierto) return;
-      const btn = document.querySelector(`[data-demo-abrir="${zona}"]`) as HTMLElement | null;
+      // `~=` en vez de `=`: un mismo boton puede ser la puerta de varias zonas
+      // seguidas (en el portal, elegir servicio es lo que hace aparecer tanto el
+      // paso del profesional como el de la hora).
+      const btn = document.querySelector(`[data-demo-abrir~="${zona}"]`) as HTMLElement | null;
       if (btn) {
         abierto = true;
         btn.click();
@@ -112,7 +122,9 @@ export function DemoZonaGlobal() {
         }
         return null;
       };
-      if (!esNav) return primeroPintado(`[data-demo="${zona}"]`);
+      // `data-demo-alt` deja que un mismo bloque responda a dos claves: la ficha
+      // del profesional es a la vez "tu equipo" y "la ficha de dentro".
+      if (!esNav) return primeroPintado(`[data-demo="${zona}"],[data-demo-alt="${zona}"]`);
       // En movil la barra solo lleva cinco pestanas: el resto de pantallas viven
       // dentro de "Mas". Si la pestana de esta pantalla no esta en la barra,
       // enfocamos "Mas", que es por donde se llega de verdad.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // @ts-ignore
 import { createPortal } from 'react-dom';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
@@ -315,6 +315,18 @@ function ClientesWeb() {
   const [panelExpanded, setPanelExpanded] = useState(false);
   const [demoZone, setDemoZone] = useState<'color' | 'notas' | 'historial' | 'resumen' | null>(null);
   const demoPendingAction = useRef<string | null>(null);
+  // Clienta ESCAPARATE del recorrido guiado: la de ficha mas completa (formula,
+  // alergias, notas, etiquetas). Antes se abria clientes[0], que es la primera
+  // por orden alfabetico; en cuanto el fichero de la demo dejo de tener ocho
+  // nombres y paso a tener cientos, el capitulo de la ficha abria a un senor sin
+  // un solo dato relleno y con historial de cortes de caballero.
+  const clienteEscaparate = useCallback((lista: any[]): any => {
+    if (!lista.length) return null;
+    const relleno = (c: any) =>
+      (c?.alergias ? 2 : 0) + (c?.notas ? 2 : 0) + ((c?.etiquetas?.length ?? 0) > 0 ? 1 : 0)
+      + (Number(c?.ticket_medio ?? 0) > 0 ? 1 : 0);
+    return lista.reduce((mejor, c) => (relleno(c) > relleno(mejor) ? c : mejor), lista[0]);
+  }, []);
   const colorZoneRef = useRef<HTMLDivElement | null>(null);
   const notasZoneRef = useRef<HTMLDivElement | null>(null);
   const historialZoneRef = useRef<HTMLDivElement | null>(null);
@@ -611,7 +623,7 @@ function ClientesWeb() {
       if (typeof action !== 'string') return;
       if (action === 'cliente-color') {
         if (clientes.length > 0) {
-          setSelected((prev) => prev || clientes[0].id);
+          setSelected((prev) => prev || clienteEscaparate(clientes)?.id);
           setActiveTab('color');
           setDemoZone('color');
           // La ficha se queda en su panel normal, con la lista de clientas al
@@ -622,7 +634,7 @@ function ClientesWeb() {
         }
       } else if (action === 'cliente-notas') {
         if (clientes.length > 0) {
-          setSelected((prev) => prev || clientes[0].id);
+          setSelected((prev) => prev || clienteEscaparate(clientes)?.id);
           setActiveTab('notas');
           setDemoZone('notas');
           // La ficha se queda en su panel normal, con la lista de clientas al
@@ -633,7 +645,7 @@ function ClientesWeb() {
         }
       } else if (action === 'cliente-historial') {
         if (clientes.length > 0) {
-          setSelected((prev) => prev || clientes[0].id);
+          setSelected((prev) => prev || clienteEscaparate(clientes)?.id);
           setActiveTab('historial');
           setDemoZone('historial');
           // La ficha se queda en su panel normal, con la lista de clientas al
@@ -644,7 +656,7 @@ function ClientesWeb() {
         }
       } else if (action === 'ficha' || action === 'cliente-resumen') {
         if (clientes.length > 0) {
-          setSelected((prev) => prev || clientes[0].id);
+          setSelected((prev) => prev || clienteEscaparate(clientes)?.id);
           setActiveTab('resumen');
           setDemoZone('resumen');
           // La ficha se queda en su panel normal, con la lista de clientas al
@@ -668,7 +680,7 @@ function ClientesWeb() {
     if (demoPendingAction.current && clientes.length > 0) {
       const act = demoPendingAction.current;
       demoPendingAction.current = null;
-      setSelected(clientes[0].id);
+      setSelected(clienteEscaparate(clientes)?.id);
       if (act === 'cliente-color') {
         setActiveTab('color');
         setDemoZone('color');

@@ -2039,7 +2039,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {/* banda de abajo dice que esta diciendo con ESTOS datos. El grano */}
             {/* del eje X lo manda el filtro de arriba (ya no hay dos filtros). */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
+            {/* El recorrido de la demo se quedaba en los KPI y nunca bajaba a las
+                graficas, que es lo que de verdad convence: `informes-evolucion`
+                le da un objetivo al que hacer scroll. */}
+            <div data-demo="informes-evolucion" style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle={`${periodoLabel} · ${etiquetaGrano}${avisoRecorte}`} />
               <SectionBody>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 20 : 26 }}>
@@ -2107,7 +2110,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {/* ============================================================= */}
             {/* 9.1: Ocupacion                                                */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
+            <div data-demo="informes-ocupacion" style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="ocupacion" icon="barChart" iconColor={TOKENS.cyan} title="Distribucion de citas" subtitle={`${ocupacionData.total} citas en el periodo`} />
               <SectionBody id="ocupacion">
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>

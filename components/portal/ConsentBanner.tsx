@@ -14,6 +14,11 @@ export function ConsentBanner({ onAccept, onReject }: ConsentBannerProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Dentro de la demo no se pregunta dos veces: demo.html ya tiene su propio
+    // banner de cookies y el visitante acaba de contestarlo. Sin esto, el
+    // capitulo del portal del recorrido guiado arranca con una franja negra
+    // tapando justo lo que se esta explicando.
+    if (typeof window !== 'undefined' && window.parent !== window) return;
     // Comprobar si ya hay consentimiento guardado
     try {
       const saved = localStorage.getItem('mecha-analytics-consent');
