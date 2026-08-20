@@ -22,6 +22,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { KB } from './kb.ts';
+import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -365,54 +366,28 @@ export async function handler(req: Request): Promise<Response> {
     : [];
 
   let reply = '';
-  const MODELOS_DUDAS = [
-    Deno.env.get('CHISPA_MODEL') || 'google/gemini-3.7-flash:batch',
-    'google/gemini-3.7-flash',
-    'deepseek/deepseek-chat',
-    'google/gemini-2.5-flash',
-  ];
+  // CHISPA_MODEL sigue siendo un escape para fijar un modelo concreto sin
+  // desplegar; si no esta, manda la cascada verificada de shared/modelos.ts.
+  const modeloFijado = Deno.env.get('CHISPA_MODEL');
 
   try {
-    for (const model of MODELOS_DUDAS) {
-      try {
-        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://www.novanoidai.com',
-            'X-Title': 'Hairy Chispa Dudas',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: system },
-              ...history,
-              { role: 'user', content: duda },
-            ],
-            max_tokens: landing ? 300 : 600,
-            temperature: landing ? 0.5 : 0.3,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          reply = data.choices?.[0]?.message?.content || '';
-          if (reply) break;
-        } else {
-          console.warn(`[chispa-dudas] Error con ${model}:`, await res.text());
-        }
-      } catch (e) {
-        console.warn(`[chispa-dudas] Fallo con ${model}:`, e);
-      }
-    }
-
-    if (!reply) {
-      return json({ error: 'llm_error' }, 500, req);
-    }
+    const resultado = await llamarIA(OPENROUTER_API_KEY, {
+      funcion: 'chispa-dudas-demo',
+      mensajes: [
+        { role: 'system', content: system },
+        ...history,
+        { role: 'user', content: duda },
+      ] as MensajeIA[],
+      maxTokens: landing ? 300 : 600,
+      temperatura: landing ? 0.5 : 0.3,
+      perfil: 'economico',
+      cadena: modeloFijado ? [modeloFijado] : undefined,
+      timeoutMs: 30_000,
+    });
+    reply = resultado.texto.trim();
   } catch (e) {
-    console.error('Unexpected LLM error:', e);
-    return json({ error: 'internal_error' }, 500, req);
+    console.error('[chispa-dudas] sin respuesta de IA:', e instanceof Error ? e.message : e);
+    return json({ error: 'llm_error' }, 500, req);
   }
 
   if (!reply) return json({ error: 'llm_empty' }, 500, req);

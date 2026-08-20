@@ -1,104 +1,38 @@
-// Utilidad compartida para auditoría de IA (Chispa)
-// Calcula costes de tokens y registra en chispa_auditoria
+// supabase/functions/shared/chispa-auditoria.ts
 //
-// Precios aproximados por 1M tokens (USD, 2026):
-// - claude-haiku-4.5: $0.25 input, $1.25 output
-// - claude-sonnet-5: $3 input, $15 output
-// - claude-opus-4.8: $15 input, $75 output
-// - gpt-4o: $2.5 input, $10 output
-// - gpt-4o-mini: $0.15 input, $0.6 output
+// Registro de consumo de IA en la tabla `chispa_auditoria`.
+// Los precios NO viven aqui: salen de `modelos.ts`, que es lo unico verificado
+// contra el catalogo real de OpenRouter. Tener dos tablas de precios fue
+// exactamente el problema anterior (la de aqui subestimaba el coste hasta 3x).
 
-interface CosteModelo {
-  inputPorM: number;
-  outputPorM: number;
+import { calcularCoste } from './modelos.ts';
+import type { ResultadoIA } from './openrouterClient.ts';
+
+export interface DatosAuditoria {
+  negocioId: string;
+  usuarioId: string;
+  funcionIA: string;
+  modelo: string;
+  tokensInput: number;
+  tokensOutput: number;
+  superficie?: string;
+  exito?: boolean;
+  errorMensaje?: string;
+  latenciaMs?: number;
+  contexto?: Record<string, unknown>;
 }
 
-const PRECIOS_MODELOS: Record<string, CosteModelo> = {
-  // Modelos de última generación
-  'google-gemini-3-7-flash-batch': { inputPorM: 0.15, outputPorM: 0.45 },
-  'google-gemini-3-7-flash': { inputPorM: 0.375, outputPorM: 1.875 },
-  'gemini-3-7-flash': { inputPorM: 0.375, outputPorM: 1.875 },
-  'google-gemini-2-0-flash-001': { inputPorM: 0.10, outputPorM: 0.40 },
-  'google-gemini-2-0-flash': { inputPorM: 0.10, outputPorM: 0.40 },
-  'gemini-2-0-flash': { inputPorM: 0.10, outputPorM: 0.40 },
-  'qwen-qwen-2-5-vl-72b-instruct': { inputPorM: 0.25, outputPorM: 0.75 },
-  'qwen-2-5-vl-72b': { inputPorM: 0.25, outputPorM: 0.75 },
-  'deepseek-deepseek-chat': { inputPorM: 0.20, outputPorM: 0.60 },
-  'deepseek-chat': { inputPorM: 0.20, outputPorM: 0.60 },
-  'deepseek-r1': { inputPorM: 0.70, outputPorM: 2.50 },
-  'qwen-qwq-32b': { inputPorM: 0.15, outputPorM: 0.60 },
-  'qwq-32b': { inputPorM: 0.15, outputPorM: 0.60 },
-  'meta-llama-llama-3-3-70b-instruct': { inputPorM: 0.12, outputPorM: 0.30 },
-  'llama-3-3-70b': { inputPorM: 0.12, outputPorM: 0.30 },
-  'qwen-qwen-2-5-72b-instruct': { inputPorM: 0.35, outputPorM: 0.40 },
-
-  // Modelos anteriores
-  'claude-haiku-4.5': { inputPorM: 0.25, outputPorM: 1.25 },
-  'claude-haiku': { inputPorM: 0.25, outputPorM: 1.25 },
-  'claude-sonnet-5': { inputPorM: 3.0, outputPorM: 15.0 },
-  'claude-sonnet-4.5': { inputPorM: 3.0, outputPorM: 15.0 },
-  'claude-sonnet': { inputPorM: 3.0, outputPorM: 15.0 },
-  'claude-opus-4.8': { inputPorM: 15.0, outputPorM: 75.0 },
-  'claude-opus': { inputPorM: 15.0, outputPorM: 75.0 },
-  'gpt-4o': { inputPorM: 2.5, outputPorM: 10.0 },
-  'gpt-4o-mini': { inputPorM: 0.15, outputPorM: 0.6 },
-  'gpt-4-turbo': { inputPorM: 10.0, outputPorM: 30.0 },
-  // Por defecto, precio medio
-  'default': { inputPorM: 0.30, outputPorM: 0.90 },
-};
-
-/**
- * Calcula el coste en USD de una ejecución de IA
- */
-export function calcularCosteTokens(
-  modelo: string,
-  tokensInput: number,
-  tokensOutput: number
-): number {
-  // Normalizar nombre del modelo
-  const modeloNormalizado = modelo.toLowerCase().replace(/[^a-z0-9-]/g, '-');
-  const precios = PRECIOS_MODELOS[modeloNormalizado] || PRECIOS_MODELOS['default'];
-
-  const costeInput = (tokensInput / 1_000_000) * precios.inputPorM;
-  const costeOutput = (tokensOutput / 1_000_000) * precios.outputPorM;
-
-  return costeInput + costeOutput;
+/** Coste en USD segun el catalogo verificado. Modelo desconocido -> estimacion alta. */
+export function calcularCosteTokens(modelo: string, tokensInput: number, tokensOutput: number): number {
+  return calcularCoste(modelo, tokensInput, tokensOutput);
 }
 
-/**
- * Registra una ejecución de IA en la tabla chispa_auditoria
- *
- * @param supabase - Cliente Supabase autenticado
- * @param negocioId - ID del negocio
- * @param usuarioId - ID del usuario
- * @param funcionIA - Nombre de la función (ej: 'asistente_agenda', 'organizar_agenda')
- * @param modelo - Modelo usado (ej: 'claude-haiku-4.5')
- * @param tokensInput - Tokens de entrada
- * @param tokensOutput - Tokens de salida
- * @param superficie - Pantalla desde la que se llamó (opcional)
- * @param exito - Si la ejecución fue exitosa
- * @param errorMensaje - Mensaje de error si falló
- * @param latenciaMs - Tiempo de respuesta en ms
- * @param contexto - Contexto adicional (jsonb)
- */
 export async function registrarAuditoriaIA(
   supabase: any,
-  params: {
-    negocioId: string;
-    usuarioId: string;
-    funcionIA: string;
-    modelo: string;
-    tokensInput: number;
-    tokensOutput: number;
-    superficie?: string;
-    exito?: boolean;
-    errorMensaje?: string;
-    latenciaMs?: number;
-    contexto?: Record<string, unknown>;
-  }
+  params: DatosAuditoria,
 ): Promise<{ success: boolean; error?: string; id?: string }> {
   try {
-    const costeUsd = calcularCosteTokens(params.modelo, params.tokensInput, params.tokensOutput);
+    const costeUsd = calcularCoste(params.modelo, params.tokensInput, params.tokensOutput);
 
     const { data, error } = await supabase.rpc('registrar_auditoria_ia', {
       p_negocio_id: params.negocioId,
@@ -108,92 +42,67 @@ export async function registrarAuditoriaIA(
       p_tokens_input: params.tokensInput,
       p_tokens_output: params.tokensOutput,
       p_coste_usd: costeUsd,
-      p_superficie: params.superficie || null,
+      p_superficie: params.superficie ?? null,
       p_exito: params.exito !== false,
-      p_error_mensaje: params.errorMensaje || null,
-      p_latencia_ms: params.latenciaMs || null,
-      p_contexto: params.contexto || {},
+      p_error_mensaje: params.errorMensaje ?? null,
+      p_latencia_ms: params.latenciaMs ?? null,
+      p_contexto: params.contexto ?? {},
     });
 
     if (error) {
-      console.error('[ChispaAuditoria] Error registrando auditoría:', error);
+      console.error('[auditoria] no se pudo registrar:', error.message);
       return { success: false, error: error.message };
     }
-
     return { success: true, id: data };
   } catch (err) {
-    console.error('[ChispaAuditoria] Excepción registrando auditoría:', err);
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+    console.error('[auditoria] excepcion:', err instanceof Error ? err.message : err);
+    return { success: false, error: err instanceof Error ? err.message : 'error desconocido' };
   }
 }
 
 /**
- * Wrapper para ejecutar una llamada LLM y registrar automáticamente la auditoría
- *
- * @example
- * const resultado = await ejecutarYRegistrar(supabase, {
- *   negocioId: 'demo_salon_001',
- *   usuarioId: userId,
- *   funcionIA: 'asistente_agenda',
- *   modelo: 'claude-haiku-4.5',
- *   superficie: 'Agenda',
- *   callback: async () => {
- *     // Tu llamada LLM aquí
- *     return await anthropic.messages.create({...});
- *   }
- * });
+ * Atajo para el caso normal: acabas de recibir un ResultadoIA y quieres dejarlo
+ * registrado. NUNCA lanza ni bloquea la respuesta al usuario: si la auditoria
+ * falla, el peluquero igual recibe su respuesta.
  */
-export async function ejecutarYRegistrar<T extends { usage?: { input_tokens: number; output_tokens: number } }>(
+export function auditar(
   supabase: any,
-  params: {
-    negocioId: string;
-    usuarioId: string;
-    funcionIA: string;
-    modelo: string;
-    superficie?: string;
-    callback: () => Promise<T>;
-  }
-): Promise<{ resultado?: T; error?: string; auditoriaId?: string }> {
-  const inicio = Date.now();
+  resultado: ResultadoIA,
+  datos: { negocioId: string; usuarioId: string; funcionIA: string; superficie?: string; contexto?: Record<string, unknown> },
+): void {
+  registrarAuditoriaIA(supabase, {
+    negocioId: datos.negocioId,
+    usuarioId: datos.usuarioId,
+    funcionIA: datos.funcionIA,
+    modelo: resultado.modelo,
+    tokensInput: resultado.tokensIn,
+    tokensOutput: resultado.tokensOut,
+    superficie: datos.superficie,
+    exito: true,
+    latenciaMs: resultado.latenciaMs,
+    contexto: {
+      ...datos.contexto,
+      // Deja rastro de la degradacion: si esto se llena, un modelo esta caido.
+      intentos_fallidos: resultado.intentosFallidos,
+    },
+  }).catch(() => { /* ya se ha logueado dentro */ });
+}
 
-  try {
-    const resultado = await params.callback();
-    const latenciaMs = Date.now() - inicio;
-
-    const tokensInput = resultado.usage?.input_tokens || 0;
-    const tokensOutput = resultado.usage?.output_tokens || 0;
-
-    // Registrar auditoría en background (no bloquear)
-    registrarAuditoriaIA(supabase, {
-      negocioId: params.negocioId,
-      usuarioId: params.usuarioId,
-      funcionIA: params.funcionIA,
-      modelo: params.modelo,
-      tokensInput,
-      tokensOutput,
-      superficie: params.superficie,
-      exito: true,
-      latenciaMs,
-    }).catch(err => console.error('[ChispaAuditoria] Error en registro asíncrono:', err));
-
-    return { resultado, auditoriaId: 'pending' };
-  } catch (err) {
-    const latenciaMs = Date.now() - inicio;
-
-    // Registrar error
-    registrarAuditoriaIA(supabase, {
-      negocioId: params.negocioId,
-      usuarioId: params.usuarioId,
-      funcionIA: params.funcionIA,
-      modelo: params.modelo,
-      tokensInput: 0,
-      tokensOutput: 0,
-      superficie: params.superficie,
-      exito: false,
-      errorMensaje: err instanceof Error ? err.message : 'Unknown error',
-      latenciaMs,
-    }).catch(e => console.error('[ChispaAuditoria] Error en registro de error:', e));
-
-    return { error: err instanceof Error ? err.message : 'Unknown error' };
-  }
+/** Registra un fallo total de IA (ningun modelo respondio). */
+export function auditarFallo(
+  supabase: any,
+  datos: { negocioId: string; usuarioId: string; funcionIA: string; superficie?: string; error: string; latenciaMs?: number },
+): void {
+  registrarAuditoriaIA(supabase, {
+    negocioId: datos.negocioId,
+    usuarioId: datos.usuarioId,
+    funcionIA: datos.funcionIA,
+    modelo: 'ninguno',
+    tokensInput: 0,
+    tokensOutput: 0,
+    superficie: datos.superficie,
+    exito: false,
+    errorMensaje: datos.error.slice(0, 500),
+    latenciaMs: datos.latenciaMs,
+  }).catch(() => { /* ya se ha logueado dentro */ });
 }

@@ -8,9 +8,23 @@ import { CATEGORY_COLOR_TOKENS } from '@/lib/categoryColors';
 
 const T = DESIGN_TOKENS;
 
+type Origen = 'ia' | 'local';
+type Categoria = 'servicios' | 'clientes' | 'profesionales' | 'citas' | 'lineas';
+
+interface MetaIA {
+  modelo?: string;
+  latencia_ms?: number;
+  coste_usd?: number;
+  degradado?: boolean;
+}
+
 interface ExtractedData {
   nombre_negocio?: string;
   direccion?: string;
+  /** Frase del modelo describiendo que era el documento. */
+  resumen?: string;
+  /** Lo que el usuario deberia revisar a mano antes de importar. */
+  avisos?: string[];
   profesionales?: Array<{ idTemp?: string; seleccionado?: boolean; nombre: string; email?: string; telefono?: string; puesto?: string }>;
   servicios?: Array<{ idTemp?: string; seleccionado?: boolean; nombre: string; precio: number; duracion_min: number; categoria?: string }>;
   clientes?: Array<{ idTemp?: string; seleccionado?: boolean; nombre: string; telefono?: string; email?: string; notas?: string }>;
@@ -22,9 +36,21 @@ interface ImportState {
   paso: 'subir' | 'procesando' | 'preview' | 'resultado';
   archivo: File | null;
   data: ExtractedData | null;
-  categoriaActiva: 'servicios' | 'clientes' | 'profesionales' | 'citas' | 'lineas';
+  categoriaActiva: Categoria;
   resultado: { creadas: number; errores: string[] } | null;
+  /** De donde salieron los datos: se muestra, nunca se oculta. */
+  origen: Origen;
+  meta: MetaIA | null;
 }
+
+/** Etiqueta e icono de cada categoria. Sin emojis: iconos del sistema. */
+const CATEGORIAS: { id: Categoria; label: string; icono: string }[] = [
+  { id: 'servicios', label: 'Servicios', icono: 'cut-outline' },
+  { id: 'clientes', label: 'Clientes', icono: 'people-outline' },
+  { id: 'profesionales', label: 'Equipo', icono: 'person-outline' },
+  { id: 'citas', label: 'Citas', icono: 'calendar-outline' },
+  { id: 'lineas', label: 'Productos', icono: 'cube-outline' },
+];
 
 export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
   const [state, setState] = useState<ImportState>({
@@ -33,6 +59,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
     data: null,
     categoriaActiva: 'servicios',
     resultado: null,
+    origen: 'ia',
+    meta: null,
   });
   const [error, setError] = useState('');
 
@@ -43,31 +71,53 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
     try {
       const doc = await extractDocumentContent(file);
       let parsedData: any = null;
+      let origen: Origen = 'ia';
+      let meta: MetaIA | null = null;
+      let motivoLocal = '';
 
-      try {
-        const { data, error: funcError } = await supabase.functions.invoke('migracion-magica', {
-          body: {
-            mimeType: doc.mimeType,
-            content: doc.content,
-            negocioId,
-          },
-        });
-        if (!funcError && data && data.ok) {
-          parsedData = data.data;
+      const { data, error: funcError } = await supabase.functions.invoke('migracion-magica', {
+        body: {
+          mimeType: doc.mimeType,
+          content: doc.content,
+          filename: file.name,
+        },
+      });
+
+      if (!funcError && data?.ok) {
+        parsedData = data.data;
+        meta = data.meta ?? null;
+      } else {
+        // Antes esto caia al parser local EN SILENCIO: el usuario veia
+        // resultados de una expresion regular creyendo que era la IA, y por eso
+        // un "200 OK" en las pruebas no demostraba nada. Ahora degrada igual
+        // (mejor eso que nada) pero lo dice bien claro en pantalla.
+        motivoLocal = mensajeDeError(funcError) || data?.error || 'La IA no ha respondido';
+        console.warn('[migracion-magica] sin IA, se usa el lector local:', motivoLocal);
+
+        if (doc.type === 'image' || doc.mimeType === 'application/pdf') {
+          // El lector local solo entiende texto: con una foto o un PDF escaneado
+          // devolveria cero. Es mas honesto parar que fingir un resultado vacio.
+          throw new Error(
+            `No se ha podido analizar la imagen o el PDF: ${motivoLocal}. Vuelve a intentarlo en unos segundos.`,
+          );
         }
-      } catch {
-        /* fallback local */
-      }
 
-      if (!parsedData) {
         const { parsearMigracionLocal } = await import('@/lib/migracionParserLocal');
         parsedData = parsearMigracionLocal(doc.content, file.name);
+        origen = 'local';
       }
 
       // Asignar IDs temporales y estado de selección
       const dataConIds: ExtractedData = {
         nombre_negocio: parsedData?.nombre_negocio || '',
         direccion: parsedData?.direccion || '',
+        resumen: parsedData?.resumen || '',
+        avisos: [
+          ...(Array.isArray(parsedData?.avisos) ? parsedData.avisos : []),
+          ...(origen === 'local'
+            ? [`No se ha podido usar la IA (${motivoLocal}). Los datos de abajo salen del lector básico: revísalos con más atención de lo normal.`]
+            : []),
+        ],
         profesionales: (parsedData?.profesionales || []).map((p: any, i: number) => ({
           ...p,
           idTemp: `prof-${i}-${Date.now()}`,
@@ -114,7 +164,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
       else if ((dataConIds.citas?.length || 0) > 0) inicial = 'citas';
       else if ((dataConIds.lineas?.length || 0) > 0) inicial = 'lineas';
 
-      setState(prev => ({ ...prev, paso: 'preview', data: dataConIds, categoriaActiva: inicial }));
+      setState(prev => ({ ...prev, paso: 'preview', data: dataConIds, categoriaActiva: inicial, origen, meta }));
     } catch (e) {
       setError(mensajeDeError(e));
       setState(prev => ({ ...prev, paso: 'subir' }));
@@ -151,7 +201,19 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
     });
   };
 
-  const toggleSelectAll = (categoria: 'servicios' | 'clientes' | 'profesionales' | 'citas' | 'lineas', val: boolean) => {
+  /** ¿Está todo marcado en esa pestaña? Decide si el botón selecciona o quita. */
+  const todosSeleccionados = (categoria: Categoria) => {
+    const lista = state.data?.[categoria] ?? [];
+    return lista.length > 0 && lista.every((item: any) => item.seleccionado !== false);
+  };
+
+  /** Cuántas filas se van a importar en total (todas las pestañas). */
+  const totalSeleccionado = CATEGORIAS.reduce(
+    (total, { id }) => total + (state.data?.[id] ?? []).filter((item: any) => item.seleccionado !== false).length,
+    0,
+  );
+
+  const toggleSelectAll = (categoria: Categoria, val: boolean) => {
     setState(prev => {
       if (!prev.data) return prev;
       const list = (prev.data[categoria] || []).map((item: any) => ({ ...item, seleccionado: val }));
@@ -316,7 +378,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
   };
 
   const reset = () => {
-    setState({ paso: 'subir', archivo: null, data: null, categoriaActiva: 'servicios', resultado: null });
+    setState({ paso: 'subir', archivo: null, data: null, categoriaActiva: 'servicios', resultado: null, origen: 'ia', meta: null });
     setError('');
   };
 
@@ -331,8 +393,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
     <div>
       <Section title="Migración Mágica Universal con IA">
         <p style={{ fontSize: 13.5, color: T.textSec, marginBottom: 20, lineHeight: 1.5 }}>
-          Arrastra o sube cualquier documento o foto de tu salón (PDF escaneado, Excel, CSV, Word, capturas de Booksy/Treatwell o fotos de cartas de precios).
-          La IA de <strong>Gemini 3.7 Flash</strong> y <strong>Qwen 2.5 VL</strong> extraerá todos tus servicios, clientes, equipo y citas para que los revises y edites antes de importar.
+          Arrastra o sube cualquier documento o foto de tu salón (PDF escaneado, Excel, CSV, Word, capturas de Booksy, Treatwell o Fresha, o una foto de tu carta de precios).
+          La IA extraerá servicios, clientes, equipo, citas y productos. <strong>Nada se guarda hasta que tú lo confirmes</strong>: primero lo revisas y lo editas fila a fila.
         </p>
 
         {error && (
@@ -384,11 +446,11 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
             </div>
 
             <div style={{ marginTop: 24, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>✂️ Servicios y Tarifas</span>
-              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>👥 Clientes y Teléfonos</span>
-              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>👤 Equipo y Barberos</span>
-              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>📅 Citas Pasadas y Futuras</span>
-              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>📦 Productos de Albarán</span>
+              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>Servicios y tarifas</span>
+              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>Clientes y teléfonos</span>
+              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>Equipo</span>
+              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>Citas</span>
+              <span style={{ fontSize: 12, padding: '4px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, color: T.textSec }}>Productos de albarán</span>
             </div>
           </div>
         )}
@@ -411,84 +473,72 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                   onClick={() => setState(prev => ({ ...prev, paso: 'subir' }))}
                   style={{ background: 'none', border: 'none', color: T.textSec, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
                 >
-                  ← Descartar y subir otro
+                  Descartar y subir otro
                 </button>
                 <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginTop: 4 }}>
                   Revisa y edita los datos extraídos
                 </div>
               </div>
-              <Btn variant="primary" onClick={ejecutarImportacion}>
-                Confirmar e Importar al Salón
+              <Btn variant="primary" onClick={ejecutarImportacion} disabled={totalSeleccionado === 0}>
+                {totalSeleccionado === 0
+                  ? 'No hay nada marcado'
+                  : `Importar ${totalSeleccionado} ${totalSeleccionado === 1 ? 'elemento' : 'elementos'}`}
               </Btn>
             </div>
 
+            {/* Lo que la IA ha entendido del documento, antes de los datos.
+                Da contexto y evita el "no sé de dónde ha salido esto". */}
+            {(data.resumen || (data.avisos?.length ?? 0) > 0 || state.meta?.modelo) && (
+              <div style={{
+                borderRadius: 10, border: `1px solid ${T.border}`, background: T.bg,
+                padding: '14px 16px', marginBottom: 16,
+              }}>
+                {data.resumen && (
+                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.55 }}>{data.resumen}</div>
+                )}
+                {(data.avisos?.length ?? 0) > 0 && (
+                  <ul style={{ margin: data.resumen ? '10px 0 0' : 0, paddingLeft: 18 }}>
+                    {data.avisos!.map((aviso, i) => (
+                      <li key={i} style={{ fontSize: 12.5, color: T.warning ?? '#b26a00', lineHeight: 1.5, marginBottom: 3 }}>
+                        {aviso}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div style={{ marginTop: 10, fontSize: 11, color: T.textTer, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  <span>{state.origen === 'ia' ? `Analizado por ${state.meta?.modelo ?? 'IA'}` : 'Lector básico (sin IA)'}</span>
+                  {state.meta?.latencia_ms != null && <span>{(state.meta.latencia_ms / 1000).toFixed(1)} s</span>}
+                  {state.meta?.degradado && <span>Se usó un modelo de respaldo</span>}
+                </div>
+              </div>
+            )}
+
             {/* Pestañas de categorías detectadas */}
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 16 }}>
-              {countServicios > 0 && (
-                <button
-                  onClick={() => setState(prev => ({ ...prev, categoriaActiva: 'servicios' }))}
-                  style={{
-                    padding: '8px 14px', borderRadius: 8, border: `1px solid ${state.categoriaActiva === 'servicios' ? T.primary : T.border}`,
-                    background: state.categoriaActiva === 'servicios' ? T.primarySoft : T.bgCard,
-                    color: state.categoriaActiva === 'servicios' ? T.primary : T.text,
-                    fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                  }}
-                >
-                  ✂️ Servicios <span style={{ padding: '1px 6px', borderRadius: 10, background: T.bg, fontSize: 11 }}>{countServicios}</span>
-                </button>
-              )}
-              {countClientes > 0 && (
-                <button
-                  onClick={() => setState(prev => ({ ...prev, categoriaActiva: 'clientes' }))}
-                  style={{
-                    padding: '8px 14px', borderRadius: 8, border: `1px solid ${state.categoriaActiva === 'clientes' ? T.primary : T.border}`,
-                    background: state.categoriaActiva === 'clientes' ? T.primarySoft : T.bgCard,
-                    color: state.categoriaActiva === 'clientes' ? T.primary : T.text,
-                    fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                  }}
-                >
-                  👥 Clientes <span style={{ padding: '1px 6px', borderRadius: 10, background: T.bg, fontSize: 11 }}>{countClientes}</span>
-                </button>
-              )}
-              {countProfesionales > 0 && (
-                <button
-                  onClick={() => setState(prev => ({ ...prev, categoriaActiva: 'profesionales' }))}
-                  style={{
-                    padding: '8px 14px', borderRadius: 8, border: `1px solid ${state.categoriaActiva === 'profesionales' ? T.primary : T.border}`,
-                    background: state.categoriaActiva === 'profesionales' ? T.primarySoft : T.bgCard,
-                    color: state.categoriaActiva === 'profesionales' ? T.primary : T.text,
-                    fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                  }}
-                >
-                  👤 Equipo <span style={{ padding: '1px 6px', borderRadius: 10, background: T.bg, fontSize: 11 }}>{countProfesionales}</span>
-                </button>
-              )}
-              {countCitas > 0 && (
-                <button
-                  onClick={() => setState(prev => ({ ...prev, categoriaActiva: 'citas' }))}
-                  style={{
-                    padding: '8px 14px', borderRadius: 8, border: `1px solid ${state.categoriaActiva === 'citas' ? T.primary : T.border}`,
-                    background: state.categoriaActiva === 'citas' ? T.primarySoft : T.bgCard,
-                    color: state.categoriaActiva === 'citas' ? T.primary : T.text,
-                    fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                  }}
-                >
-                  📅 Citas <span style={{ padding: '1px 6px', borderRadius: 10, background: T.bg, fontSize: 11 }}>{countCitas}</span>
-                </button>
-              )}
-              {countLineas > 0 && (
-                <button
-                  onClick={() => setState(prev => ({ ...prev, categoriaActiva: 'lineas' }))}
-                  style={{
-                    padding: '8px 14px', borderRadius: 8, border: `1px solid ${state.categoriaActiva === 'lineas' ? T.primary : T.border}`,
-                    background: state.categoriaActiva === 'lineas' ? T.primarySoft : T.bgCard,
-                    color: state.categoriaActiva === 'lineas' ? T.primary : T.text,
-                    fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                  }}
-                >
-                  📦 Productos <span style={{ padding: '1px 6px', borderRadius: 10, background: T.bg, fontSize: 11 }}>{countLineas}</span>
-                </button>
-              )}
+              {CATEGORIAS.map(({ id, label, icono }) => {
+                const total = data[id]?.length ?? 0;
+                if (total === 0) return null;
+                const activa = state.categoriaActiva === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setState(prev => ({ ...prev, categoriaActiva: id }))}
+                    aria-pressed={activa}
+                    style={{
+                      padding: '8px 14px', borderRadius: 8,
+                      border: `1px solid ${activa ? T.primary : T.border}`,
+                      background: activa ? T.primarySoft : T.bgCard,
+                      color: activa ? T.primary : T.text,
+                      fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <SettingsIcon name={icono} size={14} />
+                    {label}
+                    <span style={{ padding: '1px 6px', borderRadius: 10, background: T.bg, fontSize: 11 }}>{total}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* SECCIÓN EDITABLE: SERVICIOS */}
@@ -496,8 +546,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, background: T.bgCard, overflow: 'hidden' }}>
                 <div style={{ padding: '12px 16px', background: T.bg, borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Tarifas y Servicios ({countServicios})</span>
-                  <button onClick={() => toggleSelectAll('servicios', true)} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
-                    Seleccionar todos
+                  <button onClick={() => toggleSelectAll('servicios', !todosSeleccionados('servicios'))} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {todosSeleccionados('servicios') ? 'Quitar todos' : 'Seleccionar todos'}
                   </button>
                 </div>
                 <div style={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -536,8 +586,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                         placeholder="Categoría"
                         style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 13 }}
                       />
-                      <button onClick={() => deleteItem('servicios', s.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14 }}>
-                        ✕
+                      <button onClick={() => deleteItem('servicios', s.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center' }} aria-label="Quitar de la importación">
+                        <SettingsIcon name="close" size={16} />
                       </button>
                     </div>
                   ))}
@@ -550,8 +600,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, background: T.bgCard, overflow: 'hidden' }}>
                 <div style={{ padding: '12px 16px', background: T.bg, borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Clientes ({countClientes})</span>
-                  <button onClick={() => toggleSelectAll('clientes', true)} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
-                    Seleccionar todos
+                  <button onClick={() => toggleSelectAll('clientes', !todosSeleccionados('clientes'))} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {todosSeleccionados('clientes') ? 'Quitar todos' : 'Seleccionar todos'}
                   </button>
                 </div>
                 <div style={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -583,8 +633,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                         placeholder="Email"
                         style={{ flex: 1.5, padding: '6px 10px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 13 }}
                       />
-                      <button onClick={() => deleteItem('clientes', c.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14 }}>
-                        ✕
+                      <button onClick={() => deleteItem('clientes', c.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center' }} aria-label="Quitar de la importación">
+                        <SettingsIcon name="close" size={16} />
                       </button>
                     </div>
                   ))}
@@ -597,8 +647,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, background: T.bgCard, overflow: 'hidden' }}>
                 <div style={{ padding: '12px 16px', background: T.bg, borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Equipo y Barberos ({countProfesionales})</span>
-                  <button onClick={() => toggleSelectAll('profesionales', true)} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
-                    Seleccionar todos
+                  <button onClick={() => toggleSelectAll('profesionales', !todosSeleccionados('profesionales'))} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {todosSeleccionados('profesionales') ? 'Quitar todos' : 'Seleccionar todos'}
                   </button>
                 </div>
                 <div style={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -623,8 +673,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                         placeholder="Puesto (ej. Barbero)"
                         style={{ flex: 1.5, padding: '6px 10px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 13 }}
                       />
-                      <button onClick={() => deleteItem('profesionales', p.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14 }}>
-                        ✕
+                      <button onClick={() => deleteItem('profesionales', p.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center' }} aria-label="Quitar de la importación">
+                        <SettingsIcon name="close" size={16} />
                       </button>
                     </div>
                   ))}
@@ -637,8 +687,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, background: T.bgCard, overflow: 'hidden' }}>
                 <div style={{ padding: '12px 16px', background: T.bg, borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Citas ({countCitas})</span>
-                  <button onClick={() => toggleSelectAll('citas', true)} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
-                    Seleccionar todas
+                  <button onClick={() => toggleSelectAll('citas', !todosSeleccionados('citas'))} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {todosSeleccionados('citas') ? 'Quitar todas' : 'Seleccionar todas'}
                   </button>
                 </div>
                 <div style={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -675,8 +725,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                         placeholder="Servicio"
                         style={{ flex: 1.5, padding: '6px 8px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12 }}
                       />
-                      <button onClick={() => deleteItem('citas', ct.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14 }}>
-                        ✕
+                      <button onClick={() => deleteItem('citas', ct.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center' }} aria-label="Quitar de la importación">
+                        <SettingsIcon name="close" size={16} />
                       </button>
                     </div>
                   ))}
@@ -689,8 +739,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, background: T.bgCard, overflow: 'hidden' }}>
                 <div style={{ padding: '12px 16px', background: T.bg, borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Productos de Albarán ({countLineas})</span>
-                  <button onClick={() => toggleSelectAll('lineas', true)} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
-                    Seleccionar todos
+                  <button onClick={() => toggleSelectAll('lineas', !todosSeleccionados('lineas'))} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {todosSeleccionados('lineas') ? 'Quitar todos' : 'Seleccionar todos'}
                   </button>
                 </div>
                 <div style={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -722,8 +772,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
                         placeholder="Coste €"
                         style={{ width: 80, padding: '6px 10px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 13 }}
                       />
-                      <button onClick={() => deleteItem('lineas', l.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14 }}>
-                        ✕
+                      <button onClick={() => deleteItem('lineas', l.idTemp!)} style={{ background: 'none', border: 'none', color: '#e23b34', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center' }} aria-label="Quitar de la importación">
+                        <SettingsIcon name="close" size={16} />
                       </button>
                     </div>
                   ))}

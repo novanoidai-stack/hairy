@@ -284,6 +284,7 @@
     <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes"></span></button>
     <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf"></span></button>
     <button class="ad-tab" id="tabMov" data-view="movimientos">Movimientos<span class="badge" id="badgeMov"></span></button>
+    <button class="ad-tab" id="tabIa" data-view="gastoia">Gasto IA<span class="badge" id="badgeIa"></span></button>
     <button class="ad-tab" id="tabErr" data-view="errores">Errores<span class="badge" id="badgeErr"></span></button>
     <button class="ad-tab" id="tabSup" data-view="soporte">Soporte<span class="badge" id="badgeSup"></span></button>
   </div>
@@ -525,6 +526,41 @@
   <!-- ERRORES DE CLIENTE. Lo que se rompe en el navegador de un salon de verdad.
        Antes esto no existia: el error se quedaba en SU consola y aqui nadie se
        enteraba nunca. Agrupado por huella (mismo mensaje + misma pantalla). -->
+  <!-- GASTO IA. Lo que nos cuesta de verdad cada salon en llamadas a modelos.
+       El coste sale ya calculado de chispa_auditoria (lo escribe la edge function
+       con el precio real del modelo): aqui solo se suma y se ensena. -->
+  <div id="view-gastoia" style="display:none">
+    <div class="ad-stats" id="statsIa">
+      <div class="ad-stat" style="max-width:200px"><div class="n" id="statIaCoste">$0</div><div class="l">Coste total</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statIaLlamadas">0</div><div class="l">Llamadas</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statIaSalones">0</div><div class="l">Salones con gasto</div></div>
+      <div class="ad-stat" style="max-width:200px"><div class="n" id="statIaMedia">$0</div><div class="l">Coste medio por salón</div></div>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:800px;">
+      Lo que cuesta la IA de cada salón, en dinero real. Cada llamada guarda sus tokens y su coste
+      calculado con la tarifa del modelo que la atendió. Despliega un salón para ver llamada a
+      llamada qué función se usó, con qué modelo y cuánto costó.
+    </p>
+
+    <div class="ad-tools">
+      <select class="ad-sel" id="fDiasIa">
+        <option value="1">Últimas 24 h</option>
+        <option value="7">Últimos 7 días</option>
+        <option value="30" selected>Últimos 30 días</option>
+        <option value="90">Últimos 90 días</option>
+      </select>
+      <button class="ad-refresh" id="refreshIaBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countIa"></div>
+    <div class="ad-msg" id="iaMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listIa"></div>
+  </div>
+
   <div id="view-errores" style="display:none">
     <div class="ad-stats" id="statsErr">
       <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrTipos">0</div><div class="l">Fallos distintos</div></div>
@@ -2298,7 +2334,10 @@
     var err = view === 'errores';
     var sup = view === 'soporte';
     var dud = view === 'dudas';
+    var gia = view === 'gastoia';
 
+    $('tabIa').classList.toggle('active', gia);
+    $('view-gastoia').style.display = gia ? 'block' : 'none';
     $('tabDud').classList.toggle('active', dud);
     $('view-dudas').style.display = dud ? 'block' : 'none';
     $('tabErr').classList.toggle('active', err);
@@ -2326,8 +2365,10 @@
     if (stf && !staffLoaded) loadStaff();
     if (mov && !movimientosLoaded) loadMovimientos();
     if (err && !erroresLoaded) loadErrores();
+    if (gia && !gastoIaLoaded) loadGastoIa();
     if (sup) loadSoporte();
   }
+  var tia = $('tabIa'); if (tia) tia.addEventListener('click', function () { switchView('gastoia'); });
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var td = $('tabDud'); if (td) td.addEventListener('click', function () { switchView('dudas'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
@@ -2337,6 +2378,175 @@
   var tmov = $('tabMov'); if (tmov) tmov.addEventListener('click', function () { switchView('movimientos'); });
   var terr = $('tabErr'); if (terr) terr.addEventListener('click', function () { switchView('errores'); });
   var tsup = $('tabSup'); if (tsup) tsup.addEventListener('click', function () { switchView('soporte'); });
+
+  // ---------- GASTO DE IA POR SALON ----------
+  // El coste NO se calcula aqui: viene ya guardado en chispa_auditoria, puesto
+  // por la edge function con la tarifa real del modelo que atendio la llamada
+  // (supabase/functions/shared/modelos.ts). Recalcularlo en el panel con otra
+  // tabla de precios era justo lo que hacia que las cifras mintieran.
+  var gastoIaLoaded = false;
+  var gastoIaAbiertos = {};
+
+  // Nombre de cada funcion en cristiano. Si aparece uno sin traducir, se ve el
+  // identificador crudo en vez de romperse.
+  var FUNCION_IA_LABEL = {
+    agenda_asistente: 'Chispa en la agenda',
+    chispa_clasificador: 'Chispa (clasificar la orden)',
+    migracion_magica: 'Migración mágica (importar datos)',
+    vision_corte: 'Analizar foto de corte',
+    vision_instagram: 'Texto para Instagram',
+    color_formula_parser: 'Dictar fórmula de color',
+    traductor_marcas: 'Traducir fórmula entre marcas',
+    onboarding_agent: 'Asistente de puesta en marcha',
+    chispa_recepcionista: 'Recepcionista de la demo',
+    chispa_landing: 'Chat de la web',
+    chispa_dudas_demo: 'Dudas de la demo',
+    organizar_agenda: 'Reorganizar la agenda',
+    analitica: 'Analítica'
+  };
+
+  function labelFuncionIa(f) { return FUNCION_IA_LABEL[f] || (f || 'sin identificar'); }
+
+  // Los costes por llamada son centimos de centimo: con 2 decimales todo sale $0.
+  function dinero(n) {
+    var v = Number(n) || 0;
+    if (v === 0) return '$0';
+    if (v < 0.01) return '$' + v.toFixed(5);
+    if (v < 1) return '$' + v.toFixed(4);
+    return '$' + v.toFixed(2);
+  }
+
+  function miles(n) { return (Number(n) || 0).toLocaleString('es-ES'); }
+
+  function loadGastoIa() {
+    var listEl = $('listIa');
+    listEl.innerHTML = '<div class="ad-loading">Cargando gasto de IA...</div>';
+    clearMsg($('iaMsg'));
+    var dias = parseInt($('fDiasIa').value, 10) || 30;
+
+    api.client.rpc('staff_gasto_ia_resumen', { p_dias: dias }).then(function (res) {
+      gastoIaLoaded = true;
+      if (res.error) {
+        listEl.innerHTML = '';
+        msg($('iaMsg'), 'err', 'No se pudo cargar el gasto de IA: ' + (res.error.message || ''));
+        return;
+      }
+      var filas = res.data || [];
+      var costeTotal = filas.reduce(function (t, f) { return t + (Number(f.coste_usd) || 0); }, 0);
+      var llamadas = filas.reduce(function (t, f) { return t + (Number(f.llamadas) || 0); }, 0);
+
+      $('statIaCoste').textContent = dinero(costeTotal);
+      $('statIaLlamadas').textContent = miles(llamadas);
+      $('statIaSalones').textContent = filas.length;
+      $('statIaMedia').textContent = filas.length ? dinero(costeTotal / filas.length) : '$0';
+      $('badgeIa').textContent = filas.length ? String(filas.length) : '';
+      $('countIa').textContent = filas.length
+        ? filas.length + (filas.length === 1 ? ' salón' : ' salones') + ' con gasto en los últimos ' + dias + ' días'
+        : '';
+
+      if (!filas.length) {
+        listEl.innerHTML = '<div class="ad-empty">Ningún salón ha gastado IA en este periodo.</div>';
+        return;
+      }
+
+      var html = '';
+      filas.forEach(function (f) {
+        var nid = f.negocio_id || '';
+        var caro = (Number(f.coste_usd) || 0) >= costeTotal * 0.4 && filas.length > 1;
+        var modelos = (f.modelos || []).join(', ');
+        html += '<div class="card-row" style="border-left:3px solid ' + (caro ? '#f59e0b' : 'rgba(148,163,184,.4)') + '">';
+        html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">';
+        html += '<span style="font-size:13.5px;font-weight:700;color:var(--text)">' + esc(f.negocio_nombre || nid) + '</span>';
+        html += '<span class="plan ' + (caro ? 'demo' : 'free') + '">' + dinero(f.coste_usd) + '</span>';
+        html += '<span class="plan free">' + miles(f.llamadas) + (Number(f.llamadas) === 1 ? ' llamada' : ' llamadas') + '</span>';
+        if (Number(f.llamadas_fallidas) > 0) {
+          html += '<span class="plan demo">' + miles(f.llamadas_fallidas) + ' fallidas</span>';
+        }
+        html += '</div>';
+        html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:6px">' +
+          miles(f.tokens_input) + ' tokens de entrada · ' + miles(f.tokens_output) + ' de salida · ' +
+          f.funciones_distintas + (Number(f.funciones_distintas) === 1 ? ' función' : ' funciones') +
+          (modelos ? ' · ' + esc(modelos) : '') +
+          (f.ultima ? ' · última ' + new Date(f.ultima).toLocaleString('es-ES') : '') +
+          '</div>';
+        html += '<div style="font-size:11px;color:var(--text-ter);margin-bottom:8px">' + esc(nid) + '</div>';
+        html += '<button class="ad-refresh" data-ia-negocio="' + esc(nid) + '" style="font-size:12px;padding:5px 10px">' +
+          'Ver las llamadas</button>';
+        html += '<div id="iaDet-' + esc(nid) + '" style="margin-top:10px"></div>';
+        html += '</div>';
+      });
+      listEl.innerHTML = html;
+
+      // Desplegar el detalle de un salon (se pide solo al abrirlo).
+      Array.prototype.forEach.call(listEl.querySelectorAll('[data-ia-negocio]'), function (btn) {
+        btn.addEventListener('click', function () {
+          var nid = btn.getAttribute('data-ia-negocio');
+          var cont = $('iaDet-' + nid);
+          if (!cont) return;
+          if (gastoIaAbiertos[nid]) {
+            gastoIaAbiertos[nid] = false;
+            cont.innerHTML = '';
+            btn.textContent = 'Ver las llamadas';
+            return;
+          }
+          gastoIaAbiertos[nid] = true;
+          btn.textContent = 'Ocultar las llamadas';
+          cont.innerHTML = '<div class="ad-loading">Cargando llamadas...</div>';
+          api.client.rpc('staff_gasto_ia_llamadas', {
+            p_negocio_id: nid, p_dias: dias, p_limite: 200
+          }).then(function (r2) {
+            if (r2.error) {
+              cont.innerHTML = '<div class="ad-empty">No se pudieron cargar las llamadas: ' + esc(r2.error.message || '') + '</div>';
+              return;
+            }
+            var llam = r2.data || [];
+            if (!llam.length) { cont.innerHTML = '<div class="ad-empty">Sin llamadas en el periodo.</div>'; return; }
+
+            var t = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+            t += '<thead><tr style="text-align:left;color:var(--text-ter);border-bottom:1px solid rgba(148,163,184,.25)">' +
+              '<th style="padding:6px 8px;font-weight:600">Cuándo</th>' +
+              '<th style="padding:6px 8px;font-weight:600">Para qué</th>' +
+              '<th style="padding:6px 8px;font-weight:600">Modelo</th>' +
+              '<th style="padding:6px 8px;font-weight:600;text-align:right">Tokens</th>' +
+              '<th style="padding:6px 8px;font-weight:600;text-align:right">Coste</th>' +
+              '<th style="padding:6px 8px;font-weight:600">Quién</th>' +
+              '</tr></thead><tbody>';
+            llam.forEach(function (l) {
+              var fallo = l.exito === false;
+              t += '<tr style="border-bottom:1px solid rgba(148,163,184,.12)' + (fallo ? ';opacity:.65' : '') + '">';
+              t += '<td style="padding:6px 8px;color:var(--text-sec);white-space:nowrap">' +
+                new Date(l.creado).toLocaleString('es-ES') + '</td>';
+              t += '<td style="padding:6px 8px;color:var(--text)">' + esc(labelFuncionIa(l.funcion_ia)) +
+                (l.superficie ? '<span style="color:var(--text-ter)"> · ' + esc(l.superficie) + '</span>' : '') +
+                (fallo ? '<span class="plan demo" style="margin-left:6px">falló</span>' : '') +
+                (fallo && l.error_mensaje ? '<div style="color:var(--text-ter);font-size:11px">' + esc(l.error_mensaje) + '</div>' : '') +
+                '</td>';
+              t += '<td style="padding:6px 8px;color:var(--text-sec);white-space:nowrap">' + esc(l.modelo || '-') + '</td>';
+              t += '<td style="padding:6px 8px;color:var(--text-sec);text-align:right;white-space:nowrap">' +
+                miles(l.tokens_input) + ' / ' + miles(l.tokens_output) + '</td>';
+              t += '<td style="padding:6px 8px;color:var(--text);text-align:right;font-weight:600;white-space:nowrap">' +
+                dinero(l.coste_usd) + '</td>';
+              t += '<td style="padding:6px 8px;color:var(--text-ter)">' + esc(l.usuario_nombre || l.usuario_email || '-') + '</td>';
+              t += '</tr>';
+            });
+            t += '</tbody></table>';
+            if (llam.length >= 200) {
+              t += '<div style="font-size:11px;color:var(--text-ter);margin-top:6px">Se muestran las 200 llamadas más recientes.</div>';
+            }
+            cont.innerHTML = '<div style="overflow-x:auto">' + t + '</div>';
+          }).catch(function (e) {
+            cont.innerHTML = '<div class="ad-empty">No se pudieron cargar las llamadas: ' + esc(e && e.message ? e.message : String(e)) + '</div>';
+          });
+        });
+      });
+    }).catch(function (e) {
+      listEl.innerHTML = '';
+      msg($('iaMsg'), 'err', 'No se pudo cargar el gasto de IA: ' + (e && e.message ? e.message : e));
+    });
+  }
+
+  var rIa = $('refreshIaBtn'); if (rIa) rIa.addEventListener('click', loadGastoIa);
+  var fdIa = $('fDiasIa'); if (fdIa) fdIa.addEventListener('change', function () { gastoIaAbiertos = {}; loadGastoIa(); });
 
   // ---------- ERRORES DE CLIENTE ----------
   var erroresLoaded = false;

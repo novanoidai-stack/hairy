@@ -84,6 +84,31 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    y el resto de `/app` van `no-store`. Estuvo TODO en `no-store` y eso obligaba a re-descargar
    el bundle de ~7 MB en cada carga, login y apertura de demo. No volver a poner `no-store` a `/app/(.*)`.
 
+8. **Capa de IA: una sola puerta (20 ago 2026).** Toda llamada a un LLM pasa por
+   `supabase/functions/shared/openrouterClient.ts`. **Ninguna edge function vuelve a hacer
+   `fetch` a openrouter.ai ni a escribir un id de modelo a mano.** Los ids, capacidades y
+   precios viven SOLO en `shared/modelos.ts`, verificado contra el catálogo real.
+   - **Antes de tocar `modelos.ts`: `npm run verificar:modelos`** (o `deno task verificar:modelos`).
+     Falla si un id no existe, si el precio se ha movido o si declaras una capacidad que el
+     modelo no tiene. La versión anterior tenía tres modelos inventados (`qwen/qwq-32b`,
+     `google/gemini-2.0-flash-001`, `qwen/qwen-2.5-vl-72b-instruct`) y nadie se enteró: la
+     cascada se los saltaba en silencio y se pagaba el modelo caro creyendo usar el barato.
+   - **La cascada NO se escribe a mano**: se pide por capacidad (`modalidades`, `tools`, `json`)
+     y el cliente filtra. Si mandas un PDF, un modelo sin modalidad `archivo` ni se intenta.
+     El primer fallback es siempre de OTRO proveedor (hay un test que lo vigila).
+   - **Las variantes `:batch` NO valen para chat**: se consumen por `POST /api/beta/batches`
+     (asíncrono, SLA de horas), no por `/v1/chat/completions`. Están en el catálogo marcadas
+     `activo: false`, solo para tarifar. No volver a meterlas en una cascada síncrona.
+   - **Un PDF va como parte `file`** (`parteArchivo`), nunca como `image_url` ni incrustado en
+     el prompt de texto: eso metía megas de base64 en el contexto y costaba dinero real.
+   - **Fotos de clientas**: a los modelos se les mandan los BYTES (`shared/imagenes.ts`), nunca
+     la signed URL del bucket privado — es una credencial de acceso con TTL (decisión 3).
+   - **Coste**: `shared/chispa-auditoria.ts` registra cada llamada en `chispa_auditoria` con el
+     precio real de `modelos.ts`. Tope de gasto por usuario/hora en `cupo_ia_disponible`
+     (`migrations/cupo-ia-por-usuario.sql`); si esa migración no está aplicada el límite
+     **no se aplica** y se avisa a gritos en los logs.
+   - Tests: `deno task test:ia`.
+
 ## Convenciones de código
 
 - Código en inglés, comentarios en español (sin emojis en código/UI).

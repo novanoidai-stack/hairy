@@ -6,8 +6,9 @@
 // forzado. El cliente (sesion ya autenticada) ejecuta la escritura real.
 // Mismo patron de auth/CORS/cliente-OpenRouter que supabase/functions/agenda-asistente.
 
-import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
+import { auditar } from '../shared/chispa-auditoria.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -19,16 +20,7 @@ const json = (b: unknown, status = 200) =>
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-const openai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: Deno.env.get('OPENROUTER_API_KEY') ?? '',
-});
-const MODELOS_ONBOARDING = [
-  'google/gemini-3.7-flash:batch',
-  'google/gemini-3.7-flash',
-  'deepseek/deepseek-chat',
-  'google/gemini-2.5-flash',
-];
+const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 
 type TemaId = 'datos_negocio' | 'servicios' | 'equipo' | 'horario_salon' | 'reserva_online' | 'notificaciones';
 
@@ -219,31 +211,30 @@ Deno.serve(async (req) => {
     if (modo === 'interpretar_respuesta') messages.push({ role: 'user', content: texto });
     else messages.push({ role: 'user', content: 'Redacta la pregunta de este tema.' });
 
-    let resp: any = null;
-    let lastError: any = null;
+    // Cascada centralizada, filtrada por soporte real de tool calling: aqui la
+    // respuesta SIEMPRE tiene que venir como tool_call, asi que un modelo sin
+    // tools no sirve de fallback ni aunque sea mas barato.
+    const resultado = await llamarIA(OPENROUTER_API_KEY, {
+      funcion: 'onboarding-agent',
+      mensajes: messages as MensajeIA[],
+      maxTokens: 400,
+      tools: [{ type: 'function', function: tool }],
+      toolChoice: { type: 'function', function: { name: tool.name } },
+      timeoutMs: 30_000,
+    });
 
-    for (const model of MODELOS_ONBOARDING) {
-      try {
-        resp = await openai.chat.completions.create({
-          model,
-          max_tokens: 400,
-          messages,
-          tools: [{ type: 'function', function: tool }],
-          tool_choice: { type: 'function', function: { name: tool.name } },
-        });
-        if (resp.choices?.[0]?.message?.tool_calls?.[0]) break;
-      } catch (err) {
-        lastError = err;
-        console.warn(`[onboarding-agent] Fallo en ${model}:`, err);
-      }
-    }
-
-    if (!resp) throw lastError ?? new Error('Fallo en todos los modelos de onboarding');
-
-    const call = resp.choices[0]?.message?.tool_calls?.[0];
+    const call = resultado.toolCalls?.[0];
     if (!call) return json({ error: 'no_tool_call' }, 502);
     let args: Record<string, unknown> = {};
-    try { args = JSON.parse(call.function.arguments || '{}'); } catch { /* args queda {} */ }
+    try { args = JSON.parse(call.function?.arguments || '{}'); } catch { /* args queda {} */ }
+
+    auditar(svc, resultado, {
+      negocioId: profile.negocio_id,
+      usuarioId: user.id,
+      funcionIA: 'onboarding_agent',
+      superficie: 'Puesta en marcha',
+      contexto: { tema, modo },
+    });
 
     if (modo === 'enriquecer_pregunta') {
       return json({ pregunta: { titulo: String(args.titulo ?? ''), subtitulo: args.subtitulo ? String(args.subtitulo) : undefined, placeholder_ejemplo: args.placeholder_ejemplo ? String(args.placeholder_ejemplo) : undefined } });

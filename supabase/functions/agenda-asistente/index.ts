@@ -3,8 +3,9 @@
 // Lecturas se ejecutan aquí (server-side, service key).
 // Escrituras NO se ejecutan: devuelven accion_propuesta al panel.
 
-import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
+import { auditar } from '../shared/chispa-auditoria.ts';
 // Seguridad de la capa IA (Sesion 2): RBAC de tools + regla dura de salud.
 import { can, roleOf, toolPermitida, esEscritura, accionPermitidaEnSuperficie, esLectura, SUPERFICIE_ACCIONES, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
@@ -29,22 +30,21 @@ const json = (b: unknown, status = 200) =>
 // ---------------------------------------------------------------------------
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-// Claude (Anthropic) via OpenRouter (OpenAI-compatible).
-const openai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: Deno.env.get('OPENROUTER_API_KEY') ?? '',
-});
-// Modelos: Gemini 3.7 Flash como principal (1M contexto, razonamiento híbrido y velocidad),
-// con fallback en cascada a DeepSeek V3/V4 (máxima precisión en tool-calling/JSON) y Gemini 2.0 Flash.
-const MODEL = Deno.env.get('OPENROUTER_MODEL') ?? 'google/gemini-3.7-flash:batch';
-const MODEL_LECTURA = Deno.env.get('OPENROUTER_MODEL_LECTURA') ?? 'google/gemini-3.7-flash:batch';
-const MODEL_FALLBACK_1 = 'deepseek/deepseek-chat';
-const MODEL_FALLBACK_2 = 'google/gemini-2.5-flash';
+const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 
-// ¿El fallo del proveedor es "ese modelo ya no existe"?
-function esModeloInexistente(e: unknown): boolean {
-  const m = String((e as { message?: string })?.message ?? e ?? '').toLowerCase();
-  return m.includes('no endpoints found') || m.includes('model_not_found') || m.includes('404') || m.includes('unsupported');
+// La cascada de modelos NO se escribe aqui: la calcula shared/openrouterClient
+// a partir del catalogo verificado (shared/modelos.ts), filtrando por soporte
+// real de tool calling. Chispa vive de las tools: un modelo sin ellas no es un
+// fallback, es un cuelgue.
+//
+// OPENROUTER_MODEL / OPENROUTER_MODEL_LECTURA siguen existiendo como escape
+// para fijar un modelo concreto desde secrets sin desplegar.
+const MODEL_FIJADO = Deno.env.get('OPENROUTER_MODEL') || null;
+const MODEL_LECTURA_FIJADO = Deno.env.get('OPENROUTER_MODEL_LECTURA') || null;
+
+/** Cadena explicita solo si hay override; si no, decide el cliente compartido. */
+function cadenaDe(fijado: string | null): string[] | undefined {
+  return fijado ? [fijado] : undefined;
 }
 // Tenant demo compartido entre visitantes: NO se persiste memoria cross-visitante (constraint #8).
 const DEMO_NEGOCIO_ID = 'demo_salon_001';
@@ -919,7 +919,6 @@ export async function runAgente(
   // El chat ('auto') se afina con un clasificador (ver mas abajo) que puede
   // reasignar tareaEfectiva/modeloEnUso a 'accion'/Haiku cuando detecta escritura.
   let tareaEfectiva: 'lectura' | 'accion' = tarea === 'lectura' ? 'lectura' : 'accion';
-  let modeloEnUso = tareaEfectiva === 'lectura' ? MODEL_LECTURA : MODEL;
 
   // Clasificador Paso-0 (rework KISS): el chat ('auto') no sabe a priori si el
   // mensaje es lectura o accion. Una llamada barata sin tools (1 palabra) decide
@@ -929,20 +928,22 @@ export async function runAgente(
     const ultimoUsuario = [...mensajes].reverse().find((m) => m.role === 'user');
     const contenido = typeof ultimoUsuario?.content === 'string' ? ultimoUsuario.content : '';
     try {
-      const cls = await openai.chat.completions.create({
-        model: MODEL_LECTURA,
-        max_tokens: 3,
-        messages: [
+      const cls = await llamarIA(OPENROUTER_API_KEY, {
+        funcion: 'chispa-clasificador',
+        maxTokens: 3,
+        // Una palabra: aqui prima el precio y la latencia, no la finura.
+        perfil: 'economico',
+        cadena: cadenaDe(MODEL_LECTURA_FIJADO),
+        timeoutMs: 12_000,
+        mensajes: [
           { role: 'system', content: 'Clasifica el mensaje del usuario en UNA sola palabra: "accion" si pide confirmar citas, reenviar recordatorios, avisar a la lista de espera o gestionar un retraso; "lectura" si pide datos, cifras, listados, historial o analisis; "charla" para saludos o ayuda. Responde solo esa palabra.' },
           { role: 'user', content: contenido },
         ],
       });
-      const etiqueta = (cls.choices[0]?.message?.content ?? '').toLowerCase();
-      tareaEfectiva = etiqueta.includes('accion') ? 'accion' : 'lectura';
+      tareaEfectiva = cls.texto.toLowerCase().includes('accion') ? 'accion' : 'lectura';
     } catch {
-      tareaEfectiva = 'accion'; // fallback seguro: Haiku con las acciones del chat
+      tareaEfectiva = 'accion'; // fallback seguro: el set completo de acciones del chat
     }
-    modeloEnUso = tareaEfectiva === 'lectura' ? MODEL_LECTURA : MODEL;
   }
 
   // S09: Recuperar hechos de memoria a largo plazo
@@ -1131,33 +1132,31 @@ export async function runAgente(
     if (Deno.env.get('CHISPA_DEBUG_PAYLOAD') === '1') {
       console.log('[CHISPA_DEBUG_PAYLOAD]', JSON.stringify(messages));
     }
-    let resp;
-    const cadenaModelos = Array.from(new Set([modeloEnUso, MODEL, MODEL_FALLBACK_1, MODEL_FALLBACK_2]));
-    let ultimoError: any = null;
-    for (const mTarget of cadenaModelos) {
-      try {
-        resp = await openai.chat.completions.create({
-          model: mTarget,
-          max_tokens: 1024,
-          messages,
-          tools,
-          tool_choice: 'auto',
-        });
-        modeloEnUso = mTarget;
-        break;
-      } catch (e) {
-        ultimoError = e;
-        console.warn(`[chispa] Fallo con modelo ${mTarget}, intentando fallback...`, e);
-      }
-    }
+    // Una sola llamada: la cascada (y sus reintentos) viven dentro del cliente
+    // compartido, que ademas solo ofrece modelos con tool calling real.
+    const resp = await llamarIA(OPENROUTER_API_KEY, {
+      funcion: 'agenda-asistente',
+      maxTokens: 1024,
+      mensajes: messages as MensajeIA[],
+      tools,
+      toolChoice: 'auto',
+      cadena: cadenaDe(tareaEfectiva === 'lectura' ? MODEL_LECTURA_FIJADO : MODEL_FIJADO),
+      timeoutMs: 45_000,
+    });
+    // Cada vuelta del bucle es una llamada real: se audita una a una para que
+    // el coste de una conversacion con muchas tools no se contabilice como una.
+    auditar(svc, resp, {
+      negocioId,
+      usuarioId: userId,
+      funcionIA: 'agenda_asistente',
+      superficie: scope ?? 'Chispa',
+      contexto: { tarea: tareaEfectiva, vuelta: i },
+    });
 
-    if (!resp) throw ultimoError ?? new Error('No se pudo obtener respuesta de ningún modelo configurado.');
-
-    const msg = resp.choices[0]?.message;
-    if (!msg) return finalizar('No he recibido respuesta del modelo.');
+    const msg = { role: 'assistant' as const, content: resp.texto, tool_calls: resp.toolCalls };
     messages.push(msg);
 
-    const toolCalls = msg.tool_calls ?? [];
+    const toolCalls = resp.toolCalls ?? [];
 
     // Sin tool calls: respuesta final de texto (+ bloquesExtra acumulados)
     if (toolCalls.length === 0) {

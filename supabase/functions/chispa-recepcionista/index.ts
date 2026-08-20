@@ -8,6 +8,7 @@
 // Mismo patron de CORS/rate-limit que chispa-landing/index.ts.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -115,46 +116,21 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: message },
     ];
 
-    const MODELOS_CHAT = [
-      'google/gemini-3.7-flash:batch',
-      'google/gemini-3.7-flash',
-      'deepseek/deepseek-chat',
-      'google/gemini-2.5-flash',
-    ];
-
+    // Cascada centralizada (shared/modelos.ts). Es el escaparate publico:
+    // si el primer modelo esta caido, el visitante no puede notarlo.
     let reply = '';
-    let lastErr = null;
-
-    for (const model of MODELOS_CHAT) {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://www.novanoidai.com',
-            'X-Title': 'Hairy Chispa Recepcionista',
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            max_tokens: 220,
-            temperature: 0.6,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          reply = data.choices?.[0]?.message?.content || '';
-          if (reply) break;
-        } else {
-          lastErr = await response.text();
-          console.warn(`[chispa-recepcionista] Error con ${model}:`, lastErr);
-        }
-      } catch (e) {
-        lastErr = e;
-        console.warn(`[chispa-recepcionista] Fallo en ${model}:`, e);
-      }
+    try {
+      const resultado = await llamarIA(OPENROUTER_API_KEY, {
+        funcion: 'chispa-recepcionista',
+        mensajes: messages as MensajeIA[],
+        maxTokens: 220,
+        temperatura: 0.6,
+        perfil: 'economico',
+        timeoutMs: 25_000,
+      });
+      reply = resultado.texto.trim();
+    } catch (e) {
+      console.error('[chispa-recepcionista] sin respuesta de IA:', e instanceof Error ? e.message : e);
     }
 
     if (!reply) {

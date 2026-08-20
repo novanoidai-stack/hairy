@@ -1,6 +1,8 @@
 {
   "tasks": {
-    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts lib/utils/appointment.test.ts lib/horariosFranjas.test.ts lib/migracionParserLocal.test.ts"
+    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts lib/utils/appointment.test.ts lib/horariosFranjas.test.ts lib/migracionParserLocal.test.ts",
+    "test:ia": "deno test --no-config --allow-net supabase/functions/shared/openrouterClient.test.ts",
+    "verificar:modelos": "node scripts/verificar-modelos.mjs"
   },
   "exclude": [
     "node_modules/",

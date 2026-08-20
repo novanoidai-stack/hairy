@@ -3,6 +3,7 @@
 // Implementa rate limit por IP a través de RPC check_landing_rate_limit.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -127,50 +128,27 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: message }
     ];
 
-    const MODELOS_LANDING = [
-      'google/gemini-3.7-flash:batch',
-      'google/gemini-3.7-flash',
-      'deepseek/deepseek-chat',
-      'google/gemini-2.5-flash',
-    ];
-
+    // La cascada la decide el cliente compartido a partir del catalogo
+    // verificado (shared/modelos.ts). Aqui no se escriben ids a mano: el
+    // problema anterior fue justo ese, ids inventados que nadie comprobaba.
     let reply = '';
-    let lastErr = null;
-
-    for (const model of MODELOS_LANDING) {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://www.novanoidai.com',
-            'X-Title': 'Hairy Chispa Landing',
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            max_tokens: 280,
-            temperature: 0.4,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          reply = data.choices?.[0]?.message?.content || '';
-          if (reply) break;
-        } else {
-          lastErr = await response.text();
-          console.warn(`[chispa-landing] Error con ${model}:`, lastErr);
-        }
-      } catch (e) {
-        lastErr = e;
-        console.warn(`[chispa-landing] Fallo en ${model}:`, e);
-      }
+    try {
+      const resultado = await llamarIA(OPENROUTER_API_KEY, {
+        funcion: 'chispa-landing',
+        mensajes: messages as MensajeIA[],
+        maxTokens: 280,
+        temperatura: 0.4,
+        // Es un chat comercial de texto en la web publica: prima el coste.
+        perfil: 'economico',
+        timeoutMs: 25_000,
+      });
+      reply = resultado.texto.trim();
+    } catch (e) {
+      console.error('[chispa-landing] sin respuesta de IA:', e instanceof Error ? e.message : e);
     }
 
     if (!reply) {
-      reply = 'Lo siento, ha ocurrido un error al procesar tu solicitud. ¿Me lo repites?';
+      reply = 'Ahora mismo no puedo responderte. Escribenos a contacto@mechaa.es o [reserva una llamada](reservar.html) y te lo contamos en 10 minutos.';
     }
 
     return json({ reply }, 200, req);
