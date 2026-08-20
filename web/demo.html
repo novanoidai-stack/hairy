@@ -208,6 +208,16 @@
 .gt-body{font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.76);margin:0;
   animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .07s both}
 .gt-viz{margin-top:10px;animation:gtLineIn .45s cubic-bezier(.16,1,.3,1) .12s both}
+/* El paso entraba SIEMPRE desde abajo, tambien al retroceder, y eso desorienta:
+   el movimiento contradecia la direccion de la navegacion. Con .atras el texto
+   entra desde arriba, que es de donde vienes. */
+@keyframes gtLineInBack{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.gt-content.atras .gt-title,
+.gt-content.atras .gt-body,
+.gt-content.atras .gt-viz{animation-name:gtLineInBack}
+@media(prefers-reduced-motion:reduce){
+  .gt-title,.gt-body,.gt-viz{animation:none!important}
+}
 /* Controles EN FLUJO dentro de la tarjeta: nunca se salen ni tapan el cuerpo. */
 .gt-controls{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin:12px 0 4px;pointer-events:auto}
 .gt-prev,.gt-play,.gt-next{border-radius:50%;cursor:pointer;display:grid;place-items:center;
@@ -389,16 +399,33 @@
   .dm-intro-in{position:relative;z-index:4;width:100%;max-width:540px;text-align:center;
     padding:clamp(16px,3.2vh,32px) clamp(16px,4vw,26px);display:flex;flex-direction:column;align-items:center;justify-content:center}
 
-  /* Animación de entrada escalonada suave */
-  @keyframes dmLine{from{opacity:0;transform:translate3d(0,20px,0);filter:blur(8px)}
+  /* ── Entrada escalonada POR PESO ──────────────────────────────────────
+     Antes los seis bloques entraban exactamente igual: 20px de recorrido,
+     0,75s y blur(8px) para todos. Eso es lo que hace que una entrada parezca
+     una plantilla y no una puesta en escena. Regla: cuanto mas pesa un
+     elemento en la jerarquia, MENOS recorre y antes asienta (el titular es
+     el ancla); los elementos de apoyo pueden viajar mas. El blur solo en lo
+     ligero: sobre una tipografia de 42px se ve sucio, no cinematografico.
+     Curva unica del sistema, cubic-bezier(.16,1,.3,1). */
+  @keyframes dmInMark{from{opacity:0;transform:translate3d(0,8px,0) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes dmInTitle{from{opacity:0;transform:translate3d(0,13px,0)}to{opacity:1;transform:none}}
+  @keyframes dmInSoft{from{opacity:0;transform:translate3d(0,18px,0);filter:blur(6px)}
     to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
-  .dm-intro.show .dm-intro-in>*{animation:dmLine .75s cubic-bezier(.16,1,.3,1) both;will-change:transform,opacity,filter}
-  .dm-intro.show .dm-intro-in>*:nth-child(1){animation-delay:.10s}
-  .dm-intro.show .dm-intro-in>*:nth-child(2){animation-delay:.22s}
-  .dm-intro.show .dm-intro-in>*:nth-child(3){animation-delay:.34s}
-  .dm-intro.show .dm-intro-in>*:nth-child(4){animation-delay:.48s}
-  .dm-intro.show .dm-intro-in>*:nth-child(5){animation-delay:.62s}
-  .dm-intro.show .dm-intro-in>*:nth-child(6){animation-delay:.74s}
+  @keyframes dmInCta{from{opacity:0;transform:translate3d(0,10px,0) scale(.97)}to{opacity:1;transform:none}}
+
+  .dm-intro.show .dm-intro-in>*{will-change:transform,opacity}
+  .dm-intro.show .dm-intro-markwrap{animation:dmInMark .5s cubic-bezier(.16,1,.3,1) .10s both}
+  .dm-intro.show h2{animation:dmInTitle .62s cubic-bezier(.16,1,.3,1) .20s both}
+  .dm-intro.show .gsub{animation:dmInSoft .58s cubic-bezier(.16,1,.3,1) .32s both}
+  .dm-intro.show .dm-intro-tracks{animation:dmInSoft .52s cubic-bezier(.16,1,.3,1) .42s both}
+  /* Los tres recorridos no entran en bloque: 45ms de desfase entre ellos, que
+     es el tramo donde el ojo lee "uno, dos, tres" sin percibir espera. */
+  .dm-intro.show .dm-ipill{animation:dmInSoft .46s cubic-bezier(.16,1,.3,1) both}
+  .dm-intro.show .dm-ipill:nth-child(1){animation-delay:.46s}
+  .dm-intro.show .dm-ipill:nth-child(2){animation-delay:.505s}
+  .dm-intro.show .dm-ipill:nth-child(3){animation-delay:.55s}
+  .dm-intro.show .dm-intro-actions{animation:dmInCta .55s cubic-bezier(.16,1,.3,1) .60s both}
+  .dm-intro.show .dm-intro-fake{animation:dmInSoft .5s cubic-bezier(.16,1,.3,1) .74s both}
 
   /* Encabezado con Logo y Badge */
   .dm-intro-markwrap{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto clamp(8px,1.6vh,14px)}
@@ -419,16 +446,25 @@
   .dm-intro .gsub b{color:#fff;font-weight:600}
 
   /* Píldoras/chips minimalistas de recorridos */
-  .dm-intro-tracks{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;margin:0 auto clamp(14px,2.4vh,22px);width:100%;max-width:480px}
-  .dm-ipill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
-    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);color:#e2e8f0;font-size:12px;font-weight:600;
-    cursor:pointer;transition:all .2s cubic-bezier(.16,1,.3,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  .dm-ipill:hover{background:rgba(244,80,30,.18);border-color:rgba(244,80,30,.55);color:#fff;transform:translateY(-1.5px);box-shadow:0 4px 16px rgba(244,80,30,.22)}
-  .dm-ipill.primero{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.35);color:#fff}
-  .dm-ipill-n{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;
+  /* Los tres recorridos: rejilla de 3, no pildoras flotando.
+     En flex-wrap centrado quedaban 2 arriba y 1 abajo — un huerfano que
+     desordena justo el bloque que promete estructura ("3 recorridos"). */
+  .dm-intro-tracks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+    margin:0 auto clamp(14px,2.4vh,22px);width:100%;max-width:520px}
+  .dm-ipill{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px 12px;border-radius:13px;
+    background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);color:#e2e8f0;font-size:12px;font-weight:600;
+    text-align:left;cursor:pointer;position:relative;overflow:hidden;
+    transition:background .22s cubic-bezier(.16,1,.3,1),border-color .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .dm-ipill:hover{background:rgba(244,80,30,.16);border-color:rgba(244,80,30,.5);color:#fff;transform:translateY(-2px);box-shadow:0 8px 22px -8px rgba(244,80,30,.55)}
+  .dm-ipill:active{transform:translateY(0) scale(.985)}
+  .dm-ipill:focus-visible{outline:2px solid #ff9b66;outline-offset:2px}
+  .dm-ipill.primero{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.34);color:#fff}
+  .dm-ipill-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;
     background:rgba(244,80,30,.28);color:#ffd9c2;font-size:10px;font-weight:800;font-family:var(--mono)}
-  .dm-ipill-txt{letter-spacing:-.01em}
-  .dm-ipill-time{font-family:var(--mono);font-size:10.5px;color:rgba(255,255,255,.45);font-weight:500}
+  .dm-ipill-txt{letter-spacing:-.01em;line-height:1.2;color:#fff}
+  .dm-ipill-time{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.42);font-weight:500;
+    transition:color .22s ease}
   .dm-ipill:hover .dm-ipill-time{color:#ffb188}
 
   /* Botones de acción */
@@ -454,9 +490,28 @@
     align-items:center;gap:6px;justify-content:center;max-width:440px;line-height:1.4;text-align:center}
   .dm-intro-fake svg{width:12px;height:12px;flex-shrink:0;opacity:.7}
 
-  /* Salida de cine */
-  .dm-intro.exit{animation:dmIntroOut .5s cubic-bezier(.7,0,.84,0) forwards;pointer-events:none}
-  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.08)}}
+  /* ── Salida de cine, con RELEVO ───────────────────────────────────────
+     Antes la intro se limitaba a desvanecerse en 0,5s y la app aparecia ya
+     puesta: dos planos sin relacion. Ahora es un solo movimiento de camara:
+       · la intro empuja hacia el espectador y se va en 0,34s (≈62% de la
+         entrada — una salida debe ser mas rapida que su entrada, si no
+         parece que la interfaz duda),
+       · las barras de cine SE ABREN en vez de desvanecerse,
+       · y la app entra por debajo desde scale(.985) con 80ms de retardo,
+         de modo que hay continuidad espacial en vez de un corte.
+     Curva de salida ease-in (.7,0,.84,0): acelera al irse, que es lo que
+     hace que se lea como "atravesar" y no como "apagarse". */
+  .dm-intro.exit{animation:dmIntroOut .34s cubic-bezier(.7,0,.84,0) forwards;pointer-events:none}
+  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.06)}}
+  .dm-intro.exit .dm-cinebar{animation:dmBarOut .34s cubic-bezier(.7,0,.84,0) forwards}
+  @keyframes dmBarOut{to{transform:translate3d(0,var(--dm-bar-out,-100%),0);opacity:0}}
+  .dm-intro.exit .dm-cinebar.b{--dm-bar-out:100%}
+  .dm-intro.exit .dm-intro-in{animation:dmIntroInnerOut .26s cubic-bezier(.7,0,.84,0) forwards}
+  @keyframes dmIntroInnerOut{to{opacity:0;transform:translate3d(0,-10px,0)}}
+
+  /* El relevo lo recibe el escenario de la app */
+  @keyframes dmStageIn{from{opacity:.55;transform:scale(.985)}to{opacity:1;transform:none}}
+  body.dm-intro-leaving .dm-stage{animation:dmStageIn .5s cubic-bezier(.16,1,.3,1) .08s both;will-change:transform,opacity}
 
   /* Ajustes en pantallas compactas y móvil */
   @media(max-width:480px){
@@ -466,9 +521,9 @@
     .dm-intro .geyebrow{font-size:9.5px;padding:3px 8px;letter-spacing:.14em}
     .dm-intro h2{font-size:24px;margin-bottom:6px}
     .dm-intro .gsub{font-size:12.5px;margin-bottom:12px;line-height:1.4}
-    .dm-intro-tracks{gap:5px;margin-bottom:14px}
-    .dm-ipill{padding:5px 9px;font-size:11px;gap:5px}
-    .dm-ipill-n{width:15px;height:15px;font-size:9px}
+    .dm-intro-tracks{gap:6px;margin-bottom:14px}
+    .dm-ipill{padding:8px 9px;font-size:11px;gap:4px}
+    .dm-ipill-n{width:18px;height:18px;font-size:9px}
     .dm-ipill-time{font-size:9.5px}
     .dm-intro-actions{max-width:300px;gap:6px}
     .dm-intro-btn-play{padding:11px 18px;font-size:13.5px}
@@ -476,7 +531,17 @@
     .dm-intro-fake{font-size:10px;margin-top:6px}
     .dm-cinebar{height:10px}
   }
+  /* Por debajo de 400px tres columnas dejan ~110px por recorrido y el nombre
+     se parte palabra a palabra. Ahi el bloque se apila en fila horizontal. */
+  @media(max-width:400px){
+    .dm-intro-tracks{grid-template-columns:minmax(0,1fr)}
+    .dm-ipill{flex-direction:row;align-items:center;gap:8px;padding:9px 11px}
+    .dm-ipill-txt{flex:1}
+  }
   @media(max-height:680px){
+    .dm-intro-tracks{grid-template-columns:minmax(0,1fr)}
+    .dm-ipill{flex-direction:row;align-items:center;gap:8px;padding:7px 11px}
+    .dm-ipill-txt{flex:1}
     .dm-intro-in{padding:10px 14px}
     .dm-intro-markwrap{margin-bottom:6px}
     .dm-intro h2{font-size:22px;margin-bottom:4px}
@@ -488,7 +553,11 @@
   }
   @media(prefers-reduced-motion:reduce){
     .dm-intro::before,.dm-intro .gmark{animation:none}
-    .dm-intro.show .dm-intro-in>*{animation-duration:.01ms;animation-delay:0s}
+    .dm-intro.show .dm-intro-in>*,
+    .dm-intro.show .dm-ipill,
+    .dm-intro.exit .dm-intro-in,
+    .dm-intro.exit .dm-cinebar,
+    body.dm-intro-leaving .dm-stage{animation-duration:.01ms!important;animation-delay:0s!important}
     .dm-intro.show .dm-cinebar{animation-duration:.01ms}
     .dm-intro.exit{animation-duration:.01ms}
   }
@@ -2315,6 +2384,9 @@
   // bloqueos), se cancela todo lo pendiente del paso anterior y el contenido se
   // pinta SINCRONO (el paso nunca se queda "en blanco"). El foco se desliza y los
   // controles del dock no se mueven nunca.
+  // +1 avanzar, -1 retroceder. Decide de que lado entra el texto del paso.
+  var dirPaso=1;
+
   function renderStep(cambiaActo){
     var s=STEPS[ti];
     seq++; pasoInicio=Date.now();
@@ -2326,6 +2398,9 @@
       var a=actoOf(ti);
       if(a!==lastActoShown){ lastActoShown=a; mostrarActo(a); }
     }
+    // La direccion se marca ANTES de pintar: fillContent reemplaza el HTML y
+    // ahi es donde arrancan de cero las animaciones de entrada del texto.
+    gt.content.classList.toggle('atras', dirPaso < 0);
     fillContent(s);
     gt.content.classList.remove('swap');
     driveSoftware(s);
@@ -2333,6 +2408,7 @@
   }
 
   function tourNext(){
+    dirPaso=1;
     if(ti<STEPS.length-1){ ti++; renderStep(true); return; }
     // Fin del recorrido: encadena con el siguiente y, si no hay, cierra.
     var sig=siguienteRecorrido();
@@ -2340,7 +2416,7 @@
     stopAutoplay();
     closeTour();
   }
-  function tourPrev(){ if(ti>0){ ti--; renderStep(true); } }
+  function tourPrev(){ dirPaso=-1; if(ti>0){ ti--; renderStep(true); } }
   function closeTour(){
     stopAutoplay();
     if(!gt.root) return;
@@ -2365,6 +2441,7 @@
     gt.veil.classList.add('on'); gt.spot.classList.remove('on');
     gt.root.classList.add('show');
     lastActoShown=-1;
+    dirPaso=1; gt.content.classList.remove('atras');
     setProgress(); updateNav(); syncSelector(); renderChapters(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
     // Cortinilla del capitulo 1 nada mas arrancar: sin esto el primer rotulo no
     // salia hasta el tercer paso (lastActoShown solo se comparaba en renderStep).
@@ -2474,18 +2551,24 @@
     });
   }
 
-  // Salida de la intro: el negro se abre (medio segundo) mientras el tour ya
-  // esta arrancando por debajo. Nada de cortes secos.
+  // Salida de la intro: no es un fundido, es un relevo. La intro empuja hacia
+  // el espectador y las barras de cine se abren mientras la app entra por
+  // debajo desde scale(.985). Un solo movimiento de camara en vez de dos
+  // planos sin relacion. El tour ya esta arrancando durante la transicion.
   function salirIntro(track){
     var el=$('#intro');
     try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){}
     if(track) startTour(track);
     if(!el){ return; }
+    document.body.classList.add('dm-intro-leaving');
     el.classList.add('exit');
     setTimeout(function(){
       el.classList.remove('show'); el.classList.remove('exit');
       document.body.classList.remove('dm-intro-on');
-    }, 560);
+    }, 360);
+    // La entrada del escenario dura 0,5s + 0,08s de retardo; se limpia despues
+    // para no dejar un animation-fill pegado sobre .dm-stage.
+    setTimeout(function(){ document.body.classList.remove('dm-intro-leaving'); }, 700);
   }
   function closeIntro(){ salirIntro(null); }
 
