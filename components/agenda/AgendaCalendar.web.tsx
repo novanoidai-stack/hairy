@@ -6,7 +6,6 @@ import {
   useCallback,
   memo,
   useDeferredValue,
-  Fragment,
 } from "react";
 import { TimelineNowIndicator } from "./TimelineNowIndicator.web";
 import { createPortal } from "react-dom";
@@ -3374,28 +3373,28 @@ export default function AgendaCalendar() {
         ))}
       </div>
 
-      {/* Botón rápido Hoy */}
+      {/* Boton rapido Hoy. Solo icono: los cinco controles de esta fila mas el
+          recuento suman 39 px mas de los 351 disponibles a 375 px, y el rotulo
+          "Hoy" es lo que menos falta hace (el icono de calendario ya lo dice, y
+          queda el aria-label). Con el texto, el recuento se cortaba a "6.". */}
       <button
         onClick={handleToday}
         title="Ir a hoy"
         aria-label="Ir a hoy"
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          padding: "5px 8px",
+          display: "grid",
+          placeItems: "center",
+          width: 29,
+          height: 27,
           background: TOKENS.bgCard,
           border: `1px solid ${TOKENS.border}`,
           color: TOKENS.text,
           borderRadius: 9,
           cursor: "pointer",
-          fontSize: 11.5,
-          fontWeight: 600,
           flexShrink: 0,
         }}
       >
-        <Icon name="calendar" size={12} color={TOKENS.text} />
-        <span>Hoy</span>
+        <Icon name="calendar" size={14} color={TOKENS.text} />
       </button>
 
       {/* Botón Filtros con Badge de activos */}
@@ -3495,17 +3494,16 @@ export default function AgendaCalendar() {
           El hueco que deja lo ocupa el recuento del dia, que antes vivia en una
           linea propia bajo la fecha. */}
       <span
+        title={`${totalActivasHoy} citas · ${confirmadasHoy} confirmadas`}
         style={{
-          fontSize: 10.5,
+          fontSize: 11,
           color: TOKENS.textSec,
-          fontWeight: 600,
+          fontWeight: 700,
           whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          minWidth: 0,
+          flexShrink: 0,
         }}
       >
-        {totalActivasHoy}/{confirmadasHoy} conf.
+        {confirmadasHoy}/{totalActivasHoy}
       </span>
     </div>
   );
@@ -18002,6 +18000,16 @@ export function DetalleCitaModal({
     day: "numeric",
     month: "short",
   });
+  // Fecha sin dia de la semana para la cabecera en movil. Ahi la columna de
+  // texto se queda en 141 px (el avatar, la pastilla de estado y la cruz se
+  // llevan el resto): "jueves, 20 ago · 10:45 - 11:15" pide 162 y "jue, 20 ago
+  // · ..." todavia 142, asi que se cortaba por la hora de FIN, justo el dato
+  // que se va a mirar. El dia de la semana es lo prescindible: la cabecera de
+  // la agenda ya dice en que dia estas, y la fecha completa queda en el title.
+  const citaDateCorta = new Date(cita.inicio).toLocaleDateString(LOCALE, {
+    day: "numeric",
+    month: "short",
+  });
   const citaHora = new Date(cita.inicio).toLocaleTimeString(LOCALE, {
     hour: "2-digit",
     minute: "2-digit",
@@ -19104,52 +19112,44 @@ export function DetalleCitaModal({
                           }}
                         />
                       )}
-                      <span
-                        style={{
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                        title={selectedServicio?.nombre || "—"}
-                      >
+                      {/* El nombre del servicio SE ENVUELVE, no se recorta: con
+                          puntos suspensivos "Mechas Balayage + Matiz" quedaba en
+                          "Mechas Balayage ..." y el dato principal de la cita
+                          dejaba de leerse. */}
+                      <span style={{ minWidth: 0 }}>
                         {selectedServicio?.nombre || "—"}
                       </span>
                     </div>
-                    {/* Separadores intercalados, nunca al final: el bullet es un
-                        elemento entre pareja y pareja, asi que no quedan puntos
-                        colgando cuando la linea envuelve. */}
+                    {/* Dos lineas de texto plano, con el punto DENTRO de la
+                        cadena. Con una fila flexible que envuelve, el separador
+                        es un elemento mas y se queda colgando al final del
+                        renglon ("Maria Garcia ·"), que es el defecto que ya se
+                        habia corregido una vez en la version de escritorio. */}
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: 6,
                         fontSize: 12,
                         color: TOKENS.textSec,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                         minWidth: 0,
                       }}
+                      title={selectedProf?.nombre || "—"}
                     >
-                      {[
-                        selectedProf?.nombre || "—",
-                        citaDate,
-                        `${citaHora} - ${citaFinHora}`,
-                      ].map((txt, i) => (
-                        <Fragment key={i}>
-                          {i > 0 && (
-                            <span
-                              style={{
-                                width: 3,
-                                height: 3,
-                                borderRadius: 99,
-                                background: TOKENS.textTer,
-                                flexShrink: 0,
-                              }}
-                            />
-                          )}
-                          <span style={{ whiteSpace: "nowrap" }}>{txt}</span>
-                        </Fragment>
-                      ))}
+                      {selectedProf?.nombre || "—"}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: TOKENS.textSec,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        minWidth: 0,
+                      }}
+                      title={`${citaDate} · ${citaHora} - ${citaFinHora}`}
+                    >
+                      {citaDateCorta} · {citaHora} - {citaFinHora}
                     </div>
                     <div
                       style={{
