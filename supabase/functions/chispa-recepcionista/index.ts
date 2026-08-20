@@ -115,28 +115,51 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: message },
     ];
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'anthropic/claude-haiku-4.5',
-        messages,
-        max_tokens: 160,
-        temperature: 0.6,
-      }),
-    });
+    const MODELOS_CHAT = [
+      'google/gemini-3.7-flash:batch',
+      'google/gemini-3.7-flash',
+      'deepseek/deepseek-chat',
+      'google/gemini-2.5-flash',
+    ];
 
-    if (!response.ok) {
-      const errTxt = await response.text();
-      console.error('LLM API Error:', errTxt);
-      return json({ error: 'llm_error' }, 500, req);
+    let reply = '';
+    let lastErr = null;
+
+    for (const model of MODELOS_CHAT) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://www.novanoidai.com',
+            'X-Title': 'Hairy Chispa Recepcionista',
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            max_tokens: 220,
+            temperature: 0.6,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          reply = data.choices?.[0]?.message?.content || '';
+          if (reply) break;
+        } else {
+          lastErr = await response.text();
+          console.warn(`[chispa-recepcionista] Error con ${model}:`, lastErr);
+        }
+      } catch (e) {
+        lastErr = e;
+        console.warn(`[chispa-recepcionista] Fallo en ${model}:`, e);
+      }
     }
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'Se me ha ido el hilo un momento -- ¿me lo repites?';
+    if (!reply) {
+      reply = 'Se me ha ido el hilo un momento -- ¿me lo repites?';
+    }
 
     return json({ reply }, 200, req);
   } catch (e: any) {

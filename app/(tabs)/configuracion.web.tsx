@@ -1500,7 +1500,7 @@ export default function ConfiguracionWeb() {
                 catPricing={catPricing}
                 categorias={categorias} isOwnerUser={isOwnerUser}
                 onManageCategorias={() => setShowCategoriasModal(true)}
-                onOpenImportarIA={() => setModalImportarTarifasOpen(true)}
+                onOpenImportarIA={() => setTab('migracion_magica')}
                 onEdit={setEdit} onToggle={handleToggleServicio}
                 onMoveCategory={handleMoveCategory}
                 onDelete={handleDeleteService} onSaveOverride={handleSaveOverride}
@@ -3104,7 +3104,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
               >
-                ✨ Importar Tarifas con IA
+                ✨ Migración Mágica con IA
               </button>
             )}
             <Btn variant="primary" size="md" icon="plus"

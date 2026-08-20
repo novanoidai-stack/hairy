@@ -23,10 +23,12 @@ const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: Deno.env.get('OPENROUTER_API_KEY') ?? '',
 });
-// Mismo slug ya probado en supabase/functions/agenda-asistente (confirmado
-// disponible en la cuenta de OpenRouter del proyecto). Constante centralizada
-// para poder afinar coste/latencia mas adelante sin tocar el resto del fichero.
-const MODEL = 'anthropic/claude-sonnet-4.6';
+const MODELOS_ONBOARDING = [
+  'google/gemini-3.7-flash:batch',
+  'google/gemini-3.7-flash',
+  'deepseek/deepseek-chat',
+  'google/gemini-2.5-flash',
+];
 
 type TemaId = 'datos_negocio' | 'servicios' | 'equipo' | 'horario_salon' | 'reserva_online' | 'notificaciones';
 
@@ -217,13 +219,26 @@ Deno.serve(async (req) => {
     if (modo === 'interpretar_respuesta') messages.push({ role: 'user', content: texto });
     else messages.push({ role: 'user', content: 'Redacta la pregunta de este tema.' });
 
-    const resp = await openai.chat.completions.create({
-      model: MODEL,
-      max_tokens: 300,
-      messages,
-      tools: [{ type: 'function', function: tool }],
-      tool_choice: { type: 'function', function: { name: tool.name } },
-    });
+    let resp: any = null;
+    let lastError: any = null;
+
+    for (const model of MODELOS_ONBOARDING) {
+      try {
+        resp = await openai.chat.completions.create({
+          model,
+          max_tokens: 400,
+          messages,
+          tools: [{ type: 'function', function: tool }],
+          tool_choice: { type: 'function', function: { name: tool.name } },
+        });
+        if (resp.choices?.[0]?.message?.tool_calls?.[0]) break;
+      } catch (err) {
+        lastError = err;
+        console.warn(`[onboarding-agent] Fallo en ${model}:`, err);
+      }
+    }
+
+    if (!resp) throw lastError ?? new Error('Fallo en todos los modelos de onboarding');
 
     const call = resp.choices[0]?.message?.tool_calls?.[0];
     if (!call) return json({ error: 'no_tool_call' }, 502);

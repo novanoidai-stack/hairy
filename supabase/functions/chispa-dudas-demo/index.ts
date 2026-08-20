@@ -365,32 +365,51 @@ export async function handler(req: Request): Promise<Response> {
     : [];
 
   let reply = '';
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: Deno.env.get('CHISPA_MODEL') || 'anthropic/claude-haiku-4.5',
-        messages: [
-          { role: 'system', content: system },
-          ...history,
-          { role: 'user', content: duda },
-        ],
-        max_tokens: landing ? 300 : 600,
-        temperature: landing ? 0.5 : 0.3,
-      }),
-    });
+  const MODELOS_DUDAS = [
+    Deno.env.get('CHISPA_MODEL') || 'google/gemini-3.7-flash:batch',
+    'google/gemini-3.7-flash',
+    'deepseek/deepseek-chat',
+    'google/gemini-2.5-flash',
+  ];
 
-    if (!res.ok) {
-      console.error('LLM API Error:', await res.text());
-      return json({ error: 'llm_error' }, 500, req);
+  try {
+    for (const model of MODELOS_DUDAS) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://www.novanoidai.com',
+            'X-Title': 'Hairy Chispa Dudas',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: system },
+              ...history,
+              { role: 'user', content: duda },
+            ],
+            max_tokens: landing ? 300 : 600,
+            temperature: landing ? 0.5 : 0.3,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          reply = data.choices?.[0]?.message?.content || '';
+          if (reply) break;
+        } else {
+          console.warn(`[chispa-dudas] Error con ${model}:`, await res.text());
+        }
+      } catch (e) {
+        console.warn(`[chispa-dudas] Fallo con ${model}:`, e);
+      }
     }
 
-    const data = await res.json();
-    reply = data.choices?.[0]?.message?.content || '';
+    if (!reply) {
+      return json({ error: 'llm_error' }, 500, req);
+    }
   } catch (e) {
     console.error('Unexpected LLM error:', e);
     return json({ error: 'internal_error' }, 500, req);

@@ -34,24 +34,17 @@ const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: Deno.env.get('OPENROUTER_API_KEY') ?? '',
 });
-// Modelo: Haiku 4.5 (~3x mas barato que Sonnet 4.6, misma familia Anthropic para no
-// degradar el tool-calling). Cambiar aqui si se quiere subir a Sonnet para intenciones
-// complejas. Se puede sobrescribir por config del negocio via OPENROUTER_MODEL (secret).
-const MODEL = Deno.env.get('OPENROUTER_MODEL') ?? 'anthropic/claude-haiku-4.5';
-// Modelo barato para LECTURA/analisis (la "biblioteca del salon"): ~10x mas barato
-// que Haiku. Las ESCRITURAS siguen en MODEL (Haiku). Configurable por secret sin
-// tocar codigo (rework KISS: dos modelos por tarea).
-// OJO: aqui habia 'google/gemini-2.0-flash-001', que OpenRouter ya retiro. Toda
-// consulta de LECTURA (la mayoria) moria con "404 No endpoints found" y Chispa
-// devolvia un 500. Por eso ahora el mismo Haiku 4.5 que ya usan las escrituras
-// (probado y vivo) y, mas abajo, un plan B si el modelo de lectura desaparece.
-const MODEL_LECTURA = Deno.env.get('OPENROUTER_MODEL_LECTURA') ?? 'anthropic/claude-haiku-4.5';
+// Modelos: Gemini 3.7 Flash como principal (1M contexto, razonamiento híbrido y velocidad),
+// con fallback en cascada a DeepSeek V3/V4 (máxima precisión en tool-calling/JSON) y Gemini 2.0 Flash.
+const MODEL = Deno.env.get('OPENROUTER_MODEL') ?? 'google/gemini-3.7-flash:batch';
+const MODEL_LECTURA = Deno.env.get('OPENROUTER_MODEL_LECTURA') ?? 'google/gemini-3.7-flash:batch';
+const MODEL_FALLBACK_1 = 'deepseek/deepseek-chat';
+const MODEL_FALLBACK_2 = 'google/gemini-2.5-flash';
 
-// ¿El fallo del proveedor es "ese modelo ya no existe"? Entonces no tiene sentido
-// reintentar con el mismo: se reintenta una vez con el modelo principal.
+// ¿El fallo del proveedor es "ese modelo ya no existe"?
 function esModeloInexistente(e: unknown): boolean {
   const m = String((e as { message?: string })?.message ?? e ?? '').toLowerCase();
-  return m.includes('no endpoints found') || m.includes('model_not_found') || m.includes('404');
+  return m.includes('no endpoints found') || m.includes('model_not_found') || m.includes('404') || m.includes('unsupported');
 }
 // Tenant demo compartido entre visitantes: NO se persiste memoria cross-visitante (constraint #8).
 const DEMO_NEGOCIO_ID = 'demo_salon_001';
@@ -1139,28 +1132,26 @@ export async function runAgente(
       console.log('[CHISPA_DEBUG_PAYLOAD]', JSON.stringify(messages));
     }
     let resp;
-    try {
-      resp = await openai.chat.completions.create({
-        model: modeloEnUso,
-        max_tokens: 1024,
-        messages,
-        tools,
-        tool_choice: 'auto',
-      });
-    } catch (e) {
-      // Si el proveedor ha retirado el modelo, no dejamos al usuario con un 500:
-      // se reintenta con el modelo principal y se sigue como si nada.
-      if (!esModeloInexistente(e) || modeloEnUso === MODEL) throw e;
-      console.error(`[chispa] modelo ${modeloEnUso} no disponible; reintento con ${MODEL}`);
-      modeloEnUso = MODEL;
-      resp = await openai.chat.completions.create({
-        model: modeloEnUso,
-        max_tokens: 1024,
-        messages,
-        tools,
-        tool_choice: 'auto',
-      });
+    const cadenaModelos = Array.from(new Set([modeloEnUso, MODEL, MODEL_FALLBACK_1, MODEL_FALLBACK_2]));
+    let ultimoError: any = null;
+    for (const mTarget of cadenaModelos) {
+      try {
+        resp = await openai.chat.completions.create({
+          model: mTarget,
+          max_tokens: 1024,
+          messages,
+          tools,
+          tool_choice: 'auto',
+        });
+        modeloEnUso = mTarget;
+        break;
+      } catch (e) {
+        ultimoError = e;
+        console.warn(`[chispa] Fallo con modelo ${mTarget}, intentando fallback...`, e);
+      }
     }
+
+    if (!resp) throw ultimoError ?? new Error('No se pudo obtener respuesta de ningún modelo configurado.');
 
     const msg = resp.choices[0]?.message;
     if (!msg) return finalizar('No he recibido respuesta del modelo.');

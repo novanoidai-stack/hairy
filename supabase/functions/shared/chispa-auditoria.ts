@@ -14,6 +14,25 @@ interface CosteModelo {
 }
 
 const PRECIOS_MODELOS: Record<string, CosteModelo> = {
+  // Modelos de última generación
+  'google-gemini-3-7-flash-batch': { inputPorM: 0.15, outputPorM: 0.45 },
+  'google-gemini-3-7-flash': { inputPorM: 0.375, outputPorM: 1.875 },
+  'gemini-3-7-flash': { inputPorM: 0.375, outputPorM: 1.875 },
+  'google-gemini-2-0-flash-001': { inputPorM: 0.10, outputPorM: 0.40 },
+  'google-gemini-2-0-flash': { inputPorM: 0.10, outputPorM: 0.40 },
+  'gemini-2-0-flash': { inputPorM: 0.10, outputPorM: 0.40 },
+  'qwen-qwen-2-5-vl-72b-instruct': { inputPorM: 0.25, outputPorM: 0.75 },
+  'qwen-2-5-vl-72b': { inputPorM: 0.25, outputPorM: 0.75 },
+  'deepseek-deepseek-chat': { inputPorM: 0.20, outputPorM: 0.60 },
+  'deepseek-chat': { inputPorM: 0.20, outputPorM: 0.60 },
+  'deepseek-r1': { inputPorM: 0.70, outputPorM: 2.50 },
+  'qwen-qwq-32b': { inputPorM: 0.15, outputPorM: 0.60 },
+  'qwq-32b': { inputPorM: 0.15, outputPorM: 0.60 },
+  'meta-llama-llama-3-3-70b-instruct': { inputPorM: 0.12, outputPorM: 0.30 },
+  'llama-3-3-70b': { inputPorM: 0.12, outputPorM: 0.30 },
+  'qwen-qwen-2-5-72b-instruct': { inputPorM: 0.35, outputPorM: 0.40 },
+
+  // Modelos anteriores
   'claude-haiku-4.5': { inputPorM: 0.25, outputPorM: 1.25 },
   'claude-haiku': { inputPorM: 0.25, outputPorM: 1.25 },
   'claude-sonnet-5': { inputPorM: 3.0, outputPorM: 15.0 },
@@ -25,7 +44,7 @@ const PRECIOS_MODELOS: Record<string, CosteModelo> = {
   'gpt-4o-mini': { inputPorM: 0.15, outputPorM: 0.6 },
   'gpt-4-turbo': { inputPorM: 10.0, outputPorM: 30.0 },
   // Por defecto, precio medio
-  'default': { inputPorM: 3.0, outputPorM: 15.0 },
+  'default': { inputPorM: 0.30, outputPorM: 0.90 },
 };
 
 /**

@@ -127,30 +127,51 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        // Haiku 4.5: rapido y barato, pero con ventas mucho mas naturales que el 3.
-        model: 'anthropic/claude-haiku-4.5',
-        messages,
-        // Tope duro de longitud: el widget es estrecho y un muro de texto no vende.
-        max_tokens: 260,
-        temperature: 0.4,
-      }),
-    });
+    const MODELOS_LANDING = [
+      'google/gemini-3.7-flash:batch',
+      'google/gemini-3.7-flash',
+      'deepseek/deepseek-chat',
+      'google/gemini-2.5-flash',
+    ];
 
-    if (!response.ok) {
-      const errTxt = await response.text();
-      console.error('LLM API Error:', errTxt);
-      return json({ error: 'llm_error' }, 500, req);
+    let reply = '';
+    let lastErr = null;
+
+    for (const model of MODELOS_LANDING) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://www.novanoidai.com',
+            'X-Title': 'Hairy Chispa Landing',
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            max_tokens: 280,
+            temperature: 0.4,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          reply = data.choices?.[0]?.message?.content || '';
+          if (reply) break;
+        } else {
+          lastErr = await response.text();
+          console.warn(`[chispa-landing] Error con ${model}:`, lastErr);
+        }
+      } catch (e) {
+        lastErr = e;
+        console.warn(`[chispa-landing] Fallo en ${model}:`, e);
+      }
     }
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'Lo siento, ha ocurrido un error al procesar tu solicitud.';
+    if (!reply) {
+      reply = 'Lo siento, ha ocurrido un error al procesar tu solicitud. ¿Me lo repites?';
+    }
 
     return json({ reply }, 200, req);
   } catch (e: any) {
