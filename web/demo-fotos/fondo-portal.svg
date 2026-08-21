@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-label="Fondo del salon">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b1a12"/>
+      <stop offset="0.55" stop-color="#c0260a"/>
+      <stop offset="1" stop-color="#f4501e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#g)"/>
+  <g fill="#fff" opacity="0.07">
+    <circle cx="980" cy="120" r="240"/>
+    <circle cx="180" cy="520" r="200"/>
+  </g>
+  <g stroke="#fff" stroke-width="2" opacity="0.10" fill="none">
+    <path d="M0 470c150-70 300-70 450 0s300 70 450 0 150-70 300 0"/>
+    <path d="M0 520c150-70 300-70 450 0s300 70 450 0 150-70 300 0"/>
+  </g>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320" role="img" aria-label="Retrato ilustrado">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f9d6b" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#0f9d6b" stop-opacity="0.62"/>
+    </linearGradient>
+    <clipPath id="marco"><rect width="320" height="320" rx="0"/></clipPath>
+  </defs>
+  <g clip-path="url(#marco)">
+    <rect width="320" height="320" fill="url(#bg)"/>
+    <circle cx="160" cy="150" r="118" fill="#ffffff" opacity="0.10"/>
+    <!-- hombros -->
+    <path d="M40 320c0-58 54-92 120-92s120 34 120 92z" fill="#f6f1ea"/>
+    <path d="M40 320c0-58 54-92 120-92s120 34 120 92z" fill="#000" opacity="0.05"/>
+    <!-- cuello -->
+    <path d="M140 196h40v34c0 10-9 16-20 16s-20-6-20-16z" fill="#f6d5b8"/>
+    <!-- cara -->
+    <ellipse cx="160" cy="140" rx="52" ry="60" fill="#f6d5b8"/>
+    
+      <circle cx="160" cy="34" r="20" fill="#8a4b22"/>
+      <path d="M100 100c0-32 27-54 60-54s60 22 60 54c0 8-1 14-3 20-6-18-25-30-57-30s-51 12-57 30c-2-6-3-12-3-20z" fill="#8a4b22"/>
+  </g>
+</svg>
