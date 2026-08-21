@@ -48,6 +48,7 @@ const ETIQUETAS: Record<string, string> = {
   'informes-ocupacion': 'Reparto de las citas',
   'portal-cabecera': 'Tu página de reservas',
   'portal-servicios': 'Tu catálogo, tal y como lo ve la clienta',
+  'portal-extras': 'Lo que se suele olvidar',
   'portal-profesional': 'Elegir con quién',
   'portal-hora': 'Solo huecos reales',
   'ia-hub': 'Qué hace la IA',

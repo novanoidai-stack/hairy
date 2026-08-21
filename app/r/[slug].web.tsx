@@ -8,7 +8,9 @@ import { makeT, localeOf, type TFn } from '@/lib/portalI18n';
 import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
   unirseListaEsperaPublica, crearResenaPublica, normalizarTelefonoE164,
+  getSugerenciasPortal, getDisponibilidadCadena, getDiasDisponiblesCadena, crearCitaPublicaCadena,
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
+  type ServicioSugerido,
 } from '@/lib/reservaPublica';
 import { reportarError } from '@/lib/reportarError';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
@@ -220,6 +222,11 @@ export default function PortalReservaWeb() {
 
   const [step, setStep] = useState<Step>('servicio');
   const [servicio, setServicio] = useState<PortalServicio | null>(null);
+  // Servicios AÑADIDOS ademas del principal (los que la clienta suele dar por
+  // incluidos: lavado, peinado, matiz...). A partir de aqui la disponibilidad
+  // se pide con la duracion SUMADA de todos, no con la del primero.
+  const [extras, setExtras] = useState<PortalServicio[]>([]);
+  const [sugerencias, setSugerencias] = useState<ServicioSugerido[]>([]);
   const [catAbierta, setCatAbierta] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
   const [showGrupoModal, setShowGrupoModal] = useState(false);
@@ -375,13 +382,36 @@ export default function PortalReservaWeb() {
     };
   }, []);
 
+  // Ids de TODO lo que se va a hacer en la visita, en orden. Es la clave de la
+  // que cuelgan disponibilidad, dias y reserva: en cuanto hay extras, todo se
+  // calcula con la duracion sumada.
+  const servicioIds = useMemo(
+    () => (servicio ? [servicio.id, ...extras.map((e) => e.id)] : []),
+    [servicio, extras],
+  );
+  const claveServicios = servicioIds.join(',');
+  const duracionTotal = useMemo(
+    () => (servicio ? servicio.duracion + extras.reduce((n, e) => n + e.duracion, 0) : 0),
+    [servicio, extras],
+  );
+  const precioTotal = useMemo(
+    () => (servicio ? (servicio.precio || 0) + extras.reduce((n, e) => n + (e.precio || 0), 0) : 0),
+    [servicio, extras],
+  );
+  // Como se llama la visita entera: es lo que va al evento de calendario, para
+  // que a la clienta le bloquee el rato de verdad y no solo el primer servicio.
+  const nombreVisita = useMemo(
+    () => (servicio ? [servicio.nombre, ...extras.map((e) => e.nombre)].join(' + ') : ''),
+    [servicio, extras],
+  );
+
   useEffect(() => {
     if (!servicio) return;
     let cancel = false;
     (async () => {
       setDiasLoading(true);
       try {
-        const arr = await getDiasDisponibles(slug, servicio.id, profId === ANY_PRO ? null : profId, 21);
+        const arr = await getDiasDisponiblesCadena(slug, servicioIds, profId === ANY_PRO ? null : profId, 21);
         if (cancel) return;
         const set = new Set(arr);
         setDiasDisp(set);
@@ -394,7 +424,7 @@ export default function PortalReservaWeb() {
       }
     })();
     return () => { cancel = true; };
-  }, [servicio, profId, slug]);
+  }, [servicio, profId, slug, claveServicios]);
 
   useEffect(() => {
     if (!servicio) return;
@@ -403,7 +433,7 @@ export default function PortalReservaWeb() {
       setSlotsLoading(true);
       setSlotSel(null);
       try {
-        const data = await getDisponibilidad(slug, servicio.id, fechaISOaClave(fecha), profId === ANY_PRO ? null : profId);
+        const data = await getDisponibilidadCadena(slug, servicioIds, fechaISOaClave(fecha), profId === ANY_PRO ? null : profId);
         if (!cancel) setSlots(data);
       } catch {
         if (!cancel) setSlots([]);
@@ -412,7 +442,7 @@ export default function PortalReservaWeb() {
       }
     })();
     return () => { cancel = true; };
-  }, [servicio, profId, fecha, slug]);
+  }, [servicio, profId, fecha, slug, claveServicios]);
 
   const horas = useMemo(() => {
     // Una fila por hora. Si a la misma hora hay un profesional libre y otro en
@@ -492,9 +522,8 @@ export default function PortalReservaWeb() {
     try {
       const captchaToken = await obtenerCaptchaToken();
 
-      const r = await crearCitaPublica({
+      const comun = {
         slug,
-        servicioId: servicio.id,
         profesionalId: slotSel.profesional_id,
         inicioISO: slotSel.slot,
         clienteNombre: nombre.trim(),
@@ -504,20 +533,25 @@ export default function PortalReservaWeb() {
         consentimientoDatos: consent,
         consienteIa: consentIa,
         captchaToken,
-      });
+      };
+      // Con un solo servicio se usa la RPC de siempre: no tiene sentido marcar
+      // como "encadenada" (grupo_id) una cita que no lo es.
+      const r = extras.length > 0
+        ? await crearCitaPublicaCadena({ ...comun, servicioIds })
+        : await crearCitaPublica({ ...comun, servicioId: servicio.id });
       setResultado(r);
       setStep('confirmado');
       // El formulario deja paso a una tarjeta mas corta: sin esto la pagina se
       // queda a la altura de las opiniones y la clienta no llega a ver el "confirmada".
       requestAnimationFrame(() => exitoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       if (analyticsConsent) {
-        AnalyticsEvents.bookingCompleted(r.cita_id, servicio.nombre, slotSel.profesional_nombre, servicio.precio || 0, slug);
+        AnalyticsEvents.bookingCompleted(r.cita_id, nombreVisita, slotSel.profesional_nombre, precioTotal, slug);
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('err_generic');
       if (/ocupado|disponib|antelacion|horario/i.test(msg)) { setError(t('err_ocupado')); setStep('fecha'); } else { setError(msg); }
     } finally { setEnviando(false); }
-  }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t, consentIa, analyticsConsent, obtenerCaptchaToken]);
+  }, [servicio, extras, servicioIds, precioTotal, nombreVisita, slotSel, nombre, telefono, email, notas, consent, slug, t, consentIa, analyticsConsent, obtenerCaptchaToken]);
 
   // El publico del portal es el cliente final, no el salon: "atras" debe devolverle
   // al marketplace (de donde suele venir), nunca a la landing comercial de Mecha.
@@ -560,14 +594,58 @@ export default function PortalReservaWeb() {
 
   function elegirServicio(sv: PortalServicio) {
     setServicio(sv); setError('');
+    setExtras([]); setSugerencias([]);
     setStep('profesional');
+    // Lo que suele acompañar a este servicio. Va aparte del flujo (no bloquea):
+    // si tarda o falla, la reserva sigue su camino normal.
+    (async () => {
+      const sug = await getSugerenciasPortal(slug, [sv.id]);
+      setSugerencias(sug);
+    })();
     // El paso 2 (profesional y dias) aparece debajo de la lista de servicios:
     // al elegir, bajamos hasta el para no obligar a scrollear a ciegas.
     setTimeout(() => pasoProfRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
   }
 
+  // Añadir/quitar un servicio de los sugeridos. Al añadir, se vuelven a pedir
+  // sugerencias con la cesta entera: un corte puede sugerir barba, y la barba
+  // otra cosa. `slotSel` se suelta a proposito — la hora que habia elegido ya
+  // no vale, porque ahora la visita dura mas.
+  function alternarExtra(sv: ServicioSugerido) {
+    const yaEsta = extras.some((e) => e.id === sv.id);
+    const nuevos = yaEsta
+      ? extras.filter((e) => e.id !== sv.id)
+      : [...extras, {
+          id: sv.id,
+          nombre: sv.nombre,
+          descripcion: sv.descripcion,
+          precio: sv.precio,
+          duracion: sv.duracion_min,
+          categoria_id: null,
+          categoria_nombre: null,
+          categoria_color: null,
+          prepago: false,
+          foto_url: null,
+        } as PortalServicio];
+    setExtras(nuevos);
+    setSlotSel(null);
+    setError('');
+    if (!yaEsta && servicio) {
+      (async () => {
+        const sug = await getSugerenciasPortal(slug, [servicio.id, ...nuevos.map((e) => e.id)]);
+        // Los que ya lleva en la cesta se quedan visibles para poder quitarlos.
+        setSugerencias((prev) => {
+          const enCesta = prev.filter((p) => nuevos.some((e) => e.id === p.id));
+          const nuevas = sug.filter((s) => !enCesta.some((e) => e.id === s.id));
+          return [...enCesta, ...nuevas];
+        });
+      })();
+    }
+  }
+
   function reiniciar() {
-    setServicio(null); setProfId(ANY_PRO); setSlotSel(null); setDiasDisp(new Set());
+    setServicio(null); setExtras([]); setSugerencias([]);
+    setProfId(ANY_PRO); setSlotSel(null); setDiasDisp(new Set());
     setNombre(''); setTelefono(''); setEmail(''); setNotas(''); setConsent(false); setConsentIa(false);
     setResultado(null); setError(''); setStep('servicio');
   }
@@ -777,7 +855,7 @@ export default function PortalReservaWeb() {
                                 {abierta && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: '0 10px 10px' }}>
                                     {g.servicios.map(sv => (
-                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} demoAbrir={g.servicios[0]?.id === sv.id ? 'portal-profesional portal-hora' : undefined} onClick={() => elegirServicio(sv)} />
+                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} demoAbrir={g.servicios[0]?.id === sv.id ? 'portal-extras portal-profesional portal-hora' : undefined} onClick={() => elegirServicio(sv)} />
                                     ))}
                                   </div>
                                 )}
@@ -787,6 +865,72 @@ export default function PortalReservaWeb() {
                         </div>
                       )}
                     </div>
+
+                    {/* 1b. "¿Seguro que no te falta nada?"
+                        La mayoria de las clientas dan por incluido el lavado, el
+                        peinado o el matiz y no los marcan: llegan al salon, se
+                        hacen igualmente y la cita se va de hora. Preguntarlo aqui
+                        —antes de elegir hora— es lo unico que permite reservar el
+                        tiempo de verdad. Lo que se propone sale de `sugerencias_portal`
+                        (lo que configura el dueño + lo que aprende del historial). */}
+                    {servicioElegido && sugerencias.length > 0 && (
+                      <div data-demo="portal-extras" style={{ marginBottom: 22 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi, marginBottom: 5 }}>
+                          ¿Te falta algo?
+                        </div>
+                        <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 4 }}>
+                          Lo que se suele añadir con esto
+                        </div>
+                        <div style={{ fontSize: 13, color: '#736658', marginBottom: 12, lineHeight: 1.5 }}>
+                          Si lo añades ahora te guardamos el tiempo necesario. Si no, puede que no dé tiempo a hacerlo el mismo día.
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {sugerencias.map((sv) => {
+                            const puesto = extras.some((e) => e.id === sv.id);
+                            return (
+                              <button
+                                key={sv.id}
+                                type="button"
+                                onClick={() => alternarExtra(sv)}
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: 12,
+                                  background: puesto ? T.primarySoft : '#fff',
+                                  border: `1.5px solid ${puesto ? T.primary : T.border}`,
+                                  borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+                                }}
+                              >
+                                <span
+                                  aria-hidden
+                                  style={{
+                                    width: 22, height: 22, borderRadius: 7, flexShrink: 0,
+                                    border: `1.5px solid ${puesto ? T.primary : T.border}`,
+                                    background: puesto ? T.primary : '#fff',
+                                    color: '#fff', display: 'grid', placeItems: 'center',
+                                    fontSize: 14, fontWeight: 800, lineHeight: 1,
+                                  }}
+                                >
+                                  {puesto ? '✓' : '+'}
+                                </span>
+                                <span style={{ flex: 1, minWidth: 0 }}>
+                                  <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: '#2b2620' }}>{sv.nombre}</span>
+                                  <span style={{ display: 'block', fontSize: 12.5, color: '#736658', marginTop: 2 }}>
+                                    +{sv.duracion_min} min
+                                    {mostrarPrecioEnLista && sv.precio ? ` · +${sv.precio}€` : ''}
+                                  </span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {extras.length > 0 && (
+                          <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 12, background: T.primarySoft, border: `1px dashed ${T.primary}`, fontSize: 12.5, color: T.primaryHi }}>
+                            Tu cita: <strong>{[servicio?.nombre, ...extras.map((e) => e.nombre)].join(' + ')}</strong>
+                            {' · '}{duracionTotal} min
+                            {mostrarPrecioEnLista && precioTotal ? ` · ${precioTotal}€` : ''}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* 2. Profesional */}
                     {servicioElegido && (
@@ -978,8 +1122,22 @@ export default function PortalReservaWeb() {
                       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 14 }}>Resumen de tu reserva</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                          <span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{servicio ? servicio.nombre : '—'}</span>
+                          <span style={{ fontSize: 12.5, color: '#736658' }}>{extras.length > 0 ? 'Servicios' : 'Servicio'}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>
+                            {servicio
+                              ? [servicio.nombre, ...extras.map((e) => e.nombre)].join(' + ')
+                              : '—'}
+                          </span>
                         </div>
+                        {/* La duracion solo se enseña cuando hay mas de un
+                            servicio: es justo el dato que decide si a la clienta
+                            le cuadra la tarde. */}
+                        {extras.length > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                            <span style={{ fontSize: 12.5, color: '#736658' }}>Duración</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{duracionTotal} min</span>
+                          </div>
+                        )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
                           <span style={{ fontSize: 12.5, color: '#736658' }}>Profesional</span><span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{servicioElegido ? (profSel ? profSel.nombre : 'Cualquiera disponible') : '—'}</span>
                         </div>
@@ -992,7 +1150,7 @@ export default function PortalReservaWeb() {
                       </div>
                       {(mostrarPrecioResumen && servicio) && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(40,30,24,0.08)' }}>
-                          <span style={{ fontSize: 13.5, fontWeight: 700 }}>Total</span><span style={{ fontSize: 19, fontWeight: 800 }}>{servicio.precio}€</span>
+                          <span style={{ fontSize: 13.5, fontWeight: 700 }}>Total</span><span style={{ fontSize: 19, fontWeight: 800 }}>{precioTotal}€</span>
                         </div>
                       )}
                       {error && <div style={errorStyleBox}>{error}</div>}
@@ -1022,7 +1180,7 @@ export default function PortalReservaWeb() {
                   <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 34, marginBottom: 8 }}>¡Reserva confirmada!</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', fontSize: 15, color: '#5c5249', lineHeight: 1.5 }}>Te esperamos {capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}. Hemos enviado la confirmación por WhatsApp.</div>
                   <div style={{ maxWidth: 420, margin: '0 auto 20px', border: '1px solid rgba(40,30,24,0.08)', borderRadius: 16, overflow: 'hidden', textAlign: 'left' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Servicio</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{servicio!.nombre}</span></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>{extras.length > 0 ? 'Servicios' : 'Servicio'}</span><span style={{ fontSize: 13.5, fontWeight: 700, textAlign: 'right' }}>{[servicio!.nombre, ...extras.map((e) => e.nombre)].join(' + ')}{extras.length > 0 ? ` · ${duracionTotal} min` : ''}</span></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px', borderBottom: '1px solid rgba(40,30,24,0.08)' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Profesional</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{slotSel!.profesional_nombre}</span></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '13px 16px' }}><span style={{ fontSize: 12.5, color: '#736658' }}>Cuándo</span><span style={{ fontSize: 13.5, fontWeight: 700 }}>{capFirst(fmtFechaLarga(new Date(slotSel!.slot), loc))} a las {fmtHora(slotSel!.slot, loc)}</span></div>
                   </div>
@@ -1030,10 +1188,10 @@ export default function PortalReservaWeb() {
                     <Icon name="check" size={14} color="#0f9d6b" /> Confirmación enviada por WhatsApp
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 320, margin: '0 auto' }}>
-                    <a href={gcalLink(servicio!.nombre, info.negocio.nombre || 'tu salon', slotSel!.slot, servicio!.duracion, info.negocio.direccion)} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                    <a href={gcalLink(nombreVisita, info.negocio.nombre || 'tu salon', slotSel!.slot, duracionTotal, info.negocio.direccion)} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
                       <Icon name="calendar" size={16} color={T.primary} /> Añadir a Google Calendar
                     </a>
-                    <button onClick={() => appleCalendarDownload(servicio!.nombre, info.negocio.nombre || 'tu salon', slotSel!.slot, servicio!.duracion, info.negocio.direccion)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                    <button onClick={() => appleCalendarDownload(nombreVisita, info.negocio.nombre || 'tu salon', slotSel!.slot, duracionTotal, info.negocio.direccion)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, background: '#fff', border: '1.5px solid rgba(40,30,24,0.1)', color: '#1c1814', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                       <Icon name="calendar" size={16} color={T.primary} /> Añadir a Apple Calendar
                     </button>
                     {resultado?.cita_id && (

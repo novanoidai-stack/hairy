@@ -110,6 +110,116 @@ export async function getDisponibilidad(
   return (data as SlotDisponible[] | null) ?? [];
 }
 
+// ---------------------------------------------------------------------------
+// Reserva de VARIOS servicios en la misma visita (cadena).
+//
+// El portal deja añadir los servicios que la clienta suele olvidar. A partir de
+// ahi todo se calcula con la duracion SUMADA: si no, el portal enseñaria huecos
+// que solo caben para el primero y la reserva reventaria al final, despues de
+// que la clienta haya metido sus datos.
+//
+// Las versiones de un solo servicio siguen existiendo tal cual: las usa el
+// agente de WhatsApp.
+// ---------------------------------------------------------------------------
+
+// Servicio que se propone añadir antes de pasar a la hora.
+export interface ServicioSugerido {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  precio: number;
+  duracion_min: number;
+  // 'manual' = lo configuro el dueño; 'aprendido' = lo dedujo el historial.
+  motivo: 'manual' | 'aprendido';
+}
+
+// Que suele acompañar a lo que la clienta ya lleva elegido. Maximo 3.
+export async function getSugerenciasPortal(
+  slug: string,
+  servicioIds: string[],
+): Promise<ServicioSugerido[]> {
+  if (servicioIds.length === 0) return [];
+  const { data, error } = await supabase.rpc('sugerencias_portal', {
+    p_slug: slug,
+    p_servicio_ids: servicioIds,
+  });
+  if (error) {
+    // Que no se caiga la reserva por no poder sugerir: es un extra, no el flujo.
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    return [];
+  }
+  return (data as ServicioSugerido[] | null) ?? [];
+}
+
+export async function getDisponibilidadCadena(
+  slug: string,
+  servicioIds: string[],
+  fecha: string,
+  profesionalId?: string | null,
+): Promise<SlotDisponible[]> {
+  const { data, error } = await supabase.rpc('disponibilidad_publica_cadena', {
+    p_slug: slug,
+    p_servicio_ids: servicioIds,
+    p_fecha: fecha,
+    p_profesional_id: profesionalId ?? null,
+  });
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
+  return (data as SlotDisponible[] | null) ?? [];
+}
+
+export async function getDiasDisponiblesCadena(
+  slug: string,
+  servicioIds: string[],
+  profesionalId?: string | null,
+  dias = 21,
+): Promise<string[]> {
+  const { data, error } = await supabase.rpc('portal_dias_disponibles_cadena', {
+    p_slug: slug,
+    p_servicio_ids: servicioIds,
+    p_profesional_id: profesionalId ?? null,
+    p_dias: dias,
+  });
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
+  return ((data as { dia: string }[] | null) ?? []).map((r) => r.dia);
+}
+
+export interface CrearCitaCadenaResult extends CrearCitaResult {
+  grupo_id: string;
+  precio_total: number;
+  tramos: { cita_id: string; servicio_id: string; inicio: string; fin: string }[];
+}
+
+// Crea la visita entera: una cita por servicio, encadenadas y con `grupo_id`
+// comun. Todo o nada: si el ultimo tramo no cabe, no se reserva ninguno.
+export async function crearCitaPublicaCadena(
+  args: Omit<CrearCitaArgs, 'servicioId'> & { servicioIds: string[] },
+): Promise<CrearCitaCadenaResult> {
+  const { data, error } = await supabase.rpc('crear_cita_publica_cadena', {
+    p_slug: args.slug,
+    p_servicio_ids: args.servicioIds,
+    p_profesional_id: args.profesionalId,
+    p_inicio: args.inicioISO,
+    p_nombre: args.clienteNombre,
+    p_telefono: args.clienteTelefono,
+    p_email: args.clienteEmail ?? null,
+    p_notas: args.notas ?? null,
+    p_consiente_ia: args.consienteIa ?? false,
+    p_captcha_token: args.captchaToken ?? null,
+    p_canal: args.canal ?? 'web',
+  });
+  if (error) {
+    reportarError(error, { origen: 'portal', tipo: 'operativo' });
+    throw error;
+  }
+  return data as CrearCitaCadenaResult;
+}
+
 // Dias (YYYY-MM-DD, zona del salon) con AL MENOS un hueco reservable en el horizonte.
 // De un solo viaje: el portal auto-selecciona el primer dia disponible y atenua el resto.
 export async function getDiasDisponibles(

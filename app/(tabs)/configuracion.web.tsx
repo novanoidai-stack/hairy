@@ -13,6 +13,7 @@ import { TabVoz } from '@/components/config/TabVoz.web';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import { SeccionSuscripcion } from '@/components/config/SeccionSuscripcion.web';
 import { HubIA } from '@/components/config/HubIA';
+import { SugerenciasServicios } from '@/components/config/SugerenciasServicios.web';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -1507,6 +1508,9 @@ export default function ConfiguracionWeb() {
                 onResetOverride={handleResetOverride}
                 onSaveDurProf={handleSaveDurProf} onResetDurProf={handleResetDurProf}
               />
+            )}
+            {tab === 'servicios' && (
+              <SugerenciasServicios negocioId={negocioId} services={services} />
             )}
             {tab === 'agenda' && (
               <TabAgenda config={config} setC={setC} bloqueoCounts={bloqueoCounts} />
