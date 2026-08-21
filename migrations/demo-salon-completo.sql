@@ -277,3 +277,62 @@ join (values
 ) as v(nombre, total, disp, precio, dias, estado) on v.nombre = c.nombre
 where c.negocio_id='demo_salon_001'
   and not exists (select 1 from public.bonos b where b.cliente_id=c.id);
+
+-- ---------------------------------------------------------------------------
+-- 7) Ficha tecnica de color y fidelizacion.
+--    La ficha de color es LA pantalla vertical del producto (lo que no tiene
+--    ningun software generalista) y estaba a cero en el escaparate.
+-- ---------------------------------------------------------------------------
+insert into public.fichas_tecnicas_color (negocio_id, cliente_id, profesional_id, tipo_servicio,
+  marca_producto, formula, oxidante_volumen, oxidante_proporcion, tiempo_exposicion_min,
+  tecnica_aplicacion, base_natural, color_previo, porcentaje_canas, nivel_dano,
+  resultado_color, resultado_satisfactorio, resultado_notas, cerrada)
+select 'demo_salon_001', c.id, p.id, v.tipo, v.marca, v.formula::jsonb, v.vol, v.prop, v.tiempo,
+       v.tecnica, v.base, v.previo, v.canas, v.dano, v.resultado, true, v.notas, true
+from (values
+  ('Carmen Ruiz','Maria Garcia','balayage','Igora Royal + Blondme',
+   '[{"tono":"9.1","partes":2},{"tono":"10.1","partes":1}]',20,'1:2',35,
+   array['balayage','papel'],'6','Rubio oscuro con reflejos',15,2,
+   'Rubio ceniza natural, raiz difuminada',
+   'Matiz final con 10.1 diluido 5 min. La proxima vez subir medio tono en medios.'),
+  ('Lucia Blanco','Laura Fernandez','color_raiz','Igora Absolutes',
+   '[{"tono":"6.0","partes":1},{"tono":"6.11","partes":1}]',20,'1:1',40,
+   array['raiz'],'6','Castano con canas',45,1,
+   'Castano uniforme, canas cubiertas',
+   'Cobertura completa. Repetir en 5 semanas.'),
+  ('Elena Martinez','Laura Fernandez','matiz','Blondme',
+   '[{"tono":"Ice","partes":1}]',10,'1:2',15,
+   array['medios','puntas'],'8','Rubio con tendencia naranja',5,3,
+   'Rubio frio sin naranja',
+   'Puntas castigadas: mascarilla de reconstruccion antes del matiz.')
+) as v(cliente, prof, tipo, marca, formula, vol, prop, tiempo, tecnica, base, previo, canas, dano, resultado, notas)
+join public.clientes c on c.negocio_id='demo_salon_001' and c.nombre = v.cliente
+join public.profesionales p on p.negocio_id='demo_salon_001' and p.nombre = v.prof
+where not exists (select 1 from public.fichas_tecnicas_color x where x.cliente_id = c.id);
+
+insert into public.recompensas_canjeadas (negocio_id, cliente_id, recompensa_id, canjeado_en, estado)
+select 'demo_salon_001', c.id, r.id, now() - (v.dias||' days')::interval, v.estado
+from (values ('Carmen Ruiz', 30, 'usado'), ('Lucia Blanco', 12, 'canjeado')) as v(nombre, dias, estado)
+join public.clientes c on c.negocio_id='demo_salon_001' and c.nombre = v.nombre
+cross join lateral (select id from public.recompensas where negocio_id='demo_salon_001' order by created_at limit 1) r
+where not exists (select 1 from public.recompensas_canjeadas x where x.cliente_id = c.id);
+
+insert into public.logros_desbloqueados (negocio_id, cliente_id, logro_id, desbloqueado_en)
+select 'demo_salon_001', c.id, l.id, now() - (v.dias||' days')::interval
+from (values ('Carmen Ruiz', 60), ('Lucia Blanco', 40), ('Elena Martinez', 20)) as v(nombre, dias)
+join public.clientes c on c.negocio_id='demo_salon_001' and c.nombre = v.nombre
+cross join lateral (select id from public.logros where negocio_id='demo_salon_001' order by orden nulls last limit 1) l
+where not exists (select 1 from public.logros_desbloqueados x where x.cliente_id = c.id);
+
+-- Servicios que se hacen seguidos: alimenta la sugerencia de encadenado en la
+-- AGENDA (distinto de `servicios_sugeridos`, que es el del portal publico).
+insert into public.servicios_combinables (negocio_id, servicio_origen_id, servicio_destino_id, orden_sugerido)
+select 'demo_salon_001', o.id, d.id, 1
+from (values
+  ('Mechas Balayage + Matiz','Lavado y peinado'),
+  ('Color Raiz + Peinado','Lavado y peinado'),
+  ('Corte caballero y peinado','Barba express con navaja')
+) as v(origen, destino)
+join public.servicios o on o.negocio_id='demo_salon_001' and o.nombre = v.origen
+join public.servicios d on d.negocio_id='demo_salon_001' and d.nombre = v.destino
+where not exists (select 1 from public.servicios_combinables sc where sc.servicio_origen_id=o.id and sc.servicio_destino_id=d.id);
