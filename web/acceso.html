@@ -776,8 +776,28 @@
   function routeByPlan(profile) {
     if (esTrabajador(profile)) { gotoApp(); return; }
     var plan = (profile && profile.plan) ? String(profile.plan).toLowerCase() : 'free';
-    if (plan !== 'free') { gotoApp(); return; }
+    if (plan !== 'free') {
+      // SESION YA ABIERTA (cookies del navegador, sin escribir credenciales):
+      // aqui NO se entra a ciegas. Antes, abrir /acceso.html con la sesion viva
+      // te metia directo en la cuenta sin darte opcion de ver la demo ni de
+      // salirte, y encima el boton seguia diciendo "Iniciar sesion".
+      // Si acabas de teclear la contraseña o vuelves del SSO, sesionPrevia es
+      // false y se entra directo, que es lo que espera quien acaba de entrar.
+      if (sesionPrevia) { mostrarSelectorSesion(false); return; }
+      gotoApp(); return;
+    }
     showStage('paneFree'); initFreePane(false);
+  }
+
+  // Reutiliza el paneChooser que ya existia solo para staff. Con esStaff=false
+  // se esconde la opcion del panel interno.
+  function mostrarSelectorSesion(esStaff) {
+    var btnPanel = document.getElementById('chPanel');
+    if (btnPanel) btnPanel.style.display = esStaff ? '' : 'none';
+    var sub = document.querySelector('#paneChooser .auth-p');
+    if (sub && !esStaff) sub.textContent = 'Ya tienes la sesión abierta en este navegador.';
+    showStage('paneChooser');
+    guardBackToLogin();
   }
 
   // Despues de autenticar: demo -> demo; equipo -> elige; perfil incompleto -> completar;
@@ -848,6 +868,9 @@
 
   // Guarda contra aperturas dobles (sesion previa + evento SIGNED_IN del SSO).
   var routed = false;
+  // true solo si al abrir la pagina YA habia sesion guardada en el navegador.
+  // Distingue "vengo con las cookies puestas" de "acabo de autenticarme".
+  var sesionPrevia = false;
 
   // Mostrar carga inmediata al volver de Google (Supabase tarda en procesar el hash)
   var isSSOCallback = window.location.hash.indexOf('access_token=') !== -1 || window.location.search.indexOf('code=') !== -1;
@@ -879,6 +902,7 @@
       if (s) {
         if (!isSSOCallback) {
           routed = false;
+          sesionPrevia = true;
           go();
         }
       } else {
