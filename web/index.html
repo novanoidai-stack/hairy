@@ -2507,140 +2507,104 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 
 <!-- ═══════════ CONTACTO & ACTIVACIÓN ═══════════ -->
 <section id="contacto" class="sec-dark" style="padding:clamp(48px,6vw,88px) 26px;position:relative;overflow:hidden">
-<div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(244,80,30,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
+<div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(37,211,102,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
 <div style="position:relative;max-width:1120px;margin:0 auto">
 
 <div class="reveal" style="text-align:center;margin-bottom:34px">
-<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(244,80,30,.22);border:1px solid rgba(244,80,30,.45);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;color:var(--accent-hi);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">
+<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.18);border:1px solid rgba(37,211,102,.45);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;color:#25d366;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">
 <svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg> 30 días gratis · sin tarjeta
 </div>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.8vw,48px);letter-spacing:-.03em;margin:0 0 14px;color:#fff">
-Elige cómo prefieres <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">empezar tu prueba</span>
+Activa tu mes gratis en <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">10 minutos</span>
 </h2>
 <p style="font-size:16px;color:rgba(255,255,255,.85);margin:0 auto;max-width:640px;line-height:1.5">
-<b>30 días gratis, sin tarjeta y sin permanencia.</b> Elige la vía que prefieras: las tres llevan al mismo sitio.
+Escríbenos por WhatsApp y <b>Carlos y Alexandru te configuran todo hoy mismo.</b> O déjanos tu nombre y teléfono y te llamamos.
 </p>
 </div>
 
-<!-- Las 3 vias canonicas. Antes eran 4 tarjetas + "canales directos" + bloque
-     de demo, que repetian WhatsApp, telefono y demo dos veces cada uno. -->
-<div class="reveal vias3 m-carrusel" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px;margin-bottom:24px">
+<!-- Grid 2 columnas: WhatsApp destacado + Formulario express -->
+<div class="reveal contacto-grid" style="display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:stretch">
 
-<!-- Via 1 - Trial autoservicio -->
-<a href="/acceso.html" data-via="trial" style="display:flex;flex-direction:column;gap:7px;padding:20px;border-radius:18px;border:1px solid rgba(244,80,30,.55);background:linear-gradient(160deg,rgba(244,80,30,.22),rgba(255,255,255,.03));color:#fff;text-decoration:none;transition:transform .25s ease,box-shadow .25s ease" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 18px 36px -10px rgba(244,80,30,.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-<span style="font-size:24px"><svg class="ic" aria-hidden="true"><use href="#i-rocket" /></svg></span>
-<b style="font-family:var(--display);font-size:17px;color:#fff">Empezar mis 30 días gratis</b>
-<span style="font-size:13px;color:rgba(255,255,255,.82);line-height:1.4">Cuenta lista en 1 minuto, sin tarjeta. Agenda, caja, portal y comisiones desde el primer día.</span>
-<span style="font-size:12.5px;font-weight:700;color:var(--accent-hi);margin-top:auto;padding-top:8px">Crear mi cuenta →</span>
-</a>
+<!-- VÍA A — WhatsApp Directo (90% foco) -->
+<div class="wa-direct-card" style="display:flex;flex-direction:column;gap:18px;padding:clamp(24px,3.5vw,36px);border-radius:24px;border:2px solid rgba(37,211,102,.5);background:linear-gradient(160deg,rgba(37,211,102,.14),rgba(37,211,102,.04) 60%,rgba(255,255,255,.02));position:relative;overflow:hidden">
+<div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(37,211,102,.2),transparent 70%);pointer-events:none"></div>
 
-<!-- Via 2 - Llamada de 10 min -->
-<a href="#contactStaffForm" data-via="llamada" style="display:flex;flex-direction:column;gap:7px;padding:20px;border-radius:18px;border:1px solid rgba(255,207,74,.45);background:linear-gradient(160deg,rgba(255,207,74,.16),rgba(255,255,255,.03));color:#fff;text-decoration:none;transition:transform .25s ease,box-shadow .25s ease" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 18px 36px -10px rgba(255,207,74,.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-<span style="font-size:24px"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span>
-<b style="font-family:var(--display);font-size:17px;color:#fff">Llamada de 10 minutos</b>
-<span style="font-size:13px;color:rgba(255,255,255,.82);line-height:1.4">Te resolvemos las dudas y te dejamos el software configurado a medida de tu salón.</span>
-<span style="font-size:12.5px;font-weight:700;color:var(--gold);margin-top:auto;padding-top:8px">Que me llamen →</span>
-</a>
-
-<!-- Via 3 - Contacto -->
-<a href="#contactStaffForm" data-via="contacto" style="display:flex;flex-direction:column;gap:7px;padding:20px;border-radius:18px;border:1px solid rgba(37,211,102,.45);background:linear-gradient(160deg,rgba(37,211,102,.15),rgba(255,255,255,.03));color:#fff;text-decoration:none;transition:transform .25s ease,box-shadow .25s ease" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 18px 36px -10px rgba(37,211,102,.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-<span style="font-size:24px"><svg class="ic" aria-hidden="true"><use href="#i-chat" /></svg></span>
-<b style="font-family:var(--display);font-size:17px;color:#fff">Contactar con nosotros</b>
-<span style="font-size:13px;color:rgba(255,255,255,.82);line-height:1.4">WhatsApp, correo o mensaje. Te contesta el equipo fundador, hoy mismo.</span>
-<span style="font-size:12.5px;font-weight:700;color:#25d366;margin-top:auto;padding-top:8px">Ver vías de contacto →</span>
-</a>
-
-</div>
-
-<!-- Formulario Directo al Staff + Contactos de Comunicación -->
-<div id="contactFormGrid" class="reveal" style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:clamp(22px,3.5vw,36px);align-items:start">
-
-<!-- Formulario de Contacto -->
+<div style="display:flex;align-items:center;gap:12px">
+<span style="width:52px;height:52px;border-radius:14px;background:rgba(37,211,102,.2);border:1px solid rgba(37,211,102,.4);display:grid;place-items:center;flex:none">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="#25d366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</span>
 <div>
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-<span style="width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800"><svg class="ic" aria-hidden="true"><use href="#i-mail" /></svg></span>
-<h3 style="font-family:var(--display);font-size:20px;font-weight:800;color:#fff;margin:0">Envía un mensaje directo al staff</h3>
+<div style="font-family:var(--display);font-size:20px;font-weight:800;color:#fff">WhatsApp directo</div>
+<div style="font-size:13px;color:rgba(255,255,255,.7)">La vía más rápida · respuesta hoy</div>
 </div>
-<p style="font-size:13.5px;color:rgba(255,255,255,.78);margin:0 0 18px">
-Nos llega directamente al equipo fundador y te responderemos por WhatsApp o correo hoy mismo.
+</div>
+
+<p style="font-size:15px;color:rgba(255,255,255,.88);line-height:1.55;margin:0">
+Escríbenos por WhatsApp al <b style="color:#25d366">+34 690 79 29 75</b>. Te activamos tu mes gratis y te migramos tu agenda en 10 minutos.
 </p>
+
+<a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" class="btn-wa-direct" aria-label="Abrir WhatsApp para activar mes gratis de Mecha" style="display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;padding:16px 24px;border-radius:16px;background:#25d366;color:#fff;font-family:var(--display);font-weight:800;font-size:18px;text-decoration:none;text-shadow:0 1px 2px rgba(0,0,0,.2);box-shadow:0 8px 32px -8px rgba(37,211,102,.5);transition:transform .15s ease,box-shadow .15s ease">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+Abrir WhatsApp Ahora →
+</a>
+
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:rgba(255,255,255,.65)">
+<span style="width:8px;height:8px;border-radius:50%;background:#25d366;flex:none;box-shadow:0 0 6px rgba(37,211,102,.6)"></span>
+Carlos y Alexandru te responden hoy
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11.5px;color:rgba(255,255,255,.55)">
+<span style="padding:3px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">30 días gratis</span>
+<span style="padding:3px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">Sin tarjeta</span>
+<span style="padding:3px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">Sin permanencia</span>
+</div>
+</div>
+
+<!-- VÍA B — Formulario Express (2 campos) -->
+<div class="express-form" style="display:flex;flex-direction:column;gap:16px;padding:clamp(24px,3.5vw,36px);border-radius:24px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.035)">
+
+<div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+<span style="width:32px;height:32px;border-radius:9px;background:rgba(244,80,30,.18);border:1px solid rgba(244,80,30,.4);display:grid;place-items:center;font-size:15px;flex:none"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span>
+<h3 style="font-family:var(--display);font-size:18px;font-weight:800;color:#fff;margin:0">¿Prefieres que te llamemos?</h3>
+</div>
+<p style="font-size:13.5px;color:rgba(255,255,255,.72);margin:0;line-height:1.45">
+Déjanos tu nombre y teléfono. Te llamamos hoy y te dejamos todo configurado.
+</p>
+</div>
 
 <form id="contactStaffForm" novalidate style="display:flex;flex-direction:column;gap:12px">
-  <div class="cf-row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div>
-      <label for="cNombre" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Tu nombre *</label>
-      <input id="cNombre" type="text" required placeholder="Carlos Ocaña" style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none" />
-    </div>
-    <div>
-      <label for="cSalon" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Nombre de tu salón</label>
-      <input id="cSalon" type="text" placeholder="Studio Norte" style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none" />
-    </div>
-  </div>
-
-  <div class="cf-row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div>
-      <label for="cTelefono" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Teléfono / WhatsApp *</label>
-      <input id="cTelefono" type="tel" required placeholder="+34 600 000 000" style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none" />
-    </div>
-    <div>
-      <label for="cEmail" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Correo electrónico *</label>
-      <input id="cEmail" type="email" required placeholder="tu-salon@gmail.com" style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none" />
-    </div>
-  </div>
-
   <div>
-    <label for="cTipo" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">¿Qué necesitas?</label>
-    <select id="cTipo" style="width:100%;padding:11px 14px;border-radius:12px;background:#15100b;border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;outline:none">
-      <!-- OJO: estos value van tal cual a crear_solicitud_publica(p_tipo). Solo valen
-           los del CHECK de solicitudes: demo, reserva_llamada, signup, mensaje,
-           quiero_software, calculadora, addon_ia. Cualquier otro revienta el RPC. -->
-      <option value="reserva_llamada">Llamada de 10 min: dudas + configuración a medida</option>
-      <option value="quiero_software">Activar mis 30 días gratis con migración asistida</option>
-      <option value="mensaje">Dudas de funciones, precios o IA</option>
-      <option value="mensaje">Otra consulta</option>
-    </select>
+    <label for="cNombre" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Tu nombre *</label>
+    <input id="cNombre" type="text" required placeholder="Ej: Carlos Ocaña" autocomplete="name" style="width:100%;padding:13px 16px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:15px;outline:none" />
   </div>
-
   <div>
-    <label for="cNota" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Mensaje o notas (opcional)</label>
-    <textarea id="cNota" rows="3" placeholder="Cuéntanos cuántos sois en el equipo, si venís de Booksy/Fresha o qué dudas tenéis..." style="width:100%;padding:11px 14px;border-radius:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:13.5px;outline:none;resize:vertical;font-family:inherit"></textarea>
+    <label for="cTelefono" style="display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">Tu WhatsApp / Teléfono *</label>
+    <input id="cTelefono" type="tel" required placeholder="+34 600 000 000" autocomplete="tel" style="width:100%;padding:13px 16px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:15px;outline:none" />
   </div>
 
-  <button type="submit" id="cBtnSubmit" class="btn-grad" style="padding:14px 22px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">
-    Enviar mensaje al staff de Mecha →
+  <button type="submit" id="cBtnSubmit" class="btn-grad btn-express-submit" style="padding:15px 22px;border-radius:14px;font-weight:700;font-size:15px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px">
+    <svg class="ic" aria-hidden="true"><use href="#i-rocket" /></svg> Solicitar Activación Gratis
   </button>
   <div id="cFormMsg" style="font-size:13px;line-height:1.4;text-align:center"></div>
 </form>
+
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)">
+<a href="tel:+34690792975" style="display:flex;align-items:center;gap:8px;min-height:44px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;text-decoration:none" aria-label="Llamar al +34 690 79 29 75">
+  <span style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;font-size:14px;flex:none"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span>
+  Llamar al <b style="margin-left:3px">+34 690 79 29 75</b>
+</a>
+<a href="mailto:contacto@mechaa.es" style="display:flex;align-items:center;gap:8px;min-height:44px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;text-decoration:none" aria-label="Enviar correo a contacto@mechaa.es">
+  <span style="width:30px;height:30px;border-radius:8px;background:rgba(244,80,30,.12);border:1px solid rgba(244,80,30,.3);display:grid;place-items:center;font-size:14px;flex:none"><svg class="ic" aria-hidden="true"><use href="#i-mail" /></svg></span>
+  <b>contacto@mechaa.es</b>
+</a>
 </div>
 
-<!-- Vias de contacto reales. Antes repetia WhatsApp/telefono (ya estaban en las
-     tarjetas) y volvia a ofrecer la demo por tercera vez. -->
-<div style="display:flex;flex-direction:column;gap:16px;padding-left:clamp(0px,2vw,16px);border-left:1px solid rgba(255,255,255,.1)">
-<div>
-<h4 style="font-family:var(--display);font-size:16px;font-weight:800;color:#fff;margin:0 0 10px">O escríbenos directamente</h4>
-<div style="display:flex;flex-direction:column;gap:8px;font-size:13.5px">
-  <a href="https://wa.me/34690792975?text=Hola,%20tengo%20una%20consulta%20sobre%20Mecha" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;min-height:44px;color:#25d366;font-weight:600;text-decoration:none">
-    <span style="width:34px;height:34px;border-radius:9px;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.35);display:grid;place-items:center;font-size:16px;flex:none"><svg class="ic" aria-hidden="true"><use href="#i-chat" /></svg></span>
-    <span>WhatsApp <b>+34 690 79 29 75</b></span>
-  </a>
-  <a href="tel:+34690792975" style="display:flex;align-items:center;gap:10px;min-height:44px;color:rgba(255,255,255,.9);font-weight:600;text-decoration:none">
-    <span style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;font-size:16px;flex:none"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span>
-    <span>Llamar al <b>+34 690 79 29 75</b></span>
-  </a>
-  <a href="mailto:contacto@mechaa.es" style="display:flex;align-items:center;gap:10px;min-height:44px;color:rgba(255,255,255,.9);font-weight:600;text-decoration:none">
-    <span style="width:34px;height:34px;border-radius:9px;background:rgba(244,80,30,.15);border:1px solid rgba(244,80,30,.35);display:grid;place-items:center;font-size:16px;flex:none"><svg class="ic" aria-hidden="true"><use href="#i-mail" /></svg></span>
-    <span><b>contacto@mechaa.es</b></span>
-  </a>
+<div style="padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)">
+<div style="font-size:12px;font-weight:700;color:var(--accent-hi);margin-bottom:3px"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg> Garantía Mecha OS</div>
+<div style="font-size:11.5px;color:rgba(255,255,255,.65);line-height:1.45">
+30 días gratis · Sin permanencia · 0% comisiones · Cumple VeriFactu 2026.
 </div>
-</div>
-
-<div style="padding:15px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)">
-<div style="font-size:12.5px;font-weight:700;color:var(--accent-hi);margin-bottom:4px"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg> Garantía Mecha OS</div>
-<div style="font-size:12px;color:rgba(255,255,255,.75);line-height:1.5">
-30 días gratis · Sin permanencia · 0% comisiones por reserva · Cumple la Ley Antifraude y VeriFactu 2026.
-</div>
-</div>
-
 </div>
 
 </div>
@@ -3283,6 +3247,63 @@ if (document.readyState === "loading") {
   </div>
 </div>
 
+<!-- Modal de opciones de acceso para visitantes sin sesión -->
+<div id="opcionesAccesoModal" role="dialog" aria-modal="true" aria-labelledby="opcAccModalTit" hidden
+     style="position:fixed;inset:0;z-index:9999;background:rgba(8,5,3,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px">
+  <div class="acc-modal-box" style="width:100%;max-width:440px;background:var(--card,#15100b);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:clamp(22px,4vw,30px);box-shadow:0 30px 70px -20px rgba(0,0,0,.7)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.35);padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;color:#25d366;margin-bottom:8px">30 días gratis</div>
+        <h3 id="opcAccModalTit" style="font-family:var(--display);font-size:21px;font-weight:800;color:#fff;margin:0">¿Cómo quieres empezar?</h3>
+      </div>
+      <button type="button" class="opcAccModalX" aria-label="Cerrar"
+              style="width:36px;height:36px;flex:none;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;font-size:17px;cursor:pointer;line-height:1">&times;</button>
+    </div>
+    <p style="font-size:13.5px;color:rgba(255,255,255,.68);margin:0 0 18px;line-height:1.45">Elige la opción que prefieras. Las tres llevan al mismo sitio.</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+
+      <!-- Opción 1: WhatsApp (Recomendado) -->
+      <a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" class="acc-opt acc-opt-wa" style="display:flex;align-items:center;gap:14px;padding:16px;min-height:52px;border-radius:16px;text-decoration:none;border:2px solid rgba(37,211,102,.5);background:linear-gradient(160deg,rgba(37,211,102,.16),rgba(255,255,255,.03));color:#fff;transition:transform .15s ease" aria-label="Probar Mecha gratis por WhatsApp">
+        <span class="acc-opt-icon" style="width:42px;height:42px;border-radius:12px;background:rgba(37,211,102,.2);display:grid;place-items:center;flex:none;font-size:20px">⚡</span>
+        <div class="acc-opt-content" style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <b class="acc-opt-title" style="font-family:var(--display);font-size:15px">Probar Mecha Gratis por WhatsApp</b>
+            <span style="padding:2px 8px;border-radius:999px;background:rgba(37,211,102,.2);border:1px solid rgba(37,211,102,.4);font-size:10px;font-weight:700;color:#25d366">Recomendado</span>
+          </div>
+          <span class="acc-opt-desc" style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.35">Onboarding asistido con Carlos y Alexandru. Listo en 10 min.</span>
+        </div>
+        <span class="acc-opt-arrow" style="font-size:13px;font-weight:700;color:#25d366;flex:none">→</span>
+      </a>
+
+      <!-- Opción 2: Demo en Vivo -->
+      <a href="/acceso.html?next=demo#signup" data-demo-link class="acc-opt acc-opt-demo" style="display:flex;align-items:center;gap:14px;padding:16px;min-height:52px;border-radius:16px;text-decoration:none;border:1px solid rgba(124,108,240,.4);background:linear-gradient(160deg,rgba(124,108,240,.12),rgba(255,255,255,.03));color:#fff;transition:transform .15s ease" aria-label="Probar la demo en vivo">
+        <span class="acc-opt-icon" style="width:42px;height:42px;border-radius:12px;background:rgba(124,108,240,.15);display:grid;place-items:center;flex:none;font-size:20px">▶</span>
+        <div class="acc-opt-content" style="flex:1;min-width:0">
+          <b class="acc-opt-title" style="font-family:var(--display);font-size:15px">Probar la Demo en Vivo</b>
+          <span class="acc-opt-desc" style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.35;display:block">Acceso inmediato con datos de prueba — sin registro.</span>
+        </div>
+        <span class="acc-opt-arrow" style="font-size:13px;font-weight:700;color:#818cf8;flex:none">→</span>
+      </a>
+
+      <!-- Opción 3: Ya tengo cuenta -->
+      <a href="/acceso.html" class="acc-opt" style="display:flex;align-items:center;gap:14px;padding:16px;min-height:52px;border-radius:16px;text-decoration:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;transition:transform .15s ease" aria-label="Iniciar sesión en Mecha">
+        <span class="acc-opt-icon" style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);display:grid;place-items:center;flex:none;font-size:20px">🔑</span>
+        <div class="acc-opt-content" style="flex:1;min-width:0">
+          <b class="acc-opt-title" style="font-family:var(--display);font-size:15px">Ya tengo cuenta</b>
+          <span class="acc-opt-desc" style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.35;display:block">Iniciar sesión en tu panel de Mecha.</span>
+        </div>
+        <span class="acc-opt-arrow" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);flex:none">→</span>
+      </a>
+
+    </div>
+
+    <button type="button" class="opcAccModalX acc-modal-close" style="margin-top:18px;width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer">
+      Cerrar
+    </button>
+  </div>
+</div>
+
 <script>
 (function(){
   var api = window.MechaAPI;
@@ -3368,22 +3389,22 @@ if (document.readyState === "loading") {
 </script>
 
 <script>
-// Las vias 2 y 3 llevan al mismo formulario; solo cambia el motivo preseleccionado.
-document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
-  card.addEventListener('click', function(e){
-    var via = card.getAttribute('data-via');
-    if(via === 'trial') return; // esa navega a /acceso.html
-    e.preventDefault();
-    var tipo = document.getElementById('cTipo');
-    if(tipo) tipo.value = (via === 'llamada') ? 'reserva_llamada' : 'mensaje';
-    var form = document.getElementById('contactStaffForm');
-    if(form){
-      form.scrollIntoView({behavior:'smooth', block:'center'});
-      var foco = document.getElementById('cNombre');
-      if(foco) setTimeout(function(){ foco.focus({preventScroll:true}); }, 420);
-    }
-  });
-});
+// ═══ MODAL OPCIONES DE ACCESO (visitantes sin sesión) ═══
+(function(){
+  var modal = document.getElementById('opcionesAccesoModal');
+  if(!modal) return;
+
+  function cerrarOpc(){ modal.hidden = true; modal.style.display = 'none'; document.body.classList.remove('modal-open'); }
+  function abrirOpc(){ modal.hidden = false; modal.style.display = 'flex'; document.body.classList.add('modal-open'); }
+
+  modal.querySelectorAll('.opcAccModalX').forEach(function(b){ b.addEventListener('click', cerrarOpc); });
+  modal.addEventListener('click', function(e){ if(e.target === modal) cerrarOpc(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) cerrarOpc(); });
+
+  // Exponer globalmente para que la lógica de sesión pueda usarlo
+  window.abrirOpcionesAcceso = abrirOpc;
+  window.cerrarOpcionesAcceso = cerrarOpc;
+})();
 </script>
 
 <script>
@@ -3458,10 +3479,30 @@ document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
       // OJO: NO se tocan los botones de #contacto. Antes se reescribian a
       // "Acceder al software", asi que con sesion iniciada el boton de contactar
       // dejaba de contactar.
+    } else {
+      // Sin sesión: los CTAs principales abren el modal de opciones de acceso
+      // en vez de navegar directamente a /acceso.html.
+      var abrirOpciones = function(e){
+        e.preventDefault();
+        if(window.abrirOpcionesAcceso) window.abrirOpcionesAcceso();
+        else location.href = '/acceso.html';
+      };
+      if(heroCta){
+        heroCta.addEventListener('click', abrirOpciones);
+      }
+      // Interceptar también el botón de la sticky CTA
+      var stickyCta = document.querySelector('[data-sticky-cta] a.btn-grad');
+      if(stickyCta){
+        stickyCta.addEventListener('click', function(e){
+          e.preventDefault();
+          if(window.abrirOpcionesAcceso) window.abrirOpcionesAcceso();
+          else location.href = '#contacto';
+        });
+      }
     }
   }
 
-  api.getSession().then(function(s){ if(s) syncLandingSession(s); });
+  api.getSession().then(function(s){ syncLandingSession(s); });
   if(api.onAuth){
     api.onAuth(function(evt, s){
       if(evt === 'SIGNED_IN' || s) syncLandingSession(s);
@@ -3469,7 +3510,7 @@ document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
     });
   }
 
-  // Manejo del formulario de contacto directo al staff
+  // Manejo del formulario express de contacto (2 campos: nombre + teléfono)
   var staffForm = document.getElementById('contactStaffForm');
   if(staffForm){
     staffForm.addEventListener('submit', async function(e){
@@ -3477,17 +3518,12 @@ document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
       var msg = document.getElementById('cFormMsg');
       var btn = document.getElementById('cBtnSubmit');
       var nombre = (document.getElementById('cNombre').value || '').trim();
-      var salon = (document.getElementById('cSalon').value || '').trim();
       var telefono = (document.getElementById('cTelefono').value || '').trim();
-      var email = (document.getElementById('cEmail').value || '').trim();
-      // 'mensaje' como fallback: 'contacto' no existe en el CHECK y tumbaba el envio.
-      var tipo = document.getElementById('cTipo').value || 'mensaje';
-      var nota = (document.getElementById('cNota').value || '').trim();
 
-      if(!nombre || !email || !telefono){
+      if(!nombre || !telefono){
         if(msg){
           msg.style.color = '#ff7a2e';
-          msg.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-alert" /></svg> Por favor completa tu nombre, teléfono y correo electrónico.';
+          msg.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-alert" /></svg> Por favor completa tu nombre y teléfono.';
         }
         return;
       }
@@ -3496,9 +3532,9 @@ document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
       btn.disabled = true;
       btn.textContent = 'Enviando solicitud…';
 
-      var meta = { origen: 'landing_contacto', fecha: new Date().toISOString() };
+      var meta = { origen: 'landing_express', fecha: new Date().toISOString() };
       var res = api && api.insertSolicitud
-        ? await api.insertSolicitud({ tipo: tipo, nombre: nombre, salon: salon, email: email, telefono: telefono, nota: nota, meta: meta })
+        ? await api.insertSolicitud({ tipo: 'quiero_software', nombre: nombre, telefono: telefono, meta: meta })
         : { error: null };
 
       btn.disabled = false;
@@ -3507,14 +3543,14 @@ document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
       if(res && res.error){
         if(msg){
           msg.style.color = '#ff7a2e';
-          msg.innerHTML = 'No se ha podido enviar automáticamente. Escríbenos directamente por <a href="https://wa.me/34690792975?text=Hola,%20soy%20' + encodeURIComponent(nombre) + '%20y%20quiero%20informaci%C3%B3n%20sobre%20Mecha" target="_blank" style="color:#25d366;text-decoration:underline">WhatsApp al +34 690 79 29 75</a> o a <a href="mailto:contacto@mechaa.es" style="color:#fff;text-decoration:underline">contacto@mechaa.es</a>.';
+          msg.innerHTML = 'No se ha podido enviar. Escríbenos por <a href="https://wa.me/34690792975?text=Hola,%20soy%20' + encodeURIComponent(nombre) + '%20y%20quiero%20activar%20Mecha" target="_blank" style="color:#25d366;text-decoration:underline">WhatsApp al +34 690 79 29 75</a> o a <a href="mailto:contacto@mechaa.es" style="color:#fff;text-decoration:underline">contacto@mechaa.es</a>.';
         }
         return;
       }
 
       if(msg){
         msg.style.color = '#25d366';
-        msg.innerHTML = '✓ <b>¡Solicitud enviada con éxito!</b> Carlos y Alexandru te responderán por WhatsApp o correo hoy mismo.<br /><a href="https://wa.me/34690792975?text=Hola,%20acabo%20de%20enviar%20el%20formulario%20desde%20la%20web%20(Soy%20' + encodeURIComponent(nombre) + ')" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:#25d366;font-weight:700;margin-top:6px;text-decoration:underline">O pulsa aquí para abrir WhatsApp directo ahora →</a>';
+        msg.innerHTML = '✓ <b>¡Solicitud enviada!</b> Carlos y Alexandru te llamarán hoy mismo.<br /><a href="https://wa.me/34690792975?text=Hola,%20acabo%20de%20pedir%20activaci%C3%B3n%20desde%20la%20web%20(Soy%20' + encodeURIComponent(nombre) + ')" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:#25d366;font-weight:700;margin-top:6px;text-decoration:underline">O abre WhatsApp directo ahora →</a>';
       }
       staffForm.reset();
     });
@@ -3653,6 +3689,26 @@ document.querySelectorAll('.vias3 a[data-via]').forEach(function(card){
       err.classList.add('show');
     });
   }
+})();
+</script>
+
+<!-- ═══ BARRA MÓVIL DE CONVERSIÓN (solo <768px via CSS) ═══ -->
+<div class="mob-conv-bar" aria-label="Contacto rápido">
+  <a href="tel:+34690792975" class="mob-conv-call" aria-label="Llamar al +34 690 79 29 75">📞 Llamar</a>
+  <a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20probar%20Mecha%201%20mes%20gratis" target="_blank" rel="noopener" class="mob-conv-wa" aria-label="WhatsApp para activar mes gratis">💬 WhatsApp 1 Mes Gratis →</a>
+</div>
+
+<script>
+// ═══ BARRA MÓVIL — ocultar cuando #contacto es visible ═══
+(function(){
+  var bar = document.querySelector('.mob-conv-bar');
+  var sec = document.getElementById('contacto');
+  if(!bar || !sec || !('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function(entries){
+    bar.style.transform = entries[0].isIntersecting ? 'translateY(100%)' : 'translateY(0)';
+  }, { threshold: 0.15 });
+  io.observe(sec);
+  bar.style.transition = 'transform .3s ease';
 })();
 </script>
 </body>

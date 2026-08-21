@@ -958,3 +958,153 @@ body.modal-open {
   color: #8a9ab8 !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   SESIÓN 2.2 — EMBUDO MÓVIL ULTRA-RÁPIDO & LEAD CAPTURE WHATSAPP
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* --- Contacto Grid Responsive --- */
+.contacto-grid {
+  grid-template-columns: 1.2fr .8fr;
+}
+
+@media (max-width: 767px) {
+  .contacto-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* --- WhatsApp Direct Card --- */
+.wa-direct-card {
+  pointer-events: auto !important;
+}
+
+.btn-wa-direct {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-wa-direct:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px -8px rgba(37,211,102,.55);
+}
+.btn-wa-direct:active {
+  transform: scale(0.97) !important;
+  transition: transform 0.08s ease !important;
+}
+
+/* --- Express Form --- */
+.express-form,
+.express-form * {
+  pointer-events: auto !important;
+}
+
+.express-form input:focus {
+  border-color: rgba(244,80,30,.55);
+  box-shadow: 0 0 0 3px rgba(244,80,30,.15);
+}
+
+.btn-express-submit {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-express-submit:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
+
+/* --- Opciones Acceso Modal — garantía táctil --- */
+#opcionesAccesoModal .acc-opt {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto !important;
+}
+#opcionesAccesoModal .acc-opt:hover {
+  transform: translateY(-2px);
+}
+#opcionesAccesoModal .acc-opt:active {
+  transform: scale(0.98);
+  transition: transform 0.08s ease;
+}
+
+/* --- Barra Móvil de Conversión --- */
+.mob-conv-bar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mob-conv-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 85;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: rgba(12, 18, 36, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    gap: 8px;
+  }
+
+  .mob-conv-call {
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    text-align: center;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mob-conv-call:active {
+    background: rgba(255,255,255,0.14);
+    transition: background 0.08s ease;
+  }
+
+  .mob-conv-wa {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #25d366;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    text-align: center;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 16px -4px rgba(37,211,102,.4);
+  }
+  .mob-conv-wa:active {
+    background: #1fb855;
+    transform: scale(0.98);
+    transition: all 0.08s ease;
+  }
+
+  /* Desplazar Chispa FAB hacia arriba para no solaparse */
+  #chispaFab {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  #chispaChat {
+    bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Ocultar sticky CTA desktop en móvil — la barra inferior lo reemplaza */
+  [data-sticky-cta] {
+    display: none !important;
+  }
+}
+
