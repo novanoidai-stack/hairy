@@ -962,6 +962,39 @@ nav{
 @keyframes mAbajo{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 @media(prefers-reduced-motion:reduce){.hero-abajo-flecha{animation:none}}
 
+/* ============================================================
+   PIE: ENLACES EN COLUMNAS
+   ============================================================ */
+.foot-cols{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:26px 20px;
+  padding-bottom:26px;
+  margin-bottom:22px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.foot-col{display:flex;flex-direction:column;gap:2px;min-width:0}
+.foot-col h4{
+  margin:0 0 8px;
+  font-family:var(--display);font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;
+  color:var(--accent-hi);
+}
+.foot-col a{
+  color:rgba(255,255,255,.78);
+  font-size:13.5px;line-height:1.35;
+  padding:6px 0;
+  text-decoration:none;
+  transition:color .2s ease;
+}
+.foot-col a:hover{color:#fff}
+.foot-base{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  font-size:12.5px;color:rgba(255,255,255,.6);
+}
+.foot-marca{font-family:var(--display);font-weight:800;font-size:20px;color:#fff}
+
 .puente{position:relative;display:grid;place-items:center;gap:9px;padding:30px 26px 26px;text-align:center}
 .puente-linea{
   width:1.5px;height:26px;border-radius:2px;
@@ -1075,16 +1108,16 @@ body[data-theme="dark"] [data-sticky-cta]{
     margin-top:3px!important;
     line-height:1.35!important;
   }
-  #contactFormGrid{
-    grid-template-columns:1fr!important;
-    padding:clamp(18px, 4vw, 28px)!important;
-    gap:22px!important;
-  }
-  #contactFormGrid > div:last-child{
-    border-left:none!important;
-    border-top:1px solid rgba(255,255,255,.12)!important;
-    padding-left:0!important;
-    padding-top:20px!important;
+  /* SECCION DE CONTACTO: estaba SIN adaptar a movil.
+     Todo el CSS movil de aqui apuntaba a #contactFormGrid, .vias3 y .cf-row2,
+     que ya no existen en el marcado (quedaron de una version anterior del
+     bloque). Mientras tanto .contacto-grid conservaba su
+     `grid-template-columns:1.2fr .8fr` en linea tambien en 375px: la tarjeta
+     de WhatsApp se quedaba en 96px de ancho y el formulario en 227px.
+     Es la trampa que avisa CLAUDE.md: las columnas fr no encogen solas. */
+  .contacto-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:14px!important;
   }
 }
 
@@ -1098,22 +1131,32 @@ body[data-theme="dark"] [data-sticky-cta]{
   a[style*="display:flex"], a[style*="display:inline-flex"],
   a[style*="display:grid"], a[style*="display:inline-grid"],
   button[style*="display:flex"], button[style*="display:inline-flex"]{min-height:44px}
-  .foot-links > a{min-height:40px;display:inline-flex;align-items:center}
-  .theme-toggle-btn,.mnav-toggle{width:44px!important;height:44px!important}
+  .foot-col a{min-height:40px;display:flex;align-items:center}
+  .theme-toggle-btn:not(.mnav-theme),.mnav-toggle{width:44px!important;height:44px!important}
 }
 
 @media (max-width:768px){
-  /* Chispa FAB flotante elevado para convivir con el sticky CTA */
+  /* Chispa FAB flotante elevado para convivir con el sticky CTA.
+     Y SIN el latido: la animacion chGlow repinta un halo naranja de 10px
+     cada 3 segundos, para siempre, encima de lo que haya debajo. En una
+     pantalla de movil eso no es una llamada de atencion, es ruido fijo.
+     Se queda una sombra quieta y el boton mas discreto. */
   #chispaFab{
     bottom:calc(66px + env(safe-area-inset-bottom, 0px))!important;
     right:14px!important;
-    width:48px!important;
-    height:48px!important;
+    width:44px!important;
+    height:44px!important;
+    animation:chFabIn .5s cubic-bezier(.16,1,.3,1) .8s both!important;
+    box-shadow:0 6px 18px -6px rgba(244,80,30,.5),0 0 0 1px rgba(255,255,255,.18) inset!important;
+    opacity:.92;
   }
   #chispaFab img{
-    width:30px!important;
-    height:30px!important;
+    width:27px!important;
+    height:27px!important;
   }
+  /* El punto verde "en linea" compite con el punto de sesion de la
+     hamburguesa y no dice nada util: el asistente siempre esta. */
+  #chispaFab .ch-dot{display:none!important}
   #chispaChat{
     bottom:calc(120px + env(safe-area-inset-bottom, 0px))!important;
     right:12px!important;
@@ -1127,7 +1170,13 @@ body[data-theme="dark"] [data-sticky-cta]{
 }
 
 @media (max-width:640px){
-  section,[id]{padding-left:16px!important;padding-right:16px!important}
+  /* OJO con el selector: esto era `section,[id]`, y `[id]` alcanzaba a 83
+     elementos — entre ellos <main id="top">, los <symbol> del sprite y los
+     inputs. Con el padding en el main, TODAS las secciones se quedaban en
+     343px de los 375 y el fondo del body asomaba en dos franjas negras de
+     16px a los lados, mientras la nav y el banner si llegaban al borde.
+     Ademas las secciones con id acumulaban 32px de sangrado por lado. */
+  main > section{padding-left:16px!important;padding-right:16px!important}
   .qrow{grid-template-columns:1fr 1fr!important}
 
   /* Minimo tactil de 44px. Habia enlaces sueltos de 15-23px de alto.
@@ -1144,17 +1193,19 @@ body[data-theme="dark"] [data-sticky-cta]{
   }
   .wapp-chip{min-height:38px!important;padding:9px 13px!important}
 
-  /* Touch target en navegación: 44px, el minimo recomendado. Estaban en 36/38. */
-  .theme-toggle-btn{width:44px!important;height:44px!important}
+  /* Touch target en navegación: 44px, el minimo recomendado. Estaban en 36/38.
+     .mnav-theme queda fuera: es el boton de tema del panel, que va a ancho
+     completo con su etiqueta. */
+  .theme-toggle-btn:not(.mnav-theme){width:44px!important;height:44px!important}
   .mnav-toggle{width:44px!important;height:44px!important}
 
-  /* Enlaces sueltos del footer: eran de 21px de alto. Son items de un contenedor
-     flex, no van dentro de parrafos, asi que darles altura es seguro. */
-  .foot-links > a{
-    min-height:40px;
-    display:inline-flex;
-    align-items:center;
-  }
+  /* Tres columnas no caben en 375px: Producto y Contacto arriba, Legal debajo
+     ocupando el ancho en dos columnas. Y minimo tactil de 40px por enlace. */
+  .foot-cols{grid-template-columns:1fr 1fr!important;gap:20px 16px!important}
+  .foot-col:last-child{grid-column:1 / -1}
+  .foot-col:last-child > h4{grid-column:1 / -1}
+  .foot-col:last-child{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .foot-col a{min-height:40px;display:flex;align-items:center;font-size:13px}
 
   /* Tipografía fluida */
   h1{font-size:clamp(30px, 8.5vw, 42px)!important}
@@ -1300,9 +1351,6 @@ body[data-theme="dark"] [data-sticky-cta]{
     font-size:16px!important;
   }
 
-  /* Formulario de contacto */
-  .cf-row2{grid-template-columns:1fr!important;gap:8px!important}
-  
   /* Banner superior: ultrafino y limpio */
   .banner-top-free{
     padding:5px 12px!important;
@@ -1460,15 +1508,19 @@ body[data-theme="dark"] [data-sticky-cta]{
     align-items:center;
     min-height:44px;
   }
-  /* Los cuatro sellos son ahora cortos y simetricos: 2x2 limpio. Antes el
-     primero ocupaba la fila entera porque decia "30 dias gratis, con tu
-     propia cuenta" y no cabia en media. */
+  /* Todo lo que va DEBAJO de los dos botones es letra chica de apoyo: la
+     linea de WhatsApp y los cuatro sellos. En la primera impresion tienen
+     que estar, pero pesando poco, no como un segundo parrafo. */
+  main > section:first-child .hero-ticks + *,
   .hero-ticks{
     display:grid!important;
     grid-template-columns:1fr 1fr!important;
-    gap:5px 12px!important;
-    font-size:12px!important;
+    gap:4px 12px!important;
+    font-size:11.5px!important;
   }
+  .hero-ticks{margin-top:2px!important;color:var(--ink-3)!important}
+  .hero-ticks > span:first-child{font-weight:600!important;color:var(--ink-2)!important}
+  #heroCta ~ div[style*="font-size:13.5px"]{font-size:12.5px!important;margin-bottom:12px!important}
 
   /* 4 · #gestion: generico vs Mecha en carrusel; migracion en 3 columnas - */
   #gestion .reveal > div[style*="minmax(300px"]{
@@ -1577,15 +1629,12 @@ body[data-theme="dark"] [data-sticky-cta]{
   #precios .hov-card > div[style*="font-size:42px"]{font-size:34px!important}
 
   /* 8 · #contacto ------------------------------------------------------- */
-  .vias3{margin-bottom:16px!important}
-  .vias3 > a{padding:15px 16px!important}
-  /* Los pares nombre/salon y telefono/correo caben en dos columnas: son
-     campos cortos y emparejados. Apilarlos costaba 4 filas de ~64px. */
-  .cf-row2{grid-template-columns:1fr 1fr!important;gap:8px!important}
-  .cf-row2 label{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cf-row2 input{padding:10px 11px!important}
+  .wa-direct-card,.express-form{padding:18px 16px!important;border-radius:18px!important}
+  .wa-direct-card{gap:13px!important}
+  .wa-direct-card p{font-size:14px!important;line-height:1.45!important}
+  .btn-wa-direct{min-height:56px!important;font-size:16px!important;padding:14px 18px!important}
+  .express-form{gap:13px!important}
   #contactStaffForm{gap:9px!important}
-  #contactStaffForm textarea{rows:2}
 
   /* 9 · Pie de pagina --------------------------------------------------- */
   footer .founders-grid{grid-template-columns:1fr!important;gap:8px!important}
@@ -1628,8 +1677,6 @@ body[data-theme="dark"] [data-sticky-cta]{
   }
 
   /* 14 · #contacto: menos marco alrededor del formulario ------------------ */
-  #contactFormGrid{padding:16px 14px!important;gap:16px!important}
-  #contactFormGrid > div:last-child{padding-top:14px!important;gap:12px!important}
   #contacto > div > .reveal:first-child{margin-bottom:18px!important}
 }
 
@@ -1756,35 +1803,44 @@ body[data-theme="dark"] [data-sticky-cta]{
    Se activa a partir de los 980px, el mismo corte en el que
    [data-navlinks] y los CTA largos se ocultan.
    ============================================================ */
+/* Hamburguesa: SVG con tres <line>, no pseudo-elementos posicionados en
+   negativo. Las lineas viven en el viewBox, asi que el centrado es del
+   propio SVG y no depende de calcular top:-5px sobre un span de 2px. */
 .mnav-toggle{
   display:none;
-  width:36px;height:36px;
-  border-radius:9px;
+  width:40px;height:40px;
+  border-radius:12px;
   border:1px solid var(--line-2);
   background:var(--card);
   place-items:center;
   cursor:pointer;
   position:relative;
   flex-shrink:0;
-  transition:background .2s ease,border-color .2s ease;
+  color:var(--ink);
+  -webkit-tap-highlight-color:transparent;
+  transition:background .25s ease,border-color .25s ease,transform .25s cubic-bezier(.16,1,.3,1);
 }
-.mnav-toggle:hover{background:var(--accent-soft);border-color:var(--accent)}
-.mnav-toggle span,.mnav-toggle span::before,.mnav-toggle span::after{
-  content:"";
-  display:block;
-  width:16px;height:2px;
-  background:var(--ink);
-  border-radius:2px;
-  position:absolute;
-  transition:transform .3s cubic-bezier(.22,.61,.36,1),opacity .2s ease,background .2s ease;
+.mnav-toggle:active{transform:scale(.94)}
+.mnav-burger{width:21px;height:21px;overflow:visible}
+.mnav-burger .bl{
+  transition:transform .38s cubic-bezier(.16,1,.3,1),opacity .2s ease;
+  transform-origin:12px 12px;
 }
-.mnav-toggle span{position:relative}
-.mnav-toggle span::before{top:-5px}
-.mnav-toggle span::after{bottom:-5px}
-body.mnav-open .mnav-toggle{background:var(--accent-soft);border-color:var(--accent)}
-body.mnav-open .mnav-toggle span{background:transparent}
-body.mnav-open .mnav-toggle span::before{transform:translateY(5px) rotate(45deg)}
-body.mnav-open .mnav-toggle span::after{transform:translateY(-5px) rotate(-45deg)}
+.mnav-burger .bl-1{transform:translateY(0)}
+.mnav-burger .bl-3{transform:translateY(0)}
+body.mnav-open .mnav-toggle{background:var(--accent-soft);border-color:rgba(244,80,30,.5);color:var(--accent)}
+body.mnav-open .mnav-burger .bl-1{transform:translateY(4px) rotate(45deg)}
+body.mnav-open .mnav-burger .bl-2{opacity:0;transform:scaleX(.2)}
+body.mnav-open .mnav-burger .bl-3{transform:translateY(-4px) rotate(-45deg)}
+/* Punto de sesion activa sobre la hamburguesa: en movil los CTA de escritorio
+   van ocultos, asi que sin esto no habia NINGUNA pista de si has entrado. */
+.mnav-punto{
+  position:absolute;top:-3px;right:-3px;
+  width:11px;height:11px;border-radius:50%;
+  background:var(--ok);
+  border:2px solid var(--paper);
+  box-shadow:0 0 0 1px rgba(15,155,108,.4);
+}
 body.mnav-open{overflow:hidden}
 
 .mnav-scrim{
@@ -1799,9 +1855,9 @@ body.mnav-open .mnav-scrim{opacity:1;pointer-events:auto}
 .mnav-panel{
   position:fixed;top:0;right:0;z-index:95;
   height:100vh;height:100dvh;
-  width:min(86vw,320px);
+  width:min(88vw,340px);
   display:flex;flex-direction:column;
-  padding-top:calc(env(safe-area-inset-top, 0px) + 60px);
+  padding-top:env(safe-area-inset-top, 0px);
   background:var(--paper-2);
   border-left:1px solid var(--line);
   box-shadow:-24px 0 54px -20px rgba(21,16,11,.35);
@@ -1811,24 +1867,82 @@ body.mnav-open .mnav-scrim{opacity:1;pointer-events:auto}
   overflow:hidden;
 }
 body.mnav-open .mnav-panel{transform:none}
+
+/* Cabecera propia del panel. Antes el panel empezaba con un padding-top de
+   60px para "esquivar" la nav y no habia forma explicita de cerrarlo: o
+   dabas al velo o volvias a la hamburguesa, que queda tapada por el panel. */
+.mnav-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--line);
+}
+.mnav-marca{display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none}
+.mnav-marca svg{width:26px;height:26px;flex:none}
+.mnav-marca span{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.04em}
+.mnav-marca i{color:var(--accent);font-style:normal}
+.mnav-cerrar{
+  width:40px;height:40px;flex:none;
+  border-radius:12px;border:1px solid var(--line-2);
+  background:var(--card);color:var(--ink-2);
+  display:grid;place-items:center;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .2s ease,border-color .2s ease,background .2s ease,transform .25s cubic-bezier(.16,1,.3,1);
+}
+.mnav-cerrar svg{width:17px;height:17px}
+.mnav-cerrar:hover{color:var(--accent);border-color:rgba(244,80,30,.45);background:var(--accent-soft)}
+.mnav-cerrar:active{transform:scale(.92) rotate(90deg)}
+
+/* Estado de la cuenta, lo primero que se ve al abrir el panel. */
+.mnav-cuenta{
+  display:flex;align-items:center;gap:12px;
+  margin:12px 14px 2px;padding:12px 14px;
+  border-radius:14px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);text-decoration:none;
+  transition:border-color .22s ease,background .22s ease;
+}
+.mnav-cuenta:hover{border-color:rgba(244,80,30,.4);background:var(--accent-soft)}
+.mnav-cuenta-ic{
+  width:36px;height:36px;flex:none;border-radius:11px;
+  display:grid;place-items:center;
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid rgba(244,80,30,.25);
+}
+.mnav-cuenta-ic svg{width:18px;height:18px}
+.mnav-cuenta.dentro .mnav-cuenta-ic{background:var(--ok-soft);color:var(--ok);border-color:rgba(15,155,108,.3)}
+.mnav-cuenta-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.mnav-cuenta-txt b{font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mnav-cuenta-txt small{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mnav-cuenta-flecha{color:var(--ink-3);font-size:15px;flex:none}
+
 .mnav-links{
-  display:flex;flex-direction:column;gap:3px;
-  padding:12px 14px 10px;
+  display:flex;flex-direction:column;gap:2px;
+  padding:10px 14px;
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
 .mnav-links a{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 14px;
-  border-radius:11px;
+  display:flex;align-items:center;gap:12px;
+  padding:11px 12px;
+  border-radius:12px;
   font-size:15px;font-weight:600;
   color:var(--ink-2);
   border:1px solid transparent;
   text-decoration:none;
-  opacity:0;transform:translateX(12px);
+  opacity:0;transform:translateX(14px);
   transition:color .2s ease,background .2s ease,border-color .2s ease,
     opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1);
 }
+/* El icono en su propia capsula: da ritmo a la columna y hace que la lista
+   deje de ser siete lineas de texto planas. */
+.mnav-links a .ic{
+  width:30px;height:30px;flex:none;padding:7px;
+  border-radius:9px;
+  background:var(--card);border:1px solid var(--line);
+  color:var(--ink-3);
+  box-sizing:border-box;
+  transition:color .2s ease,background .2s ease,border-color .2s ease;
+}
 .mnav-links a:hover,.mnav-links a:active{color:var(--ink);background:var(--accent-soft)}
+.mnav-links a:hover .ic,.mnav-links a:active .ic{color:var(--accent);border-color:rgba(244,80,30,.35);background:var(--paper)}
 .mnav-links a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 body.mnav-open .mnav-links a{opacity:1;transform:none}
 body.mnav-open .mnav-links a:nth-child(2){transition-delay:.04s}
@@ -1874,6 +1988,25 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 }
 @media (max-width:980px){
   .mnav-toggle{display:grid!important}
+}
+
+/* ============================================================
+   BARRA DE NAVEGACION EN MOVIL: MAS FINA
+   La cabecera medía 61px + 28 del banner = 89px comidos antes de
+   empezar la pagina. El logo iba al mismo tamaño que en escritorio.
+   ============================================================ */
+@media (max-width:640px){
+  nav > div{padding:6px 14px!important}
+  nav > div > a:first-child svg{width:24px!important;height:24px!important}
+  nav > div > a:first-child span:not([style*="8.5px"]){font-size:17.5px!important}
+  /* El sello "OS" es ruido a este tamaño: la marca ya se lee. */
+  nav > div > a:first-child span[style*="8.5px"]{display:none!important}
+  nav [data-navcta]{gap:7px!important}
+  /* :not(.mnav-theme) es obligatorio: el boton de tema DEL PANEL comparte la
+     clase .theme-toggle-btn pero va a ancho completo con su texto al lado.
+     Sin la exclusion se encogia a 40x40 y perdia la etiqueta. */
+  .theme-toggle-btn:not(.mnav-theme){width:40px!important;height:40px!important;border-radius:12px!important}
+  .mnav-toggle{width:40px!important;height:40px!important}
 }
 </style>
 </head>
@@ -1958,7 +2091,12 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 <span>Empezar gratis</span>
 </a>
 <button type="button" class="mnav-toggle" id="mnavToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mnavPanel">
-<span></span>
+<svg class="mnav-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+<line class="bl bl-1" x1="4" y1="8" x2="20" y2="8"/>
+<line class="bl bl-2" x1="4" y1="12" x2="20" y2="12"/>
+<line class="bl bl-3" x1="4" y1="16" x2="20" y2="16"/>
+</svg>
+<span class="mnav-punto" id="mnavPunto" hidden></span>
 </button>
 </div>
 </div>
@@ -1966,6 +2104,28 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 
 <div class="mnav-scrim" id="mnavScrim" onclick="cerrarMenuMovil()"></div>
 <div class="mnav-panel" id="mnavPanel" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+<div class="mnav-head">
+<a href="/index.html" class="mnav-marca" onclick="cerrarMenuMovil()">
+<svg viewBox="0 0 40 40" aria-hidden="true">
+<path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradNav)"/>
+<path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity="0.95"/>
+</svg>
+<span>Mecha<i>.</i></span>
+</a>
+<button type="button" class="mnav-cerrar" id="mnavCerrar" aria-label="Cerrar menú" onclick="cerrarMenuMovil()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+</button>
+</div>
+<a class="mnav-cuenta" id="mnavCuenta" href="/acceso.html">
+<span class="mnav-cuenta-ic" id="mnavCuentaIc">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+</span>
+<span class="mnav-cuenta-txt">
+<b id="mnavCuentaTit">Sin sesión iniciada</b>
+<small id="mnavCuentaSub">Entrar o empezar los 30 días</small>
+</span>
+<span class="mnav-cuenta-flecha" aria-hidden="true">→</span>
+</a>
 <nav class="mnav-links" aria-label="Secciones">
 <a href="#gestion" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-cal" /></svg>Gestión a tu medida</a>
 <a href="#equipo" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-users" /></svg>Equipo & Fichajes</a>
@@ -1980,8 +2140,7 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 Cambiar tema claro / oscuro
 </button>
-<a href="/acceso.html" class="mnav-login" onclick="cerrarMenuMovil()">Iniciar sesión</a>
-<a href="#contacto" class="mnav-cta" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
+<a href="#contacto" class="mnav-cta" id="mnavCta" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
 </div>
 </div>
 
@@ -2006,7 +2165,7 @@ Cambiar tema claro / oscuro
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 24px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">▶ Ver demo completa</a>
 </div>
 <div style="margin-bottom:18px;font-size:13.5px;color:var(--ink-2);line-height:1.5">
-<svg class="ic ic-lg" aria-hidden="true"><use href="#i-chat" /></svg> ¿Prefieres que te lo montemos? <a href="https://wa.me/34690792975?text=Hola,%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" style="font-weight:700;color:var(--accent);text-decoration:underline">Escríbenos por WhatsApp</a>.
+<svg class="ic ic-lg" aria-hidden="true"><use href="#i-chat" /></svg> <span class="solo-ancho">¿Prefieres que te lo montemos? </span><a href="https://wa.me/34690792975?text=Hola,%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" style="font-weight:700;color:var(--accent);text-decoration:underline">Te lo montamos por WhatsApp</a>
 </div>
 <div class="hero-ticks" style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)">
 <span style="font-weight:700;color:var(--ink)">✓ 30 días gratis</span><span>✓ Sin tarjeta</span><span>✓ 0% comisiones</span><span>✓ Migración gratis</span>
@@ -2410,7 +2569,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px">
 <a href="#contacto" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:700;font-size:16px;animation:mPulse 3s ease-in-out infinite"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
-<a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver los 3 recorridos guiados (55 pasos)</a>
+<a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver demo</a>
 </div>
 <p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">¿Prefieres que te lo enseñemos en 10 minutos con tus precios? <a href="#contacto">Reserva una demo guiada</a>.</p>
 </div>
@@ -2791,32 +2950,50 @@ Nombre y teléfono. Te llamamos hoy.
 <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:#53bdeb"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.78c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63-.73-1.63-1.63-1.63Z"/></svg>
 </div>
 </a>
-<!-- Jose Suárez — sin enlace: no tenemos su perfil de LinkedIn todavia -->
-<div style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:#ffffff">
+<!-- Jose Suárez -->
+<a href="https://www.linkedin.com/in/jose-suarez-ia" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:#ffffff;text-decoration:none;transition:all .25s ease" onmouseover="this.style.background='rgba(15,155,108,.14)';this.style.borderColor='rgba(15,155,108,.5)';this.style.transform='translateY(-2.5px)'" onmouseout="this.style.background='rgba(255,255,255,.035)';this.style.borderColor='rgba(255,255,255,.09)';this.style.transform='none'">
 <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#0f9b6c,#25d366);display:grid;place-items:center;font-weight:800;font-size:16px;color:#fff;flex:none;box-shadow:0 8px 18px -4px rgba(15,155,108,.5)">JS</div>
 <div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px">
 <b style="font-size:15px;color:#ffffff;font-family:var(--display)">Jose Suárez</b>
+<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#0a66c2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+</div>
 <div style="font-size:12.5px;color:rgba(255,255,255,.75);margin-top:2px">Co-Fundador · Experto del sector</div>
 </div>
+<div style="width:34px;height:34px;border-radius:50%;background:rgba(10,102,194,.18);display:grid;place-items:center;flex:none;border:1px solid rgba(10,102,194,.4)">
+<svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:#53bdeb"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.78c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63-.73-1.63-1.63-1.63Z"/></svg>
 </div>
+</a>
 </div>
 </div>
 
-<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;font-size:13.5px">
-<span style="font-family:var(--display);font-weight:800;font-size:20px;color:#ffffff">Mecha<span style="color:var(--accent)">.</span></span>
-<div class="foot-links" style="display:flex;flex-wrap:wrap;gap:18px">
-<a href="/acceso.html?next=demo#signup" data-demo-link style="color:rgba(255,255,255,.85)">Ver demo completa</a>
-<a href="/especificaciones.html" style="color:rgba(255,255,255,.85)">Especificaciones</a>
-<a href="/calculadora-comisiones.html" style="color:rgba(255,255,255,.85)">Calculadora comisiones</a>
-<a href="/salones.html" style="color:rgba(255,255,255,.85)">Directorio de salones</a>
-<a href="https://wa.me/34690792975" target="_blank" rel="noopener" aria-label="WhatsApp" style="color:rgba(255,255,255,.85)">WhatsApp (+34 690 79 29 75)</a>
-<a href="tel:+34690792975" aria-label="Teléfono" style="color:rgba(255,255,255,.85)">Tel: +34 690 79 29 75</a>
-<a href="mailto:contacto@mechaa.es" style="color:rgba(255,255,255,.85)">contacto@mechaa.es</a>
-<a href="/terminos.html#planes" style="color:rgba(255,255,255,.85)">Condiciones de prueba</a>
-<a href="/privacidad.html" style="color:rgba(255,255,255,.85)">Privacidad</a>
-<a href="/terminos.html" style="color:rgba(255,255,255,.85)">Términos</a>
+<!-- Enlaces en columnas con encabezado. Antes eran 10 enlaces sueltos en un
+     flex-wrap con gap 18: en 375px caian en cinco filas irregulares de uno o
+     dos, sin jerarquia y con 272px de alto. -->
+<div class="foot-cols">
+<div class="foot-col">
+<h4>Producto</h4>
+<a href="/acceso.html?next=demo#signup" data-demo-link>Ver demo</a>
+<a href="/especificaciones.html">Especificaciones</a>
+<a href="/calculadora-comisiones.html">Calculadora de comisiones</a>
+<a href="/salones.html">Directorio de salones</a>
 </div>
-<span style="color:rgba(255,255,255,.65)">© 2026 Mecha OS · Novanoid AI</span>
+<div class="foot-col">
+<h4>Contacto</h4>
+<a href="https://wa.me/34690792975" target="_blank" rel="noopener">WhatsApp</a>
+<a href="tel:+34690792975">+34 690 79 29 75</a>
+<a href="mailto:contacto@mechaa.es">contacto@mechaa.es</a>
+</div>
+<div class="foot-col">
+<h4>Legal</h4>
+<a href="/terminos.html#planes">Condiciones de prueba</a>
+<a href="/privacidad.html">Privacidad</a>
+<a href="/terminos.html">Términos</a>
+</div>
+</div>
+<div class="foot-base">
+<span class="foot-marca">Mecha<span style="color:var(--accent)">.</span></span>
+<span>© 2026 Mecha OS · Novanoid AI</span>
 </div>
 </div>
 </footer>
@@ -2921,10 +3098,18 @@ Nombre y teléfono. Te llamamos hoy.
 <script>
 function updateThemeIcons(){
   var isDark = document.body.getAttribute('data-theme') === 'dark' || document.body.dataset.theme === 'dark';
+  /* Se sustituye SOLO el <svg>, no el innerHTML entero. Con innerHTML, el
+     boton de tema del panel movil perdia su etiqueta "Cambiar tema claro /
+     oscuro" en cada carga y se quedaba en un cuadradito con un sol y sin
+     explicacion: comparte la clase .theme-toggle-btn con los iconos sueltos
+     de la nav, pero el suyo lleva texto al lado. */
+  var icono = isDark
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="#ffcf4a" stroke-width="2" style="width:17px;height:17px"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
   document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
-    btn.innerHTML = isDark
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="#ffcf4a" stroke-width="2" style="width:17px;height:17px"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    var svg = btn.querySelector('svg');
+    if(svg) svg.outerHTML = icono;
+    else btn.insertAdjacentHTML('afterbegin', icono);
     btn.title = isDark ? 'Modo Oscuro activo (clic para modo Claro)' : 'Modo Claro activo (clic para modo Oscuro)';
   });
 }
@@ -3567,6 +3752,42 @@ if (document.readyState === "loading") {
     var heroCta = document.getElementById('heroCta');
     var hasSession = !!(session && session.user);
 
+    /* MOVIL: #navLogin y #navDemo van display:none por debajo de 980px, asi
+       que hasta ahora el movil no tenia NINGUNA forma de saber si habia
+       sesion: el panel seguia diciendo "Iniciar sesion" y al pulsarlo
+       /acceso.html entraba directo con las cookies, sin preguntar nada.
+       El bloque de cuenta del panel y el punto de la hamburguesa lo dicen,
+       y el enlace abre el selector en vez de saltar a ciegas. */
+    var punto = document.getElementById('mnavPunto');
+    var cuenta = document.getElementById('mnavCuenta');
+    var cuentaTit = document.getElementById('mnavCuentaTit');
+    var cuentaSub = document.getElementById('mnavCuentaSub');
+    if(punto) punto.hidden = !hasSession;
+    if(cuenta && cuentaTit && cuentaSub){
+      cuenta.classList.toggle('dentro', hasSession);
+      if(hasSession){
+        cuentaTit.textContent = 'Sesión iniciada';
+        cuentaSub.textContent = session.user.email || 'Entrar al software';
+        cuenta.href = '/app';
+        cuenta.onclick = function(e){
+          e.preventDefault();
+          cerrarMenuMovil();
+          if(window.abrirSelectorAcceso) window.abrirSelectorAcceso();
+          else if(api.goToApp) api.goToApp();
+        };
+      } else {
+        cuentaTit.textContent = 'Sin sesión iniciada';
+        cuentaSub.textContent = 'Entrar o empezar los 30 días';
+        cuenta.href = '/acceso.html';
+        cuenta.onclick = function(e){
+          e.preventDefault();
+          cerrarMenuMovil();
+          if(window.abrirOpcionesAcceso) window.abrirOpcionesAcceso();
+          else location.href = '/acceso.html';
+        };
+      }
+    }
+
     // Actualizar todos los enlaces de demo:
     // Si hay sesión activa van directo a /demo.html.
     // Si no hay sesión van a /acceso.html?next=demo#signup.
@@ -3823,24 +4044,11 @@ if (document.readyState === "loading") {
 })();
 </script>
 
-<!-- ═══ BARRA MÓVIL DE CONVERSIÓN (solo <768px via CSS) ═══ -->
-<div class="mob-conv-bar" aria-label="Contacto rápido">
-  <a href="tel:+34690792975" class="mob-conv-call" aria-label="Llamar al +34 690 79 29 75">📞 Llamar</a>
-  <a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20probar%20Mecha%201%20mes%20gratis" target="_blank" rel="noopener" class="mob-conv-wa" aria-label="WhatsApp para activar mes gratis">💬 WhatsApp 1 Mes Gratis →</a>
-</div>
-
-<script>
-// ═══ BARRA MÓVIL — ocultar cuando #contacto es visible ═══
-(function(){
-  var bar = document.querySelector('.mob-conv-bar');
-  var sec = document.getElementById('contacto');
-  if(!bar || !sec || !('IntersectionObserver' in window)) return;
-  var io = new IntersectionObserver(function(entries){
-    bar.style.transform = entries[0].isIntersecting ? 'translateY(100%)' : 'translateY(0)';
-  }, { threshold: 0.15 });
-  io.observe(sec);
-  bar.style.transition = 'transform .3s ease';
-})();
-</script>
+<!-- Aqui vivia .mob-conv-bar, una segunda barra de contacto para movil. Se
+     retira: NUNCA tuvo CSS (el comentario decia "solo <768px via CSS" pero esa
+     regla no existe en el archivo), asi que se renderizaba como dos enlaces de
+     texto plano con emojis al final de la pagina, en todas las anchuras. Y
+     duplicaba el sticky CTA de abajo, que si funciona. Su telefono y su
+     WhatsApp siguen en el hero, en #contacto y en el pie. -->
 </body>
 </html>
