@@ -867,6 +867,9 @@ function CajaScreen() {
                   onClick={async () => {
                     setShowVentaProductos(true);
                   }}
+                  // El recorrido guiado pulsa este boton para poder enseñar el
+                  // panel de venta de producto, que solo existe abierto.
+                  data-demo-abrir="caja-venta"
                   className="ca-btn"
                   style={{
                     padding: "10px 18px",
@@ -887,6 +890,7 @@ function CajaScreen() {
                 </button>
                 <button
                   onClick={() => setShowWalkin(true)}
+                  data-demo-abrir="caja-cobrar"
                   className="ca-btn"
                   style={{
                     padding: "10px 18px",
@@ -2268,6 +2272,7 @@ function CajaScreen() {
           <div
             onClick={(e) => e.stopPropagation()}
             className="ca-modal"
+            data-demo="caja-venta"
             // minWidth 0: el overlay es un grid y sus hijos tienen minimo
             // automatico = min-content. Con una fila de carrito larga (nombre +
             // −/+ + importe + aspa) el modal se estiraba a ~520 px dentro de una

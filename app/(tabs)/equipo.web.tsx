@@ -1000,13 +1000,14 @@ export default function EquipoWeb() {
         )}
 
         {/* Detalle del miembro a pantalla completa.
-            Lleva DOS marcas de demo: `equipo-fichas` (para que el paso general de
-            "tu equipo" siga teniendo foco aunque haya alguien abierto) y
-            `equipo-ficha`, que es el paso propio de la ficha del profesional —
-            el recorrido se quedaba en la rejilla de tarjetas y nunca ensenaba lo
-            que hay dentro, que es lo que de verdad se contrata. */}
+            Marca `equipo-fichas` para que el paso general de "tu equipo" siga
+            teniendo foco aunque haya alguien abierto. El paso propio de la ficha
+            (`equipo-ficha`) NO se enfoca aqui: enfocar el panel entero alineaba
+            por arriba y solo se veia la cabecera con el nombre y la foto, que no
+            explica nada. Va sobre la rejilla de horario / control horario /
+            bloqueos, que es lo que de verdad se contrata (ver mas abajo). */}
         {vistaEquipo === 'fichas' && profSel && selected && (
-          <div data-demo="equipo-fichas" data-demo-alt="equipo-ficha" className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
+          <div data-demo="equipo-fichas" className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
             {/* Cabecera: volver · identidad · acciones */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
               <button
@@ -1068,8 +1069,11 @@ export default function EquipoWeb() {
               </div>
             </div>
 
-            {/* Layout 2 columnas */}
-            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
+            {/* Layout 2 columnas.
+                Es tambien la zona que enfoca el paso "la ficha del profesional"
+                del recorrido guiado (`equipo-ficha`): horario de trabajo, control
+                horario y bloqueos. */}
+            <div data-demo="equipo-ficha" className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
               {/* Columna izquierda: identidad · metricas · horario */}
               <div>
 

@@ -7933,11 +7933,14 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         boxSizing: "border-box",
         pointerEvents: "auto",
         zIndex: nested ? 15 : 10,
+        // La cita es UNA pieza continua, tambien cuando tiene reposo. Antes el
+        // tramo de reposo se pintaba `transparent`: eso abria un agujero en
+        // mitad de la tarjeta y la misma cita se leia como dos o tres citas
+        // distintas apiladas. El reposo ahora se marca DENTRO (banda rayada,
+        // ver mas abajo), que es lo que de verdad es: una fase de esta cita.
         background: cancelada
           ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
-          : hasEspera && !nested
-            ? `linear-gradient(to bottom, ${actualCitaBg} 0px, ${actualCitaBg} ${activaPx}px, transparent ${activaPx}px, transparent ${activaPx + esperaPx}px, ${actualCitaBg} ${activaPx + esperaPx}px, ${actualCitaBg} 100%)`
-            : actualCitaBg,
+          : actualCitaBg,
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: cancelada ? "#55555540" : actualCitaBorder,
@@ -7999,6 +8002,35 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
           e.currentTarget.style.borderTop = "2px solid #e0340e";
       }}
     >
+      {/* Banda de REPOSO: el tramo en que la clienta esta puesta pero el
+          profesional queda libre. Va dentro de la tarjeta (no es un agujero),
+          rayada y hundida, para que se lea "esta misma cita, en pausa" y a la
+          vez siga cantando que ahi cabe otra clienta. Las citas anidadas se
+          pintan encima (zIndex 15), asi que no las tapa. */}
+      {hasEspera && !nested && !cancelada && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: activaPx,
+            height: esperaPx,
+            // Negativo a proposito: por encima del fondo de la tarjeta pero por
+            // DEBAJO de su texto. La cita es su propio contexto de apilado
+            // (position:absolute + zIndex), asi que no se escapa hacia atras.
+            zIndex: -1,
+            pointerEvents: "none",
+            background:
+              "repeating-linear-gradient(-45deg, rgba(40,30,24,0.07) 0px, rgba(40,30,24,0.07) 5px, rgba(255,255,255,0.16) 5px, rgba(255,255,255,0.16) 10px)",
+            borderTop: `1px dashed ${actualCitaBorder}`,
+            borderBottom:
+              activaPx + esperaPx < height - 1
+                ? `1px dashed ${actualCitaBorder}`
+                : undefined,
+          }}
+        />
+      )}
       {nested && cita._desbordaMin > 0 && !cancelada && (
         <span
           title={`Esta cita se sale ${cita._desbordaMin} min del hueco de reposo`}

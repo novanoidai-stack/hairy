@@ -511,6 +511,10 @@ export function CobroSheet(props: CobroSheetProps) {
   const sheetBody = (
       <div
         onClick={(e) => e.stopPropagation()}
+        // Zona del recorrido guiado: es la hoja de cobro (metodo, propina,
+        // lineas y señal descontada). Se enseña abriendola en modo 'walkin',
+        // que es el unico que se abre con un solo boton.
+        data-demo="caja-cobrar"
         style={{ background: inline ? 'transparent' : T.bgPanel, border: inline ? 'none' : `1px solid ${T.borderHi}`, borderRadius: inline ? 0 : 16, padding: inline ? 0 : 22, width: '100%', maxWidth: inline ? '100%' : 420, maxHeight: inline ? 'none' : '90vh', overflowY: inline ? 'visible' : 'auto', boxShadow: inline ? 'none' : '0 24px 70px rgba(40,30,24,0.35)' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
