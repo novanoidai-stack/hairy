@@ -914,7 +914,70 @@ nav{
 .ic-lg{width:1.35em;height:1.35em}
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
 .chip-ok{padding:4px 10px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-weight:600;font-size:12px;display:inline-block}
-.conn{position:relative;height:64px;display:grid;place-items:center}
+/* ============================================================
+   PUENTE NARRATIVO ENTRE SECCIONES
+   ------------------------------------------------------------
+   Sustituye a los antiguos .conn, que eran una barra de degradado
+   decorativa (y ademas invisible: el div interior nunca tuvo ancho
+   ni alto) escondida entera en movil. Aqui el hueco entre seccion
+   y seccion dice POR QUE se pasa de A a B, para que bajar siga
+   siendo una historia y no un catalogo de bloques sueltos.
+   Regla de oro: una frase, dos lineas como mucho. Si necesita mas,
+   es que pertenece al cuerpo de la seccion.
+   ============================================================ */
+/* ============================================================
+   ARRANQUE DE LA CRONOLOGIA (pie del hero)
+   ------------------------------------------------------------
+   El hero terminaba en seco y el visitante tenia que apostar a
+   ciegas a que abajo habia algo. Esta franja anuncia el primer
+   capitulo y cuantos quedan: es la entrada a los .puente.
+   ============================================================ */
+.hero-abajo{
+  position:relative;
+  display:flex;align-items:center;gap:14px;
+  max-width:1220px;margin:clamp(26px,3.2vw,44px) auto 0;
+  padding:15px 20px;border-radius:16px;
+  border:1px solid var(--line);
+  background:color-mix(in srgb, var(--card) 70%, transparent);
+  color:var(--ink);text-decoration:none;
+  transition:border-color .25s ease,transform .25s cubic-bezier(.16,1,.3,1),background .25s ease;
+}
+.hero-abajo:hover{border-color:rgba(244,80,30,.45);transform:translateY(-2px);background:var(--accent-soft)}
+.hero-abajo-num{
+  font-family:var(--display);font-weight:800;font-size:13px;
+  color:var(--accent);letter-spacing:.04em;
+  border:1px solid rgba(244,80,30,.3);background:var(--accent-soft);
+  padding:6px 10px;border-radius:9px;flex:none;
+}
+.hero-abajo-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.hero-abajo-txt b{font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.01em}
+.hero-abajo-txt small{font-size:12.5px;color:var(--ink-3)}
+.hero-abajo-flecha{
+  width:34px;height:34px;flex:none;border-radius:50%;
+  display:grid;place-items:center;color:var(--accent);
+  border:1px solid rgba(244,80,30,.28);
+  animation:mAbajo 2.4s ease-in-out infinite;
+}
+.hero-abajo-flecha svg{width:16px;height:16px}
+@keyframes mAbajo{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@media(prefers-reduced-motion:reduce){.hero-abajo-flecha{animation:none}}
+
+.puente{position:relative;display:grid;place-items:center;gap:9px;padding:30px 26px 26px;text-align:center}
+.puente-linea{
+  width:1.5px;height:26px;border-radius:2px;
+  background:linear-gradient(180deg,transparent,var(--accent));
+  transform:scaleY(0);transform-origin:top;
+  transition:transform .7s cubic-bezier(.22,.61,.36,1);
+}
+.puente.on .puente-linea{transform:scaleY(1)}
+.puente p{
+  margin:0;max-width:30ch;
+  font-family:var(--serif);font-style:italic;font-weight:400;
+  font-size:clamp(16px,1.7vw,21px);line-height:1.3;
+  letter-spacing:-.01em;color:var(--ink-2);text-wrap:balance;
+}
+.puente b{font-family:var(--display);font-style:normal;font-weight:700;color:var(--ink)}
+@media(prefers-reduced-motion:reduce){.puente-linea{transition:none}}
 /* ============================================================
    ESTILOS BASE DEL STICKY CTA ([data-sticky-cta])
    ============================================================ */
@@ -966,7 +1029,7 @@ body[data-theme="dark"] [data-sticky-cta]{
   .grid2{gap:24px!important}
   [data-navlinks]{display:none!important}
   #navLogin, #navDemo{display:none!important}
-  .conn{height:36px!important}
+  .puente{padding:24px 26px 22px!important}
 }
 
 /* Breakpoint ampliado para comparativa y formulario staff (tablets ≤860px) */
@@ -1293,9 +1356,24 @@ body[data-theme="dark"] [data-sticky-cta]{
     padding-top:var(--m-sec-y)!important;
     padding-bottom:calc(var(--m-sec-y) + 6px)!important;
   }
-  /* Los conectores decorativos sobraban: con el fondo alternando crema/papel
-     ya hay separacion visual y costaban 8 x 36px de scroll. */
-  .conn{display:none!important}
+  /* El puente narrativo SI se ve en movil (los .conn decorativos que habia
+     antes no: eran una barra sin texto y se escondian). Aqui es la unica
+     costura entre secciones, asi que se compacta pero no se quita. */
+  /* Coletillas que en 375px partirian la linea en dos. El movil se queda con
+     el gancho corto; el escritorio, con la frase entera. */
+  .solo-ancho{display:none!important}
+
+  /* Arranque de la cronologia compacto: en movil el <small> y el titulo no
+     caben en la misma columna al lado del numero y de la flecha. */
+  .hero-abajo{margin-top:20px!important;padding:12px 14px!important;gap:11px!important;border-radius:14px!important}
+  .hero-abajo-num{font-size:12px!important;padding:5px 8px!important}
+  .hero-abajo-txt b{font-size:13.5px!important;line-height:1.25!important}
+  .hero-abajo-txt small{font-size:11.5px!important;line-height:1.3!important}
+  .hero-abajo-flecha{width:30px!important;height:30px!important}
+
+  .puente{padding:18px 16px 16px!important;gap:7px!important}
+  .puente-linea{height:18px!important}
+  .puente p{font-size:15.5px!important;line-height:1.3!important;max-width:none}
 
   /* Bloque de titular: eyebrow + h2 + lead. Era ~26px de margen inferior y
      un lead de 17px/1.5 que en 443px se comia 9 lineas por seccion. */
@@ -1382,13 +1460,15 @@ body[data-theme="dark"] [data-sticky-cta]{
     align-items:center;
     min-height:44px;
   }
+  /* Los cuatro sellos son ahora cortos y simetricos: 2x2 limpio. Antes el
+     primero ocupaba la fila entera porque decia "30 dias gratis, con tu
+     propia cuenta" y no cabia en media. */
   .hero-ticks{
     display:grid!important;
     grid-template-columns:1fr 1fr!important;
     gap:5px 12px!important;
     font-size:12px!important;
   }
-  .hero-ticks > span:first-child{grid-column:1 / -1}
 
   /* 4 · #gestion: generico vs Mecha en carrusel; migracion en 3 columnas - */
   #gestion .reveal > div[style*="minmax(300px"]{
@@ -1420,6 +1500,11 @@ body[data-theme="dark"] [data-sticky-cta]{
     font-size:10.5px!important;
     line-height:1.35!important;
   }
+  /* En el carrusel la primera tarjeta es la unica que se ve sin deslizar. Ahi
+     va la de Mecha, no la del software generico: en movil el lector se comia
+     el "esto es lo malo" y tenia que deslizar para llegar al "esto es Mecha".
+     En escritorio se ven las dos a la vez y el orden no cambia. */
+  #gestion .m-carrusel > div:last-child{order:-1}
   /* Las dos tarjetas del carrusel generico-vs-Mecha */
   #gestion .m-carrusel > div > div > div[style*="flex-direction:column"]{
     gap:8px!important;
@@ -1504,7 +1589,12 @@ body[data-theme="dark"] [data-sticky-cta]{
 
   /* 9 · Pie de pagina --------------------------------------------------- */
   footer .founders-grid{grid-template-columns:1fr!important;gap:8px!important}
-  footer .founders-grid > a{padding:12px 14px!important}
+  footer .founders-grid > a, footer .founders-grid > div{padding:12px 14px!important}
+  /* El circulo de LinkedIn de la derecha es redundante en movil (la tarjeta
+     entera ya es el enlace) y robaba 48px justo donde el nombre los necesita:
+     "Alexandru Iscrulescu" se partia en dos lineas y las tarjetas quedaban a
+     alturas distintas al apilarse. */
+  footer .founders-grid > a > div:last-child{display:none!important}
   footer.sec-dark-footer{padding-top:28px!important}
   footer.sec-dark-footer > div > div:first-child{
     padding-bottom:20px!important;
@@ -1567,6 +1657,11 @@ body[data-theme="dark"] [data-sticky-cta]{
   }
   .cond-acc[open] > summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
   .cond-acc > div{padding-top:12px}
+  /* Las notas legales siguen en la pagina, pero plegadas: son 46 palabras de
+     letra pequeña cada una y en movil eran el bloque de texto mas largo de
+     toda la landing. El titulillo deja claro que estan ahi. */
+  .nota-legal > summary{font-size:11.5px;font-weight:600;color:var(--ink-3)}
+  .nota-legal > p{padding-top:0}
   @media(prefers-reduced-motion:reduce){.cond-acc > summary::after{transition:none}}
 }
 
@@ -1823,7 +1918,7 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 <!-- Barra de confianza B2B -->
 <div class="banner-top-free">
 <div class="banner-top-free-in" style="max-width:1220px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;flex-wrap:wrap">
-<span style="color:rgba(255,255,255,.95);font-weight:600;letter-spacing:.04em">⚡ 0% COMISIONES POR RESERVA · 1 MES DE PRUEBA COMPLETO SIN TARJETA NI PERMANENCIA</span>
+<span style="color:rgba(255,255,255,.92);font-weight:500;letter-spacing:.02em">30 días de prueba, sin tarjeta<span class="solo-ancho"> ni permanencia · 0% de comisiones por reserva</span></span>
 </div>
 </div>
 
@@ -1898,23 +1993,23 @@ Cambiar tema claro / oscuro
 <div data-spot style="position:absolute;width:600px;height:600px;left:-160px;top:-220px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(244,80,30,.20),transparent 66%);filter:blur(24px);animation:mDrift 28s ease-in-out infinite"></div>
 <div style="position:absolute;inset:0;pointer-events:none;opacity:.45;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%);-webkit-mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%)"></div>
 
-<div class="grid2" style="position:relative;max-width:1220px;margin:0 auto;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(30px,4.5vw,60px);align-items:center">
+<div class="grid2 hero-grid" style="position:relative;max-width:1220px;margin:0 auto;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:clamp(30px,4.5vw,56px);align-items:center">
 <div>
-<div style="display:inline-flex;align-items:center;gap:9px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.28);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;box-shadow:0 4px 14px rgba(244,80,30,.12)">
-<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>
-<svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>30 días gratis · sin tarjeta · sin permanencia
+<div class="hero-eyebrow" style="display:inline-flex;align-items:center;gap:9px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.22);padding:6px 14px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-bottom:20px">
+<span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>
+<span class="solo-ancho">Software español</span> para peluquerías y barberías
 </div>
-<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(34px,5.6vw,74px);line-height:.98;letter-spacing:-.038em;margin:0 0 20px;text-wrap:balance">La agenda que atiende tu WhatsApp, <br /><span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">llena los reposos del tinte</span> <br />y erradica los plantones.</h1>
-<p class="hero-sub" style="font-size:clamp(16px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:580px;margin:0 0 26px;text-wrap:pretty">El software de gestión con IA creado específicamente para peluquerías y barberías en España. <b style="color:var(--ink)">Cobra fianza previa</b> contra no-shows, cumple con <b style="color:var(--ink)">VeriFactu</b> y el <b style="color:var(--ink)">control horario legal</b>, y atiende citas 24/7 sin pagar suplementos por empleado.</p>
+<h1 style="font-family:var(--display);font-weight:700;font-size:clamp(33px,4vw,52px);line-height:1.02;letter-spacing:-.035em;margin:0 0 18px;text-wrap:balance">La agenda que atiende tu WhatsApp <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">y erradica los plantones.</span></h1>
+<p class="hero-sub" style="font-size:clamp(15.5px,1.35vw,19.5px);line-height:1.45;color:var(--ink-2);max-width:520px;margin:0 0 24px;text-wrap:pretty">Llena los <b style="color:var(--ink)">reposos del tinte</b>, cobra la <b style="color:var(--ink)">señal</b> por adelantado y cumple con <b style="color:var(--ink)">VeriFactu</b> y el fichaje legal. Sin coste por empleado.</p>
 <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px">
 <a href="/acceso.html" id="heroCta" class="btn-grad" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:13px;font-weight:700;font-size:15.5px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis <span>→</span></a>
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 24px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">▶ Ver demo completa</a>
 </div>
 <div style="margin-bottom:18px;font-size:13.5px;color:var(--ink-2);line-height:1.5">
-<svg class="ic ic-lg" aria-hidden="true"><use href="#i-chat" /></svg> ¿Prefieres que te lo dejemos montado? <a href="https://wa.me/34690792975?text=Hola,%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" style="font-weight:700;color:var(--accent);text-decoration:underline">Escríbenos por WhatsApp (+34 690 79 29 75)</a> o <a href="#contacto" style="font-weight:700;color:var(--ink);text-decoration:underline">contáctanos aquí</a> y migramos tus datos gratis.
+<svg class="ic ic-lg" aria-hidden="true"><use href="#i-chat" /></svg> ¿Prefieres que te lo montemos? <a href="https://wa.me/34690792975?text=Hola,%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" style="font-weight:700;color:var(--accent);text-decoration:underline">Escríbenos por WhatsApp</a>.
 </div>
 <div class="hero-ticks" style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)">
-<span style="font-weight:700;color:var(--ink)">✓ 1 mes gratis al registrarte o contactar</span><span>✓ Pruébalo con tu cuenta gratis</span><span>✓ Sin tarjeta de crédito</span><span>✓ 0% comisiones</span><span>✓ Migración de Booksy/Fresha gratis</span>
+<span style="font-weight:700;color:var(--ink)">✓ 30 días gratis</span><span>✓ Sin tarjeta</span><span>✓ 0% comisiones</span><span>✓ Migración gratis</span>
 </div>
 </div>
 
@@ -1980,15 +2075,28 @@ Cambiar tema claro / oscuro
 </div>
 </div>
 </div>
-<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-top:1px solid var(--line);background:linear-gradient(90deg,var(--accent-soft),var(--paper));font-size:12px;color:var(--ink-2);flex-wrap:wrap">
-<span><svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg> <b style="color:var(--ink)">1 mes gratis:</b> Te lo dejamos montado con tus servicios.</span>
-<a href="#contacto" style="font-weight:700;color:var(--accent);text-decoration:underline">Empezar 30 días gratis →</a>
+<div style="display:flex;align-items:center;gap:9px;padding:12px 18px;border-top:1px solid var(--line);background:linear-gradient(90deg,var(--accent-soft),var(--paper));font-size:12px;color:var(--ink-2)">
+<svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg> <span>Un día cualquiera en un salón con Mecha. <b style="color:var(--ink)">Te lo dejamos así montado.</b></span>
 </div>
 </div>
 </div>
 </div>
+
+<!-- Arranque de la cronologia: el pie del hero anuncia el primer capitulo
+     en vez de dejar al visitante decidiendo si merece la pena bajar. -->
+<a href="#comparativa" class="hero-abajo" aria-label="Empezar el recorrido: dónde se queda corto lo que usas">
+  <span class="hero-abajo-num">01</span>
+  <span class="hero-abajo-txt"><b>Empieza aquí el recorrido</b><small>Ocho pasos: de lo que usas hoy a tu salón en automático</small></span>
+  <span class="hero-abajo-flecha" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+  </span>
+</a>
 </section>
 
+
+<!-- Aqui NO va puente: el pie del hero (.hero-abajo) ya anuncia el primer
+     capitulo. Con los dos, el eyebrow de la seccion repetia la misma idea
+     tres veces seguidas. -->
 
 <!-- ═══════════ 5 · COMPARATIVA ═══════════ -->
 <section id="comparativa" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
@@ -1996,7 +2104,7 @@ Cambiar tema claro / oscuro
 <div class="reveal" style="max-width:760px;margin-bottom:clamp(24px,3vw,40px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">1</span>Dónde se queda corto lo que usas</span>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Una app de citas <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">no gestiona un salón</span></h2>
-<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Las apps tipo <b>Booksy</b> o <b>Fresha</b> se centran en la agenda. Facturar, fichar, comisionar o el stock lo sigues haciendo tú.</p>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty"><b>Booksy</b> o <b>Fresha</b> te llenan la agenda. Facturar, fichar, comisionar y el stock los sigues haciendo tú, a mano, cada noche.</p>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:22px;overflow:hidden;background:var(--card);box-shadow:var(--shadow)">
 <div data-cmprow class="cmp-head-desk" style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);background:var(--paper);border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">
@@ -2006,23 +2114,26 @@ Cambiar tema claro / oscuro
 </div>
 <div id="cmpBody"></div>
 <div style="padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--paper)">
-<div style="flex:1;min-width:250px;font-size:14.5px;color:var(--ink-2)"><b style="color:var(--ink)">Tráete tu agenda con 1 mes completamente gratis.</b> Te migramos clientes, historial y fórmulas en 10 minutos. 0% comisiones por reserva y sin permanencia.</div>
+<div style="flex:1;min-width:250px;font-size:14.5px;color:var(--ink-2)"><b style="color:var(--ink)">Tráete tu agenda: 30 días gratis.</b> Clientes, historial y fórmulas migrados en 10 minutos.</div>
 <a href="#contacto" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
 </div>
 </div>
+<details data-m-collapse class="cond-acc nota-legal" open>
+<summary>Cómo hemos hecho esta comparativa</summary>
 <p style="font-size:11.5px;color:var(--ink-3);margin:14px 0 0">Comparativa orientativa sobre categorías de producto, elaborada con las funciones y tarifas publicadas por cada proveedor a fecha de 2026; pueden variar. Booksy, Fresha, Treatwell y Square son marcas de sus respectivos propietarios, citadas con fines meramente identificativos; Mecha no está afiliada ni patrocinada por ellas.</p>
+</details>
 </div>
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--ok))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Y lo poco que sí hacen, lo hacen <b>a su manera. Nunca a la tuya.</b></p></div>
 
 <!-- ═══════════ 1 · LA ADAPTABILIDAD & GESTIÓN A TU MEDIDA ═══════════ -->
 <section id="gestion" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
 <div style="max-width:1120px;margin:0 auto">
 <div class="reveal" style="max-width:840px;margin-bottom:clamp(26px,3.5vw,44px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">2</span>Adaptabilidad total</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">El software más configurable del mercado. <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">Se amolda a ti, no tú al software.</span></h2>
-<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">La mayoría de plataformas como Booksy, Fresha o Treatwell son genéricas y te fuerzan a encajar en su molde rígido. Mecha tiene más profundidad técnica porque <b>tu salón tiene sus propias reglas</b>: tiempos técnicos por profesional, modos de acceso sin sobrecoste, fianzas selectivas y comisiones a medida.</p>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Tu salón tiene sus reglas. <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">El software se las aprende.</span></h2>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Los genéricos traen un molde: o encajas, o te apañas. Mecha se ajusta a <b>tus tiempos, tus accesos, tus señales y tus comisiones</b>.</p>
 </div>
 
 <!-- Espectro Visual de Grados de Configurabilidad en el Mercado -->
@@ -2035,28 +2146,28 @@ Cambiar tema claro / oscuro
 <span style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">Booksy · Fresha · Treatwell</span>
 <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(239,68,68,.12);color:#ef4444">Adaptabilidad rígida</span>
 </div>
-<h3 style="font-family:var(--display);font-size:17px;font-weight:800;color:var(--ink);margin:0 0 14px">Software genérico con plantilla fija</h3>
+<h3 style="font-family:var(--display);font-size:17px;font-weight:800;color:var(--ink);margin:0 0 14px">Plantilla fija para todos</h3>
 <div style="display:flex;flex-direction:column;gap:11px;font-size:13.5px;color:var(--ink-2)">
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:#ef4444;font-weight:800;line-height:1.2">✕</span>
-<div><b>Tiempos de agenda:</b> Fijos y uniformes. Si un estilista tarda más que otro, se generan retrasos o huecos muertos.</div>
+<div><b>Tiempos:</b> iguales para todo el mundo. El que va más lento arrastra el día entero.</div>
 </div>
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:#ef4444;font-weight:800;line-height:1.2">✕</span>
-<div><b>Acceso del equipo:</b> O pagas suplemento mensual por empleado o comparten contraseña sin seguridad en caja.</div>
+<div><b>Accesos:</b> pagas suplemento por empleado, o todos comparten la misma contraseña.</div>
 </div>
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:#ef4444;font-weight:800;line-height:1.2">✕</span>
-<div><b>Reposos de tinte:</b> Sillón bloqueado 100% del tiempo sin permitir citas express intercaladas.</div>
+<div><b>Reposos:</b> el sillón se queda bloqueado los 40 minutos del tinte.</div>
 </div>
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:#ef4444;font-weight:800;line-height:1.2">✕</span>
-<div><b>Fianzas y señales:</b> O le cobras a todos los clientes o a ninguno, perdiendo citas de clientes de confianza.</div>
+<div><b>Señales:</b> o se la cobras a todas, o a ninguna.</div>
 </div>
 </div>
 </div>
 <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)">
-Configuración rápida pero inflexible: el salón se adapta al programa.
+Rápido de montar. Y luego el salón se adapta al programa.
 </div>
 </div>
 
@@ -2067,28 +2178,28 @@ Configuración rápida pero inflexible: el salón se adapta al programa.
 <span style="font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)">Mecha OS Especializado</span>
 <span style="font-size:11px;font-weight:800;padding:3px 9px;border-radius:6px;background:var(--ok-soft);color:var(--ok)">100% Adaptable al Salón</span>
 </div>
-<h3 style="font-family:var(--display);font-size:17px;font-weight:800;color:var(--ink);margin:0 0 14px">Ajustado al milímetro a tu forma de trabajar</h3>
+<h3 style="font-family:var(--display);font-size:17px;font-weight:800;color:var(--ink);margin:0 0 14px">Ajustado a tu forma de trabajar</h3>
 <div style="display:flex;flex-direction:column;gap:11px;font-size:13.5px;color:var(--ink)">
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:var(--ok);font-weight:800;line-height:1.2">✓</span>
-<div><b style="color:var(--ink)">Tiempos técnicos dinámicos:</b> Asigna la duración exacta por barbero y servicio sin perder ni un minuto de facturación.</div>
+<div><b style="color:var(--ink)">Tiempos por persona:</b> lo que tarda de verdad cada profesional en cada servicio.</div>
 </div>
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:var(--ok);font-weight:800;line-height:1.2">✓</span>
-<div><b style="color:var(--ink)">Acceso libre y protegido:</b> Cada empleado con su app móvil o tablet común con PIN personal de 4 dígitos sin coste extra.</div>
+<div><b style="color:var(--ink)">Accesos ilimitados:</b> cada uno con su cuenta, o la tablet común con su PIN. 0 € por cabeza.</div>
 </div>
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:var(--ok);font-weight:800;line-height:1.2">✓</span>
-<div><b style="color:var(--ink)">Aprovechamiento de reposos:</b> Vende los 35-45 min de espera del tinte con cortes rápidos automáticos (+1.400 €/mes).</div>
+<div><b style="color:var(--ink)">Reposos vendibles:</b> esos 40 minutos se llenan solos con un corte rápido.</div>
 </div>
 <div style="display:flex;align-items:flex-start;gap:9px">
 <span style="color:var(--ok);font-weight:800;line-height:1.2">✓</span>
-<div><b style="color:var(--ink)">Fianzas inteligentes:</b> Pide señal solo en servicios de más de 60 min o clientes no presentados previamente.</div>
+<div><b style="color:var(--ink)">Señales con criterio:</b> solo en servicios largos o en quien ya te dejó plantada.</div>
 </div>
 </div>
 </div>
 <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(244,80,30,.2);font-size:12px;color:var(--ink);font-weight:600">
-<svg class="ic" aria-hidden="true"><use href="#i-rocket" /></svg> Máxima potencia operativa amoldada a la realidad de tu negocio.
+<svg class="ic" aria-hidden="true"><use href="#i-rocket" /></svg> Toda la potencia, con tus reglas.
 </div>
 </div>
 
@@ -2102,10 +2213,10 @@ Configuración rápida pero inflexible: el salón se adapta al programa.
 <svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg> Traspaso asistido, gratis y sin riesgos
 </div>
 <h3 style="font-family:var(--display);font-size:21px;font-weight:800;color:var(--ink);margin:0 0 6px;line-height:1.25">
-Cambiar de software no te cuesta un día de trabajo: lo hacemos nosotros.
+Cambiar de programa no te va a costar un día de trabajo. Lo hacemos nosotros.
 </h3>
 <p style="margin:0;max-width:640px;font-size:14px;color:var(--ink-2);line-height:1.6">
-Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta de servicios, precios, tiempos y horarios</b> —vengan de otra plataforma o de tu agenda de papel— sin perder ni un dato.
+<b>Clientes, citas, servicios, precios y horarios.</b> Vengan de otra plataforma o de tu agenda de papel.
 </p>
 </div>
 <a href="#contacto" class="btn-grad" style="padding:13px 24px;border-radius:12px;font-weight:700;font-size:14.5px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">Pedir migración gratis →</a>
@@ -2113,15 +2224,15 @@ Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta d
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border-top:1px solid var(--line)">
 <div style="padding:16px 22px;border-right:1px solid var(--line)">
 <div style="display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink)"><span style="width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px">1</span>Tú nos pasas los datos</div>
-<p style="margin:8px 0 0 34px;font-size:13px;color:var(--ink-2);line-height:1.55">Un export de tu plataforma actual o una foto de tu agenda de papel. Suficiente.</p>
+<p style="margin:8px 0 0 34px;font-size:13px;color:var(--ink-2);line-height:1.55">Un export, o una foto de tu agenda de papel. Suficiente.</p>
 </div>
 <div style="padding:16px 22px;border-right:1px solid var(--line)">
 <div style="display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink)"><span style="width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px">2</span>Lo migramos nosotros</div>
-<p style="margin:8px 0 0 34px;font-size:13px;color:var(--ink-2);line-height:1.55">El equipo Mecha carga todo en tu cuenta y lo revisa antes de enseñártelo.</p>
+<p style="margin:8px 0 0 34px;font-size:13px;color:var(--ink-2);line-height:1.55">Lo cargamos en tu cuenta y lo revisamos antes de enseñártelo.</p>
 </div>
 <div style="padding:16px 22px">
 <div style="display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink)"><span style="width:26px;height:26px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px">3</span>Listo en 24 h</div>
-<p style="margin:8px 0 0 34px;font-size:13px;color:var(--ink-2);line-height:1.55">Abres Mecha con todo montado. Sin tarjeta, sin permanencia y con tu historial intacto.</p>
+<p style="margin:8px 0 0 34px;font-size:13px;color:var(--ink-2);line-height:1.55">Abres Mecha con todo dentro y tu historial intacto.</p>
 </div>
 </div>
 </div>
@@ -2129,7 +2240,7 @@ Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta d
 </div>
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--lav))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Un salón que va fino no solo cunde más: <b>también aguanta al equipo.</b></p></div>
 
 <!-- ═══════════ 2 · EL EQUIPO ═══════════ -->
 <section id="equipo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);overflow:hidden;background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
@@ -2138,25 +2249,25 @@ Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta d
 <div class="reveal" style="max-width:780px;margin-bottom:clamp(26px,3.5vw,44px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--lav);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">3</span>El equipo</span>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">El software que hace que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">la gente se quede</span></h2>
-<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Lo difícil no es llenar la agenda: es tener equipo. Aquí cada profesional ve sus horas, sus comisiones y sus objetivos sin preguntarte.</p>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Lo difícil no es llenar la agenda: es tener con quién. Aquí cada uno ve <b>sus horas, su comisión y su objetivo</b> sin preguntarte.</p>
 </div>
 <div class="grid2" style="grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(22px,3vw,40px);align-items:center">
 <div class="equipo-cards" style="display:flex;flex-direction:column;gap:12px">
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
-<b style="font-family:var(--display);font-size:17px">Fichaje y jornada legal, dentro</b>
-<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Entrada, descanso y salida en Mecha. Registro del art. 34.9 ET en PDF, sin app aparte.</p>
+<b style="font-family:var(--display);font-size:17px">Fichaje legal, dentro</b>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Entrada, descanso y salida. Registro del art. 34.9 ET en PDF, sin otra app.</p>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
-<b style="font-family:var(--display);font-size:17px">Comisiones que se calculan solas</b>
-<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Sobre lo que cada uno facturó de verdad. Se acabó el Excel del día 30.</p>
+<b style="font-family:var(--display);font-size:17px">Comisiones solas</b>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Sobre lo que facturó cada uno. Se acabó el Excel del día 30.</p>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
 <b style="font-family:var(--display);font-size:17px">Cada uno ve lo justo</b>
-<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Tú ves el dinero; el equipo ve lo suyo. Dar de alta a alguien: dos minutos y 0 € más.</p>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Tú ves la caja; cada uno ve lo suyo. Dar de alta: 2 minutos y 0 €.</p>
 </div>
 <div class="reveal" style="border:1px solid rgba(124,108,240,.45);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--lav-soft),var(--card) 65%)">
 <b style="font-family:var(--display);font-size:17px">Un salón ordenado retiene</b>
-<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">La gente se va de los salones caóticos, no de los que pagan bien y a tiempo.</p>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Nadie se va de un sitio donde cobra bien y a tiempo.</p>
 </div>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:22px;background:var(--card);box-shadow:var(--shadow);overflow:hidden">
@@ -2179,19 +2290,19 @@ Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta d
 <div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Propinas del mes</span><b>96,00 €</b></div>
 <div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Clientas que repiten con ella</span><b>78%</b></div>
 </div>
-<div style="padding:12px 14px;border-radius:12px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:12.5px;color:var(--ink-2)">Su registro de jornada del mes está firmado y listo para la gestoría. <b style="color:var(--ink)">Exportar PDF</b></div>
+<div style="padding:12px 14px;border-radius:12px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:12.5px;color:var(--ink-2)">Su jornada del mes, firmada y lista para la gestoría. <b style="color:var(--ink)">Exportar PDF</b></div>
 </div>
 </div>
 </div>
 <div class="reveal" style="margin-top:20px;text-align:center;padding:14px 20px;border-radius:16px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:13.5px;color:var(--ink-2)">
-<svg class="ic" aria-hidden="true"><use href="#i-users" /></svg> <b>Profesionales ilimitados sin coste extra por silla</b> · Pruébalo con todo tu equipo durante <b style="color:var(--ink)">1 mes completamente gratis</b>.
+<svg class="ic" aria-hidden="true"><use href="#i-users" /></svg> <b>Profesionales ilimitados, 0 € por silla.</b> Pruébalo con todo tu equipo <b style="color:var(--ink)">30 días gratis</b>.
 </div>
 <div class="reveal" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-radius:18px;background:linear-gradient(135deg,var(--lav-soft),var(--card) 60%);border:1px solid rgba(124,108,240,.35);flex-wrap:wrap;box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:240px">
 <span style="width:42px;height:42px;border-radius:12px;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:20px;flex-shrink:0;box-shadow:0 6px 14px rgba(124,108,240,.35)"><svg class="ic" aria-hidden="true"><use href="#i-calc" /></svg></span>
 <div>
-<b style="font-size:15.5px;color:var(--ink);font-family:var(--display)">Calculadora de comisiones para barberías y peluquerías</b>
-<div style="font-size:13px;color:var(--ink-2);margin-top:2px">Calcula base sin IVA, cuota patronal 2026, aviso SMI y coste real de empresa por barbero/estilista.</div>
+<b style="font-size:15.5px;color:var(--ink);font-family:var(--display)">Calculadora de comisiones para salones</b>
+<div style="font-size:13px;color:var(--ink-2);margin-top:2px">Base sin IVA, cuota patronal 2026, aviso de SMI y coste real por profesional.</div>
 </div>
 </div>
 <a href="/calculadora-comisiones.html" style="display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:700;font-size:13.5px;text-decoration:none;transition:background .2s ease" onmouseover="this.style.background='var(--lav)'" onmouseout="this.style.background='var(--ink)'">Abrir calculadora gratis →</a>
@@ -2199,7 +2310,7 @@ Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta d
 </div>
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--lav),var(--accent))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Salón ordenado, equipo tranquilo. Ya solo queda <b>el teléfono, que no para.</b></p></div>
 
 <!-- ═══════════ 7 · IA ADDON (móvil WhatsApp realista) ═══════════ -->
 <section id="ia" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
@@ -2207,7 +2318,7 @@ Durante tu <b>mes gratis (0 €)</b> migramos por ti <b>clientes, citas, carta d
 <div class="reveal" style="max-width:760px;margin-bottom:clamp(22px,3vw,36px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ok);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">+</span>Addon opcional</span>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,44px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Y si quieres, que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">tampoco contestes el teléfono</span></h2>
-<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0">El software va solo sin esto. Si lo activas, la IA atiende WhatsApp y llamadas: da cita, cobra la señal y crea la ficha.</p>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0">El software va solo sin esto. Actívalo y la IA coge WhatsApp y llamadas: <b>da cita, cobra la señal y abre la ficha</b>.</p>
 </div>
 <div class="reveal grid2" style="grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,3vw,36px);align-items:center">
 <div class="phone-wrap" style="position:relative;width:100%;max-width:342px;margin:0 auto;border-radius:44px;padding:11px;background:linear-gradient(160deg,#2b2723,#100e0c);box-shadow:0 40px 80px -34px rgba(21,16,11,.6),0 0 0 1px rgba(255,255,255,.06) inset">
@@ -2258,11 +2369,11 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <div style="display:flex;flex-direction:column;gap:12px">
 <div style="border:1px solid rgba(15,155,108,.35);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><picture><source srcset="assets/v4/chispa-avatar-96.webp" type="image/webp" /><img src="assets/v4/chispa-avatar-96.png" alt="" width="34" height="34" loading="lazy" decoding="async" style="width:34px;height:34px;border-radius:10px;object-fit:cover" /></picture><b style="font-family:var(--display);font-size:17px">IA por WhatsApp</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:5px 10px;border-radius:8px">19 €/mes</span></div>
-<p style="margin:0;font-size:14px;color:var(--ink-2)">Da cita, mueve citas, responde precios y horarios, pide la señal y crea la ficha. Nunca ofrece un hueco que no existe: lee tu agenda real. Pruébala aquí al lado.</p>
+<p style="margin:0;font-size:14px;color:var(--ink-2)">Da y mueve citas, dice precios, pide la señal. Nunca ofrece un hueco que no existe: lee tu agenda de verdad. <b style="color:var(--ink)">Pruébala aquí al lado.</b></p>
 </div>
 <div style="border:1px solid rgba(244,80,30,.4);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--accent-soft),var(--card) 60%);box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span><b style="font-family:var(--display);font-size:17px">IA de voz</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px">29 €/mes</span></div>
-<p style="margin:0 0 12px;font-size:14px;color:var(--ink-2)">Coge el teléfono, habla y da cita. Te deja la transcripción y el resumen de cada llamada, y te la pasa si la clienta prefiere hablar contigo.</p>
+<p style="margin:0 0 12px;font-size:14px;color:var(--ink-2)">Coge el teléfono y da cita. Te deja transcripción y resumen, y te pasa la llamada si la clienta te prefiere a ti.</p>
 <div style="display:flex;align-items:flex-end;gap:3px;height:26px">
 <span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out infinite"></span>
 <span style="flex:1;background:var(--accent-hi);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .12s infinite"></span>
@@ -2281,7 +2392,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 </div>
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--gold))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Hasta aquí, contado por nosotros. <b>Ahora tócalo tú.</b></p></div>
 
 <!-- ═══════════ 4 · DEMO ═══════════ -->
 <section id="demo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);overflow:hidden;background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
@@ -2290,22 +2401,22 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <div class="reveal">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span>Pruébalo tú · 1 mes gratis</span>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">No te lo contamos: <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">entra y tócalo</span></h2>
-<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0 auto 26px;max-width:620px;text-wrap:pretty">Es Mecha de verdad, con un salón de ejemplo. Pruébalo ahora mismo o empieza tu mes 100% gratis con los datos y clientes reales de tu salón.</p>
+<p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0 auto 26px;max-width:620px;text-wrap:pretty">Es Mecha de verdad con un salón de ejemplo. Entra ahora, o empieza tu mes gratis <b>con tus propios clientes</b>.</p>
 </div>
 <div class="reveal demo-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;text-align:left;margin-bottom:24px">
-<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">55</div><b style="font-size:14px">pasos guiados</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Tres recorridos: los pilares, todas las pantallas una a una y la configuración entera. Puedes saltártelos cuando quieras.</div></div>
-<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">100%</div><b style="font-size:14px">software real</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">No es un vídeo ni un maquetado: es Mecha funcionando, con datos de ejemplo.</div></div>
-<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">100%</div><b style="font-size:14px">cuenta gratis</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Tu cuenta gratis con datos de prueba reales para explorar todo el potencial.</div></div>
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">55</div><b style="font-size:14px">pasos guiados</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Tres recorridos: los pilares, pantalla a pantalla y la configuración. Te los saltas cuando quieras.</div></div>
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">100%</div><b style="font-size:14px">software real</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Ni vídeo ni maqueta: es Mecha funcionando.</div></div>
+<div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">30</div><b style="font-size:14px">días con tu cuenta</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Tu salón, tus datos, sin tarjeta.</div></div>
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px">
 <a href="#contacto" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:700;font-size:16px;animation:mPulse 3s ease-in-out infinite"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver los 3 recorridos guiados (55 pasos)</a>
 </div>
-<p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">También te lo enseñamos en directo en 10 minutos, con tus servicios y tus precios: <a href="#contacto">reservar una demo guiada</a>.</p>
+<p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">¿Prefieres que te lo enseñemos en 10 minutos con tus precios? <a href="#contacto">Reserva una demo guiada</a>.</p>
 </div>
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--gold),var(--accent))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Y cuando estés dentro, mira <b>todo lo que puedes dar de baja.</b></p></div>
 
 <!-- ═══════════ 3 · TODO EN UNO ═══════════ -->
 <section id="todo" style="position:relative;padding:clamp(44px,5.5vw,78px) 26px clamp(52px,6.5vw,96px)">
@@ -2318,7 +2429,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 Un software, <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">no siete gastos ni cuatro horas perdidas</span>
 </h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">
-Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesionales) en softwares dispersos frente a tenerlo todo unificado en Mecha.
+Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distinto, frente a tenerlo todo aquí.
 </p>
 </div>
 
@@ -2333,43 +2444,43 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 
 <div class="cmp2-row">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-cal" /></svg></span>
-<div class="cmp2-lab"><b>Agenda y citas</b><small>Suscripción base tipo Booksy/Fresha (3 miembros)</small></div>
+<div class="cmp2-lab"><b>Agenda y citas</b><small>Booksy/Fresha, 3 miembros</small></div>
 <div class="cmp2-val"><s>45 €/mes</s><i class="cmp2-bar antes" style="--w:31%"></i></div>
 <div class="cmp2-val ok"><b>Incluido</b><i class="cmp2-bar mecha" style="--w:27%"></i></div>
 </div>
 <div class="cmp2-row">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-target" /></svg></span>
-<div class="cmp2-lab"><b>Clientes nuevos por marketplace</b><small>Comisión tipo Booksy Boost (25-30% por reserva)</small></div>
+<div class="cmp2-lab"><b>Clientes nuevos por marketplace</b><small>Comisión por reserva del marketplace</small></div>
 <div class="cmp2-val"><s>35 €/mes</s><i class="cmp2-bar antes" style="--w:24%"></i></div>
 <div class="cmp2-val ok"><b>0% comisión</b><i class="cmp2-bar mecha" style="--w:27%"></i></div>
 </div>
 <div class="cmp2-row">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-receipt" /></svg></span>
-<div class="cmp2-lab"><b>Facturación VeriFactu (AEAT)</b><small>Software contable homologado aparte</small></div>
+<div class="cmp2-lab"><b>Facturación VeriFactu (AEAT)</b><small>Otro software homologado</small></div>
 <div class="cmp2-val"><s>20 €/mes</s><i class="cmp2-bar antes" style="--w:14%"></i></div>
 <div class="cmp2-val ok"><b>Incluido</b><i class="cmp2-bar mecha" style="--w:27%"></i></div>
 </div>
 <div class="cmp2-row">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-timer" /></svg></span>
-<div class="cmp2-lab"><b>Fichaje legal (art. 34.9 ET)</b><small>App de control horario aparte</small></div>
+<div class="cmp2-lab"><b>Fichaje legal (art. 34.9 ET)</b><small>Otra app de fichaje</small></div>
 <div class="cmp2-val"><s>15 €/mes</s><i class="cmp2-bar antes" style="--w:10%"></i></div>
 <div class="cmp2-val ok"><b>Incluido</b><i class="cmp2-bar mecha" style="--w:27%"></i></div>
 </div>
 <div class="cmp2-row">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-card" /></svg></span>
-<div class="cmp2-lab"><b>Datáfono y su cuota</b><small>TPV bancario + mantenimiento</small></div>
+<div class="cmp2-lab"><b>Datáfono y su cuota</b><small>TPV bancario y su cuota</small></div>
 <div class="cmp2-val"><s>15 €/mes</s><i class="cmp2-bar antes" style="--w:10%"></i></div>
 <div class="cmp2-val ok"><b>Integrado</b><i class="cmp2-bar mecha" style="--w:27%"></i></div>
 </div>
 <div class="cmp2-row">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-box" /></svg></span>
-<div class="cmp2-lab"><b>Inventario y stock</b><small>Hojas de cálculo o app aparte</small></div>
+<div class="cmp2-lab"><b>Inventario y stock</b><small>Excel u otra app</small></div>
 <div class="cmp2-val"><s>15 €/mes</s><i class="cmp2-bar antes" style="--w:10%"></i></div>
 <div class="cmp2-val ok"><b>Incluido</b><i class="cmp2-bar mecha" style="--w:27%"></i></div>
 </div>
 <div class="cmp2-row time">
 <span class="cmp2-ic"><svg class="ic" aria-hidden="true"><use href="#i-hour" /></svg></span>
-<div class="cmp2-lab"><b>Tu tiempo de gestión diario</b><small>WhatsApp, reposos vacíos, cuadres, Excel de comisiones</small></div>
+<div class="cmp2-lab"><b>Tu tiempo de gestión diario</b><small>WhatsApp, cuadres, reposos vacíos, Excel</small></div>
 <div class="cmp2-val"><b style="color:#e0340e">4 h 10 min</b><i class="cmp2-bar antes" style="--w:92%"></i></div>
 <div class="cmp2-val ok"><b style="color:var(--ok)">24 min</b><i class="cmp2-bar mecha" style="--w:9%"></i></div>
 </div>
@@ -2387,14 +2498,17 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 </div>
 </div>
 <div style="padding:12px 26px;background:var(--paper);border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-2)">
-<svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg> Primer mes gratis · Sin permanencia · <b style="color:var(--ink)">90% de tu tiempo de gestión recuperado</b> y más de 100 €/mes de ahorro frente a herramientas sueltas.
+<svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg> Primer mes gratis · sin permanencia · <b style="color:var(--ink)">más de 100 €/mes y casi 4 h al día</b> de vuelta en tu bolsillo.
 </div>
+<details data-m-collapse class="cond-acc nota-legal" open>
+<summary>De dónde salen estas cifras</summary>
 <p style="font-size:11.5px;color:var(--ink-3);margin:12px 0 0;line-height:1.5">Estimaciones para un salón medio de 2-4 profesionales en España, con tarifas públicas de cada proveedor a fecha de 2026 (pueden variar). Booksy, Fresha, Holded y Sesame HR son marcas de sus respectivos propietarios, citadas con fines identificativos; Mecha no está afiliada ni patrocinada por ellas.</p>
+</details>
 </div>
 
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--accent),var(--gold))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Esos son los números de un salón medio. <b>Pon los tuyos.</b></p></div>
 
 <!-- ═══════════ 6 · LAS CUENTAS ═══════════ -->
 <section id="cuentas" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
@@ -2414,7 +2528,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 <input id="rTicket" type="range" min="15" max="180" step="5" value="45" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
 <label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Profesionales: <b id="lSillas" style="color:var(--accent);font-size:16px">3</b></label>
 <input id="rSillas" type="range" min="1" max="20" value="3" style="width:100%;accent-color:var(--accent)" />
-<p style="font-size:12px;color:var(--ink-3);margin:18px 0 0;line-height:1.5">Con 2 o con 20 profesionales pagas lo mismo, y 0 € de comisión por reserva. Sube el slider y compruébalo.</p>
+<p style="font-size:12px;color:var(--ink-3);margin:18px 0 0;line-height:1.5">Con 2 o con 20 profesionales pagas lo mismo. Sube el slider y compruébalo.</p>
 </div>
 <div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:14px">
 <div>
@@ -2444,7 +2558,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 </div>
 </section>
 
-<div class="conn"><div style="background:linear-gradient(180deg,var(--ok),var(--accent))"></div></div>
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Ya sabes lo que cuesta no cambiar. <b>Esto es lo que cuesta cambiar.</b></p></div>
 
 <!-- ═══════════ PRECIOS ═══════════ -->
 <section id="precios" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
@@ -2452,7 +2566,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 <div class="reveal" style="text-align:center;max-width:640px;margin:0 auto clamp(24px,3vw,40px)">
 <div style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.28);padding:5px 14px;border-radius:999px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em"><svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg>Oferta de lanzamiento · Primer mes 0 €</div>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
-<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes con profesionales ilimitados. Primer mes completamente gratis, sin tarjeta, sin permanencia y con la migración incluida.</p>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes, profesionales ilimitados en los dos. El primer mes, 0 €.</p>
 </div>
 <div class="reveal m-carrusel" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
 <div class="hov-card" style="border:1px solid var(--line-2);border-radius:22px;padding:28px;background:var(--card);display:flex;flex-direction:column;gap:13px;box-shadow:var(--shadow-s)">
@@ -2496,18 +2610,18 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:10px">
 <span style="font-size:22px"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg></span>
-<b style="font-family:var(--display);font-size:17px;color:var(--ink)">Condiciones y Garantía del Mes de Prueba Gratuito (30 días)</b>
+<b style="font-family:var(--display);font-size:17px;color:var(--ink)">Los 30 días, sin letra pequeña</b>
 </div>
 <span style="font-size:11px;font-weight:800;color:var(--ok);background:rgba(15,155,108,.12);border:1px solid rgba(15,155,108,.25);padding:4px 12px;border-radius:999px">100% Transparente</span>
 </div>
 <details data-m-collapse class="cond-acc" open>
-<summary>Ver las 5 condiciones de la prueba</summary>
+<summary>Ver las 5 condiciones</summary>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;font-size:13px;color:var(--ink-2);line-height:1.55">
-<div><b style="color:var(--ink)">1. Plan Estudio Completo:</b> Disfrutas de todas las funcionalidades prémium (agenda, comisiones, recordatorios, VeriFactu legal, inventario y campañas) sin limitaciones.</div>
-<div><b style="color:var(--ink)">2. 0 € de coste y Sin Tarjeta:</b> No necesitas introducir tarjeta bancaria ni datos de pago para empezar tu prueba.</div>
-<div><b style="color:var(--ink)">3. Sin Permanencia:</b> Si no te convence, puedes dejar de usarlo en cualquier momento sin penalizaciones ni ataduras.</div>
-<div><b style="color:var(--ink)">4. Migración Gratuita:</b> Te ayudamos a traspasar citas, historial y clientes desde Booksy, Fresha, Treatwell, Excel o papel sin perder nada.</div>
-<div><b style="color:var(--ink)">5. Fin de la prueba:</b> Al terminar los 30 días, tú eliges si deseas continuar con Esencial (39 €) o Estudio (59 €). Si decides no continuar, tu cuenta se pausa sin ningún cobro sorpresa y tus datos quedan protegidos conforme al RGPD.</div>
+<div><b style="color:var(--ink)">1. El plan Estudio entero:</b> agenda, comisiones, recordatorios, VeriFactu, inventario y campañas. Sin recortes.</div>
+<div><b style="color:var(--ink)">2. Sin tarjeta:</b> no te pedimos datos de pago para empezar.</div>
+<div><b style="color:var(--ink)">3. Sin permanencia:</b> lo dejas cuando quieras, sin penalización.</div>
+<div><b style="color:var(--ink)">4. Migración gratis:</b> desde Booksy, Fresha, Treatwell, Excel o papel.</div>
+<div><b style="color:var(--ink)">5. El día 31:</b> eliges Esencial (39 €) o Estudio (59 €). Si no sigues, la cuenta se pausa: ningún cobro sorpresa y tus datos protegidos (RGPD).</div>
 </div>
 </details>
 <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
@@ -2518,6 +2632,8 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 
 </div>
 </section>
+
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Solo queda una decisión: <b>por dónde empezamos.</b></p></div>
 
 <!-- ═══════════ CONTACTO & ACTIVACIÓN ═══════════ -->
 <section id="contacto" class="sec-dark" style="padding:clamp(48px,6vw,88px) 26px;position:relative;overflow:hidden">
@@ -2532,7 +2648,7 @@ Comparamos con datos reales de mercado cuánto gasta un salón medio (3 profesio
 Activa tu mes gratis en <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">10 minutos</span>
 </h2>
 <p style="font-size:16px;color:rgba(255,255,255,.85);margin:0 auto;max-width:640px;line-height:1.5">
-Escríbenos por WhatsApp y <b>Carlos y Alexandru te configuran todo hoy mismo.</b> O déjanos tu nombre y teléfono y te llamamos.
+Escríbenos por WhatsApp y <b>te lo dejamos montado hoy mismo.</b> O deja tu teléfono y te llamamos.
 </p>
 </div>
 
@@ -2554,7 +2670,7 @@ Escríbenos por WhatsApp y <b>Carlos y Alexandru te configuran todo hoy mismo.</
 </div>
 
 <p style="font-size:15px;color:rgba(255,255,255,.88);line-height:1.55;margin:0">
-Escríbenos por WhatsApp al <b style="color:#25d366">+34 690 79 29 75</b>. Te activamos tu mes gratis y te migramos tu agenda en 10 minutos.
+Te activamos el mes gratis y te migramos la agenda <b style="color:#25d366">en 10 minutos</b>, contigo al teléfono.
 </p>
 
 <a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" class="btn-wa-direct" aria-label="Abrir WhatsApp para activar mes gratis de Mecha" style="display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;padding:16px 24px;border-radius:16px;background:#25d366;color:#fff;font-family:var(--display);font-weight:800;font-size:18px;text-decoration:none;text-shadow:0 1px 2px rgba(0,0,0,.2);box-shadow:0 8px 32px -8px rgba(37,211,102,.5);transition:transform .15s ease,box-shadow .15s ease">
@@ -2583,7 +2699,7 @@ Carlos y Alexandru te responden hoy
 <h3 style="font-family:var(--display);font-size:18px;font-weight:800;color:#fff;margin:0">¿Prefieres que te llamemos?</h3>
 </div>
 <p style="font-size:13.5px;color:rgba(255,255,255,.72);margin:0;line-height:1.45">
-Déjanos tu nombre y teléfono. Te llamamos hoy y te dejamos todo configurado.
+Nombre y teléfono. Te llamamos hoy.
 </p>
 </div>
 
@@ -2675,6 +2791,14 @@ Déjanos tu nombre y teléfono. Te llamamos hoy y te dejamos todo configurado.
 <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:#53bdeb"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.78c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63-.73-1.63-1.63-1.63Z"/></svg>
 </div>
 </a>
+<!-- Jose Suárez — sin enlace: no tenemos su perfil de LinkedIn todavia -->
+<div style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:#ffffff">
+<div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#0f9b6c,#25d366);display:grid;place-items:center;font-weight:800;font-size:16px;color:#fff;flex:none;box-shadow:0 8px 18px -4px rgba(15,155,108,.5)">JS</div>
+<div style="flex:1;min-width:0">
+<b style="font-size:15px;color:#ffffff;font-family:var(--display)">Jose Suárez</b>
+<div style="font-size:12.5px;color:rgba(255,255,255,.75);margin-top:2px">Co-Fundador · Experto del sector</div>
+</div>
+</div>
 </div>
 </div>
 
@@ -2885,7 +3009,6 @@ function sweep(){
 let barraProgreso = null;
 let ctaFlotante   = null;
 let finContacto   = null;
-let conectores    = [];
 let scrollEnCola  = false;
 
 /* Aparicion de secciones y contadores.
@@ -2897,7 +3020,6 @@ function arrancar(){
   barraProgreso = document.querySelector("[data-progress]");
   ctaFlotante   = document.querySelector("[data-sticky-cta]");
   finContacto   = document.getElementById("contacto");
-  conectores    = Array.from(document.querySelectorAll(".conn>div"));
   focoRaton     = document.querySelector("[data-spot]");
 
   if ("IntersectionObserver" in window) {
@@ -2979,11 +3101,6 @@ function pintarScroll(){
     const cerca=finContacto && finContacto.getBoundingClientRect().top<innerHeight*1.1;
     ctaFlotante.style.transform=p>0.16 && !cerca ? "translateY(0)":"translateY(120%)";
   }
-  conectores.forEach(el=>{
-    const r=el.parentElement.getBoundingClientRect();
-    const k=Math.max(0,Math.min(1,(innerHeight*0.85-r.top)/(r.height+60)));
-    el.style.transform="scaleY("+k.toFixed(3)+")";
-  });
 }
 
 // Un solo repintado por frame: el evento scroll llega mucho mas a menudo que
@@ -3006,14 +3123,14 @@ mqPliegue.addEventListener("change", aplicarPliegues);
 
 /* comparativa */
 const FILAS=[
-  { tema:"Tiempos de reposo del tinte", otros:"No suelen estar disponibles: un color bloquea la silla entera", mecha:"Activo → reposo → activo. El reposo se marca vendible y se rellena solo" },
-  { tema:"Servicios encadenados", otros:"Dos citas sueltas cuadradas a mano", mecha:"Color con una profesional y peinado con otra, en la misma cita" },
-  { tema:"Facturación española", otros:"Fuera del programa: otro software y la gestoría", mecha:"VeriFactu con hash y QR, enviada a la AEAT desde la propia caja" },
-  { tema:"Control horario del equipo", otros:"No suele incluirse: app de fichaje aparte", mecha:"Fichaje y registro de jornada legal (art. 34.9 ET) incluido" },
-  { tema:"Comisiones y objetivos", otros:"Excel de fin de mes", mecha:"Calculadas sobre lo facturado real, visibles para cada profesional" },
-  { tema:"Coste por cliente nuevo", otros:"Los marketplaces cobran comisión por reserva (típicamente 20-35%, según plataforma y plan)", mecha:"0%. Quien entra por tu portal es tuyo y no pagas nada" },
+  { tema:"Reposos del tinte", otros:"Un color te bloquea la silla entera", mecha:"Activo → reposo → activo. El reposo se vende solo" },
+  { tema:"Servicios encadenados", otros:"Dos citas sueltas cuadradas a mano", mecha:"Color con una y peinado con otra, en la misma cita" },
+  { tema:"Facturación española", otros:"Fuera del programa: otro software y la gestoría", mecha:"VeriFactu con QR, a la AEAT desde la propia caja" },
+  { tema:"Control horario del equipo", otros:"App de fichaje aparte", mecha:"Fichaje y jornada legal (art. 34.9 ET), dentro" },
+  { tema:"Comisiones y objetivos", otros:"Excel de fin de mes", mecha:"Sobre lo facturado real, y cada uno ve las suyas" },
+  { tema:"Coste por cliente nuevo", otros:"Comisión por reserva en los marketplaces (20-35% según plan)", mecha:"0%. Quien entra por tu portal es tuyo" },
   { tema:"Precio al crecer", otros:"Por profesional o por silla: creces y sube la factura", mecha:"Plano. Profesionales ilimitados en los dos planes" },
-  { tema:"Trabajo de gestión que te queda", otros:"Casi todo: confirmar, cobrar, facturar, cuadrar, fichar", mecha:"Un 10%: mirar el día y decidir dos cosas" }
+  { tema:"Trabajo que te queda", otros:"Casi todo: confirmar, cobrar, facturar, cuadrar, fichar", mecha:"Un 10%: mirar el día y decidir dos cosas" }
 ];
 /* La comparativa tiene DOS maquetaciones, no una responsive.
    Escritorio: rejilla de 3 columnas (concepto | otros | Mecha), que es donde
