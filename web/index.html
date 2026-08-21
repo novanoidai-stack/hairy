@@ -382,6 +382,14 @@
         "@type": "Answer",
         "text": "Frente a Treatwell (marketplace que, según sus tarifas públicas, aplica comisiones de hasta un 35% por cliente nuevo y muestra otros salones junto al tuyo), Mecha ofrece 0% comisiones, portal privado y custodia íntegra de datos. Frente a Square Appointments (orientado a comercio general con TPV), Mecha gestiona de forma nativa los tiempos de reposo químico del tinte, guarda fórmulas de color exactas y cumple con la normativa española de facturación VeriFactu (AEAT) y registro de jornada legal inalterable (art. 34.9 ET). Comparativa con funciones y tarifas publicadas a fecha de 2026; pueden variar."
       }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo funciona el programa Salón Hermano de Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Si recomiendas Mecha a otro salón, nosotros nos encargamos de migrar sus citas y dejarle el sistema configurado sin coste. Cuando ese salón activa su plan, tú recibes 2 meses gratis de suscripción y el salón recomendado recibe configuración prioritaria. No hay límite de recomendaciones y los meses se aplican sobre tu cuota al confirmarse el alta."
+      }
     }
   ]
 }
@@ -681,6 +689,20 @@ button,input{font-family:inherit}
 .hov-card:active{
   transform:scale(.985) translateY(-2px);
 }
+
+/* Selector de plan dentro de la calculadora (#cuentas) */
+.plan-opt{
+  appearance:none;cursor:pointer;font:inherit;
+  padding:11px 10px;border-radius:12px;
+  border:1px solid var(--line-2);background:var(--card);color:var(--ink-2);
+  font-size:13.5px;font-weight:600;text-align:center;
+  transition:border-color .18s ease,background .18s ease,color .18s ease;
+}
+.plan-opt b{font-weight:800;color:var(--ink)}
+.plan-opt:hover{border-color:var(--accent)}
+.plan-opt.is-on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.plan-opt.is-on b{color:var(--accent)}
+.plan-opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* Sliders de calculadora con estilo refinado */
 input[type="range"]{
@@ -2688,6 +2710,14 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Profesionales: <b id="lSillas" style="color:var(--accent);font-size:16px">3</b></label>
 <input id="rSillas" type="range" min="1" max="20" value="3" style="width:100%;accent-color:var(--accent)" />
 <p style="font-size:12px;color:var(--ink-3);margin:18px 0 0;line-height:1.5">Con 2 o con 20 profesionales pagas lo mismo. Sube el slider y compruébalo.</p>
+<div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--line)">
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Tu plan</label>
+<div id="planToggle" role="group" aria-label="Elige tu plan de Mecha" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<button type="button" class="plan-opt is-on" data-plan="39" aria-pressed="true">Esencial <b>39 €</b></button>
+<button type="button" class="plan-opt" data-plan="59" aria-pressed="false">Estudio <b>59 €</b></button>
+</div>
+<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.5">Mismo software en los dos. Los recepcionistas con IA son un añadido aparte, desde 19 €/mes.</p>
+</div>
 </div>
 <div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:14px">
 <div>
@@ -2707,7 +2737,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
 <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Plantones al mes</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--accent)" id="oPerdidaMes">270 €</div></div>
 <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Recuperable con señal</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)" id="oRecuperado">251 €</div></div>
-<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste de Mecha</div><div style="font-family:var(--display);font-weight:700;font-size:23px">59 €</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste de Mecha</div><div style="font-family:var(--display);font-weight:700;font-size:23px" id="oCosteMecha">39 €</div></div>
 <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste extra por profesional</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)">0 €</div></div>
 </div>
 <div style="background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:15px;font-size:13px;color:var(--ink-2)">Entre tiempo recuperado y plantones evitados, Mecha se paga <b style="color:var(--ink)" id="oVeces">52 veces</b> cada mes.</div>
@@ -2789,6 +2819,59 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 </div>
 </div>
 
+</div>
+</section>
+
+<div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Antes de decidir, dos cosas que <b>nadie te devuelve si las pierdes.</b></p></div>
+
+<!-- ═══════════ BLINDAJE: FÓRMULAS Y CUMPLIMIENTO ═══════════ -->
+<section id="blindaje" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
+<div style="max-width:1020px;margin:0 auto">
+<div class="reveal" style="text-align:center;max-width:680px;margin:0 auto clamp(24px,3vw,40px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg>Lo que queda protegido</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Tu salón, <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">a prueba de sustos</span></h2>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">Una baja en el equipo y una carta de la Administración. Los dos golpes que más caros salen.</p>
+</div>
+
+<div class="reveal grid2" style="align-items:stretch;gap:18px">
+
+<!-- Blindaje 1: las fórmulas -->
+<div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:10px">
+<span style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center"><svg class="ic" aria-hidden="true"><use href="#i-doc" /></svg></span>
+<h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">Las fórmulas son del salón</h3>
+</div>
+<p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.6">Cuando una colorista se va y las fórmulas estaban en su libreta, no se va sola: se lleva el color exacto de cada clienta. Y la clienta se va detrás.</p>
+<div style="background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:14px;font-family:var(--mono,ui-monospace,monospace);font-size:13px;color:var(--ink);letter-spacing:-.01em">35 g 7.1 + 15 g 7.0 + 75 g Ox 20 vol<div style="font-family:var(--display);font-size:11.5px;color:var(--ink-3);margin-top:6px;letter-spacing:0">Raíz · 35 min · sin PPD (alergia registrada)</div></div>
+<ul style="list-style:none;padding:0;margin:0;display:grid;gap:9px;font-size:14px;color:var(--ink-2)">
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Fórmula, gramajes y tiempos guardados en la ficha del <b style="color:var(--ink)">negocio</b>, no en un cuaderno.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Alergias y sensibilidades avisadas antes de mezclar.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Fotos de la evolución del color, en almacenamiento privado.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Cualquier compañera repite el tono exacto en la siguiente visita.</span></li>
+</ul>
+</div>
+
+<!-- Blindaje 2: cumplimiento -->
+<div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:10px">
+<span style="width:34px;height:34px;border-radius:10px;background:rgba(37,211,102,.12);color:var(--ok);display:grid;place-items:center"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg></span>
+<h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">Papeles al día, sin otra app</h3>
+</div>
+<p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.6">Las dos obligaciones que a un salón le llegan sin avisar, resueltas dentro del mismo programa que ya usas todos los días.</p>
+<div style="display:grid;gap:12px">
+<div style="background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:14px">
+<div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">Inspección de Trabajo</div>
+<div style="font-size:14px;color:var(--ink-2);line-height:1.55">Registro de jornada del <b style="color:var(--ink)">art. 34.9 ET</b>: entradas, pausas y salidas, exportable en PDF y CSV con un clic. El cuadrante firmado a fin de mes en papel no vale.</div>
+</div>
+<div style="background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:14px">
+<div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">Hacienda</div>
+<div style="font-size:14px;color:var(--ink-2);line-height:1.55">Facturación <b style="color:var(--ink)">VeriFactu</b> con encadenado criptográfico y numeración correlativa, según el RD 1007/2023. Los tickets no se borran: se rectifican.</div>
+</div>
+</div>
+<p style="font-size:12px;color:var(--ink-3);margin:auto 0 0;line-height:1.5">Mecha te da las herramientas y los registros; la responsabilidad fiscal y laboral sigue siendo del titular del salón. Consulta a tu gestoría tu caso concreto.</p>
+</div>
+
+</div>
 </div>
 </section>
 
@@ -2900,6 +2983,43 @@ Nombre y teléfono. Te llamamos hoy.
 
 </div>
 
+</div>
+</section>
+
+<!-- ═══════════ SALÓN HERMANO Y DISTRIBUIDORES ═══════════ -->
+<section id="hermano" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
+<div style="max-width:1020px;margin:0 auto">
+<div class="reveal" style="text-align:center;max-width:660px;margin:0 auto clamp(24px,3vw,40px)">
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Entre salones</span>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Recomienda Mecha y <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">gana dos meses</span></h2>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">En este oficio nadie se fía de un anuncio; se fía de la compañera del barrio de al lado.</p>
+</div>
+
+<div class="reveal grid2" style="align-items:stretch;gap:18px">
+
+<div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px">
+<h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">Salón hermano</h3>
+<ol style="list-style:none;counter-reset:h;padding:0;margin:0;display:grid;gap:13px;font-size:14.5px;color:var(--ink-2);line-height:1.55">
+<li style="counter-increment:h;display:flex;gap:12px"><span style="flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12.5px">1</span><span>Nos pasas el salón que quieres recomendar, o le compartes tu enlace.</span></li>
+<li style="counter-increment:h;display:flex;gap:12px"><span style="flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12.5px">2</span><span>Le migramos sus citas y le dejamos Mecha montado, gratis.</span></li>
+<li style="counter-increment:h;display:flex;gap:12px"><span style="flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12.5px">3</span><span>Cuando active su plan, <b style="color:var(--ink)">tú te llevas 2 meses gratis</b> y él, configuración prioritaria.</span></li>
+</ol>
+<a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20recomendar%20un%20sal%C3%B3n%20al%20programa%20Sal%C3%B3n%20Hermano%20de%20Mecha" target="_blank" rel="noopener" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none">Recomendar un salón →</a>
+<p style="font-size:11.5px;color:var(--ink-3);margin:0;line-height:1.5">Los dos meses se aplican sobre tu cuota al confirmarse el alta del salón recomendado. Sin límite de recomendaciones.</p>
+</div>
+
+<div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:16px">
+<h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">¿Eres comercial o distribuidor de cosmética?</h3>
+<p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.6">Tú ya entras cada semana en los salones a los que nosotros tardaríamos meses en llegar. Trabajamos con comerciales de marca y distribuidores independientes.</p>
+<ul style="list-style:none;padding:0;margin:0;display:grid;gap:9px;font-size:14px;color:var(--ink-2)">
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span><b style="color:var(--ink)">Comisión recurrente</b> por cada salón que se queda, mientras siga siendo cliente.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Precargamos la <b style="color:var(--ink)">carta de color</b> de tu marca en los salones que traigas.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Nosotros hacemos la demo y el alta: tú solo presentas.</span></li>
+</ul>
+<a href="https://wa.me/34690792975?text=Hola%2C%20soy%20distribuidor%2Fcomercial%20de%20cosm%C3%A9tica%20y%20quiero%20informaci%C3%B3n%20del%20acuerdo%20con%20Mecha" target="_blank" rel="noopener" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;background:var(--ink);color:var(--paper)">Hablar del acuerdo →</a>
+</div>
+
+</div>
 </div>
 </section>
 
@@ -3360,6 +3480,11 @@ function updateSliderTrack(el){
   el.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--line-2) ${pct}%, var(--line-2) 100%)`;
 }
 
+/* Plan elegido en la calculadora. Antes el coste estaba clavado a 59 € mientras
+   el resto de la pagina anunciaba "desde 39 €": la cuenta no cuadraba con el
+   precio que el visitante acababa de leer. */
+let planMecha = 39;
+
 function calc(){
   const horas=+R("rHoras").value, noShows=+R("rNoShows").value, ticket=+R("rTicket").value, sillas=+R("rSillas").value;
   R("lHoras").textContent=(horas%1?horas.toFixed(1):horas)+" h";
@@ -3379,7 +3504,8 @@ function calc(){
   R("oValorHoras").textContent=nf(hLibres*(ticket/1.5))+" €";
   R("oPerdidaMes").textContent=nf(perdida)+" €";
   R("oRecuperado").textContent=nf(perdida*0.93)+" €";
-  R("oVeces").textContent=Math.max(1,Math.round((perdida*0.93+hLibres*(ticket/1.5))/59));
+  R("oCosteMecha").textContent=planMecha+" €";
+  R("oVeces").textContent=Math.max(1,Math.round((perdida*0.93+hLibres*(ticket/1.5))/planMecha));
 
   const barAhorro = document.getElementById("barAhorro");
   if(barAhorro) {
@@ -3388,6 +3514,16 @@ function calc(){
   }
 }
 ["rHoras","rNoShows","rTicket","rSillas"].forEach(id=>R(id).addEventListener("input",calc));
+
+document.querySelectorAll("#planToggle .plan-opt").forEach(b=>b.addEventListener("click",()=>{
+  planMecha = +b.dataset.plan;
+  document.querySelectorAll("#planToggle .plan-opt").forEach(o=>{
+    const on = o === b;
+    o.classList.toggle("is-on", on);
+    o.setAttribute("aria-pressed", String(on));
+  });
+  calc();
+}));
 
 /* ═══════════ CHAT WHATSAPP POTENCIADO POR IA REAL ═══════════ */
 const SUPABASE_URL = 'https://vtrggiogjrhqtwbhbgia.supabase.co';

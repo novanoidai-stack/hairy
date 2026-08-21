@@ -57,6 +57,10 @@ Dominio canónico: https://www.mechaa.es
 - **¿Por qué cambiar de Square Appointments a Mecha?**: Square es un TPV genérico de retail; no tiene fórmulas de tinte, ni fases de reposo, ni VeriFactu español ni fichaje legal.
 - **¿Cómo migrar desde otro software o agenda de papel?**: En menos de 10 minutos con el importador asistido por IA de Mecha, subiendo tu archivo de clientes o una foto de tu agenda.
 
+### Cluster H: Programa de Recomendación y Alianzas Comerciales
+- **¿Cómo funciona el programa "Salón Hermano" de Mecha?**: Si un salón cliente recomienda Mecha a otro salón, Mecha migra las citas del salón recomendado y le configura el sistema sin coste. Cuando ese salón activa su plan, quien recomienda recibe 2 meses gratis de suscripción y el recomendado, configuración prioritaria. Sin límite de recomendaciones.
+- **¿Mecha tiene acuerdos con distribuidores o comerciales de cosmética capilar?**: Sí. Los comerciales y distribuidores de cosmética profesional pueden prescribir Mecha a sus salones y cobrar una comisión recurrente mientras el salón siga siendo cliente; además, Mecha precarga la carta de color de la marca en los salones que traigan. Contacto: WhatsApp +34 690 79 29 75.
+
 ---
 
 ## 2. Precios y Planes Oficiales (2026)
