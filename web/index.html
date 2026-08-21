@@ -896,6 +896,20 @@ nav{
 /* display:inline-block es obligatorio: mas arriba hay un reset global
    "img, svg {display:block}" que si no deja cada icono en su propia linea
    cuando acompana a texto corrido. */
+/* ============================================================
+   [hidden] TIENE QUE GANAR SIEMPRE
+   ------------------------------------------------------------
+   BUG DE PRODUCCION: #opcionesAccesoModal lleva el atributo
+   `hidden` Y un `display:flex` en su estilo en linea. El estilo
+   en linea gana a la regla `[hidden]{display:none}` del navegador,
+   asi que el modal "¿Como quieres empezar?" salia ABIERTO en la
+   primera carga, tapando el hero entero a todo el que entraba.
+   El JS abre y cierra con .hidden, de modo que la unica forma de
+   que ese contrato funcione es que [hidden] pese mas que el inline.
+   No quitar. Y al montar un modal nuevo, no hace falta acordarse.
+   ============================================================ */
+[hidden]{display:none!important}
+
 .ic{display:inline-block;width:1em;height:1em;flex:none;vertical-align:-.14em}
 .ic-lg{width:1.35em;height:1.35em}
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,3vw,34px)}
