@@ -33,7 +33,10 @@ const mockPortalInfo = {
   },
   servicios: [
     {
-      id: 's1',
+      // UUID valido a proposito: el portal manda este id tal cual a
+      // portal_dias_disponibles(p_servicio_id uuid). Con 's1' la RPC reventaba
+      // con 22P02 y el flujo se paraba antes de pedir disponibilidad_publica.
+      id: '11111111-1111-1111-1111-111111111111',
       nombre: 'Corte caballero',
       descripcion: 'Corte clásico o degradado',
       precio: 20,
@@ -78,6 +81,20 @@ test.describe('Portal de reservas — Public Booking E2E Suite', () => {
   // --- Tier 1: Feature Coverage ---
   test('1. Al elegir servicio se piden dias y horas al servidor', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
+    // Desde la reserva encadenada (21 ago) el portal ya no llama a
+    // portal_dias_disponibles / disponibilidad_publica a secas, sino a sus
+    // variantes _cadena. El test comprueba el encadenado dias -> horas, asi
+    // que compara por prefijo y no por nombre exacto.
+    // Los dias los sirve el mock: el servicio del mock no existe en el tenant
+    // demo, y lo que se valida aqui es la secuencia de RPCs, no el calendario.
+    const hoy = new Date().toISOString().split('T')[0];
+    await page.route('**/rest/v1/rpc/portal_dias_disponibles*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{ dia: hoy }]),
+      });
+    });
     const rpc: string[] = [];
     page.on('request', (req) => {
       const u = req.url();
@@ -87,9 +104,9 @@ test.describe('Portal de reservas — Public Booking E2E Suite', () => {
     await abrirYElegirServicio(page, /Corte caballero|Corte/i);
 
     await expect
-      .poll(() => rpc.filter((c) => c === 'disponibilidad_publica').length, { timeout: 20000 })
+      .poll(() => rpc.filter((c) => c.startsWith('disponibilidad_publica')).length, { timeout: 20000 })
       .toBeGreaterThan(0);
-    expect(rpc).toContain('portal_dias_disponibles');
+    expect(rpc.some((c) => c.startsWith('portal_dias_disponibles'))).toBe(true);
   });
 
   test('2. Se pintan horas reservables', async ({ page }) => {
