@@ -29,6 +29,7 @@ import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
 import { categoryColorHex } from "@/lib/categoryColors";
 import { useResponsive } from "@/lib/hooks/useResponsive";
 import { useCitasRealtime } from "@/lib/hooks/useCitasRealtime";
+import { avisoDeRecurso, type Recurso } from "@/lib/recursos";
 import { mensajeDeError } from "@/lib/errores";
 import { ejecutarAccion, type AccionPropuesta } from "@/lib/chispaOps";
 import {
@@ -1131,7 +1132,7 @@ export default function AgendaCalendar() {
           supabase
             .from("servicios")
             .select(
-              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima, duracion_minima_min, min_antelacion_min",
+              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima, duracion_minima_min, min_antelacion_min, recurso_tipo, recurso_fase",
             )
             .eq("negocio_id", negocioId),
           supabase
@@ -12378,6 +12379,9 @@ function NewCitaModal({
     (profesionalesIni ?? []).filter((p: any) => p?.activo !== false),
   );
   const [citasHoy, setCitasHoy] = useState<any[]>([]);
+  // Puestos del salon (lavacabezas, cabinas). Lista corta y que casi nunca
+  // cambia: se pide una vez al abrir el modal.
+  const [recursosSalon, setRecursosSalon] = useState<Recurso[]>([]);
   // Las horas libres dependen de las citas del dia: hasta que llegan no se puede
   // decir que huecos estan libres ni cuales aprovechan un reposo.
   const [citasHoyListas, setCitasHoyListas] = useState(false);
@@ -12839,6 +12843,15 @@ function NewCitaModal({
 
       setCitasHoy(cits ?? []);
       setCitasHoyListas(true);
+      // Puestos del salon. Si la tabla no dice nada, la lista se queda vacia y
+      // el aviso no se enseña nunca: no controlar no es no caber.
+      supabase
+        .from("recursos")
+        .select("id, nombre, tipo, capacidad, activo")
+        .eq("activo", true)
+        .then(({ data }) => {
+          if (!cancel) setRecursosSalon((data ?? []) as Recurso[]);
+        });
       setAllDurOverrides(durOverrides ?? []);
       setAllProfSrvOverrides(profSrvOverrides ?? []);
 
@@ -12859,7 +12872,7 @@ function NewCitaModal({
           supabase
             .from("servicios")
             .select(
-              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min, categoria_id",
+              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min, categoria_id, recurso_tipo, recurso_fase",
             )
             .eq("negocio_id", negocioId)
             .order("nombre"),
@@ -13094,6 +13107,33 @@ function NewCitaModal({
       finEspera.getTime() + (duracionActivaExtra + addonsDuracion) * 60000,
     );
   }
+
+  // Puestos fisicos: la profesional puede estar libre y el lavacabezas no. Es un
+  // AVISO, no un bloqueo: el salon sabe mejor que nosotros si ese dia apana. Y si
+  // no hay puestos dados de alta, avisoDeRecurso devuelve null y no se ve nada.
+  const avisoRecurso = useMemo(() => {
+    if (!inicio || !fin || !selectedServicio) return null;
+    const srv = servicios.find((x: any) => x.id === selectedServicio);
+    if (!srv?.recurso_tipo) return null;
+    return avisoDeRecurso(
+      {
+        id: 'candidata',
+        inicio: inicio.toISOString(),
+        fin: fin.toISOString(),
+        fin_activa: finActiva?.toISOString() ?? null,
+        fin_espera: finEspera?.toISOString() ?? null,
+        estado: 'pendiente',
+        recurso_tipo: srv.recurso_tipo,
+        recurso_fase: srv.recurso_fase ?? 'final',
+      },
+      citasHoy.map((c: any) => {
+        const s = servicios.find((x: any) => x.id === c.servicio_id);
+        return { ...c, recurso_tipo: s?.recurso_tipo ?? null, recurso_fase: s?.recurso_fase ?? 'final' };
+      }),
+      recursosSalon,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inicio?.getTime(), fin?.getTime(), selectedServicio, citasHoy, servicios, recursosSalon]);
 
   // RN-AG-072: detectar si la hora seleccionada cae dentro del tiempo de reposo de otra cita
   const citaHostReposo =
@@ -15980,6 +16020,33 @@ function NewCitaModal({
           )}
 
           {/* RN-AG-072: info banner cuando la hora cae en un reposo */}
+          {avisoRecurso && (
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "rgba(224,138,0,0.10)",
+                border: "1px solid rgba(224,138,0,0.28)",
+                borderRadius: 10,
+                marginTop: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 999,
+                  background: "#e08a00",
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ fontSize: 11, color: "#a86800", lineHeight: "1.4", fontWeight: 600 }}>
+                {avisoRecurso.mensaje} Puedes seguir: es un aviso, no un bloqueo.
+              </span>
+            </div>
+          )}
           {citaHostReposo && horaActual && (() => {
             const cFinActiva = new Date(citaHostReposo.fin_activa);
             const cFinEspera = new Date(citaHostReposo.fin_espera);

@@ -12,6 +12,7 @@ import { ModalImportarTarifasIA } from '@/components/config/ModalImportarTarifas
 import { TabVoz } from '@/components/config/TabVoz.web';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import { TabRecursos } from '@/components/config/TabRecursos.web';
+import { RECURSO_LABEL, TIPOS_RECURSO, type FaseRecurso, type TipoRecurso } from '@/lib/recursos';
 import { SeccionSuscripcion } from '@/components/config/SeccionSuscripcion.web';
 import { HubIA } from '@/components/config/HubIA';
 import { SugerenciasServicios } from '@/components/config/SugerenciasServicios.web';
@@ -115,6 +116,8 @@ interface Servicio {
   categoria_minima?: string | null;
   foto_url?: string | null;
   es_puntual?: boolean;
+  recurso_tipo?: TipoRecurso | null;
+  recurso_fase?: FaseRecurso | null;
 }
 
 interface Override {
@@ -968,6 +971,8 @@ export default function ConfiguracionWeb() {
         cancelacion_horas: service.cancelacion_horas ?? null,
         categoria_minima: service.categoria_minima ?? null,
         foto_url: service.foto_url ?? null,
+        recurso_tipo: service.recurso_tipo ?? null,
+        recurso_fase: service.recurso_fase ?? 'final',
       };
       if (service.id) {
         const { error } = await supabase.from('servicios').update(payload).eq('id', service.id);
@@ -5295,6 +5300,9 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [cancelacionHoras, setCancelacionHoras] = useState<string>(service.cancelacion_horas != null ? String(service.cancelacion_horas) : '');
   const [categoriaMinima, setCategoriaMinima] = useState(service.categoria_minima ?? '');
   const [fotoUrl, setFotoUrl] = useState<string | null>(service.foto_url ?? null);
+  // Puesto fisico que hace falta para dar el servicio (lib/recursos.ts).
+  const [recursoTipo, setRecursoTipo] = useState<TipoRecurso | ''>(service.recurso_tipo ?? '');
+  const [recursoFase, setRecursoFase] = useState<FaseRecurso>(service.recurso_fase ?? 'final');
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [fotoErr, setFotoErr] = useState('');
 
@@ -5461,6 +5469,8 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
         cancelacion_horas: cancelacionHoras.trim() ? parseInt(cancelacionHoras) : null,
         categoria_minima: categoriaMinima || null,
         foto_url: fotoUrl,
+        recurso_tipo: recursoTipo || null,
+        recurso_fase: recursoFase,
       });
     }
     setGuardando(false);
@@ -5621,6 +5631,28 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 <STextInput value={String(activaExtra)} onChange={v => setActivaExtra(parseInt(v) || 0)} placeholder="0 min" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Tiempo activo adicional tras la fase de reposo.</div>
               </FormField>
+              <FormField label="Puesto que ocupa (opcional)">
+                <SSelect
+                  value={recursoTipo}
+                  onChange={v => setRecursoTipo(v as TipoRecurso | '')}
+                  options={[{ value: '', label: 'Ninguno' }, ...TIPOS_RECURSO.map(t => ({ value: t, label: RECURSO_LABEL[t] }))]}
+                  width={200}
+                />
+                <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Solo si el salon tiene ese puesto dado de alta en Puestos. Si no, no limita nada.</div>
+              </FormField>
+              {!!recursoTipo && (
+                <FormField label="Cuando lo ocupa">
+                  <Segmented
+                    value={recursoFase}
+                    onChange={v => setRecursoFase(v as FaseRecurso)}
+                    options={[
+                      { value: 'final', label: 'Tras el reposo' },
+                      { value: 'completa', label: 'Toda la cita' },
+                    ]}
+                  />
+                  <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>El lavacabezas se coge al salir del reposo; una cabina, de principio a fin.</div>
+                </FormField>
+              )}
               <FormField label="Antelacion minima (min)">
                 <STextInput value={String(minAntelacion)} onChange={v => setMinAntelacion(parseInt(v) || 0)} placeholder="0" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Tiempo minimo de antelacion para reservar este servicio. 0 = sin restriccion.</div>
