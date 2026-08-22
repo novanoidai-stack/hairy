@@ -1677,18 +1677,31 @@
      anonimo) la puerta es crear la cuenta, no un formulario comercial. */
   var ctaAcceso=$('#ctaAcceso');
   function pintarCtaAcceso(haySesion){
-    if(!ctaAcceso) return;
-    var largo=ctaAcceso.querySelector('.cta-long'), corto=ctaAcceso.querySelector('.cta-short');
-    if(haySesion){
-      ctaAcceso.href='/app';
-      if(largo) largo.textContent='Entrar a mi Mecha';
-      if(corto) corto.textContent='Entrar';
-      ctaAcceso.title='Tu cuenta ya incluye 30 dias del software completo. Entra y montalo con tus servicios y tus precios.';
-    } else {
-      ctaAcceso.href='acceso.html?next=app#signup';
-      if(largo) largo.textContent='Crear cuenta y probar 30 días';
-      if(corto) corto.textContent='Probar';
-      ctaAcceso.title='Crea tu cuenta y entra al software completo 30 dias, sin tarjeta y sin permanencia.';
+    var mapaCta=$('#mapaCta'), mapaPie=$('#mapaPie');
+    if(ctaAcceso){
+      var largo=ctaAcceso.querySelector('.cta-long'), corto=ctaAcceso.querySelector('.cta-short');
+      if(haySesion){
+        ctaAcceso.href='/app';
+        if(largo) largo.textContent='Entrar a mi Mecha';
+        if(corto) corto.textContent='Entrar';
+        ctaAcceso.title='Tu cuenta ya incluye 30 dias del software completo. Entra y montalo con tus servicios y tus precios.';
+      } else {
+        ctaAcceso.href='acceso.html?next=app#signup';
+        if(largo) largo.textContent='Crear cuenta y probar 30 días';
+        if(corto) corto.textContent='Probar';
+        ctaAcceso.title='Crea tu cuenta y entra al software completo 30 dias, sin tarjeta y sin permanencia.';
+      }
+    }
+    // El plano final dice lo mismo: si ya tienes cuenta, la puerta es la app.
+    if(mapaCta){
+      mapaCta.href = haySesion ? '/app' : 'acceso.html?next=app#signup';
+      var txt=mapaCta.querySelector('span');
+      if(txt) txt.textContent = haySesion ? 'Entrar a mi Mecha' : 'Crear cuenta y probar 30 días';
+    }
+    if(mapaPie){
+      mapaPie.textContent = haySesion
+        ? 'Tu cuenta ya incluye 30 días del software completo, sin tarjeta y sin permanencia.'
+        : 'Son 30 días del software completo, sin tarjeta y sin permanencia.';
     }
   }
 
@@ -2747,6 +2760,10 @@
     if(sig){ playTutorial(sig.id); return; }
     stopAutoplay();
     closeTour();
+    // Se acabo TODO el recorrido: se cierra con el plano de conjunto. Solo
+    // aqui — si el visitante se sale con "Ver por libre" (closeTour a secas)
+    // no se le planta una pantalla delante.
+    mostrarMapa();
   }
   function tourPrev(){ dirPaso=-1; if(ti>0){ ti--; renderStep(true); } }
   function closeTour(){
@@ -2904,6 +2921,33 @@
     setTimeout(function(){ document.body.classList.remove('dm-intro-leaving'); }, 700);
   }
   function closeIntro(){ salirIntro(null); }
+
+  /* ---------- PLANO FINAL: Mecha entero ----------
+     El recorrido termina y el visitante se queda mirando la ultima pantalla que
+     tocaba (Ajustes → Soporte), que es justo la que menos resume el producto.
+     Este plano cierra con el mapa completo y de ahi sale al software. */
+  var mapaEl=$('#mapa');
+  function mostrarMapa(){
+    if(!mapaEl) return;
+    // Misma marca que usa la intro: aparta el aviso de cookies mientras haya
+    // una pantalla a sangre por encima del software.
+    document.body.classList.add('dm-intro-on');
+    mapaEl.classList.add('show');
+    mapaEl.scrollTop=0;
+  }
+  function cerrarMapa(){
+    if(!mapaEl) return;
+    mapaEl.classList.remove('show');
+    document.body.classList.remove('dm-intro-on');
+  }
+  var mapaRepetir=$('#mapaRepetir'), mapaLibre=$('#mapaLibre');
+  if(mapaRepetir) mapaRepetir.addEventListener('click', function(){
+    cerrarMapa(); bootTourEngine(); playTutorial('pilares'); startAutoplay();
+  });
+  if(mapaLibre) mapaLibre.addEventListener('click', cerrarMapa);
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && mapaEl && mapaEl.classList.contains('show')) cerrarMapa();
+  });
 
   var introGuided=$('#introGuided');
   if(introGuided) introGuided.addEventListener('click', function(e){ e.preventDefault(); salirIntro('pilares'); });
