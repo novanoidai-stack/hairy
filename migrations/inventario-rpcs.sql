@@ -58,12 +58,15 @@ begin
       'activo', ps.activo,
       'ultima_modificacion', ps.stock_ultima_modificacion
     )
+  -- OJO: el orden va DENTRO de jsonb_agg. Colgado del select, Postgres pide que
+  -- esas columnas esten en un GROUP BY y la funcion revienta con 42803 al
+  -- llamarla. Se arreglo el 22 ago 2026 tras volver a desplegar esta version.
+    order by ps.stock_bajo desc, ps.nombre
   ) into v_resultado
   from productos_con_stock ps
   where ps.negocio_id = v_negocio_id
     and (not p_solo_activos or ps.activo = true)
-    and (p_categoria is null or ps.categoria = p_categoria)
-  order by ps.stock_bajo desc, ps.nombre;
+    and (p_categoria is null or ps.categoria = p_categoria);
 
   return jsonb_build_object(
     'ok', true,

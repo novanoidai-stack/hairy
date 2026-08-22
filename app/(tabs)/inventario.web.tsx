@@ -74,6 +74,11 @@ const TOKENS = {
 // ────────────────────────────────────────────────────────────────────────────────
 // TIPOS
 // ────────────────────────────────────────────────────────────────────────────────
+import {
+  UNIDAD_SIMBOLO, formatearCostePorUnidad, desgloseEnvases,
+  type UnidadMedida,
+} from '@/lib/inventario/escandallo';
+
 interface Producto {
   id: string;
   nombre: string;
@@ -90,6 +95,13 @@ interface Producto {
   activo: boolean;
   dias_demora_proveedor?: number;
   consumo_30d?: number;
+  // Zona tecnica: un tinte no se gasta en botes, se gasta en gramos.
+  unidad_medida?: UnidadMedida;
+  capacidad_envase?: number | null;
+  coste_envase_cents?: number | null;
+  envases_cerrados?: number | null;
+  resto_abierto?: number | null;
+  coste_unidad_micros?: number | null;
 }
 
 interface Movimiento {
@@ -133,6 +145,11 @@ export default function InventarioScreen() {
   const [showNuevoProducto, setShowNuevoProducto] = useState(false);
   const [showMovimiento, setShowMovimiento] = useState(false);
   const [showHistorial, setShowHistorial] = useState(false);
+  const [showMedida, setShowMedida] = useState(false);
+  const [medida, setMedida] = useState<{ unidad: UnidadMedida; capacidad: string; coste: string }>({
+    unidad: 'unidades', capacidad: '', coste: '',
+  });
+  const [medidaError, setMedidaError] = useState('');
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
 
@@ -674,6 +691,142 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
   // ────────────────────────────────────────────────────────────────────────────────
   // MODAL HISTORIAL DE MOVIMIENTOS
   // ────────────────────────────────────────────────────────────────────────────────
+  // Como se mide un producto y lo que cuesta el envase. Es lo que convierte el
+  // inventario de "botes" en algo que sabe cuanto vale un servicio.
+  const ModalMedida = () => {
+    if (!showMedida || !productoSeleccionado) return null;
+
+    const guardar = async () => {
+      setMedidaError('');
+      const capacidad = medida.capacidad.trim() ? parseInt(medida.capacidad, 10) : null;
+      const costeEuros = medida.coste.trim() ? parseFloat(medida.coste.replace(',', '.')) : null;
+
+      if (medida.unidad !== 'unidades' && (!capacidad || capacidad <= 0)) {
+        setMedidaError('Dime cuánto trae el envase: sin eso, el stock en gramos no significa nada.');
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('actualizar_medida_producto', {
+        p_producto_id: productoSeleccionado.id,
+        p_unidad_medida: medida.unidad,
+        p_capacidad_envase: capacidad,
+        p_coste_envase_cents: costeEuros != null ? Math.round(costeEuros * 100) : null,
+      });
+
+      if (error || !data?.ok) {
+        setMedidaError(error ? mensajeDeError(error) : (data?.error ?? 'No se pudo guardar.'));
+        return;
+      }
+      setShowMedida(false);
+      cargarInventario();
+    };
+
+    // Vista previa del coste por gramo mientras se teclea: es el numero que
+    // luego manda en el margen, y verlo aqui evita cargar mal una garrafa.
+    const capacidadNum = parseInt(medida.capacidad, 10);
+    const costeNum = parseFloat(medida.coste.replace(',', '.'));
+    const microsPreview = capacidadNum > 0 && !Number.isNaN(costeNum)
+      ? Math.round((costeNum * 100 * 10000) / capacidadNum)
+      : null;
+
+    return createPortal(
+      <div style={styles.modalOverlay}>
+        <div style={styles.modalContent}>
+          <div style={styles.modalHeader}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={styles.modalHeaderIcon}>
+                <Icon name="settings" size={20} color={TOKENS.primary} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h3 style={styles.modalTitle}>Cómo se mide</h3>
+                <span style={{ fontSize: '12px', color: TOKENS.textTer }}>{productoSeleccionado.nombre}</span>
+              </div>
+            </div>
+            <button className="m-btn-icon m-btn-icon-close" style={styles.modalClose} onClick={() => setShowMedida(false)}>
+              <Icon name="x" size={20} color={TOKENS.textSec} />
+            </button>
+          </div>
+
+          <div style={styles.modalBody}>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>Se mide en</label>
+              <div style={styles.tipoButtons}>
+                {(['unidades', 'gramos', 'mililitros'] as const).map((u) => (
+                  <button
+                    key={u}
+                    className={medida.unidad === u ? 'btn-tab is-active' : 'btn-tab'}
+                    onClick={() => setMedida({ ...medida, unidad: u })}
+                  >
+                    {u === 'unidades' ? 'Unidades' : u === 'gramos' ? 'Gramos' : 'Mililitros'}
+                  </button>
+                ))}
+              </div>
+              <span style={{ fontSize: 11.5, color: TOKENS.textTer, marginTop: 6, display: 'block' }}>
+                Unidades para lo que se vende entero (champú, cera). Gramos o mililitros para la zona técnica.
+              </span>
+            </div>
+
+            {medida.unidad !== 'unidades' && (
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>
+                  Cuánto trae un envase ({UNIDAD_SIMBOLO[medida.unidad]})
+                </label>
+                <input
+                  style={styles.formInput}
+                  type="number"
+                  value={medida.capacidad}
+                  onChange={(e) => setMedida({ ...medida, capacidad: e.target.value })}
+                  placeholder={medida.unidad === 'gramos' ? '60' : '1000'}
+                />
+              </div>
+            )}
+
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>Lo que te cuesta un envase (€, sin IVA)</label>
+              <input
+                style={styles.formInput}
+                type="text"
+                inputMode="decimal"
+                value={medida.coste}
+                onChange={(e) => setMedida({ ...medida, coste: e.target.value })}
+                placeholder="8,50"
+              />
+              <span style={{ fontSize: 11.5, color: TOKENS.textTer, marginTop: 6, display: 'block' }}>
+                Lo que pagas al proveedor, no lo que cobras tú.
+              </span>
+            </div>
+
+            {microsPreview != null && medida.unidad !== 'unidades' && (
+              <div style={{
+                background: TOKENS.primarySoft, border: `1px solid ${TOKENS.border}`,
+                borderRadius: 10, padding: '10px 12px', fontSize: 13, color: TOKENS.text,
+              }}>
+                Te sale a <strong>{formatearCostePorUnidad(microsPreview, medida.unidad)}</strong>
+              </div>
+            )}
+
+            {medidaError && (
+              <div style={{
+                background: 'rgba(226,59,52,0.12)', border: '1px solid rgba(226,59,52,0.35)',
+                borderRadius: 10, padding: '10px 12px', fontSize: 13, color: TOKENS.danger, marginTop: 10,
+              }}>{medidaError}</div>
+            )}
+          </div>
+
+          <div style={styles.modalFooter}>
+            <button className="m-btn-secondary" style={styles.buttonSecondary} onClick={() => setShowMedida(false)}>
+              Cancelar
+            </button>
+            <button className="m-btn-primary" style={{ ...styles.buttonPrimary, padding: '10px 20px' }} onClick={guardar}>
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   const ModalHistorial = () => {
     if (!showHistorial) return null;
     return createPortal(
@@ -1269,7 +1422,22 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
                             ...(isLow ? styles.tableStockValueLow : styles.tableStockValueOk)
                           }}>
                             {producto.stock_actual}
+                            {producto.unidad_medida && producto.unidad_medida !== 'unidades'
+                              ? ` ${UNIDAD_SIMBOLO[producto.unidad_medida]}`
+                              : ''}
                           </span>
+                          {(() => {
+                            // Como lo cuenta quien abre el armario: botes sin abrir
+                            // y lo que queda del empezado.
+                            const d = desgloseEnvases(producto.stock_actual, producto.capacidad_envase);
+                            if (!d || producto.unidad_medida === 'unidades') return null;
+                            const u = UNIDAD_SIMBOLO[producto.unidad_medida ?? 'gramos'];
+                            return (
+                              <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>
+                                {d.cerrados} sin abrir{d.abierto > 0 ? ` + ${d.abierto} ${u}` : ''}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td style={styles.td}>
                           <span style={{
@@ -1291,6 +1459,25 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
                               className="btn-action-premium"
                             >
                               <Icon name="edit" size={15} color={TOKENS.textSec} />
+                            </button>
+                            <button
+                              style={styles.tableActionButton}
+                              onClick={() => {
+                                setProductoSeleccionado(producto);
+                                setMedidaError('');
+                                setMedida({
+                                  unidad: producto.unidad_medida ?? 'unidades',
+                                  capacidad: producto.capacidad_envase ? String(producto.capacidad_envase) : '',
+                                  coste: producto.coste_envase_cents != null
+                                    ? (producto.coste_envase_cents / 100).toFixed(2)
+                                    : '',
+                                });
+                                setShowMedida(true);
+                              }}
+                              title="Cómo se mide y qué cuesta"
+                              className="btn-action-premium"
+                            >
+                              <Icon name="settings" size={15} color={TOKENS.textSec} />
                             </button>
                             <button
                               style={styles.tableActionButton}
@@ -1327,6 +1514,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
       {/* Modales */}
       <ModalNuevoProducto />
       <ModalMovimiento />
+      <ModalMedida />
       <ModalHistorial />
       {showManualPanel && (
         <ManualPanel
