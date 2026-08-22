@@ -614,6 +614,101 @@
     .dm-intro h2 .ln>i{transform:none}
   }
 
+  /* ---------- PLANO FINAL: "Mecha entero" ----------
+     Ultimo fotograma del recorrido. Hasta aqui se ha visto el software pantalla
+     a pantalla, y quien acaba no tiene una imagen de conjunto: sabe que hay
+     agenda, fichas y caja, pero no CUANTO hay. Este plano cierra el recorrido
+     con el mapa completo — modulos, lo que se configura y lo que solo tiene
+     Mecha por ser de peluqueria — y de ahi sale al software.
+     Mismo lenguaje que la intro (negro, brasa, barras) para que se lea como el
+     cierre del mismo plano y no como otra pantalla mas. */
+  .dm-mapa{position:fixed;inset:0;z-index:72;display:none;background:#050507;
+    overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;-webkit-font-smoothing:antialiased}
+  .dm-mapa::-webkit-scrollbar{display:none}
+  .dm-mapa.show{display:grid;align-items:center;justify-items:center}
+  .dm-mapa-in{position:relative;z-index:4;width:100%;max-width:1020px;
+    padding:clamp(26px,5vh,52px) clamp(18px,4vw,34px);
+    animation:dmCamIn 1.1s cubic-bezier(.16,1,.3,1) both}
+
+  .dm-mapa-top{display:flex;align-items:center;gap:12px;margin:0 0 clamp(14px,2.4vh,20px)}
+  .dm-mapa .gmark{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 6px 22px rgba(244,80,30,.65));
+    animation:dmMarkIn .55s cubic-bezier(.16,1,.3,1) .06s both}
+  .dm-mapa-eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.22em;
+    text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap;
+    animation:dmRiseS .5s cubic-bezier(.16,1,.3,1) .12s both}
+  .dm-mapa-top .rule{flex:1;height:1px;transform-origin:left center;
+    background:linear-gradient(90deg,rgba(244,80,30,.55),rgba(255,255,255,.06));
+    animation:dmRule .9s cubic-bezier(.16,1,.3,1) .18s both}
+
+  .dm-mapa h2{font-family:var(--display);font-weight:800;font-size:clamp(27px,4.6vw,44px);
+    letter-spacing:-.038em;line-height:1.04;margin:0 0 10px;color:#fff}
+  .dm-mapa h2 .ln{display:block;overflow:hidden;padding:.06em 0 .12em;margin-bottom:-.1em}
+  .dm-mapa h2 .ln>i{display:block;font-style:normal;transform:translate3d(0,112%,0)}
+  .dm-mapa.show h2 .ln>i{animation:dmLineUp .8s cubic-bezier(.16,1,.3,1) .16s both}
+  .dm-mapa h2 em{font-family:var(--serif);font-style:italic;font-weight:400;
+    background:linear-gradient(100deg,#ffcf4a,#ff8a3d 52%,#f4501e);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .dm-mapa-sub{font-size:clamp(13px,1.8vw,15px);color:rgba(255,255,255,.6);line-height:1.55;
+    margin:0 0 clamp(18px,3vh,28px);max-width:60ch;
+    animation:dmRise .6s cubic-bezier(.16,1,.3,1) .38s both}
+  .dm-mapa-sub b{color:rgba(255,255,255,.92);font-weight:600}
+
+  /* Tres columnas: que hay, que se configura, que no tiene nadie mas. */
+  .dm-mapa-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,18px);
+    margin-bottom:clamp(18px,3vh,26px)}
+  .dm-mapa-col{border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:clamp(14px,1.8vw,18px);
+    background:rgba(255,255,255,.022);min-width:0;
+    animation:dmRise .6s cubic-bezier(.16,1,.3,1) both}
+  .dm-mapa-col:nth-child(1){animation-delay:.48s}
+  .dm-mapa-col:nth-child(2){animation-delay:.56s}
+  .dm-mapa-col:nth-child(3){animation-delay:.64s}
+  .dm-mapa-col.destacada{border-color:rgba(244,80,30,.34);background:rgba(244,80,30,.06)}
+  .dm-mapa-k{display:flex;align-items:baseline;gap:8px;margin-bottom:11px}
+  .dm-mapa-k b{font-family:var(--display);font-size:14.5px;font-weight:700;letter-spacing:-.015em;color:#fff}
+  .dm-mapa-k span{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(255,138,61,.7)}
+  .dm-mapa-list{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+  .dm-mapa-list li{font-size:11.5px;line-height:1.25;color:rgba(255,255,255,.72);
+    padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.06);white-space:nowrap}
+  .dm-mapa-col.destacada .dm-mapa-list li{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.22);
+    color:rgba(255,236,228,.9);white-space:normal}
+  .dm-mapa-nota{font-size:11.5px;color:rgba(255,255,255,.38);line-height:1.45;margin:11px 0 0}
+
+  .dm-mapa-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+    animation:dmRise .6s cubic-bezier(.16,1,.3,1) .74s both}
+  .dm-mapa-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    padding:14px 26px;border-radius:13px;font-family:var(--display);font-size:15px;font-weight:700;
+    letter-spacing:-.012em;color:#fff;text-decoration:none;
+    background:linear-gradient(135deg,#ff8a3d 0%,#f4501e 58%,#d1360b 100%);
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 14px 40px -12px rgba(244,80,30,.85),inset 0 1px 0 rgba(255,255,255,.22);
+    cursor:pointer;position:relative;overflow:hidden;
+    transition:transform .24s cubic-bezier(.16,1,.3,1),box-shadow .24s cubic-bezier(.16,1,.3,1)}
+  .dm-mapa-cta:hover{transform:translateY(-2px);box-shadow:0 20px 52px -12px rgba(244,80,30,1),inset 0 1px 0 rgba(255,255,255,.3)}
+  .dm-mapa-cta svg{width:15px;height:15px;flex-shrink:0}
+  .dm-mapa-ghost{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+    color:rgba(255,255,255,.5);background:transparent;border:1px solid rgba(255,255,255,.12);
+    padding:12px 18px;border-radius:12px;cursor:pointer;text-decoration:none;
+    transition:color .2s ease,border-color .2s ease,background .2s ease}
+  .dm-mapa-ghost:hover{color:#fff;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.05)}
+  .dm-mapa-pie{font-size:11.5px;color:rgba(255,255,255,.32);margin:14px 0 0;line-height:1.5;
+    animation:dmRiseS .55s cubic-bezier(.16,1,.3,1) .86s both}
+
+  @media(max-width:900px){
+    .dm-mapa-cols{grid-template-columns:minmax(0,1fr)}
+    .dm-mapa-in{padding:24px 18px}
+    .dm-mapa-actions{flex-direction:column;align-items:stretch}
+    .dm-mapa-cta,.dm-mapa-ghost{width:100%}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .dm-mapa-in,.dm-mapa .gmark,.dm-mapa-eyebrow,.dm-mapa-top .rule,
+    .dm-mapa.show h2 .ln>i,.dm-mapa-sub,.dm-mapa-col,
+    .dm-mapa-actions,.dm-mapa-pie{animation-duration:.01ms!important;animation-delay:0s!important}
+    .dm-mapa h2 .ln>i{transform:none}
+  }
+
   /* Aviso de cookies: en la demo vive ARRIBA. Abajo se comia el texto del
      recorrido y los botones de reproduccion (el dock ocupa toda la franja
      inferior). Sigue siendo el mismo aviso, solo cambia de sitio.
@@ -1273,6 +1368,81 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span>Salón de prueba ficticio: puedes crear, mover y borrar lo que quieras.</span>
     </p>
+  </div>
+</div>
+
+<!-- ============ PLANO FINAL: MECHA ENTERO ============
+     Se enciende al terminar el ultimo recorrido (ver `mostrarMapa`). Es el
+     cierre: el mapa de todo lo que hay, para que quien acaba salga con una
+     imagen de conjunto y no con la ultima pantalla que vio. -->
+<div class="dm-mapa" id="mapa">
+  <div class="dm-intro-glow" aria-hidden="true"></div>
+  <div class="dm-intro-grain" aria-hidden="true"></div>
+  <div class="dm-intro-vig" aria-hidden="true"></div>
+  <div class="dm-mapa-in">
+    <div class="dm-mapa-top">
+      <svg class="gmark" viewBox="0 0 40 40" aria-hidden="true"><use href="#mecha-mark" /></svg>
+      <span class="dm-mapa-eyebrow">Fin del recorrido</span>
+      <span class="rule" aria-hidden="true"></span>
+    </div>
+
+    <h2><span class="ln"><i>Esto es Mecha <em>entero</em></i></span></h2>
+    <p class="dm-mapa-sub">
+      Quince pantallas, diecisiete pestañas de ajustes y las cosas que solo
+      necesita una peluquería. <b>Lo has visto funcionando</b>: ahora lo tienes
+      todo junto, de un vistazo.
+    </p>
+
+    <div class="dm-mapa-cols">
+      <div class="dm-mapa-col">
+        <div class="dm-mapa-k"><b>Las pantallas</b><span>15 + portal</span></div>
+        <ul class="dm-mapa-list">
+          <li>Agenda</li><li>Mi jornada</li><li>Lista de espera</li><li>Citas</li>
+          <li>Clientes</li><li>Bandeja</li><li>Campañas</li><li>Caja</li>
+          <li>Presupuestos</li><li>Equipo</li><li>Inventario</li><li>Reseñas</li>
+          <li>Informes y registros</li><li>Ayuda y manuales</li><li>Ajustes</li>
+        </ul>
+        <p class="dm-mapa-nota">Y fuera del software, tu <b>portal público de reserva</b> y tu página de reseñas, con tu marca y sin comisiones.</p>
+      </div>
+
+      <div class="dm-mapa-col">
+        <div class="dm-mapa-k"><b>Lo que configuras</b><span>17 pestañas</span></div>
+        <ul class="dm-mapa-list">
+          <li>Identidad y marca</li><li>Horarios y descansos</li><li>Catálogo y precios</li>
+          <li>Duración por profesional</li><li>Tiempos de reposo</li><li>Reglas de la agenda</li>
+          <li>Comisiones y objetivos</li><li>Cobros y señales</li><li>Datos fiscales</li>
+          <li>Presupuestos</li><li>Plantillas</li><li>Migrar tus datos con IA</li>
+          <li>Avisos de WhatsApp</li><li>Políticas y consentimientos</li><li>Portal y QR</li>
+          <li>Fidelización</li><li>Referidos</li><li>Accesos y roles</li><li>Plan y facturación</li>
+        </ul>
+        <p class="dm-mapa-nota">Nada de esto es obligatorio para empezar: Mecha funciona desde el primer día y lo vas afinando.</p>
+      </div>
+
+      <div class="dm-mapa-col destacada">
+        <div class="dm-mapa-k"><b>Lo que es de peluquería</b><span>el diferencial</span></div>
+        <ul class="dm-mapa-list">
+          <li>Fase activa y reposo: el tinte actúa y tú atiendes a otra</li>
+          <li>Ficha de color con fórmula, oxidante, tiempos y foto</li>
+          <li>Duración distinta según quién lo haga</li>
+          <li>Servicios encadenados, incluso con dos profesionales</li>
+          <li>Alergias y manías siempre a la vista</li>
+          <li>Extras que el portal propone y aprende de tu historial</li>
+          <li>Stock de tinte en gramos, no en botes</li>
+          <li>Fichaje legal y registros para tu gestoría</li>
+          <li>Recepcionista de IA por WhatsApp y por teléfono</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="dm-mapa-actions">
+      <a class="dm-mapa-cta" id="mapaCta" href="/app">
+        <span>Entrar a mi Mecha</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+      </a>
+      <button class="dm-mapa-ghost" id="mapaRepetir" type="button">Volver a ver un recorrido</button>
+      <button class="dm-mapa-ghost" id="mapaLibre" type="button">Seguir tocando la demo</button>
+    </div>
+    <p class="dm-mapa-pie" id="mapaPie">Tu cuenta ya incluye 30 días del software completo, sin tarjeta y sin permanencia.</p>
   </div>
 </div>
 
