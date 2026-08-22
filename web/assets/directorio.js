@@ -67,8 +67,15 @@
       },
       body: JSON.stringify(args || {})
     }).then(function (r) {
-      if (!r.ok) throw new Error('rpc ' + fn + ': ' + r.status);
+      if (!r.ok) {
+        var err = new Error('rpc ' + fn + ': ' + r.status);
+        if (window.reportarError) window.reportarError(err, { origen: 'marketplace', tipo: 'operativo' });
+        throw err;
+      }
       return r.json();
+    }).catch(function (e) {
+      if (window.reportarError) window.reportarError(e, { origen: 'marketplace' });
+      throw e;
     });
   }
 

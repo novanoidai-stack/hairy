@@ -2264,6 +2264,9 @@ function CajaScreen() {
             }
           }}
           className="ca-modal-overlay"
+          // El recorrido guiado abre este panel en su paso; al avanzar hay que
+          // cerrarlo o se apila sobre los pasos siguientes (arqueo y registros).
+          data-demo-cerrar="caja-venta"
           style={{
             position: "fixed",
             inset: 0,

@@ -34,6 +34,7 @@
 <!-- Vuelta de un SSO (Google aterriza en la Site URL = esta landing con el
      access_token en el hash): no mostramos la intro, estamos a punto de
      redirigir al destino real. Debe ejecutarse antes que mecha.js. -->
+<script src="assets/reportarError.js"></script>
 <script>try{if(location.hash.indexOf('access_token')>=0)sessionStorage.setItem('mecha_intro','1');}catch(e){}</script>
 
 <!-- Structured data: WebSite (sitelinks search box + speakable para voz/IA) -->

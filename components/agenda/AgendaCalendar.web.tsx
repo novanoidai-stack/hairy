@@ -18877,6 +18877,11 @@ export function DetalleCitaModal({
   // esta cabecera es lo primero que cambia respecto a una cita normal: hay que
   // explicarla, no dejar que sorprenda.
   const dHuecoRef = useRef<HTMLDivElement | null>(null);
+  // "detalle-cobrar": el paso final del cobro (efectivo / datafono / Bizum). Vive
+  // dentro de la hoja de cobro incrustada en la seccion de pagos, asi que no hay
+  // un ref de React al que agarrarse desde aqui: se resuelve por su marca
+  // `data-demo="cobro-metodo"` cuando la seccion termina de montarse.
+  const dCobroRef = useRef<HTMLElement | null>(null);
   // Zonas "de seccion completa" (resumen, notas, productos, pagos, historial):
   // no tienen un bloque suelto al que apuntar, asi que el foco va al primer
   // bloque real del cuerpo de la seccion, que se resuelve al montarse.
@@ -18906,6 +18911,7 @@ export function DetalleCitaModal({
         "secuencia-reposo": "servicio",
         "secuencia-activo2": "servicio",
         formula: "color",
+        cobrar: "pagos",
         ...ZONAS_SECCION,
       };
       if (seccionPorZona[zone]) setSeccionActiva(seccionPorZona[zone]);
@@ -18949,6 +18955,31 @@ export function DetalleCitaModal({
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoZone, seccionActiva]);
+  // El bloque del metodo de cobro lo pinta CobroSheet, que no expone ref. Se
+  // busca por su marca mientras la zona este activa (la hoja tarda en montarse
+  // porque la seccion de pagos se acaba de activar).
+  useEffect(() => {
+    if (demoZone !== "cobrar") return;
+    let tries = 0;
+    let raf = 0;
+    const pick = () => {
+      const el = document.querySelector(
+        '[data-demo="cobro-metodo"]',
+      ) as HTMLElement | null;
+      if (el && el.getBoundingClientRect().height > 0) {
+        dCobroRef.current = el;
+        traerAlFoco(el);
+        return;
+      }
+      if (tries++ < 400) raf = requestAnimationFrame(pick);
+    };
+    pick();
+    return () => {
+      cancelAnimationFrame(raf);
+      dCobroRef.current = null;
+    };
+  }, [demoZone, seccionActiva]);
+
   useEffect(() => {
     if (!demoZone) return;
     const m: Record<string, { current: HTMLElement | null }> = {
@@ -18963,6 +18994,7 @@ export function DetalleCitaModal({
       formula: dFormRef,
       productos: dSeccionRef,
       pagos: dSeccionRef,
+      cobrar: dCobroRef,
       historial: dSeccionRef,
     };
     // Reintenta: la seccion recien activada tarda un frame en montarse.
@@ -18992,6 +19024,7 @@ export function DetalleCitaModal({
     formula: dFormRef,
     productos: dSeccionRef,
     pagos: dSeccionRef,
+    cobrar: dCobroRef,
     historial: dSeccionRef,
   };
   const demoActiveRef = (demoZone && demoRefMap[demoZone]) || dSeqRef;
@@ -19018,6 +19051,8 @@ export function DetalleCitaModal({
                       ? "Productos vendidos"
                       : demoZone === "pagos"
                         ? "Cobro desde la cita"
+                        : demoZone === "cobrar"
+                          ? "Efectivo, datáfono o Bizum"
                         : demoZone === "historial"
                           ? "Historial del cliente"
                           : "";

@@ -833,14 +833,25 @@ export default function PortalReservaWeb() {
                       ) : (
                         // Sin busqueda: acordeon por categoria, todo plegado de inicio.
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                          {grupos.map(g => {
+                          {grupos.map((g, gi) => {
                             const abierta = catAbiertaEfectiva === g.id;
                             const tieneSeleccion = g.servicios.some(s => s.id === servicio?.id);
+                            // El recorrido guiado necesita llegar a extras,
+                            // profesional y hora, y los tres solo existen con un
+                            // servicio elegido. El acordeon nace PLEGADO, asi que
+                            // la cadena de aperturas empieza aqui: primero esta
+                            // cabecera, luego la fila del servicio (abajo).
+                            // Solo la primera categoria: marcar la primera fila de
+                            // TODAS dejaba que el recorrido cayera en la ultima
+                            // pintada (una barberia sin sugerencias) y el paso de
+                            // los extras se quedaba sin nada que ensenar.
+                            const guiaDemo = gi === 0 ? 'portal-extras portal-profesional portal-hora' : undefined;
                             return (
                               <div key={g.id} style={{ background: '#fff', border: `1.5px solid ${abierta || tieneSeleccion ? T.primary : T.border}`, borderRadius: 16, overflow: 'hidden' }}>
                                 <button
                                   onClick={() => setCatAbierta(abierta ? null : g.id)}
                                   aria-expanded={abierta}
+                                  data-demo-abrir={abierta ? undefined : guiaDemo}
                                   style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '15px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                                 >
                                   <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 700 }}>{g.nombre}</span>
@@ -855,7 +866,7 @@ export default function PortalReservaWeb() {
                                 {abierta && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: '0 10px 10px' }}>
                                     {g.servicios.map(sv => (
-                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} demoAbrir={g.servicios[0]?.id === sv.id ? 'portal-extras portal-profesional portal-hora' : undefined} onClick={() => elegirServicio(sv)} />
+                                      <ServicioFila key={sv.id} sv={sv} selected={servicio?.id === sv.id} mostrarPrecio={mostrarPrecioEnLista} demoAbrir={g.servicios[0]?.id === sv.id && servicio?.id !== sv.id ? guiaDemo : undefined} onClick={() => elegirServicio(sv)} />
                                     ))}
                                   </div>
                                 )}

@@ -123,12 +123,20 @@ export function mensajeDeError(error: unknown, fallback = 'No se pudo completar 
   if (!error) return fallback;
   const e = error as ErrLike;
   const resultado = resolverMensaje(e, fallback);
-  // Le pasamos el mensaje ya humanizado (agrupa mejor y el staff lo lee sin
-  // traducir) y el crudo de Postgres como pila, para poder ver el 23505/23503
-  // real detras de una frase como "Ya existe un registro con...".
+  const pila = `${e.code || ''} ${e.message || ''} ${e.details || ''}`.trim();
+  const lower = `${resultado} ${pila}`.toLowerCase();
+  let tipo: 'operativo' | 'ia' | 'creditos' | 'red' = 'operativo';
+  if (/key limit|403|quota|credits?|insufficient_quota|balance|payment required|billing|402/i.test(lower)) {
+    tipo = 'creditos';
+  } else if (/openrouter|chispa|model_not_found|edge function|tokens|completions/i.test(lower)) {
+    tipo = 'ia';
+  } else if (/failed to fetch|networkerror|fetch failed|err_network|timeout|connection/i.test(lower)) {
+    tipo = 'red';
+  }
+
   reportarError(
     { message: resultado },
-    { tipo: 'operativo', pila: `${e.code || ''} ${e.message || ''} ${e.details || ''}`.trim() },
+    { tipo, pila },
   );
   return resultado;
 }

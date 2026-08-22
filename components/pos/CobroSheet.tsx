@@ -819,8 +819,13 @@ export function CobroSheet(props: CobroSheetProps) {
           </div>
         ) : (
           <>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Método</div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+            {/* Zona del recorrido guiado: el PASO FINAL del cobro, que es donde
+                se elige efectivo, datafono o Bizum. El paso "cobra aqui mismo"
+                apuntaba antes a la seccion entera de pagos y lo que se veia era
+                la cabecera, no el momento de cobrar. */}
+            <div data-demo="cobro-metodo">
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Método</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {METODOS.map(([k, lbl]) => {
                 const on = metodo === k;
                 return (
@@ -830,7 +835,9 @@ export function CobroSheet(props: CobroSheetProps) {
               {puedeMixto && (
                 <button key="mixto" onClick={() => setMetodo('mixto')} style={{ flex: 1, minWidth: 80, padding: '10px 0', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: metodo === 'mixto' ? T.successSoft : T.bgCard, border: `1px solid ${metodo === 'mixto' ? T.success : T.border}`, color: metodo === 'mixto' ? T.success : T.textSec }}>Dividir</button>
               )}
+              </div>
             </div>
+            <div style={{ height: 16 }} />
 
             {metodo === 'mixto' && (
               <div style={{ marginBottom: 16 }}>
@@ -901,6 +908,10 @@ export function CobroSheet(props: CobroSheetProps) {
   ) : (
     <div
       onClick={() => { if (!enviando) onClose(); }}
+      // El recorrido guiado abre esta hoja para el paso "asi se cobra". Al pasar
+      // al siguiente paso hay que recogerla: si no, se queda encima del arqueo y
+      // de los registros, tapando justo lo que se esta explicando.
+      data-demo-cerrar="caja-cobrar"
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: 'center', padding: 16 }}
     >
       {sheetBody}

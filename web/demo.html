@@ -12,8 +12,16 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" />
 <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" /></noscript>
+<script src="assets/reportarError.js"></script>
 <link rel="stylesheet" href="assets/mecha.css" />
 <link rel="stylesheet" href="assets/mecha-sections.css" />
+<script>
+  /* La intro se pinta desde el HTML para que sea el PRIMER fotograma. Si esta
+     pestaña ya la vio, hay que saberlo ANTES del primer pintado o se cuela un
+     destello de intro sobre la demo ya montada: por eso este script va aqui,
+     en el head, y no con el resto. */
+  try{ if(sessionStorage.getItem('mecha_demo_intro')==='1') document.documentElement.classList.add('dm-intro-vista'); }catch(e){}
+</script>
 <style>
   html,body{height:100dvh;margin:0;padding:0;width:100%;position:fixed;inset:0;overflow:hidden}
   html{overflow-x:hidden}
@@ -25,9 +33,12 @@
   .dm-bar .brand{display:flex;align-items:center;gap:9px}
   .dm-bar .brand svg{width:28px;height:28px}
   .dm-bar .brand .nm{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.04em}
-  .dm-pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-    color:var(--accent-hi);background:var(--accent-soft);border:1px solid var(--accent-soft);padding:5px 11px;border-radius:999px}
-  .dm-pill .d{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 10px var(--accent-glow)}
+  /* Rotulo "Demo": tipografia, no capsula. La pildora con bolita luminosa es la
+     firma visual de plantilla generada; aqui basta con separarlo de la marca
+     con un filete y bajarle el peso. */
+  .dm-pill{display:inline-flex;align-items:center;font-family:var(--mono);font-size:10.5px;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--text-ter);
+    padding-left:12px;margin-left:2px;border-left:1px solid var(--border-hi)}
   .dm-bar-cta{display:flex;align-items:center;gap:10px;flex-shrink:0}
   .dm-bar .btn{padding:9px 16px;font-size:13.5px;white-space:nowrap}
   .dm-bar .cta-short{display:none}
@@ -366,200 +377,241 @@
     .dm-end-card p{font-size:13.5px}
   }
 
-  /* ---------- INTRO CINEMATOGRAFICA (pantalla negra, sin caja) ----------
-     Experiencia ultra-cinemática, minimalista y mobile-first.
-     Negro profundo con resplandor cálido de Mecha, tipografía cuidada,
-     chips de recorridos compactos y botón principal con foco cinematográfico. */
-  .dm-intro{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:0;
-    background:#04060b;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  /* ---------- INTRO DE LA DEMO (plano negro, entrada de cine) ----------
+     Se pinta DESDE EL HTML: antes la encendia el JS al final de boot(), o sea
+     despues de resolver la sesion, y durante ese medio segundo se veia la barra
+     y el escenario de la demo por debajo. Ahora la intro es el PRIMER
+     fotograma y lo que se aparta es ella.
+
+     Puesta en escena (las tres reglas que la separan de una plantilla):
+       1. Solo se anima transform y opacity. Nada de blur sobre tipografia
+          grande: se ve sucio y obliga a rasterizar cada fotograma.
+       2. Los titulares entran por MASCARA — suben desde debajo de su propia
+          linea, que es el gesto de un rotulo de credito. El resto entra por
+          PESO: cuanto mas pesa un bloque, menos recorre y antes asienta.
+       3. Una sola curva en toda la escena, cubic-bezier(.16,1,.3,1). */
+  .dm-intro{position:fixed;inset:0;z-index:70;display:none;background:#050507;
+    overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
     scrollbar-width:none;-webkit-font-smoothing:antialiased}
   .dm-intro::-webkit-scrollbar{display:none}
-  .dm-intro.show{display:grid}
+  .dm-intro.show{display:grid;grid-template-rows:1fr;align-items:center;justify-items:center}
+  /* Si ya se vio en esta pestaña se marca en <html> ANTES del primer pintado
+     (script en el head), para que no aparezca ni un fotograma de intro. */
+  html.dm-intro-vista .dm-intro{display:none!important}
 
-  /* Halo cálido sutil de Mecha que respira suavemente en el centro */
-  .dm-intro::before{content:"";position:absolute;left:50%;top:50%;width:min(900px,130vw);height:min(900px,130vw);
-    transform:translate3d(-50%,-50%,0);pointer-events:none;
-    background:radial-gradient(circle,rgba(244,80,30,.18) 0%,rgba(255,122,46,.07) 32%,transparent 65%);
-    animation:dmHalo 8s ease-in-out infinite;will-change:transform,opacity}
-  @keyframes dmHalo{0%,100%{opacity:.7;transform:translate3d(-50%,-50%,0) scale(1)}50%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.06)}}
+  /* Brasa: dos focos calidos desalineados que respiran a distinto ritmo. Uno
+     solo centrado leia como "degradado de plantilla"; dos desfasados dan la
+     sensacion de una fuente de luz fisica fuera de cuadro. */
+  .dm-intro-glow{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .dm-intro-glow::before,.dm-intro-glow::after{content:"";position:absolute;border-radius:50%;
+    will-change:transform,opacity}
+  .dm-intro-glow::before{left:50%;top:44%;width:min(1100px,150vw);height:min(1100px,150vw);
+    transform:translate3d(-50%,-50%,0);
+    background:radial-gradient(circle,rgba(244,80,30,.22) 0%,rgba(255,138,61,.08) 34%,transparent 66%);
+    animation:dmBrasaA 11s ease-in-out infinite}
+  .dm-intro-glow::after{left:26%;top:78%;width:min(620px,90vw);height:min(620px,90vw);
+    transform:translate3d(-50%,-50%,0);
+    background:radial-gradient(circle,rgba(255,207,74,.10) 0%,transparent 62%);
+    animation:dmBrasaB 14s ease-in-out infinite}
+  @keyframes dmBrasaA{0%,100%{opacity:.75;transform:translate3d(-50%,-50%,0) scale(1)}
+    50%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.07)}}
+  @keyframes dmBrasaB{0%,100%{opacity:.5;transform:translate3d(-50%,-50%,0) scale(1.06)}
+    50%{opacity:.85;transform:translate3d(-50%,-50%,0) scale(.96)}}
 
-  /* Viñeteado cinematográfico */
-  .dm-intro::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
-    background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(3,5,10,.82) 100%)}
+  /* Grano de pelicula: un SVG de ruido a opacidad muy baja. Es lo que quita el
+     aspecto de degradado digital plano sin costar un solo repintado (se pinta
+     una vez y no se anima). */
+  .dm-intro-grain{position:absolute;inset:-50%;pointer-events:none;z-index:1;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  /* Barras de cine estilizadas y proporcionadas */
-  .dm-cinebar{position:absolute;left:0;right:0;height:clamp(12px,3vh,24px);background:#020306;z-index:3;pointer-events:none;
-    box-shadow:0 0 25px 8px rgba(0,0,0,.95)}
+  /* Viñeteado: cierra el plano por los bordes. */
+  .dm-intro-vig{position:absolute;inset:0;pointer-events:none;z-index:2;
+    background:radial-gradient(ellipse at 50% 46%,transparent 38%,rgba(3,3,5,.9) 100%)}
+
+  /* Barras de cine: entran cerrando el encuadre y al salir se ABREN. */
+  .dm-cinebar{position:absolute;left:0;right:0;height:clamp(10px,2.6vh,22px);background:#000;z-index:3;
+    pointer-events:none;box-shadow:0 0 30px 10px rgba(0,0,0,.95)}
   .dm-cinebar.t{top:0;transform:translate3d(0,-100%,0)}
   .dm-cinebar.b{bottom:0;transform:translate3d(0,100%,0)}
-  .dm-intro.show .dm-cinebar{animation:dmBarIn .7s cubic-bezier(.16,1,.3,1) .05s forwards}
+  .dm-intro.show .dm-cinebar{animation:dmBarIn .8s cubic-bezier(.16,1,.3,1) both}
   @keyframes dmBarIn{to{transform:translate3d(0,0,0)}}
 
-  /* Contenedor central: compacto y sin scroll */
-  .dm-intro-in{position:relative;z-index:4;width:100%;max-width:540px;text-align:center;
-    padding:clamp(16px,3.2vh,32px) clamp(16px,4vw,26px);display:flex;flex-direction:column;align-items:center;justify-content:center}
+  /* Columna central. El empuje de camara vive AQUI y no en .dm-intro: el
+     contenedor scrollea, y un transform sobre un contenedor con scroll deja el
+     contenido a la deriva en iOS. */
+  .dm-intro-in{position:relative;z-index:4;width:100%;max-width:600px;
+    padding:clamp(28px,6vh,64px) clamp(20px,5vw,30px);
+    display:flex;flex-direction:column;align-items:stretch;
+    animation:dmCamIn 1.15s cubic-bezier(.16,1,.3,1) both}
+  @keyframes dmCamIn{from{transform:scale(1.045)}to{transform:none}}
 
-  /* ── Entrada escalonada POR PESO ──────────────────────────────────────
-     Antes los seis bloques entraban exactamente igual: 20px de recorrido,
-     0,75s y blur(8px) para todos. Eso es lo que hace que una entrada parezca
-     una plantilla y no una puesta en escena. Regla: cuanto mas pesa un
-     elemento en la jerarquia, MENOS recorre y antes asienta (el titular es
-     el ancla); los elementos de apoyo pueden viajar mas. El blur solo en lo
-     ligero: sobre una tipografia de 42px se ve sucio, no cinematografico.
-     Curva unica del sistema, cubic-bezier(.16,1,.3,1). */
-  @keyframes dmInMark{from{opacity:0;transform:translate3d(0,8px,0) scale(.96)}to{opacity:1;transform:none}}
-  @keyframes dmInTitle{from{opacity:0;transform:translate3d(0,13px,0)}to{opacity:1;transform:none}}
-  @keyframes dmInSoft{from{opacity:0;transform:translate3d(0,18px,0);filter:blur(6px)}
-    to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
-  @keyframes dmInCta{from{opacity:0;transform:translate3d(0,10px,0) scale(.97)}to{opacity:1;transform:none}}
+  /* -- Entradas por peso -- */
+  @keyframes dmLineUp{from{transform:translate3d(0,112%,0)}to{transform:none}}
+  @keyframes dmRise{from{opacity:0;transform:translate3d(0,16px,0)}to{opacity:1;transform:none}}
+  @keyframes dmRiseS{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
+  @keyframes dmMarkIn{from{opacity:0;transform:translate3d(0,6px,0) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes dmRule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
-  .dm-intro.show .dm-intro-in>*{will-change:transform,opacity}
-  .dm-intro.show .dm-intro-markwrap{animation:dmInMark .5s cubic-bezier(.16,1,.3,1) .10s both}
-  .dm-intro.show h2{animation:dmInTitle .62s cubic-bezier(.16,1,.3,1) .20s both}
-  .dm-intro.show .gsub{animation:dmInSoft .58s cubic-bezier(.16,1,.3,1) .32s both}
-  .dm-intro.show .dm-intro-tracks{animation:dmInSoft .52s cubic-bezier(.16,1,.3,1) .42s both}
-  /* Los tres recorridos no entran en bloque: 45ms de desfase entre ellos, que
-     es el tramo donde el ojo lee "uno, dos, tres" sin percibir espera. */
-  .dm-intro.show .dm-ipill{animation:dmInSoft .46s cubic-bezier(.16,1,.3,1) both}
-  .dm-intro.show .dm-ipill:nth-child(1){animation-delay:.46s}
-  .dm-intro.show .dm-ipill:nth-child(2){animation-delay:.505s}
-  .dm-intro.show .dm-ipill:nth-child(3){animation-delay:.55s}
-  .dm-intro.show .dm-intro-actions{animation:dmInCta .55s cubic-bezier(.16,1,.3,1) .60s both}
-  .dm-intro.show .dm-intro-fake{animation:dmInSoft .5s cubic-bezier(.16,1,.3,1) .74s both}
+  /* -- Cabecera: marca + rotulo. Sin pildora y sin punto luminoso: ese chip de
+        capsula con bolita es la firma visual de plantilla generada. Aqui el
+        rotulo es tipografia y una regla que se abre. -- */
+  .dm-intro-top{display:flex;align-items:center;gap:12px;margin:0 0 clamp(16px,3.2vh,26px)}
+  .dm-intro .gmark{width:clamp(28px,4vw,34px);height:clamp(28px,4vw,34px);display:block;flex-shrink:0;
+    filter:drop-shadow(0 6px 22px rgba(244,80,30,.65));
+    animation:dmMarkIn .55s cubic-bezier(.16,1,.3,1) .06s both}
+  .dm-intro .geyebrow{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.22em;
+    text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap;
+    animation:dmRiseS .5s cubic-bezier(.16,1,.3,1) .14s both}
+  .dm-intro-top .rule{flex:1;height:1px;transform-origin:left center;
+    background:linear-gradient(90deg,rgba(244,80,30,.55),rgba(255,255,255,.06));
+    animation:dmRule .9s cubic-bezier(.16,1,.3,1) .2s both}
 
-  /* Encabezado con Logo y Badge */
-  .dm-intro-markwrap{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto clamp(8px,1.6vh,14px)}
-  .dm-intro .gmark{width:clamp(32px,4.5vw,42px);height:clamp(32px,4.5vw,42px);display:block;
-    filter:drop-shadow(0 6px 20px rgba(244,80,30,.7));animation:dmMarkHalo 3.2s ease-in-out infinite;will-change:transform}
-  @keyframes dmMarkHalo{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-  .dm-intro .geyebrow{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;
-    letter-spacing:.18em;text-transform:uppercase;color:#ff9b66;background:rgba(244,80,30,.12);border:1px solid rgba(244,80,30,.28);
-    padding:4px 10px;border-radius:999px}
-  .dm-intro .geyebrow::before{content:"";width:5px;height:5px;border-radius:50%;background:#ff8a3d;box-shadow:0 0 8px #f4501e}
-
-  .dm-intro h2{font-family:var(--display);font-weight:800;font-size:clamp(24px,4.6vw,42px);
-    letter-spacing:-.035em;margin:0 0 clamp(6px,1.2vh,10px);line-height:1.06;color:#fff;text-wrap:balance}
+  /* -- Titular: revelado por mascara, linea a linea -- */
+  .dm-intro h2{font-family:var(--display);font-weight:800;
+    font-size:clamp(30px,6.2vw,54px);letter-spacing:-.038em;line-height:1.02;
+    margin:0 0 clamp(12px,2.2vh,18px);color:#fff}
+  .dm-intro h2 .ln{display:block;overflow:hidden;padding:.06em 0 .12em;margin-bottom:-.1em}
+  .dm-intro h2 .ln>i{display:block;font-style:normal;transform:translate3d(0,112%,0)}
+  .dm-intro.show h2 .ln:nth-child(1)>i{animation:dmLineUp .8s cubic-bezier(.16,1,.3,1) .18s both}
+  .dm-intro.show h2 .ln:nth-child(2)>i{animation:dmLineUp .8s cubic-bezier(.16,1,.3,1) .29s both}
   .dm-intro h2 em{font-family:var(--serif);font-style:italic;font-weight:400;
-    background:linear-gradient(100deg,#ffcf4a,#ff7a2e 55%,#f4501e);
+    background:linear-gradient(100deg,#ffcf4a,#ff8a3d 52%,#f4501e);
     -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .dm-intro .gsub{font-size:clamp(13px,1.8vw,14.5px);color:rgba(255,255,255,.68);line-height:1.45;max-width:440px;margin:0 auto clamp(12px,2vh,18px);text-wrap:pretty}
-  .dm-intro .gsub b{color:#fff;font-weight:600}
 
-  /* Píldoras/chips minimalistas de recorridos */
-  /* Los tres recorridos: rejilla de 3, no pildoras flotando.
-     En flex-wrap centrado quedaban 2 arriba y 1 abajo — un huerfano que
-     desordena justo el bloque que promete estructura ("3 recorridos"). */
-  .dm-intro-tracks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
-    margin:0 auto clamp(14px,2.4vh,22px);width:100%;max-width:520px}
-  .dm-ipill{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px 12px;border-radius:13px;
-    background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);color:#e2e8f0;font-size:12px;font-weight:600;
-    text-align:left;cursor:pointer;position:relative;overflow:hidden;
-    transition:background .22s cubic-bezier(.16,1,.3,1),border-color .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1);
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  .dm-ipill:hover{background:rgba(244,80,30,.16);border-color:rgba(244,80,30,.5);color:#fff;transform:translateY(-2px);box-shadow:0 8px 22px -8px rgba(244,80,30,.55)}
-  .dm-ipill:active{transform:translateY(0) scale(.985)}
-  .dm-ipill:focus-visible{outline:2px solid #ff9b66;outline-offset:2px}
-  .dm-ipill.primero{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.34);color:#fff}
-  .dm-ipill-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;
-    background:rgba(244,80,30,.28);color:#ffd9c2;font-size:10px;font-weight:800;font-family:var(--mono)}
-  .dm-ipill-txt{letter-spacing:-.01em;line-height:1.2;color:#fff}
-  .dm-ipill-time{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.42);font-weight:500;
-    transition:color .22s ease}
-  .dm-ipill:hover .dm-ipill-time{color:#ffb188}
+  .dm-intro .gsub{font-size:clamp(13.5px,1.9vw,15.5px);color:rgba(255,255,255,.62);line-height:1.55;
+    margin:0 0 clamp(20px,3.4vh,30px);max-width:46ch;text-wrap:pretty;
+    animation:dmRise .6s cubic-bezier(.16,1,.3,1) .42s both}
+  .dm-intro .gsub b{color:rgba(255,255,255,.94);font-weight:600}
 
-  /* Botones de acción */
-  .dm-intro-actions{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:360px;margin:0 auto}
-  .dm-intro-btn-play{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:12px 22px;border-radius:12px;
-    font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:#fff;
-    background:linear-gradient(135deg,#ff7a2e 0%,#f4501e 55%,#d93809 100%);
-    border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px -6px rgba(244,80,30,.75),0 0 0 1px rgba(255,255,255,.15) inset;
-    cursor:pointer;transition:all .22s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
-  .dm-intro-btn-play:hover{transform:translateY(-2px);box-shadow:0 14px 38px -4px rgba(244,80,30,.92),0 0 0 1px rgba(255,255,255,.3) inset;filter:brightness(1.06)}
-  .dm-intro-btn-play:active{transform:translateY(0)}
-  .dm-intro-btn-play svg{width:14px;height:14px;fill:currentColor;flex-shrink:0;transition:transform .2s ease}
-  .dm-intro-btn-play:hover svg{transform:scale(1.15)}
+  /* -- Los tres recorridos: indice de capitulos, no chips flotando.
+        En rejilla de tres columnas cada nombre se partia palabra a palabra por
+        debajo de 400px y el resumen de cada recorrido no cabia en ninguna
+        parte. En lista cabe entero, se lee de arriba abajo como un menu de
+        capitulos y no necesita ningun apaño por ancho. -- */
+  .dm-intro-tracks{display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.09);
+    border-radius:16px;overflow:hidden;background:rgba(255,255,255,.022);
+    margin:0 0 clamp(18px,3vh,26px)}
+  .dm-itrack{display:flex;align-items:center;gap:14px;width:100%;
+    padding:clamp(12px,1.9vh,16px) clamp(13px,2.4vw,18px);
+    background:transparent;border:0;border-top:1px solid rgba(255,255,255,.07);
+    color:inherit;font:inherit;text-align:left;cursor:pointer;position:relative;
+    transition:background .24s cubic-bezier(.16,1,.3,1),padding-left .24s cubic-bezier(.16,1,.3,1)}
+  .dm-itrack:first-child{border-top:0}
+  /* Filo de acento que crece desde el borde: el "estas aqui" de un menu de
+     capitulos, sin mover la fila entera (mover filas en una lista marea). */
+  .dm-itrack::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+    background:linear-gradient(180deg,#ff8a3d,#f4501e);transform:scaleY(0);transform-origin:center;
+    transition:transform .28s cubic-bezier(.16,1,.3,1)}
+  .dm-itrack:hover,.dm-itrack:focus-visible{background:rgba(244,80,30,.09);outline:none;padding-left:calc(clamp(13px,2.4vw,18px) + 6px)}
+  .dm-itrack:hover::before,.dm-itrack:focus-visible::before{transform:scaleY(1)}
+  .dm-itrack-n{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;
+    color:rgba(255,138,61,.75);flex-shrink:0;width:20px}
+  .dm-itrack-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .dm-itrack-t{font-size:14.5px;font-weight:700;letter-spacing:-.012em;color:#fff;line-height:1.25}
+  .dm-itrack-s{font-size:12px;color:rgba(255,255,255,.44);line-height:1.4;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dm-itrack-m{font-family:var(--mono);font-size:11px;font-weight:500;color:rgba(255,255,255,.38);
+    flex-shrink:0;transition:color .24s ease}
+  .dm-itrack:hover .dm-itrack-m{color:#ffb188}
+  .dm-itrack-go{width:15px;height:15px;flex-shrink:0;color:rgba(255,255,255,.22);
+    transition:transform .28s cubic-bezier(.16,1,.3,1),color .24s ease}
+  .dm-itrack:hover .dm-itrack-go{transform:translateX(3px);color:#ff8a3d}
+  .dm-intro.show .dm-intro-tracks{animation:dmRise .6s cubic-bezier(.16,1,.3,1) .54s both}
+  /* Las filas se descubren una detras de otra: 60 ms es el tramo donde el ojo
+     lee "una, dos, tres" sin percibir espera. */
+  .dm-intro.show .dm-itrack{animation:dmRiseS .5s cubic-bezier(.16,1,.3,1) both}
+  .dm-intro.show .dm-itrack:nth-child(1){animation-delay:.60s}
+  .dm-intro.show .dm-itrack:nth-child(2){animation-delay:.66s}
+  .dm-intro.show .dm-itrack:nth-child(3){animation-delay:.72s}
 
-  .dm-intro-free{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12.5px;color:rgba(255,255,255,.52);
-    background:transparent;border:none;padding:5px 12px;border-radius:8px;cursor:pointer;transition:color .2s,background .2s;font-weight:500}
-  .dm-intro-free:hover{color:#fff;background:rgba(255,255,255,.06)}
-  .dm-intro-free svg{transition:transform .2s ease}
-  .dm-intro-free:hover svg{transform:translateX(2px)}
+  /* -- Acciones -- */
+  .dm-intro-actions{display:flex;flex-direction:column;gap:10px;
+    animation:dmRise .6s cubic-bezier(.16,1,.3,1) .78s both}
+  .dm-intro-btn-play{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;
+    padding:clamp(13px,2vh,16px) 22px;border-radius:13px;
+    font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.012em;color:#fff;
+    background:linear-gradient(135deg,#ff8a3d 0%,#f4501e 58%,#d1360b 100%);
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 14px 40px -12px rgba(244,80,30,.85),inset 0 1px 0 rgba(255,255,255,.22);
+    cursor:pointer;position:relative;overflow:hidden;
+    transition:transform .24s cubic-bezier(.16,1,.3,1),box-shadow .24s cubic-bezier(.16,1,.3,1)}
+  /* Destello que cruza el boton al pasar por encima. Solo en hover: un brillo
+     en bucle sobre el CTA principal es de banner, no de producto. */
+  .dm-intro-btn-play::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);
+    transform:skewX(-18deg);opacity:0;pointer-events:none}
+  .dm-intro-btn-play:hover{transform:translateY(-2px);box-shadow:0 20px 52px -12px rgba(244,80,30,1),inset 0 1px 0 rgba(255,255,255,.3)}
+  .dm-intro-btn-play:hover::after{animation:dmSheen .75s cubic-bezier(.4,0,.2,1) forwards}
+  @keyframes dmSheen{from{left:-60%;opacity:1}to{left:115%;opacity:0}}
+  .dm-intro-btn-play:active{transform:translateY(0) scale(.995)}
+  .dm-intro-btn-play svg{width:13px;height:13px;fill:currentColor;flex-shrink:0}
 
-  /* Pie discreto */
-  .dm-intro-fake{font-size:11px;color:rgba(255,255,255,.34);margin:clamp(8px,1.5vh,14px) auto 0;display:inline-flex;
-    align-items:center;gap:6px;justify-content:center;max-width:440px;line-height:1.4;text-align:center}
-  .dm-intro-fake svg{width:12px;height:12px;flex-shrink:0;opacity:.7}
+  .dm-intro-free{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:transparent;border:0;
+    padding:8px 12px;border-radius:9px;cursor:pointer;transition:color .2s ease,background .2s ease}
+  .dm-intro-free:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .dm-intro-free svg{width:13px;height:13px;transition:transform .22s cubic-bezier(.16,1,.3,1)}
+  .dm-intro-free:hover svg{transform:translateX(3px)}
 
-  /* ── Salida de cine, con RELEVO ───────────────────────────────────────
-     Antes la intro se limitaba a desvanecerse en 0,5s y la app aparecia ya
-     puesta: dos planos sin relacion. Ahora es un solo movimiento de camara:
-       · la intro empuja hacia el espectador y se va en 0,34s (≈62% de la
-         entrada — una salida debe ser mas rapida que su entrada, si no
-         parece que la interfaz duda),
-       · las barras de cine SE ABREN en vez de desvanecerse,
-       · y la app entra por debajo desde scale(.985) con 80ms de retardo,
-         de modo que hay continuidad espacial en vez de un corte.
-     Curva de salida ease-in (.7,0,.84,0): acelera al irse, que es lo que
-     hace que se lea como "atravesar" y no como "apagarse". */
+  /* -- Pie -- */
+  .dm-intro-fake{display:flex;align-items:center;gap:7px;font-size:11.5px;line-height:1.45;
+    color:rgba(255,255,255,.3);margin:clamp(16px,2.6vh,24px) 0 0;
+    animation:dmRiseS .55s cubic-bezier(.16,1,.3,1) .9s both}
+  .dm-intro-fake svg{width:12px;height:12px;flex-shrink:0;opacity:.65}
+
+  /* ── Salida: relevo, no fundido ───────────────────────────────────────
+     La intro empuja hacia el espectador y se va en 0,34 s (una salida debe ser
+     mas rapida que su entrada; si no, parece que la interfaz duda), las barras
+     de cine SE ABREN, y el escenario de la app entra por debajo desde
+     scale(.985) con 80 ms de retardo. Un solo movimiento de camara en vez de
+     dos planos sin relacion. */
   .dm-intro.exit{animation:dmIntroOut .34s cubic-bezier(.7,0,.84,0) forwards;pointer-events:none}
-  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.06)}}
+  @keyframes dmIntroOut{to{opacity:0;transform:scale(1.07)}}
   .dm-intro.exit .dm-cinebar{animation:dmBarOut .34s cubic-bezier(.7,0,.84,0) forwards}
   @keyframes dmBarOut{to{transform:translate3d(0,var(--dm-bar-out,-100%),0);opacity:0}}
   .dm-intro.exit .dm-cinebar.b{--dm-bar-out:100%}
   .dm-intro.exit .dm-intro-in{animation:dmIntroInnerOut .26s cubic-bezier(.7,0,.84,0) forwards}
-  @keyframes dmIntroInnerOut{to{opacity:0;transform:translate3d(0,-10px,0)}}
-
-  /* El relevo lo recibe el escenario de la app */
+  @keyframes dmIntroInnerOut{to{opacity:0;transform:translate3d(0,-12px,0)}}
   @keyframes dmStageIn{from{opacity:.55;transform:scale(.985)}to{opacity:1;transform:none}}
   body.dm-intro-leaving .dm-stage{animation:dmStageIn .5s cubic-bezier(.16,1,.3,1) .08s both;will-change:transform,opacity}
 
-  /* Ajustes en pantallas compactas y móvil */
-  @media(max-width:480px){
-    .dm-intro-in{padding:12px 14px}
-    .dm-intro-markwrap{gap:8px;margin-bottom:8px}
-    .dm-intro .gmark{width:32px;height:32px}
-    .dm-intro .geyebrow{font-size:9.5px;padding:3px 8px;letter-spacing:.14em}
-    .dm-intro h2{font-size:24px;margin-bottom:6px}
-    .dm-intro .gsub{font-size:12.5px;margin-bottom:12px;line-height:1.4}
-    .dm-intro-tracks{gap:6px;margin-bottom:14px}
-    .dm-ipill{padding:8px 9px;font-size:11px;gap:4px}
-    .dm-ipill-n{width:18px;height:18px;font-size:9px}
-    .dm-ipill-time{font-size:9.5px}
-    .dm-intro-actions{max-width:300px;gap:6px}
-    .dm-intro-btn-play{padding:11px 18px;font-size:13.5px}
-    .dm-intro-free{font-size:12px;padding:4px 10px}
-    .dm-intro-fake{font-size:10px;margin-top:6px}
-    .dm-cinebar{height:10px}
+  /* -- Pantallas cortas y moviles -- */
+  @media(max-width:520px){
+    .dm-intro-in{padding:26px 18px}
+    .dm-intro h2{font-size:clamp(27px,8.4vw,34px)}
+    .dm-itrack{gap:11px}
+    .dm-itrack-s{display:none}       /* el resumen no cabe en una linea util */
+    .dm-itrack-go{display:none}
+    .dm-intro-fake{font-size:11px}
   }
-  /* Por debajo de 400px tres columnas dejan ~110px por recorrido y el nombre
-     se parte palabra a palabra. Ahi el bloque se apila en fila horizontal. */
-  @media(max-width:400px){
-    .dm-intro-tracks{grid-template-columns:minmax(0,1fr)}
-    .dm-ipill{flex-direction:row;align-items:center;gap:8px;padding:9px 11px}
-    .dm-ipill-txt{flex:1}
-  }
-  @media(max-height:680px){
-    .dm-intro-tracks{grid-template-columns:minmax(0,1fr)}
-    .dm-ipill{flex-direction:row;align-items:center;gap:8px;padding:7px 11px}
-    .dm-ipill-txt{flex:1}
-    .dm-intro-in{padding:10px 14px}
-    .dm-intro-markwrap{margin-bottom:6px}
-    .dm-intro h2{font-size:22px;margin-bottom:4px}
-    .dm-intro .gsub{font-size:12px;margin-bottom:10px}
-    .dm-intro-tracks{margin-bottom:12px;gap:4px}
-    .dm-intro-btn-play{padding:10px 16px;font-size:13px}
+  @media(max-height:700px){
+    .dm-intro-in{padding:18px 20px}
+    .dm-intro-top{margin-bottom:12px}
+    .dm-intro h2{font-size:clamp(24px,4.4vw,32px)}
+    .dm-intro .gsub{margin-bottom:16px}
+    .dm-itrack{padding-top:10px;padding-bottom:10px}
+    .dm-itrack-s{display:none}
     .dm-intro-fake{display:none}
     .dm-cinebar{display:none}
   }
   @media(prefers-reduced-motion:reduce){
-    .dm-intro::before,.dm-intro .gmark{animation:none}
-    .dm-intro.show .dm-intro-in>*,
-    .dm-intro.show .dm-ipill,
+    .dm-intro-glow::before,.dm-intro-glow::after{animation:none}
+    .dm-intro-in,
+    .dm-intro .gmark,
+    .dm-intro .geyebrow,
+    .dm-intro-top .rule,
+    .dm-intro.show h2 .ln>i,
+    .dm-intro .gsub,
+    .dm-intro.show .dm-intro-tracks,
+    .dm-intro.show .dm-itrack,
+    .dm-intro-actions,
+    .dm-intro-fake,
+    .dm-intro.show .dm-cinebar,
+    .dm-intro.exit,
     .dm-intro.exit .dm-intro-in,
     .dm-intro.exit .dm-cinebar,
     body.dm-intro-leaving .dm-stage{animation-duration:.01ms!important;animation-delay:0s!important}
-    .dm-intro.show .dm-cinebar{animation-duration:.01ms}
-    .dm-intro.exit{animation-duration:.01ms}
+    .dm-intro h2 .ln>i{transform:none}
   }
 
   /* Aviso de cookies: en la demo vive ARRIBA. Abajo se comia el texto del
@@ -1117,7 +1169,7 @@
 <header class="dm-bar">
   <a class="ver-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg><span>Volver</span></a>
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha<span class="dot" style="color:var(--accent,#f4501e)">.</span></span></div>
-  <span class="dm-pill"><span class="d"></span>Demo</span>
+  <span class="dm-pill">Demo</span>
   <div class="dm-tutsel" id="tutSel">
     <button class="dm-tut" id="tutBtnGeneral" type="button" title="Recorrido 1 · Pilares Esenciales — el más importante, empieza por aquí (29 pasos · ≈ 3 min)">
       <span class="pnum">1</span>
@@ -1145,7 +1197,12 @@
     <span>¿Dudas?</span>
   </button>
   <div class="dm-bar-cta">
-    <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Acceso</span>
+    <!-- Antes esto mandaba a reservar.html ("quiero el acceso completo"), o sea
+         a pedir una llamada. No tiene sentido: para ver la demo ya has creado
+         cuenta, y esa cuenta YA trae 30 dias del software entero. El destino
+         real es la app. El texto y el destino los ajusta `pintarCtaAcceso()`
+         segun haya sesion o no. -->
+    <a class="btn btn-primary" id="ctaAcceso" href="/app"><span class="cta-long">Entrar a mi Mecha</span><span class="cta-short">Entrar</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
     </a>
   </div>
@@ -1170,41 +1227,51 @@
   </div>
 </main>
 
-<!-- ============ INTRO CINEMATOGRAFICA (pantalla negra) ============ -->
-<div class="dm-intro" id="intro">
+<!-- ============ INTRO DE LA DEMO ============
+     Nace con la clase `show` puesta: es el primer fotograma de la pagina y no
+     espera a que el JS resuelva la sesion. Si esta visita ya la vio, el script
+     del <head> marca <html class="dm-intro-vista"> y aqui no se pinta nada. -->
+<div class="dm-intro show" id="intro">
+  <div class="dm-intro-glow" aria-hidden="true"></div>
+  <div class="dm-intro-grain" aria-hidden="true"></div>
+  <div class="dm-intro-vig" aria-hidden="true"></div>
   <span class="dm-cinebar t" aria-hidden="true"></span>
   <span class="dm-cinebar b" aria-hidden="true"></span>
   <div class="dm-intro-in">
-    <div class="dm-intro-markwrap">
-      <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
-      <span class="geyebrow" id="introEyebrow">Demo interactiva · Mecha</span>
+    <div class="dm-intro-top">
+      <svg class="gmark" viewBox="0 0 40 40" aria-hidden="true"><use href="#mecha-mark" /></svg>
+      <span class="geyebrow" id="introEyebrow">Demo interactiva</span>
+      <span class="rule" aria-hidden="true"></span>
     </div>
-    
-    <h2>El software entero, <em>por dentro</em></h2>
-    
+
+    <h2>
+      <span class="ln"><i>El software entero,</i></span>
+      <span class="ln"><i><em>por dentro</em></i></span>
+    </h2>
+
     <p class="gsub" id="introSub">
-      Aprende cómo funciona el software en <b>3 breves recorridos</b> interactivos.
+      Un salón de verdad, con sus citas, sus fichas y su caja.
+      <b>Tres recorridos</b> que lo enseñan entero, o entra y tócalo tú.
     </p>
 
-    <!-- Indicador de duraciones limpio y minimalista (chips/píldoras) -->
+    <!-- Índice de capítulos: se pinta desde RECORRIDOS (nombre, resumen y minutos) -->
     <div class="dm-intro-tracks" id="introTracks" role="group" aria-label="Recorridos disponibles">
-      <!-- Generado dinámicamente desde RECORRIDOS con sus minutos estimados -->
     </div>
 
     <div class="dm-intro-actions">
       <button class="dm-intro-btn-play" id="introGuided" type="button">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>
-        <span id="introGuidedLbl">Reproducir tutorial completo</span>
+        <span id="introGuidedLbl">Reproducir los tres recorridos</span>
       </button>
       <button class="dm-intro-free" id="introFree" type="button">
-        <span>Explorar por libre</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <span>Prefiero explorar por libre</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
-    
+
     <p class="dm-intro-fake">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>Salón de prueba ficticio · Puedes probar y tocar todo libremente</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Salón de prueba ficticio: puedes crear, mover y borrar lo que quieras.</span>
     </p>
   </div>
 </div>
@@ -1401,9 +1468,22 @@
 
   function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-  function showGate(){ gate.classList.remove('hide'); }
+  // La intro nace visible (es el primer fotograma). Las pantallas que la
+  // sustituyen —el muro de acceso y el fin de visitas— tienen que apagarla, o
+  // se quedaria por encima tapandolas.
+  function apagarIntro(){
+    var el=$('#intro');
+    if(el){ el.classList.remove('show'); el.classList.remove('exit'); }
+    document.body.classList.remove('dm-intro-on');
+  }
+  function introVisible(){
+    var el=$('#intro');
+    return !!(el && el.classList.contains('show') && !document.documentElement.classList.contains('dm-intro-vista'));
+  }
+
+  function showGate(){ apagarIntro(); gate.classList.remove('hide'); }
   function hideGate(){ gate.classList.add('hide'); }
-  function showEnd(){ end.classList.add('show'); if(visitsText) visitsText.textContent='0 visitas'; if(visitsEl) visitsEl.classList.add('low'); }
+  function showEnd(){ apagarIntro(); end.classList.add('show'); if(visitsText) visitsText.textContent='0 visitas'; if(visitsEl) visitsEl.classList.add('low'); }
 
   function setVisits(remaining){
     // El chip de visitas se quito de la barra (decision de diseno): el conteo de
@@ -1421,10 +1501,32 @@
     if(n<=1) visitsEl.classList.add('low');
   }
 
+  /* ---------- CTA de la barra: llevar al software, no a pedir una llamada ----
+     Quien esta viendo la demo con sesion YA tiene su cuenta y sus 30 dias: lo
+     unico que necesita es la puerta. Sin sesion (enlace compartido, visitante
+     anonimo) la puerta es crear la cuenta, no un formulario comercial. */
+  var ctaAcceso=$('#ctaAcceso');
+  function pintarCtaAcceso(haySesion){
+    if(!ctaAcceso) return;
+    var largo=ctaAcceso.querySelector('.cta-long'), corto=ctaAcceso.querySelector('.cta-short');
+    if(haySesion){
+      ctaAcceso.href='/app';
+      if(largo) largo.textContent='Entrar a mi Mecha';
+      if(corto) corto.textContent='Entrar';
+      ctaAcceso.title='Tu cuenta ya incluye 30 dias del software completo. Entra y montalo con tus servicios y tus precios.';
+    } else {
+      ctaAcceso.href='acceso.html?next=app#signup';
+      if(largo) largo.textContent='Crear cuenta y probar 30 días';
+      if(corto) corto.textContent='Probar';
+      ctaAcceso.title='Crea tu cuenta y entra al software completo 30 dias, sin tarjeta y sin permanencia.';
+    }
+  }
+
   /* ---------- enlace compartible y recomendación ---------- */
   function shareLink(){ return location.origin + location.pathname + '?share=1'; }
-  
+
   function revealShare(profile, isStaff){
+    pintarCtaAcceso(!!profile || isStaff === true);
     if(!shareBtn) return;
     shareBtn.style.display='inline-flex';
     var lbl = shareBtn.querySelector('.lbl');
@@ -1647,15 +1749,15 @@
   function enterDemo(remaining){
     hideGate();
     setVisits(remaining);
+    // El software se carga POR DEBAJO de la intro: cuando el visitante termina
+    // de leerla, el iframe ya esta montado y el recorrido arranca sin espera.
     mountApp();
-    // Intro cinematografica (1 vez por sesion): explica que va a ver TODOS los
-    // modulos, duracion estimada, que es una cuenta demo ficticia y deja elegir
-    // entre recorrido guiado o explorar libre. El tour arranca desde la intro.
     if(tutSel) tutSel.style.display='inline-flex';
-    var introSeen=false;
-    try{ introSeen=sessionStorage.getItem('mecha_demo_intro')==='1'; }catch(e){}
-    if(introSeen){ startTour(); }
-    else { var intro=$('#intro'); if(intro){ intro.classList.add('show'); document.body.classList.add('dm-intro-on'); } }
+    // La intro ya esta pintada desde el HTML (1 vez por pestaña). Aqui solo se
+    // decide el caso contrario: si esta visita ya la vio, se va directo al
+    // recorrido.
+    if(introVisible()) document.body.classList.add('dm-intro-on');
+    else startTour();
   }
 
   /* ---------- arranque ---------- */
@@ -1670,6 +1772,10 @@
       revealShare();
       maqueta=false;
       enterDemo(null);
+      // El enlace compartido tambien lo abre gente con su cuenta ya hecha: si
+      // hay sesion, el CTA de la barra debe llevarla al software y no a
+      // registrarse otra vez.
+      if(api&&api.getSession){ api.getSession().then(function(s){ pintarCtaAcceso(!!s); }).catch(function(){}); }
       return;
     }
 
@@ -1785,8 +1891,12 @@
      t:'El estado manda. Y el cliente confirma solo', d:'Pendiente, **confirmada**, en curso, cobrada, no-show. Cuando el cliente responde al WhatsApp de recordatorio, la cita se marca confirmada **sin que toques nada**.'},
     {ic:'clientes', route:'/(tabs)', action:'detalle-productos', ph:'La cita por dentro',
      t:'Los productos que se lleva', d:'Champú, mascarilla, cera… se apuntan en la cita, **suben el ticket**, descuentan del inventario y cuentan para la comisión de quien vende.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-pagos', ph:'La cita por dentro',
-     t:'Cobra aquí mismo, o luego en Caja', d:'Efectivo, tarjeta o Bizum desde la propia cita, con **propina** y con la señal ya descontada. Si prefieres cobrar al salir, la cita te espera en **Caja**.'},
+    // Este paso apuntaba a la seccion de pagos entera y lo que se veia era su
+    // cabecera. Lo que hay que ensenar es el ULTIMO gesto del cobro: elegir con
+    // que se paga. Por eso va a `detalle-cobrar`, que enfoca los botones de
+    // metodo dentro de la hoja de cobro.
+    {ic:'rep', route:'/(tabs)', action:'detalle-cobrar', ph:'La cita por dentro',
+     t:'Y se cobra aquí mismo: efectivo o tarjeta', d:'El último paso de la cita. Eliges **efectivo, datáfono o Bizum** —o partes el pago entre dos—, la **señal ya viene descontada** y la propina va aparte. Si prefieres cobrar al salir, la cita te espera en **Caja**.'},
     // --- Acto 3: los reposos (el diferencial) ---
     {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', ph:'Los reposos',
      t:'1 · El trabajo activo', d:'La primera fase: **aplicar el tinte**. Sus minutos se ajustan con − y +, y solo esos minutos te ocupan a ti.', viz:'reposo-1'},
@@ -1829,7 +1939,7 @@
     {ic:'nueva', route:'/r/demo', action:'zona-portal-servicios', ph:'Tu portal',
      t:'Tu catálogo, con sus precios y sus tiempos', d:'Sale de tu pantalla de Servicios: lo que cambias ahí, cambia aquí. Puedes **esconder los precios** o dejar fuera del portal los servicios que prefieras dar tú.'},
     {ic:'nueva', route:'/r/demo', action:'zona-portal-extras', ph:'Tu portal',
-     t:'Y lo que siempre se olvidan', d:'Antes de la hora le proponemos lo que suele acompañar a ese servicio —el lavado, el peinado, el matiz—. Si lo añade, **se reserva el tiempo de verdad**: se acabó el "pensaba que iba incluido" que te descuadra la tarde. Los eliges tú en Ajustes, y Mecha aprende de tu historial los que se te escapan.'},
+     t:'Y lo que siempre se olvidan', d:'Acaba de elegir un color, y antes de darle hora le proponemos **lo que suele ir con eso** —aquí, el lavado y peinado—. Si lo añade, **se reserva el tiempo de verdad**: se acabó el "pensaba que iba incluido" que te descuadra la tarde.'},
     {ic:'clientes', route:'/r/demo', action:'zona-portal-profesional', ph:'Tu portal',
      t:'Con quién quiere ir', d:'La clienta elige profesional o deja **"cualquiera disponible"**. Cada quien solo aparece en los servicios que hace de verdad, con su propia duración.'},
     {ic:'agenda', route:'/r/demo', action:'zona-portal-hora', ph:'Tu portal',
@@ -2025,7 +2135,7 @@
     {nombre:'Tu cuenta', sub:'Referidos, roles, plan y soporte', desde:14, hasta:17}
   ];
   // Pasos donde el tour para y te invita a tocar TU el software (badge TE TOCA)
-  var ACCIONES_TOCA={ 'nueva-cita':1, 'cita-addons':1, 'detalle-secuencia-reposo':1, 'detalle-pagos':1, 'cliente-color':1, 'informes-export':1, 'config-servicios':1 };
+  var ACCIONES_TOCA={ 'nueva-cita':1, 'cita-addons':1, 'detalle-secuencia-reposo':1, 'detalle-cobrar':1, 'cliente-color':1, 'informes-export':1, 'config-servicios':1 };
 
   // ---- catalogo de recorridos: una sola fuente de verdad ----
   // De aqui salen el selector de la barra, las tarjetas de la intro, el
@@ -2575,31 +2685,32 @@
 
   /* ---------- INTRO: se pinta desde RECORRIDOS ----------
      Duracion y numero de pasos calculados dinámicamente. */
+  var SVG_TRACK_GO='<svg class="dm-itrack-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
   function pintarIntro(){
     var cont=$('#introTracks');
     if(cont){
       var html='';
       for(var i=0;i<RECORRIDOS.length;i++){
         var r=RECORRIDOS[i];
-        html+='<button type="button" class="dm-ipill'+(i===0?' primero':'')+'" data-track="'+r.id+'" title="Recorrido '+r.n+': '+escHtml(r.nombre)+' ('+minutosDe(r)+' min)">'
-            +   '<span class="dm-ipill-n">'+r.n+'</span>'
-            +   '<span class="dm-ipill-txt">'+escHtml(r.nombre)+'</span>'
-            +   '<span class="dm-ipill-time">≈ '+minutosDe(r)+' min</span>'
+        html+='<button type="button" class="dm-itrack" data-track="'+r.id+'" title="'+escHtml(r.nombre)+' — '+escHtml(r.resumen)+' ('+r.pasos.length+' pasos · '+minutosDe(r)+' min)">'
+            +   '<span class="dm-itrack-n">'+pad2(r.n)+'</span>'
+            +   '<span class="dm-itrack-b">'
+            +     '<span class="dm-itrack-t">'+escHtml(r.nombre)+'</span>'
+            +     '<span class="dm-itrack-s">'+escHtml(r.resumen)+'</span>'
+            +   '</span>'
+            +   '<span class="dm-itrack-m">'+minutosDe(r)+' min</span>'
+            +   SVG_TRACK_GO
             + '</button>';
       }
       cont.innerHTML=html;
     }
+    // El boton principal dice cuanto dura TODO, que es la pregunta real de
+    // quien entra ("¿esto cuanto me va a costar?").
     var lbl=$('#introGuidedLbl');
-    if(lbl) lbl.textContent='Reproducir tutorial completo';
-    var eb=$('#introEyebrow');
-    if(eb) eb.textContent='Demo interactiva · Mecha';
-    // Cada píldora arranca SU recorrido si el usuario hace clic directo en ella
-    Array.prototype.forEach.call(document.querySelectorAll('.dm-ipill, .dm-itrack'), function(pill){
-      function lanzar(){ salirIntro(pill.getAttribute('data-track') || 'pilares'); }
-      pill.addEventListener('click', lanzar);
-      pill.addEventListener('keydown', function(e){
-        if(e.key==='Enter' || e.key===' '){ e.preventDefault(); lanzar(); }
-      });
+    if(lbl) lbl.textContent='Reproducir los tres · '+totalMinutos()+' min';
+    // Cada capitulo arranca SU recorrido si se pulsa directamente.
+    Array.prototype.forEach.call(document.querySelectorAll('.dm-itrack'), function(fila){
+      fila.addEventListener('click', function(){ salirIntro(fila.getAttribute('data-track') || 'pilares'); });
     });
   }
 

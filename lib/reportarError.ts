@@ -19,8 +19,8 @@ import { rescatarSiChunkCaducado } from './chunkCaducado';
 
 const yaEnviados = new Set<string>();
 
-export type OrigenError = 'app' | 'portal' | 'landing';
-export type TipoError = 'excepcion' | 'operativo' | 'ia';
+export type OrigenError = 'app' | 'portal' | 'landing' | 'marketplace' | 'edge_function';
+export type TipoError = 'excepcion' | 'operativo' | 'ia' | 'creditos' | 'red';
 
 function rutaActual(): string {
   if (typeof window === 'undefined') return '';
@@ -29,6 +29,28 @@ function rutaActual(): string {
   } catch {
     return '';
   }
+}
+
+function deducirOrigen(ruta: string): OrigenError {
+  if (ruta.startsWith('/salones') || ruta.startsWith('/directorio')) return 'marketplace';
+  if (ruta.startsWith('/r/') || ruta.startsWith('/cita/')) return 'portal';
+  if (ruta.startsWith('/app')) return 'app';
+  if (ruta === '/' || ruta.endsWith('.html')) return 'landing';
+  return 'app';
+}
+
+function deducirTipo(mensaje: string, pila?: string): TipoError {
+  const txt = `${mensaje} ${pila || ''}`.toLowerCase();
+  if (/key limit|403|quota|credits?|insufficient_quota|balance|payment required|billing|402/i.test(txt)) {
+    return 'creditos';
+  }
+  if (/openrouter|chispa|model_not_found|edge function|tokens|completions/i.test(txt)) {
+    return 'ia';
+  }
+  if (/failed to fetch|networkerror|fetch failed|err_network|timeout|connection/i.test(txt)) {
+    return 'red';
+  }
+  return 'excepcion';
 }
 
 export function reportarError(
@@ -46,14 +68,18 @@ export function reportarError(
     if (yaEnviados.has(clave)) return;
     yaEnviados.add(clave);
 
+    const pila = (o.pila ?? err?.stack ?? '').slice(0, 2000);
+    const origen = o.origen ?? deducirOrigen(ruta);
+    const tipo = o.tipo ?? deducirTipo(mensaje, pila);
+
     void supabase
       .rpc('registrar_error_cliente', {
         p_mensaje: mensaje,
         p_ruta: ruta,
-        p_pila: (o.pila ?? err?.stack ?? '').slice(0, 2000),
-        p_origen: o.origen ?? (ruta.startsWith('/r/') || ruta.startsWith('/cita/') ? 'portal' : 'app'),
+        p_pila: pila,
+        p_origen: origen,
         p_navegador: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : '',
-        p_tipo: o.tipo ?? 'excepcion',
+        p_tipo: tipo,
       })
       .then(
         () => {},

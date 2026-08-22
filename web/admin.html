@@ -12,6 +12,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" />
 <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" />
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" /></noscript>
+<script src="assets/reportarError.js"></script>
 <link rel="stylesheet" href="assets/mecha.css" />
 <style>
   body{min-height:100vh}
@@ -563,28 +564,46 @@
 
   <div id="view-errores" style="display:none">
     <div class="ad-stats" id="statsErr">
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrNuevos">0</div><div class="l">Nuevos</div></div>
       <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrTipos">0</div><div class="l">Fallos distintos</div></div>
       <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrVeces">0</div><div class="l">Veces en total</div></div>
       <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrSalones">0</div><div class="l">Salones afectados</div></div>
     </div>
 
     <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:760px;">
-      Errores que han petado en el navegador de alguien: pantallas en blanco, promesas sin capturar,
-      fallos sueltos. Si esta lista esta vacia, es buena señal. Si un fallo sale muchas veces y en
-      varios salones, ese es el que hay que mirar primero.
+      Telemetría integral de errores en tiempo real (App, Landing, Marketplace, Portal, IA y Créditos).
+      Los fallos pueden marcarse como resueltos o en revisión directamente desde cada tarjeta.
     </p>
 
     <div class="ad-tools">
+      <select class="ad-sel" id="fEstadoErr">
+        <option value="">Todos los estados</option>
+        <option value="nuevo" selected>Nuevos</option>
+        <option value="en_revision">En revisión</option>
+        <option value="resuelto">Resueltos</option>
+        <option value="ignorado">Ignorados</option>
+      </select>
+      <select class="ad-sel" id="fOrigenErr">
+        <option value="">Todos los orígenes</option>
+        <option value="app">App</option>
+        <option value="portal">Portal de reservas</option>
+        <option value="landing">Landing</option>
+        <option value="marketplace">Marketplace</option>
+        <option value="edge_function">Edge Functions</option>
+      </select>
+      <select class="ad-sel" id="fTipoErr">
+        <option value="">Todos los tipos</option>
+        <option value="excepcion">Excepción / Crash</option>
+        <option value="creditos">Créditos / Saldo API</option>
+        <option value="ia">Chispa / IA</option>
+        <option value="operativo">Operativo</option>
+        <option value="red">Red / Conexión</option>
+      </select>
       <select class="ad-sel" id="fDiasErr">
         <option value="1">Últimas 24 h</option>
         <option value="7" selected>Últimos 7 días</option>
         <option value="30">Últimos 30 días</option>
-      </select>
-      <select class="ad-sel" id="fTipoErr">
-        <option value="">Todos los tipos</option>
-        <option value="excepcion">Excepción (pantalla en blanco)</option>
-        <option value="operativo">Operativo (cobro, formulario, login...)</option>
-        <option value="ia">Chispa / IA</option>
+        <option value="90">Últimos 90 días</option>
       </select>
       <button class="ad-refresh" id="refreshErrBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
@@ -2322,6 +2341,10 @@
       .then(function (r) { if (!r.error) pon('badgeCue', r.count); }).catch(function () {});
     api.client.from('dudas_demo').select('id', { count: 'exact', head: true })
       .then(function (r) { if (!r.error) pon('badgeDud', r.count); }).catch(function () {});
+    api.client.rpc('staff_errores_cliente', { p_dias: 7, p_limit: 100, p_estado: 'nuevo' })
+      .then(function (r) { if (!r.error && Array.isArray(r.data)) pon('badgeErr', r.data.length ? r.data.length : ''); }).catch(function () {});
+    api.client.rpc('staff_mensajes_soporte', { p_estado: 'nuevo', p_limit: 100 })
+      .then(function (r) { if (!r.error && Array.isArray(r.data)) pon('badgeSup', r.data.length ? r.data.length : ''); }).catch(function () {});
   }
 
   function switchView(view) {
@@ -2548,9 +2571,28 @@
   var rIa = $('refreshIaBtn'); if (rIa) rIa.addEventListener('click', loadGastoIa);
   var fdIa = $('fDiasIa'); if (fdIa) fdIa.addEventListener('change', function () { gastoIaAbiertos = {}; loadGastoIa(); });
 
-  // ---------- ERRORES DE CLIENTE ----------
+  // ---------- ERRORES DEL SISTEMA Y CLIENTE ----------
   var erroresLoaded = false;
-  var TIPO_ERR_LABEL = { excepcion: 'excepción', operativo: 'operativo', ia: 'Chispa / IA' };
+  var TIPO_ERR_LABEL = {
+    excepcion: 'Excepción / Crash',
+    operativo: 'Operativo',
+    ia: 'Chispa / IA',
+    creditos: 'Créditos / Saldo API',
+    red: 'Red / Conexión'
+  };
+  var ORIGEN_ERR_LABEL = {
+    app: 'App',
+    portal: 'Portal de reserva',
+    landing: 'Landing',
+    marketplace: 'Marketplace',
+    edge_function: 'Edge Function'
+  };
+  var ESTADO_ERR_LABEL = {
+    nuevo: 'Nuevo',
+    en_revision: 'En revisión',
+    resuelto: 'Resuelto',
+    ignorado: 'Ignorado'
+  };
 
   // Salud del envio de avisos: cuantos esperan y cuanto hace que no sale ninguno.
   function loadSaludEnvios() {
@@ -2581,50 +2623,112 @@
     listEl.innerHTML = '<div class="ad-loading">Cargando errores...</div>';
     clearMsg($('errMsg'));
     var dias = parseInt($('fDiasErr').value, 10) || 7;
-    api.client.rpc('staff_errores_cliente', { p_dias: dias, p_limit: 100 }).then(function (res) {
+    var estadoSel = $('fEstadoErr') ? $('fEstadoErr').value : null;
+    var origenSel = $('fOrigenErr') ? $('fOrigenErr').value : null;
+    var tipoSel = $('fTipoErr') ? $('fTipoErr').value : null;
+
+    api.client.rpc('staff_errores_cliente', {
+      p_dias: dias,
+      p_limit: 100,
+      p_estado: estadoSel || null,
+      p_origen: origenSel || null,
+      p_tipo: tipoSel || null
+    }).then(function (res) {
       erroresLoaded = true;
       if (res.error) {
         listEl.innerHTML = '';
         msg($('errMsg'), 'err', 'No se pudieron cargar los errores: ' + (res.error.message || ''));
         return;
       }
-      var todas = res.data || [];
-      var tipoSel = $('fTipoErr').value;
-      var filas = tipoSel ? todas.filter(function (f) { return f.tipo === tipoSel; }) : todas;
+      var filas = res.data || [];
+      var nuevos = filas.filter(function (f) { return (f.estado || 'nuevo') === 'nuevo'; }).length;
       var veces = filas.reduce(function (n, f) { return n + (f.veces || 0); }, 0);
       var salones = filas.reduce(function (n, f) { return Math.max(n, f.salones || 0); }, 0);
+
+      if ($('statErrNuevos')) $('statErrNuevos').textContent = nuevos;
       $('statErrTipos').textContent = filas.length;
       $('statErrVeces').textContent = veces;
       $('statErrSalones').textContent = salones;
-      $('badgeErr').textContent = filas.length ? String(filas.length) : '';
+      $('badgeErr').textContent = nuevos ? String(nuevos) : '';
       $('countErr').textContent = filas.length
-        ? filas.length + (filas.length === 1 ? ' fallo distinto' : ' fallos distintos') + ' en los últimos ' + dias + ' días'
+        ? filas.length + (filas.length === 1 ? ' fallo registrado' : ' fallos registrados') + ' en los últimos ' + dias + ' días'
         : '';
 
       if (!filas.length) {
-        listEl.innerHTML = '<div class="ad-empty">Ni un error en este periodo. Así tiene que estar esto.</div>';
+        listEl.innerHTML = '<div class="ad-empty">Ni un error registrado con estos filtros. Todo el sistema está limpio.</div>';
         return;
       }
 
       var html = '';
       filas.forEach(function (f) {
-        var grave = (f.veces || 0) >= 10 || (f.salones || 0) > 1;
-        html += '<div class="card-row" style="border-left:3px solid ' + (grave ? '#ef4444' : 'rgba(148,163,184,.4)') + '">';
-        html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">';
-        html += '<span style="font-size:13.5px;font-weight:700;color:var(--text)">' + esc(f.mensaje || '') + '</span>';
-        html += '<span class="plan ' + (grave ? 'demo' : 'free') + '">' + (f.veces || 0) + (f.veces === 1 ? ' vez' : ' veces') + '</span>';
-        if ((f.salones || 0) > 1) html += '<span class="plan demo">' + f.salones + ' salones</span>';
-        html += '<span class="plan free">' + esc(f.origen || 'app') + '</span>';
-        html += '<span class="plan free">' + esc(TIPO_ERR_LABEL[f.tipo] || f.tipo || 'excepción') + '</span>';
-        html += '</div>';
-        html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:6px">' +
-          (f.ruta ? 'En <b>' + esc(f.ruta) + '</b> · ' : '') +
-          'desde ' + new Date(f.primera_vez).toLocaleString('es-ES') +
-          ' · última ' + new Date(f.ultima_vez).toLocaleString('es-ES') + '</div>';
-        if (f.pila) {
-          html += '<details><summary style="font-size:12px;color:var(--text-sec);cursor:pointer">Ver pila</summary>' +
-            '<pre style="font-size:11px;white-space:pre-wrap;color:var(--text-sec);margin-top:6px">' + esc(f.pila) + '</pre></details>';
+        var estado = f.estado || 'nuevo';
+        var esCritico = f.tipo === 'creditos' || (f.veces || 0) >= 10 || (f.salones || 0) > 1;
+        var borderLeft = '#ef4444';
+        if (estado === 'resuelto') borderLeft = '#34d399';
+        else if (estado === 'en_revision') borderLeft = '#3b82f6';
+        else if (estado === 'ignorado') borderLeft = 'rgba(148,163,184,.4)';
+        else if (f.tipo === 'creditos') borderLeft = '#e0340e';
+        else if (f.tipo === 'ia') borderLeft = '#a855f7';
+
+        html += '<div class="card-row" style="border-left:3.5px solid ' + borderLeft + '" data-huella="' + esc(f.huella) + '">';
+        html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">';
+        html += '<span style="font-size:14px;font-weight:700;color:var(--text);flex:1;min-width:240px">' + esc(f.mensaje || '') + '</span>';
+
+        // Tag de Estado
+        if (estado === 'resuelto') {
+          html += '<span class="tag" style="background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.3)">✓ Resuelto</span>';
+        } else if (estado === 'en_revision') {
+          html += '<span class="tag" style="background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)">En revisión</span>';
+        } else if (estado === 'ignorado') {
+          html += '<span class="tag" style="background:rgba(148,163,184,.12);color:#94a3b8;border-color:rgba(148,163,184,.3)">Ignorado</span>';
+        } else {
+          html += '<span class="tag" style="background:rgba(245,158,11,.14);color:#fbbf24;border-color:rgba(245,158,11,.36)">Nuevo</span>';
         }
+
+        // Tag de Tipo
+        if (f.tipo === 'creditos') {
+          html += '<span class="tag" style="background:rgba(224,52,14,.14);color:#e0340e;border-color:rgba(224,52,14,.36)">💳 ' + esc(TIPO_ERR_LABEL[f.tipo] || f.tipo) + '</span>';
+        } else if (f.tipo === 'ia') {
+          html += '<span class="tag" style="background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.32)">✨ ' + esc(TIPO_ERR_LABEL[f.tipo] || f.tipo) + '</span>';
+        } else {
+          html += '<span class="plan free">' + esc(TIPO_ERR_LABEL[f.tipo] || f.tipo || 'excepción') + '</span>';
+        }
+
+        // Tag de Origen
+        html += '<span class="plan free">' + esc(ORIGEN_ERR_LABEL[f.origen] || f.origen || 'app') + '</span>';
+
+        // Tag de Frecuencia
+        html += '<span class="plan ' + (esCritico ? 'demo' : 'free') + '">' + (f.veces || 0) + (f.veces === 1 ? ' vez' : ' veces') + '</span>';
+        if ((f.salones || 0) > 1) html += '<span class="plan demo">' + f.salones + ' salones</span>';
+        html += '</div>';
+
+        html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:8px">' +
+          (f.ruta ? 'Ruta: <b>' + esc(f.ruta) + '</b> · ' : '') +
+          'Primera vez: ' + new Date(f.primera_vez).toLocaleString('es-ES') +
+          ' · Última vez: ' + new Date(f.ultima_vez).toLocaleString('es-ES') +
+          (f.resuelto_en ? ' · <span style="color:#34d399">Resuelto ' + new Date(f.resuelto_en).toLocaleDateString('es-ES') + (f.resuelto_por ? ' por ' + esc(f.resuelto_por) : '') + '</span>' : '') +
+          '</div>';
+
+        if (f.pila) {
+          html += '<details style="margin-bottom:10px"><summary style="font-size:12px;color:var(--text-sec);cursor:pointer">Ver detalles técnicos / pila</summary>' +
+            '<pre style="font-size:11px;white-space:pre-wrap;color:var(--text-sec);background:rgba(0,0,0,.2);padding:8px 10px;border-radius:8px;margin-top:6px;border:1px solid var(--border)">' + esc(f.pila) + '</pre></details>';
+        }
+
+        // Acciones de staff sobre el error
+        html += '<div class="r-foot" style="margin-top:4px">';
+        if (estado !== 'resuelto') {
+          html += '<button class="r-act r-act-ok btn-err-act" data-huella="' + esc(f.huella) + '" data-estado="resuelto">✓ Marcar resuelto</button>';
+          if (estado !== 'en_revision') {
+            html += '<button class="r-act btn-err-act" data-huella="' + esc(f.huella) + '" data-estado="en_revision">🔍 Poner en revisión</button>';
+          }
+          if (estado !== 'ignorado') {
+            html += '<button class="r-act btn-err-act" data-huella="' + esc(f.huella) + '" data-estado="ignorado">Ignorar</button>';
+          }
+        } else {
+          html += '<button class="r-act btn-err-act" data-huella="' + esc(f.huella) + '" data-estado="nuevo">↺ Reabrir incidencia</button>';
+        }
+        html += '</div>';
+
         html += '</div>';
       });
       listEl.innerHTML = html;
@@ -2634,8 +2738,40 @@
     });
   }
 
+  // Delegación de eventos para botones de estado de error
+  var listErrEl = $('listErr');
+  if (listErrEl) {
+    listErrEl.addEventListener('click', function (e) {
+      var btn = e.target.closest('.btn-err-act');
+      if (!btn) return;
+      var huella = btn.getAttribute('data-huella');
+      var nuevoEstado = btn.getAttribute('data-estado');
+      if (!huella || !nuevoEstado) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Actualizando...';
+
+      api.client.rpc('staff_marcar_error', {
+        p_huella: huella,
+        p_estado: nuevoEstado
+      }).then(function (res) {
+        if (res.error) {
+          alert('No se pudo actualizar el error: ' + res.error.message);
+          btn.disabled = false;
+        } else {
+          loadErrores();
+        }
+      }).catch(function (err) {
+        alert('Error: ' + (err && err.message ? err.message : err));
+        btn.disabled = false;
+      });
+    });
+  }
+
   var rErr = $('refreshErrBtn'); if (rErr) rErr.addEventListener('click', loadErrores);
   var fdErr = $('fDiasErr'); if (fdErr) fdErr.addEventListener('change', loadErrores);
+  var feErr = $('fEstadoErr'); if (feErr) feErr.addEventListener('change', loadErrores);
+  var foErr = $('fOrigenErr'); if (foErr) foErr.addEventListener('change', loadErrores);
   var ftErr = $('fTipoErr'); if (ftErr) ftErr.addEventListener('change', loadErrores);
 
   // ---------- SOPORTE. Mensajes que un salon manda "a traves de Mecha". ----------

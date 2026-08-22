@@ -96,16 +96,28 @@ export function DemoZonaGlobal() {
     if (!zona) return;
     let raf = 0;
     let scrolled = false;
-    let abierto = false;
+    // Botones ya pulsados en ESTA zona. Antes era un simple booleano "abierto":
+    // se pulsaba UNO y se daba por hecho que la zona ya estaba a la vista. Eso
+    // no vale cuando hacen falta varios clics encadenados — en el portal hay que
+    // abrir primero la categoria del acordeon (que arranca plegada) y solo
+    // entonces existe la fila del servicio que destapa extras, profesional y
+    // hora. Con un unico clic esos tres pasos del recorrido no enfocaban NADA.
+    const pulsados = new Set<HTMLElement>();
     const abrir = () => {
-      if (abierto) return;
       // `~=` en vez de `=`: un mismo boton puede ser la puerta de varias zonas
       // seguidas (en el portal, elegir servicio es lo que hace aparecer tanto el
       // paso del profesional como el de la hora).
-      const btn = document.querySelector(`[data-demo-abrir~="${zona}"]`) as HTMLElement | null;
-      if (btn) {
-        abierto = true;
-        btn.click();
+      const btns = document.querySelectorAll(`[data-demo-abrir~="${zona}"]`);
+      for (let i = 0; i < btns.length; i++) {
+        const b = btns[i] as HTMLElement;
+        if (pulsados.has(b)) continue;
+        const r = b.getBoundingClientRect();
+        if (r.height <= 0 || r.width <= 0) continue;   // aun no esta pintado
+        pulsados.add(b);
+        b.click();
+        // Uno por vuelta: el clic provoca un render y el siguiente eslabon de la
+        // cadena todavia no existe en el DOM. La siguiente pasada lo encuentra.
+        return;
       }
     };
     // Ojo: expo-router deja montadas varias pantallas a la vez, asi que puede
@@ -156,7 +168,20 @@ export function DemoZonaGlobal() {
       }
     };
     raf = requestAnimationFrame(buscar);
-    return () => cancelAnimationFrame(raf);
+    // Al salir de la zona se recoge lo que se abrio para verla. Sin esto, los
+    // paneles que abre un paso se quedan encima de los siguientes: en Caja, los
+    // modales de "Cobro rapido" y "Venta rapida" se apilaban sobre el paso del
+    // arqueo y el visitante veia dos ventanas tapando lo que se le explicaba.
+    // El cierre se marca con `data-demo-cerrar="<clave>"` en el boton de cerrar.
+    return () => {
+      cancelAnimationFrame(raf);
+      if (!pulsados.size) return;
+      const cierres = document.querySelectorAll(`[data-demo-cerrar~="${zona}"]`);
+      for (let i = 0; i < cierres.length; i++) {
+        const c = cierres[i] as HTMLElement;
+        if (c.getBoundingClientRect().height > 0) c.click();
+      }
+    };
   }, [zona]);
 
   if (!zona) return null;
