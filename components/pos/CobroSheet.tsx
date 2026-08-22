@@ -5,6 +5,7 @@ import { getUserProfile } from '@/lib/auth';
 import { identidadActiva } from '@/lib/identidadActiva';
 import { mensajeDeError } from '@/lib/errores';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
+import { useLectorCodigoBarras } from '@/lib/hooks/useLectorCodigoBarras';
 
 export type CobroMetodo = 'efectivo' | 'datafono' | 'bizum' | 'mixto';
 
@@ -66,6 +67,9 @@ interface LineaWalkin {
   nombre: string;
   precio: string;
   cantidad: string;
+  // Producto del catalogo al que corresponde la linea, si lo hay. Ya se venia
+  // rellenando al elegir del selector; faltaba declararlo.
+  ref_id?: string;
 }
 
 // Motor de cobro unico (POS-0/1/1.5): usado desde la ficha de cita, desde Caja
@@ -151,7 +155,7 @@ export function CobroSheet(props: CobroSheetProps) {
   const [clienteId, setClienteId] = useState('');
   const [clientes, setClientes] = useState<Array<{ id: string; nombre: string }>>([]);
 
-  const [productos, setProductos] = useState<Array<{ id: string; nombre: string; categoria: string; precio: number }>>([]);
+  const [productos, setProductos] = useState<Array<{ id: string; nombre: string; categoria: string; precio: number; codigo_barras?: string | null }>>([]);
   const [productoPickerOpen, setProductoPickerOpen] = useState(false);
   const [categoriaProductoFiltro, setCategoriaProductoFiltro] = useState<string>('todas');
 
@@ -187,7 +191,7 @@ export function CobroSheet(props: CobroSheetProps) {
       }
       const { data: prods } = await supabase
         .from('productos')
-        .select('id, nombre, categoria, precio_cents')
+        .select('id, nombre, categoria, precio_cents, codigo_barras')
         .eq('negocio_id', profile.negocio_id)
         .eq('activo', true)
         .order('nombre');
@@ -197,6 +201,7 @@ export function CobroSheet(props: CobroSheetProps) {
           nombre: p.nombre,
           categoria: p.categoria || 'general',
           precio: p.precio_cents / 100,
+          codigo_barras: p.codigo_barras ?? null,
         })),
       );
     })();
@@ -260,6 +265,33 @@ export function CobroSheet(props: CobroSheetProps) {
     setLineaProductoId('');
     setProductoPickerOpen(false);
   };
+  // Escaner de mostrador: pasar el champu por el lector lo mete en el ticket.
+  // El escaner se presenta como un teclado, asi que lo que distingue una lectura
+  // de alguien escribiendo es la velocidad (ver lib/pos/lectorCodigoBarras.ts).
+  const [avisoEscaner, setAvisoEscaner] = useState('');
+  useLectorCodigoBarras({
+    activo: props.mode === 'walkin' || props.mode === 'cita',
+    onCodigo: (codigo) => {
+      const prod = productos.find((p) => p.codigo_barras && p.codigo_barras === codigo);
+      if (!prod) {
+        setAvisoEscaner(`Ese código (${codigo}) no está en ningún producto.`);
+        return;
+      }
+      setAvisoEscaner('');
+      // Si ya estaba en el ticket, sube la cantidad en vez de repetir linea.
+      setLineas((prev) => {
+        const i = prev.findIndex((l) => l.ref_id === prod.id);
+        if (i === -1) {
+          return [...prev, { nombre: prod.nombre, precio: prod.precio.toString(), cantidad: '1', ref_id: prod.id }];
+        }
+        const copia = prev.slice();
+        copia[i] = { ...copia[i], cantidad: String((parseInt(copia[i].cantidad, 10) || 1) + 1) };
+        return copia;
+      });
+    },
+    onLecturaMala: () => setAvisoEscaner('No se ha leído bien el código. Vuelve a pasarlo.'),
+  });
+
   const quitarLinea = (idx: number) => setLineas((prev) => prev.filter((_, i) => i !== idx));
   const cambiarCantidad = (idx: number, cantidad: string) => {
     setLineas((prev) => prev.map((l, i) => (i === idx ? { ...l, cantidad } : l)));
@@ -634,6 +666,13 @@ export function CobroSheet(props: CobroSheetProps) {
               />
               <button onClick={agregarLinea} style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+</button>
             </div>
+
+            {avisoEscaner && (
+              <div style={{ marginTop: 8, padding: '8px 10px', background: T.warningSoft, border: `1px solid ${T.warning}`, borderRadius: 8, fontSize: 12.5, color: T.text, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                <span>{avisoEscaner}</span>
+                <button onClick={() => setAvisoEscaner('')} aria-label="Cerrar aviso" style={{ background: 'none', border: 'none', color: T.textSec, cursor: 'pointer', fontWeight: 700 }}>×</button>
+              </div>
+            )}
 
             {isWalkin && (
               <>

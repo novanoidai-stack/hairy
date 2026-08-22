@@ -9,6 +9,7 @@ import { reportarError } from "@/lib/reportarError";
 import { ingresosRealesCents, propinasCents } from "@/lib/metricasNegocio";
 import { useResponsive } from "@/lib/hooks/useResponsive";
 import { CobroSheet } from "@/components/pos/CobroSheet";
+import { SesionCajaPanel } from "@/components/pos/SesionCajaPanel.web";
 import { VentaBonoModal } from "@/components/pos/VentaBonoModal";
 import { VentaTarjetaRegaloModal } from "@/components/pos/VentaTarjetaRegaloModal";
 import { categoryColorHex } from "@/lib/categoryColors";
@@ -986,6 +987,10 @@ function CajaScreen() {
             <AvisosBell mode="header" />
           </div>
         </div>
+
+        {/* Abrir y cerrar la caja del dia. Solo gestion: las RPC lo comprueban
+            tambien en servidor, esto es para no enseñar un boton que fallaria. */}
+        {canSeeAll && <SesionCajaPanel />}
 
         {!paginaManual.loading && !paginaManual.visto && (
           <div style={{ marginBottom: isMobile ? 16 : 20 }}>
