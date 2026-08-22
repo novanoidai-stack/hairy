@@ -28,6 +28,7 @@ import { syncAlergiasACliente } from "@/lib/syncAlergias";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
 import { categoryColorHex } from "@/lib/categoryColors";
 import { useResponsive } from "@/lib/hooks/useResponsive";
+import { useCitasRealtime } from "@/lib/hooks/useCitasRealtime";
 import { mensajeDeError } from "@/lib/errores";
 import { ejecutarAccion, type AccionPropuesta } from "@/lib/chispaOps";
 import {
@@ -1227,6 +1228,21 @@ export default function AgendaCalendar() {
     // verCanceladas entra en las dependencias porque cambia la CONSULTA (las
     // ocultas se filtran en servidor), no solo lo que se pinta.
   }, [refreshTrigger, verCanceladas]);
+
+  // Lo que reserva una clienta por el portal, o lo que agenda el asistente de
+  // WhatsApp, aparece en la pantalla de recepcion sin tocar nada. Antes solo se
+  // veia al recargar o al cambiar de dia.
+  useCitasRealtime({
+    negocioId,
+    verCanceladas,
+    dentroDeVentana: useCallback((inicioISO: string | null | undefined) => {
+      const r = loadedRangeRef.current;
+      if (!r || !inicioISO) return false;
+      const t = new Date(inicioISO).getTime();
+      return t >= r.desde.getTime() && t <= r.hasta.getTime();
+    }, []),
+    onCambio: setCitas,
+  });
 
   // Demo guiada: la guia de demo.html pide abrir paneles reales (nueva cita,
   // notificaciones) via CustomEvent reemitido por _layout. Cerramos lo anterior
