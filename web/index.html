@@ -830,16 +830,20 @@ nav{
   border-bottom:1px solid var(--line);
   transition:background .3s ease,border-color .3s ease,box-shadow .3s ease;
 }
+/* gap y padding ajustados: con el enlace del directorio son 8 items y a
+   6px/11px la fila se pasaba 70px del max-width de 1220 del contenedor.
+   Como el contenedor no crece por encima de 1220, no valia con ocultarlo
+   en un breakpoint: desbordaba en TODA pantalla ancha. */
 [data-navlinks]{
   display:flex;
-  gap:6px;
+  gap:2px;
   align-items:center;
   white-space:nowrap;
   flex-shrink:0;
 }
 [data-navlinks] a{
   gap:5px;
-  padding:6px 11px;
+  padding:6px 8px;
   border-radius:999px;
   transition:color .2s ease,background .2s ease;
   white-space:nowrap;
@@ -985,6 +989,39 @@ nav{
 @media(prefers-reduced-motion:reduce){.hero-abajo-flecha{animation:none}}
 
 /* ============================================================
+   TIRA DEL DIRECTORIO (#comparativa)
+   La landing le habla al dueño del salon, asi que el directorio
+   se le vende como captacion sin comision, no como buscador.
+   ============================================================ */
+.tira-directorio{
+  display:flex;align-items:center;gap:16px;
+  margin-top:16px;padding:16px 20px;
+  border-radius:18px;
+  border:1px solid rgba(15,155,108,.32);
+  background:linear-gradient(120deg,var(--ok-soft),var(--card) 65%);
+  color:var(--ink);text-decoration:none;
+  transition:border-color .25s ease,transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s ease;
+}
+.tira-directorio:hover{
+  border-color:rgba(15,155,108,.6);
+  transform:translateY(-2px);
+  box-shadow:0 14px 30px -18px rgba(15,155,108,.6);
+}
+.tira-directorio-ic{
+  width:42px;height:42px;flex:none;border-radius:13px;
+  display:grid;place-items:center;font-size:19px;
+  background:var(--ok);color:#fff;
+  box-shadow:0 8px 18px -6px rgba(15,155,108,.55);
+}
+.tira-directorio-txt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.tira-directorio-txt b{font-family:var(--display);font-size:16.5px;font-weight:800;letter-spacing:-.015em}
+.tira-directorio-txt small{font-size:13px;color:var(--ink-2);line-height:1.4}
+.tira-directorio-cta{
+  flex:none;font-size:13.5px;font-weight:700;color:var(--ok);
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+}
+
+/* ============================================================
    PIE: ENLACES EN COLUMNAS
    ============================================================ */
 .foot-cols{
@@ -1070,6 +1107,12 @@ body[data-theme="dark"] [data-sticky-cta]{
 @media (max-width:1200px){
   [data-navlinks]{gap:2px}
   [data-navlinks] a{padding:6px 8px;font-size:13px}
+}
+/* El directorio es el enlace menos critico para el dueño de un salon (le
+   habla de captacion, no del software), asi que es el primero que cae
+   cuando la barra se queda sin sitio. */
+@media (max-width:1290px){
+  [data-navlinks] a[href="/salones.html"]{display:none}
 }
 @media (max-width:1160px){
   [data-navlinks] a[href="/especificaciones.html"]{display:none}
@@ -1220,6 +1263,20 @@ body[data-theme="dark"] [data-sticky-cta]{
      completo con su etiqueta. */
   .theme-toggle-btn:not(.mnav-theme){width:44px!important;height:44px!important}
   .mnav-toggle{width:44px!important;height:44px!important}
+
+  /* La tira del directorio apila el CTA bajo el texto: en una fila, el
+     "Ver el directorio →" dejaba el titular en dos palabras por linea. */
+  .tira-directorio{
+    flex-wrap:wrap!important;
+    gap:12px!important;
+    padding:14px 15px!important;
+    border-radius:15px!important;
+  }
+  .tira-directorio-ic{width:36px!important;height:36px!important;border-radius:11px!important;font-size:16px!important}
+  .tira-directorio-txt{flex:1 1 60%}
+  .tira-directorio-txt b{font-size:15px!important}
+  .tira-directorio-txt small{font-size:12.5px!important}
+  .tira-directorio-cta{flex:1 1 100%;justify-content:center;min-height:40px;border-top:1px solid rgba(15,155,108,.2);padding-top:10px}
 
   /* Tres columnas no caben en 375px: Producto y Contacto arriba, Legal debajo
      ocupando el ancho en dos columnas. Y minimo tactil de 40px por enlace. */
@@ -1973,6 +2030,7 @@ body.mnav-open .mnav-links a:nth-child(4){transition-delay:.12s}
 body.mnav-open .mnav-links a:nth-child(5){transition-delay:.16s}
 body.mnav-open .mnav-links a:nth-child(6){transition-delay:.20s}
 body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
+body.mnav-open .mnav-links a:nth-child(8){transition-delay:.28s}
 .mnav-foot{
   display:flex;flex-direction:column;gap:9px;
   padding:12px 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
@@ -2099,6 +2157,7 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 <a href="#equipo">Equipo</a>
 <a href="#todo">Todo en uno</a>
 <a href="/calculadora-comisiones.html"><svg class="ic" aria-hidden="true"><use href="#i-calc" /></svg>Comisiones</a>
+<a href="/salones.html">Directorio</a>
 <a href="/especificaciones.html">Especificaciones</a>
 <a href="#precios">Precios</a>
 <a href="#contacto">Contacto</a>
@@ -2153,6 +2212,7 @@ body.mnav-open .mnav-links a:nth-child(7){transition-delay:.24s}
 <a href="#equipo" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-users" /></svg>Equipo & Fichajes</a>
 <a href="#todo" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-zap" /></svg>Todo en uno</a>
 <a href="/calculadora-comisiones.html" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-calc" /></svg>Calculadora comisiones</a>
+<a href="/salones.html" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-target" /></svg>Directorio de salones</a>
 <a href="/especificaciones.html" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-doc" /></svg>Especificaciones</a>
 <a href="#precios" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-tag" /></svg>Precios</a>
 <a href="#contacto" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-chat" /></svg>Contacto & Soporte</a>
@@ -2299,6 +2359,19 @@ Cambiar tema claro / oscuro
 <a href="#contacto" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
 </div>
 </div>
+
+<!-- El directorio, con el angulo de vendedor. Va justo aqui porque la fila
+     "Coste por cliente nuevo" de la tabla acaba de hablar del 20-35% que
+     cobran los marketplaces: el contraste se lee solo. -->
+<a href="/salones.html" class="tira-directorio reveal">
+<span class="tira-directorio-ic"><svg class="ic" aria-hidden="true"><use href="#i-target" /></svg></span>
+<span class="tira-directorio-txt">
+<b>Y encima sales en nuestro directorio</b>
+<small>Las clientas de tu barrio te encuentran y reservan solas. Sin comisión por reserva, ni ahora ni nunca.</small>
+</span>
+<span class="tira-directorio-cta">Ver el directorio <span aria-hidden="true">→</span></span>
+</a>
+
 <details data-m-collapse class="cond-acc nota-legal" open>
 <summary>Cómo hemos hecho esta comparativa</summary>
 <p style="font-size:11.5px;color:var(--ink-3);margin:14px 0 0">Comparativa orientativa sobre categorías de producto, elaborada con las funciones y tarifas publicadas por cada proveedor a fecha de 2026; pueden variar. Booksy, Fresha, Treatwell y Square son marcas de sus respectivos propietarios, citadas con fines meramente identificativos; Mecha no está afiliada ni patrocinada por ellas.</p>
