@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { getUserProfile } from '@/lib/auth';
+import { getUserProfile, can } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useDebounce } from '@/lib/hooks/useDebounce';
@@ -304,6 +304,9 @@ function ClientesWeb() {
   const [searchText, setSearchText] = useState('');
   const debouncedSearchText = useDebounce(searchText, 200);
   const [loading, setLoading] = useState(true);
+  // Exportar los datos de una clienta es capacidad de propietario y el servidor
+  // ya la rechaza para el resto: no se ofrece un boton que solo sabe dar error.
+  const [puedeExportar, setPuedeExportar] = useState(false);
   const [showClienteModal, setShowClienteModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
@@ -446,6 +449,7 @@ function ClientesWeb() {
       return;
     }
     setNegocioId(profile.negocio_id);
+    setPuedeExportar(can(profile, 'datos.exportar'));
 
     const [resClts, resCits, resSrv, resProf, resFichas, resCfg, resFuga, resRiesgo, resRecompra, resNiveles] = await Promise.all([
       supabase
@@ -1334,7 +1338,9 @@ function ClientesWeb() {
                 { l: 'Ficha PDF', icon: 'download', action: () => { void exportFichaPDF(c, citas, servicios); } },
                 // Portabilidad RGPD (art. 20): descarga JSON con todos los datos de ESTA
                 // clienta. El RPC valida owner/admin en servidor (igual que anonimizar).
-                { l: 'Exportar (RGPD)', icon: 'download', action: () => { void exportDatosClienteJSON(c.id, c.nombre); } },
+                ...(puedeExportar
+                  ? [{ l: 'Exportar (RGPD)', icon: 'download', action: () => { void exportDatosClienteJSON(c.id, c.nombre); } }]
+                  : []),
                 // Fusionar una duplicada dentro de ESTA (que actua de maestra).
                 { l: 'Fusionar dupl.', icon: 'copy', action: () => setFusionMaestro(c) },
               ].map((a, i) => (
