@@ -11,6 +11,7 @@ import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { ModalImportarTarifasIA } from '@/components/config/ModalImportarTarifasIA';
 import { TabVoz } from '@/components/config/TabVoz.web';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
+import { TabRecursos } from '@/components/config/TabRecursos.web';
 import { SeccionSuscripcion } from '@/components/config/SeccionSuscripcion.web';
 import { HubIA } from '@/components/config/HubIA';
 import { SugerenciasServicios } from '@/components/config/SugerenciasServicios.web';
@@ -285,6 +286,7 @@ const TABS: TabDef[] = [
   { id: 'horarios',       label: 'Horarios',       icon: 'clock',     section: 'Negocio' },
   { id: 'servicios',      label: 'Servicios',      icon: 'scissors',  section: 'Operativa' },
   { id: 'agenda',         label: 'Agenda',         icon: 'calendar',  section: 'Operativa' },
+  { id: 'recursos',       label: 'Puestos',        icon: 'building',  section: 'Operativa' },
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
   { id: 'pagos',          label: 'Pagos',          icon: 'card',      section: 'Operativa' },
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
@@ -316,6 +318,7 @@ const TAB_KEYWORDS: Record<string, string[]> = {
   horarios: ['horario', 'apertura', 'cierre', 'dias', 'festivos', 'vacaciones', 'cierres', 'jornada', 'turnos'],
   servicios: ['catalogo', 'precio', 'duracion', 'categorias', 'tarifa', 'lista de precios'],
   agenda: ['calendario', 'intervalos', 'franjas', 'huecos', 'columnas', 'vista', 'reglas de agenda', 'reserva de tiempo'],
+  recursos: ['puestos', 'lavacabezas', 'pila', 'cabina', 'sillon', 'tocador', 'aparatologia', 'laser', 'capacidad', 'cuello de botella', 'sitio'],
   comisiones: ['comision', 'porcentaje', 'empleados', 'liquidacion', 'nomina', 'reparto'],
   pagos: ['stripe', 'redsys', 'pasarela', 'tpv', 'datafono', 'tarjeta', 'iva', 'fiscalidad', 'verifactu', 'factura', 'propinas', 'senal', 'fianza', 'deposito', 'reembolso', 'devolucion', 'cobro', 'cobrar', 'conectar con stripe', 'cuenta bancaria', 'banco'],
   presupuestos: ['presupuesto', 'cotizacion', 'validez', 'iva'],
@@ -1514,6 +1517,9 @@ export default function ConfiguracionWeb() {
             )}
             {tab === 'agenda' && (
               <TabAgenda config={config} setC={setC} bloqueoCounts={bloqueoCounts} />
+            )}
+            {tab === 'recursos' && (
+              <TabRecursos negocioId={negocioId} />
             )}
             {tab === 'presupuestos' && (
               <TabPresupuestoConceptos negocioId={negocioId} />
