@@ -162,6 +162,17 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   comisiones, profesionales ilimitados. Viven en TRES sitios que hay que cambiar a la vez: la sección
   `#precios` de `web/index.html` (incluidos los datos estructurados y el FAQ), el `SYSTEM_PROMPT` de
   `supabase/functions/chispa-landing/index.ts` (el asistente los recita de memoria) y `lib/planes.ts`.
+- **REFERIDOS (tabla fijada el 23 ago 2026).** Red de 3 niveles: **−10 %** por cada salón que traes
+  tú, **−4 %** por los que traen ellos y **−2 %** por el tercer nivel, **tope 30 %**. Al llegar al
+  tope, cada salón de pago que sigue entrando da **1 mes gratis** en vez de más porcentaje. Quien
+  entra con tu enlace: **−15 %** de bienvenida + migración y configuración sin coste.
+  Fuente única: `migrations/referidos-tope-30-y-meses-gratis.sql`. Vive en CUATRO sitios que hay
+  que cambiar a la vez: esa migración, la sección `#hermano` de `web/index.html` (con su FAQ en los
+  datos estructurados), el modal "Recomendar" de `web/demo.html` y `TabReferidos` en
+  `app/(tabs)/configuracion.web.tsx`. Ojo con dos trampas ya pisadas: el motor contaba solo
+  `plan='full'` (valor histórico, hoy no lo tiene casi nadie) y el plan por sí solo no dice que
+  alguien pague — hace falta `suscripcion_estado`; y cuenta solo el `owner`, o un salón con seis
+  empleados valdría por seis referidos.
 - **PLANES que limitan de verdad (3 ago 2026, IA separada en addon el 7 ago 2026).** `profiles.plan`
   ∈ `free | esencial | estudio` (`full` = valor histórico, se lee como `estudio`; ninguna cuenta
   antigua pierde nada). **Fuente única de qué incluye cada plan: `lib/planes.ts`** — debe cuadrar

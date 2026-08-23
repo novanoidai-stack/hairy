@@ -1799,6 +1799,11 @@ function TabReferidos() {
   const aplicado = stats?.descuento_aplicado === true;
   const total = Number(stats?.total || 0);
   const pagando = Number(stats?.pagando || 0);
+  // Por encima del tope el descuento ya no puede subir: lo que entra a partir
+  // de ahi se paga en meses gratis (ver migrations/referidos-tope-30-y-meses-gratis.sql).
+  const tope = Number(stats?.descuento_tope || 30);
+  const mesesPend = Number(stats?.meses_pendientes || 0);
+  const alTope = pct >= tope;
   const link = codigo && typeof window !== 'undefined'
     ? `${window.location.origin}/demo.html?share=1&ref=${codigo}`
     : '';
@@ -1812,10 +1817,11 @@ function TabReferidos() {
     <>
       <Section
         title="Invita y gana"
-        desc="Comparte tu enlace con otros salones. Ganas descuento en tu plan por cada uno que entra contigo y activa su suscripcion, y tambien por los que ellos traigan (hasta 3 niveles, maximo 30%)."
+        desc={`Comparte tu enlace con otros salones. Por cada uno que entra contigo y paga su plan tu cuota baja un 10%, un 4% por los que traigan ellos y un 2% por el tercer nivel, hasta un maximo del ${tope}%. Cuando llegas al tope, cada salon nuevo te da un mes gratis en vez de mas descuento. Quien entra con tu enlace se lleva su 15% de bienvenida y la configuracion hecha.`}
       >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-          <StatBox label="Tu descuento" value={`-${pct}%`} sub={pct > 0 ? (aplicado ? 'activo en tu plan' : 'acumulado en tu plan') : 'aun sin descuento'} accent={pct > 0 ? T.success : undefined} />
+          <StatBox label="Tu descuento" value={`-${pct}%`} sub={pct > 0 ? (alTope ? `el maximo (${tope}%)` : (aplicado ? 'activo en tu plan' : 'acumulado en tu plan')) : 'aun sin descuento'} accent={pct > 0 ? T.success : undefined} />
+          <StatBox label="Meses gratis" value={String(mesesPend)} sub={mesesPend > 0 ? 'pendientes de aplicar' : (alTope ? 'el siguiente que entre' : `al llegar al ${tope}%`)} accent={mesesPend > 0 ? T.success : undefined} />
           <StatBox label="Salones en tu red" value={String(total)} sub={total === 1 ? '1 invitado' : `${total} invitados`} />
           <StatBox label="Con plan activo" value={String(pagando)} sub="los que ya pagan" accent={pagando > 0 ? T.success : undefined} />
         </div>
