@@ -1094,7 +1094,20 @@
   function getTrialInfo(p) {
     if (isStaffAccount(p)) return { tipo: 'staff', label: 'Equipo Mecha', style: 'background:rgba(124,108,240,0.15);color:#7c6cf0;border:1px solid rgba(124,108,240,0.3)' };
     if (p.suscripcion_estado === 'activa') {
-      return { tipo: 'activa', label: '✓ Suscripción ' + (p.plan || 'Estudio'), style: 'background:rgba(34,197,94,0.15);color:#16a34a;border:1px solid rgba(34,197,94,0.3)' };
+      // Paga, si — pero no es lo mismo cobrar por Stripe que haberlo marcado a
+      // mano (transferencia, efectivo, acuerdo). Lo segundo no tiene detras
+      // ningun cobro automatico, asi que conviene que se distinga de un vistazo.
+      var manual = p.cobro_manual === true;
+      return {
+        tipo: 'activa',
+        manual: manual,
+        label: manual
+          ? '✓ Paga ' + (p.plan || 'estudio') + ' · fuera de Stripe'
+          : '✓ Suscripción ' + (p.plan || 'Estudio'),
+        style: manual
+          ? 'background:rgba(34,197,94,0.10);color:#15803d;border:1px dashed rgba(34,197,94,0.55)'
+          : 'background:rgba(34,197,94,0.15);color:#16a34a;border:1px solid rgba(34,197,94,0.3)'
+      };
     }
     if (p.trial_ends_at) {
       var fin = new Date(p.trial_ends_at).getTime();
@@ -1248,6 +1261,37 @@
         '<option value="voz"' + (iaCanon === 'voz' ? ' selected' : '') + '>IA por voz</option>' +
         '<option value="completa"' + (iaCanon === 'completa' ? ' selected' : '') + '>IA completa</option>' +
       '</select></label>';
+
+    // ¿Este salon PAGA? Es distinto del plan: un salon en prueba tambien tiene
+    // plan Estudio. Lo dice suscripcion_estado, que normalmente escribe el
+    // webhook de Stripe; para quien paga por transferencia o con un acuerdo
+    // aparte no habia forma de decirlo, y ademas cuenta dinero (el motor de
+    // referidos solo suma descendientes con suscripcion viva).
+    if (!isStaffAccount(p) && !isDemo && p.role === 'owner') {
+      if (p.stripe_subscription_id) {
+        // Stripe manda: aqui no se toca, o el siguiente evento lo revertiria.
+        action += '<span class="plan-switch" onclick="event.stopPropagation()" ' +
+          'title="Este salon tiene suscripcion en Stripe (' + esc(p.stripe_subscription_id) + '). ' +
+          'El estado de cobro lo escribe el webhook: no se marca a mano.">' +
+          '<span>Cobro</span><em style="font-style:normal;font-size:12px;font-weight:700;color:#16a34a">Stripe</em>' +
+          '</span>';
+      } else {
+        var cobroSi = p.cobro_manual === true;
+        action += '<label class="plan-switch" onclick="event.stopPropagation()" ' +
+          'title="Marca si este salon paga aunque no vaya por Stripe (transferencia, efectivo, acuerdo). ' +
+          'No es para regalar acceso: para eso estan la prueba de 30 dias y el boton de mes gratis. ' +
+          'Cuenta como salon de pago en la red de referidos de quien lo trajo.">' +
+          '<span>Cobro</span>' +
+          '<select data-cobro-for="' + esc(p.id) + '">' +
+            '<option value="no"' + (!cobroSi ? ' selected' : '') + '>Sin cobrar</option>' +
+            '<option value="si"' + (cobroSi ? ' selected' : '') + '>Pagado (fuera de Stripe)</option>' +
+          '</select>' +
+          (cobroSi && p.cobro_manual_nota
+            ? '<em style="font-style:normal;font-size:11px;color:var(--text-sec)">' + esc(p.cobro_manual_nota) + '</em>'
+            : '') +
+          '</label>';
+      }
+    }
 
     // Rol dentro de su salon: quien manda y quien no. Antes solo se veia la
     // insignia y no habia forma de cambiarlo desde aqui.
@@ -1510,6 +1554,61 @@
           sel.value = anterior;
           msg($('cueMsg'), 'err', 'No se pudo cambiar el addon de IA: ' + (e && e.message ? e.message : e));
         });
+      });
+    });
+
+    // Marcar (o retirar) que un salon paga fuera de Stripe. Es una decision de
+    // dinero, asi que se pide el motivo y queda registrado con quien y cuando.
+    var COBRO_ERR = {
+      not_authorized:        'Tu cuenta no tiene permiso para marcar cobros.',
+      gestionado_por_stripe: 'Este salon tiene suscripcion en Stripe: su estado lo escribe el webhook, no se toca a mano.',
+      no_es_owner:           'El cobro se marca en la cuenta del propietario, que es quien contrata.',
+      plan_free:             'Primero ponle un plan (Esencial o Estudio): no se puede marcar como pagado un plan Gratis.',
+      no_estaba_marcado:     'Este salon no estaba marcado como pagado a mano.',
+      profile_not_found:     'No se encontro esa cuenta.'
+    };
+    listEl.querySelectorAll('select[data-cobro-for]').forEach(function (sel) {
+      var anterior = sel.value;
+      sel.addEventListener('change', function () {
+        var id = sel.getAttribute('data-cobro-for');
+        var pagado = sel.value === 'si';
+        var p = accounts.filter(function (x) { return x.id === id; })[0];
+        var quien = p ? (p.nombre_negocio || p.email || 'este salon') : 'este salon';
+        var nota = null;
+        if (pagado) {
+          nota = window.prompt('¿Como paga "' + quien + '"?' + String.fromCharCode(10, 10) +
+            'Escribe el motivo (transferencia, efectivo, acuerdo con la cadena...). Queda registrado.' + String.fromCharCode(10, 10) +
+            'OJO: esto dice que el salon PAGA. No es para regalar acceso — para eso estan la prueba de 30 dias y el boton de mes gratis. ' +
+            'Ademas cuenta como salon de pago en la red de referidos de quien lo trajo.', '');
+          if (nota === null) { sel.value = anterior; return; }   // cancelado
+        } else if (!window.confirm('Retirar la marca de pagado de "' + quien + '"?' + String.fromCharCode(10, 10) +
+            'Vuelve al estado que tenia antes de marcarlo, y deja de contar como salon de pago para su padrino.')) {
+          sel.value = anterior;
+          return;
+        }
+        sel.disabled = true;
+        api.client.rpc('staff_set_cobro_manual', { p_profile: id, p_pagado: pagado, p_nota: nota })
+          .then(function (res) {
+            sel.disabled = false;
+            var data = res && res.data;
+            if (res.error || !data || data.ok !== true) {
+              sel.value = anterior;
+              var motivo = (data && data.reason) || '';
+              msg($('cueMsg'), 'err', COBRO_ERR[motivo] ||
+                ('No se pudo cambiar el cobro: ' + (motivo || (res.error && res.error.message) || 'error desconocido')));
+              return;
+            }
+            anterior = sel.value;
+            msg($('cueMsg'), 'ok', pagado
+              ? '"' + quien + '" queda marcado como que paga (fuera de Stripe).'
+              : 'Retirada la marca de pagado de "' + quien + '".');
+            loadCuentas();
+          })
+          .catch(function (e) {
+            sel.disabled = false;
+            sel.value = anterior;
+            msg($('cueMsg'), 'err', 'No se pudo cambiar el cobro: ' + (e && e.message ? e.message : e));
+          });
       });
     });
 

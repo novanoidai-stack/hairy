@@ -173,6 +173,16 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   `plan='full'` (valor histórico, hoy no lo tiene casi nadie) y el plan por sí solo no dice que
   alguien pague — hace falta `suscripcion_estado`; y cuenta solo el `owner`, o un salón con seis
   empleados valdría por seis referidos.
+- **QUIÉN PAGA (`suscripcion_estado`), y cómo se marca (23 ago 2026).** Es la única columna que
+  dice si un salón paga; el plan no (un salón en prueba también tiene plan `estudio`). Normalmente
+  la escribe **solo** el webhook de Stripe (`aplicar_suscripcion_stripe`, service_role). Para quien
+  paga por transferencia, en efectivo o con un acuerdo aparte está `staff_set_cobro_manual`
+  (`migrations/staff-marcar-cobro-fuera-de-stripe.sql`), en el panel de staff → Cuentas → "Cobro".
+  Reglas: **Stripe manda** (si hay `stripe_subscription_id` la RPC se niega, o el siguiente evento
+  lo revertiría), se marca en la fila del `owner`, no se marca un plan `free`, es reversible
+  (guarda el estado previo) y deja rastro en `eventos_negocio`. **No es para regalar acceso**: una
+  cortesía va por la prueba de 30 días o `staff_grant_full_access`, y no debe contar como referido
+  de pago. `activa` significa siempre "este salón paga".
 - **PLANES que limitan de verdad (3 ago 2026, IA separada en addon el 7 ago 2026).** `profiles.plan`
   ∈ `free | esencial | estudio` (`full` = valor histórico, se lee como `estudio`; ninguna cuenta
   antigua pierde nada). **Fuente única de qué incluye cada plan: `lib/planes.ts`** — debe cuadrar
