@@ -3778,29 +3778,143 @@ if (document.readyState === "loading") {
 <script src="assets/auth.js"></script>
 
 <!-- Selector de acceso: sale al pulsar "Acceder" con sesion iniciada. -->
-<div id="accesoModal" role="dialog" aria-modal="true" aria-labelledby="accesoModalTit" hidden
-     style="position:fixed;inset:0;z-index:9999;background:rgba(8,5,3,.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:18px">
-  <div style="width:100%;max-width:440px;background:var(--card,#15100b);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:clamp(20px,4vw,28px);box-shadow:0 30px 70px -20px rgba(0,0,0,.7)">
+<style>
+  #accesoModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(5, 3, 2, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+  }
+  #accesoModal .acc-card {
+    width: 100%;
+    max-width: 440px;
+    background: linear-gradient(180deg, #1c1713 0%, #120e0c 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 22px;
+    padding: clamp(22px, 4vw, 30px);
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(244, 80, 30, 0.15);
+    color: #ffffff !important;
+    box-sizing: border-box;
+  }
+  #accesoModal .acc-btn-opt {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 15px 18px;
+    min-height: 48px;
+    border-radius: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  #accesoModal .acc-btn-opt:hover {
+    transform: translateY(-2px);
+  }
+  #accesoModal .acc-btn-opt.brand {
+    background: linear-gradient(135deg, rgba(244, 80, 30, 0.24) 0%, rgba(244, 80, 30, 0.08) 100%), #1c1511;
+    border: 1.5px solid rgba(244, 80, 30, 0.6);
+    box-shadow: 0 8px 24px -8px rgba(244, 80, 30, 0.45);
+    color: #ffffff !important;
+  }
+  #accesoModal .acc-btn-opt.brand:hover {
+    border-color: rgba(255, 138, 61, 0.95);
+    background: linear-gradient(135deg, rgba(244, 80, 30, 0.34) 0%, rgba(244, 80, 30, 0.14) 100%), #241a14;
+    box-shadow: 0 12px 30px -8px rgba(244, 80, 30, 0.65);
+  }
+  #accesoModal .acc-btn-opt.demo {
+    background: linear-gradient(135deg, rgba(124, 108, 240, 0.2) 0%, rgba(124, 108, 240, 0.06) 100%), #16141e;
+    border: 1.5px solid rgba(124, 108, 240, 0.5);
+    box-shadow: 0 8px 24px -8px rgba(124, 108, 240, 0.35);
+    color: #ffffff !important;
+  }
+  #accesoModal .acc-btn-opt.demo:hover {
+    border-color: rgba(167, 139, 250, 0.95);
+    background: linear-gradient(135deg, rgba(124, 108, 240, 0.3) 0%, rgba(124, 108, 240, 0.12) 100%), #1e1a2b;
+    box-shadow: 0 12px 30px -8px rgba(124, 108, 240, 0.55);
+  }
+  #accesoModal .acc-btn-opt.neutral {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.16);
+    color: #ffffff !important;
+  }
+  #accesoModal .acc-btn-opt.neutral:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.09);
+  }
+  #accesoModal .acc-btn-opt .opt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: var(--display, 'Bricolage Grotesque', sans-serif);
+    color: #ffffff !important;
+  }
+  #accesoModal .acc-btn-opt .opt-arr {
+    font-size: 16px;
+    transition: transform 0.2s ease;
+  }
+  #accesoModal .acc-btn-opt:hover .opt-arr {
+    transform: translateX(4px);
+  }
+  #accesoModal .acc-btn-opt.brand .opt-arr {
+    color: #ff8a3d;
+  }
+  #accesoModal .acc-btn-opt.demo .opt-arr {
+    color: #a78bfa;
+  }
+  #accesoModal .acc-btn-opt .opt-sub {
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  #accesoModal .acc-btn-opt.brand .opt-sub {
+    color: rgba(255, 236, 228, 0.88) !important;
+  }
+  #accesoModal .acc-btn-opt.demo .opt-sub {
+    color: rgba(237, 233, 254, 0.82) !important;
+  }
+  #accesoModal .acc-btn-opt.neutral .opt-sub {
+    color: rgba(255, 255, 255, 0.65) !important;
+  }
+  #accesoModalX {
+    transition: all 0.2s ease;
+  }
+  #accesoModalX:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
+  }
+  #accesoModalSalir {
+    transition: all 0.2s ease;
+  }
+  #accesoModalSalir:hover {
+    background: rgba(255, 255, 255, 0.09) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+</style>
+
+<div id="accesoModal" role="dialog" aria-modal="true" aria-labelledby="accesoModalTit" hidden>
+  <div class="acc-card">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px">
-      <h3 id="accesoModalTit" style="font-family:var(--display);font-size:21px;font-weight:800;color:#fff;margin:0">Tu cuenta de Mecha</h3>
+      <h3 id="accesoModalTit" style="font-family:var(--display);font-size:21px;font-weight:800;color:#fff;margin:0;letter-spacing:-0.02em">Tu cuenta de Mecha</h3>
       <button type="button" id="accesoModalX" aria-label="Cerrar"
-              style="width:36px;height:36px;flex:none;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;font-size:17px;cursor:pointer;line-height:1">&times;</button>
+              style="width:34px;height:34px;flex:none;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:18px;cursor:pointer;line-height:1;display:grid;place-items:center">&times;</button>
     </div>
     <p id="accesoModalSub" style="font-size:13.5px;color:rgba(255,255,255,.75);margin:0 0 16px;line-height:1.45"></p>
     <div id="accesoModalOpts" style="display:flex;flex-direction:column;gap:10px"></div>
     <button type="button" id="accesoModalSalir"
-            style="margin-top:16px;width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:transparent;color:rgba(255,255,255,.7);font-size:13px;font-weight:600;cursor:pointer">
+            style="margin-top:16px;width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:rgba(255,255,255,.75);font-size:13px;font-weight:600;cursor:pointer">
       Cerrar sesión
     </button>
   </div>
 </div>
-
-<!-- Modal de opciones de acceso para visitantes sin sesión -->
-<!-- El modal "¿Como quieres empezar?" (tarjetas de WhatsApp / demo / ya tengo
-     cuenta) se retiro el 23 ago 2026: los CTA de prueba llevaban a elegir entre
-     tres tarjetas antes de poder hacer nada, y la primera mandaba a WhatsApp.
-     Ahora "Empezar 30 dias gratis" hace exactamente lo que dice: abre el alta en
-     /acceso.html#signup, donde ademas se ofrece la demo a quien la prefiera. -->
 
 <script>
 (function(){
@@ -3823,15 +3937,15 @@ if (document.readyState === "loading") {
   function boton(cfg){
     var a = document.createElement('a');
     a.href = cfg.href || '#';
-    a.style.cssText = 'display:flex;flex-direction:column;gap:3px;padding:14px 16px;min-height:44px;border-radius:14px;text-decoration:none;border:1px solid ' + cfg.borde + ';background:' + cfg.fondo + ';color:#fff';
-    a.innerHTML = '<b style="font-size:15px;font-family:var(--display)">' + cfg.titulo + '</b>' +
-                  '<span style="font-size:12.5px;color:rgba(255,255,255,.78);line-height:1.4">' + cfg.sub + '</span>';
+    a.className = 'acc-btn-opt ' + (cfg.tipo || 'brand');
+    a.innerHTML = '<div class="opt-head"><span>' + cfg.titulo + '</span><span class="opt-arr">→</span></div>' +
+                  '<span class="opt-sub">' + cfg.sub + '</span>';
     if(cfg.onClick) a.addEventListener('click', cfg.onClick);
     return a;
   }
 
   window.abrirSelectorAcceso = async function(){
-    opts.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,.6);padding:8px 0">Comprobando tu cuenta…</div>';
+    opts.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,.65);padding:12px 0;text-align:center">Comprobando tu cuenta…</div>';
     sub.textContent = '';
     abrir();
 
@@ -3846,8 +3960,8 @@ if (document.readyState === "loading") {
       opts.appendChild(boton({
         titulo: 'Entrar al software',
         sub: d + ' ' + (d === 1 ? 'día restante' : 'días restantes') + ' de prueba · sin tarjeta',
-        href: '/app', borde: 'rgba(244,80,30,.55)',
-        fondo: 'linear-gradient(160deg,rgba(244,80,30,.24),rgba(255,255,255,.03))',
+        href: '/app',
+        tipo: 'brand',
         onClick: irApp
       }));
     } else if(est && est.tipo === 'agotado'){
@@ -3855,14 +3969,15 @@ if (document.readyState === "loading") {
       opts.appendChild(boton({
         titulo: 'Activar mi plan',
         sub: 'Habla con nosotros y seguimos donde lo dejaste',
-        href: '#contacto', borde: 'rgba(244,80,30,.55)',
-        fondo: 'linear-gradient(160deg,rgba(244,80,30,.24),rgba(255,255,255,.03))',
+        href: '#contacto',
+        tipo: 'brand',
         onClick: function(){ cerrar(); }
       }));
       opts.appendChild(boton({
         titulo: 'Entrar de todas formas',
         sub: 'Verás tus datos, con las funciones limitadas',
-        href: '/app', borde: 'rgba(255,255,255,.16)', fondo: 'rgba(255,255,255,.04)',
+        href: '/app',
+        tipo: 'neutral',
         onClick: irApp
       }));
     } else {
@@ -3870,8 +3985,8 @@ if (document.readyState === "loading") {
       opts.appendChild(boton({
         titulo: 'Entrar al software',
         sub: 'Acceso completo a tu salón',
-        href: '/app', borde: 'rgba(244,80,30,.55)',
-        fondo: 'linear-gradient(160deg,rgba(244,80,30,.24),rgba(255,255,255,.03))',
+        href: '/app',
+        tipo: 'brand',
         onClick: irApp
       }));
     }
@@ -3879,8 +3994,8 @@ if (document.readyState === "loading") {
     opts.appendChild(boton({
       titulo: 'Ver demo completa',
       sub: 'El salón de ejemplo, con datos reales y en vivo',
-      href: '/demo.html', borde: 'rgba(124,108,240,.5)',
-      fondo: 'linear-gradient(160deg,rgba(124,108,240,.2),rgba(255,255,255,.03))'
+      href: '/demo.html',
+      tipo: 'demo'
     }));
   };
 })();
