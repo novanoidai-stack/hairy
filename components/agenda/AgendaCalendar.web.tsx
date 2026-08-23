@@ -18958,14 +18958,22 @@ export function DetalleCitaModal({
   // El bloque del metodo de cobro lo pinta CobroSheet, que no expone ref. Se
   // busca por su marca mientras la zona este activa (la hoja tarda en montarse
   // porque la seccion de pagos se acaba de activar).
+  //
+  // OJO: se busca DENTRO de dBodyRef, no en todo el documento. expo-router deja
+  // montada mas de una copia de este detalle a la vez, asi que
+  // `document.querySelector` devolvia la hoja de cobro de la copia de ATRAS: se
+  // scrolleaba esa, el foco se colocaba con su geometria y encima de la copia
+  // visible caia justo la cabecera de la hoja. Acotando la busqueda al cuerpo de
+  // ESTA instancia, cada copia enfoca lo suyo y la de delante acierta.
   useEffect(() => {
     if (demoZone !== "cobrar") return;
     let tries = 0;
     let raf = 0;
     const pick = () => {
-      const el = document.querySelector(
-        '[data-demo="cobro-metodo"]',
-      ) as HTMLElement | null;
+      const root = dBodyRef.current;
+      const el = root
+        ? (root.querySelector('[data-demo="cobro-metodo"]') as HTMLElement | null)
+        : null;
       if (el && el.getBoundingClientRect().height > 0) {
         dCobroRef.current = el;
         traerAlFoco(el);
