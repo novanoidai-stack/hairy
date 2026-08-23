@@ -1,5 +1,5 @@
 // Edge Function: chispa-dudas-demo
-// Apartado "¿Dudas?" de la demo (web/demo.html, web/demo_v2.html) y widget web.
+// Apartado "¿Dudas?" de la demo (web/demo.html) y widget web.
 // Responde dudas sobre Mecha con una IA (Chispa) con conocimiento REAL del
 // producto (kb.ts, grounding estricto) y ademas envia la respuesta al correo del
 // usuario via SMTP de Hostinger (con soporte para teléfono / WhatsApp como lead).

@@ -20,9 +20,6 @@ export async function runTier1Tests(recordResult) {
     : '';
   const accesoHtml = fs.readFileSync(path.join(ROOT, 'web', 'acceso.html'), 'utf8');
   const demoHtml = fs.readFileSync(path.join(ROOT, 'web', 'demo.html'), 'utf8');
-  const demoV2Html = fs.existsSync(path.join(ROOT, 'web', 'demo_v2.html'))
-    ? fs.readFileSync(path.join(ROOT, 'web', 'demo_v2.html'), 'utf8')
-    : demoHtml;
   const edgeFunction = fs.existsSync(path.join(ROOT, 'supabase', 'functions', 'chispa-dudas-demo', 'index.ts'))
     ? fs.readFileSync(path.join(ROOT, 'supabase', 'functions', 'chispa-dudas-demo', 'index.ts'), 'utf8')
     : '';
