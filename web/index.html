@@ -389,7 +389,7 @@
       "name": "¿Cómo funciona el programa Salón Hermano de Mecha?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Si recomiendas Mecha a otro salón, nosotros nos encargamos de migrar sus citas y dejarle el sistema configurado sin coste. Cuando ese salón activa su plan, tú recibes 2 meses gratis de suscripción y el salón recomendado recibe configuración prioritaria. No hay límite de recomendaciones y los meses se aplican sobre tu cuota al confirmarse el alta."
+        "text": "Compartes tu enlace y tu red cuenta hasta tres niveles. Por cada salón que activa su plan, tu cuota baja: un 10 % por cada salón que traes tú, un 4 % por cada uno que traigan ellos y un 2 % por el tercer nivel, hasta un máximo del 30 %. Cuando ya estás en el 30 %, cada salón nuevo de pago te da un mes gratis en lugar de más descuento. El salón que entra con tu enlace recibe un 15 % de bienvenida, además de la migración de sus citas y la configuración prioritaria sin coste. No hay límite de recomendaciones."
       }
     }
   ]
@@ -926,13 +926,13 @@ nav{
 /* ============================================================
    [hidden] TIENE QUE GANAR SIEMPRE
    ------------------------------------------------------------
-   BUG DE PRODUCCION: #opcionesAccesoModal lleva el atributo
-   `hidden` Y un `display:flex` en su estilo en linea. El estilo
-   en linea gana a la regla `[hidden]{display:none}` del navegador,
-   asi que el modal "¿Como quieres empezar?" salia ABIERTO en la
-   primera carga, tapando el hero entero a todo el que entraba.
-   El JS abre y cierra con .hidden, de modo que la unica forma de
-   que ese contrato funcione es que [hidden] pese mas que el inline.
+   BUG DE PRODUCCION (modal "¿Como quieres empezar?", ya retirado):
+   llevaba el atributo `hidden` Y un `display:flex` en su estilo en
+   linea. El estilo en linea gana a la regla `[hidden]{display:none}`
+   del navegador, asi que el modal salia ABIERTO en la primera carga,
+   tapando el hero entero a todo el que entraba. Si un modal se abre y
+   se cierra con .hidden, la unica forma de que ese contrato funcione
+   es que [hidden] pese mas que el inline.
    No quitar. Y al montar un modal nuevo, no hace falta acordarse.
    ============================================================ */
 [hidden]{display:none!important}
@@ -2168,7 +2168,7 @@ body.mnav-open .mnav-links a:nth-child(8){transition-delay:.28s}
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 </button>
 <a href="/acceso.html" id="navLogin">Iniciar sesión</a>
-<a href="#contacto" id="navDemo">
+<a href="/acceso.html#signup" id="navDemo">
 <span class="nav-badge-pill">30 días</span>
 <span>Empezar gratis</span>
 </a>
@@ -2223,7 +2223,7 @@ body.mnav-open .mnav-links a:nth-child(8){transition-delay:.28s}
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 Cambiar tema claro / oscuro
 </button>
-<a href="#contacto" class="mnav-cta" id="mnavCta" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
+<a href="/acceso.html#signup" class="mnav-cta" id="mnavCta" onclick="cerrarMenuMovil()"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
 </div>
 </div>
 
@@ -2237,14 +2237,14 @@ Cambiar tema claro / oscuro
 
 <div class="grid2 hero-grid" style="position:relative;max-width:1220px;margin:0 auto;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:clamp(30px,4.5vw,56px);align-items:center">
 <div>
-<div class="hero-eyebrow" style="display:inline-flex;align-items:center;gap:9px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.22);padding:6px 14px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-bottom:20px">
-<span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:mPulse 2s ease-in-out infinite"></span>
+<div class="hero-eyebrow" style="display:inline-flex;align-items:center;gap:11px;font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:20px">
+<span aria-hidden="true" style="width:26px;height:1.5px;border-radius:2px;background:var(--accent);flex-shrink:0"></span>
 <span><span class="solo-ancho">Software español </span>para peluquerías y barberías</span>
 </div>
 <h1 style="font-family:var(--display);font-weight:700;font-size:clamp(33px,4vw,52px);line-height:1.02;letter-spacing:-.035em;margin:0 0 18px;text-wrap:balance">La agenda que atiende tu WhatsApp <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">y erradica los plantones.</span></h1>
 <p class="hero-sub" style="font-size:clamp(15.5px,1.35vw,19.5px);line-height:1.45;color:var(--ink-2);max-width:520px;margin:0 0 24px;text-wrap:pretty">Llena los <b style="color:var(--ink)">reposos del tinte</b>, cobra la <b style="color:var(--ink)">señal</b> por adelantado y cumple con <b style="color:var(--ink)">VeriFactu</b> y el fichaje legal. Sin coste por empleado.</p>
 <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px">
-<a href="/acceso.html" id="heroCta" class="btn-grad" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:13px;font-weight:700;font-size:15.5px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis <span>→</span></a>
+<a href="/acceso.html#signup" id="heroCta" class="btn-grad" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:13px;font-weight:700;font-size:15.5px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis <span>→</span></a>
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:16px 24px;border-radius:13px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:15.5px">▶ Ver demo completa</a>
 </div>
 <div style="margin-bottom:18px;font-size:13.5px;color:var(--ink-2);line-height:1.5">
@@ -2357,7 +2357,7 @@ Cambiar tema claro / oscuro
 <div id="cmpBody"></div>
 <div style="padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--paper)">
 <div style="flex:1;min-width:250px;font-size:14.5px;color:var(--ink-2)"><b style="color:var(--ink)">Tráete tu agenda: 30 días gratis.</b> Clientes, historial y fórmulas migrados en 10 minutos.</div>
-<a href="#contacto" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="btn-grad" style="padding:13px 22px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
 </div>
 </div>
 
@@ -2464,7 +2464,7 @@ Rápido de montar. Y luego el salón se adapta al programa.
 <div class="reveal" style="margin-bottom:32px;border:1px solid rgba(244,80,30,.35);border-radius:20px;overflow:hidden;background:var(--card);box-shadow:var(--shadow-s)">
 <div style="padding:22px 28px;background:linear-gradient(135deg,rgba(244,80,30,.10),transparent 60%);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px">
 <div>
-<div style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.3);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--accent);margin-bottom:10px">
+<div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--accent);margin-bottom:10px">
 <svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg> Traspaso asistido, gratis y sin riesgos
 </div>
 <h3 style="font-family:var(--display);font-size:21px;font-weight:800;color:var(--ink);margin:0 0 6px;line-height:1.25">
@@ -2641,7 +2641,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .96s infinite"></span>
 </div>
 </div>
-<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 18px;border-radius:16px;border:1px dashed rgba(244,80,30,.45)"><span style="flex:1;min-width:200px;font-size:14px;color:var(--ink-2)"><b style="color:var(--ink)">Las dos juntas: +39 €/mes</b>, sin permanencia.</span><a href="#contacto" style="padding:11px 18px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Ver demo completa →</a></div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 18px;border-radius:16px;border:1px dashed rgba(244,80,30,.45)"><span style="flex:1;min-width:200px;font-size:14px;color:var(--ink-2)"><b style="color:var(--ink)">Las dos juntas: +39 €/mes</b>, sin permanencia.</span><a href="/acceso.html?next=demo#signup" data-demo-link style="padding:11px 18px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Ver demo completa →</a></div>
 </div>
 </div>
 </div>
@@ -2664,7 +2664,7 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <div style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)"><div style="font-family:var(--display);font-weight:800;font-size:24px;color:var(--accent)">30</div><b style="font-size:14px">días con tu cuenta</b><div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Tu salón, tus datos, sin tarjeta.</div></div>
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px">
-<a href="#contacto" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:700;font-size:16px;animation:mPulse 3s ease-in-out infinite"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
+<a href="/acceso.html#signup" class="btn-grad" style="display:inline-flex;align-items:center;gap:9px;padding:17px 30px;border-radius:14px;font-weight:700;font-size:16px;animation:mPulse 3s ease-in-out infinite"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis</a>
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card" style="display:inline-flex;align-items:center;gap:9px;padding:17px 28px;border-radius:14px;border:1px solid var(--line-2);color:var(--ink);font-weight:600;font-size:16px">▶ Ver demo</a>
 </div>
 <p class="reveal" style="font-size:12.5px;color:var(--ink-3);margin:0">¿Prefieres que te lo enseñemos en 10 minutos con tus precios? <a href="#contacto">Reserva una demo guiada</a>.</p>
@@ -2815,7 +2815,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste extra por profesional</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)">0 €</div></div>
 </div>
 <div style="background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:15px;font-size:13px;color:var(--ink-2)">Entre tiempo recuperado y plantones evitados, Mecha se paga <b style="color:var(--ink)" id="oVeces">52 veces</b> cada mes.</div>
-<a href="#contacto" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px">Empezar 30 días gratis →</a>
 </div>
 </div>
 </div>
@@ -2827,7 +2827,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <section id="precios" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
 <div style="max-width:920px;margin:0 auto">
 <div class="reveal" style="text-align:center;max-width:640px;margin:0 auto clamp(24px,3vw,40px)">
-<div style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.28);padding:5px 14px;border-radius:999px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em"><svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg>Oferta de lanzamiento · Primer mes 0 €</div>
+<div style="display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.14em"><svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg>Oferta de lanzamiento · Primer mes 0 €</div>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
 <p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes, profesionales ilimitados en los dos. El primer mes, 0 €.</p>
 </div>
@@ -2845,7 +2845,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <span>✓ <b style="color:var(--ink)">VeriFactu</b> y <b style="color:var(--ink)">control horario</b> del equipo</span>
 <span>✓ Informes — <b style="color:var(--ink)">profesionales ilimitados</b></span>
 </div>
-<a href="#contacto" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
 </div>
 <div class="hov-card" style="position:relative;border:1px solid rgba(244,80,30,.55);border-radius:22px;padding:32px 28px 28px;background:linear-gradient(170deg,var(--accent-soft),var(--card) 55%);display:flex;flex-direction:column;gap:13px;box-shadow:0 26px 60px -30px rgba(224,52,14,.45);overflow:visible">
 <span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px rgba(244,80,30,.45);z-index:3">Recomendado</span>
@@ -2861,7 +2861,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <span>✓ Inventario y presupuestos</span>
 <span>✓ Migración y puesta en marcha incluidas</span>
 </div>
-<a href="#contacto" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
 </div>
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 20px;margin-top:22px;font-size:13.5px;color:var(--ink-2)">
@@ -2957,7 +2957,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <div style="position:relative;max-width:1120px;margin:0 auto">
 
 <div class="reveal" style="text-align:center;margin-bottom:34px">
-<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.18);border:1px solid rgba(37,211,102,.45);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;color:#25d366;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">
+<div style="display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:#25d366;margin-bottom:14px;text-transform:uppercase;letter-spacing:.14em">
 <svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg> 30 días gratis · sin tarjeta
 </div>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.8vw,48px);letter-spacing:-.03em;margin:0 0 14px;color:#fff">
@@ -3065,24 +3065,47 @@ Nombre y teléfono. Te llamamos hoy.
 <div style="max-width:1020px;margin:0 auto">
 <div class="reveal" style="text-align:center;max-width:660px;margin:0 auto clamp(24px,3vw,40px)">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Entre salones</span>
-<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Recomienda Mecha y <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">gana dos meses</span></h2>
+<h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Recomienda Mecha y <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">baja tu cuota</span></h2>
 <p style="font-size:16.5px;color:var(--ink-2);margin:0">En este oficio nadie se fía de un anuncio; se fía de la compañera del barrio de al lado.</p>
 </div>
 
 <div class="reveal grid2" style="align-items:stretch;gap:18px">
 
+<!-- Los numeros de aqui son los MISMOS que calcula el motor de la BD
+     (migrations/referidos-tope-30-y-meses-gratis.sql): 10/4/2 por nivel, tope
+     30 %, meses gratis por encima del tope y 15 % de bienvenida para quien
+     entra. Si cambia la tabla, cambia este bloque, el modal de la demo y el
+     prompt de chispa-landing. -->
 <div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px">
 <h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">Salón hermano</h3>
-<ol style="list-style:none;counter-reset:h;padding:0;margin:0;display:grid;gap:13px;font-size:14.5px;color:var(--ink-2);line-height:1.55">
-<li style="counter-increment:h;display:flex;gap:12px"><span style="flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12.5px">1</span><span>Nos pasas el salón que quieres recomendar, o le compartes tu enlace.</span></li>
-<li style="counter-increment:h;display:flex;gap:12px"><span style="flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12.5px">2</span><span>Le migramos sus citas y le dejamos Mecha montado, gratis.</span></li>
-<li style="counter-increment:h;display:flex;gap:12px"><span style="flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12.5px">3</span><span>Cuando active su plan, <b style="color:var(--ink)">tú te llevas 2 meses gratis</b> y él, configuración prioritaria.</span></li>
-</ol>
+<p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.6">Tu enlace cuenta hasta <b style="color:var(--ink)">tres niveles</b>: los salones que traes tú, los que traen ellos y los que traen esos. Cada uno que activa su plan te baja la cuota.</p>
+<ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:14.5px;color:var(--ink-2);line-height:1.5">
+<li style="display:flex;align-items:center;gap:12px"><b style="flex:0 0 auto;min-width:52px;text-align:center;padding:4px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:800">−10%</b><span>Por cada salón que traes tú.</span></li>
+<li style="display:flex;align-items:center;gap:12px"><b style="flex:0 0 auto;min-width:52px;text-align:center;padding:4px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:800">−4%</b><span>Por cada uno que traigan ellos.</span></li>
+<li style="display:flex;align-items:center;gap:12px"><b style="flex:0 0 auto;min-width:52px;text-align:center;padding:4px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:800">−2%</b><span>Y por cada uno del tercer nivel.</span></li>
+<li style="display:flex;align-items:center;gap:12px"><b style="flex:0 0 auto;min-width:52px;text-align:center;padding:4px 8px;border-radius:8px;background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:800">+1 mes</b><span>Al llegar al <b style="color:var(--ink)">−30%</b>, que es el máximo, cada salón nuevo te da un <b style="color:var(--ink)">mes gratis</b> en lugar de más descuento.</span></li>
+</ul>
 <a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20recomendar%20un%20sal%C3%B3n%20al%20programa%20Sal%C3%B3n%20Hermano%20de%20Mecha" target="_blank" rel="noopener" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none">Recomendar un salón →</a>
-<p style="font-size:11.5px;color:var(--ink-3);margin:0;line-height:1.5">Los dos meses se aplican sobre tu cuota al confirmarse el alta del salón recomendado. Sin límite de recomendaciones.</p>
+<p style="font-size:11.5px;color:var(--ink-3);margin:0;line-height:1.5">El descuento cuenta los salones de tu red que están pagando, y se aplica sobre tu cuota. Sin límite de recomendaciones.</p>
 </div>
 
 <div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:16px">
+<h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">Y el salón que entra contigo</h3>
+<p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.6">Recomendar no puede salirle caro a quien recomiendas. Quien entra con tu enlace también gana:</p>
+<ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:14.5px;color:var(--ink-2);line-height:1.5">
+<li style="display:flex;align-items:center;gap:12px"><b style="flex:0 0 auto;min-width:52px;text-align:center;padding:4px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:800">−15%</b><span>De bienvenida sobre su cuota, desde el primer recibo.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Le <b style="color:var(--ink)">migramos sus citas y sus clientas</b> y le dejamos Mecha montado, sin coste.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Configuración prioritaria: catálogo, horarios y portal listos antes de empezar.</span></li>
+<li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Y su propio enlace, para que empiece su red desde el día uno.</span></li>
+</ul>
+<p style="font-size:11.5px;color:var(--ink-3);margin:auto 0 0;line-height:1.5">Los dos descuentos son independientes: el suyo por entrar recomendado, el tuyo por recomendarle.</p>
+</div>
+
+</div>
+
+<!-- El acuerdo con distribuidores es otra cosa (comision, no descuento): va
+     aparte y a todo el ancho para no mezclarlo con el programa de referidos. -->
+<div class="reveal" style="margin-top:18px;border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:16px">
 <h3 style="font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:-.02em">¿Eres comercial o distribuidor de cosmética?</h3>
 <p style="font-size:14.5px;color:var(--ink-2);margin:0;line-height:1.6">Tú ya entras cada semana en los salones a los que nosotros tardaríamos meses en llegar. Trabajamos con comerciales de marca y distribuidores independientes.</p>
 <ul style="list-style:none;padding:0;margin:0;display:grid;gap:9px;font-size:14px;color:var(--ink-2)">
@@ -3090,10 +3113,9 @@ Nombre y teléfono. Te llamamos hoy.
 <li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Precargamos la <b style="color:var(--ink)">carta de color</b> de tu marca en los salones que traigas.</span></li>
 <li style="display:flex;gap:9px"><b style="color:var(--ok)">✓</b><span>Nosotros hacemos la demo y el alta: tú solo presentas.</span></li>
 </ul>
-<a href="https://wa.me/34690792975?text=Hola%2C%20soy%20distribuidor%2Fcomercial%20de%20cosm%C3%A9tica%20y%20quiero%20informaci%C3%B3n%20del%20acuerdo%20con%20Mecha" target="_blank" rel="noopener" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;background:var(--ink);color:var(--paper)">Hablar del acuerdo →</a>
+<a href="https://wa.me/34690792975?text=Hola%2C%20soy%20distribuidor%2Fcomercial%20de%20cosm%C3%A9tica%20y%20quiero%20informaci%C3%B3n%20del%20acuerdo%20con%20Mecha" target="_blank" rel="noopener" style="margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;background:var(--ink);color:var(--paper)">Hablar del acuerdo →</a>
 </div>
 
-</div>
 </div>
 </section>
 
@@ -3203,7 +3225,7 @@ Nombre y teléfono. Te llamamos hoy.
 </div>
 <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
 <a href="/acceso.html?next=demo#signup" data-demo-link class="hov-card sticky-desk-only" style="padding:8px 14px;border-radius:10px;border:1px solid var(--line-2);font-weight:600;font-size:13px;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:5px">▶ Ver demo completa</a>
-<a href="#contacto" class="btn-grad" style="padding:8px 16px;border-radius:10px;font-weight:700;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="btn-grad" style="padding:8px 16px;border-radius:10px;font-weight:700;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Empezar 30 días gratis →</a>
 </div>
 </div>
 </div>
@@ -3774,61 +3796,11 @@ if (document.readyState === "loading") {
 </div>
 
 <!-- Modal de opciones de acceso para visitantes sin sesión -->
-<div id="opcionesAccesoModal" role="dialog" aria-modal="true" aria-labelledby="opcAccModalTit" hidden
-     style="position:fixed;inset:0;z-index:9999;background:rgba(8,5,3,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px">
-  <div class="acc-modal-box" style="width:100%;max-width:440px;background:var(--card,#15100b);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:clamp(22px,4vw,30px);box-shadow:0 30px 70px -20px rgba(0,0,0,.7)">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
-      <div>
-        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.35);padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;color:#25d366;margin-bottom:8px">30 días gratis</div>
-        <h3 id="opcAccModalTit" style="font-family:var(--display);font-size:21px;font-weight:800;color:#fff;margin:0">¿Cómo quieres empezar?</h3>
-      </div>
-      <button type="button" class="opcAccModalX" aria-label="Cerrar"
-              style="width:36px;height:36px;flex:none;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;font-size:17px;cursor:pointer;line-height:1">&times;</button>
-    </div>
-    <p style="font-size:13.5px;color:rgba(255,255,255,.68);margin:0 0 18px;line-height:1.45">Elige la opción que prefieras. Las tres llevan al mismo sitio.</p>
-
-    <div style="display:flex;flex-direction:column;gap:10px">
-
-      <!-- Opción 1: WhatsApp (Recomendado) -->
-      <a href="https://wa.me/34690792975?text=Hola%2C%20quiero%20probar%20Mecha%201%20mes%20gratis%20y%20que%20me%20ayud%C3%A9is%20con%20la%20migraci%C3%B3n" target="_blank" rel="noopener" class="acc-opt acc-opt-wa" style="display:flex;align-items:center;gap:14px;padding:16px;min-height:52px;border-radius:16px;text-decoration:none;border:2px solid rgba(37,211,102,.5);background:linear-gradient(160deg,rgba(37,211,102,.16),rgba(255,255,255,.03));color:#fff;transition:transform .15s ease" aria-label="Probar Mecha gratis por WhatsApp">
-        <span class="acc-opt-icon" style="width:42px;height:42px;border-radius:12px;background:rgba(37,211,102,.2);display:grid;place-items:center;flex:none;font-size:20px">⚡</span>
-        <div class="acc-opt-content" style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <b class="acc-opt-title" style="font-family:var(--display);font-size:15px">Probar Mecha Gratis por WhatsApp</b>
-            <span style="padding:2px 8px;border-radius:999px;background:rgba(37,211,102,.2);border:1px solid rgba(37,211,102,.4);font-size:10px;font-weight:700;color:#25d366">Recomendado</span>
-          </div>
-          <span class="acc-opt-desc" style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.35">Onboarding asistido con Carlos y Alexandru. Listo en 10 min.</span>
-        </div>
-        <span class="acc-opt-arrow" style="font-size:13px;font-weight:700;color:#25d366;flex:none">→</span>
-      </a>
-
-      <!-- Opción 2: Demo en Vivo -->
-      <a href="/acceso.html?next=demo#signup" data-demo-link class="acc-opt acc-opt-demo" style="display:flex;align-items:center;gap:14px;padding:16px;min-height:52px;border-radius:16px;text-decoration:none;border:1px solid rgba(124,108,240,.4);background:linear-gradient(160deg,rgba(124,108,240,.12),rgba(255,255,255,.03));color:#fff;transition:transform .15s ease" aria-label="Probar la demo en vivo">
-        <span class="acc-opt-icon" style="width:42px;height:42px;border-radius:12px;background:rgba(124,108,240,.15);display:grid;place-items:center;flex:none;font-size:20px">▶</span>
-        <div class="acc-opt-content" style="flex:1;min-width:0">
-          <b class="acc-opt-title" style="font-family:var(--display);font-size:15px">Probar la Demo en Vivo</b>
-          <span class="acc-opt-desc" style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.35;display:block">Acceso inmediato con datos de prueba — sin registro.</span>
-        </div>
-        <span class="acc-opt-arrow" style="font-size:13px;font-weight:700;color:#818cf8;flex:none">→</span>
-      </a>
-
-      <!-- Opción 3: Ya tengo cuenta -->
-      <a href="/acceso.html" class="acc-opt" style="display:flex;align-items:center;gap:14px;padding:16px;min-height:52px;border-radius:16px;text-decoration:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;transition:transform .15s ease" aria-label="Iniciar sesión en Mecha">
-        <span class="acc-opt-icon" style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);display:grid;place-items:center;flex:none;font-size:20px">🔑</span>
-        <div class="acc-opt-content" style="flex:1;min-width:0">
-          <b class="acc-opt-title" style="font-family:var(--display);font-size:15px">Ya tengo cuenta</b>
-          <span class="acc-opt-desc" style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.35;display:block">Iniciar sesión en tu panel de Mecha.</span>
-        </div>
-        <span class="acc-opt-arrow" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);flex:none">→</span>
-      </a>
-
-    </div>
-
-    <button type="button" class="opcAccModalX acc-modal-close" style="margin-top:18px;width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer">
-      Cerrar
-    </button>
-  </div>
-</div>
+<!-- El modal "¿Como quieres empezar?" (tarjetas de WhatsApp / demo / ya tengo
+     cuenta) se retiro el 23 ago 2026: los CTA de prueba llevaban a elegir entre
+     tres tarjetas antes de poder hacer nada, y la primera mandaba a WhatsApp.
+     Ahora "Empezar 30 dias gratis" hace exactamente lo que dice: abre el alta en
+     /acceso.html#signup, donde ademas se ofrece la demo a quien la prefiera. -->
 
 <script>
 (function(){
@@ -3915,25 +3887,6 @@ if (document.readyState === "loading") {
 </script>
 
 <script>
-// ═══ MODAL OPCIONES DE ACCESO (visitantes sin sesión) ═══
-(function(){
-  var modal = document.getElementById('opcionesAccesoModal');
-  if(!modal) return;
-
-  function cerrarOpc(){ modal.hidden = true; modal.style.display = 'none'; document.body.classList.remove('modal-open'); }
-  function abrirOpc(){ modal.hidden = false; modal.style.display = 'flex'; document.body.classList.add('modal-open'); }
-
-  modal.querySelectorAll('.opcAccModalX').forEach(function(b){ b.addEventListener('click', cerrarOpc); });
-  modal.addEventListener('click', function(e){ if(e.target === modal) cerrarOpc(); });
-  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) cerrarOpc(); });
-
-  // Exponer globalmente para que la lógica de sesión pueda usarlo
-  window.abrirOpcionesAcceso = abrirOpc;
-  window.cerrarOpcionesAcceso = cerrarOpc;
-})();
-</script>
-
-<script>
 (function(){
   var api=window.MechaAPI;
   if(!api||!api.getSession){
@@ -3989,12 +3942,7 @@ if (document.readyState === "loading") {
         cuentaTit.textContent = 'Sin sesión iniciada';
         cuentaSub.textContent = 'Entrar o empezar los 30 días';
         cuenta.href = '/acceso.html';
-        cuenta.onclick = function(e){
-          e.preventDefault();
-          cerrarMenuMovil();
-          if(window.abrirOpcionesAcceso) window.abrirOpcionesAcceso();
-          else location.href = '/acceso.html';
-        };
+        cuenta.onclick = function(){ cerrarMenuMovil(); };
       }
     }
 
@@ -4041,27 +3989,12 @@ if (document.readyState === "loading") {
       // OJO: NO se tocan los botones de #contacto. Antes se reescribian a
       // "Acceder al software", asi que con sesion iniciada el boton de contactar
       // dejaba de contactar.
-    } else {
-      // Sin sesión: los CTAs principales abren el modal de opciones de acceso
-      // en vez de navegar directamente a /acceso.html.
-      var abrirOpciones = function(e){
-        e.preventDefault();
-        if(window.abrirOpcionesAcceso) window.abrirOpcionesAcceso();
-        else location.href = '/acceso.html';
-      };
-      if(heroCta){
-        heroCta.addEventListener('click', abrirOpciones);
-      }
-      // Interceptar también el botón de la sticky CTA
-      var stickyCta = document.querySelector('[data-sticky-cta] a.btn-grad');
-      if(stickyCta){
-        stickyCta.addEventListener('click', function(e){
-          e.preventDefault();
-          if(window.abrirOpcionesAcceso) window.abrirOpcionesAcceso();
-          else location.href = '#contacto';
-        });
-      }
     }
+    // Sin sesion no se intercepta nada: "Empezar 30 dias gratis" es un enlace a
+    // /acceso.html#signup y hace exactamente eso. Antes abria un modal con tres
+    // tarjetas (WhatsApp, demo, ya tengo cuenta) que obligaba a elegir dos veces
+    // antes de poder registrarse, y la opcion destacada ni siquiera creaba la
+    // cuenta: abria un chat.
   }
 
   api.getSession().then(function(s){ syncLandingSession(s); });

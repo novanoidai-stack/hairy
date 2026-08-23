@@ -61,7 +61,9 @@
   .auth-back:hover svg{transform:translateX(-2px)}
   .auth-back svg{width:14px;height:14px;transition:transform 0.2s ease}
   .auth-h{font-size:24px;letter-spacing:-.02em;margin-bottom:4px}
-  .auth-p{font-size:13.5px;color:var(--text-sec);margin-bottom:16px}
+  .auth-p{font-size:13.5px;color:var(--text-sec);margin-bottom:16px;line-height:1.5}
+  .auth-p a{color:var(--accent-hi);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+  .auth-p b{color:var(--text);font-weight:600}
   .seg{display:flex;gap:4px;padding:3px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;margin-bottom:18px}
   .seg button{flex:1;font-size:13px;font-weight:600;padding:8px 6px;min-height:36px;border-radius:7px;color:var(--text-sec);transition:all .2s;display:inline-grid;place-items:center;box-sizing:border-box}
   .seg button.on{background:var(--grad-soft);color:#fff;box-shadow:0 4px 12px -6px var(--accent-glow)}
@@ -187,6 +189,16 @@
     background: linear-gradient(135deg, rgba(244, 80, 30, 0.95), rgba(192, 38, 10, 0.95)) !important;
     box-shadow: 0 14px 40px rgba(244, 80, 30, 0.45) !important;
   }
+  /* La demo, en violeta: es el mismo codigo de color que usa el selector de la
+     landing, para que las dos puertas se reconozcan de un vistazo. */
+  .choice.demo{background:linear-gradient(160deg,rgba(124,108,240,.18),rgba(255,255,255,.03))!important;
+    border-color:rgba(124,108,240,.4)!important}
+  .choice.demo:hover{border-color:rgba(124,108,240,.75)!important;
+    background:linear-gradient(160deg,rgba(124,108,240,.26),rgba(255,255,255,.05))!important;
+    box-shadow:0 12px 30px rgba(124,108,240,.18)!important}
+  .choice.demo .choice-ic{background:rgba(124,108,240,.16)!important;border-color:rgba(124,108,240,.3)!important;color:#a5b4fc!important}
+  .choice.demo:hover .choice-ic{background:rgba(124,108,240,.26)!important;border-color:rgba(124,108,240,.5)!important;color:#c7d2fe!important}
+  .choice.demo:hover .choice-arr{color:#a5b4fc}
 
   /* Hiding aside when logged in */
   .auth.logged-in {
@@ -446,8 +458,8 @@
 
       <!-- SIGNUP -->
       <div class="pane" id="paneSignup">
-        <h2 class="auth-h">Crea tu cuenta gratis</h2>
-        <p class="auth-p">Sin tarjeta. Listo en una tarde.</p>
+        <h2 class="auth-h">Crea tu cuenta y prueba 30 días</h2>
+        <p class="auth-p">El software entero, sin tarjeta y sin permanencia. ¿Prefieres verlo antes? <a href="#" id="suVerDemo">Mira la demo</a>.</p>
         <form onsubmit="return false">
           <div class="field"><label>Nombre del salón</label>
             <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg><input type="text" id="suSalon" placeholder="Studio Norte" autocomplete="organization" /></div>
@@ -466,31 +478,35 @@
           <div class="field"><label>Contraseña</label>
             <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><input type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" id="signupPw" /><svg class="pw-toggle" data-target="signupPw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg></div>
           </div>
-          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px" id="signupBtn">Crear cuenta gratis</button>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px" id="signupBtn">Crear cuenta y empezar los 30 días</button>
           <div class="auth-msg" id="signupMsg"></div>
         </form>
         <p class="legal">Al crear tu cuenta aceptas los <a href="terminos.html">Términos</a> y la <a href="privacidad.html">Política de privacidad</a> de Mecha.</p>
         <p class="auth-foot">¿Ya tienes cuenta? <a href="#" id="goLogin">Inicia sesión</a></p>
       </div>
 
-      <!-- CHOOSER (equipo / staff) -->
+      <!-- CHOOSER (equipo / staff / sesion ya abierta)
+           Mismo lenguaje que el selector de la landing (#accesoModal): la
+           opcion principal en degradado de marca, la demo en violeta, y una
+           linea de estado que dice cuantos dias de prueba quedan. Antes eran
+           tres tarjetas neutras iguales y no se sabia cual era la buena. -->
       <div class="pane" id="paneChooser">
         <h2 class="auth-h">¿Qué quieres hacer?</h2>
-        <p class="auth-p">Tu cuenta de equipo tiene acceso a todo.</p>
+        <p class="auth-p" id="chSub">Tu cuenta de equipo tiene acceso a todo.</p>
         <div class="choice-list">
           <button class="choice" type="button" id="chPanel">
             <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg></span>
             <span class="choice-tx"><strong>Panel de staff</strong><small>Solicitudes, cuentas y auditorías</small></span>
             <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
           </button>
-          <button class="choice" type="button" id="chApp">
+          <button class="choice primary" type="button" id="chApp">
             <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="20" x2="9" y2="9" /></svg></span>
-            <span class="choice-tx"><strong>Entrar al software</strong><small>Tu agenda, clientes y equipo</small></span>
+            <span class="choice-tx"><strong>Entrar al software</strong><small id="chAppSub">Tu agenda, tus clientas y tu equipo</small></span>
             <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
           </button>
-          <button class="choice" type="button" id="chDemo">
+          <button class="choice demo" type="button" id="chDemo">
             <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg></span>
-            <span class="choice-tx"><strong>Ver la demo</strong><small>El recorrido guiado del producto</small></span>
+            <span class="choice-tx"><strong>Ver la demo completa</strong><small>El salón de ejemplo, con datos reales y en vivo</small></span>
             <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
           </button>
         </div>
@@ -604,6 +620,23 @@
     try { return sessionStorage.getItem(DEMO_INTENT_KEY) === '1'; } catch (e) { return false; }
   }
   function clearDemoIntent() { try { sessionStorage.removeItem(DEMO_INTENT_KEY); } catch (e) {} }
+  // "Mira la demo" desde el alta: la demo necesita cuenta (es la que lleva la
+  // cuenta de visitas), asi que no es un atajo para saltarse el registro — es
+  // decirle a Mecha que, en cuanto la cuenta exista, el destino sea la demo y
+  // no el software. El aviso lo deja claro para que nadie se sienta enganado.
+  var suVerDemo = document.getElementById('suVerDemo');
+  if (suVerDemo) {
+    suVerDemo.addEventListener('click', function (e) {
+      e.preventDefault();
+      nextDest = 'demo';
+      try { sessionStorage.setItem(DEMO_INTENT_KEY, '1'); } catch (err) {}
+      var p = document.querySelector('#paneSignup .auth-p');
+      if (p) p.innerHTML = 'Al terminar te llevamos directo a la demo. La cuenta hace falta igual, '
+        + 'pero es la misma que te da los <b>30 días</b> del software completo.';
+      var b = document.getElementById('signupBtn');
+      if (b) b.textContent = 'Crear cuenta y ver la demo';
+    });
+  }
 
   var tabLogin = document.getElementById('tabLogin');
   var tabSignup = document.getElementById('tabSignup');
@@ -795,10 +828,31 @@
   function mostrarSelectorSesion(esStaff) {
     var btnPanel = document.getElementById('chPanel');
     if (btnPanel) btnPanel.style.display = esStaff ? '' : 'none';
-    var sub = document.querySelector('#paneChooser .auth-p');
+    var sub = document.getElementById('chSub');
     if (sub && !esStaff) sub.textContent = 'Ya tienes la sesión abierta en este navegador.';
     showStage('paneChooser');
     guardBackToLogin();
+    // Los dias que quedan de prueba: es el dato que de verdad quiere saber
+    // quien vuelve, y es lo que ya dice el selector de la landing. Sin esto,
+    // las dos puertas al mismo sitio contaban historias distintas.
+    if (!esStaff && api && api.estadoAcceso) {
+      Promise.resolve(api.estadoAcceso()).then(function (est) {
+        if (!est) return;
+        var appSub = document.getElementById('chAppSub');
+        if (est.tipo === 'prueba' && typeof est.dias === 'number') {
+          var d = est.dias;
+          if (sub) sub.innerHTML = (d === 1 ? 'Te queda ' : 'Te quedan ')
+            + '<b style="color:var(--accent-hi)">' + d + ' ' + (d === 1 ? 'día' : 'días')
+            + '</b> de tus 30 días gratis.';
+          if (appSub) appSub.textContent = d + (d === 1 ? ' día restante' : ' días restantes') + ' de prueba · sin tarjeta';
+        } else if (est.tipo === 'agotado') {
+          if (sub) sub.textContent = 'Tu periodo de prueba ha terminado.';
+          if (appSub) appSub.textContent = 'Verás tus datos, con las funciones limitadas';
+        } else if (appSub) {
+          appSub.textContent = 'Acceso completo a tu salón';
+        }
+      }).catch(function () {});
+    }
   }
 
   // Despues de autenticar: demo -> demo; equipo -> elige; perfil incompleto -> completar;
