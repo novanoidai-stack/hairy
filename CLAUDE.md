@@ -69,6 +69,23 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    NO nacen ejecutables por `anon`: toda RPC pública nueva necesita `grant execute ... to anon`
    explícito en su migración, y las RPCs internas sensibles chequean rol owner/admin DENTRO.
    `Documentacion/` está en `.gitignore` porque contiene client secrets de Google — no versionar.
+   - **La regla del parámetro (23 ago 2026).** Si una RPC recibe `negocio_id`, o un id del que
+     se deduce (`p_cliente_id`, `p_cobro_id`, `p_factura_id`, `p_profesional_id`), **tiene que
+     atarse a quien llama**: `perform public.exige_mi_negocio(<negocio>, <solo_gestor>)`.
+     Sin eso el multi-tenant no existe — basta cambiar un uuid para operar sobre otro salón.
+     Así se colaron doce, incluidas las que reescribían el NIF de otro salón y las que metían
+     eslabones en su cadena de huellas VeriFactu. Migraciones `seguridad-multitenant-*.sql`.
+     El guard deja pasar el `uid` nulo A PROPÓSITO: como esas funciones no están concedidas a
+     `anon`, un uid nulo solo puede ser una llamada interna del portal público o service_role.
+   - **Los advisors NO se limpian, se auditan.** De los 250 iniciales, 226 son
+     `*_security_definer_function_executable`: es la arquitectura (el cliente no toca tablas,
+     llama a RPCs definer que comprueban permiso dentro). "Arreglarlos" es apagar la API.
+     `auth_leaked_password_protection` tampoco se irá nunca: el interruptor es de plan Pro y
+     ya se resuelve contra HaveIBeenPwned por nuestra cuenta. Quedan 228 y ese es el suelo
+     razonable — si alguien vuelve a proponer bajarlo, esto es por qué no.
+     La consulta que sí vale la pena repetir: buscar funciones `definer` abiertas a
+     `authenticated` que reciban parámetros y NO mencionen `auth.uid()`, `is_staff()`,
+     `my_negocio_id_text()` ni `exige_mi_negocio()`. Hoy da **0**.
 5. **Sin claims falsos:** nada de reseñas/ratings inventados en structured data ni cifras
    sin fuente en la landing (ya se retiraron una vez).
 6. **RLS rápida (17 ago 2026):** toda política nueva envuelve sus llamadas en `(select ...)`
