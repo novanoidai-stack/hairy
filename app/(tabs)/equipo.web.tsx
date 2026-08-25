@@ -2956,7 +2956,10 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               height: 20,
               borderRadius: 10,
               border: 'none',
-              background: esRecurrente ? TOKENS.primary : TOKENS.bgCard,
+              // OFF: gris neutro visible. Antes usaba TOKENS.bgCard (casi
+              // blanco) y, con el pomo tambien blanco sobre panel claro, el
+              // toggle apagado era literalmente invisible.
+              background: esRecurrente ? TOKENS.primary : 'rgba(28,24,20,0.18)',
               position: 'relative',
               cursor: 'pointer',
               transition: 'background 0.2s ease',
@@ -2970,6 +2973,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               position: 'absolute',
               top: 2,
               left: esRecurrente ? 18 : 2,
+              boxShadow: '0 1px 2px rgba(28,24,20,0.30)',
               transition: 'left 0.2s ease',
             }} />
           </button>
@@ -2985,7 +2989,8 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               height: 20,
               borderRadius: 10,
               border: 'none',
-              background: todoElDia ? TOKENS.primary : TOKENS.bgCard,
+              // Igual que "Recurrente": el OFF necesita contraste para verse.
+              background: todoElDia ? TOKENS.primary : 'rgba(28,24,20,0.18)',
               position: 'relative',
               cursor: 'pointer',
               transition: 'background 0.2s ease',
@@ -2999,6 +3004,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               position: 'absolute',
               top: 2,
               left: todoElDia ? 18 : 2,
+              boxShadow: '0 1px 2px rgba(28,24,20,0.30)',
               transition: 'left 0.2s ease',
             }} />
           </button>
@@ -3378,8 +3384,8 @@ function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose
 
         {/* Todo el dia */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div onClick={() => setTodoElDia(!todoElDia)} style={{ width: 36, height: 20, borderRadius: 10, background: todoElDia ? TOKENS.primary : TOKENS.bgCard, border: `1px solid ${todoElDia ? TOKENS.primary : TOKENS.borderHi}`, cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-            <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 1, left: todoElDia ? 18 : 2, transition: 'left 0.2s' }} />
+          <div onClick={() => setTodoElDia(!todoElDia)} style={{ width: 36, height: 20, borderRadius: 10, background: todoElDia ? TOKENS.primary : 'rgba(28,24,20,0.18)', border: `1px solid ${todoElDia ? TOKENS.primary : 'transparent'}`, cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+            <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 1, left: todoElDia ? 18 : 2, boxShadow: '0 1px 2px rgba(28,24,20,0.30)', transition: 'left 0.2s' }} />
           </div>
           <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>Todo el dia</span>
         </div>
