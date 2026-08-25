@@ -3880,6 +3880,13 @@ export default function AgendaCalendar() {
           justifyContent: "space-between",
           alignItems: "center",
           gap: isMobile ? 8 : 12,
+          // Con el ancho justo (ventana estrecha, rail abierto o zoom de texto
+          // grande) "Agenda" + el badge de rol + los indicadores de la derecha
+          // no caben en una fila. Todos llevan flexShrink:0/nowrap, asi que en
+          // vez de encogerse DESBORDABAN y se solapaban ("PROPIETARIO" encima
+          // de "% reposo"). Con wrap, lo que no cabe baja de linea.
+          flexWrap: "wrap",
+          rowGap: 8,
           padding: isMobile ? "10px 14px" : "11px 28px",
           borderBottom: `1px solid ${roleTheme.borderHeader}`,
           position: "relative",
@@ -3900,7 +3907,7 @@ export default function AgendaCalendar() {
             flex: isMobile ? "1 1 0" : undefined,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "wrap", rowGap: 4 }}>
             <h1
               style={{
                 margin: 0,
@@ -3979,6 +3986,11 @@ export default function AgendaCalendar() {
             gap: isMobile ? 6 : 10,
             alignItems: "center",
             flexShrink: 0,
+            // Igual que el resto de la barra: si no cabe, baja de linea en
+            // vez de montarse encima del badge de rol.
+            flexWrap: "wrap",
+            rowGap: 6,
+            justifyContent: "flex-end",
           }}
         >
           {!isMobile && reposoGlobal && (
