@@ -1719,38 +1719,10 @@ export default function AgendaCalendar() {
     return set;
   }, [bloqueos, selectedDateObj]);
 
-  // Tipos de bloqueo que de verdad aparecen en el dia seleccionado (bloqueos de
-  // BD + salon cerrado + fuera de jornada + pausas virtuales). La leyenda de
-  // la rejilla pinta solo estos: con los 8 tipos fijos la barra ensuciaba la
-  // cabecera mostrando leyendas de cosas que no existen ese dia.
-  const bloqueoTiposHoy = useMemo(() => {
-    const tipos = new Set<string>();
-    const dayStart = new Date(selectedDateObj);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(selectedDateObj);
-    dayEnd.setHours(23, 59, 59, 999);
-    for (const b of bloqueos as any[]) {
-      if (
-        new Date(b.inicio) <= dayEnd &&
-        new Date(b.fin) >= dayStart &&
-        b.tipo
-      ) {
-        tipos.add(b.tipo);
-      }
-    }
-    if (cierreHoy) tipos.add("salon_cerrado");
-    const dbDia = selectedDateObj.getDay();
-    for (const p of profesionales) {
-      const filasProf = (horariosProf as any[]).filter(
-        (h: any) => h.profesional_id === p.id,
-      );
-      if (filasProf.length > 0) tipos.add("fuera_jornada");
-      if (filasProf.filter((h: any) => h.dia_semana === dbDia).length > 1) {
-        tipos.add("descanso");
-      }
-    }
-    return tipos;
-  }, [bloqueos, selectedDateObj, cierreHoy, profesionales, horariosProf]);
+  // Aqui se calculaba `bloqueoTiposHoy`, los tipos de bloqueo presentes en el dia
+  // para pintar la leyenda de la cabecera. Se va con ella (25 ago 2026): recorria
+  // todos los bloqueos y todos los horarios de cada profesional en cada cambio de
+  // dia solo para decidir que puntos de colores mostrar.
 
   // Analisis del dia VISIBLE (retrasos, solapes, huecos aprovechables y huecos
   // vacios). Alimenta dos cosas: el contador del boton de organizar (badge, como
@@ -3990,68 +3962,16 @@ export default function AgendaCalendar() {
               Salon cerrado{cierreHoy.motivo ? ` · ${cierreHoy.motivo}` : ""}
             </div>
           )}
-          {/* Leyenda de bloqueos de la rejilla: sin esto no habia forma de saber
-              a simple vista si una franja atenuada era "fuera de turno de esta
-              persona" o "el salon entero cerrado" — colores parecidos, motivos
-              muy distintos. */}
-          {/* Fuera de movil: alli esta leyenda robaba una o dos lineas enteras de
-              la cabecera para explicar colores que ya se ven en la rejilla, y el
-              alto es justo lo que le falta al calendario en pantalla pequena. */}
-          {!isMobile && view === "day" && bloqueoTiposHoy.size > 0 && (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: isMobile ? 6 : 10,
-                marginTop: 6,
-              }}
-            >
-              {/* Orden fijo de lectura; el texto sale de BLOQUEO_LABELS/BLOQUEO_COLORS
-                  (misma fuente que pinta los bloques) para que no puedan desincronizarse
-                  si se añade un tipo nuevo en un sitio y se olvida el otro.
-                  Solo se listan los tipos presentes ese dia (bloqueoTiposHoy):
-                  la version con los 8 fijos ensuciaba la cabecera en movil. */}
-              {(
-                [
-                  "fuera_jornada",
-                  "salon_cerrado",
-                  "vacaciones",
-                  "baja",
-                  "formacion",
-                  "reunion",
-                  "descanso",
-                  "reserva_temporal",
-                ] as const
-              )
-                .filter((tipo) => bloqueoTiposHoy.has(tipo))
-                .map((tipo) => (
-                  <span
-                    key={tipo}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                      fontSize: isMobile ? 9.5 : 10.5,
-                      color: TOKENS.textSecondary,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 7,
-                        height: 7,
-                        borderRadius: 2,
-                        background: BLOQUEO_COLORS[tipo],
-                        flexShrink: 0,
-                      }}
-                    />
-                    {tipo === "salon_cerrado"
-                      ? "Salón cerrado / festivo"
-                      : BLOQUEO_LABELS[tipo]}
-                  </span>
-                ))}
-            </div>
-          )}
+          {/* Aqui vivia la leyenda de tipos de bloqueo. RETIRADA (25 ago 2026).
+              Primero se quito de movil porque robaba una o dos lineas enteras de
+              la cabecera; ahora se retira tambien de escritorio. La razon por la
+              que se puso —distinguir "fuera de turno" de "salon cerrado"— ya la
+              cubren la propia rejilla (cada bloque lleva su etiqueta dentro y su
+              color) y el aviso de "Salon cerrado" que hay justo encima. Explicar
+              con una fila de puntos de colores unos colores que ya estan
+              explicados en su sitio era ruido en la parte mas mirada de la app.
+              BLOQUEO_LABELS y BLOQUEO_COLORS siguen usandose para pintar los
+              bloques: no se toca la fuente de verdad. */}
         </div>
         <div
           style={{
@@ -9770,10 +9690,28 @@ function DayTimeline({
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < hoursEnd; h++) HOURS.push(h);
   const ROW_H = 160;
-  // Ancho mínimo de cada columna de profesional en el timeline. Por debajo de
-  // este ancho la cita se deformaba (texto, precio, avatar se aplastaban). Con
-  // 200px cabe cómodamente y el contenedor hace scroll lateral si hace falta.
-  const MIN_COL_W = 200;
+  // Ancho mínimo de cada columna de profesional en el timeline. La columna
+  // nunca es más estrecha que como si en pantalla solo hubiera 4 profesionales
+  // (3 en tablet): con 6+ columnas NO se compactan — cada una mantiene ese
+  // ancho, que es el que deja ver toda la información de la cita (nombre,
+  // servicio, precio, avatar), y la rejilla scrollea en horizontal. Como piso:
+  // 200px, que ya es cómodo en móvil.
+  const COLS_OBJETIVO = isTablet ? 3 : 4;
+  const lienzoRef = useRef<HTMLDivElement>(null);
+  const [anchoLienzo, setAnchoLienzo] = useState(0);
+  useEffect(() => {
+    const el = lienzoRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const medir = () => setAnchoLienzo(el.clientWidth);
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const MIN_COL_W =
+    anchoLienzo > 0
+      ? Math.max(200, Math.floor((anchoLienzo - 56) / COLS_OBJETIVO))
+      : 200;
   // ── Posicion manual de columnas ────────────────────────────────────────
   // Cada cabecera lleva un numerito: escribes 1 y esa persona pasa a ser la
   // primera columna. Sin drag&drop: mas directo y funciona tambien en tactil.
@@ -10639,6 +10577,7 @@ function DayTimeline({
   return (
     <>
       <div
+        ref={lienzoRef}
         style={{
           // Lienzo blanco ELEVADO: destaca claramente sobre el lienzo crema de la app
           // (sombra + borde) y la marca se nota en cabecera/líneas, sin verse "dorado".

@@ -13,18 +13,20 @@
 //   - localStorage (cache) -> aplica al arrancar sin esperar a la red, y
 //     sobrevive a recargas en este navegador.
 
-export type TamanoTexto = 'pequeno' | 'mediano' | 'grande';
+export type TamanoTexto = 'pequeno' | 'mediano' | 'grande' | 'gigante';
 
 // El tamano por defecto (el que lleva usando la app todo el mundo hasta ahora).
 export const TAMANO_TEXTO_DEFECTO: TamanoTexto = 'pequeno';
 
 // Escalas por modo. pequeno = 100% (sin zoom): es el mas EFICIENTE —cabe mas
 // informacion por pantalla (agenda con mas columnas, listas mas densas)— a
-// cambio de letras mas pequenas. mediano y grande agrandan para leer mejor.
+// cambio de letras mas pequenas. mediano, grande y gigante agrandan para leer
+// mejor.
 export const ZOOMS_TEXTO: Record<TamanoTexto, number> = {
   pequeno: 1,
   mediano: 1.08,
   grande: 1.15,
+  gigante: 1.3,
 };
 
 const CLAVE_LS = 'mecha:tamanoTexto';
@@ -35,7 +37,12 @@ export const EVENTO_TAMANO_TEXTO = 'mecha:tamanoTexto-cambio';
 // 'normal' es lo que hoy se llama 'pequeno'.
 export function esTamanoTexto(v: unknown): v is TamanoTexto {
   if (v === 'normal') return true;
-  return v === 'pequeno' || v === 'mediano' || v === 'grande';
+  return (
+    v === 'pequeno' ||
+    v === 'mediano' ||
+    v === 'grande' ||
+    v === 'gigante'
+  );
 }
 
 export function normalizarTamanoTexto(v: unknown): TamanoTexto {

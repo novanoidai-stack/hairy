@@ -172,7 +172,7 @@ interface ConfigState {
   theme: string;
   // Tamanho del texto: ajuste de lectura que agranda toda la interfaz.
   // Se aplica al instante y se guarda por cuenta en negocio_config.
-  tamanoTexto: 'pequeno' | 'mediano' | 'grande';
+  tamanoTexto: 'pequeno' | 'mediano' | 'grande' | 'gigante';
   slotInterval: number;
   defaultView: string;
   startOfWeek: string;
@@ -1784,11 +1784,12 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
             { value: 'light', label: 'Claro - proximamente' },
           ]} />
         </FieldRow>
-        <FieldRow label="Tamaño del texto" hint="Pequeño es el modo más eficiente: cabe más información por pantalla (agenda, listas) a cambio de letras más pequeñas. Mediano (+8%) y Grande (+15%) agrandan todo el software para leer mejor. Se aplica al instante y se guarda en la cuenta.">
+        <FieldRow label="Tamaño del texto" hint="Pequeño es el modo más eficiente: cabe más información por pantalla (agenda, listas) a cambio de letras más pequeñas. Mediano (+8%), Grande (+15%) y Gigante (+30%) agrandan todo el software para leer mejor. Se aplica al instante y se guarda en la cuenta.">
           <Segmented value={normalizarTamanoTexto(config.tamanoTexto)} onChange={v => setC('tamanoTexto', v)} options={[
             { value: 'pequeno', label: 'Pequeño' },
             { value: 'mediano', label: 'Mediano' },
             { value: 'grande', label: 'Grande' },
+            { value: 'gigante', label: 'Gigante' },
           ]} />
         </FieldRow>
       </Section>
