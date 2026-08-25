@@ -16,7 +16,7 @@ import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { GuardaIdentidad } from '@/components/acceso/GuardaIdentidad';
 import { GuardaSuscripcion } from '@/components/acceso/GuardaSuscripcion';
 import { instalarCazadorDeErrores } from '@/lib/reportarError';
-import { aplicarTamanoTexto, leerTamanoTexto, esTamanoTexto, sincronizarTamanoTexto, EVENTO_TAMANO_TEXTO } from '@/lib/tamanoTexto';
+import { aplicarTamanoTexto, leerTamanoTexto, esTamanoTexto, normalizarTamanoTexto, sincronizarTamanoTexto, EVENTO_TAMANO_TEXTO } from '@/lib/tamanoTexto';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { DemoZonaGlobal } from '@/components/ui/DemoZonaGlobal';
@@ -252,7 +252,7 @@ export default function RootLayout() {
       if (cancelado) return;
       const v = (data?.config as Record<string, unknown> | null)?.tamanoTexto;
       // Sin clave guardada (nunca configurado): manda lo que ya habia aqui.
-      if (esTamanoTexto(v)) sincronizarTamanoTexto(v);
+      if (esTamanoTexto(v)) sincronizarTamanoTexto(normalizarTamanoTexto(v));
     })();
     return () => {
       cancelado = true;

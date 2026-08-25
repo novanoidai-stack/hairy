@@ -13,32 +13,48 @@
 //   - localStorage (cache) -> aplica al arrancar sin esperar a la red, y
 //     sobrevive a recargas en este navegador.
 
-export type TamanoTexto = 'normal' | 'grande';
+export type TamanoTexto = 'pequeno' | 'mediano' | 'grande';
 
-// +15%: suficiente para notarlo en todo (13px -> ~15px) sin que las rejillas
-// estrechas (agenda con muchas columnas) se vuelvan incomodas.
-export const ZOOM_TEXTO_GRANDE = 1.15;
+// El tamano por defecto (el que lleva usando la app todo el mundo hasta ahora).
+export const TAMANO_TEXTO_DEFECTO: TamanoTexto = 'pequeno';
+
+// Escalas por modo. pequeno = 100% (sin zoom): es el mas EFICIENTE —cabe mas
+// informacion por pantalla (agenda con mas columnas, listas mas densas)— a
+// cambio de letras mas pequenas. mediano y grande agrandan para leer mejor.
+export const ZOOMS_TEXTO: Record<TamanoTexto, number> = {
+  pequeno: 1,
+  mediano: 1.08,
+  grande: 1.15,
+};
 
 const CLAVE_LS = 'mecha:tamanoTexto';
 // Cambio en esta misma pestana (el evento 'storage' solo cruza pestanas).
 export const EVENTO_TAMANO_TEXTO = 'mecha:tamanoTexto-cambio';
 
+// Compatibilidad: los primeros dias del ajuste solo existian 'normal'/'grande'.
+// 'normal' es lo que hoy se llama 'pequeno'.
 export function esTamanoTexto(v: unknown): v is TamanoTexto {
-  return v === 'normal' || v === 'grande';
+  if (v === 'normal') return true;
+  return v === 'pequeno' || v === 'mediano' || v === 'grande';
+}
+
+export function normalizarTamanoTexto(v: unknown): TamanoTexto {
+  if (v === 'normal') return 'pequeno'; // legado de la primera version
+  return esTamanoTexto(v) ? v : TAMANO_TEXTO_DEFECTO;
 }
 
 export function aplicarTamanoTexto(v: TamanoTexto) {
   if (typeof document === 'undefined') return;
-  document.documentElement.style.zoom =
-    v === 'grande' ? String(ZOOM_TEXTO_GRANDE) : '';
+  const zoom = ZOOMS_TEXTO[v] ?? 1;
+  document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
 }
 
 export function leerTamanoTexto(): TamanoTexto {
   try {
     const v = localStorage.getItem(CLAVE_LS);
-    return esTamanoTexto(v) ? v : 'normal';
+    return normalizarTamanoTexto(v);
   } catch {
-    return 'normal';
+    return TAMANO_TEXTO_DEFECTO;
   }
 }
 

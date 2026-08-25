@@ -35,7 +35,8 @@ import {
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
 import { reportarError } from '@/lib/reportarError';
-import { esTamanoTexto, guardarYAplicarTamanoTexto, sincronizarTamanoTexto } from '@/lib/tamanoTexto';
+import { esTamanoTexto, normalizarTamanoTexto, guardarYAplicarTamanoTexto, sincronizarTamanoTexto } from '@/lib/tamanoTexto';
+import type { TamanoTexto } from '@/lib/tamanoTexto';
 import {
   cargarCuentasEquipo, avisoDeAcceso, invitarAcceso, reenviarInvitacion, revocarAcceso,
   estadoLegible, type CuentaEquipo, type RolInvitable,
@@ -169,9 +170,9 @@ interface ConfigState {
   timezone: string;
   brandColor: string;
   theme: string;
-  // Tamanho del texto (modo grande): ajuste de lectura que agranda toda la
-  // interfaz. Se aplica al instante y se guarda por cuenta en negocio_config.
-  tamanoTexto: 'normal' | 'grande';
+  // Tamanho del texto: ajuste de lectura que agranda toda la interfaz.
+  // Se aplica al instante y se guarda por cuenta en negocio_config.
+  tamanoTexto: 'pequeno' | 'mediano' | 'grande';
   slotInterval: number;
   defaultView: string;
   startOfWeek: string;
@@ -377,7 +378,7 @@ const DAY_LABELS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado
 const DEFAULT_CONFIG: ConfigState = {
   nombre: '', direccion: '', telefono: '', email: '',
   moneda: 'EUR', timezone: 'Europe/Madrid',
-  brandColor: '#f4501e', theme: 'dark', tamanoTexto: 'normal',
+  brandColor: '#f4501e', theme: 'dark', tamanoTexto: 'pequeno',
   slotInterval: 15, defaultView: 'dia', startOfWeek: 'lun',
   showOutsideHours: false, compactEmpty: true,
   antelacionGlobal: 60, antelacionMax: 60, permitirMismoDia: true,
@@ -1223,10 +1224,11 @@ export default function ConfiguracionWeb() {
   // set_negocio_config_key, al margen del flujo de "Guardar" de esta pantalla.
   // La primera pasada (carga de negocio_config) solo sincroniza este navegador
   // con lo que dice la cuenta; no debe disparar ninguna escritura.
-  const tamanoTextoRef = useRef<'normal' | 'grande' | null>(null);
+  const tamanoTextoRef = useRef<TamanoTexto | null>(null);
   useEffect(() => {
-    const v = config.tamanoTexto;
-    if (!esTamanoTexto(v)) return;
+    if (!esTamanoTexto(config.tamanoTexto)) return;
+    // 'normal' (primeros dias del ajuste) es hoy 'pequeno'.
+    const v = normalizarTamanoTexto(config.tamanoTexto);
     if (tamanoTextoRef.current === null) {
       tamanoTextoRef.current = v;
       sincronizarTamanoTexto(v);
@@ -1782,9 +1784,10 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
             { value: 'light', label: 'Claro - proximamente' },
           ]} />
         </FieldRow>
-        <FieldRow label="Tamaño del texto" hint="El modo grande hace que TODO el software se vea un 15% más grande (letras, botones, agenda, informes) para leer mejor. Se aplica al instante y se guarda en la cuenta.">
-          <Segmented value={config.tamanoTexto} onChange={v => setC('tamanoTexto', v)} options={[
-            { value: 'normal', label: 'Normal' },
+        <FieldRow label="Tamaño del texto" hint="Pequeño es el modo más eficiente: cabe más información por pantalla (agenda, listas) a cambio de letras más pequeñas. Mediano (+8%) y Grande (+15%) agrandan todo el software para leer mejor. Se aplica al instante y se guarda en la cuenta.">
+          <Segmented value={normalizarTamanoTexto(config.tamanoTexto)} onChange={v => setC('tamanoTexto', v)} options={[
+            { value: 'pequeno', label: 'Pequeño' },
+            { value: 'mediano', label: 'Mediano' },
             { value: 'grande', label: 'Grande' },
           ]} />
         </FieldRow>
