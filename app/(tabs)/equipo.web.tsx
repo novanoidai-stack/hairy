@@ -196,6 +196,13 @@ export default function EquipoWeb() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [showNewProf, setShowNewProf] = useState(false);
   const [showNewBloqueo, setShowNewBloqueo] = useState(false);
+  // Refresco de datos SIN recargar la pagina. Los onCreated de los modales
+  // hacian location.reload(): en el modo de acceso compartido (un salon, un
+  // correo) la identidad activa vive solo en memoria, asi que la recarga la
+  // borraba y la puerta "¿Quién eres?" volvia a saltar a mitad de la jornada
+  // (p. ej. al aceptar un bloqueo). Con esto se vuelve a cargar igual pero
+  // conservando quien esta delante de la pantalla.
+  const [recargaTick, setRecargaTick] = useState(0);
   const [negocioId, setNegocioId] = useState('');
   // La pagina de Equipo es ahora el sitio unico de todo lo que tiene que ver con
   // las personas: sus fichas, como rinden y su control horario. Antes el ranking
@@ -418,7 +425,7 @@ export default function EquipoWeb() {
       setLoading(false);
     }
     cargar();
-  }, []);
+  }, [recargaTick]);
 
   async function toggleActivo(prof: Profesional) {
     await supabase.from('profesionales').update({ activo: !prof.activo }).eq('id', prof.id);
@@ -1713,9 +1720,9 @@ export default function EquipoWeb() {
           </div>
         )}
 
-      {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); location.reload(); }} />}
-      {editingProf && <EditProfModal prof={editingProf} negocioId={negocioId} cuenta={cuentasPorFicha[editingProf.id] ?? null} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); location.reload(); }} />}
-      {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); location.reload(); }} />}
+      {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); setRecargaTick(t => t + 1); }} />}
+      {editingProf && <EditProfModal prof={editingProf} negocioId={negocioId} cuenta={cuentasPorFicha[editingProf.id] ?? null} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); setRecargaTick(t => t + 1); }} />}
+      {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); setRecargaTick(t => t + 1); if (selected) cargarPanelDerecho(selected); }} />}
       {showManualPanel && (
         <ManualPanel
           content={manualEquipo}
