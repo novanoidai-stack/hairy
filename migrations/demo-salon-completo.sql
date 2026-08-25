@@ -34,12 +34,12 @@ update public.servicios s set
   descripcion  = d.descripcion,
   categoria_id = c.id
 from (values
-  ('Mechas Balayage + Matiz',   'https://www.mechaa.es/demo-fotos/servicio-mechas.svg',    'Mechas a mano alzada con matiz personalizado. Incluye lavado, tratamiento post-color y secado.', 'Color y mechas'),
-  ('Color Raíz + Peinado',      'https://www.mechaa.es/demo-fotos/servicio-color.svg',     'Retoque de raíz con tu fórmula guardada, lavado y peinado de acabado.',                          'Color y mechas'),
-  ('Corte caballero y peinado', 'https://www.mechaa.es/demo-fotos/servicio-corte-cab.svg', 'Corte a tijera o máquina, lavado y peinado con producto.',                                       'Corte y peinado'),
-  ('Corte señora y peinado',    'https://www.mechaa.es/demo-fotos/servicio-corte-sra.svg', 'Estudio de tu tipo de rostro, corte, lavado y peinado.',                                          'Corte y peinado'),
-  ('Lavado y peinado',          'https://www.mechaa.es/demo-fotos/servicio-lavado.svg',    'Lavado con masaje capilar y peinado a tu gusto: liso, ondas o recogido sencillo.',                'Corte y peinado'),
-  ('Barba express con navaja',  'https://www.mechaa.es/demo-fotos/servicio-barba.svg',     'Perfilado de barba a navaja con toalla caliente y aceite hidratante.',                            'Barbería')
+  ('Mechas Balayage + Matiz',   '/demo-fotos/servicio-mechas.svg',    'Mechas a mano alzada con matiz personalizado. Incluye lavado, tratamiento post-color y secado.', 'Color y mechas'),
+  ('Color Raíz + Peinado',      '/demo-fotos/servicio-color.svg',     'Retoque de raíz con tu fórmula guardada, lavado y peinado de acabado.',                          'Color y mechas'),
+  ('Corte caballero y peinado', '/demo-fotos/servicio-corte-cab.svg', 'Corte a tijera o máquina, lavado y peinado con producto.',                                       'Corte y peinado'),
+  ('Corte señora y peinado',    '/demo-fotos/servicio-corte-sra.svg', 'Estudio de tu tipo de rostro, corte, lavado y peinado.',                                          'Corte y peinado'),
+  ('Lavado y peinado',          '/demo-fotos/servicio-lavado.svg',    'Lavado con masaje capilar y peinado a tu gusto: liso, ondas o recogido sencillo.',                'Corte y peinado'),
+  ('Barba express con navaja',  '/demo-fotos/servicio-barba.svg',     'Perfilado de barba a navaja con toalla caliente y aceite hidratante.',                            'Barbería')
 ) as d(nombre, foto, descripcion, cat)
 join public.categorias_servicio c
   on c.negocio_id = 'demo_salon_001' and c.nombre = d.cat
@@ -67,9 +67,9 @@ update public.profesionales p set
   comision_pct   = d.com,
   categoria      = d.cat
 from (values
-  ('Maria Garcia',     'https://www.mechaa.es/demo-fotos/equipo-maria.svg',  array['Color','Mechas','Colorimetría'],       '600 111 222', 'maria@salondemo.es',  35::numeric, 'direccion'),
-  ('Carlos Rodríguez', 'https://www.mechaa.es/demo-fotos/equipo-carlos.svg', array['Barbería','Corte caballero','Navaja'], '600 333 444', 'carlos@salondemo.es', 30::numeric, 'oficial_mayor'),
-  ('Laura Fernández',  'https://www.mechaa.es/demo-fotos/equipo-laura.svg',  array['Corte señora','Peinados','Recogidos'], '600 555 666', 'laura@salondemo.es',  28::numeric, 'oficial')
+  ('Maria Garcia',     '/demo-fotos/equipo-maria.svg',  array['Color','Mechas','Colorimetría'],       '600 111 222', 'maria@salondemo.es',  35::numeric, 'direccion'),
+  ('Carlos Rodríguez', '/demo-fotos/equipo-carlos.svg', array['Barbería','Corte caballero','Navaja'], '600 333 444', 'carlos@salondemo.es', 30::numeric, 'oficial_mayor'),
+  ('Laura Fernández',  '/demo-fotos/equipo-laura.svg',  array['Corte señora','Peinados','Recogidos'], '600 555 666', 'laura@salondemo.es',  28::numeric, 'oficial')
 ) as d(nombre, foto, esp, tel, email, com, cat)
 where p.negocio_id = 'demo_salon_001' and p.nombre = d.nombre;
 
@@ -109,9 +109,14 @@ where not exists (select 1 from public.comisiones_tramos t where t.negocio_id='d
 -- ---------------------------------------------------------------------------
 -- 3) Identidad del salon y portal publico.
 -- ---------------------------------------------------------------------------
+-- Las fotos van en RELATIVO para que carguen en cualquier origen (local, vista
+-- previa de Vercel, produccion). La unica que sigue absoluta es `logo_url`, y
+-- no por descuido: las edge functions `enviar-presupuesto` y
+-- `responder-mensaje-bandeja` la meten en el <img> de un CORREO, donde una ruta
+-- relativa no resuelve contra nada. Ver migrations/demo-fotos-rutas-relativas.sql.
 update public.negocio_portal set
   logo_url         = 'https://www.mechaa.es/demo-fotos/logo-salon.svg',
-  fondo_portal_url = 'https://www.mechaa.es/demo-fotos/fondo-portal.svg',
+  fondo_portal_url = '/demo-fotos/fondo-portal.svg',
   direccion        = 'Calle de la Demostración 12, bajo',
   ciudad           = 'Madrid',
   telefono         = '+34 910 000 000',
@@ -120,10 +125,10 @@ where negocio_id = 'demo_salon_001';
 
 insert into public.negocio_fotos (negocio_id, url, alt, orden)
 values
-  ('demo_salon_001','https://www.mechaa.es/demo-fotos/fondo-portal.svg','El salón por dentro',1),
-  ('demo_salon_001','https://www.mechaa.es/demo-fotos/servicio-mechas.svg','Zona de color',2),
-  ('demo_salon_001','https://www.mechaa.es/demo-fotos/servicio-lavado.svg','Lavacabezas',3),
-  ('demo_salon_001','https://www.mechaa.es/demo-fotos/servicio-barba.svg','Rincón de barbería',4)
+  ('demo_salon_001','/demo-fotos/fondo-portal.svg','El salón por dentro',1),
+  ('demo_salon_001','/demo-fotos/servicio-mechas.svg','Zona de color',2),
+  ('demo_salon_001','/demo-fotos/servicio-lavado.svg','Lavacabezas',3),
+  ('demo_salon_001','/demo-fotos/servicio-barba.svg','Rincón de barbería',4)
 on conflict do nothing;
 
 -- ---------------------------------------------------------------------------
