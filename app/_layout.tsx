@@ -16,6 +16,7 @@ import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { GuardaIdentidad } from '@/components/acceso/GuardaIdentidad';
 import { GuardaSuscripcion } from '@/components/acceso/GuardaSuscripcion';
 import { instalarCazadorDeErrores } from '@/lib/reportarError';
+import { aplicarTamanoTexto, leerTamanoTexto, esTamanoTexto, sincronizarTamanoTexto, EVENTO_TAMANO_TEXTO } from '@/lib/tamanoTexto';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { DemoZonaGlobal } from '@/components/ui/DemoZonaGlobal';
@@ -225,6 +226,41 @@ export default function RootLayout() {
   // Errores que no pasan por ningun try/catch ni por el boundary de React
   // (promesas sin capturar, scripts sueltos). Sin esto se perdian del todo.
   useEffect(() => instalarCazadorDeErrores(), []);
+
+  // Modo "Texto grande" (ajuste por cuenta en negocio_config.tamanoTexto).
+  // Se aplica con el cache local ANTES de nada (sin flash de tamano normal) y
+  // luego se reconcilia con lo guardado en la cuenta en cuanto hay sesion:
+  // si el salon lo activo en otro dispositivo, aqui tambien se agranda.
+  // Solo en el software (las rutas publicas —reserva, valoraciones— son para
+  // clientes finales y mantienen su tamano).
+  useEffect(() => {
+    if (!isWeb || typeof window === 'undefined' || isPublicRoute) return;
+    aplicarTamanoTexto(leerTamanoTexto());
+    const alCambiar = () => aplicarTamanoTexto(leerTamanoTexto());
+    window.addEventListener('storage', alCambiar);
+    window.addEventListener(EVENTO_TAMANO_TEXTO, alCambiar as EventListener);
+    if (!session) return;
+    let cancelado = false;
+    (async () => {
+      const profile = await getUserProfile();
+      if (cancelado || !profile?.negocio_id) return;
+      const { data } = await supabase
+        .from('negocio_config')
+        .select('config')
+        .eq('negocio_id', profile.negocio_id)
+        .maybeSingle();
+      if (cancelado) return;
+      const v = (data?.config as Record<string, unknown> | null)?.tamanoTexto;
+      // Sin clave guardada (nunca configurado): manda lo que ya habia aqui.
+      if (esTamanoTexto(v)) sincronizarTamanoTexto(v);
+    })();
+    return () => {
+      cancelado = true;
+      window.removeEventListener('storage', alCambiar);
+      window.removeEventListener(EVENTO_TAMANO_TEXTO, alCambiar as EventListener);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWeb, isPublicRoute, session]);
 
   // Salvavidas de la espera de demo: si la peticion se queda colgada del todo,
   // dejamos pasar igualmente en vez de dejar al visitante mirando un spinner

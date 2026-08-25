@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
 import { reportarError } from '@/lib/reportarError';
+import { esTamanoTexto, guardarYAplicarTamanoTexto, sincronizarTamanoTexto } from '@/lib/tamanoTexto';
 import {
   cargarCuentasEquipo, avisoDeAcceso, invitarAcceso, reenviarInvitacion, revocarAcceso,
   estadoLegible, type CuentaEquipo, type RolInvitable,
@@ -168,6 +169,9 @@ interface ConfigState {
   timezone: string;
   brandColor: string;
   theme: string;
+  // Tamanho del texto (modo grande): ajuste de lectura que agranda toda la
+  // interfaz. Se aplica al instante y se guarda por cuenta en negocio_config.
+  tamanoTexto: 'normal' | 'grande';
   slotInterval: number;
   defaultView: string;
   startOfWeek: string;
@@ -373,7 +377,7 @@ const DAY_LABELS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado
 const DEFAULT_CONFIG: ConfigState = {
   nombre: '', direccion: '', telefono: '', email: '',
   moneda: 'EUR', timezone: 'Europe/Madrid',
-  brandColor: '#f4501e', theme: 'dark',
+  brandColor: '#f4501e', theme: 'dark', tamanoTexto: 'normal',
   slotInterval: 15, defaultView: 'dia', startOfWeek: 'lun',
   showOutsideHours: false, compactEmpty: true,
   antelacionGlobal: 60, antelacionMax: 60, permitirMismoDia: true,
@@ -1213,6 +1217,44 @@ export default function ConfiguracionWeb() {
     setConfig(prev => ({ ...prev, [key]: val }));
   }, []);
 
+  // ─── Tamaño del texto (modo grande) ──────────────────────────────────────
+  // Ajuste de lectura, no un dato del negocio: se aplica AL INSTANTE (el salon
+  // ve el cambio sin guardar nada) y persiste por cuenta con la RPC atómica
+  // set_negocio_config_key, al margen del flujo de "Guardar" de esta pantalla.
+  // La primera pasada (carga de negocio_config) solo sincroniza este navegador
+  // con lo que dice la cuenta; no debe disparar ninguna escritura.
+  const tamanoTextoRef = useRef<'normal' | 'grande' | null>(null);
+  useEffect(() => {
+    const v = config.tamanoTexto;
+    if (!esTamanoTexto(v)) return;
+    if (tamanoTextoRef.current === null) {
+      tamanoTextoRef.current = v;
+      sincronizarTamanoTexto(v);
+      return;
+    }
+    if (v === tamanoTextoRef.current) return;
+    tamanoTextoRef.current = v;
+    guardarYAplicarTamanoTexto(v);
+    // Ya queda persistido por la RPC: evitar que el banner de "cambios sin
+    // guardar" acuse de este ajuste que en realidad ya esta guardado.
+    setSavedConfig(prev => ({ ...prev, tamanoTexto: v }));
+    if (negocioId) {
+      // Solo el propietario puede escribir en negocio_config (RPC con ese
+      // control): para el resto del equipo el ajuste queda aplicado en este
+      // navegador, sin petar el registro de errores por algo que es esperable.
+      supabase
+        .rpc('set_negocio_config_key', {
+          p_negocio_id: negocioId,
+          p_clave: 'tamanoTexto',
+          p_valor: v,
+        })
+        .then(({ error }: { error: any }) => {
+          if (error) console.warn('tamanoTexto no guardado en la cuenta:', error.message);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.tamanoTexto, negocioId]);
+
   const profSelData = profesionales.find(p => p.id === profId) ?? null;
 
   // ─── Render ────────────────────────────────────────────────────────────
@@ -1738,6 +1780,12 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
           <Segmented value={config.theme} onChange={v => setC('theme', v)} options={[
             { value: 'dark', label: 'Oscuro' },
             { value: 'light', label: 'Claro - proximamente' },
+          ]} />
+        </FieldRow>
+        <FieldRow label="Tamaño del texto" hint="El modo grande hace que TODO el software se vea un 15% más grande (letras, botones, agenda, informes) para leer mejor. Se aplica al instante y se guarda en la cuenta.">
+          <Segmented value={config.tamanoTexto} onChange={v => setC('tamanoTexto', v)} options={[
+            { value: 'normal', label: 'Normal' },
+            { value: 'grande', label: 'Grande' },
           ]} />
         </FieldRow>
       </Section>
