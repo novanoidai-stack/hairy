@@ -1265,14 +1265,14 @@ export default function ConfiguracionWeb() {
   if (soloPerfilProfesional) return <MiPerfilProfesional userId={profesionalUserId} />;
 
   if (accessDenied) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: T.bg, color: T.textSecondary, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, color: T.textSecondary, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>Acceso restringido</div>
       <div style={{ fontSize: 13 }}>Solo los administradores pueden acceder a la configuracion.</div>
     </div>
   );
 
   return (
-    <div className="cfg-fields" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: T.bg, color: T.text, fontFamily: 'Inter, sans-serif' }}>
+    <div className="cfg-fields" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, color: T.text, fontFamily: 'Inter, sans-serif' }}>
       {/* ── Topbar ──────────────────────────────────────────────────────── */}
       <header style={{
         padding: isMobile ? '12px 16px' : '18px 28px 16px',

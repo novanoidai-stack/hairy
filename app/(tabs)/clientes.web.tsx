@@ -784,7 +784,7 @@ function ClientesWeb() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh / var(--mecha-zoom, 1))', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         .import-info-trigger:hover .import-info-tooltip {
           opacity: 1 !important;
@@ -1598,7 +1598,7 @@ function FusionClienteModal({ maestro, clientes, isMobile, onClose, onDone }: {
 
   return (
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 120, padding: isMobile ? 12 : 24 }}>
-      <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22 }}>
+      <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Fusionar duplicada</h3>
           <button className="m-btn-icon" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
@@ -2526,7 +2526,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
 
   return createPortal(
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div className="m-modal-enter" style={{ width: 520, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(192,38,10,0.18)' }}>
+      <div className="m-modal-enter" style={{ width: 520, maxWidth: '100%', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(192,38,10,0.18)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(192,38,10,0.14)', color: TOKENS.violet, display: 'grid', placeItems: 'center' }}>
@@ -2878,7 +2878,7 @@ function CitaDetalleModal({ cita, cliente, servicio, profesional, ficha, onClose
       <div
         className="m-modal-enter"
         onClick={(e) => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 880, maxHeight: '92vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 20, boxShadow: '0 40px 90px rgba(28,24,20,0.35)' }}
+        style={{ width: '100%', maxWidth: 880, maxHeight: 'calc(92vh / var(--mecha-zoom, 1))', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 20, boxShadow: '0 40px 90px rgba(28,24,20,0.35)' }}
       >
         {/* Cabecera */}
         <div style={{ position: 'sticky', top: 0, zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '22px 26px', borderBottom: `1px solid ${TOKENS.border}`, background: 'linear-gradient(180deg, rgba(244,80,30,0.06), transparent)' }}>
@@ -3247,7 +3247,7 @@ function ImportModal({ negocioId, onClose, onSaved }: {
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(28,24,20,0.45)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16 }} className="ca-modal-overlay">
-      <div style={{ background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, width: '100%', maxWidth: 640, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }} className="ca-modal">
+      <div style={{ background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, width: '100%', maxWidth: 640, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))' }} className="ca-modal">
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: `1px solid ${TOKENS.border}` }}>
           <div>
@@ -3515,7 +3515,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
 
   return (
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
-      <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
+      <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>{isEdit ? 'Editar cliente' : 'Nuevo cliente'}</h3>
           <button className="m-btn-icon m-btn-icon-close" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
@@ -4428,7 +4428,7 @@ function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cl
       )}
       {lightbox && createPortal(
         <div onClick={() => setLightbox(null)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(8,6,4,0.86)', display: 'grid', placeItems: 'center', padding: 28, cursor: 'zoom-out' }}>
-          <img src={lightbox} alt="Foto de servicio" style={{ maxWidth: '92vw', maxHeight: '90vh', borderRadius: 14, boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }} />
+          <img src={lightbox} alt="Foto de servicio" style={{ maxWidth: '92vw', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', borderRadius: 14, boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }} />
         </div>,
         document.body
       )}

@@ -177,7 +177,7 @@ export function ModalImportarTarifasIA({
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: isMobile ? '100vh' : '90vh',
+          maxHeight: isMobile ? 'calc(100vh / var(--mecha-zoom, 1))' : 'calc(90vh / var(--mecha-zoom, 1))',
           transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >

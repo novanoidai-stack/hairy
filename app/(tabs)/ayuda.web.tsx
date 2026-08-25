@@ -548,7 +548,7 @@ export default function AyudaScreen() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: isMobile ? '100%' : 440, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto',
+              width: isMobile ? '100%' : 440, maxWidth: '100%', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto',
               background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 18,
               padding: isMobile ? 18 : 24, boxShadow: '0 30px 80px rgba(28,24,20,0.35)',
             }}

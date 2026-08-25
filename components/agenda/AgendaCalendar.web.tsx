@@ -2259,7 +2259,7 @@ export default function AgendaCalendar() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "100vh",
+          height: "calc(100vh / var(--mecha-zoom, 1))",
           background: TOKENS.bg,
           color: TOKENS.text,
         }}
@@ -2311,7 +2311,7 @@ export default function AgendaCalendar() {
               // if (v !== "day") setRailCollapsed(false);
             }}
             style={{
-              padding: isMobile ? "6px 12px" : "8px 18px",
+              padding: isMobile ? "6px 12px" : "7px 14px",
               fontSize: isMobile ? 12 : 13,
               fontWeight: view === v ? 700 : 500,
               background: view === v ? roleTheme.primarySoft : "transparent",
@@ -4897,13 +4897,12 @@ export default function AgendaCalendar() {
               position: "sticky",
               top: 0,
               // La cabecera es pegajosa: cada pixel que ocupa se lo quita a la
-              // rejilla durante todo el scroll. En movil va al minimo.
-              padding: isMobile
-                ? "8px 0 8px 0"
-                : isReallyCollapsed
-                  ? "20px 0 16px 0"
-                  : "24px 0 16px 0",
-              marginBottom: isMobile ? 8 : 16,
+              // rejilla durante todo el scroll. En movil va al minimo y en
+              // escritorio va compacta (14/10): la cabecera ya reune varias
+              // filas (titulo, controles, filtros, subtitulo) y cada pixel de
+              // padding aqui es espacio que la agenda no recupera nunca.
+              padding: isMobile ? "8px 0 8px 0" : "14px 0 10px 0",
+              marginBottom: isMobile ? 8 : 10,
               background: TOKENS.bg,
               zIndex: 100,
               borderBottom: `1px solid ${TOKENS.borderHi}`,
@@ -4915,7 +4914,7 @@ export default function AgendaCalendar() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: isMobile ? 8 : 16,
+                  marginBottom: isMobile ? 8 : 10,
                   gap: 12,
                 }}
               >
@@ -5087,10 +5086,13 @@ export default function AgendaCalendar() {
                         style={{
                           fontSize: 11.5,
                           color: TOKENS.textSec,
-                          marginTop: 2,
+                          marginTop: 0,
                         }}
                       >
                         {totalActivasHoy} citas · {confirmadasHoy} confirmadas
+                        {view === "day" && timelineProfs.length > 4
+                          ? ` · ${timelineProfs.length} columnas: desliza ↔`
+                          : ""}
                       </div>
                     )}
                   </div>
@@ -5451,32 +5453,9 @@ export default function AgendaCalendar() {
           </div>
           {view === "day" && (
             <>
-              {timelineProfs.length > 1 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "8px 4px 6px",
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 30,
-                    background: TOKENS.bg,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: TOKENS.textSec,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {timelineProfs.length} profesionales · desliza la rejilla
-                    hacia los lados para verlos todos
-                  </span>
-                </div>
-              )}
+              {/* (Antes habia aqui una fila entera con el hint de "desliza la
+                  rejilla": ahora va pegado al subtitulo de citas para no
+                  robarle alto a la rejilla.) */}
               {dayViewType === "list" && isMobile ? (
                 <DayListView
                   citas={filtered}
@@ -6821,7 +6800,7 @@ export default function AgendaCalendar() {
             style={{
               width: "90%",
               maxWidth: 340,
-              maxHeight: "calc(100dvh - 32px)",
+              maxHeight: "calc((100dvh - 32px) / var(--mecha-zoom, 1))",
               overflowY: "auto",
               background: TOKENS.bgPanel,
               border: `1px solid ${TOKENS.border}`,
@@ -13726,8 +13705,8 @@ function NewCitaModal({
           // encadenados y rejilla de horas— y en una hoja al 92 % se veian dos
           // campos y media rejilla. El 8 % que se dejaba de fondo oscuro no
           // aportaba nada y costaba una fila de huecos.
-          height: isMobileOrTablet ? "100dvh" : "auto",
-          maxHeight: isMobileOrTablet ? "100dvh" : "90vh",
+          height: isMobileOrTablet ? "calc(100dvh / var(--mecha-zoom, 1))" : "auto",
+          maxHeight: isMobileOrTablet ? "calc(100dvh / var(--mecha-zoom, 1))" : "calc(90vh / var(--mecha-zoom, 1))",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -18998,8 +18977,8 @@ export function DetalleCitaModal({
           // quede SIEMPRE anclado abajo y el cuerpo scrollee por dentro.
           // 98dvh en movil: aprovecha todo el alto posible (pide "subir un
           // poquito mas") dejando solo un resquicio para ver que es una hoja.
-          height: isMobileOrTablet ? "100dvh" : "86vh",
-          maxHeight: isMobileOrTablet ? "100dvh" : "86vh",
+          height: isMobileOrTablet ? "calc(100dvh / var(--mecha-zoom, 1))" : "calc(86vh / var(--mecha-zoom, 1))",
+          maxHeight: isMobileOrTablet ? "calc(100dvh / var(--mecha-zoom, 1))" : "calc(86vh / var(--mecha-zoom, 1))",
           overflow: "hidden",
           border: isMobileOrTablet ? "none" : `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,

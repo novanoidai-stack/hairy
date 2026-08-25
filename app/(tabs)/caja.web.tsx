@@ -796,7 +796,7 @@ function CajaScreen() {
     <div
       style={{
         background: T.bg,
-        height: "100vh",
+        height: "calc(100vh / var(--mecha-zoom, 1))",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -2293,7 +2293,7 @@ function CajaScreen() {
               width: "100%",
               minWidth: 0,
               maxWidth: 540,
-              maxHeight: "90vh",
+              maxHeight: "calc(90vh / var(--mecha-zoom, 1))",
               display: "flex",
               flexDirection: "column",
               boxShadow: "0 24px 70px rgba(40,30,24,0.35)",

@@ -506,14 +506,14 @@ export default function EquipoWeb() {
   );
 
   if (accessDenied) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.textSec, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh / var(--mecha-zoom, 1))', background: TOKENS.bg, color: TOKENS.textSec, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Acceso restringido</div>
       <div style={{ fontSize: 13 }}>Solo recepcion y direccion pueden ver la gestion de equipo.</div>
     </div>
   );
 
   if (loading) return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh / var(--mecha-zoom, 1))', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
       <div className="equipo-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
@@ -623,7 +623,7 @@ export default function EquipoWeb() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh / var(--mecha-zoom, 1))', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
       {/* Topbar */}
       <div className="equipo-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 16px' : '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
@@ -2197,7 +2197,7 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
-      <div style={{ width: isMobile ? '100%' : 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
+      <div style={{ width: isMobile ? '100%' : 480, maxWidth: '100%', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Editar profesional</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18 }}>x</button>
@@ -2781,7 +2781,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
         onClick={(e) => e.stopPropagation()}
         style={{
           width: isMobile ? '100%' : 480,
-          maxHeight: '90vh',
+          maxHeight: 'calc(90vh / var(--mecha-zoom, 1))',
           overflowY: 'auto',
           background: TOKENS.bgPanel,
           border: `1px solid ${TOKENS.borderHi}`,

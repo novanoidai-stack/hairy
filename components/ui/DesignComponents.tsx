@@ -342,7 +342,7 @@ export function PageLoader({ message = 'Cargando...', showTip = true }: { messag
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      height: '100vh',
+      height: 'calc(100vh / var(--mecha-zoom, 1))',
       background: tokens.bg,
       color: tokens.text,
       fontFamily: 'Inter, sans-serif',

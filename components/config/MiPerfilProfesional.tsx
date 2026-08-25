@@ -99,7 +99,7 @@ export function MiPerfilProfesional({ userId }: { userId: string }) {
 
   if (noVinculado) {
     return (
-      <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ minHeight: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div style={{ maxWidth: 420, textAlign: 'center' as const }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 8 }}>Sin ficha de profesional</div>
           <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.6 }}>
@@ -114,7 +114,7 @@ export function MiPerfilProfesional({ userId }: { userId: string }) {
     m ? <span style={{ fontSize: 12, color: m.ok ? T.success : T.danger, fontWeight: 600 }}>{m.text}</span> : null;
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '28px 24px 60px' }}>
+    <div style={{ minHeight: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, padding: '28px 24px 60px' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
         <h1 style={{ fontSize: 20, fontWeight: 700, color: T.text, margin: '0 0 4px' }}>Mi perfil</h1>
         <p style={{ fontSize: 13, color: T.textSecondary, margin: '0 0 20px' }}>

@@ -219,7 +219,7 @@ function ListaEsperaScreen() {
     return <PageLoader message="Cargando lista de espera..." />;
   }
   if (accessDenied) {
-    return <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textSec, padding: 24, textAlign: 'center' }}>No tienes permiso para ver la lista de espera.</div>;
+    return <div style={{ minHeight: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textSec, padding: 24, textAlign: 'center' }}>No tienes permiso para ver la lista de espera.</div>;
   }
 
   return (
@@ -559,7 +559,7 @@ function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSa
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(28,24,20,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16, animation: 'leFade 0.2s ease both' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: T.panel, borderRadius: 18, padding: 24, boxShadow: '0 24px 60px rgba(28,24,20,0.25)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 460, maxWidth: '100%', maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto', background: T.panel, borderRadius: 18, padding: 24, boxShadow: '0 24px 60px rgba(28,24,20,0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: T.text, margin: 0 }}>Añadir a la lista de espera</h2>
           <button className="le-btn" onClick={onClose} style={{ ...iconBtn(T.textTer), border: 'none' }}><Icon name="x" size={18} color={T.textSec} /></button>

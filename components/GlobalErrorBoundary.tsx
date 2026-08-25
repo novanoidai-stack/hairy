@@ -81,7 +81,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
     return (
       <div
         style={{
-          minHeight: '100vh',
+          minHeight: 'calc(100vh / var(--mecha-zoom, 1))',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

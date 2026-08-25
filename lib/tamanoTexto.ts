@@ -54,6 +54,12 @@ export function aplicarTamanoTexto(v: TamanoTexto) {
   if (typeof document === 'undefined') return;
   const zoom = ZOOMS_TEXTO[v] ?? 1;
   document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
+  // Las pantallas usan height:100vh para llenar el viewport. Con zoom, 100vh
+  // sigue siendo el viewport SIN zoom, asi que un 100vh se vuelve 130% de la
+  // pantalla en modo gigante y el fondo de la pantalla queda inalcanzable
+  // (no se podia volver a Pequeno desde Gigante). Exponemos el zoom en una
+  // variable CSS y las alturas se dividen: calc(100vh / var(--mecha-zoom, 1)).
+  document.documentElement.style.setProperty('--mecha-zoom', String(zoom));
 }
 
 export function leerTamanoTexto(): TamanoTexto {

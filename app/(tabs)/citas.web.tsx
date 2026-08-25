@@ -212,7 +212,7 @@ function CitasCRMScreen() {
   const pad = isMobile ? '16px' : '24px 32px';
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: T.bg, height: '100vh', overflow: 'hidden' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: T.bg, height: 'calc(100vh / var(--mecha-zoom, 1))', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ padding: isMobile ? '16px' : '20px 32px', background: T.bgPanel, borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.text, letterSpacing: -0.5, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -428,7 +428,7 @@ function CitasCRMScreen() {
         );
         return (
           <div onClick={() => setSelectedCita(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: isMobile ? 'end stretch' : 'center', padding: isMobile ? 0 : 16 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: isMobile ? '16px 16px 0 0' : 16, padding: 22, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: isMobile ? '16px 16px 0 0' : 16, padding: 22, width: '100%', maxWidth: 440, maxHeight: 'calc(90vh / var(--mecha-zoom, 1))', overflowY: 'auto', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{cli?.nombre || 'Anonimo'}</div>

@@ -1740,7 +1740,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   // Render
   // -------------------------------------------------------------------------
   return (
-    <div style={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', background: TOKENS.bg, overflow: 'hidden' }}>
+    <div style={{ flex: 1, height: 'calc(100vh / var(--mecha-zoom, 1))', display: 'flex', flexDirection: 'column', background: TOKENS.bg, overflow: 'hidden' }}>
       <style>{ANIMATIONS}</style>
       {/* Demo guiada: spotlight sobre los botones de descarga PDF/CSV */}
       <DemoSpotlight targetRef={exportRef} active={demoExport} label="Descarga PDF · CSV" padding={8} radius={12} />

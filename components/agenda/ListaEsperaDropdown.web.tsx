@@ -138,7 +138,7 @@ export function ListaEsperaDropdown({ negocioId }: { negocioId: string }) {
             top: pos.top,
             left: pos.left,
             width: pos.width,
-            maxHeight: `calc(100vh - ${pos.top + MARGEN}px)`,
+            maxHeight: `calc((100vh - ${pos.top + MARGEN}px) / var(--mecha-zoom, 1))`,
             display: "flex",
             flexDirection: "column",
             background: TOKENS.bgCard,
