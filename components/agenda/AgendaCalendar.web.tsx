@@ -1203,7 +1203,12 @@ export default function AgendaCalendar() {
         if (profResult.error) console.error("Prof error:", profResult.error);
         if (citaResult.error) console.error("Cita error:", citaResult.error);
 
-        setProfesionales(profResult.data ?? []);
+        // Con el orden de columnas que este salon guardo en localStorage (su
+        // orden es personal, no global). Se aplica aqui, con el negocioId local
+        // recien resuelto, para que ni recargas ni re-fetches lo pisen.
+        setProfesionales(
+          aplicarOrdenGuardado(profResult.data ?? [], negocioId),
+        );
         setCitas(citaResult.data ?? []);
         setServicios(srvResult.data ?? []);
         setCategorias(catResult.data ?? []);
@@ -1229,6 +1234,47 @@ export default function AgendaCalendar() {
     // verCanceladas entra en las dependencias porque cambia la CONSULTA (las
     // ocultas se filtran en servidor), no solo lo que se pinta.
   }, [refreshTrigger, verCanceladas]);
+
+  // DEMO: si hoy el salon cierra, la agenda abre en el proximo dia que trabaja.
+  //
+  // El escaparate no puede empezar en una pantalla vacia. La resiembra
+  // (`resembrar_demo`) ya siembra el dia que toca —hoy si abre y, si no, el
+  // siguiente dia abierto— y esto la sigue: un domingo el visitante aterriza en
+  // el lunes, con su dia lleno. El domingo sigue ahi, a un clic de la flecha, y
+  // se ve como lo que es: cerrado y vacio.
+  //
+  // Solo en la demo. En un salon de verdad "hoy" es siempre hoy, aunque este
+  // cerrado: es justo lo que el propietario espera ver al abrir la agenda.
+  const saltoDemoHecho = useRef(false);
+  useEffect(() => {
+    if (!IS_DEMO_MODE || saltoDemoHecho.current) return;
+    if (horarios.length === 0) return; // aun sin cargar
+    const cerrado = (d: Date) => {
+      // negocio_horarios usa 0 = LUNES; Date.getDay() es 0 = domingo.
+      const fila = (horarios as any[]).find(
+        (h: any) => h.dia_semana === (d.getDay() + 6) % 7,
+      );
+      if (fila && fila.abierto === false) return true;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return (cierres as any[]).some((c: any) => c.fecha === key);
+    };
+    const hoy = new Date();
+    if (!cerrado(hoy)) {
+      saltoDemoHecho.current = true;
+      return;
+    }
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date(hoy);
+      d.setDate(hoy.getDate() + i);
+      if (!cerrado(d)) {
+        saltoDemoHecho.current = true;
+        setCurrentMonth(new Date(d.getFullYear(), d.getMonth()));
+        setSelectedDate(d.getDate());
+        return;
+      }
+    }
+    saltoDemoHecho.current = true; // ningun dia abierto en dos semanas: se deja hoy
+  }, [horarios, cierres]);
 
   // Lo que reserva una clienta por el portal, o lo que agenda el asistente de
   // WhatsApp, aparece en la pantalla de recepcion sin tocar nada. Antes solo se
@@ -1947,14 +1993,16 @@ export default function AgendaCalendar() {
   );
 
   // ── Orden de columnas con el raton ─────────────────────────────────────
-  // El orden elegido se guarda en localStorage por negocio y se reaplica al
-  // cargar. Se reordena el array completo (la rejilla puede estar paginada),
-  // respetando las posiciones de quienes no estan en la pagina visible.
-  const ORDEN_PROF_KEY = `agenda:ordenProf:${negocioId}`;
-  const aplicarOrdenGuardado = (lista: any[]) => {
+  // El orden elegido se guarda en localStorage POR NEGOCIO (la cuenta de cada
+  // salon: no es un orden global) y se reaplica al cargar. Se aplica en el
+  // momento en que llegan los datos de la BD, no en un efecto posterior: asi
+  // cualquier recarga (refreshTrigger, verCanceladas, re-entrar a la app)
+  // vuelve a traer el orden guardado en vez de resetearlo.
+  const ordenProfKey = (negId: string) => `agenda:ordenProf:${negId}`;
+  const aplicarOrdenGuardado = (lista: any[], negId: string) => {
     try {
       const saved: string[] = JSON.parse(
-        localStorage.getItem(ORDEN_PROF_KEY) || "[]",
+        localStorage.getItem(ordenProfKey(negId)) || "[]",
       );
       if (!Array.isArray(saved) || saved.length < 2) return lista;
       const rank = (id: string) => {
@@ -1968,14 +2016,6 @@ export default function AgendaCalendar() {
       return lista;
     }
   };
-  // Reaplicar el orden guardado cuando llega el catalogo (una sola pasada).
-  const [ordenAplicado, setOrdenAplicado] = useState(false);
-  useEffect(() => {
-    if (ordenAplicado || profesionales.length === 0) return;
-    setOrdenAplicado(true);
-    setProfesionales((prev) => aplicarOrdenGuardado(prev));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profesionales.length, ordenAplicado]);
 
   const reorderProfs = (idsPagina: string[]) => {
     setProfesionales((prev) => {
@@ -1989,7 +2029,7 @@ export default function AgendaCalendar() {
       }
       try {
         localStorage.setItem(
-          ORDEN_PROF_KEY,
+          ordenProfKey(negocioId),
           JSON.stringify(result.map((p: any) => p.id)),
         );
       } catch {
@@ -1998,30 +2038,6 @@ export default function AgendaCalendar() {
       return result;
     });
   };
-
-  // Paginacion de columnas en la vista Dia: con "Todos" y muchos profesionales, las
-  // columnas se aprietan. Se muestran de PROF_PAGE_SIZE en PROF_PAGE_SIZE con un pager.
-  // En tablet caben menos columnas comodas -> 3; en escritorio 4.
-  const PROF_PAGE_SIZE = isTablet ? 3 : 4;
-  const [profPage, setProfPage] = useState(0);
-  const profPageCount = Math.max(
-    1,
-    Math.ceil(timelineProfs.length / PROF_PAGE_SIZE),
-  );
-  // Volver a la primera pagina si el conjunto cambia (cambio de profesional/dia/filtro)
-  // o si cambia el tamano de pagina al pasar tablet<->escritorio, para no quedarse en
-  // una pagina que ya no existe.
-  useEffect(() => {
-    setProfPage(0);
-  }, [selectedProf, selectedDate, currentMonth, PROF_PAGE_SIZE]);
-  useEffect(() => {
-    if (profPage > profPageCount - 1) setProfPage(0);
-  }, [profPageCount, profPage]);
-  const pagedTimelineProfs = useMemo(() => {
-    if (timelineProfs.length <= PROF_PAGE_SIZE) return timelineProfs;
-    const start = profPage * PROF_PAGE_SIZE;
-    return timelineProfs.slice(start, start + PROF_PAGE_SIZE);
-  }, [timelineProfs, profPage]);
 
   const filtered = useMemo(() => {
     let result =
@@ -5515,7 +5531,7 @@ export default function AgendaCalendar() {
           </div>
           {view === "day" && (
             <>
-              {timelineProfs.length > PROF_PAGE_SIZE && (
+              {timelineProfs.length > 1 && (
                 <div
                   style={{
                     display: "flex",
@@ -5536,81 +5552,15 @@ export default function AgendaCalendar() {
                       fontWeight: 600,
                     }}
                   >
-                    {`${profPage * PROF_PAGE_SIZE + 1}–${Math.min(
-                      (profPage + 1) * PROF_PAGE_SIZE,
-                      timelineProfs.length,
-                    )} de ${timelineProfs.length}`}
+                    {timelineProfs.length} profesionales · desliza la rejilla
+                    hacia los lados para verlos todos
                   </span>
-                  <div
-                    style={{
-                      display: "flex",
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 10,
-                      overflow: "hidden",
-                    }}
-                  >
-                    {(
-                      [
-                        {
-                          k: "prev",
-                          dis: profPage <= 0,
-                          icon: "chevronLeft",
-                          d: -1,
-                          t: "Profesionales anteriores",
-                        },
-                        {
-                          k: "next",
-                          dis: profPage >= profPageCount - 1,
-                          icon: "chevronRight",
-                          d: 1,
-                          t: "Siguientes profesionales",
-                        },
-                      ] as const
-                    ).map((b) => (
-                      <button
-                        key={b.k}
-                        onClick={() =>
-                          setProfPage((p) =>
-                            Math.min(Math.max(p + b.d, 0), profPageCount - 1),
-                          )
-                        }
-                        disabled={b.dis}
-                        title={b.t}
-                        style={{
-                          padding: "6px 11px",
-                          background: "transparent",
-                          border: "none",
-                          borderRight:
-                            b.k === "prev"
-                              ? `1px solid ${TOKENS.border}`
-                              : "none",
-                          color: b.dis ? TOKENS.textTer : TOKENS.text,
-                          cursor: b.dis ? "default" : "pointer",
-                          opacity: b.dis ? 0.4 : 1,
-                          display: "flex",
-                          alignItems: "center",
-                          transition: "all 0.2s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!b.dis)
-                            e.currentTarget.style.background =
-                              roleTheme.primarySoft;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "transparent";
-                        }}
-                      >
-                        <Icon name={b.icon} size={16} color="currentColor" />
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
               {dayViewType === "list" && isMobile ? (
                 <DayListView
                   citas={filtered}
-                  profesionales={pagedTimelineProfs}
+                  profesionales={timelineProfs}
                   servicios={servicios}
                   clientes={clientes}
                   servicioMap={servicioMap}
@@ -5638,7 +5588,7 @@ export default function AgendaCalendar() {
               ) : (
                 <DayTimelineMemo
                   citas={filtered}
-                  profesionales={pagedTimelineProfs}
+                  profesionales={timelineProfs}
                   onReorderProfs={reorderProfs}
                   profsVacaciones={profsVacacionesHoy}
                   servicios={servicios}
