@@ -1,0 +1,97 @@
+{
+ "recorrido": "pilares",
+ "generado": "2026-08-25T15:17:48.525Z",
+ "pasos": {
+  "4": [
+   {
+    "t": 6.88,
+    "tipo": "ping",
+    "ancla": "centro"
+   }
+  ],
+  "5": [
+   {
+    "t": 3.42,
+    "tipo": "subrayado",
+    "ancla": "centro"
+   }
+  ],
+  "6": [
+   {
+    "t": 7.7,
+    "tipo": "subrayado",
+    "ancla": "abajo"
+   }
+  ],
+  "8": [
+   {
+    "t": 8.04,
+    "tipo": "flecha",
+    "ancla": "izq"
+   }
+  ],
+  "10": [
+   {
+    "t": 1.9,
+    "tipo": "flecha",
+    "ancla": "arriba"
+   }
+  ],
+  "13": [
+   {
+    "t": 4.7,
+    "tipo": "ping",
+    "ancla": "centro"
+   }
+  ],
+  "14": [
+   {
+    "t": 7.46,
+    "tipo": "chincheta",
+    "ancla": "1"
+   }
+  ],
+  "15": [
+   {
+    "t": 7.46,
+    "tipo": "chincheta",
+    "ancla": "2"
+   }
+  ],
+  "16": [
+   {
+    "t": 4.2,
+    "tipo": "chincheta",
+    "ancla": "3"
+   }
+  ],
+  "20": [
+   {
+    "t": 5.17,
+    "tipo": "flecha",
+    "ancla": "der"
+   }
+  ],
+  "27": [
+   {
+    "t": 6.2,
+    "tipo": "subrayado",
+    "ancla": "abajo"
+   }
+  ],
+  "29": [
+   {
+    "t": 13.6,
+    "tipo": "ping",
+    "ancla": "abajo"
+   }
+  ],
+  "33": [
+   {
+    "t": 14.6,
+    "tipo": "subrayado",
+    "ancla": "centro"
+   }
+  ]
+ }
+}

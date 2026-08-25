@@ -38,6 +38,13 @@ const MIME = {
   '.ttf': 'font/ttf',
   '.otf': 'font/otf',
   '.wasm': 'application/wasm',
+  // Audio: sin esto el espejo servia los .wav y .mp3 como octet-stream y
+  // Chrome se los tragaba de milagro (sniffing). Con <audio> y varios ficheros
+  // a la vez, unos cargaban y otros no.
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
+  '.m4a': 'audio/mp4',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
   '.webmanifest': 'application/manifest+json',
@@ -104,6 +111,9 @@ function cacheControl(pathname) {
   if (pathname.startsWith('/app')) return 'no-store, must-revalidate';
   if (/^\/assets\/.*\.(png|jpg|jpeg|gif|webp|avif|svg|ico|mp3|woff|woff2|ttf|otf)$/.test(pathname)) return INMUTABLE;
   if (/^\/assets\/.*\.(css|js)$/.test(pathname)) return 'public, max-age=600, stale-while-revalidate=86400';
+  // Narracion y efectos de la demo: se regeneran con scripts/narrar-recorrido.mjs
+  // y no cambian solos, asi que van inmutables como en vercel.json.
+  if (/^\/narracion\/.*\.(mp3|wav)$/.test(pathname)) return INMUTABLE;
   return 'public, max-age=0, must-revalidate';
 }
 
@@ -134,9 +144,37 @@ const server = http.createServer(async (req, res) => {
       headers['Content-Encoding'] = enc;
       headers['Vary'] = 'Accept-Encoding';
     }
+    // Lo que NO se comprime va con Content-Length y rangos, como en Vercel.
+    // Sin Content-Length el servidor manda `Transfer-Encoding: chunked`, y con
+    // un fichero de audio grande Chrome dispara `loadedmetadata` sin saber la
+    // duracion: el reproductor sale con "0:00 / --:--" y no deja avanzar.
+    // Medido: los .wav de 66 KB colaban, los de 300 KB en adelante no.
+    if (!enc) {
+      const { size } = await fs.stat(file);
+      headers['Accept-Ranges'] = 'bytes';
+      const rango = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || ''));
+      if (rango) {
+        const desde = rango[1] ? parseInt(rango[1], 10) : 0;
+        const hasta = rango[2] ? parseInt(rango[2], 10) : size - 1;
+        if (desde >= size || hasta >= size || desde > hasta) {
+          res.writeHead(416, { 'Content-Range': `bytes */${size}` });
+          res.end();
+          return;
+        }
+        headers['Content-Range'] = `bytes ${desde}-${hasta}/${size}`;
+        headers['Content-Length'] = hasta - desde + 1;
+        res.writeHead(206, headers);
+        createReadStream(file, { start: desde, end: hasta }).pipe(res);
+        return;
+      }
+      headers['Content-Length'] = size;
+      res.writeHead(200, headers);
+      createReadStream(file).pipe(res);
+      return;
+    }
+
     res.writeHead(200, headers);
     const origen = createReadStream(file);
-    if (!enc) { origen.pipe(res); return; }
     const compresor = enc === 'br' ? zlib.createBrotliCompress() : zlib.createGzip();
     pipeline(origen, compresor, res, () => {});
   } catch (err) {

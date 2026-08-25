@@ -1,0 +1,207 @@
+{
+  "recorrido": "pilares",
+  "nombre": "Los pilares",
+  "voz": "Gacrux",
+  "modelo": "google/gemini-3.1-flash-tts-preview",
+  "nota": "Texto HABLADO. No es el texto de pantalla: ese se lee y este se escucha. Las etiquetas van en ingles aunque el texto sea espanol (lo pide Google). PROHIBIDO [long pause]: medido, dispara la pausa a 2,8 s. Las pausas largas se piden desde el Pacing de las notas de direccion.",
+  "pasos": [
+    {
+      "n": 1,
+      "acto": "La agenda",
+      "tono": "apertura",
+      "texto": "[warm] Esto es Mecha por dentro. Funcionando, y con datos de verdad. [short pause] Todo vive en este menú: agenda, clientas, caja, números. [calm] Empezamos por donde pasa el día."
+    },
+    {
+      "n": 2,
+      "acto": "La agenda",
+      "tono": "apertura",
+      "texto": "Tu día entero… [short pause] en una pantalla. Una columna por profesional, cada cita en su hora. [calm] Y el color te dice el estado sin leer nada. [excited] Toca un hueco libre, y ya estás creando una cita."
+    },
+    {
+      "n": 3,
+      "acto": "Crear una cita",
+      "tono": "ritmo",
+      "texto": "[excited] ¿Ves? El hueco que has tocado [short pause] entra con la fecha, la hora y la profesional ya puestas. [calm] Tú solo dices quién viene. Y a qué."
+    },
+    {
+      "n": 4,
+      "acto": "Crear una cita",
+      "tono": "ritmo",
+      "texto": "La buscas por nombre, o por teléfono. [short pause] Y si es nueva… [warm] se crea aquí mismo, {senal:ping@centro} sin salir de la cita. Su ficha nace con ella."
+    },
+    {
+      "n": 5,
+      "acto": "Crear una cita",
+      "tono": "ritmo",
+      "texto": "El servicio trae su precio y su duración del catálogo. {senal:subrayado@centro} [short pause] [curious] ¿Y si María tarda menos que Laura en el mismo corte? [calm] Cada una tiene la suya. Nada de calcular a mano."
+    },
+    {
+      "n": 6,
+      "acto": "Crear una cita",
+      "tono": "ritmo",
+      "texto": "Un tratamiento. Una hidratación. Un recogido. [short pause] Cada extra suma sus minutos y su precio… {senal:subrayado@abajo} [excited] y la cita se recoloca sola en la agenda."
+    },
+    {
+      "n": 7,
+      "acto": "Crear una cita",
+      "tono": "ritmo",
+      "texto": "Color, corte y peinado. Una sola visita, uno detrás de otro. [short pause] [amazed] Y hasta con profesionales distintas. [calm] Mecha vigila que no se pisen."
+    },
+    {
+      "n": 8,
+      "acto": "Crear una cita",
+      "tono": "ritmo",
+      "texto": "[serious] Aquí solo salen huecos que existen. [short pause] Silla libre, profesional libre, dentro de tu horario. {senal:flecha@izq} [calm] Si algo choca, no te deja ponerlo. Y eso te salva la tarde."
+    },
+    {
+      "n": 9,
+      "acto": "La cita por dentro",
+      "tono": "profundidad",
+      "texto": "[calm] Abres la cita… y lo tienes todo. Los tiempos, el color, lo que se lleva, lo que paga. [short pause] Y todo se edita aquí. Sin saltar a otra pantalla."
+    },
+    {
+      "n": 10,
+      "acto": "La cita por dentro",
+      "tono": "profundidad",
+      "texto": "[curious] Fíjate en el aviso de arriba. {senal:flecha@arriba} [short pause] Esta cita lleva tinte, y por eso se ve distinta: te está diciendo quién está ocupando su reposo. [warm] Lo vemos entero en un momento."
+    },
+    {
+      "n": 11,
+      "acto": "La cita por dentro",
+      "tono": "profundidad",
+      "texto": "Pendiente. Confirmada. En curso. Cobrada. [short pause] Y cuando tu clienta contesta al WhatsApp del recordatorio… [warm] la cita se marca confirmada sola. Tú no tocas nada."
+    },
+    {
+      "n": 12,
+      "acto": "La cita por dentro",
+      "tono": "profundidad",
+      "texto": "El champú que se lleva, la mascarilla… se apuntan en la cita. [short pause] Suben el ticket, descuentan del inventario, [calm] y cuentan para la comisión de quien lo vendió."
+    },
+    {
+      "n": 13,
+      "acto": "La cita por dentro",
+      "tono": "profundidad",
+      "texto": "Y se cobra aquí mismo. [short pause] Efectivo, datáfono o Bizum. {senal:ping@centro} O partido entre dos. [calm] La señal ya viene descontada, y la propina va aparte. [warm] Si prefieres cobrar a la salida, la cita te espera en Caja."
+    },
+    {
+      "n": 14,
+      "acto": "Los reposos",
+      "tono": "climax",
+      "texto": "[serious] Mira esto. Que es lo que no te da nadie más. [short pause] La primera fase es el trabajo de verdad: aplicar el tinte. {senal:chincheta@1} [calm] Ajustas sus minutos aquí… y solo esos minutos te ocupan a ti."
+    },
+    {
+      "n": 15,
+      "acto": "Los reposos",
+      "tono": "climax",
+      "texto": "[whispers] Y mientras el tinte actúa solo… tú no estás ocupada. [short pause] [warm] Mecha libera ese hueco. {senal:chincheta@2} Y te deja meter a otra clienta encima. [serious] Eso son horas. Cada semana."
+    },
+    {
+      "n": 16,
+      "acto": "Los reposos",
+      "tono": "climax",
+      "texto": "[calm] Y al final, el acabado. Lavar, y peinar. {senal:chincheta@3} [short pause] La cita vive partida en tres bloques. [warm] Y tu día se llena… sin alargarse ni una hora."
+    },
+    {
+      "n": 17,
+      "acto": "La ficha",
+      "tono": "cercania",
+      "texto": "[warm] Segunda pantalla. Se entra por aquí, por el mismo menú. [short pause] Es tu fichero entero: quién viene, cada cuánto, y qué se le hace."
+    },
+    {
+      "n": 18,
+      "acto": "La ficha",
+      "tono": "cercania",
+      "texto": "Toda tu cartera en una lista, con buscador y etiquetas. [short pause] [curious] ¿Que lo tienes en un Excel? [calm] Se importa de golpe. [excited] Abre una cualquiera, y mira su ficha."
+    },
+    {
+      "n": 19,
+      "acto": "La ficha",
+      "tono": "cercania",
+      "texto": "[warm] Esta ficha se acuerda por ti. [short pause] Su ticket medio, cada cuánto viene… y un aviso si lleva demasiado sin volver. [calm] Se rellena sola, con cada cita."
+    },
+    {
+      "n": 20,
+      "acto": "La ficha",
+      "tono": "cercania",
+      "texto": "[serious] La fórmula. [short pause] Marca, tono, oxidante, proporción y tiempo. {senal:flecha@der} [warm] Y la foto de cómo quedó. La próxima vez repites el color exacto… [calm] aunque la atienda otra persona."
+    },
+    {
+      "n": 21,
+      "acto": "La ficha",
+      "tono": "cercania",
+      "texto": "Las alergias, marcadas y siempre a la vista. [short pause] Cómo le gusta el secado, sus manías. [calm] Con plantillas, para no escribir lo mismo cada vez."
+    },
+    {
+      "n": 22,
+      "acto": "La ficha",
+      "tono": "cercania",
+      "texto": "Cada visita: qué se hizo, quién la atendió, qué pagó. [short pause] [warm] Sin buscar en papeles. Y sin buscar en el móvil."
+    },
+    {
+      "n": 23,
+      "acto": "Cobro y caja",
+      "tono": "seguridad",
+      "texto": "[calm] Tercera pantalla: la caja. [short pause] Aquí acaba el día. Lo que has cobrado, cómo lo has cobrado… [serious] y lo que te queda por cobrar."
+    },
+    {
+      "n": 24,
+      "acto": "Cobro y caja",
+      "tono": "seguridad",
+      "texto": "Las citas ya hechas y sin cobrar te esperan aquí. [short pause] Puedes cobrar varias juntas de la misma clienta. [calm] O solo algunos servicios de la visita, con sus productos."
+    },
+    {
+      "n": 25,
+      "acto": "Cobro y caja",
+      "tono": "seguridad",
+      "texto": "Efectivo, tarjeta, Bizum. O partido entre varios. [short pause] Con la propina aparte, y la señal ya descontada. [calm] Sale su comprobante, y el cobro queda registrado al momento."
+    },
+    {
+      "n": 26,
+      "acto": "Cobro y caja",
+      "tono": "seguridad",
+      "texto": "[curious] ¿Y si entra alguien solo a por champú? [short pause] Lo buscas, al carrito, y cobras. [calm] Descuenta del inventario solo, y cuenta en el arqueo como todo lo demás."
+    },
+    {
+      "n": 27,
+      "acto": "Cobro y caja",
+      "tono": "seguridad",
+      "texto": "Cobrado hoy. Efectivo, datáfono, propinas… [short pause] y el I.V.A. estimado. {senal:subrayado@abajo} [warm] Cierras el día en diez segundos. [calm] Y te descargas el registro cuando quieras."
+    },
+    {
+      "n": 28,
+      "acto": "Cobro y caja",
+      "tono": "seguridad",
+      "texto": "[calm] Y esto es lo que le interesa a tu gestoría: [short pause] los cobros del día en un C.S.V., con el método de pago y las propinas. [serious] La caja queda registrada. No en una libreta."
+    },
+    {
+      "n": 29,
+      "acto": "Tu portal",
+      "tono": "orgullo",
+      "texto": "[excited] Y esto es lo que ve tu clienta. [short pause] [warm] Tu propia página de reservas, con tu nombre y tus fotos. Se comparte por WhatsApp, por Instagram, o con un código Q.R. en el mostrador. [serious] Sin comisiones. {senal:ping@abajo} Y sin intermediarios."
+    },
+    {
+      "n": 30,
+      "acto": "Tu portal",
+      "tono": "orgullo",
+      "texto": "Tu catálogo, con tus precios y tus tiempos. [short pause] Sale de tu pantalla de servicios: lo que cambias ahí, cambia aquí. [calm] Y puedes esconder los precios, o dejar fuera lo que prefieras dar tú."
+    },
+    {
+      "n": 31,
+      "acto": "Tu portal",
+      "tono": "orgullo",
+      "texto": "[curious] Acaba de elegir un color. [short pause] Y antes de darle hora, le proponemos lo que suele ir con eso. Aquí, el lavado y peinado. [warm] Si lo añade, se reserva el tiempo de verdad. [serious] Se acabó el pensaba que iba incluido."
+    },
+    {
+      "n": 32,
+      "acto": "Tu portal",
+      "tono": "orgullo",
+      "texto": "Elige profesional… o deja cualquiera disponible. [short pause] [calm] Y cada una sale solo en los servicios que hace de verdad. Con su propia duración."
+    },
+    {
+      "n": 33,
+      "acto": "Tu portal",
+      "tono": "cierre",
+      "texto": "[calm] Los mismos huecos que ve tu agenda. Tu horario, la silla libre… [warm] y el reposo de otra cita, ya aprovechado. [short pause] [excited] Tu clienta reserva a las once y media de la noche… [warm] y por la mañana la tienes ahí. {senal:subrayado@centro} Confirmada."
+    }
+  ]
+}

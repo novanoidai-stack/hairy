@@ -1,0 +1,243 @@
+{
+  "recorrido": "advanced",
+  "nombre": "Todas las pantallas",
+  "voz": "Gacrux",
+  "modelo": "google/gemini-3.1-flash-tts-preview",
+  "nota": "Texto HABLADO, mismas reglas que pilares.json. El riesgo de este recorrido es que 39 pasos seguidos suenen a catalogo: por eso cada acto cambia de intencion (red de seguridad, control, la gente, crecimiento, cierre) y ningun paso repite su titulo. Las etiquetas van en ingles aunque el texto sea espanol. PROHIBIDO [long pause].",
+  "pasos": [
+    {
+      "n": 1,
+      "acto": "Citas y huecos",
+      "tono": "apertura",
+      "texto": "[calm] Esto ya no es la agenda. [short pause] Es lo mismo, pero en tabla: para buscar, para filtrar y para sacarlo fuera. [warm] Cuando persigues una cita concreta, la rejilla no te sirve."
+    },
+    {
+      "n": 2,
+      "acto": "Citas y huecos",
+      "tono": "apertura",
+      "texto": "Arriba tienes el resumen de lo que estés filtrando. [short pause] Cuántas citas, cuántas confirmadas… [serious] y cuántas se quedaron en nada. [calm] Con lo que suman, al lado."
+    },
+    {
+      "n": 3,
+      "acto": "Citas y huecos",
+      "tono": "ritmo",
+      "texto": "Por nombre. Por teléfono. Por servicio. [short pause] Por profesional, por fecha o por estado. [calm] Y si te quedó una sin cobrar de hace tres semanas… [serious] también se busca por eso."
+    },
+    {
+      "n": 4,
+      "acto": "Citas y huecos",
+      "tono": "ritmo",
+      "texto": "[curious] ¿Y las de mañana que nadie ha contestado? [short pause] Un botón te deja solo esas: las próximas cuarenta y ocho horas sin respuesta. {senal:subrayado@abajo} [serious] Son las que acaban en hueco vacío. [warm] Aquí las cazas antes."
+    },
+    {
+      "n": 5,
+      "acto": "Citas y huecos",
+      "tono": "cercania",
+      "texto": "[warm] Y esto es para cuando tienes que decir que no. [short pause] La clienta que se queda sin hueco no se pierde: cae aquí. [calm] Es la red que hay debajo de la agenda."
+    },
+    {
+      "n": 6,
+      "acto": "Citas y huecos",
+      "tono": "cercania",
+      "texto": "Entra con su servicio y con su prioridad. [short pause] [excited] Y cuando te cae una cancelación a las diez de la mañana… {senal:ping@centro} [warm] ya sabes a quién llamar. [calm] Sin rebuscar en la libreta."
+    },
+    {
+      "n": 7,
+      "acto": "Citas y huecos",
+      "tono": "ritmo",
+      "texto": "Subes o bajas la prioridad con las flechas. [short pause] Avisas por WhatsApp desde aquí mismo. [calm] Y Agendar te abre la cita ya cargada: su nombre, su servicio y sus notas."
+    },
+    {
+      "n": 8,
+      "acto": "Dinero y stock",
+      "tono": "seguridad",
+      "texto": "[calm] Los trabajos grandes no se cierran de palabra. [short pause] Unas extensiones, una novia, un cambio de color entero. [warm] Se manda, y ella lo acepta desde el móvil."
+    },
+    {
+      "n": 9,
+      "acto": "Dinero y stock",
+      "tono": "seguridad",
+      "texto": "Borrador. Enviado. Aceptado. [short pause] [calm] Tú no persigues a nadie: el estado se mueve solo. [excited] Y en cuanto lo acepta, te aparece en Caja listo para cobrar. {senal:flecha@arriba}"
+    },
+    {
+      "n": 10,
+      "acto": "Dinero y stock",
+      "tono": "seguridad",
+      "texto": "Cada uno con su total y con su estado. [short pause] [serious] Y un aviso en ámbar si lleva días sin respuesta. [calm] Se reenvía por correo, o copias el enlace sin abrirlo."
+    },
+    {
+      "n": 11,
+      "acto": "Dinero y stock",
+      "tono": "profundidad",
+      "texto": "[calm] Tu producto. Los dos: el que vendes y el de cabina. [short pause] [warm] Y no hay que ir apuntándolo. Se descuenta solo con cada cita que cobras."
+    },
+    {
+      "n": 12,
+      "acto": "Dinero y stock",
+      "tono": "profundidad",
+      "texto": "Cada referencia con su mínimo. El suyo, no uno general. [short pause] [serious] Lo que baja de ahí se marca. {senal:flecha@izq} [warm] Y te propone el pedido antes de que te quedes sin tinte un sábado."
+    },
+    {
+      "n": 13,
+      "acto": "Dinero y stock",
+      "tono": "seguridad",
+      "texto": "Referencias, lo que está bajo mínimo, unidades… [short pause] y lo que vale todo junto. [calm] Cuatro números. {senal:subrayado@abajo} [serious] Con eso ya sabes si toca pedir."
+    },
+    {
+      "n": 14,
+      "acto": "Dinero y stock",
+      "tono": "ritmo",
+      "texto": "Tintes. Oxidantes. Cuidado. Venta. [short pause] [calm] Cada cosa en su pestaña. [warm] Para dar con una referencia sin bajar por una lista infinita."
+    },
+    {
+      "n": 15,
+      "acto": "Equipo",
+      "tono": "cercania",
+      "texto": "[warm] Tu gente. [short pause] Fichas, horarios, comisiones y accesos. [calm] Una pantalla, y tres vistas dentro."
+    },
+    {
+      "n": 16,
+      "acto": "Equipo",
+      "tono": "cercania",
+      "texto": "Cada persona con su color en la agenda. [short pause] Su categoría, y los servicios que hace de verdad. [calm] Y su propia cuenta para entrar, si le hace falta."
+    },
+    {
+      "n": 17,
+      "acto": "Equipo",
+      "tono": "profundidad",
+      "texto": "[calm] Mira lo que lleva dentro. Su horario. Su control horario, con entradas y salidas. {senal:flecha@arriba} [short pause] Y sus bloqueos: vacaciones, bajas, formación. [serious] La agenda respeta todo eso sola. Tú no le recuerdas nada."
+    },
+    {
+      "n": 18,
+      "acto": "Equipo",
+      "tono": "seguridad",
+      "texto": "Lo que ingresa cada uno. Su ticket medio. [short pause] [serious] Y la comisión que lleva devengada. [calm] En servicios y en producto. [warm] Se acabó la hoja de cálculo del día uno."
+    },
+    {
+      "n": 19,
+      "acto": "Equipo",
+      "tono": "profundidad",
+      "texto": "[calm] Esta pantalla no es para ti: es para ellos. [short pause] Es la que abren al llegar. [serious] Su día, su fichaje y sus números. La casa entera no la ven."
+    },
+    {
+      "n": 20,
+      "acto": "Equipo",
+      "tono": "seguridad",
+      "texto": "Entrada, pausa y salida. [short pause] Con la hora del servidor, no con la del móvil. [serious] Los asientos no se editan, y se guardan cuatro años. {senal:subrayado@abajo} [calm] Es lo que pide la ley."
+    },
+    {
+      "n": 21,
+      "acto": "Equipo",
+      "tono": "cercania",
+      "texto": "[warm] Y al terminar el día, su resumen. [short pause] Citas hechas, horas trabajadas y lo que ha cobrado. [calm] Escrito por Chispa, en una tarjeta."
+    },
+    {
+      "n": 22,
+      "acto": "Clientes y marketing",
+      "tono": "apertura",
+      "texto": "[calm] Todo lo que entra de fuera acaba aquí. [short pause] Los contactos de tu página, las respuestas, lo que te pide el equipo. [warm] En un sitio."
+    },
+    {
+      "n": 23,
+      "acto": "Clientes y marketing",
+      "tono": "ritmo",
+      "texto": "Quien te escribe desde el portal. [short pause] Quien contesta a un presupuesto. Quien te pide un día libre. [serious] Aquí. No perdido entre los audios de tu WhatsApp personal."
+    },
+    {
+      "n": 24,
+      "acto": "Clientes y marketing",
+      "tono": "seguridad",
+      "texto": "[calm] Abiertas te deja solo lo que sigue vivo. [short pause] Y el punto naranja marca lo que no has leído. {senal:ping@centro} [serious] Así no se queda nada enterrado sin contestar."
+    },
+    {
+      "n": 25,
+      "acto": "Clientes y marketing",
+      "tono": "climax",
+      "texto": "[curious] ¿Y los martes que no entra nadie? [short pause] [warm] Para eso está esto. Para llenar los días flojos… [calm] y para recuperar a las que dejaron de venir."
+    },
+    {
+      "n": 26,
+      "acto": "Clientes y marketing",
+      "tono": "cercania",
+      "texto": "No hay que inventarse nada. [short pause] [calm] Hay plantillas para las clientas dormidas, para los cumpleaños, para un martes flojo. [warm] Cambias el texto y ya está."
+    },
+    {
+      "n": 27,
+      "acto": "Clientes y marketing",
+      "tono": "climax",
+      "texto": "[serious] Y aquí está lo importante: a quién. [short pause] Por días sin volver, por visitas, por ticket medio, por etiqueta. {senal:subrayado@abajo} [calm] No mandas a todas. [warm] Mandas a las que conviene."
+    },
+    {
+      "n": 28,
+      "acto": "Clientes y marketing",
+      "tono": "apertura",
+      "texto": "[calm] Lo que dicen de ti. [short pause] Las de tu propia página y las de Google. [warm] Juntas, en la misma lista."
+    },
+    {
+      "n": 29,
+      "acto": "Clientes y marketing",
+      "tono": "profundidad",
+      "texto": "[curious] Una nota a secas no te dice qué arreglar. [short pause] Aquí van separadas: el trato, la limpieza, lo fácil que fue reservar y el pago. {senal:subrayado@abajo} [serious] Ya sabes por dónde empezar."
+    },
+    {
+      "n": 30,
+      "acto": "Clientes y marketing",
+      "tono": "seguridad",
+      "texto": "Por fueguitos, por periodo, por dónde la dejaron. [short pause] O buscando una palabra suelta en los comentarios. [serious] Las malas no se esconden. [calm] Se estudian."
+    },
+    {
+      "n": 31,
+      "acto": "Clientes y marketing",
+      "tono": "cercania",
+      "texto": "Quién, cuándo, y qué se le hizo ese día. [short pause] [calm] Las de uno y dos fueguitos salen destacadas… [warm] para que las leas antes de que vuelva a pasar."
+    },
+    {
+      "n": 32,
+      "acto": "Números e IA",
+      "tono": "seguridad",
+      "texto": "[calm] Y aquí están tus números. [short pause] Los de verdad: lo cobrado, el margen, la ocupación. [serious] Y los registros que te va a pedir la gestoría."
+    },
+    {
+      "n": 33,
+      "acto": "Números e IA",
+      "tono": "seguridad",
+      "texto": "[serious] Cobrado. No previsto: cobrado. {senal:subrayado@abajo} [short pause] Con las propinas aparte, el margen y la ocupación. [calm] Lo que dice el catálogo va en otro sitio. Y etiquetado."
+    },
+    {
+      "n": 34,
+      "acto": "Números e IA",
+      "tono": "profundidad",
+      "texto": "Un número suelto no cuenta nada. [short pause] [calm] Aquí ves los ingresos y las citas en el tiempo. [warm] Y debajo de cada gráfica te explicamos qué está diciendo. Con tus datos."
+    },
+    {
+      "n": 35,
+      "acto": "Números e IA",
+      "tono": "profundidad",
+      "texto": "Las citas repartidas: por persona, por servicio y por franja. [short pause] [serious] Esto es lo que te dice qué día flojea… [calm] y a quién le sobra o le falta agenda."
+    },
+    {
+      "n": 36,
+      "acto": "Números e IA",
+      "tono": "ritmo",
+      "texto": "[calm] Y te lo llevas puesto. [short pause] En P.D.F. con tu marca, o en C.S.V. para tu gestor. [warm] Un clic."
+    },
+    {
+      "n": 37,
+      "acto": "Números e IA",
+      "tono": "apertura",
+      "texto": "[calm] La última del menú. [short pause] Los manuales de cada pantalla… [excited] y el panel de Chispa."
+    },
+    {
+      "n": 38,
+      "acto": "Números e IA",
+      "tono": "climax",
+      "texto": "[whispers] Contesta el WhatsApp. Y coge el teléfono. [short pause] [warm] Resuelve dudas, mira tu catálogo y reserva sola a las once y media de la noche. {senal:ping@centro} [serious] Aquí ves exactamente qué hace. Y qué no."
+    },
+    {
+      "n": 39,
+      "acto": "Números e IA",
+      "tono": "cierre",
+      "texto": "[calm] Cada pantalla tiene su guía, a un clic. [short pause] [warm] Y si prefieres preguntar, contesta una persona por WhatsApp. [serious] No te dejamos sola con el software."
+    }
+  ]
+}

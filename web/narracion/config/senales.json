@@ -1,0 +1,48 @@
+{
+ "recorrido": "config",
+ "generado": "2026-08-25T15:11:16.095Z",
+ "pasos": {
+  "3": [
+   {
+    "t": 10.12,
+    "tipo": "flecha",
+    "ancla": "arriba"
+   }
+  ],
+  "4": [
+   {
+    "t": 7.92,
+    "tipo": "subrayado",
+    "ancla": "abajo"
+   }
+  ],
+  "7": [
+   {
+    "t": 4.24,
+    "tipo": "ping",
+    "ancla": "centro"
+   }
+  ],
+  "10": [
+   {
+    "t": 10.3,
+    "tipo": "flecha",
+    "ancla": "arriba"
+   }
+  ],
+  "13": [
+   {
+    "t": 2.82,
+    "tipo": "ping",
+    "ancla": "centro"
+   }
+  ],
+  "15": [
+   {
+    "t": 10.28,
+    "tipo": "subrayado",
+    "ancla": "abajo"
+   }
+  ]
+ }
+}

@@ -1,0 +1,117 @@
+{
+  "recorrido": "config",
+  "nombre": "La configuración",
+  "voz": "Gacrux",
+  "modelo": "google/gemini-3.1-flash-tts-preview",
+  "nota": "Texto HABLADO, mismas reglas que pilares.json. Este es el recorrido mas seco de los tres —diecisiete pestanas de ajustes— y ahi la tentacion es leer el menu en voz alta. No se hace: cada paso dice PARA QUE sirve la pestana, no como se llama. PROHIBIDO [long pause].",
+  "pasos": [
+    {
+      "n": 1,
+      "acto": "Tu negocio",
+      "tono": "apertura",
+      "texto": "[calm] Y esto es donde Mecha deja de ser nuestra y pasa a ser tuya. [short pause] Diecisiete pestañas, ahí a la izquierda. [warm] Las abrimos una a una."
+    },
+    {
+      "n": 2,
+      "acto": "Tu negocio",
+      "tono": "apertura",
+      "texto": "Nombre, dirección, teléfono, moneda. [short pause] Y tu marca. [calm] Esto es lo que sale en tus facturas, en tu página de reservas… [warm] y en cada WhatsApp que te contesta una clienta."
+    },
+    {
+      "n": 3,
+      "acto": "Tu negocio",
+      "tono": "seguridad",
+      "texto": "Cuándo abres y cuándo cierras, día por día. [short pause] Con la pausa de mediodía, si la haces. [serious] Fuera de ahí no hay huecos. {senal:flecha@arriba} Ni por error tuyo, ni desde el portal."
+    },
+    {
+      "n": 4,
+      "acto": "Operativa",
+      "tono": "climax",
+      "texto": "[serious] Esta pestaña es la que importa. [short pause] Cada servicio con su precio, con su duración… [calm] y con su tiempo de reposo. {senal:subrayado@abajo} [warm] Aquí es donde nacen los huecos productivos."
+    },
+    {
+      "n": 5,
+      "acto": "Operativa",
+      "tono": "seguridad",
+      "texto": "Con cuánta antelación te pueden pedir hora. [short pause] Hasta cuándo se puede cancelar. Si hay que confirmar o no. [serious] Los límites los pones tú. El software solo los cumple."
+    },
+    {
+      "n": 6,
+      "acto": "Operativa",
+      "tono": "ritmo",
+      "texto": "Un porcentaje, o una cantidad fija. [short pause] Por servicio y por producto. [calm] Se calcula solo con cada cobro… [warm] y aparece en la ficha de cada uno, sin que nadie eche cuentas."
+    },
+    {
+      "n": 7,
+      "acto": "Operativa",
+      "tono": "seguridad",
+      "texto": "Con qué se puede pagar. [short pause] [serious] Y si pides señal para reservar. {senal:ping@centro} [calm] Que es exactamente lo que hace que dejen de faltar. [warm] Tus datos fiscales van aquí también."
+    },
+    {
+      "n": 8,
+      "acto": "Operativa",
+      "tono": "ritmo",
+      "texto": "Los conceptos de siempre, ya escritos. [short pause] Tus textos legales, y cuánto tiempo valen. [calm] Salen con tu marca, y se aceptan desde el móvil."
+    },
+    {
+      "n": 9,
+      "acto": "Operativa",
+      "tono": "cercania",
+      "texto": "[warm] Lo que escribes siempre… escrito una sola vez. [short pause] [calm] Rellenas una ficha en dos toques. [serious] En vez de en dos minutos."
+    },
+    {
+      "n": 10,
+      "acto": "Operativa",
+      "tono": "climax",
+      "texto": "[excited] Y esto de aquí no lo tiene nadie más. [short pause] Subes tu Excel. O una foto de tu agenda de papel. [amazed] Y la inteligencia saca de ahí tus clientas y tus citas. {senal:flecha@arriba} [calm] Es lo que hace que empezar no te cueste una semana."
+    },
+    {
+      "n": 11,
+      "acto": "Comunicación",
+      "tono": "ritmo",
+      "texto": "[calm] La confirmación al reservar. [short pause] El recordatorio antes de la cita. Y la reseña, después. [warm] Eliges cuáles quieres, y a qué hora salen."
+    },
+    {
+      "n": 12,
+      "acto": "Comunicación",
+      "tono": "seguridad",
+      "texto": "Tu política de cancelación, y la de privacidad. [short pause] [serious] Y los consentimientos que firma la clienta: fotos, tratamientos. [calm] Guardados con su fecha, como toca."
+    },
+    {
+      "n": 13,
+      "acto": "Comunicación",
+      "tono": "orgullo",
+      "texto": "Tu enlace. [short pause] Y tu código Q.R., {senal:ping@centro} para el escaparate o para el espejo. [warm] Reservan solas, con tu nombre delante… [serious] y sin comisiones de nadie."
+    },
+    {
+      "n": 14,
+      "acto": "Comunicación",
+      "tono": "cercania",
+      "texto": "Puntos por visita, o por lo que gastan. [short pause] Y las recompensas las eliges tú. [calm] Se aplica solo, en el momento de cobrar."
+    },
+    {
+      "n": 15,
+      "acto": "Tu cuenta",
+      "tono": "climax",
+      "texto": "[warm] Tu enlace, pero para otros salones. [short pause] Un diez por ciento menos por cada uno que traes tú. Y algo menos por los que traigan ellos. [excited] Hasta el treinta. {senal:subrayado@abajo} [calm] De ahí en adelante, cada salón nuevo te regala un mes entero."
+    },
+    {
+      "n": 16,
+      "acto": "Tu cuenta",
+      "tono": "seguridad",
+      "texto": "Cada persona con su correo y con su papel. [short pause] [serious] La caja, los informes y estos ajustes… los ve quien tú digas. [calm] Nadie más."
+    },
+    {
+      "n": 17,
+      "acto": "Tu cuenta",
+      "tono": "seguridad",
+      "texto": "Tu plan, tu recepcionista de inteligencia si la quieres, y tus facturas. [short pause] [serious] Sin permanencia. [calm] Se cambia, o se cancela, desde aquí mismo."
+    },
+    {
+      "n": 18,
+      "acto": "Tu cuenta",
+      "tono": "cierre",
+      "texto": "[warm] Soporte por WhatsApp y por correo, desde dentro del software. [short pause] Contesta una persona. [calm] Y con esto ya has visto Mecha entera. [warm] De la agenda… hasta el último ajuste."
+    }
+  ]
+}

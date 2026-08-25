@@ -146,6 +146,15 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=600, stale-while-revalidate=86400" }
       ]
+    },
+    {
+      "source": "/narracion/(.*).(mp3|wav)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ]
 }

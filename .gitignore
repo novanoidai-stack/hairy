@@ -125,3 +125,11 @@ test-results/
 /*.png
 
 .vercel-token.txt
+
+# Muestras de voz generadas por scripts/tts-muestras.mjs (audio, no versionar)
+web/tts-muestras/
+
+# WAV crudos del TTS antes de normalizar (intermedios de narrar-recorrido.mjs).
+# Los MP3 de web/narracion/<recorrido>/ SI se versionan: son el entregable y no
+# hay de donde sacarlos en el build de Vercel.
+web/narracion/_wav/

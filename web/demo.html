@@ -19,8 +19,18 @@
   /* La intro se pinta desde el HTML para que sea el PRIMER fotograma. Si esta
      pestaña ya la vio, hay que saberlo ANTES del primer pintado o se cuela un
      destello de intro sobre la demo ya montada: por eso este script va aqui,
-     en el head, y no con el resto. */
-  try{ if(sessionStorage.getItem('mecha_demo_intro')==='1') document.documentElement.classList.add('dm-intro-vista'); }catch(e){}
+     en el head, y no con el resto.
+
+     La marca vive en sessionStorage, o sea UNA VEZ POR PESTAÑA: quien vuelve a
+     la demo desde la landing en la misma pestaña no se traga la intro otra vez.
+     Efecto secundario molesto al desarrollar: tampoco la ves tu, y parece que
+     se ha roto. `?intro=1` la fuerza siempre; `?intro=0` la salta siempre. */
+  try{
+    var mIntro=/[?&]intro=([01])/.exec(location.search);
+    var forzar = mIntro && mIntro[1]==='1';
+    var saltar = (mIntro && mIntro[1]==='0') || sessionStorage.getItem('mecha_demo_intro')==='1';
+    if(!forzar && saltar) document.documentElement.classList.add('dm-intro-vista');
+  }catch(e){}
 </script>
 <style>
   html,body{height:100dvh;margin:0;padding:0;width:100%;position:fixed;inset:0;overflow:hidden}
@@ -52,6 +62,41 @@
   .dm-share:hover{background:rgba(255,255,255,.08);border-color:rgba(255,138,61,.5);color:#fff}
   .dm-share svg{width:15px;height:15px;flex-shrink:0}
   .dm-share-badge{font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--accent-hi);background:rgba(244,80,30,.16);padding:2px 6px;border-radius:6px}
+  /* Interruptor de voz de la barra: el mismo de la intro, en pequeño, para
+     quien ya se la saltó (la intro solo sale una vez por pestaña). */
+  .dm-voz-bar{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding:8px 11px;
+    font-size:12.5px;font-weight:600;border-radius:10px;cursor:pointer;white-space:nowrap;
+    color:var(--text-ter);background:rgba(255,255,255,.04);border:1px solid var(--border-hi);
+    transition:background .18s,border-color .18s,color .18s}
+  .dm-voz-bar:hover{background:rgba(255,255,255,.08);color:#fff}
+  .dm-voz-bar svg{width:15px;height:15px;flex-shrink:0}
+  .dm-voz-bar .on-si{display:none}
+  .dm-voz-bar.on{color:var(--accent-hi,#ff8a3d);border-color:rgba(244,80,30,.5);background:rgba(244,80,30,.14)}
+  .dm-voz-bar.on .on-si{display:block}
+  .dm-voz-bar.on .on-no{display:none}
+  /* "Que nos llamemos": la salida para quien no quiere crear cuenta todavia.
+     Secundaria a proposito — el CTA naranja tiene que seguir siendo uno solo. */
+  .dm-llamada{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding:8px 13px;
+    font-size:13px;font-weight:600;border-radius:10px;white-space:nowrap;
+    color:#e6e9ef;background:rgba(255,255,255,.04);border:1px solid var(--border-hi);
+    transition:background .18s,border-color .18s,color .18s}
+  .dm-llamada:hover{background:rgba(255,255,255,.08);border-color:rgba(255,138,61,.5);color:#fff}
+  .dm-llamada svg{width:15px;height:15px;flex-shrink:0}
+  /* MEDIDO: la barra iba con 17 px de holgura a 1440 y con 1 px a 1024. Meter un
+     boton mas empujaba el CTA principal FUERA de la pantalla, asi que la llamada
+     se gana su sitio por tramos:
+       > 1500  icono + texto (y ahi si cabe el rotulo "Demo")
+       1120-1500  solo icono, y "Demo" —que es decoracion— cede su hueco
+       < 1120  no cabe: se cae. Abajo del panel lateral sigue estando
+               "Pide una llamada" con su texto entero. */
+  @media(max-width:1500px){
+    .dm-llamada .lbl{display:none}
+    .dm-llamada{padding:8px 10px;gap:0}
+    .dm-pill{display:none}
+  }
+  @media(max-width:1120px){
+    .dm-llamada{display:none}
+  }
   /* Selector de tutoriales: 3 recorridos completos con play para lanzar/reiniciar */
   .dm-tutsel{display:none;align-items:center;gap:4px;flex-shrink:0;margin-left:auto;padding:3px;border-radius:11px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03)}
   .dm-tut{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;cursor:pointer;border:0;background:none;color:var(--text-sec);font:inherit;font-size:12.5px;font-weight:600;white-space:nowrap;transition:all .18s ease}
@@ -76,6 +121,10 @@
     .ver-back{padding:6px 10px;gap:0}
     .dm-share .lbl,.dm-share-badge{display:none!important}
     .dm-share{padding:7px 10px}
+    .dm-voz-bar .lbl{display:none}
+    .dm-voz-bar{padding:7px 10px;gap:0}
+    .dm-llamada .lbl{display:none}
+    .dm-llamada{padding:7px 10px;gap:0}
     .dm-bar .cta-long{display:none}
     .dm-bar .cta-short{display:inline}
   }
@@ -94,6 +143,12 @@
     .dm-share{font-size:0!important;padding:6px!important;border-radius:8px!important;min-width:auto}
     .dm-share .lbl,.dm-share-badge{display:none!important}
     .dm-share svg{margin:0!important}
+    .dm-voz-bar{font-size:0!important;padding:6px!important;border-radius:8px!important;min-width:auto}
+    .dm-voz-bar .lbl{display:none!important}
+    .dm-voz-bar svg{margin:0!important}
+    /* Movil: la barra ya va justa. La llamada se cae del todo — abajo del panel
+       lateral sigue estando "Pide una llamada", que ahi si cabe con su texto. */
+    .dm-llamada{display:none!important}
     .dm-tutsel{padding:2px;gap:3px;min-width:0}
     .dm-tut{padding:6px 8px;gap:4px;font-size:0}
     .dm-tut .pnum{width:18px;height:18px;font-size:10.5px}
@@ -167,6 +222,66 @@
 .gt-spot.jump{transition:opacity .24s ease}
 @media(prefers-reduced-motion:reduce){ .gt-spot{transition-duration:.2s} }
 
+/* ---------- SEÑALES: puntualizan lo que dice la voz ----------
+   El foco recorta la ZONA; esto senala un PUNTO dentro de ella, y justo en el
+   segundo en que la voz lo nombra (los tiempos salen de narracion/<r>/senales.json).
+   Sin z-index a proposito: van despues del foco y antes del dock en el DOM, asi
+   que el dock siempre queda por encima y nunca se tapa el texto.
+   Contrato: UNA viva a la vez, todas se van solas, y ninguna se queda quieta
+   en pantalla. Lo que hace que se noten es que casi nunca hay ninguna. */
+.gt-senal{position:absolute;top:0;left:0;pointer-events:none;color:var(--accent,#f4501e)}
+.gt-senal.off{display:none}
+
+/* 1 · Flecha: entra deslizandose hacia la zona y se va. El SVG apunta a la
+   DERECHA; el angulo lo pone el ancla (izq 0, der 180, arriba 90, abajo -90). */
+.sn-flecha svg{display:block;width:78px;height:22px;
+  filter:drop-shadow(0 2px 9px rgba(244,80,30,.55))}
+@keyframes snFlecha{0%{opacity:0;transform:translateX(-24px)}
+  20%{opacity:1;transform:translateX(0)}
+  72%{opacity:1;transform:translateX(0)}
+  100%{opacity:0;transform:translateX(7px)}}
+.sn-flecha .sn-in{display:block;animation:snFlecha 2s cubic-bezier(.16,1,.3,1) forwards}
+
+/* 2 · Ping: dos anillos que se abren UNA vez sobre un punto exacto. */
+.sn-ping i{position:absolute;left:0;top:0;border-radius:50%;border:2px solid currentColor;
+  transform:translate(-50%,-50%);animation:snPing 1.4s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes snPing{0%{width:12px;height:12px;opacity:0}
+  12%{opacity:.95}
+  100%{width:124px;height:124px;opacity:0}}
+.sn-ping i:nth-child(2){animation-delay:.2s}
+
+/* 3 · Subrayado: barre la cifra mientras la voz la dice. */
+.sn-subrayado{height:4px;border-radius:3px;background:rgba(244,80,30,.16);overflow:hidden}
+.sn-subrayado i{display:block;height:100%;background:currentColor;border-radius:3px;
+  transform-origin:left center;box-shadow:0 0 13px rgba(244,80,30,.75);
+  animation:snBarra 1.8s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes snBarra{0%{transform:scaleX(0);opacity:1}
+  42%{transform:scaleX(1);opacity:1}
+  78%{transform:scaleX(1);opacity:1}
+  100%{transform:scaleX(1);opacity:0}}
+
+/* 4 · Chincheta numerada: para los tres bloques del reposo. */
+.sn-chincheta i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;
+  background:currentColor;color:#fff;font-family:var(--display);font-size:13px;
+  font-weight:800;font-style:normal;line-height:1;
+  box-shadow:0 4px 15px rgba(244,80,30,.6),0 0 0 3px rgba(244,80,30,.2);
+  animation:snPin 2s cubic-bezier(.34,1.5,.44,1) forwards}
+@keyframes snPin{0%{opacity:0;transform:scale(.3)}
+  16%{opacity:1;transform:scale(1)}
+  76%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(.95)}}
+
+/* Con movimiento reducido siguen apareciendo —son informacion, no adorno— pero
+   sin desplazarse ni crecer: entran y salen con un fundido y ya. */
+@media(prefers-reduced-motion:reduce){
+  @keyframes snFundido{0%{opacity:0}14%{opacity:1}76%{opacity:1}100%{opacity:0}}
+  .sn-flecha .sn-in,.sn-subrayado i,.sn-chincheta i,.sn-ping i{
+    animation-name:snFundido!important;animation-timing-function:linear!important}
+  .sn-flecha .sn-in,.sn-chincheta i{transform:none!important}
+  .sn-subrayado i{transform:scaleX(1)!important}
+  .sn-ping i{width:76px;height:76px;animation-delay:0s!important}
+}
+
 /* ---------- PREMIUM 1d "Subtítulo de película": sin caja, frase enorme sobre velo ---------- */
 @keyframes gtActo{0%{opacity:0;transform:scale(1.04)}14%{opacity:1;transform:scale(1)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.99)}}
 @keyframes gtToca{0%,100%{opacity:1}50%{opacity:.45}}
@@ -231,12 +346,20 @@
 }
 /* Controles EN FLUJO dentro de la tarjeta: nunca se salen ni tapan el cuerpo. */
 .gt-controls{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin:12px 0 4px;pointer-events:auto}
-.gt-prev,.gt-play,.gt-next{border-radius:50%;cursor:pointer;display:grid;place-items:center;
+.gt-voz,.gt-prev,.gt-play,.gt-next{border-radius:50%;cursor:pointer;display:grid;place-items:center;
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#e2e8f0;
   transition:border-color .2s ease,background .2s ease,transform .22s cubic-bezier(.34,1.4,.44,1),box-shadow .2s ease,color .2s ease}
-.gt-prev,.gt-play{width:38px;height:38px}
-.gt-prev:hover,.gt-play:hover{border-color:rgba(255,255,255,.36);background:rgba(255,255,255,.14);color:#fff;transform:scale(1.06)}
-.gt-prev:active,.gt-play:active,.gt-next:active{transform:scale(.92)!important}
+.gt-voz,.gt-prev,.gt-play{width:38px;height:38px}
+.gt-voz:hover,.gt-prev:hover,.gt-play:hover{border-color:rgba(255,255,255,.36);background:rgba(255,255,255,.14);color:#fff;transform:scale(1.06)}
+.gt-voz:active,.gt-prev:active,.gt-play:active,.gt-next:active{transform:scale(.92)!important}
+/* Sonido: arranca APAGADO siempre (el navegador bloquea el audio sin gesto
+   previo, y media demo se abre desde el trabajo o con clientas delante). En
+   apagado se ve el altavoz tachado y en gris; encendido toma el acento. */
+.gt-voz{color:rgba(255,255,255,.5)}
+.gt-voz .on-si{display:none}
+.gt-voz.on{border-color:rgba(244,80,30,.85);background:rgba(244,80,30,.22);color:#ff9b66}
+.gt-voz.on .on-si{display:block}
+.gt-voz.on .on-no{display:none}
 .gt-prev:disabled{opacity:.22;pointer-events:none;transform:none!important;border-color:rgba(255,255,255,.05);background:transparent}
 .gt-next{width:44px;height:44px;border:0;
   background:linear-gradient(135deg,#ff7a42 0%,#f4501e 52%,#d82b04 100%);color:#fff;
@@ -545,6 +668,33 @@
   @keyframes dmSheen{from{left:-60%;opacity:1}to{left:115%;opacity:0}}
   .dm-intro-btn-play:active{transform:translateY(0) scale(.995)}
   .dm-intro-btn-play svg{width:13px;height:13px;fill:currentColor;flex-shrink:0}
+
+  /* -- Con voz: la casilla que decide si la demo se cuenta o se lee --
+     Va APAGADA por defecto. Marcarla no reproduce nada todavia: solo deja la
+     preferencia lista, porque el gesto que desbloquea el audio del navegador
+     es el clic en "Reproducir". El texto vende el beneficio ("se entiende
+     mucho mejor"), no la funcion ("activar sonido"). */
+  .dm-intro-voz{display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:11.5px;line-height:1.4;color:rgba(255,255,255,.45);
+    padding:7px 12px;border-radius:9px;cursor:pointer;user-select:none;
+    transition:color .2s ease,background .2s ease}
+  .dm-intro-voz:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .dm-intro-voz b{font-weight:700;color:rgba(255,255,255,.94)}
+  /* Oculta a la vista pero NO al teclado ni al lector de pantalla: con
+     opacity:0 + width:0 el navegador la saca del arbol de accesibilidad y deja
+     de ser enfocable. Este es el patron que la mantiene viva. */
+  .dm-intro-voz input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+    overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* Casilla dibujada a mano: la nativa no se puede pintar en oscuro sin pelea. */
+  .dm-intro-voz .caja{width:15px;height:15px;flex-shrink:0;border-radius:4.5px;
+    border:1.5px solid rgba(255,255,255,.28);display:grid;place-items:center;
+    transition:background .18s ease,border-color .18s ease}
+  .dm-intro-voz .caja svg{width:9px;height:9px;opacity:0;transform:scale(.6);
+    transition:opacity .18s ease,transform .2s cubic-bezier(.34,1.4,.44,1)}
+  .dm-intro-voz input:checked + .caja{background:var(--accent,#f4501e);border-color:var(--accent,#f4501e)}
+  .dm-intro-voz input:checked + .caja svg{opacity:1;transform:none}
+  .dm-intro-voz input:focus-visible + .caja{outline:2px solid rgba(255,138,61,.7);outline-offset:2px}
+  .dm-intro-voz .alt{width:12px;height:12px;flex-shrink:0;opacity:.7}
 
   .dm-intro-free{display:inline-flex;align-items:center;justify-content:center;gap:6px;
     font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:transparent;border:0;
@@ -1306,10 +1456,23 @@
     <span class="lbl">Recomendar</span>
     <span class="dm-share-badge">-30%</span>
   </button>
+  <button class="dm-voz-bar" id="vozBar" type="button" aria-pressed="false" title="Narración del recorrido: se entiende mucho mejor con voz">
+    <svg class="on-no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+    <svg class="on-si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+    <span class="lbl">Con voz</span>
+  </button>
   <button class="dm-dudas-btn" id="dudasBtn" type="button" title="¿Dudas? Te respondemos por WhatsApp o al instante con nuestra IA">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="15.5" x2="12.01" y2="15.5"/></svg>
     <span>¿Dudas?</span>
   </button>
+  <!-- Segunda vía, para quien no quiere crear una cuenta todavía: que se lo
+       montemos por teléfono. Antes solo existía como texto gris al pie del
+       panel lateral, donde no lo ve nadie. El que prefiera escribir tiene el
+       botón "¿Dudas?" justo al lado (WhatsApp o Chispa). -->
+  <a class="dm-llamada" id="ctaLlamada" href="reservar.html" title="Te llamamos y te lo dejamos montado: servicios, precios y equipo. Gratis y sin compromiso.">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span class="lbl">Que nos llamemos</span>
+  </a>
   <div class="dm-bar-cta">
     <!-- Antes esto mandaba a reservar.html ("quiero el acceso completo"), o sea
          a pedir una llamada. No tiene sentido: para ver la demo ya has creado
@@ -1377,6 +1540,12 @@
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>
         <span id="introGuidedLbl">Reproducir los tres recorridos</span>
       </button>
+      <label class="dm-intro-voz" id="introVoz">
+        <input type="checkbox" id="introVozChk" aria-label="Narrar el recorrido con voz" />
+        <span class="caja" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        <svg class="alt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+        <span><b>Con voz</b> — se entiende mucho mejor</span>
+      </label>
       <button class="dm-intro-free" id="introFree" type="button">
         <span>Prefiero explorar por libre</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1706,8 +1875,10 @@
         ctaAcceso.title='Tu cuenta ya incluye 30 dias del software completo. Entra y montalo con tus servicios y tus precios.';
       } else {
         ctaAcceso.href='acceso.html?next=app#signup';
-        if(largo) largo.textContent='Crear cuenta y probar 30 días';
-        if(corto) corto.textContent='Probar';
+        // "Probar" pide permiso; "Empezar" da por hecho que entras. Y el que
+        // manda es el plazo gratis, no el verbo: es lo unico que quita el miedo.
+        if(largo) largo.textContent='Empezar 30 días gratis';
+        if(corto) corto.textContent='Empezar';
         ctaAcceso.title='Crea tu cuenta y entra al software completo 30 dias, sin tarjeta y sin permanencia.';
       }
     }
@@ -2386,6 +2557,10 @@
   function actoOf(i){ var A=actsOf(); for(var k=0;k<A.length;k++){ if(i>=A[k].desde && i<=A[k].hasta) return k; } return 0; }
 
   var SVG_PREV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+  // Altavoz en dos estados: tachado (mudo) y con ondas (sonando). Los dos van
+  // siempre en el DOM y el CSS ensena uno; asi cambiar de estado no repinta SVG.
+  var SVG_VOZ = '<svg class="on-no" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'+
+                '<svg class="on-si" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
   var SVG_PLAY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="transform:translateX(1px)"><path d="M7 4.5v15a1 1 0 0 0 1.54.84l12-7.5a1 1 0 0 0 0-1.68l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>';
   var SVG_PAUSE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>';
   var SVG_NEXT = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
@@ -2397,6 +2572,9 @@
     root.innerHTML=''+
       '<div class="gt-veil" id="gtVeil"></div>'+
       '<div class="gt-spot" id="gtSpot"></div>'+
+      // Detras del foco y DELANTE en el DOM del dock: asi el dock siempre pinta
+      // por encima y una señal no puede taparle el texto.
+      '<div class="gt-senal off" id="gtSenal"></div>'+
       '<div class="gt-acto" id="gtActo"><div class="gt-acto-in"><div class="gt-acto-k" id="gtActoK"></div><div class="gt-acto-t" id="gtActoT"></div><div class="gt-acto-s" id="gtActoS"></div></div></div>'+
       '<div class="gt-dock" id="gtDock">'+
         '<div class="gt-chapters" id="gtChapters"></div>'+
@@ -2408,6 +2586,7 @@
         '</div>'+
         '<div class="gt-controls">'+
           '<button class="gt-skip" id="gtSkip" type="button">Ver por libre ✕</button>'+
+          '<button class="gt-voz" id="gtVoz" type="button" aria-pressed="false" aria-label="Narración con voz" title="Narración con voz">'+SVG_VOZ+'</button>'+
           '<button class="gt-prev" id="gtPrev" type="button" aria-label="Paso anterior" title="Paso anterior (←)">'+SVG_PREV+'</button>'+
           '<button class="gt-play" id="gtPlay" type="button" title="Reproducción automática" aria-label="Reproducción automática">'+SVG_PLAY+'</button>'+
           '<button class="gt-next" id="gtNext" type="button" aria-label="Siguiente paso" title="Siguiente paso (→)">'+SVG_NEXT+'</button>'+
@@ -2415,8 +2594,10 @@
         '<div class="gt-dock-prog"><i id="gtProg"></i></div>'+
       '</div>';
     gt.root=root;
-    ['Veil','Spot','Dock','Prog','Content','Phase','Count','Title','Body','Viz','Skip','Prev','Next','Chapters','Toca','Play','Acto','ActoK','ActoT','ActoS']
+    ['Veil','Spot','Dock','Prog','Content','Phase','Count','Title','Body','Viz','Skip','Prev','Next','Chapters','Toca','Play','Acto','ActoK','ActoT','ActoS','Voz','Senal']
       .forEach(function(k){ gt[k.charAt(0).toLowerCase()+k.slice(1)]=root.querySelector('#gt'+k); });
+    gt.voz.addEventListener('click', function(){ vozSilencio(); });
+    pintarVoz();
     gt.skip.addEventListener('click', function(){ stopAutoplay(); closeTour(); });
     gt.prev.addEventListener('click', function(){ stopAutoplay(); tourPrev(); });
     gt.next.addEventListener('click', function(){ stopAutoplay(); tourNext(); });
@@ -2439,8 +2620,17 @@
 
   // ---- cortinilla de acto ----
   var lastActoShown=-1;
+  // Que capitulo se ha rotulado ya, aparte de lastActoShown: renderStep escribe
+  // lastActoShown ANTES de llamar aqui, asi que desde dentro no hay forma de
+  // saber cual se esta cerrando.
+  var actoPrevio=-1;
   function mostrarActo(n){
     var A=actsOf()[n]; if(!A) return;
+    // Cadencia de dos tiempos: el grave cierra el capitulo que acaba y el swell
+    // abre el que entra. En el primero no hay nada que cerrar.
+    if(actoPrevio>=0 && actoPrevio!==n) sfx('cierre');
+    actoPrevio=n;
+    sfx('swell');
     gt.actoK.textContent='Capítulo '+(n+1)+' de '+actsOf().length;
     gt.actoT.textContent=A.nombre;
     gt.actoS.textContent=A.sub;
@@ -2465,10 +2655,11 @@
     gt.play.title = autoOn ? 'Pausar reproducción' : 'Reproducir solo';
   }
   function toggleAutoplay(){ if(autoOn) stopAutoplay(); else startAutoplay(); }
-  function startAutoplay(){ autoOn=true; pintarPlay(); programarAvance(); }
+  function startAutoplay(){ autoOn=true; pintarPlay(); vozSeguir(); programarAvance(); }
   function stopAutoplay(){
     autoOn=false;
     if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
+    vozPausa();          // pausar el recorrido es pausar tambien lo que se oye
     pintarPlay();
   }
   // Cuanto damos de margen al software antes de dar el paso por asentado.
@@ -2483,17 +2674,369 @@
     var n=(s.t||'').length + (s.d||'').length;
     return Math.min(10500, Math.max(4200, 1400 + n*28));
   }
+  // Techo de lo que puede durar un paso entero, esperas incluidas, y suelo de lo
+  // que se deja para leer aunque se haya agotado el techo.
+  var PASO_TOPE_MS = 9500, LECTURA_MIN_MS = 2600;
   function programarAvance(){
     if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
     if(!autoOn || !gt.root || !gt.root.classList.contains('show')) return;
+    // Con voz, el ritmo lo lleva el audio (ver vozFin). DOS relojes a la vez es
+    // el bug del doble avance: acaba el audio, salta el temporizador y el
+    // recorrido se come dos pasos de golpe. Solo puede haber un dueño del paso.
+    if(vozManda) return;
     var my=seq;
     (function esperar(){
       if(my!==seq || !autoOn) return;
-      var asentado = iframeListo && (spotSeq===my || Date.now()-pasoInicio >= margenDe(STEPS[ti]));
+      var espera = Date.now()-pasoInicio;
+      var asentado = iframeListo && (spotSeq===my || espera >= margenDe(STEPS[ti]));
       if(!asentado){ autoTimer=setTimeout(esperar, 200); return; }
-      autoTimer=setTimeout(function(){ if(my===seq && autoOn) tourNext(); }, lecturaDe(STEPS[ti]));
+      // Lo que se ha ido esperando a que aparezca la PANTALLA se descuenta del
+      // tiempo de lectura, no se suma. El texto del paso lleva visible desde el
+      // primer instante (fillContent va antes que driveSoftware): esos segundos
+      // ya se han podido leer. Sumandolos, un paso que cambia de pantalla y
+      // nunca manda foco se comia 4,8 s de margen MAS 10,5 s de lectura —
+      // quince segundos delante de algo que ya habias terminado de leer, y es
+      // justo lo que se notaba al entrar en cada seccion nueva.
+      var resto = Math.max(LECTURA_MIN_MS, Math.min(lecturaDe(STEPS[ti]), PASO_TOPE_MS - espera));
+      autoTimer=setTimeout(function(){ if(my===seq && autoOn) tourNext(); }, resto);
     })();
   }
+
+  /* ==================== VOZ: la narración del recorrido ====================
+     Un recorrido narrado se rompe por la navegación, no por el audio: ir atrás
+     y adelante deprisa produce voces superpuestas, avances fantasma y cargas
+     fuera de orden. El antídoto ya existía en este fichero y es `seq`, el
+     contador de generación que renderStep incrementa con cada paso.
+
+     LA REGLA, Y ES UNA SOLA: todo callback de audio captura `my = seq` al
+     empezar y se calla si `my !== seq`. Con eso mueren los seis bugs:
+
+       1 voces superpuestas .... UN SOLO <audio> reutilizado, nunca new Audio()
+       2 el onended viejo empuja  ... `my!==seq` dentro de vozFin
+       3 carga fuera de orden ..... `my!==seq` en el arranque diferido
+       4 doble avance ............. vozManda corta programarAvance
+       5 un "TE TOCA" se pasa ..... se comprueba ACCIONES_TOCA antes de avanzar
+       6 voz huérfana ............. vozParar() en closeTour y al ocultar pestaña
+
+     Y por encima de todo: si esto se cae, el recorrido sigue MUDO y nadie se
+     entera. Es la única forma aceptable de que falle un adorno. Por eso cada
+     fallo (404, autoplay bloqueado, recorrido sin narrar) devuelve el mando al
+     reloj de siempre con programarAvance().
+
+     Audio generado con scripts/narrar-recorrido.mjs desde guion/pilares.json. */
+
+  var VOZ_BASE='narracion/';
+  // Los tres recorridos están narrados, cada uno con su carpeta. La clave es el
+  // `id` del recorrido (ver RECORRIDOS). Si alguno se quedara sin audio, basta
+  // con sacarlo de aquí: vozUrl devuelve null y manda el reloj mudo.
+  var VOZ_RECORRIDOS={ pilares:'pilares', advanced:'advanced', config:'config' };
+  var VOZ_COLA=900;          // cola entre el final del audio y el paso siguiente
+  var vozOn=false;           // preferencia del visitante (localStorage)
+  var vozAudio=null;         // el ÚNICO elemento de audio de la narración
+  var vozPre=null;           // precarga del paso siguiente, en segundo plano
+  var vozSeq=-1;             // a qué generación pertenece lo que suena
+  var vozManda=false;        // ¿lleva el audio el ritmo de este paso?
+  var vozColaT=null;
+
+  function tourVisible(){ return !!(gt.root && gt.root.classList.contains('show')); }
+
+  function vozUrl(n){
+    var r=recorridoDe(STEPS), id=VOZ_RECORRIDOS[r.id];
+    if(!id || n<0 || n>=STEPS.length) return null;
+    return VOZ_BASE+id+'/'+pad2(n+1)+'.mp3';
+  }
+
+  function vozElem(){
+    if(!vozAudio){
+      vozAudio=new Audio();
+      vozAudio.preload='none';
+      vozAudio.addEventListener('ended', vozFin);
+      vozAudio.addEventListener('error', vozFallo);
+      // Al arrancar de verdad, se pide por lo bajo el paso siguiente. NUNCA los
+      // 33: son 2,4 MB y ya sabemos cómo acaba eso (ver caché de /app).
+      vozAudio.addEventListener('playing', function(){ if(vozSeq===seq) vozLista(ti+1); });
+    }
+    return vozAudio;
+  }
+
+  // Corta lo que suene y rebobina. Idempotente: se puede llamar siempre.
+  // Las señales se van con la voz: son la misma función, contada en imagen.
+  function vozParar(){
+    if(vozColaT){ clearTimeout(vozColaT); vozColaT=null; }
+    vozManda=false;
+    senalesLimpiar();
+    if(!vozAudio) return;
+    try{ vozAudio.pause(); vozAudio.currentTime=0; }catch(e){}
+  }
+  // Pausa SIN rebobinar: el botón de pausa del dock es una pausa, no un reinicio.
+  function vozPausa(){
+    if(vozColaT){ clearTimeout(vozColaT); vozColaT=null; }
+    if(vozAudio && !vozAudio.paused){ try{ vozAudio.pause(); }catch(e){} }
+  }
+  function vozSeguir(){
+    if(!vozOn || !vozAudio || !vozAudio.src || vozSeq!==seq) return;
+    vozManda=true;
+    if(vozAudio.paused){ var p=vozAudio.play(); if(p&&p.catch) p.catch(function(){}); }
+  }
+
+  // Carga y reproduce el paso n. Lo primero que hace es callar lo anterior.
+  function vozIr(n){
+    vozParar();
+    if(!vozOn || !tourVisible()) return;
+    var url=vozUrl(n); if(!url) return;
+    var a=vozElem(), my=seq;
+    vozSeq=my;
+    vozManda=true;                       // desde YA: programarAvance no duplica
+    if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
+    try{ a.src=url; a.currentTime=0; }catch(e){}
+    senalesProgramar(n);                 // las señales van al compás de esta voz
+    var p=a.play();
+    if(p&&p.catch) p.catch(function(){
+      // El navegador puede negarse si aún no ha habido un gesto. No es un error
+      // que contarle a nadie: el recorrido sigue con el reloj mudo.
+      if(my!==seq) return;
+      vozManda=false; programarAvance();
+    });
+  }
+
+  // Precarga silenciosa del paso siguiente (80 KB). El navegador la sirve de su
+  // caché cuando vozIr pida esa misma URL.
+  function vozLista(n){
+    var url=vozUrl(n); if(!url) return;
+    if(!vozPre) vozPre=new Audio();
+    vozPre.preload='auto';
+    if(vozPre.getAttribute('src')!==url){ vozPre.src=url; try{ vozPre.load(); }catch(e){} }
+  }
+
+  function vozFallo(){
+    if(vozSeq!==seq) return;             // el fallo es de un paso que ya pasó
+    // Cambiar el src aborta la carga en curso, y hay navegadores que lo avisan
+    // como `error`. Eso no es un fallo: es la navegación haciendo su trabajo.
+    // Tomarlo por bueno soltaría el reloj mudo sobre un paso que SÍ tiene voz,
+    // y ahí volvería el doble avance por la puerta de atrás.
+    var esperado=vozUrl(ti);
+    if(!esperado || !vozAudio || vozAudio.getAttribute('src')!==esperado) return;
+    if(vozAudio.error && vozAudio.error.code===vozAudio.error.MEDIA_ERR_ABORTED) return;
+    vozManda=false;
+    programarAvance();                   // el reloj mudo toma el relevo
+  }
+
+  function vozFin(){
+    var my=vozSeq;
+    if(my!==seq) return;                 // bug 2: el onended viejo no empuja
+    if(!vozOn || !autoOn) return;        // a mano se avanza a mano
+    // En un paso "TE TOCA" la voz no arrastra al siguiente nada más callarse:
+    // es el único momento en que se te pide algo. Se le devuelve el mando al
+    // reloj de lectura, que da su margen y sigue — parar el recorrido para
+    // siempre en el paso 3 de 33 sería peor que no invitar a tocar.
+    if(ACCIONES_TOCA[STEPS[ti]&&STEPS[ti].action]){ vozManda=false; programarAvance(); return; }
+    vozColaT=setTimeout(function(){
+      if(my!==seq || !autoOn || !vozOn) return;
+      tourNext();
+    }, VOZ_COLA);
+  }
+
+  function pintarVoz(){
+    if(gt.voz){
+      gt.voz.classList.toggle('on', vozOn);
+      gt.voz.setAttribute('aria-pressed', vozOn?'true':'false');
+      gt.voz.title = vozOn ? 'Quitar la voz' : 'Narración con voz';
+    }
+    if(vozBar){
+      vozBar.classList.toggle('on', vozOn);
+      vozBar.setAttribute('aria-pressed', vozOn?'true':'false');
+    }
+    if(introVozChk) introVozChk.checked=vozOn;
+  }
+
+  // Enciende o apaga. `valor` opcional; sin él, alterna.
+  // localStorage y no sessionStorage: quien la encendió una vez la quiere
+  // encendida la próxima.
+  function vozSilencio(valor){
+    vozOn = (typeof valor==='boolean') ? valor : !vozOn;
+    try{ localStorage.setItem('mecha_demo_voz', vozOn?'1':'0'); }catch(e){}
+    pintarVoz();
+    if(!tourVisible()) return;           // en la intro solo se guarda la intención
+    if(vozOn) vozIr(ti);                 // a mitad de paso: empieza por el principio
+    else { vozParar(); programarAvance(); }
+  }
+
+  /* ---- efectos: cuatro sonidos y un silencio ----
+     Van con el mismo interruptor que la voz: un solo control para todo lo que
+     suena. Se cargan la primera vez que hacen falta, no al abrir la página. */
+  var SFX_SRC={ tick:'narracion/sfx/tick.wav', swell:'narracion/sfx/swell.wav',
+                toca:'narracion/sfx/toca.wav', whoosh:'narracion/sfx/whoosh.wav',
+                aire:'narracion/sfx/aire.wav', cristal:'narracion/sfx/cristal.wav',
+                cierre:'narracion/sfx/cierre.wav' };
+  var sfxCache={};
+  function sfx(id){
+    if(!vozOn || !SFX_SRC[id]) return;
+    try{
+      var a=sfxCache[id];
+      if(!a){ a=sfxCache[id]=new Audio(SFX_SRC[id]); a.preload='auto'; }
+      a.currentTime=0;
+      var p=a.play(); if(p&&p.catch) p.catch(function(){});
+    }catch(e){}
+  }
+
+  // Pestaña oculta: nada peor que una voz saliendo de una pestaña que ya no
+  // miras. Se pausa sin rebobinar y se reanuda al volver.
+  //
+  // Solo se reanuda lo que hemos pausado NOSOTROS por ocultarse. Sin esa marca
+  // hay que elegir entre dos comportamientos malos: mirar `autoOn` y entonces
+  // una narración que ibas siguiendo a mano ya no vuelve nunca, o no mirarlo y
+  // entonces volver a la pestaña resucita un audio que el visitante había
+  // pausado a propósito.
+  var vozPorOculto=false;
+  document.addEventListener('visibilitychange', function(){
+    if(!vozAudio) return;
+    if(document.hidden){
+      vozPorOculto = !vozAudio.paused;
+      if(vozPorOculto) vozPausa();
+    } else if(vozPorOculto){
+      vozPorOculto=false;
+      if(vozOn && vozManda && tourVisible()) vozSeguir();
+    }
+  });
+
+  /* ==================== SEÑALES ====================
+     Puntualizan lo que la voz esta diciendo. Los segundos NO se escriben a mano:
+     salen de las marcas {senal:tipo@ancla} del guion, que scripts/narrar-recorrido.mjs
+     situa contra los SILENCIOS REALES del audio (12 de 13 quedan enganchadas a
+     una pausa de verdad; el resto, a la estimacion por caracteres).
+
+     La capa no sabe nada de la app: recibe un RECTANGULO —el mismo que llega por
+     postMessage y que ya usa el foco— y un ancla. Por eso no hace falta tocar
+     nada dentro del iframe.
+
+     Y hereda la regla de la voz: todo temporizador captura `my = seq` y se calla
+     si el paso ha cambiado. Sin eso, retroceder deja flechas fantasma del paso
+     anterior senalando lo que no toca. */
+
+  var SVG_FLECHA_SN = '<svg viewBox="0 0 78 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<path d="M2 11h58" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.1 9"/>'+
+    '<path d="M56 3l14 8-14 8z" fill="currentColor"/></svg>';
+  var senalesCache={}, senalesT=[];
+
+  function senalesLimpiar(){
+    if(senalesT.length){ senalesT.forEach(clearTimeout); senalesT.length=0; }
+    if(gt.senal){ gt.senal.className='gt-senal off'; gt.senal.innerHTML=''; gt.senal.removeAttribute('style'); }
+  }
+
+  // Un fetch por recorrido y a la caché. Si no hay fichero, se guarda el vacío:
+  // asi no se reintenta en cada paso.
+  function senalesCargar(id, cb){
+    if(senalesCache[id]){ cb(senalesCache[id]); return; }
+    fetch(VOZ_BASE+id+'/senales.json').then(function(r){ return r.ok?r.json():null; })
+      .then(function(j){ senalesCache[id]=(j&&j.pasos)||{}; cb(senalesCache[id]); })
+      .catch(function(){ senalesCache[id]={}; cb(senalesCache[id]); });
+  }
+
+  // Punto del hueco al que apunta cada ancla.
+  function senalPunto(ancla, h){
+    var cx=h.left+h.width/2, cy=h.top+h.height/2;
+    if(ancla==='arriba') return {x:cx, y:h.top};
+    if(ancla==='abajo')  return {x:cx, y:h.top+h.height};
+    if(ancla==='izq')    return {x:h.left, y:cy};
+    if(ancla==='der')    return {x:h.left+h.width, y:cy};
+    return {x:cx, y:cy};
+  }
+
+  // Geometria de cada tipo, siempre a partir del hueco. Devuelve null si el tipo
+  // no se conoce (un guion nuevo con una señal que esta version no sabe pintar
+  // no debe romper nada: simplemente no sale).
+  function senalSitio(tipo, ancla, h){
+    var cx=h.left+h.width/2, cy=h.top+h.height/2, SEP=16;
+    if(tipo==='flecha'){
+      var L=78, A=22, a=(ancla==='centro')?'arriba':ancla, px, py, rot;
+      if(a==='der'){        px=h.left+h.width+SEP+L/2;  py=cy;                       rot=180; }
+      else if(a==='arriba'){px=cx;                      py=h.top-SEP-L/2;            rot=90;  }
+      else if(a==='abajo'){ px=cx;                      py=h.top+h.height+SEP+L/2;   rot=-90; }
+      else {                px=h.left-SEP-L/2;          py=cy;                       rot=0;   }
+      return { cls:'sn-flecha', left:px-L/2, top:py-A/2, w:L, h:A, rot:rot,
+               dentro:'<span class="sn-in">'+SVG_FLECHA_SN+'</span>' };
+    }
+    if(tipo==='ping'){
+      var p=senalPunto(ancla, h);
+      return { cls:'sn-ping', left:p.x, top:p.y, w:0, h:0, rot:0, dentro:'<i></i><i></i>' };
+    }
+    if(tipo==='subrayado'){
+      // Debajo del hueco salvo que se pida arriba. Se acota a 340 px: una barra
+      // de 900 px de ancho no subraya nada, decora.
+      var w=Math.max(60, Math.min(h.width, 340));
+      var y=(ancla==='arriba') ? h.top-10 : h.top+h.height+8;
+      return { cls:'sn-subrayado', left:h.left+(h.width-w)/2, top:y, w:w, h:4, rot:0, dentro:'<i></i>' };
+    }
+    if(tipo==='chincheta'){
+      return { cls:'sn-chincheta', left:h.left-13, top:h.top-13, w:26, h:26, rot:0,
+               dentro:'<i>'+escHtml(String(ancla))+'</i>' };
+    }
+    return null;
+  }
+
+  // Antes que tapar el texto del paso, no salir. El dock es lo unico que se lee.
+  function senalPisaElDock(p){
+    if(!gt.dock || !gt.root) return false;
+    var d=gt.dock.getBoundingClientRect(), g=gt.root.getBoundingClientRect();
+    var dl=d.left-g.left, dt=d.top-g.top, M=10;
+    return !(p.left+p.w < dl-M || p.left > dl+d.width+M ||
+             p.top+p.h  < dt-M || p.top  > dt+d.height+M);
+  }
+
+  function senalMostrar(tipo, ancla){
+    var el=gt.senal;
+    // Sin hueco enfocado no hay a que apuntar: una flecha suelta en mitad de la
+    // pantalla es peor que ninguna flecha.
+    //
+    // Y `holeSeq===seq` no es un detalle: `hole` GUARDA el ultimo rectangulo
+    // bueno aunque sea de un paso anterior (es la histeresis que evita que el
+    // foco pestañee mientras viaja el scroll). Sin esta comprobacion, una señal
+    // de este paso se dibujaba sobre la zona del paso ANTERIOR — o sea
+    // señalando, con mucha seguridad, algo que no viene a cuento. Medido: pasa
+    // siempre que la pantalla tarda y el rect no llega a tiempo.
+    if(!el || !hole || holeSeq!==seq) return;
+    var p=senalSitio(tipo, ancla, hole);
+    if(!p || senalPisaElDock(p)) return;
+    el.className='gt-senal off';
+    el.innerHTML=p.dentro;
+    el.style.left=Math.round(p.left)+'px';
+    el.style.top=Math.round(p.top)+'px';
+    el.style.width=p.w+'px';
+    el.style.height=p.h+'px';
+    el.style.transform=p.rot ? 'rotate('+p.rot+'deg)' : '';
+    void el.offsetWidth;                 // reinicia las animaciones de dentro
+    el.className='gt-senal '+p.cls;
+  }
+
+  // Programa las señales del paso n. Se llama desde vozIr, o sea que van con la
+  // voz: sin frase que puntualizar, una flecha es adorno.
+  function senalesProgramar(n){
+    senalesLimpiar();
+    if(!vozOn || !tourVisible()) return;
+    var id=VOZ_RECORRIDOS[recorridoDe(STEPS).id];
+    if(!id) return;
+    var my=seq;
+    senalesCargar(id, function(mapa){
+      if(my!==seq) return;
+      var lista=mapa[String(n+1)];
+      if(!lista || !lista.length) return;
+      for(var i=0;i<lista.length;i++){
+        (function(s){
+          senalesT.push(setTimeout(function(){
+            if(my!==seq || !vozOn || !tourVisible()) return;
+            senalMostrar(s.tipo, s.ancla);
+            sfx(s.tipo==='flecha' ? 'aire' : 'cristal');
+          }, Math.max(0, (s.t||0)*1000)));
+        })(lista[i]);
+      }
+    });
+  }
+
+  var vozBar=$('#vozBar'), introVozChk=$('#introVozChk');
+  try{ vozOn = localStorage.getItem('mecha_demo_voz')==='1'; }catch(e){}
+  if(vozBar) vozBar.addEventListener('click', function(){ vozSilencio(); });
+  if(introVozChk) introVozChk.addEventListener('change', function(){ vozSilencio(introVozChk.checked); });
+  pintarVoz();
 
   // Navegar SOLO cuando cambia de pantalla. Hacer router.push a la ruta en la que
   // ya estamos remonta la pantalla: la pantalla nueva registra su escucha DESPUES
@@ -2768,6 +3311,11 @@
     if(dockTimer){ clearTimeout(dockTimer); dockTimer=null; }
     setProgress(); updateNav(); syncSelector(); renderChapters();
     gt.toca.classList.toggle('on', !!ACCIONES_TOCA[s.action]);
+    // UN solo aviso por paso. El capitulo manda sobre el "te toca", y el "te
+    // toca" sobre el tick: encadenar dos suena a error, no a produccion. El
+    // swell lo dispara mostrarActo, asi que aqui solo se decide el otro.
+    var cambioDeActo = cambiaActo && actoOf(ti)!==lastActoShown;
+    if(!cambioDeActo) sfx(ACCIONES_TOCA[s.action] ? 'toca' : 'tick');
     if(cambiaActo){
       var a=actoOf(ti);
       if(a!==lastActoShown){ lastActoShown=a; mostrarActo(a); }
@@ -2778,6 +3326,7 @@
     fillContent(s);
     gt.content.classList.remove('swap');
     driveSoftware(s);
+    vozIr(ti);           // corta la voz anterior y arranca la de este paso
     programarAvance();   // el reloj del autoplay se rearma con CADA paso
   }
 
@@ -2797,6 +3346,7 @@
   function tourPrev(){ dirPaso=-1; if(ti>0){ ti--; renderStep(true); } }
   function closeTour(){
     stopAutoplay();
+    vozParar();   // sin esto la voz sigue hablando sobre el software (bug 6)
     if(!gt.root) return;
     gt.root.classList.remove('show');
     if(actTimer) clearTimeout(actTimer);
@@ -2818,7 +3368,7 @@
     ti=0; tourStarted=true; hole=null; lastAct=null;
     gt.veil.classList.add('on'); gt.spot.classList.remove('on');
     gt.root.classList.add('show');
-    lastActoShown=-1;
+    lastActoShown=-1; actoPrevio=-1;   // recorrido nuevo: no hay capitulo que cerrar
     dirPaso=1; gt.content.classList.remove('atras');
     setProgress(); updateNav(); syncSelector(); renderChapters(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
     // Cortinilla del capitulo 1 nada mas arrancar: sin esto el primer rotulo no
@@ -2847,6 +3397,7 @@
         }, ms));
       });
     }
+    vozIr(0);            // narracion del paso 1 (o silencio, si el recorrido no la tiene)
     programarAvance();
   }
 
@@ -2937,6 +3488,9 @@
   function salirIntro(track){
     var el=$('#intro');
     try{ sessionStorage.setItem('mecha_demo_intro','1'); }catch(e){}
+    // Este clic es el gesto que desbloquea el audio del navegador: el whoosh
+    // suena DENTRO del manejador, y a partir de ahí la narración ya puede.
+    sfx('whoosh');
     if(track) startTour(track);
     if(!el){ return; }
     document.body.classList.add('dm-intro-leaving');
