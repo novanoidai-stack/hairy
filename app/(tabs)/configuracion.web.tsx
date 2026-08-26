@@ -491,11 +491,18 @@ export default function ConfiguracionWeb() {
     let vacios = 0;
     const elegir = () => {
       const root = contentRef.current;
+      // Una pestana puede decir QUE bloque quiere que enfoque el recorrido con
+      // `data-demo-config`. Sin esto se cogia siempre la PRIMERA cabecera de
+      // seccion del panel, y en varias pestanas esa primera seccion no es de lo
+      // que habla el paso: en Servicios enfocaba "Lo que se suele anadir"
+      // mientras la voz nombraba precios y tiempos de reposo, en Politicas
+      // enfocaba la senal dinamica y en Cuenta, el nombre y el telefono.
+      const preferido = root?.querySelector('[data-demo-config]') as HTMLElement | null;
       const sectionHeader = root?.querySelector('section > header, .section-header') as HTMLElement | null;
       const first = root?.firstElementChild as HTMLElement | null;
       // Un trozo CONCRETO y corto (la cabecera de la primera seccion: titulo +
       // descripcion), no la seccion entera: asi el foco cabe y se entiende.
-      const target = sectionHeader || (first?.querySelector('header, h2') as HTMLElement | null) || first;
+      const target = preferido || sectionHeader || (first?.querySelector('header, h2') as HTMLElement | null) || first;
       if (target && target.getBoundingClientRect().height > 0) {
         if (demoTargetRef.current !== target) traerAlFoco(target);
         demoTargetRef.current = target;
@@ -2552,7 +2559,12 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
         </FieldRow>
       </Section>
 
-      <SeccionSuscripcion userId={userId} role={a?.role || ''} />
+      {/* El recorrido guiado enfoca AQUI en esta pestana ("tu plan y tu
+          facturacion"). Sin la marca cogia la primera seccion del panel, que es
+          "Tus datos" — tu nombre y tu telefono, que no es de lo que habla. */}
+      <div data-demo-config="cuenta">
+        <SeccionSuscripcion userId={userId} role={a?.role || ''} />
+      </div>
 
       <Section title="Plazas del equipo" desc="Las fichas que caben en tu agenda. Para cualquier duda de facturacion, escribenos.">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
@@ -3237,10 +3249,14 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
           <div style={{ fontSize: 12 }}>Crea tu primer servicio para empezar</div>
         </div>
       ) : (
-        grupos.map(grupo => {
+        grupos.map((grupo, iGrupo) => {
           const grupoColor = grupo.puntual ? '#f59e0b' : grupo.color ? categoryColorHex(grupo.color) : T.textTertiary;
           return (
-          <div key={grupo.key} style={{ marginBottom: 18 }}>
+          // El primer grupo es lo que enfoca el recorrido guiado en esta pestana
+          // (`data-demo-config`): filas con su duracion y su precio, que es de lo
+          // que habla el paso. Sin esta marca se cogia la primera cabecera de
+          // seccion del panel, que aqui es "Lo que se suele anadir".
+          <div key={grupo.key} {...(iGrupo === 0 ? { 'data-demo-config': 'servicios' } : {})} style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 10, letterSpacing: 1.5, color: grupoColor, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
               {grupo.color && <span style={{ width: 7, height: 7, borderRadius: 999, background: grupoColor, flexShrink: 0 }} />}
               <span>{grupo.label}</span>
@@ -3810,6 +3826,12 @@ function TabPlantillas({ config, setC }: { config: ConfigState; setC: (k: keyof 
         </div>
       </Section>
 
+      {/* El recorrido enfoca AQUI en esta pestana: el paso se llama "plantillas
+          de notas y fórmulas" y sin la marca cogia la primera seccion del panel,
+          que son las etiquetas de alergias — ni notas ni formulas. Solo este
+          bloque, no los dos: envolviendo los dos el foco medía 1100x530 sobre un
+          marco de 614 y dejaba de ser un foco. */}
+      <div data-demo-config="plantillas">
       <PlantillaEditor
         title="Formulas guardadas"
         desc="Presets de color/quimica que tu equipo podra reutilizar al crear una ficha tecnica."
@@ -3818,6 +3840,7 @@ function TabPlantillas({ config, setC }: { config: ConfigState; setC: (k: keyof 
         placeholderNombre="Nombre (ej. Cobrizo intenso)"
         placeholderTexto="Formula (ej. Igora 7-77 + 8-77 a partes iguales, oxidante 20 vol, 35 min)"
       />
+      </div>
 
       <PlantillaEditor
         title="Plantillas de notas e historial"
@@ -5077,8 +5100,10 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         <FieldRow label="Portal activo" hint="Si esta apagado, el enlace muestra 'reservas no disponibles' y nadie puede reservar online.">
           <Toggle on={activo} onChange={setActivo} label={activo ? 'Activo' : 'Apagado'} />
         </FieldRow>
+        {/* El recorrido enfoca AQUI en esta pestana: el paso dice "tu enlace y tu
+            QR" y con la cabecera de la seccion no se veia ninguno de los dos. */}
         <FieldRow label="Enlace de reserva" hint="La direccion publica que compartes con tus clientes. Solo letras, numeros y guiones.">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div data-demo-config="reserva" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 13, color: T.textTertiary }}>{origin}{appBase}/r/</span>
               <STextInput value={slug} onChange={(v) => setSlug(slugifyPortal(v))} placeholder="mi-salon" width={200} />

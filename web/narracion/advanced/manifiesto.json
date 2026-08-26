@@ -3,7 +3,7 @@
   "nombre": "Todas las pantallas",
   "voz": "Gacrux",
   "modelo": "google/gemini-3.1-flash-tts-preview",
-  "generado": "2026-08-25T15:11:00.998Z",
+  "generado": "2026-08-25T21:39:54.916Z",
   "pasos_total": 39,
   "duracion_s": 436.8,
   "bytes_total": 2642676,
@@ -920,8 +920,8 @@
       "satura": false,
       "a_tope": 0,
       "tope_pct": 0,
-      "lufs": -16.3,
-      "pico_dbtp": -2.1,
+      "lufs": -16,
+      "pico_dbtp": -2.6,
       "senales": [],
       "avisos": []
     }

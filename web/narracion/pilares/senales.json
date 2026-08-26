@@ -1,6 +1,6 @@
 {
  "recorrido": "pilares",
- "generado": "2026-08-25T15:17:48.525Z",
+ "generado": "2026-08-25T20:42:40.319Z",
  "pasos": {
   "4": [
    {
@@ -13,7 +13,7 @@
    {
     "t": 3.42,
     "tipo": "subrayado",
-    "ancla": "centro"
+    "ancla": "abajo"
    }
   ],
   "6": [
@@ -69,7 +69,7 @@
    {
     "t": 5.17,
     "tipo": "flecha",
-    "ancla": "der"
+    "ancla": "izq"
    }
   ],
   "27": [
@@ -81,9 +81,9 @@
   ],
   "29": [
    {
-    "t": 13.6,
+    "t": 6.66,
     "tipo": "ping",
-    "ancla": "abajo"
+    "ancla": "centro"
    }
   ],
   "33": [

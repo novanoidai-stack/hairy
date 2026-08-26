@@ -870,7 +870,11 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           )}
         </div>
 
-        <div data-demo="jornada-resumen" className="mj-row" style={{ marginBottom: 16 }}>
+        {/* La zona `jornada-resumen` del recorrido NO va aqui: mientras nadie
+            pulsa "Analizar mi dia" esta tarjeta mide 58 px de alto y el foco
+            enseñaba una cabecera y un boton, cuando el paso habla de "citas
+            hechas, horas y cobros de tu dia". Va sobre los numeros (mas abajo). */}
+        <div className="mj-row" style={{ marginBottom: 16 }}>
           {isMobile && !resumenIaOpen ? (
             <button
               onClick={() => setResumenIaOpen(true)}
@@ -1013,7 +1017,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               Tu actividad · {pLabel}
             </div>
             {isMobile ? (
-              <div style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, overflow: 'hidden', marginBottom: 18 }}>
+              <div data-demo="jornada-resumen" style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, overflow: 'hidden', marginBottom: 18 }}>
                 <MetricRow icon="scissors" label="Citas completadas" value={String(resumen?.citas_completadas ?? 0)} sub={pLabel} color={T.primary} />
                 <MetricRow icon="drop" label="Tintes / color" value={String(resumen?.tintes ?? 0)} sub="de tus citas" color="#6366f1" />
                 <MetricRow icon="clock" label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} color="#e08a00" />
@@ -1029,7 +1033,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 )}
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`, gap: 12, marginBottom: 18 }}>
+              <div data-demo="jornada-resumen" style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`, gap: 12, marginBottom: 18 }}>
                 <StatBox label="Citas completadas" value={String(resumen?.citas_completadas ?? 0)} sub={pLabel} accent={T.primary} />
                 <StatBox label="Tintes / color" value={String(resumen?.tintes ?? 0)} sub="de tus citas" />
                 <StatBox label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} />

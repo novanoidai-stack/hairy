@@ -846,12 +846,21 @@ export default function PortalReservaWeb() {
                             // pintada (una barberia sin sugerencias) y el paso de
                             // los extras se quedaba sin nada que ensenar.
                             const guiaDemo = gi === 0 ? 'portal-extras portal-profesional portal-hora' : undefined;
+                            // La CABECERA de la categoria se abre tambien para el
+                            // paso del catalogo. Sin esto, ese paso enfocaba el
+                            // acordeon plegado —solo los nombres de las
+                            // categorias— mientras la voz decia "con sus precios y
+                            // sus tiempos", que estan en las filas de dentro.
+                            // La fila del servicio NO lleva esa clave: abrirla
+                            // elegiria servicio y adelantaria el portal al paso
+                            // siguiente antes de tiempo.
+                            const guiaCategoria = gi === 0 ? 'portal-servicios portal-extras portal-profesional portal-hora' : undefined;
                             return (
                               <div key={g.id} style={{ background: '#fff', border: `1.5px solid ${abierta || tieneSeleccion ? T.primary : T.border}`, borderRadius: 16, overflow: 'hidden' }}>
                                 <button
                                   onClick={() => setCatAbierta(abierta ? null : g.id)}
                                   aria-expanded={abierta}
-                                  data-demo-abrir={abierta ? undefined : guiaDemo}
+                                  data-demo-abrir={abierta ? undefined : guiaCategoria}
                                   style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '15px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                                 >
                                   <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 700 }}>{g.nombre}</span>

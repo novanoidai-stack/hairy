@@ -33,7 +33,7 @@
       "n": 5,
       "acto": "Crear una cita",
       "tono": "ritmo",
-      "texto": "El servicio trae su precio y su duración del catálogo. {senal:subrayado@centro} [short pause] [curious] ¿Y si María tarda menos que Laura en el mismo corte? [calm] Cada una tiene la suya. Nada de calcular a mano."
+      "texto": "El servicio trae su precio y su duración del catálogo. {senal:subrayado@abajo} [short pause] [curious] ¿Y si María tarda menos que Laura en el mismo corte? [calm] Cada una tiene la suya. Nada de calcular a mano."
     },
     {
       "n": 6,
@@ -123,7 +123,7 @@
       "n": 20,
       "acto": "La ficha",
       "tono": "cercania",
-      "texto": "[serious] La fórmula. [short pause] Marca, tono, oxidante, proporción y tiempo. {senal:flecha@der} [warm] Y la foto de cómo quedó. La próxima vez repites el color exacto… [calm] aunque la atienda otra persona."
+      "texto": "[serious] La fórmula. [short pause] Marca, tono, oxidante, proporción y tiempo. {senal:flecha@izq} [warm] Y la foto de cómo quedó. La próxima vez repites el color exacto… [calm] aunque la atienda otra persona."
     },
     {
       "n": 21,
@@ -177,7 +177,7 @@
       "n": 29,
       "acto": "Tu portal",
       "tono": "orgullo",
-      "texto": "[excited] Y esto es lo que ve tu clienta. [short pause] [warm] Tu propia página de reservas, con tu nombre y tus fotos. Se comparte por WhatsApp, por Instagram, o con un código Q.R. en el mostrador. [serious] Sin comisiones. {senal:ping@abajo} Y sin intermediarios."
+      "texto": "[excited] Y esto es lo que ve tu clienta. [short pause] [warm] Tu propia página de reservas, con tu nombre y tus fotos. {senal:ping@centro} Se comparte por WhatsApp, por Instagram, o con un código Q.R. en el mostrador. [serious] Sin comisiones. Y sin intermediarios."
     },
     {
       "n": 30,

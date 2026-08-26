@@ -172,13 +172,17 @@ export function HubIA({ negocioId, rolStr }: Props) {
         </p>
       </div>
 
-      {Object.entries(CATALOGO_POR_CATEGORIA).map(([catKey, funciones]) => {
+      {Object.entries(CATALOGO_POR_CATEGORIA).map(([catKey, funciones], iCat) => {
         const cat = CATEGORIAS[catKey];
         const visibles = funciones.filter(f => !f.soloGestor || esGestor);
         if (visibles.length === 0) return null;
 
         return (
-          <div key={catKey} style={{ marginBottom: 20 }}>
+          // La zona `ia-hub` del recorrido guiado se queda en la PRIMERA
+          // categoria. Marcada en el contenedor de arriba, el foco medía casi la
+          // pantalla entera (1410x591 sobre 1521x614): oscurecer el 10% restante
+          // no enfoca nada. Aqui se ve un grupo de funciones de verdad.
+          <div key={catKey} {...(iCat === 0 ? { 'data-demo-alt': 'ia-hub' } : {})} style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 4, height: 18, background: cat.color, borderRadius: 999 }} />
               <h3 style={{ fontSize: 15, fontWeight: 700, color: T.text, margin: 0 }}>{cat.label}</h3>

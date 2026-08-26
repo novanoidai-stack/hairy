@@ -1441,10 +1441,13 @@ function CajaScreen() {
           </div>
         )}
 
-        {/* Lista de citas pendientes de cobro — solo propietario/dirección */}
+        {/* Filtros de las citas pendientes de cobro — solo propietario/dirección.
+            La zona `caja-cobro` del recorrido NO va aqui: el paso dice "las citas
+            ya hechas y sin cobrar te esperan aqui" y enfocando esta tarjeta no se
+            veia ni una cita, solo el buscador y los chips de fecha. Va sobre la
+            lista de abajo. */}
         {canSeeAll && (
           <div
-            data-demo="caja-cobro"
             style={{
               background: T.card,
               border: `1px solid ${T.border}`,
@@ -1649,6 +1652,7 @@ function CajaScreen() {
         {canSeeAll &&
           (conceptos.length === 0 ? (
             <div
+              data-demo="caja-cobro"
               style={{
                 textAlign: "center",
                 padding: "60px 20px",
@@ -1683,6 +1687,12 @@ function CajaScreen() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {conceptos.map((concepto, idx) => {
                 const animDelay = `${idx * 0.03}s`;
+                // La zona `caja-cobro` del recorrido va en la PRIMERA fila, no en
+                // el contenedor: con la lista entera marcada el foco medía casi
+                // la pantalla completa (1418x594 sobre un marco de 614), que es
+                // lo mismo que no enfocar nada. Una fila concreta —ademas una con
+                // varios servicios agrupados— es justo lo que cuenta el paso.
+                const marcaDemo = idx === 0 ? { "data-demo": "caja-cobro" } : {};
 
                 // Concepto de un solo servicio: fila simple (igual que antes).
                 if (concepto.items.length === 1) {
@@ -1692,6 +1702,7 @@ function CajaScreen() {
                   return (
                     <div
                       key={concepto.key}
+                      {...marcaDemo}
                       className={`ca-row ${isSelected ? "selected" : ""}`}
                       onClick={() => toggleSeleccion(cita.id)}
                       style={{
@@ -1822,6 +1833,7 @@ function CajaScreen() {
                 return (
                   <div
                     key={concepto.key}
+                    {...marcaDemo}
                     className={`ca-row ${estado !== "none" ? "selected" : ""}`}
                     style={{
                       padding: "14px 18px",

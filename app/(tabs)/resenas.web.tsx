@@ -568,9 +568,13 @@ ${comentarios}`;
                 Ninguna reseña coincide con los filtros. <button className="rs-link" onClick={() => { setFRating(0); setFPeriod('all'); setFScope('all'); setFSearch(''); }} style={{ border: 'none', background: 'none', color: TOKENS.primary, fontWeight: 700, cursor: 'pointer', fontSize: 'inherit' }}>Quitar filtros</button>
               </div>
             ) : (
-              <div data-demo="resenas-lista" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              // `data-demo` va en la PRIMERA tarjeta, no en la rejilla: el paso
+              // dice "cada reseña, con su contexto" y sobre la rejilla entera el
+              // foco cubria el 70% de la pantalla, que es lo mismo que no
+              // enfocar. Una reseña concreta se lee y se entiende.
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
                 {filtradas.map((r, i) => (
-                  <div key={r.id} className="resena-card" style={{
+                  <div key={r.id} {...(i === 0 ? { 'data-demo': 'resenas-lista' } : {})} className="resena-card" style={{
                     animationDelay: `${Math.min(i, 8) * 0.05}s`,
                     background: r.puntuacion <= 2 ? '#faf9f7' : TOKENS.bgCard, // Alerta visual sutil/neutra
                     border: `1px solid ${r.puntuacion <= 2 ? 'rgba(217,119,6,0.3)' : TOKENS.border}`,

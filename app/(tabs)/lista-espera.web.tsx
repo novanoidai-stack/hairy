@@ -266,7 +266,7 @@ function ListaEsperaScreen() {
         )}
 
         {/* Filtros */}
-        <div data-demo="espera-lista" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {([
               { k: 'activas', label: `Activas (${conteo.esperando + conteo.avisado})` },
@@ -293,13 +293,17 @@ function ListaEsperaScreen() {
           </div>
         </div>
 
-        {/* Lista */}
+        {/* Lista
+            `data-demo` va AQUI, en la lista, no en los filtros de arriba: el paso
+            del recorrido que usa esta zona dice "quien no encuentra sitio entra en
+            la lista" y enfocando la fila de filtros no se veia ni una sola
+            persona apuntada. */}
         {visibles.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: T.textTer, fontSize: 14, border: `1px dashed ${T.borderHi}`, borderRadius: 14, background: T.panel }}>
+          <div data-demo="espera-lista" style={{ padding: 40, textAlign: 'center', color: T.textTer, fontSize: 14, border: `1px dashed ${T.borderHi}`, borderRadius: 14, background: T.panel }}>
             No hay nadie en esta vista de la lista de espera.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div data-demo="espera-lista" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {visibles.map(item => {
               const prof = item.profesional_id ? profMap.get(item.profesional_id) : null;
               const resueltaOCancelada = item.estado === 'resuelta' || item.estado === 'cancelada';

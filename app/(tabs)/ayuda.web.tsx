@@ -352,15 +352,21 @@ export default function AyudaScreen() {
         </button>
       </div>
 
+      {/* Ojo: la zona `ia-hub` NO va en este contenedor sino dentro de HubIA, en
+          su primera categoria (ver la nota alli). Envolviendo el hub entero el
+          foco tapaba la pantalla completa. */}
       {catSel === 'hub_ia' && (
-        <div data-demo="ia-hub" style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 32 }}>
           <HubIA negocioId={negocioId} rolStr={rolStr} />
         </div>
       )}
 
-      {/* ── Sección de Manuales ── */}
+      {/* ── Sección de Manuales ──
+          La zona `ayuda-manuales` del recorrido va en la primera tarjeta (mas
+          abajo), no en este contenedor: sobre el bloque entero el foco cubria el
+          90% de la pantalla y dejaba de senalar nada. */}
       {catSel !== 'faqs' && catSel !== 'hub_ia' && (
-        <div data-demo="ayuda-manuales" style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 14 }}>
             {catSel === 'todas'
               ? 'Guías de uso por módulo'
@@ -379,9 +385,10 @@ export default function AyudaScreen() {
                 gap: 14,
               }}
             >
-              {manualesFiltrados.map((m) => (
+              {manualesFiltrados.map((m, iM) => (
                 <div
                   key={m.pageKey}
+                  {...(iM === 0 ? { 'data-demo': 'ayuda-manuales' } : {})}
                   className="ayuda-card"
                   onClick={() => setManualActivo(m)}
                   style={{

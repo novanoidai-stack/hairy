@@ -1077,10 +1077,12 @@ export default function EquipoWeb() {
             </div>
 
             {/* Layout 2 columnas.
-                Es tambien la zona que enfoca el paso "la ficha del profesional"
-                del recorrido guiado (`equipo-ficha`): horario de trabajo, control
-                horario y bloqueos. */}
-            <div data-demo="equipo-ficha" className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
+                OJO: la zona `equipo-ficha` del recorrido guiado NO va aqui. Sobre
+                la rejilla entera el foco medía 1.394x468 y su centro caia en el
+                bloque de comision / especialidades / acceso — justo lo que la voz
+                NO nombra. Va sobre el horario de trabajo (ver mas abajo), que es
+                lo primero que dice el paso. */}
+            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
               {/* Columna izquierda: identidad · metricas · horario */}
               <div>
 
@@ -1180,7 +1182,10 @@ export default function EquipoWeb() {
                 confundir con el horario de APERTURA del salon, que se toca en
                 Configuracion > Horarios: son dos cosas distintas y antes las dos
                 se llamaban "horario base". En movil lista vertical por dia; en
-                escritorio rejilla de 7 columnas. */}
+                escritorio rejilla de 7 columnas.
+                Es ademas la zona `equipo-ficha` del recorrido guiado: es lo
+                primero que nombra el paso ("su horario de trabajo"). */}
+            <div data-demo="equipo-ficha">
             <Section title={`Horario de trabajo de ${profSel.nombre.split(' ')[0]}`}>
               {(() => {
                 // Incoherencias con el horario del salon: trabajar un dia que el
@@ -1421,6 +1426,7 @@ export default function EquipoWeb() {
                 );
               })()}
             </Section>
+            </div>
               </div>
               {/* Columna derecha: bloqueos · leyenda */}
               <div>

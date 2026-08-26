@@ -260,9 +260,13 @@
   78%{transform:scaleX(1);opacity:1}
   100%{transform:scaleX(1);opacity:0}}
 
-/* 4 · Chincheta numerada: para los tres bloques del reposo. */
+/* 4 · Chincheta numerada: para los tres bloques del reposo.
+   OJO con el fondo: NO puede ser `currentColor`. `currentColor` se resuelve
+   contra el `color` del PROPIO elemento, y esta misma regla lo pone en #fff
+   para el numero — asi que salia circulo blanco con numero blanco, o sea una
+   chincheta sin numero. El acento va explicito. */
 .sn-chincheta i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;
-  background:currentColor;color:#fff;font-family:var(--display);font-size:13px;
+  background:var(--accent,#f4501e);color:#fff;font-family:var(--display);font-size:13px;
   font-weight:800;font-style:normal;line-height:1;
   box-shadow:0 4px 15px rgba(244,80,30,.6),0 0 0 3px rgba(244,80,30,.2);
   animation:snPin 2s cubic-bezier(.34,1.5,.44,1) forwards}
@@ -2475,6 +2479,9 @@
   // spotWait/spotSeq: control del salvavidas del foco (ver driveSoftware).
   // reintentos: reenvios de la accion cuando el paso cambia de pantalla.
   var spotWait=null, spotSeq=-1, reintentos=[];
+  // ¿Este paso espera foco? Lo decide la accion (ver driveSoftware). Cuando no,
+  // cualquier rect que llegue es del paso anterior y hay que tirarlo.
+  var focoEsperado=true;
   // dockSeq: para que paso se ha decidido YA el sitio del panel del tutorial.
   // El software reenvia el rect del foco muchas veces dentro del MISMO paso
   // (latido de 400 ms, y un mensaje por frame mientras el scroll suave viaja).
@@ -2648,6 +2655,17 @@
   // o agotado el margen del salvavidas) y solo entonces empieza a contar su
   // tiempo de lectura, proporcional a lo que hay que leer.
   var autoOn=false, autoTimer=null, iframeListo=false, pasoInicio=0, ultimoNavego=false;
+  // `iframeListo` se marca AQUI, no solo dentro de startTour. Los tres botones
+  // del selector de la barra lanzan su recorrido llamando a playTutorial +
+  // startAutoplay directamente, sin pasar por startTour, asi que la bandera se
+  // quedaba en false para siempre. Y `programarAvance` exige `iframeListo` para
+  // dar el paso por asentado: el resultado era un recorrido clavado en un paso,
+  // reintentando cada 200 ms sin avanzar nunca. No se notaba con la voz puesta
+  // porque entonces el ritmo lo lleva el audio (vozFin), pero sin voz —o si el
+  // navegador rechaza el play— el recorrido se moria ahi.
+  if(frame) frame.addEventListener('load', function(){ iframeListo=true; });
+  // Respaldo por si el evento load se pierde (cache, bfcache).
+  setTimeout(function(){ iframeListo=true; }, 8000);
   function pintarPlay(){
     if(!gt.play) return;
     gt.play.innerHTML = autoOn ? SVG_PAUSE : SVG_PLAY;
@@ -2899,6 +2917,29 @@
     }
   });
 
+  // Salvavidas del RITMO. Cuando hay voz, el paso lo cambia `vozFin`; mientras
+  // tanto `programarAvance` se aparta (vozManda). Si el navegador nos quita el
+  // audio a media frase y el intento de reanudar no cuaja, no queda nadie
+  // llevando el compas: ni suena ni avanza, y el recorrido se muere en ese paso
+  // para siempre. Visto de verdad — audio parado en el segundo 0,03 de un paso
+  // de 8,6 s, con la reproduccion automatica encendida.
+  // Cada 2 s: si la voz deberia estar sonando y no suena, primero se intenta
+  // reanudar; si a la vuelta siguiente sigue parada, el reloj de lectura
+  // recupera el mando y el recorrido continua mudo, que es infinitamente mejor
+  // que quedarse clavado.
+  var vozAtascoDesde=0;
+  setInterval(function(){
+    if(!autoOn || !vozOn || !vozManda || !tourVisible()){ vozAtascoDesde=0; return; }
+    var a=vozAudio;
+    if(!a || !a.src || a.ended || !a.paused){ vozAtascoDesde=0; return; }
+    if(document.hidden) return;          // oculta a proposito: no es un atasco
+    if(!vozAtascoDesde){ vozAtascoDesde=Date.now(); vozSeguir(); return; }
+    if(Date.now()-vozAtascoDesde < 2500) return;
+    vozAtascoDesde=0;
+    vozManda=false;
+    programarAvance();
+  }, 2000);
+
   /* ==================== SEÑALES ====================
      Puntualizan lo que la voz esta diciendo. Los segundos NO se escriben a mano:
      salen de las marcas {senal:tipo@ancla} del guion, que scripts/narrar-recorrido.mjs
@@ -2974,6 +3015,43 @@
     return null;
   }
 
+  // ¿Cabe la señal DENTRO del marco del software? `#gt` va inset:0 sobre
+  // `.dm-appwrap`, que recorta (overflow:hidden): lo que se pinte fuera no se ve
+  // y encima no avisa. Pasaba en dos de las 31: la flecha 'der' de una zona
+  // pegada al borde derecho se dibujaba entera fuera de cuadro, y el subrayado
+  // de un panel que llega al borde inferior quedaba en los ultimos 2 px.
+  // El ping se mide por su CENTRO (los anillos pueden salirse un poco y se
+  // sigue leyendo); el resto, por su caja entera.
+  function senalCabe(p){
+    if(!gt.root) return true;
+    var g=gt.root.getBoundingClientRect(), W=g.width, H=g.height;
+    if(!(W>0 && H>0)) return true;
+    if(p.cls==='sn-ping'){ var M=18; return p.left>=M && p.top>=M && p.left<=W-M && p.top<=H-M; }
+    return p.left>=0 && p.top>=0 && p.left+p.w<=W && p.top+p.h<=H;
+  }
+
+  // Devuelve la geometria del ancla pedida si cabe; si no, prueba las
+  // alternativas razonables antes de rendirse. Una flecha que no cabe por la
+  // derecha se pone a la izquierda y sigue apuntando a lo mismo: mejor eso que
+  // no salir. Solo devuelve null si no hay ningun sitio valido.
+  function senalSitioQueCabe(tipo, ancla, h){
+    var intentos=[ancla];
+    if(tipo==='flecha'){
+      var opuesto={izq:'der', der:'izq', arriba:'abajo', abajo:'arriba'};
+      if(opuesto[ancla]) intentos.push(opuesto[ancla]);
+      ['arriba','abajo','izq','der'].forEach(function(a){ if(intentos.indexOf(a)<0) intentos.push(a); });
+    } else if(tipo==='subrayado'){
+      intentos.push(ancla==='arriba' ? 'abajo' : 'arriba');
+    } else if(tipo==='ping'){
+      if(intentos.indexOf('centro')<0) intentos.push('centro');
+    }
+    for(var i=0;i<intentos.length;i++){
+      var p=senalSitio(tipo, intentos[i], h);
+      if(p && senalCabe(p) && !senalPisaElDock(p)) return p;
+    }
+    return null;
+  }
+
   // Antes que tapar el texto del paso, no salir. El dock es lo unico que se lee.
   function senalPisaElDock(p){
     if(!gt.dock || !gt.root) return false;
@@ -2995,8 +3073,8 @@
     // señalando, con mucha seguridad, algo que no viene a cuento. Medido: pasa
     // siempre que la pantalla tarda y el rect no llega a tiempo.
     if(!el || !hole || holeSeq!==seq) return;
-    var p=senalSitio(tipo, ancla, hole);
-    if(!p || senalPisaElDock(p)) return;
+    var p=senalSitioQueCabe(tipo, ancla, hole);
+    if(!p) return;
     el.className='gt-senal off';
     el.innerHTML=p.dentro;
     el.style.left=Math.round(p.left)+'px';
@@ -3076,6 +3154,16 @@
   }
 
   function setHole(rect){
+    // Pasos SIN foco por diseño ('pantalla', 'nueva-cita', 'cita-detalle'): aqui
+    // no puede llegar un rect bueno, solo el coletazo del paso ANTERIOR — su
+    // spotlight sigue midiendo los milisegundos que tarda en cerrarse el panel.
+    // Si se acepta, la histeresis de abajo lo deja clavado el resto del paso y
+    // se enseña un recuadro sobre lo que ya no toca. Medido en el paso 9 de
+    // pilares: un unico rect tardio y el foco del paso 8 encima del detalle.
+    if(!focoEsperado){
+      if(hole){ hole=null; holeSeq=-1; drawSpot(); }
+      return;
+    }
     var nuevo = rectUsable(rect);
     if(!nuevo && holeSeq===seq && hole){
       // Bache momentaneo DENTRO del mismo paso (el objetivo viaja con el scroll
@@ -3258,6 +3346,7 @@
     // 'nueva-cita' y 'cita-detalle' solo ABREN un panel: no hay zona que enfocar,
     // asi que soltamos el foco ya y no dejamos el del paso anterior encima.
     var expectSpot = a!=='cerrar' && a!=='nueva-cita' && a!=='cita-detalle';
+    focoEsperado = expectSpot;
     if(!expectSpot) setHole(null);
     if(actTimer) clearTimeout(actTimer);
     var my=seq;
@@ -3268,11 +3357,18 @@
       if(a!=='cerrar') demoAction(a);
       lastAct=a;
     }, 60);
-    // Si acabamos de cambiar de pantalla, la pantalla destino puede tardar en
-    // montarse (datos por red) y perderse el mensaje. Reintentamos la accion un
-    // par de veces: todas son idempotentes, asi que repetirlas no hace nada raro.
+    // La pantalla destino puede tardar en montarse (datos por red) y perderse el
+    // mensaje. Reintentamos la accion un par de veces: todas son idempotentes,
+    // asi que repetirlas no hace nada raro, y en cuanto llega el foco se cortan
+    // solas (spotSeq===my).
+    // Antes esto solo se hacia al CAMBIAR de pantalla, y los pasos que se quedan
+    // en la misma ruta no tenian red: si su zona aun no existia —la pantalla
+    // acababa de montarse y sus datos venian por red— el paso se quedaba sin
+    // foco y con el recuadro del paso anterior encima. Visto en el paso 16 de
+    // 'advanced' (la rejilla de fichas de Equipo), que va detras del paso del
+    // menu y por tanto no navega.
     if(reintentos.length){ reintentos.forEach(clearTimeout); reintentos.length=0; }
-    if(navego && a!=='cerrar'){
+    if(a!=='cerrar'){
       [650, 1500, 2600, 4000].forEach(function(ms){
         reintentos.push(setTimeout(function(){
           if(my!==seq) return;
@@ -3381,6 +3477,7 @@
     navFrame(STEPS[0].route);
     var a0=STEPS[0].action||'cerrar', my=seq;
     if(a0==='pantalla') a0='cerrar';
+    focoEsperado = a0!=='cerrar' && a0!=='nueva-cita' && a0!=='cita-detalle';
     actTimer=setTimeout(function(){
       if(my!==seq) return;
       demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0;

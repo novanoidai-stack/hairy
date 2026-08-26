@@ -14720,13 +14720,10 @@ function NewCitaModal({
               </div>
             )}
 
-          {/* FormField Servicio */}
-          <div
-            ref={(el) => {
-              servicioZoneRef.current = el;
-            }}
-            style={{ marginBottom: 14 }}
-          >
+          {/* FormField Servicio.
+              El `servicioZoneRef` del recorrido guiado NO va aqui: ver la nota
+              en la lista de categorias, mas abajo. */}
+          <div style={{ marginBottom: 14 }}>
             <div
               style={{
                 display: "flex",
@@ -14927,8 +14924,17 @@ function NewCitaModal({
               </div>
             )}
 
-            {gruposServicio.map((grupo) => (
-              <div key={grupo.key} style={{ marginBottom: 10 }}>
+            {gruposServicio.map((grupo, iGrupo) => (
+              // El foco del recorrido para "el servicio trae precio y duracion"
+              // va sobre la PRIMERA categoria, no sobre el bloque Servicio
+              // entero: ese medía 540x571 y llegaba al borde inferior del marco,
+              // asi que ni se entendia que se estaba señalando ni cabia debajo la
+              // señal. Aqui se ven las tarjetas con sus "90 min · 52 EUR".
+              <div
+                key={grupo.key}
+                ref={iGrupo === 0 ? (el) => { servicioZoneRef.current = el; } : undefined}
+                style={{ marginBottom: 10 }}
+              >
                 {!(
                   gruposServicio.length === 1 &&
                   grupo.key === "__sin_categoria__"
