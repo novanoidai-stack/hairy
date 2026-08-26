@@ -49,6 +49,28 @@ const APP_URL = (Deno.env.get('PUBLIC_APP_URL') ?? 'https://www.mechaa.es').repl
 // Estados en los que NO tiene sentido abrir otro checkout.
 const YA_TIENE_ACCESO = new Set(['activa', 'pago_pendiente']);
 
+// Cupon de referidos por porcentaje, con id determinista (`mecha_ref_20`): se
+// intenta leer y solo se crea si no estaba. Hay uno por valor porque el
+// `percent_off` de un cupon de Stripe es inmutable.
+// OJO: hay una copia de esto en `sincronizar-descuento-referidos`, que es quien
+// mantiene el descuento al dia despues de contratar. Si cambia el criterio del
+// cupon, cambian las dos.
+async function cuponDe(pct: number): Promise<string> {
+  const id = `mecha_ref_${pct}`;
+  try {
+    await stripe.coupons.retrieve(id);
+  } catch {
+    await stripe.coupons.create({
+      id,
+      percent_off: pct,
+      duration: 'forever',
+      name: `Referidos -${pct}%`,
+      metadata: { mecha_ref: '1' },
+    });
+  }
+  return id;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
@@ -65,7 +87,7 @@ Deno.serve(async (req) => {
 
   const { data: perfil } = await admin
     .from('profiles')
-    .select('id, email, role, negocio_id, nombre_negocio, stripe_customer_id, suscripcion_estado, trial_ends_at')
+    .select('id, email, role, negocio_id, nombre_negocio, stripe_customer_id, suscripcion_estado, trial_ends_at, descuento_pct')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -141,6 +163,15 @@ Deno.serve(async (req) => {
     const ahora = Math.floor(Date.now() / 1000);
     const trial = finPrueba > ahora ? { trial_end: finPrueba } : {};
 
+    // 5.b) Descuento de referidos. Se aplica ya en el checkout para que el salon
+    //      lo VEA al pagar, no solo en la factura siguiente. A partir de aqui lo
+    //      mantiene al dia el cron `mecha_descuento_referidos`, porque el
+    //      porcentaje cambia cuando otro salon de su red empieza o deja de pagar.
+    const pctReferidos = Math.round(Number(perfil.descuento_pct ?? 0));
+    const descuento = pctReferidos > 0
+      ? { discounts: [{ coupon: await cuponDe(pctReferidos) }] }
+      : {};
+
     // 6) Checkout. El profile_id viaja tambien en subscription_data para que los
     //    eventos customer.subscription.* lo lleven encima y el webhook no dependa
     //    de haber guardado antes el customer.
@@ -153,6 +184,7 @@ Deno.serve(async (req) => {
       // con 'if_required' Stripe no pediria tarjeta al ser 0 € el importe de hoy y
       // llegariamos al final de la prueba sin nada con que cobrar.
       payment_method_collection: 'always',
+      ...descuento,
       subscription_data: {
         ...trial,
         metadata: { profile_id: perfil.id, negocio_id: perfil.negocio_id, plan, ia_nivel: iaNivel },
