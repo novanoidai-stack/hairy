@@ -172,6 +172,10 @@ returns table (
   descripcion text,
   precio numeric,
   duracion_min int,
+  -- prepago del sugerido (ago-2026): sin esto el resumen del portal decia
+  -- "pago en el salon" cuando un sugerido requeria senal (la cadena si la
+  -- cobra bien en crear_cita_publica_cadena; era solo honestidad en el UI).
+  prepago boolean,
   motivo text
 )
 language plpgsql
@@ -194,6 +198,7 @@ begin
          s.precio,
          (coalesce(s.duracion_activa_min,0) + coalesce(s.duracion_espera_min,0)
             + coalesce(s.duracion_activa_extra_min,0))::int as duracion_min,
+         coalesce(s.prepago_requerido, false) as prepago,
          -- 'manual' pesa mas que 'aprendido' si el par sale por las dos vias.
          (case when bool_or(ss.origen = 'manual') then 'manual' else 'aprendido' end)::text as motivo
     from public.servicios_sugeridos ss
@@ -206,7 +211,8 @@ begin
      and s.activo
      and s.reservable_online
    group by s.id, s.nombre, s.descripcion, s.precio,
-            s.duracion_activa_min, s.duracion_espera_min, s.duracion_activa_extra_min
+            s.duracion_activa_min, s.duracion_espera_min, s.duracion_activa_extra_min,
+            s.prepago_requerido
    order by (case when bool_or(ss.origen = 'manual') then 0 else 1 end),
             max(ss.confianza) desc
    limit 3;

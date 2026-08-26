@@ -613,6 +613,10 @@ export default function PortalReservaWeb() {
   // no vale, porque ahora la visita dura mas.
   function alternarExtra(sv: ServicioSugerido) {
     const yaEsta = extras.some((e) => e.id === sv.id);
+    // Tope de 3 extras (1 base + 3 = 4): crear_cita_publica_cadena rechaza
+    // mas de 4 servicios con una excepcion al CONFIRMAR. Sin este tope aqui,
+    // la clienta podia montar una cesta de 5 y enterarse al final.
+    if (!yaEsta && extras.length >= 3) return;
     const nuevos = yaEsta
       ? extras.filter((e) => e.id !== sv.id)
       : [...extras, {
@@ -624,7 +628,9 @@ export default function PortalReservaWeb() {
           categoria_id: null,
           categoria_nombre: null,
           categoria_color: null,
-          prepago: false,
+          // El prepago REAL del sugerido (antes hardcodeado a false y el
+          // resumen mentia sobre la senal).
+          prepago: sv.prepago ?? false,
           foto_url: null,
         } as PortalServicio];
     setExtras(nuevos);
@@ -907,16 +913,22 @@ export default function PortalReservaWeb() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {sugerencias.map((sv) => {
                             const puesto = extras.some((e) => e.id === sv.id);
+                            // Cesta llena (1 base + 3 extras): no se pueden
+                            // añadir mas; la RPC de cadena rechaza >4.
+                            const lleno = !puesto && extras.length >= 3;
                             return (
                               <button
                                 key={sv.id}
                                 type="button"
                                 onClick={() => alternarExtra(sv)}
+                                disabled={lleno}
+                                title={lleno ? 'Máximo 4 servicios por reserva' : undefined}
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: 12,
                                   background: puesto ? T.primarySoft : '#fff',
                                   border: `1.5px solid ${puesto ? T.primary : T.border}`,
-                                  borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+                                  borderRadius: 16, cursor: lleno ? 'default' : 'pointer', textAlign: 'left',
+                                  opacity: lleno ? 0.45 : 1,
                                 }}
                               >
                                 <span
@@ -1178,7 +1190,7 @@ export default function PortalReservaWeb() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Confirmación inmediata por WhatsApp</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> Cancelación gratuita hasta 24h antes</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> {servicio?.prepago ? 'Se requerirá señal de reserva' : 'Pago en el salón el día de la cita'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#5c5249' }}><Icon name="check" size={13} color="#0f9d6b" /> {(servicio?.prepago || extras.some((e) => e.prepago)) ? 'Se requerirá señal de reserva' : 'Pago en el salón el día de la cita'}</div>
                       </div>
                     </div>
                     <button onClick={() => { setWlNombre(nombre); setWlTelefono(telefono); setShowWlModal(true); }} style={{ width: '100%', marginTop: 12, padding: '13px 14px', borderRadius: 14, border: `1px dashed ${T.primary}`, background: T.primarySoft, color: '#1c1814', fontSize: 13, fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>

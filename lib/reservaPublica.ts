@@ -129,6 +129,10 @@ export interface ServicioSugerido {
   descripcion: string | null;
   precio: number;
   duracion_min: number;
+  // El sugerido requiere senal (prepago_requerido en servicios). Añadido
+  // ago-2026: sin esto el resumen del portal decia "pago en el salon" cuando
+  // un sugerido requeria senal que la cadena si cobraba.
+  prepago?: boolean | null;
   // 'manual' = lo configuro el dueño; 'aprendido' = lo dedujo el historial.
   motivo: 'manual' | 'aprendido';
 }
