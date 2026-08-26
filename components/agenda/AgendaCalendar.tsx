@@ -602,7 +602,7 @@ function DayTimeline({ citas, profesionales }: any) {
       {/* Professional columns header */}
       <View style={[s.timelineHeader, { borderBottomColor: tokens.border }]}>
         {profesionales.map((p: Profesional) => (
-          <View key={p.id} style={[s.timelineProfCol, { borderLeftColor: p.color }]}>
+          <View key={p.id} style={[s.timelineProfCol, { borderLeftColor: p.color, borderTopWidth: 2, borderTopColor: p.color, backgroundColor: `${p.color}0d` }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm }}>
               <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: p.color }} />
               <View>
@@ -622,7 +622,7 @@ function DayTimeline({ citas, profesionales }: any) {
       ) : (
         <View style={{ flexDirection: 'row' }}>
           {profesionales.map((prof: Profesional) => (
-            <View key={prof.id} style={[s.timelineCol, { borderLeftColor: prof.color }]}>
+            <View key={prof.id} style={[s.timelineCol, { borderLeftColor: prof.color, backgroundColor: `${prof.color}06` }]}>
               {citas
                 .filter((c: Cita) => c.profesional_id === prof.id)
                 .map((cita: Cita) => (

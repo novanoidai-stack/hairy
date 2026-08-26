@@ -572,7 +572,7 @@ const MOTION_CSS = `
     .m-st-curso::after, .m-st-sincobrar::before, .m-st-pop, .m-st-entra,
     .m-st-sacude, .m-st-cobrada-body, .m-st-cobrada-arc,
     .m-st-cancelada-strike, .m-st-reservatemp, .mch-rail::before, .mch-cable,
-    .m-agenda-aura::after {
+    .m-agenda-aura::after, .ia-prof-col-glow, .ia-prof-col-beam {
       animation: none !important;
     }
     /* Sin movimiento, la luz que barre no aporta nada y tapa texto: fuera. */

@@ -218,7 +218,90 @@ const ANIMATIONS = `
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
+  /* =================================================================
+     Fondo IA Aurora / Mesh por columna de profesional:
+     Ultra-fluido, cero lag (sin filtros pesados), degradados nativos
+     de alta precisión y movimiento etéreo orgánico.
+     ================================================================= */
+  .ia-prof-col-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    contain: layout paint;
+  }
+  .ia-prof-col-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: iaAuroraWave var(--ia-dur, 32s) ease-in-out infinite alternate;
+    animation-delay: var(--ia-delay, 0s);
+  }
+  .ia-prof-col-beam {
+    position: absolute;
+    top: -15%;
+    left: -15%;
+    right: -15%;
+    height: 60%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: iaBeamFloat calc(var(--ia-dur, 32s) * 0.85) ease-in-out infinite alternate;
+    animation-delay: calc(var(--ia-delay, 0s) - 5s);
+  }
+  @keyframes iaAuroraWave {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: translate3d(0, -32px, 0) scale(1.03);
+      opacity: 1;
+    }
+    100% {
+      transform: translate3d(0, 24px, 0) scale(0.98);
+      opacity: 0.78;
+    }
+  }
+  @keyframes iaBeamFloat {
+    0% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translate3d(0, 40px, 0);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate3d(0, -25px, 0);
+      opacity: 0.55;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ia-prof-col-glow,
+    .ia-prof-col-beam {
+      animation: none !important;
+      transform: none !important;
+    }
+  }
 `;
+
+function hexToRgba(hex: string | undefined | null, alpha: number): string {
+  if (!hex) return `rgba(244, 80, 30, ${alpha})`;
+  let clean = String(hex).replace("#", "").trim();
+  if (clean.length === 3) {
+    clean = clean.split("").map((c) => c + c).join("");
+  }
+  if (clean.length >= 6) {
+    const r = parseInt(clean.substring(0, 2), 16) || 0;
+    const g = parseInt(clean.substring(2, 4), 16) || 0;
+    const b = parseInt(clean.substring(4, 6), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return hex;
+}
 
 interface Cita {
   id: string;
@@ -8655,14 +8738,29 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
             const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
             const cabeEtiqueta =
               blockHeight > labelOffset + 16;
-            // "Fuera de jornada" y "salon cerrado" no son eventos: son el
-            // negativo del dia. Iban rayados en diagonal y ese rayado, repetido
-            // en todas las columnas manana y tarde, es lo que daba a la agenda
-            // aspecto de cuaderno. Pasan a ser un tono plano mas apagado; el
-            // rayado se queda solo para los bloqueos que SI son un evento
-            // (vacaciones, baja, formacion, descanso...).
-            const esNegativoDelDia =
-              b.tipo === "fuera_jornada" || b.tipo === "salon_cerrado";
+            // "Fuera de jornada" y "salon cerrado" son los negativos del día
+            const isSalonCerrado = b.tipo === "salon_cerrado";
+            const isFueraJornada = b.tipo === "fuera_jornada";
+            const esNegativoDelDia = isFueraJornada || isSalonCerrado;
+
+            const bgPattern = isSalonCerrado
+              ? "repeating-linear-gradient(135deg, rgba(87,83,78,0.14) 0px, rgba(87,83,78,0.14) 4px, rgba(40,30,24,0.07) 4px, rgba(40,30,24,0.07) 12px)"
+              : isFueraJornada
+                ? "repeating-linear-gradient(135deg, rgba(40,30,24,0.045) 0px, rgba(40,30,24,0.045) 3px, transparent 3px, transparent 9px)"
+                : `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`;
+
+            const bgColor = isSalonCerrado
+              ? "rgba(40,30,24,0.10)"
+              : isFueraJornada
+                ? "rgba(40,30,24,0.05)"
+                : `${bColor}0a`;
+
+            const borderLeftStyle = isSalonCerrado
+              ? "3px solid #78716c"
+              : isFueraJornada
+                ? "2px solid rgba(40,30,24,0.18)"
+                : `3px solid ${bColor}99`;
+
             return (
               <div
                 key={b.id}
@@ -8677,18 +8775,10 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   left: 2,
                   right: 2,
                   height: blockHeight,
-                  background: esNegativoDelDia
-                    ? "none"
-                    : `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
-                  backgroundColor: esNegativoDelDia
-                    ? b.tipo === "salon_cerrado"
-                      ? "rgba(40,30,24,0.055)"
-                      : "rgba(40,30,24,0.032)"
-                    : `${bColor}0a`,
-                  borderLeft: esNegativoDelDia
-                    ? "none"
-                    : `3px solid ${bColor}99`,
-                  borderRadius: esNegativoDelDia ? 0 : 6,
+                  background: bgPattern,
+                  backgroundColor: bgColor,
+                  borderLeft: borderLeftStyle,
+                  borderRadius: esNegativoDelDia ? 3 : 6,
                   pointerEvents: "none",
                   zIndex: 1 + labelRow,
                   padding: "4px 6px",
@@ -8703,20 +8793,33 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   <div
                     style={{
                       fontSize: 10,
-                      color: TOKENS.text,
+                      color: isSalonCerrado ? "#ffffff" : TOKENS.text,
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                       marginTop: labelOffset,
-                      background: `${bColor}2b`,
-                      border: `1px solid ${bColor}44`,
+                      background: isSalonCerrado ? "#57534e" : `${bColor}2b`,
+                      border: isSalonCerrado ? "1px solid #44403c" : `1px solid ${bColor}44`,
                       borderRadius: 4,
-                      padding: "1px 5px",
+                      padding: isSalonCerrado ? "2px 7px" : "1px 5px",
                       width: "fit-content",
                       display: "inline-flex",
                       alignItems: "center",
+                      gap: 4,
                       lineHeight: "14px",
+                      boxShadow: isSalonCerrado ? "0 1px 3px rgba(0,0,0,0.18)" : "none",
                     }}
                   >
+                    {isSalonCerrado && (
+                      <span
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: 999,
+                          background: "#f87171",
+                          display: "inline-block",
+                        }}
+                      />
+                    )}
                     {BLOQUEO_LABELS[b.tipo] || b.tipo}
                   </div>
                 )}
@@ -8725,8 +8828,9 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                     <div
                       style={{
                         fontSize: 9.5,
-                        color: TOKENS.textSec,
-                        marginTop: 2,
+                        color: isSalonCerrado ? "#44403c" : TOKENS.textSec,
+                        fontWeight: isSalonCerrado ? 600 : 400,
+                        marginTop: 3,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -10146,26 +10250,31 @@ function DayTimeline({
                 background: "#ffffff",
               }}
             />
-            {profesionales.map((p: any, idx: number) => (
-              <div
-                key={p.id}
-                title={onReorderProfs ? `${p.nombre} — cambia el numerito para mover su posición` : p.nombre}
-                style={{
-                  padding: "12px 14px",
-                  borderLeft: `1px solid ${TOKENS.border}`,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  transition: "background 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    "rgba(244,80,30,0.03)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                }}
-              >
+            {profesionales.map((p: any, idx: number) => {
+              const pColor = p.color || TOKENS.primary;
+              return (
+                <div
+                  key={p.id}
+                  title={onReorderProfs ? `${p.nombre} — cambia el numerito para mover su posición` : p.nombre}
+                  style={{
+                    padding: "12px 14px",
+                    borderLeft: `1px solid ${TOKENS.border}`,
+                    borderTop: `2px solid ${pColor}`,
+                    background: `linear-gradient(180deg, ${hexToRgba(pColor, 0.06)} 0%, ${hexToRgba(pColor, 0.012)} 65%, rgba(255,255,255,0.95) 100%)`,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    transition: "background 0.25s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      `linear-gradient(180deg, ${hexToRgba(pColor, 0.12)} 0%, ${hexToRgba(pColor, 0.03)} 65%, rgba(255,255,255,0.98) 100%)`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      `linear-gradient(180deg, ${hexToRgba(pColor, 0.06)} 0%, ${hexToRgba(pColor, 0.012)} 65%, rgba(255,255,255,0.95) 100%)`;
+                  }}
+                >
                 {p.foto_perfil ? (
                   <img
                     src={p.foto_perfil}
@@ -10302,7 +10411,8 @@ function DayTimeline({
                   />
                 )}
               </div>
-            ))}
+            );
+          })}
           </div>
           <div
             ref={gridRef}
@@ -10312,6 +10422,70 @@ function DayTimeline({
               cursor: isDragging ? "grabbing" : "default",
             }}
           >
+            {/* Fondo degradado suave IA por columna de profesional con movimiento ultra lento */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 56,
+                right: 0,
+                bottom: 0,
+                display: "grid",
+                gridTemplateColumns: `repeat(${Math.max(1, profesionales.length)}, 1fr)`,
+                pointerEvents: "none",
+                zIndex: 0,
+                overflow: "hidden",
+                opacity: salonCerradoTodoElDia ? 0.35 : 1,
+                transition: "opacity 0.3s ease",
+              }}
+            >
+              {profesionales.map((p: any, idx: number) => {
+                const profColor = p.color || TOKENS.primary;
+                const dur = 28 + (idx % 4) * 4;
+                const delay = idx * -5.5;
+
+                const glowGrad = `
+                  radial-gradient(ellipse 130% 45% at 20% 4%, ${hexToRgba(profColor, 0.12)} 0%, ${hexToRgba(profColor, 0.04)} 45%, transparent 75%),
+                  radial-gradient(ellipse 110% 50% at 85% 45%, ${hexToRgba(profColor, 0.10)} 0%, ${hexToRgba(profColor, 0.03)} 50%, transparent 72%),
+                  radial-gradient(ellipse 120% 50% at 25% 85%, ${hexToRgba(profColor, 0.09)} 0%, ${hexToRgba(profColor, 0.025)} 55%, transparent 75%),
+                  radial-gradient(circle at 50% 25%, rgba(255, 246, 238, 0.4) 0%, transparent 60%),
+                  linear-gradient(180deg, ${hexToRgba(profColor, 0.05)} 0%, ${hexToRgba(profColor, 0.012)} 28%, ${hexToRgba(profColor, 0.035)} 68%, transparent 100%)
+                `.trim();
+
+                const beamGrad = `
+                  radial-gradient(ellipse 90% 45% at 50% 30%, ${hexToRgba(profColor, 0.09)} 0%, transparent 70%),
+                  radial-gradient(circle at 50% 20%, rgba(255, 245, 235, 0.4) 0%, transparent 60%)
+                `.trim();
+
+                return (
+                  <div
+                    key={`ia-bg-${p.id}`}
+                    className="ia-prof-col-track"
+                    style={{
+                      borderLeft: idx > 0 ? "1px solid rgba(40,30,24,0.04)" : "none",
+                    }}
+                  >
+                    <div
+                      className="ia-prof-col-glow"
+                      style={{
+                        backgroundImage: glowGrad,
+                        ["--ia-dur" as any]: `${dur}s`,
+                        ["--ia-delay" as any]: `${delay}s`,
+                      }}
+                    />
+                    <div
+                      className="ia-prof-col-beam"
+                      style={{
+                        backgroundImage: beamGrad,
+                        ["--ia-dur" as any]: `${dur}s`,
+                        ["--ia-delay" as any]: `${delay}s`,
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
             {/* §5 Mecha: línea de flujo única por cadena (debajo de los
                 bloques, zIndex 2 vs 3 del contenedor de citas) */}
             <ChainFlowOverlay
@@ -10505,14 +10679,10 @@ function DayTimeline({
                 style={{
                   display: "grid",
                   gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(${MIN_COL_W}px, 1fr))`,
-                  // Lineas y bandas en carbon calido, no en negro ni en gris
-                  // frio: el #fafafa de antes era un gris azulado dentro de un
-                  // tema crema y es la mitad del aspecto de papel pautado. La
-                  // otra mitad, el contraste: la banda alterna baja a un tercio.
-                  borderBottom: `1px solid rgba(40,30,24,0.05)`,
+                  borderBottom: `1px solid rgba(40,30,24,0.045)`,
                   height: ROW_H,
                   boxSizing: "border-box",
-                  background: idx % 2 === 0 ? "#ffffff" : "#fdfaf6",
+                  background: "transparent",
                 }}
               >
                 <div
@@ -10581,116 +10751,117 @@ function DayTimeline({
                     </div>
                   ))}
                 </div>
-                {profesionales.map((p: any) => (
-                  <div
-                    key={`${h}-${p.id}`}
-                    style={{
-                      // La separacion entre profesionales ya la da la cabecera:
-                      // aqui basta una linea de pelo.
-                      borderLeft: `1px solid rgba(40,30,24,0.07)`,
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    {[0, 15, 30, 45].map((minute) => {
-                      const horaSlot = `${String(h).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-                      return (
-                        <div
-                          key={minute}
-                          onClick={() => {
-                            if (onCreateSlot)
-                              onCreateSlot({ hora: horaSlot, profId: p.id });
-                          }}
-                          onTouchStart={(e) => {
-                            const touch = e.touches[0];
-                            e.currentTarget.dataset.startX = String(
-                              touch.clientX,
-                            );
-                            e.currentTarget.dataset.startY = String(
-                              touch.clientY,
-                            );
-                            e.currentTarget.dataset.startTime = String(
-                              Date.now(),
-                            );
-                          }}
-                          onTouchEnd={(e) => {
-                            const startX = parseFloat(
-                              e.currentTarget.dataset.startX || "0",
-                            );
-                            const startY = parseFloat(
-                              e.currentTarget.dataset.startY || "0",
-                            );
-                            const startTime = parseFloat(
-                              e.currentTarget.dataset.startTime || "0",
-                            );
-                            const touch = e.changedTouches[0];
-                            if (touch) {
-                              const diffX = Math.abs(touch.clientX - startX);
-                              const diffY = Math.abs(touch.clientY - startY);
-                              const diffTime = Date.now() - startTime;
-                              if (diffX < 10 && diffY < 10 && diffTime < 300) {
-                                e.preventDefault();
-                                if (onCreateSlot)
-                                  onCreateSlot({
-                                    hora: horaSlot,
-                                    profId: p.id,
-                                  });
+                {profesionales.map((p: any) => {
+                  const profColor = p.color || TOKENS.primary;
+                  return (
+                    <div
+                      key={`${h}-${p.id}`}
+                      style={{
+                        // La separacion entre profesionales ya la da la cabecera:
+                        // aqui basta una linea de pelo.
+                        borderLeft: `1px solid rgba(40,30,24,0.07)`,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      {[0, 15, 30, 45].map((minute) => {
+                        const horaSlot = `${String(h).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+                        return (
+                          <div
+                            key={minute}
+                            onClick={() => {
+                              if (onCreateSlot)
+                                onCreateSlot({ hora: horaSlot, profId: p.id });
+                            }}
+                            onTouchStart={(e) => {
+                              const touch = e.touches[0];
+                              e.currentTarget.dataset.startX = String(
+                                touch.clientX,
+                              );
+                              e.currentTarget.dataset.startY = String(
+                                touch.clientY,
+                              );
+                              e.currentTarget.dataset.startTime = String(
+                                Date.now(),
+                              );
+                            }}
+                            onTouchEnd={(e) => {
+                              const startX = parseFloat(
+                                e.currentTarget.dataset.startX || "0",
+                              );
+                              const startY = parseFloat(
+                                e.currentTarget.dataset.startY || "0",
+                              );
+                              const startTime = parseFloat(
+                                e.currentTarget.dataset.startTime || "0",
+                              );
+                              const touch = e.changedTouches[0];
+                              if (touch) {
+                                const diffX = Math.abs(touch.clientX - startX);
+                                const diffY = Math.abs(touch.clientY - startY);
+                                const diffTime = Date.now() - startTime;
+                                if (diffX < 10 && diffY < 10 && diffTime < 300) {
+                                  e.preventDefault();
+                                  if (onCreateSlot)
+                                    onCreateSlot({
+                                      hora: horaSlot,
+                                      profId: p.id,
+                                    });
+                                }
                               }
-                            }
-                          }}
-                          title={`Crear cita a las ${horaSlot}`}
-                          style={{
-                            flex: 1,
-                            borderTop:
-                              minute !== 0
-                                ? minute === 30
-                                  ? `1.5px dashed rgba(40,30,24,0.14)`
-                                  : `1px dashed rgba(40,30,24,0.06)`
-                                : "none",
-                            cursor: onCreateSlot ? "pointer" : "default",
-                            transition: "background-color 0.12s ease",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                            padding: "0 7px",
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!onCreateSlot) return;
-                            e.currentTarget.style.backgroundColor =
-                              theme?.primarySoft
-                                ? theme.primarySoft
-                                : "rgba(244,80,30,0.09)";
-                            const lbl = e.currentTarget.querySelector(
-                              "span",
-                            ) as HTMLElement | null;
-                            if (lbl) lbl.style.opacity = "1";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
-                            const lbl = e.currentTarget.querySelector(
-                              "span",
-                            ) as HTMLElement | null;
-                            if (lbl) lbl.style.opacity = "0";
-                          }}
-                        >
-                          <span
+                            }}
+                            title={`Crear cita a las ${horaSlot}`}
                             style={{
-                              fontSize: 9.5,
-                              fontWeight: 700,
-                              color: theme?.primary ? theme.primary : "#e0340e",
-                              opacity: 0,
-                              transition: "opacity 0.12s ease",
-                              pointerEvents: "none",
+                              flex: 1,
+                              borderTop:
+                                minute !== 0
+                                  ? minute === 30
+                                    ? `1.5px dashed rgba(40,30,24,0.14)`
+                                    : `1px dashed rgba(40,30,24,0.06)`
+                                  : "none",
+                              cursor: onCreateSlot ? "pointer" : "default",
+                              transition: "background-color 0.12s ease",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "flex-end",
+                              padding: "0 7px",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!onCreateSlot) return;
+                              e.currentTarget.style.backgroundColor =
+                                hexToRgba(profColor, 0.12);
+                              const lbl = e.currentTarget.querySelector(
+                                "span",
+                              ) as HTMLElement | null;
+                              if (lbl) lbl.style.opacity = "1";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                              const lbl = e.currentTarget.querySelector(
+                                "span",
+                              ) as HTMLElement | null;
+                              if (lbl) lbl.style.opacity = "0";
                             }}
                           >
-                            {horaSlot}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
+                            <span
+                              style={{
+                                fontSize: 9.5,
+                                fontWeight: 700,
+                                color: profColor,
+                                opacity: 0,
+                                transition: "opacity 0.12s ease",
+                                pointerEvents: "none",
+                              }}
+                            >
+                              {horaSlot}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
             ))}
             <div

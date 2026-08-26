@@ -140,9 +140,7 @@
 .wa-av svg{width:20px;height:20px;color:#fff}
 .wa-name{font-size:14px;font-weight:600;color:#e9edef}
 .wa-status{font-size:11px;color:#8696a0;display:flex;align-items:center;gap:5px}
-.wa-status .od{width:7px;height:7px;border-radius:50%;background:#10b981}
-.wa-body{flex:1;min-height:0;padding:16px 13px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;overscroll-behavior:contain;background:#0b141a;background-image:radial-gradient(rgba(255,255,255,.018) 1px,transparent 1px);background-size:18px 18px}
-.wa-body::-webkit-scrollbar{width:5px}
+.wa-body{flex:1;min-height:0;padding:16px 13px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;overscroll-behavior:contain;background:#0b141a}
 .wa-body::-webkit-scrollbar-thumb{background:rgba(148,163,184,.25);border-radius:999px}
 .wa-body::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.4)}
 .msg{max-width:82%;flex-shrink:0;padding:8px 11px;border-radius:11px;font-size:13px;line-height:1.4;color:#e9edef;opacity:0;transform:translateY(8px);animation:msgIn .35s var(--ease) forwards}

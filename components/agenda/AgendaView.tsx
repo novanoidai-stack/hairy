@@ -88,7 +88,7 @@ export function AgendaView({ profesionales, onCitaPress, onNuevaCita, fecha, onF
         <View style={{ width: TIME_COL_WIDTH }} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {profesionales.map((prof) => (
-            <View key={prof.id} style={[s.profCol, { width: COL_WIDTH }]}>
+            <View key={prof.id} style={[s.profCol, { width: COL_WIDTH, borderTopWidth: 2, borderTopColor: prof.color, backgroundColor: `${prof.color}0d` }]}>
               <View style={[s.profDot, { backgroundColor: prof.color }]} />
               <TText style={[s.profNombre, { color: c.text }]} numberOfLines={1}>{prof.nombre}</TText>
             </View>
@@ -122,7 +122,7 @@ export function AgendaView({ profesionales, onCitaPress, onNuevaCita, fecha, onF
                   key={prof.id}
                   style={[
                     s.profGridCol,
-                    { width: COL_WIDTH, borderLeftColor: c.border },
+                    { width: COL_WIDTH, borderLeftColor: c.border, backgroundColor: `${prof.color}06` },
                   ]}
                 >
                   {/* Líneas de hora */}
