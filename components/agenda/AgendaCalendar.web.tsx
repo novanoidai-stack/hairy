@@ -8166,7 +8166,9 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         transition: isBeingDragged
           ? "none"
           : "box-shadow 0.18s ease, filter 0.18s ease",
-        opacity: bloque.atenuado ? 0.5 : isBeingDragged ? 0.25 : 1,
+        // 0.25 dejaba la cita practicamente invisible sobre el rayado del
+        // reposo y parecia que "desaparecia" al arrastrarla encima.
+        opacity: bloque.atenuado ? 0.5 : isBeingDragged ? 0.45 : 1,
       }}
       onMouseDown={(e) => {
         if (!cancelada) startDrag(cita, e);
@@ -9482,6 +9484,18 @@ function DayTimeline({
         blockWidth: rect.width / escala,
         blockHeight: rect.height / escala,
       };
+      // Rect de la rejilla cacheado: leerlo en cada mousemove forzaba un
+      // reflow por evento y el arrastre iba a tirones. Se refresca solo
+      // cuando la pagina se desplaza durante el arrastre (ver onScroll).
+      const grid = gridRef.current;
+      if (grid) {
+        const gr = grid.getBoundingClientRect();
+        d.gridRect = {
+          left: gr.left / (escala || 1),
+          top: gr.top / (escala || 1),
+          width: gr.width / (escala || 1),
+        };
+      }
       dragRef.current = d;
       // El fantasma se monta YA (antes aparecia en el primer mousemove). A partir
       // de aqui su posicion se actualiza escribiendo el transform sobre el nodo,
@@ -9521,22 +9535,22 @@ function DayTimeline({
           const nodo = ghostRef.current;
           if (!nodo) return;
           const { x, y } = ghostPosRef.current;
-          nodo.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          nodo.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1.02)`;
         });
       }
 
       const grid = gridRef.current;
-      if (!grid) return;
-      const r = grid.getBoundingClientRect();
+      const r = d.gridRect;
+      if (!grid || !r) return;
       // Todo lo que sigue va en pixeles CSS: es lo unico que se puede comparar
       // con ROW_H y con los 56px de la columna de horas, y lo unico que se
       // puede volcar despues en un `style` (ver el comentario de startDrag).
       // El factor es el del zoom de pagina, o sea el mismo para todo el
       // documento: se reaprovecha el que se midio al empezar a arrastrar en vez
       // de leer offsetWidth en cada mousemove, que fuerza un reflujo por frame.
-      const anchoCss = r.width / k;
-      const relY = (e.clientY - r.top) / k;
-      const relX = (e.clientX - r.left) / k - 56;
+      const anchoCss = r.width;
+      const relY = e.clientY / k - r.top;
+      const relX = e.clientX / k - r.left - 56;
       const profs = _profRef.current;
       if (
         relY < 0 ||
@@ -10002,10 +10016,26 @@ function DayTimeline({
       }
     };
 
+    // Si el usuario desplaza la agenda mientras arrastra, el rect cacheado de
+    // la rejilla queda viejo: se refresca aqui (y solo aqui, no por mousemove).
+    const onScroll = () => {
+      const d = dragRef.current;
+      const grid = gridRef.current;
+      if (!d || !grid) return;
+      const gr = grid.getBoundingClientRect();
+      const k = d.escala || 1;
+      d.gridRect = {
+        left: gr.left / k,
+        top: gr.top / k,
+        width: gr.width / k,
+      };
+    };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("mouseup", onUp);
       // El frame pendiente escribiria sobre un nodo ya desmontado.
       if (ghostFrameRef.current != null) {
@@ -10705,7 +10735,10 @@ function DayTimeline({
                         height: Math.max(16, hostRepH),
                         borderRadius: 8,
                         pointerEvents: "none",
-                        zIndex: 5,
+                        // Por encima de los bloques de cita (zIndex 10/15):
+                        // antes iba a 5 y el aviso quedaba tapado.
+                        zIndex: 9997,
+                        transition: "top 0.09s ease, left 0.09s ease",
                         background: `${bandColor}1a`,
                         border: `2px dashed ${bandColor}`,
                         boxShadow: `0 0 12px ${bandColor}33`,
@@ -10744,6 +10777,9 @@ function DayTimeline({
                         border: `2px dashed ${dropColor}`,
                         backgroundColor: `${dropColor}10`,
                         zIndex: 9998,
+                        // La previa se desliza entre snaps en vez de tele-
+                        // transportarse cada 5-15 min de recorrido.
+                        transition: "top 0.09s ease, left 0.09s ease, width 0.09s ease",
                         pointerEvents: "none",
                         display: "flex",
                         alignItems: "center",
@@ -11036,7 +11072,7 @@ function DayTimeline({
             ghostRef.current = n;
             if (n) {
               const { x, y } = ghostPosRef.current;
-              n.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+              n.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1.02)`;
             }
           }}
           style={{
