@@ -37,6 +37,23 @@ import {
   PENAL_RETRASO,
   BONUS_REPOSO,
 } from '../../../lib/organizador/motorPropuestas.ts';
+import {
+  validarPlanes,
+  huecosLibresProfesional,
+  refDeCliente,
+  TOPE_MOVIMIENTOS_PLAN,
+  TTL_PLAN_MIN,
+  type PlanIABruto,
+  type MovimientoPlanBruto,
+} from '../../../lib/organizador/planIA.ts';
+import {
+  parseInstanteSalon,
+  enHoraSalon,
+  fechaSalon,
+  horaSalon,
+  horariosAlRelojDelRuntime,
+  desfaseRuntimeMin,
+} from '../shared/relojSalon.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -48,6 +65,24 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...cors, 'Content-Type': 'application/json' },
   });
+}
+
+// ─── RELOJ DEL SALON ────────────────────────────────────────────────────────
+// Las libs puras de agenda materializan las horas de apertura con setHours(),
+// o sea en la zona LOCAL DEL RUNTIME. En el navegador eso es Madrid y cuadra;
+// aqui el runtime es UTC, asi que "abre a las 09:00" acababa siendo 09:00Z =
+// 11:00 de Madrid en verano. Dos horas de desfase en jornadas, tramos, huecos y
+// fuera_jornada — es decir, en TODO lo que el motor determinista calcula dentro
+// de esta funcion. Desplazando el horario ANTES de dársela a las libs, su
+// aritmetica local acaba cayendo en la hora de Madrid correcta.
+// Si algun dia el runtime pasa a ser Madrid, el desfase es 0 y esto no hace nada.
+// (Ojo: `vigilar-agenda` tiene el mismo problema y NO lleva este arreglo.)
+function alRelojDelSalon<T extends Record<string, unknown>>(
+  filas: T[] | null | undefined,
+  campos: (keyof T)[],
+  referencia: Date,
+): T[] {
+  return horariosAlRelojDelRuntime(filas ?? [], campos, { referencia });
 }
 
 // --- Schema de salida del modelo (JSON estricto) ---
@@ -154,6 +189,58 @@ Reglas de salida:
 }
 const SYSTEM = construirSystemPrompt();
 
+// --- Modo PLANES (F1 del motor generativo). Mismo dominio, otro encargo: en vez
+//     de escribir recomendaciones, inventar SOLUCIONES EJECUTABLES.
+//
+//     La seccion 10 del prompt base ("tu trabajo") se reemplaza porque ahi el
+//     encargo es el contrario: en analisis se le pide NO repetir lo puntual; en
+//     planes se le pide justamente resolver lo que el motor determinista no
+//     supo resolver. El resto del entrenamiento (fases, estados, cadenas,
+//     jornadas, portal, linea roja, constantes del motor, economia) se
+//     reaprovecha tal cual: es el mismo salon.
+function construirSystemPromptPlanes(): string {
+  const base = construirSystemPrompt().split('═══════════ 10. TU TRABAJO ═══════════')[0];
+  return `${base}═══════════ 10. TU TRABAJO: INVENTAR PLANES EJECUTABLES ═══════════
+El motor determinista solo sabe cuatro jugadas: compactar, encajar en un reposo, cambiar de dia y cambiar de profesional. Cuando el problema no se arregla con ninguna de esas cuatro, se calla y el salon se queda sin propuesta.
+Tu trabajo es esa cuarta pared: proponer la jugada que NO esta programada. Un plan puede llamarse como quieras ('alinear los reposos de la manana', 'rescatar la cadena de las 17:00', 'blindar el viernes contra ausencias'). Lo que importa no es el nombre: es que sea una secuencia CONCRETA de movimientos de citas reales.
+
+REGLAS DURAS (un plan que las incumpla se descarta entero en el servidor):
+1. Solo puedes MOVER citas que existan, usando su referencia (#1, #2...) de la lista CITAS MOVIBLES. No inventes referencias.
+2. Un movimiento es una REUBICACION: la cita entera se traslada conservando sus fases. No puedes acortar, alargar ni partir un servicio.
+3. Maximo ${TOPE_MOVIMIENTOS_PLAN} movimientos por plan. Mas que eso nadie lo lee antes de pulsar "Aplicar".
+4. Las horas van en hora del SALON, formato YYYY-MM-DDTHH:MM, sin Z ni offset, y siempre en un slot de 15 min (:00, :15, :30, :45).
+5. Coloca las citas SOLO en tramos que aparezcan en HUECOS LIBRES. Esa lista ya descuenta jornada, turnos, comida, bloqueos, cierres y citas existentes: si un hueco no esta ahi, no existe.
+6. Una CADENA (mismo grupo) se mueve entera y con el mismo desplazamiento en todos sus tramos, o no se toca.
+7. No decidas tu quien necesita permiso de la clienta: el servidor lo clasifica solo. Tu limitate a proponer lo que mejora la agenda.
+
+Cada plan tiene que explicar POR QUE (que ves tu que el motor no ve) y COMO llegaste. Un peluquero solo se fia de un plan inventado por una maquina si entiende el razonamiento.
+Ejemplos del tipo de jugada que se busca: alinear reposos sueltos para que quepa otra cita en el pico de demanda; rescatar una cadena que acaba pisando el cierre moviendo solo su primer eslabon; vaciar la manana floja de un profesional pasando sus citas al que va sobrecargado; reordenar un dia para que las clientas con historial de ausencia no queden a primera hora.
+Si la agenda esta bien y no hay nada que valga la pena mover, devuelve la lista de planes VACIA. Un plan flojo cuesta mas credibilidad de la que gana.
+
+Responde SOLO JSON con esta forma exacta:
+{"planes":[{"tipoProblema":string,"titulo":string,"diagnostico":string,"razonamiento":string,"confianza":"alta"|"media"|"baja","impactoMin":number,"riesgos":[string],"movimientos":[{"cita":"#N","tipo":string,"inicio":"YYYY-MM-DDTHH:MM","profesional":"pN"}]}]}
+- "profesional" solo si el plan reasigna esa cita a otra persona; si no, omitelo.
+- "tipoProblema" es libre: usa el nombre que mejor describa lo que has visto.
+- Maximo 3 planes, ordenados por impacto.`;
+}
+const SYSTEM_PLANES = construirSystemPromptPlanes();
+
+// Lo que se le pide al modelo. Deliberadamente distinto de PlanIABruto: aqui
+// las citas y los profesionales van por REFERENCIA CORTA (#3, p2), no por uuid.
+// Motivo: 400 uuids en el prompt cuestan dinero y, sobre todo, un uuid
+// inventado es indistinguible de uno bueno, mientras que un "#47" que no existe
+// se cae solo. La traduccion ref -> uuid la hace el servidor.
+interface MovimientoModelo {
+  cita?: string;
+  citaId?: string;
+  tipo?: string;
+  inicio?: string;
+  profesional?: string;
+}
+interface PlanesModelo {
+  planes?: (Omit<PlanIABruto, 'movimientos'> & { movimientos?: MovimientoModelo[] })[];
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
@@ -166,6 +253,9 @@ Deno.serve(async (req) => {
   // Para la auditoria de fallo: se rellenan en cuanto resuelve el auth.
   let negocioAudit = 'desconocido';
   let usuarioAudit = 'desconocido';
+  // Un fallo del generador de planes no debe contarse en la casilla del
+  // analisis (ni al reves): el cupo se lleva por casilla.
+  let funcionAudit = 'agenda-optimizador';
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -209,8 +299,11 @@ Deno.serve(async (req) => {
           desdeMs: +desde,
           hastaMs: +hasta,
           bloqueos: (bloqRes2.data ?? []) as any,
-          horarios: (horRes2.data ?? []) as any,
-          horariosProfesional: (horProfRes2.data ?? []) as any,
+          // Ver el bloque "RELOJ DEL SALON" del handler principal: sin este
+          // desplazamiento la jornada se calcula en UTC y todo el analisis se
+          // corre una o dos horas.
+          horarios: alRelojDelSalon(horRes2.data, ['apertura', 'cierre'], desde) as any,
+          horariosProfesional: alRelojDelSalon(horProfRes2.data, ['hora_inicio', 'hora_fin'], desde) as any,
         },
       );
       // Agregado por tipo, mismo contrato que vigilar-agenda (idempotente).
@@ -273,14 +366,33 @@ Deno.serve(async (req) => {
     if (!addonOk && negocioId !== 'demo_salon_001') {
       return json({ error: 'Chispa es el addon de IA por WhatsApp. Actívalo para usarla.', codigo: 'addon_ia_insuficiente' }, 402);
     }
+    // Modo de trabajo. 'analisis' = recomendaciones de texto (lo de siempre).
+    // 'planes' = motor generativo F1: planes EJECUTABLES ya validados.
+    const modo: 'analisis' | 'planes' = body?.modo === 'planes' ? 'planes' : 'analisis';
+
     // Cuota por hora (mismo mecanismo que migracion-magica/vision: cuenta filas
-    // de chispa_auditoria de esta funcion en la ultima hora). El analisis se
-    // pide al abrir el panel y al cambiar vista: 20/hora es holgado para un
-    // salon y frena a quien martillee "Re-analizar".
+    // de chispa_auditoria de esta funcion en la ultima hora).
+    //
+    // OJO, ARREGLO: el nombre tiene que ser EL MISMO con el que se audita, y no
+    // lo era — se pedia cupo de 'agenda_optimizador' (guion bajo) y se auditaba
+    // como 'agenda-optimizador' (guion), asi que el contador miraba una casilla
+    // siempre vacia y el limite de 20/hora no se aplico nunca.
+    //
+    // Los planes tienen su propia casilla y su propio tope: cuestan bastante
+    // mas que un analisis (mas contexto y mas razonamiento), asi que 10/hora.
     const MAX_ANALISIS_HORA = 20;
-    const cupo = await comprobarCupo(userClient, 'agenda_optimizador', MAX_ANALISIS_HORA);
+    const MAX_PLANES_HORA = 10;
+    const funcionIA = modo === 'planes' ? 'agenda-optimizador-planes' : 'agenda-optimizador';
+    funcionAudit = funcionIA;
+    const maxHora = modo === 'planes' ? MAX_PLANES_HORA : MAX_ANALISIS_HORA;
+    const cupo = await comprobarCupo(userClient, funcionIA, maxHora);
     if (!cupo.permitido) {
-      return json({ error: `Has llegado al limite de ${MAX_ANALISIS_HORA} analisis por hora. Espera un poco.`, codigo: 'cupo_agotado' }, 429);
+      return json({
+        error: modo === 'planes'
+          ? `Has llegado al limite de ${maxHora} generaciones de planes por hora. Espera un poco.`
+          : `Has llegado al limite de ${maxHora} analisis por hora. Espera un poco.`,
+        codigo: 'cupo_agotado',
+      }, 429);
     }
 
     const dias: number = Math.min(14, Math.max(1, Number(body?.dias ?? 1)));
@@ -329,6 +441,16 @@ Deno.serve(async (req) => {
       (cliRes.data ?? []) as any,
       (srvRes.data ?? []) as any,
     );
+    // Horarios en el reloj del runtime (ver alRelojDelSalon arriba). TODO lo
+    // que se pase a las libs puras tiene que usar estos, no los crudos.
+    const horariosReloj = alRelojDelSalon(horRes.data, ['apertura', 'cierre'], desde);
+    const horProfReloj = alRelojDelSalon(horProfRes.data, ['hora_inicio', 'hora_fin'], desde);
+    const geometria = {
+      bloqueos: (bloqRes.data ?? []) as any,
+      horarios: horariosReloj as any,
+      horariosProfesional: horProfReloj as any,
+      cierres: (cierresRes.data ?? []) as any,
+    };
     const problemas: ProblemaAgenda[] = analizarAgendaRango(
       citasOrg,
       (profsRes.data ?? []) as any,
@@ -336,9 +458,7 @@ Deno.serve(async (req) => {
         ahoraMs: Date.now(),
         desdeMs: +desde,
         hastaMs: +hasta,
-        bloqueos: (bloqRes.data ?? []) as any,
-        horarios: (horRes.data ?? []) as any,
-        horariosProfesional: (horProfRes.data ?? []) as any,
+        ...geometria,
         maxAdelantoMin: cfg.agendaMaxAdelantoMin,
         umbralHuecoMin: cfg.agendaUmbralHuecoMin,
       },
@@ -348,9 +468,12 @@ Deno.serve(async (req) => {
     const profPorId = new Map(((profsRes.data ?? []) as any[]).map((p) => [p.id, p.nombre]));
     const cliPorId = new Map(((cliRes.data ?? []) as any[]).map((c) => [c.id, c.nombre]));
     const srvPorId = new Map(((srvRes.data ?? []) as any[]).map((s) => [s.id, s.nombre]));
+    // Las horas van SIEMPRE en el reloj del salon. Antes se cortaba el ISO en
+    // crudo (`c.inicio.slice(0,16)`), que es UTC: el modelo leia "11:00" en una
+    // cita que en la peluqueria es a las 13:00 y razonaba sobre otra agenda.
     const lineaCita = (c: any) => {
-      const ini = c.inicio.slice(0, 16).replace('T', ' ');
-      const fin = c.fin.slice(11, 16);
+      const ini = enHoraSalon(c.inicio);
+      const fin = horaSalon(c.fin);
       return `${ini}–${fin} | ${profPorId.get(c.profesional_id) ?? c.profesional_id} | ${
         cliPorId.get(c.cliente_id) ?? 'sin cliente'
       } | ${srvPorId.get(c.servicio_id) ?? c.servicio_id ?? 'sin servicio'} | ${c.estado}${c.grupo_id ? ' | cadena' : ''}`;
@@ -439,8 +562,11 @@ Deno.serve(async (req) => {
 
     const contexto = [
       `SALON: ${negocioId}`,
-      `RANGO ANALIZADO: ${desde.toISOString().slice(0, 10)} → ${hasta.toISOString().slice(0, 10)} (${dias} dia(s))`,
-      `HOY: ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`,
+      `RANGO ANALIZADO: ${fechaSalon(desde)} → ${fechaSalon(hasta)} (${dias} dia(s))`,
+      // En hora del SALON, no del servidor: esta funcion corre en UTC y decirle
+      // al modelo que "hoy son las 13:00" cuando en la peluqueria son las 15:00
+      // envenena cualquier razonamiento sobre "lo que queda de tarde".
+      `AHORA (hora del salon): ${enHoraSalon(new Date())}`,
       '',
       `PROFESIONALES: ${(profsRes.data ?? []).map((p: any) => `${p.nombre}${p.activo === false ? ' (inactivo)' : ''}`).join(', ')}`,
       '',
@@ -466,9 +592,235 @@ Deno.serve(async (req) => {
       ...problemas.slice(0, 60).map((p) => `- [${p.tipo}] ${p.titulo} (${p.profesionalNombre}): ${p.descripcion}`),
     ].join('\n');
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // MODO PLANES (F1 del motor generativo)
+    // ═══════════════════════════════════════════════════════════════════════
+    if (modo === 'planes') {
+      const limites = {
+        maxAdelantoMin: cfg.agendaMaxAdelantoMin,
+        margenReaccionMin: cfg.agendaMargenReaccionMin,
+      };
+
+      // --- Referencias cortas. El modelo trabaja con #3 y p2, nunca con uuids:
+      //     mas barato en tokens y, sobre todo, una referencia inventada se cae
+      //     sola mientras que un uuid inventado parece legitimo. ---
+      const ahoraMs = Date.now();
+      const movibles = citasOrg
+        .filter((c) => (c.estado === 'confirmada' || c.estado === 'pendiente'))
+        .filter((c) => {
+          const t = +new Date(c.inicio);
+          return t >= ahoraMs && t >= +desde && t < +hasta;
+        })
+        .sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio))
+        .slice(0, 120);
+
+      if (movibles.length === 0) {
+        return json({ ok: true, planes: [], motivo: 'No hay citas futuras en el rango que se puedan mover.' });
+      }
+
+      const citaPorRef = new Map<string, string>();
+      const refPorCita = new Map<string, string>();
+      movibles.forEach((c, i) => {
+        const ref = `#${i + 1}`;
+        citaPorRef.set(ref, c.id);
+        refPorCita.set(c.id, ref);
+      });
+
+      const profsActivos = ((profsRes.data ?? []) as any[]).filter((p) => p.activo !== false);
+      const profPorRef = new Map<string, string>();
+      const refPorProf = new Map<string, string>();
+      profsActivos.forEach((p, i) => {
+        const ref = `p${i + 1}`;
+        profPorRef.set(ref, p.id);
+        refPorProf.set(p.id, ref);
+      });
+
+      // --- Geometria PRECALCULADA: los huecos reales de cada profesional dia a
+      //     dia. Es lo que evita que el modelo deduzca horas de una lista de
+      //     citas, que es donde siempre se inventa la agenda. ---
+      const lineasHuecos: string[] = [];
+      for (let d = new Date(desde); d < hasta; d.setDate(d.getDate() + 1)) {
+        const diaMs = d.getTime();
+        for (const p of profsActivos) {
+          const huecos = huecosLibresProfesional(p.id, diaMs, citasOrg, {
+            ahoraMs,
+            ...geometria,
+            minMinutos: 15,
+          });
+          if (huecos.length === 0) continue;
+          lineasHuecos.push(
+            `- ${fechaSalon(diaMs)} | ${p.nombre} (${refPorProf.get(p.id)}): ` +
+            huecos.map((h) => `${horaSalon(h.desde)}-${horaSalon(h.hasta)} (${h.minutos}min)`).join(', '),
+          );
+        }
+      }
+
+      const contextoPlanes = [
+        contexto,
+        '',
+        `CITAS MOVIBLES (usa ESTAS referencias en tus movimientos; formato: ref | inicio-fin | profesional | clienta | servicio | estado | cadena):`,
+        ...movibles.map((c) => {
+          const prof = profPorId.get(c.profesional_id) ?? c.profesional_id;
+          return `${refPorCita.get(c.id)} | ${enHoraSalon(c.inicio)}-${horaSalon(c.fin)} | ${prof} (${refPorProf.get(c.profesional_id) ?? '?'}) | ${c.cliente ?? 'sin ficha'} | ${c.servicio ?? 'sin servicio'} | ${c.estado}${c.grupoId ? ` | cadena ${c.grupoId.slice(0, 8)}` : ''}`;
+        }),
+        '',
+        `PROFESIONALES (referencia | nombre | categoria):`,
+        ...profsActivos.map((p) => `${refPorProf.get(p.id)} | ${p.nombre} | ${p.categoria ?? 'sin categoria'}`),
+        '',
+        `HUECOS LIBRES REALES (ya descuentan jornada, turnos, comida, bloqueos, cierres y citas; el reposo de una cita SI cuenta como hueco):`,
+        ...(lineasHuecos.length ? lineasHuecos : ['- ninguno: la agenda esta llena en todo el rango']),
+        '',
+        `LIMITES DE ESTE SALON: adelanto maximo ${limites.maxAdelantoMin ?? 240} min · margen de reaccion de la clienta ${limites.margenReaccionMin ?? 120} min · umbral de hueco ${cfg.agendaUmbralHuecoMin ?? 30} min.`,
+      ].join('\n');
+
+      const resPlanes = await llamarIAJson<PlanesModelo>(apiKey, {
+        funcion: funcionIA,
+        mensajes: [
+          { role: 'system', content: SYSTEM_PLANES },
+          { role: 'user', content: contextoPlanes },
+        ],
+        maxTokens: 2400,
+        perfil: 'calidad',
+      });
+
+      // --- Traduccion refs -> uuids y horas del salon -> instantes reales.
+      //     Nada de esto confia en el modelo: lo que no resuelva se convierte en
+      //     un movimiento invalido que el validador poda con su motivo. ---
+      const brutos: PlanIABruto[] = (resPlanes.datos?.planes ?? []).slice(0, 3).map((p) => ({
+        tipoProblema: String(p?.tipoProblema ?? 'otro'),
+        titulo: String(p?.titulo ?? 'Plan de Chispa'),
+        diagnostico: String(p?.diagnostico ?? ''),
+        razonamiento: String(p?.razonamiento ?? ''),
+        confianza: p?.confianza,
+        impactoMin: p?.impactoMin,
+        riesgos: Array.isArray(p?.riesgos) ? p.riesgos.map(String) : [],
+        movimientos: (p?.movimientos ?? []).map((m): MovimientoPlanBruto => {
+          const ref = String(m?.cita ?? m?.citaId ?? '').trim();
+          const instante = parseInstanteSalon(String(m?.inicio ?? ''));
+          return {
+            // Ref desconocida -> citaId vacio -> poda 'cita_inexistente'.
+            citaId: citaPorRef.get(ref) ?? citaPorRef.get(`#${ref.replace(/^#/, '')}`) ?? '',
+            tipo: m?.tipo ? String(m.tipo) : 'mover',
+            inicio: isNaN(instante.getTime()) ? '' : instante.toISOString(),
+            profesionalId: m?.profesional ? (profPorRef.get(String(m.profesional).trim()) ?? '') : undefined,
+          };
+        }),
+      }));
+
+      // --- Anti-spam: propuestas de cambio ya enviadas en los ultimos 7 dias.
+      //     Las deja proponer_cambio_cita en lista_espera_avisos. ---
+      const { data: avisosPrev } = await svc
+        .from('lista_espera_avisos')
+        .select('telefono, nombre, created_at')
+        .eq('negocio_id', negocioId)
+        .eq('template', 'propuesta_cambio_cita')
+        .gte('created_at', new Date(ahoraMs - 7 * 86400000).toISOString())
+        .limit(500);
+      const propuestasRecientes = ((avisosPrev ?? []) as any[]).map((a) => ({
+        clienteRef: refDeCliente({ telefono: a.telefono, cliente: a.nombre, id: '' }),
+        enviadaEn: a.created_at,
+      }));
+
+      // --- Citas que ya tiene comprometidas otro plan vivo: dos tarjetas no
+      //     pueden dar ordenes distintas sobre la misma cita. ---
+      const { data: planesVivos } = await svc
+        .from('planes_ia')
+        .select('movimientos')
+        .eq('negocio_id', negocioId)
+        .in('estado', ['propuesto', 'esperando_clientes'])
+        .gt('expira_en', new Date().toISOString())
+        .limit(50);
+      const comprometidas = new Set<string>();
+      for (const pv of (planesVivos ?? []) as any[]) {
+        for (const m of (pv.movimientos ?? [])) if (m?.citaId) comprometidas.add(m.citaId);
+      }
+
+      const validados = validarPlanes(brutos, {
+        ahoraMs,
+        citas: citasOrg,
+        profesionales: (profsRes.data ?? []) as any,
+        ...geometria,
+        maxAdelantoMin: limites.maxAdelantoMin,
+        margenReaccionMin: limites.margenReaccionMin,
+        citasComprometidas: comprometidas,
+        propuestasRecientes,
+      });
+
+      // --- Persistencia. Best-effort: si la migracion no esta aplicada, el
+      //     salon igual ve sus planes (no se le rompe el panel por eso), pero se
+      //     avisa a gritos en los logs — un plan sin fila no se puede auditar. ---
+      const expiraEn = new Date(ahoraMs + TTL_PLAN_MIN * 60000).toISOString();
+      const filas = validados.map((v) => ({
+        id: v.id,
+        negocio_id: negocioId,
+        generado_por: user.id,
+        disparador: 'panel',
+        tipo_problema: v.tipoProblema,
+        titulo: v.titulo,
+        diagnostico: v.diagnostico,
+        razonamiento: v.razonamiento,
+        confianza: v.confianza,
+        impacto_min: v.impactoMin,
+        impacto_declarado_min: v.impactoDeclaradoMin,
+        score: v.score,
+        movimientos: v.movimientos,
+        movimientos_podados: v.podados,
+        requiere_consentimiento: v.requiereConsentimiento,
+        zonas: v.zonas,
+        riesgos: v.riesgos,
+        modelo: resPlanes.modelo,
+        coste_usd: resPlanes.costeUsd,
+        tokens_in: resPlanes.tokensIn,
+        tokens_out: resPlanes.tokensOut,
+        estado: 'propuesto',
+        expira_en: expiraEn,
+      }));
+      let persistidos = 0;
+      if (filas.length > 0) {
+        const { error: errIns } = await svc.from('planes_ia').insert(filas);
+        if (errIns) {
+          console.error(
+            `[planes_ia] NO SE PUDO GUARDAR el plan: ${errIns.message}. ` +
+            'Aplica migrations/planes-ia-motor-generativo.sql o los planes no quedan auditados.',
+          );
+        } else {
+          persistidos = filas.length;
+        }
+      }
+
+      auditar(svc, resPlanes, {
+        negocioId,
+        usuarioId: user.id,
+        funcionIA,
+        superficie: 'organizador',
+        contexto: {
+          dias,
+          citas: citas.length,
+          movibles: movibles.length,
+          planes_propuestos: brutos.length,
+          planes_validos: validados.length,
+          movimientos_podados: validados.reduce((n, v) => n + v.podados.length, 0),
+          persistidos,
+        },
+      });
+
+      return json({
+        ok: true,
+        planes: validados,
+        expiraEn,
+        modelo: resPlanes.modelo,
+        costeUsd: resPlanes.costeUsd,
+        latenciaMs: Date.now() - t0,
+        // Utiles para depurar por que un plan no aparece.
+        propuestos: brutos.length,
+        persistidos,
+        desfaseRelojMin: desfaseRuntimeMin(desde),
+      });
+    }
+
     // --- Llamada al modelo: perfil calidad (gemini-3.7-flash primero). ---
     const resultado = await llamarIAJson<AnalisisIA>(apiKey, {
-      funcion: 'agenda-optimizador',
+      funcion: funcionIA,
       mensajes: [
         { role: 'system', content: SYSTEM },
         { role: 'user', content: contexto },
@@ -487,7 +839,7 @@ Deno.serve(async (req) => {
     auditar(svc, resultado, {
       negocioId,
       usuarioId: user.id,
-      funcionIA: 'agenda-optimizador',
+      funcionIA,
       superficie: 'organizador',
       contexto: { dias, citas: citas.length, problemas: problemas.length },
     });
@@ -504,7 +856,7 @@ Deno.serve(async (req) => {
     auditarFallo(svc, {
       negocioId: negocioAudit,
       usuarioId: usuarioAudit,
-      funcionIA: 'agenda-optimizador',
+      funcionIA: funcionAudit,
       error: String(e),
       latenciaMs: Date.now() - t0,
     });

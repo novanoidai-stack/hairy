@@ -523,6 +523,7 @@ const ReposoFreeGapInteractive = memo(
     clienteMap,
     servicioMap,
     onSelectReposo,
+    dragging,
   }: {
     ini: number;
     fin: number;
@@ -537,6 +538,11 @@ const ReposoFreeGapInteractive = memo(
       profId: string;
       reposoContext: any;
     }) => void;
+    // Mientras se arrastra una cita el fantasma tiene pointerEvents:none, asi
+    // que el cursor "pasa" por debajo y encendia/apagaba el hover de cada franja
+    // libre que cruzaba. Se congela el hover durante el arrastre (fuera de el,
+    // el hover sigue igual: es util).
+    dragging?: boolean;
   }) => {
     const [hovered, setHovered] = useState(false);
     const iniDate = new Date(ini);
@@ -573,6 +579,7 @@ const ReposoFreeGapInteractive = memo(
       });
     };
 
+    const hov = hovered && !dragging;
     return (
       <div
         onClick={handleClick}
@@ -585,43 +592,43 @@ const ReposoFreeGapInteractive = memo(
           left: 0,
           right: 0,
           height: gapH,
+          pointerEvents: dragging ? "none" : "auto",
           // Verde = "puedes meter a alguien aqui". Es el unico verde del hueco
           // de reposo: la franja rayada de alrededor va en neutro a proposito,
           // porque el reposo no es un estado, es estructura de la cita.
-          background: hovered
+          background: hov
             ? "rgba(15,157,107,0.26)"
             : "rgba(15,157,107,0.10)",
-          boxShadow: hovered
+          boxShadow: hov
             ? "inset 0 0 12px rgba(15,157,107,0.45), 0 0 10px rgba(15,157,107,0.28)"
             : "none",
-          border: hovered ? `1.5px solid ${TOKENS.success}` : "none",
-          borderRadius: hovered ? 6 : 0,
+          border: hov ? `1.5px solid ${TOKENS.success}` : "none",
+          borderRadius: hov ? 6 : 0,
           display: "flex",
           alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
           justifyContent: "center",
           paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
           cursor: "pointer",
-          zIndex: hovered ? 10 : 2,
+          zIndex: hov ? 10 : 2,
           transition: "all 0.15s ease",
-          pointerEvents: "auto",
         }}
       >
         {gapH >= 15 && (
           <span
             style={{
-              padding: hovered ? "3px 10px" : "2px 8px",
+              padding: hov ? "3px 10px" : "2px 8px",
               borderRadius: 999,
-              background: hovered ? TOKENS.successHi : TOKENS.success,
-              fontSize: hovered ? 10 : 9.5,
+              background: hov ? TOKENS.successHi : TOKENS.success,
+              fontSize: hov ? 10 : 9.5,
               fontWeight: 700,
               letterSpacing: 0.4,
               textTransform: "uppercase",
               color: "#ffffff",
               whiteSpace: "nowrap",
-              boxShadow: hovered
+              boxShadow: hov
                 ? "0 2px 8px rgba(15,157,107,0.45)"
                 : "0 1px 3px rgba(28,24,20,0.15)",
-              transform: hovered ? "scale(1.05)" : "scale(1)",
+              transform: hov ? "scale(1.05)" : "scale(1)",
               transition: "all 0.15s ease",
               pointerEvents: "none",
             }}
@@ -1107,6 +1114,11 @@ export default function AgendaCalendar() {
   const [ensenar, setEnsenar] = useState(false);
   // Problema concreto al que se ha hecho zoom desde el panel (null = todos).
   const [problemaEnfocado, setProblemaEnfocado] = useState<string | null>(null);
+  // "Enséñamelo" de un PLAN de Chispa (motor generativo F1). Un plan no esta en
+  // la lista determinista `problemasAgenda`: es una secuencia inventada por la
+  // IA, con un paso por movimiento. Por eso viaja aparte y el navegador de
+  // abajo pasa a recorrer SUS pasos (1/3, 2/3...) en vez de los problemas.
+  const [pasosPlan, setPasosPlan] = useState<ProblemaAgenda[]>([]);
   // Toast flotante de confirmación (p.ej. cobro efectuado)
   const [toastMensaje, setToastMensaje] = useState<string | null>(null);
 
@@ -1920,6 +1932,12 @@ export default function AgendaCalendar() {
   // distinguia una propuesta de otra. El navegador de "Anterior / N de M /
   // Siguiente" ya existia; lo que faltaba era que el resalte le hiciera caso.
   const zonasResaltadas = useMemo(() => {
+    // Un plan de Chispa manda sobre todo lo demas: si se esta enseñando un
+    // plan, la rejilla resalta SU paso, no los problemas deterministas.
+    if (pasosPlan.length > 0) {
+      const paso = pasosPlan.find((x) => x.id === problemaEnfocado);
+      return [paso ?? pasosPlan[0]];
+    }
     if (!ensenar && !problemaEnfocado) return [];
     const p = problemaEnfocado
       ? problemasAgenda.find((x) => x.id === problemaEnfocado)
@@ -1929,11 +1947,26 @@ export default function AgendaCalendar() {
     // desaparecio de la lista): se cae al primero en vez de dejar la rejilla
     // apagada, que pareceria que el interruptor no hace nada.
     return ensenar && problemasAgenda.length > 0 ? [problemasAgenda[0]] : [];
-  }, [ensenar, problemaEnfocado, problemasAgenda]);
+  }, [ensenar, problemaEnfocado, problemasAgenda, pasosPlan]);
 
   const idxEnfocado = problemaEnfocado
     ? problemasAgenda.findIndex((p) => p.id === problemaEnfocado)
     : -1;
+
+  // Lleva la vista al paso n de un plan de Chispa. Espeja enfocarProblema pero
+  // sobre `pasosPlan`, que no vive en la lista determinista.
+  const enfocarPasoPlan = useCallback(
+    (pasos: ProblemaAgenda[], i: number) => {
+      const p = pasos[i];
+      if (!p) return;
+      setPasosPlan(pasos);
+      setProblemaEnfocado(p.id);
+      if (selectedProf !== "todos" && selectedProf !== p.zona.profesionalId) {
+        setSelectedProf(p.zona.profesionalId);
+      }
+    },
+    [selectedProf],
+  );
 
   // Lleva la vista al problema n. Es lo que hace util a "Enseñamelo": antes te
   // decia "2 problemas" y te tocaba buscarlos scrolleando, y en movil ni eso
@@ -5779,7 +5812,7 @@ export default function AgendaCalendar() {
       {/* Aviso flotante del modo "Enseñamelo". Da salida al resalte (sobre todo
           cuando viene del panel con un solo problema enfocado) y evita que el
           interruptor parezca roto en un dia sin problemas. */}
-      {(ensenar || problemaEnfocado) && (
+      {(ensenar || problemaEnfocado || pasosPlan.length > 0) && (
         <div
           style={{
             position: "fixed",
@@ -5806,12 +5839,25 @@ export default function AgendaCalendar() {
           }}
         >
           {(() => {
-            const enfocado =
-              idxEnfocado >= 0 ? problemasAgenda[idxEnfocado] : null;
-            const n = problemasAgenda.length;
+            // Dos modos en el mismo navegador: recorrer los problemas del dia,
+            // o recorrer los PASOS de un plan de Chispa. En modo plan la lista
+            // determinista no pinta nada: los pasos son los del plan.
+            const modoPlan = pasosPlan.length > 0;
+            const idxPaso = modoPlan
+              ? Math.max(0, pasosPlan.findIndex((p) => p.id === problemaEnfocado))
+              : -1;
+            const enfocado = modoPlan
+              ? pasosPlan[idxPaso]
+              : idxEnfocado >= 0
+                ? problemasAgenda[idxEnfocado]
+                : null;
+            const n = modoPlan ? pasosPlan.length : problemasAgenda.length;
+            const idx = modoPlan ? idxPaso : idxEnfocado;
+            const ir = (destino: number) =>
+              modoPlan ? enfocarPasoPlan(pasosPlan, destino) : enfocarProblema(destino);
             const flecha = (dir: -1 | 1, etiqueta: string) => (
               <button
-                onClick={() => enfocarProblema((idxEnfocado + dir + n) % n)}
+                onClick={() => ir((idx + dir + n) % n)}
                 aria-label={etiqueta}
                 title={etiqueta}
                 disabled={n < 2}
@@ -5844,7 +5890,7 @@ export default function AgendaCalendar() {
             }
             return (
               <>
-                {flecha(-1, "Problema anterior")}
+                {flecha(-1, modoPlan ? "Paso anterior" : "Problema anterior")}
                 <span
                   style={{
                     fontSize: 11,
@@ -5854,9 +5900,9 @@ export default function AgendaCalendar() {
                     fontVariantNumeric: "tabular-nums" as any,
                   }}
                 >
-                  {idxEnfocado >= 0 ? idxEnfocado + 1 : "–"}/{n}
+                  {modoPlan ? `Paso ${idxPaso + 1}` : idxEnfocado >= 0 ? idxEnfocado + 1 : "–"}/{n}
                 </span>
-                {flecha(1, "Problema siguiente")}
+                {flecha(1, modoPlan ? "Paso siguiente" : "Problema siguiente")}
                 <div style={{ minWidth: 0, lineHeight: 1.25 }}>
                   <div
                     style={{
@@ -5888,10 +5934,11 @@ export default function AgendaCalendar() {
                     ensena que ese rato esta libre, no hay nada roto), y ofrecer
                     ahi un boton de arreglar prometia una accion inexistente.
                     La regla la marca el propio tipo en lib/organizarAgenda.ts. */}
-                {(!enfocado || enfocado.estrategias.length > 0) && (
+                {(modoPlan || !enfocado || enfocado.estrategias.length > 0) && (
                   <button
                     onClick={() => {
                       setProblemaEnfocado(null);
+                      setPasosPlan([]);
                       setShowOrganizar(true);
                     }}
                     style={{
@@ -5917,6 +5964,7 @@ export default function AgendaCalendar() {
             onClick={() => {
               setEnsenar(false);
               setProblemaEnfocado(null);
+              setPasosPlan([]);
             }}
             aria-label="Dejar de resaltar"
             style={{
@@ -5957,7 +6005,15 @@ export default function AgendaCalendar() {
             // que toque (en movil solo hay una columna montada) y hace scroll.
             setShowOrganizar(false);
             setEnsenar(false);
+            setPasosPlan([]);
             enfocarProblema(problemasAgenda.findIndex((x) => x.id === p.id));
+          }}
+          // Plan de Chispa: llega la secuencia entera y el navegador de abajo
+          // pasa a recorrer sus pasos (origen → destino de cada movimiento).
+          onEnsenarPlan={(pasos, i) => {
+            setShowOrganizar(false);
+            setEnsenar(false);
+            enfocarPasoPlan(pasos, i);
           }}
           onClose={() => setShowOrganizar(false)}
           onAplicado={aplicarUpdatesEnAgenda}
@@ -8116,6 +8172,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         if (!cancelada) startDrag(cita, e);
       }}
       onMouseEnter={(e) => {
+        if (isDragging) return;
         e.currentTarget.style.filter = "brightness(1.03)";
         e.currentTarget.style.zIndex = nested ? "25" : "20";
         e.currentTarget.style.boxShadow = cancelada
@@ -8123,6 +8180,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
           : "0 8px 20px rgba(28,24,20,0.14)";
       }}
       onMouseLeave={(e) => {
+        if (isDragging) return;
         e.currentTarget.style.filter = "";
         e.currentTarget.style.zIndex = nested ? "15" : "10";
         e.currentTarget.style.boxShadow = bloque.sombra;
@@ -8203,6 +8261,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                     cita={cita}
                     clienteMap={clienteMap}
                     servicioMap={servicioMap}
+                    dragging={isDragging}
                     onSelectReposo={({ horaStr, profId, reposoContext }) => {
                       if (onCreateSlot) {
                         onCreateSlot({ hora: horaStr, profId, reposoContext });

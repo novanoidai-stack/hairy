@@ -17,6 +17,15 @@ import {
 import { toUpdate, type EstrategiaRetraso, type UpdateRetraso } from '@/lib/retrasos';
 import { evaluarTodas, type MotorOpts } from '@/lib/organizador/motorPropuestas';
 import type { MovimientoCandidato, PropuestasCita } from '@/lib/organizador/__types';
+import {
+  validarPlanes,
+  rehidratarPlan,
+  planAMovimientos,
+  planAUpdates,
+  type PlanIABruto,
+  type PlanIAValidado,
+  type ValidarPlanOpts,
+} from '@/lib/organizador/planIA';
 import { proponerCambioCita, avisoRiesgoPropuesta } from '@/lib/propuestasCambio';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
 import CerebroIAIcon from './CerebroIAIcon';
@@ -90,6 +99,9 @@ export interface OrganizarAgendaPanelProps {
   onAplicado: (updates: UpdateRetraso[]) => void;
   // Resalta el problema en la rejilla ("Enseñamelo"). Si no se pasa, no se ofrece.
   onEnsenar?: (problema: ProblemaAgenda) => void;
+  // "Enséñamelo" de un PLAN de Chispa: la secuencia completa, un paso por
+  // movimiento, para que el navegador de la rejilla los recorra en orden.
+  onEnsenarPlan?: (pasos: ProblemaAgenda[], indice: number) => void;
 }
 
 function iconoTipo(tipo: ProblemaAgenda['tipo']) {
@@ -150,7 +162,7 @@ function fechaIsoLocal(ms: number): string {
 
 export default function OrganizarAgendaPanel({
   citas, profesionales, clientes, servicios, bloqueos, horarios, horariosProfesional, cierres, limites, negocioId, isMobile,
-  fechaVista, onClose, onAplicado, onEnsenar,
+  fechaVista, onClose, onAplicado, onEnsenar, onEnsenarPlan,
 }: OrganizarAgendaPanelProps) {
   const esDemoCompartida = IS_DEMO_MODE || negocioId === 'demo_salon_001';
   // Arnes de pruebas SOLO con ?orgnow=<ISO> en la URL (mismo espiritu que
@@ -236,6 +248,7 @@ export default function OrganizarAgendaPanel({
     pedirAnalisisIA();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vista, fechaVista?.toDateString()]);
+
 
   useEffect(() => {
     let cancel = false;
@@ -327,6 +340,214 @@ export default function OrganizarAgendaPanel({
     return new Map(lista.map((p) => [p.citaId, p] as const));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [citasHoy, profesionales, ahoraOverrideMs, fechaVista, bloqueos, horarios, horariosProfesional, cierres, limites, vista, latidoTick]);
+
+  // ── PLANES DE CHISPA (motor generativo, F1) ──────────────────────────────
+  // El análisis describe patrones; un PLAN los resuelve: trae movimientos
+  // concretos con botón. No se pide solo al abrir el panel (cuesta bastante más
+  // que el análisis): lo dispara el usuario.
+  const [planesCrudos, setPlanesCrudos] = useState<PlanIAValidado[]>([]);
+  const [generandoPlanes, setGenerandoPlanes] = useState(false);
+  const [errorPlanes, setErrorPlanes] = useState('');
+  const [planesPedidos, setPlanesPedidos] = useState(false);
+  const [planAplicado, setPlanAplicado] = useState<Set<string>>(new Set());
+  const [porQueAbierto, setPorQueAbierto] = useState<string | null>(null);
+  const [pasoPorPlan, setPasoPorPlan] = useState<Record<string, number>>({});
+
+  // Opciones de validación construidas con un "ahora" FRESCO. Es una función y
+  // no un useMemo a propósito: al pulsar "Aplicar" hay que revalidar contra el
+  // instante del clic, no contra el del último render (§7 del informe: la
+  // agenda puede haberse movido mientras la tarjeta estaba en pantalla).
+  const opcionesValidacion = (): ValidarPlanOpts => ({
+    ahoraMs: ahoraOverrideMs ?? Date.now(),
+    citas: citasHoy,
+    profesionales,
+    horarios,
+    horariosProfesional,
+    cierres,
+    bloqueos,
+    maxAdelantoMin: limites?.maxAdelantoMin,
+    margenReaccionMin: limites?.margenReaccionMin,
+  });
+
+  // Los planes se REVALIDAN aquí aunque el servidor ya los validara. Dos
+  // motivos: el navegador tiene el estado más fresco (y el reloj del salón de
+  // verdad, no el UTC del servidor), y entre generar y pintar la agenda ha
+  // podido moverse. Lo que se pinta es siempre el resultado de esta pasada.
+  const planes = useMemo(
+    () => validarPlanes(planesCrudos.map(rehidratarPlan), opcionesValidacion())
+      .filter((p) => !planAplicado.has(p.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [planesCrudos, planAplicado, citasHoy, profesionales, horarios, horariosProfesional, cierres, bloqueos, limites, ahoraOverrideMs, latidoTick],
+  );
+
+  const pedirPlanes = async () => {
+    setPlanesPedidos(true);
+    setGenerandoPlanes(true);
+    setErrorPlanes('');
+    try {
+      if (esDemoCompartida) {
+        // La demo es el escaparate y tiene que enseñar la función entera, pero
+        // sin gastar tokens. Solución: se arma un plan de EJEMPLO con los
+        // mejores movimientos que el motor determinista ya ha calculado y se le
+        // pasa por el MISMO validador. Todo lo que se ve —la geometría, el
+        // reparto entre "aplicar" y "proponer", el score— es real; lo único de
+        // atrezzo es el relato, y se dice.
+        await new Promise((r) => setTimeout(r, 900));
+        const mejores = [...propuestasPorCita.values()]
+          .map((p) => p.candidatos.find(esDirecto) ?? p.candidatos[0])
+          .filter((c): c is MovimientoCandidato => !!c)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+        if (mejores.length === 0) {
+          setPlanesCrudos([]);
+          setErrorPlanes('Hoy la demo no tiene ningún hueco que reorganizar. En tu cuenta, Chispa buscaría aquí jugadas que el motor no sabe hacer.');
+          return;
+        }
+        const ejemplo: PlanIABruto = {
+          tipoProblema: 'reposo_alineable',
+          titulo: 'Junta la mañana y libera el mediodía (ejemplo de demo)',
+          diagnostico: 'Los huecos están repartidos en trozos pequeños por toda la mañana: ninguno da para una cita entera, pero juntos son casi una hora.',
+          razonamiento: 'Moviendo estas citas hacia la apertura, los ratos sueltos se funden en un bloque continuo a mediodía, que es la franja de más demanda de este salón.',
+          confianza: 'alta',
+          impactoMin: mejores.reduce((n, c) => n + Math.max(0, c.gananciaMin), 0),
+          riesgos: ['En tu cuenta este plan lo inventa la IA; aquí es un ejemplo montado con el motor para que veas cómo funciona.'],
+          movimientos: mejores.map((c) => ({
+            citaId: c.citaId,
+            tipo: 'mover',
+            inicio: new Date(c.fases.ini).toISOString(),
+            profesionalId: c.cambioTrabajador ? c.profesionalId : undefined,
+          })),
+        };
+        const validado = validarPlanes([ejemplo], opcionesValidacion());
+        setPlanesCrudos(validado);
+        if (validado.length === 0) {
+          setErrorPlanes('Hoy la demo no tiene ningún hueco que reorganizar. En tu cuenta, Chispa buscaría aquí jugadas que el motor no sabe hacer.');
+        }
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('agenda-optimizador', {
+        body: {
+          modo: 'planes',
+          dias: vista === 'semana' ? 7 : 1,
+          desde: (fechaVista ?? new Date()).toISOString(),
+        },
+      });
+      if (error || !data?.ok) {
+        if (data?.codigo === 'addon_ia_insuficiente') {
+          setErrorPlanes('Los planes de Chispa son parte del addon de IA. Actívalo en Configuración.');
+        } else if (data?.codigo === 'cupo_agotado') {
+          setErrorPlanes('Has llegado al límite de generaciones por hora. Espera un poco.');
+        } else {
+          setErrorPlanes(error?.message ?? data?.error ?? 'No se pudieron generar planes.');
+        }
+        setPlanesCrudos([]);
+        return;
+      }
+      // Sin `planes` en la respuesta, el servidor NO conoce el modo: ha caído
+      // al análisis de siempre. No es lo mismo que "no hay nada que proponer",
+      // y decir lo segundo sería mentirle al salón.
+      if (!Array.isArray(data.planes)) {
+        setPlanesCrudos([]);
+        setErrorPlanes('Esta parte de Chispa todavía no está activa en el servidor. Vuelve a intentarlo más tarde.');
+        return;
+      }
+      setPlanesCrudos(data.planes as PlanIAValidado[]);
+      if (data.planes.length === 0) {
+        setErrorPlanes(data.motivo ?? 'Chispa no ve ninguna jugada que merezca la pena ahora mismo.');
+      }
+    } catch {
+      setErrorPlanes('No se pudieron generar planes.');
+      setPlanesCrudos([]);
+    } finally {
+      setGenerandoPlanes(false);
+    }
+  };
+
+  // Convierte los movimientos de un plan en "problemas" sintéticos para poder
+  // reutilizar tal cual el resalte de la rejilla (zona destino + zona origen +
+  // flecha). Un paso por movimiento.
+  const pasosDelPlan = (p: PlanIAValidado): ProblemaAgenda[] =>
+    p.movimientos.map((m, i) => ({
+      id: `plan:${p.id}:${i}`,
+      tipo: 'hueco_muerto' as ProblemaAgenda['tipo'],
+      profesionalId: m.profesionalId,
+      profesionalNombre: profesionales.find((pr) => pr.id === m.profesionalId)?.nombre ?? '',
+      titulo: `${p.titulo} · paso ${i + 1} de ${p.movimientos.length}`,
+      descripcion: `${m.clienteNombre ?? 'La cita'} pasa a las ${new Date(m.inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}${m.cambioProfesional ? ` con ${profesionales.find((pr) => pr.id === m.profesionalId)?.nombre ?? 'otra persona'}` : ''}.`,
+      citaIds: [m.citaId],
+      estrategias: [],
+      zona: m.zona,
+      zonaOrigen: m.zonaOrigen,
+      accionCorta: m.desplazoMin > 0
+        ? `Adelantar ${m.desplazoMin} min`
+        : m.desplazoMin < 0
+          ? `Retrasar ${-m.desplazoMin} min`
+          : 'Reasignar',
+      porQue: m.requiereConsentimiento
+        ? `Necesita el visto bueno de la clienta: ${m.motivoConsentimiento}`
+        : 'Se puede aplicar sin avisar a nadie: la clienta no cambia de hora, o ya está en el salón.',
+      // Fecha LOCAL del salon, no el corte del ISO: `.slice(0,10)` sobre un ISO
+      // en UTC devuelve el dia anterior en la madrugada española.
+      fechaDia: fechaIsoLocal(+new Date(m.zona.desde)),
+    }));
+
+  async function aplicarPlan(plan: PlanIAValidado) {
+    setError('');
+    setAplicandoId(plan.id);
+    try {
+      // Revalidación contra el estado de ESTE instante (§7). Si la agenda se ha
+      // movido, lo honesto es decirlo y regenerar, no aplicar a ciegas.
+      const [fresco] = validarPlanes([rehidratarPlan(plan)], opcionesValidacion());
+      if (!fresco || fresco.aplicablesEnCaliente === 0) {
+        setError(
+          fresco
+            ? 'La agenda ha cambiado y ya no queda nada de este plan que se pueda aplicar sin avisar a las clientas.'
+            : 'La agenda ha cambiado desde que se generó este plan. Vuelve a generarlo.',
+        );
+        return;
+      }
+      if (esDemoCompartida) {
+        await new Promise((r) => setTimeout(r, 350));
+        setPlanAplicado((prev) => new Set(prev).add(plan.id));
+        setAvisoDemo('Hecho (demostracion). En tu cuenta esto se aplicaria de verdad; en la demo no se guardan cambios.');
+        return;
+      }
+      if (!userId) {
+        setError('No se pudo obtener tu perfil de usuario.');
+        return;
+      }
+      const movimientos = planAMovimientos(fresco);
+      const res = await ejecutarAccion(
+        {
+          tipo: 'optimizar_agenda',
+          negocio_id: negocioId,
+          fecha: fechaIsoLocal(+new Date(movimientos[0].nuevo_inicio)),
+          movimientos,
+          resumen: `Plan de Chispa: ${fresco.titulo}`,
+        },
+        userId,
+      );
+      if (!res.ok) {
+        setError(res.error);
+        // Deja rastro del intento fallido: un plan que se aplicó a medias o que
+        // reventó es justo lo que hay que poder auditar después.
+        supabase.rpc('planes_ia_marcar', { p_plan_id: plan.id, p_estado: 'fallido', p_resultado: res.error }).then(() => {}, () => {});
+        return;
+      }
+      // El plan puede quedar 'parcial': lo aplicado es lo que no necesitaba
+      // permiso; lo que sí lo necesita sigue pendiente de propuesta (F2).
+      const parcial = fresco.requierenPropuesta > 0 || fresco.podados.length > 0;
+      supabase.rpc('planes_ia_marcar', {
+        p_plan_id: plan.id,
+        p_estado: parcial ? 'parcial' : 'aplicado',
+        p_resultado: `${movimientos.length} movimiento(s) aplicados${fresco.requierenPropuesta > 0 ? `, ${fresco.requierenPropuesta} pendiente(s) del visto bueno de la clienta` : ''}.`,
+      }).then(() => {}, () => {});
+      setPlanAplicado((prev) => new Set(prev).add(plan.id));
+      onAplicado(planAUpdates(fresco));
+    } finally {
+      setAplicandoId(null);
+    }
+  }
 
   const pendientes = problemas.filter((p) => !resueltasDemo.has(p.id));
 
@@ -579,7 +800,10 @@ export default function OrganizarAgendaPanel({
             <div style={{ padding: '10px 12px', borderRadius: 10, background: T.successSoft, color: T.success, fontSize: 13, marginBottom: 12 }}>{avisoDemo}</div>
           )}
 
-          {pendientes.length === 0 && oportunidades.length === 0 && !analizandoIA && !analisisIA ? (
+          {/* `planesPedidos` entra en la condicion para que el dia limpio no se
+              coma la seccion de planes: en cuanto se pulsa "Buscar planes" hay
+              que pasar a la vista de contenido para poder pintarlos. */}
+          {pendientes.length === 0 && oportunidades.length === 0 && !analizandoIA && !analisisIA && !planesPedidos ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 10px', textAlign: 'center' }}>
               <span style={{ display: 'inline-flex', width: 40, height: 40, borderRadius: 999, background: T.successSoft, alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -587,6 +811,16 @@ export default function OrganizarAgendaPanel({
               <div style={{ fontSize: 14, color: T.textSec, maxWidth: 320 }}>
                 Sin retrasos, solapes ni huecos muertos por resolver. Vuelve a pulsar este boton si algo cambia durante el dia.
               </div>
+              {/* Que no haya averias no significa que no haya nada que ganar:
+                  los planes buscan justo lo que el motor no sabe ver. */}
+              <button
+                onClick={pedirPlanes}
+                disabled={bloqueado}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.card, color: T.textSec, fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer' }}
+              >
+                <CerebroIAIcon size={15} variant="idle" />
+                Buscar planes de Chispa
+              </button>
               {esDemoCompartida && (
                 <div style={{ fontSize: 12.5, color: T.textTer, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <CerebroIAIcon size={16} variant="idle" />
@@ -735,6 +969,148 @@ export default function OrganizarAgendaPanel({
                   return elems;
                 });
               })()}
+              {/* Planes de Chispa (motor generativo, F1). Va ENCIMA del
+                  análisis a propósito: un plan es accionable y el análisis no.
+                  Cada tarjeta es una solución inventada por la IA que ya ha
+                  pasado por el validador determinista (mismas fases, mismos
+                  horarios, mismos topes que el motor barato). */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: pendientes.length > 0 || oportunidades.length > 0 ? 6 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 2 }}>
+                  <CerebroIAIcon size={16} variant={generandoPlanes ? 'thinking' : planes.length > 0 ? 'alerta' : 'idle'} />
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.4, flex: 1 }}>
+                    Planes de Chispa{planes.length > 0 ? ` · ${planes.length}` : ''}
+                  </span>
+                  {!generandoPlanes && (
+                    <button
+                      onClick={pedirPlanes}
+                      disabled={bloqueado}
+                      style={{ padding: '3px 10px', borderRadius: 7, border: `1px solid ${T.border}`, background: 'transparent', color: T.textSec, fontSize: 11, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer' }}
+                    >
+                      {planesPedidos ? 'Volver a buscar' : 'Buscar planes'}
+                    </button>
+                  )}
+                </div>
+
+                {generandoPlanes ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: T.card, border: `1px solid ${T.border}`, fontSize: 12.5, color: T.textSec }}>
+                    <CerebroIAIcon size={20} variant="thinking" />
+                    Buscando jugadas que el motor no sabe hacer...
+                  </div>
+                ) : !planesPedidos ? (
+                  <div style={{ padding: '12px 14px', borderRadius: 14, background: T.card, border: `1px solid ${T.border}`, fontSize: 12.5, color: T.textSec, lineHeight: 1.5 }}>
+                    Cuando el motor no encuentra arreglo, Chispa puede inventar uno: una secuencia de movimientos concreta, con su porqué y su botón. Pulsa <strong>Buscar planes</strong>.
+                  </div>
+                ) : planes.length === 0 ? (
+                  <div style={{ padding: '10px 12px', borderRadius: 10, background: T.card, border: `1px solid ${T.border}`, fontSize: 12, color: T.textSec }}>
+                    {errorPlanes || 'Chispa no ve ninguna jugada que merezca la pena ahora mismo.'}
+                  </div>
+                ) : (
+                  planes.map((p) => {
+                    const aplicandoEste = aplicandoId === p.id;
+                    const pasos = pasosDelPlan(p);
+                    const paso = pasoPorPlan[p.id] ?? 0;
+                    const abierto = porQueAbierto === p.id;
+                    const tonoConfianza = p.confianza === 'alta' ? T.success : p.confianza === 'media' ? T.amber : T.textTer;
+                    const fondoConfianza = p.confianza === 'alta' ? T.successSoft : p.confianza === 'media' ? T.amberSoft : T.cardHi;
+                    return (
+                      <div key={p.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ display: 'inline-flex', width: 26, height: 26, borderRadius: 8, background: T.primarySoft, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <CerebroIAIcon size={15} variant="idle" glow={0.5} />
+                          </span>
+                          <span style={{ fontSize: 13.5, fontWeight: 800, color: T.text, flex: 1, minWidth: 0 }}>{p.titulo}</span>
+                          <span style={{ padding: '2px 8px', borderRadius: 999, background: fondoConfianza, color: tonoConfianza, fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap' }}>
+                            {p.confianza}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45, marginLeft: 34 }}>{p.diagnostico}</div>
+
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginLeft: 34 }}>
+                          {p.impactoMin > 0 && (
+                            <span style={{ padding: '3px 9px', borderRadius: 999, background: T.successSoft, color: T.success, fontSize: 11, fontWeight: 700 }}>
+                              +{p.impactoMin} min de agenda
+                            </span>
+                          )}
+                          <span style={{ padding: '3px 9px', borderRadius: 999, background: T.primarySoft, color: T.primaryHi, fontSize: 11, fontWeight: 700 }}>
+                            {p.movimientos.length} movimiento{p.movimientos.length > 1 ? 's' : ''}
+                          </span>
+                          {p.requierenPropuesta > 0 && (
+                            <span style={{ padding: '3px 9px', borderRadius: 999, background: T.amberSoft, color: T.amber, fontSize: 11, fontWeight: 700 }}>
+                              {p.requierenPropuesta} necesita{p.requierenPropuesta > 1 ? 'n' : ''} el visto bueno de la clienta
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 8, marginLeft: 34, marginTop: 2, flexWrap: 'wrap' }}>
+                          {p.aplicablesEnCaliente > 0 ? (
+                            <button
+                              onClick={() => aplicarPlan(p)}
+                              disabled={bloqueado}
+                              style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: aplicandoEste ? T.primarySoft : FIRE, color: aplicandoEste ? T.primaryHi : '#fff', fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado && !aplicandoEste ? 0.5 : 1 }}
+                            >
+                              {aplicandoEste ? 'Aplicando...' : `Aplicar ${p.aplicablesEnCaliente}`}
+                            </button>
+                          ) : (
+                            <span style={{ padding: '7px 0', fontSize: 11.5, color: T.textTer, fontWeight: 600, lineHeight: 1.4, maxWidth: 300 }}>
+                              Todo este plan afecta a la hora de alguna clienta, así que no se aplica en frío: hay que proponérselo.
+                            </span>
+                          )}
+                          {onEnsenarPlan && pasos.length > 0 && (
+                            <button
+                              onClick={() => {
+                                onEnsenarPlan(pasos, paso);
+                                setPasoPorPlan((prev) => ({ ...prev, [p.id]: (paso + 1) % pasos.length }));
+                              }}
+                              style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.border}`, background: 'transparent', color: T.textSec, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              {pasos.length > 1 ? `Enséñamelo (${pasos.length} pasos)` : 'Enséñamelo'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setPorQueAbierto(abierto ? null : p.id)}
+                            style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.border}`, background: abierto ? T.cardHi : 'transparent', color: T.textSec, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            ¿Por qué?
+                          </button>
+                        </div>
+
+                        {/* La explicabilidad es lo que hace que un peluquero se
+                            fíe de un plan inventado por una máquina. Aquí va
+                            todo: el razonamiento, los riesgos que la propia IA
+                            declara, y lo que el validador tuvo que podar. */}
+                        {abierto && (
+                          <div style={{ marginLeft: 34, marginTop: 2, padding: '10px 12px', borderRadius: 10, background: T.cardHi, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {p.razonamiento && (
+                              <div style={{ fontSize: 12, color: T.textSec, lineHeight: 1.5 }}>{p.razonamiento}</div>
+                            )}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              {p.movimientos.map((m, i) => (
+                                <div key={m.citaId} style={{ fontSize: 11.5, color: T.textSec, lineHeight: 1.4 }}>
+                                  <strong>{i + 1}.</strong> {m.clienteNombre ?? 'Cita'} · {new Date(m.zonaOrigen.desde).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} → {new Date(m.inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                  {m.cambioProfesional ? ` · pasa a ${profesionales.find((pr) => pr.id === m.profesionalId)?.nombre ?? 'otra persona'}` : ''}
+                                  {m.requiereConsentimiento ? ` · ${m.motivoConsentimiento}` : ' · no hace falta avisar'}
+                                </div>
+                              ))}
+                            </div>
+                            {p.riesgos.length > 0 && (
+                              <div style={{ fontSize: 11.5, color: T.amber, lineHeight: 1.4 }}>
+                                Riesgos: {p.riesgos.join(' · ')}
+                              </div>
+                            )}
+                            {p.podados.length > 0 && (
+                              <div style={{ fontSize: 11.5, color: T.textTer, lineHeight: 1.4 }}>
+                                Descartado por el validador: {p.podados.map((d) => d.detalle).join(' ')}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
               {/* Análisis de Chispa (Fase 4): recomendaciones estrategicas del
                   modelo. El cerebro animado en modo 'thinking' mientras razona. */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: pendientes.length > 0 || oportunidades.length > 0 ? 6 : 0 }}>

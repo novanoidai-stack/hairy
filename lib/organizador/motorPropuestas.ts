@@ -84,7 +84,10 @@ export const BONUS_REPOSO = 25; // aprovechar un reposo libre suma 25
 
 // ¿La cita (sus fases) cabe COMPLETA dentro de algun tramo del profesional ese
 // dia, sin caer en un bloqueo? Hard constraint: si no, score = DESCARTADO.
-function fasesEnJornada(
+// Exportada: el validador de planes IA (planIA.ts) tiene que aplicar EXACTAMENTE
+// esta misma geometria a los movimientos que inventa el modelo. Duplicarla alli
+// era garantizar que las dos versiones divergieran con el primer arreglo.
+export function fasesEnJornada(
   f: Fases,
   tramos: TramoJornada[],
   bloqueosMs: [number, number][],
