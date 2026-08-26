@@ -12,12 +12,18 @@
 // Idempotente: _upsert_hallazgo (via upsert_hallazgo_agenda) no duplica en cada pasada.
 // Nunca dispara WhatsApp: la RPC acota la severidad a 'alta' (solo 'urgente' entra en la
 // cola de avisos).
+//
+// Importar el motor real tiene una letra pequeña (ago-2026): esas libs estan escritas
+// para el NAVEGADOR, donde la hora local ya es la de Madrid. Aqui el runtime es UTC, asi
+// que hay que darles el horario desplazado (ver alRelojDelSalon) o toda la geometria del
+// dia sale corrida una o dos horas.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   analizarAgendaDia,
   type CitaOrganizar,
   type ProblemaAgenda,
 } from '../../../lib/organizarAgenda.ts';
+import { horariosAlRelojDelRuntime } from '../shared/relojSalon.ts';
 
 const RESUMEN: Record<string, string> = {
   retraso: 'Retrasos en curso',
@@ -39,6 +45,32 @@ const SEVERIDAD: Record<string, string> = {
   hueco_muerto: 'baja',
   reposo_desaprovechado: 'baja',
 };
+
+// ─── RELOJ DEL SALON ────────────────────────────────────────────────────────
+// Las libs puras de agenda materializan las horas de apertura con setHours(),
+// o sea en la zona LOCAL DEL RUNTIME. En el navegador eso es Madrid y cuadra;
+// aqui el runtime es UTC, asi que "abre a las 09:00" acababa siendo 09:00Z =
+// 11:00 de Madrid en verano. Dos horas de desfase en jornadas, tramos, huecos y
+// fuera_jornada — es decir, en TODO lo que este cron calcula. Desplazando el
+// horario ANTES de dárselo a las libs, su aritmetica local acaba cayendo en la
+// hora de Madrid correcta.
+//
+// El desfase se fija con `referencia` (el dia analizado) porque depende del
+// horario de verano. Si algun dia el runtime pasa a ser Madrid, el desfase es 0
+// y esto se vuelve la identidad: no hay que deshacer nada.
+//
+// OJO: NO se toca la ventana [desde, hasta] de citas ni el dia de la semana.
+// Esos siguen en hora local del runtime a proposito, porque las libs filtran
+// las citas por dia LOCAL (esMismoDiaLocal). Lo que se corrige es el horario,
+// que es lo unico que venia en 'HH:MM' de Madrid sin zona. Mismo criterio que
+// agenda-optimizador.
+function alRelojDelSalon<T extends Record<string, unknown>>(
+  filas: T[] | null | undefined,
+  campos: (keyof T)[],
+  referencia: Date,
+): T[] {
+  return horariosAlRelojDelRuntime(filas ?? [], campos, { referencia });
+}
 
 Deno.serve(async (req) => {
   try {
@@ -74,7 +106,7 @@ Deno.serve(async (req) => {
       const desde = new Date(hoy); desde.setHours(0, 0, 0, 0);
       const hasta = new Date(desde); hasta.setDate(hasta.getDate() + 1);
 
-      const [citasRes, profsRes, srvRes, bloqRes, horRes, cfgRes] = await Promise.all([
+      const [citasRes, profsRes, srvRes, bloqRes, horRes, horProfRes, cierresRes, cfgRes] = await Promise.all([
         supabase.from('citas')
           .select('id, profesional_id, cliente_id, servicio_id, estado, inicio, fin, fin_activa, fin_espera, grupo_id')
           .eq('negocio_id', negocioId)
@@ -85,12 +117,23 @@ Deno.serve(async (req) => {
         supabase.from('servicios').select('id, nombre, categoria_minima, duracion_minima_min').eq('negocio_id', negocioId),
         supabase.from('bloqueos_profesional').select('profesional_id, inicio, fin').eq('negocio_id', negocioId),
         supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', negocioId),
+        // Jornada REAL de cada profesional (turnos de mañana/tarde; el hueco de
+        // en medio es la comida). Sin esto la vigilancia usaba la ventana del
+        // SALON para todos y marcaba huecos en horas que esa persona no trabaja.
+        supabase.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').eq('negocio_id', negocioId),
+        // Festivos / cierre colectivo del dia analizado. Igual que en
+        // agenda-optimizador: sin esto el organizador ignora la tabla y trata un
+        // dia cerrado como un dia normal lleno de huecos que ofrecer.
+        supabase.from('cierres_negocio').select('fecha, motivo')
+          .eq('negocio_id', negocioId)
+          .gte('fecha', desde.toISOString().slice(0, 10))
+          .lt('fecha', hasta.toISOString().slice(0, 10)),
         supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
       ]);
 
       // Fallos ruidosos: sin esto, un error de permisos se veria como "0 citas" y la
       // vigilancia diria que todo va bien mientras esta ciega.
-      const errores = [citasRes.error, profsRes.error, srvRes.error, bloqRes.error, horRes.error]
+      const errores = [citasRes.error, profsRes.error, srvRes.error, bloqRes.error, horRes.error, horProfRes.error, cierresRes.error]
         .filter(Boolean)
         .map((e) => e!.message);
       if (errores.length > 0) {
@@ -101,6 +144,8 @@ Deno.serve(async (req) => {
       if (citas.length === 0) { salida.push({ negocioId, citas: 0, hallazgos: 0 }); continue; }
 
       // Solo con el salon abierto: analizar la agenda a las 4:00 no aporta nada.
+      // Aqui se usan las filas CRUDAS a proposito: solo se miran dia_semana y
+      // abierto, que no son horas y no hay que pasar por el reloj del salon.
       const horarios = horRes.data ?? [];
       const dia = (hoy.getDay() + 6) % 7; // OJO: dia_semana es 0=LUNES, getDay() es 0=domingo
       const fila = horarios.find((h: { dia_semana: number }) => h.dia_semana === dia);
@@ -137,7 +182,13 @@ Deno.serve(async (req) => {
         {
           ahoraMs,
           bloqueos: bloqRes.data ?? [],
-          horarios,
+          // Horarios en el reloj del runtime (ver alRelojDelSalon arriba): TODO
+          // lo que se pase a las libs puras tiene que ir desplazado, nunca crudo.
+          horarios: alRelojDelSalon(horarios, ['apertura', 'cierre'], desde),
+          horariosProfesional: alRelojDelSalon(horProfRes.data, ['hora_inicio', 'hora_fin'], desde),
+          // Los cierres van por fecha ('YYYY-MM-DD'), no por hora: no hay nada
+          // que desplazar.
+          cierres: cierresRes.data ?? [],
           maxAdelantoMin: cfg.agendaMaxAdelantoMin,
           umbralHuecoMin: cfg.agendaUmbralHuecoMin,
         },
