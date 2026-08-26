@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hairy · Encadenadas con origen + Reposos interactivos en la agenda</title>
+<style>
+  :root{
+    --bg:#f6f1ea; --card:#fff; --panel:#fffdfb;
+    --fire:#f4501e; --fire-grad:linear-gradient(135deg,#e0340e,#ff7a2e 55%,#ffcf4a);
+    --txt:#1c1814; --txt2:#5c5249; --txt3:#736658; --txt4:#b3a89d;
+    --border:rgba(40,30,24,.08); --border-hi:rgba(40,30,24,.14);
+    --ok:#0f9d6b; --red:#e23b34; --violet:#8a5cf6; --teal:#0d9488; --amber:#e08a00;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--txt);padding:28px 22px 100px}
+  h1{font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
+  h2{font-size:15px;margin:36px 0 4px}
+  h3{font-size:12.5px;margin:20px 0 8px;color:var(--txt2)}
+  .sub{color:var(--txt3);font-size:13.5px;margin-bottom:12px;max-width:880px;line-height:1.55}
+  .sub b{color:var(--fire)}
+  .sec{max-width:1080px;margin:0 auto}
+
+  /* ============ AGENDA BASE ============ */
+  .mini{position:relative;border:1px solid var(--border-hi);border-radius:14px;background:var(--card);
+    overflow:hidden;margin-top:10px}
+  .mini .mh{display:grid;grid-template-columns:56px 1fr 1fr;background:var(--panel);
+    border-bottom:1px solid var(--border-hi);font-size:12.5px;font-weight:700}
+  .mini .mh div{padding:10px 8px;text-align:center}
+  .mini .mh .hr{border-left:1px solid var(--border)}
+  .mini .cols{position:relative;display:grid;grid-template-columns:56px 1fr 1fr;height:520px}
+  .mini .hrs{position:relative;border-right:1px solid var(--border)}
+  .mini .hrs span{position:absolute;right:8px;font-size:10px;color:var(--txt4);font-weight:600;transform:translateY(-6px)}
+  .pcol{position:relative;border-left:1px solid var(--border)}
+  .hlns{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .hlns i{display:block;height:104px;border-top:1px solid var(--border)}
+
+  /* cita normal */
+  .apt{position:absolute;left:7px;right:7px;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:700;
+    color:#fff;cursor:pointer;overflow:hidden;z-index:2;transition:transform .15s var(--ease),box-shadow .15s}
+  .apt:hover{transform:scale(1.015);box-shadow:0 8px 18px rgba(28,24,20,.2);z-index:6}
+  .apt small{display:block;font-weight:500;font-size:9.5px;opacity:.85;margin-top:1px}
+  .a-fire{background:var(--fire-grad)}
+  .a-green{background:linear-gradient(135deg,#0f9d6b,#13c38a)}
+
+  /* ================================================================
+     ENCADENADAS — con origen visible
+     ============================================================ */
+  .chn{border-radius:10px}
+  .ga{background:linear-gradient(135deg,#8a5cf6,#b388ff)}
+  .gb{background:linear-gradient(135deg,#0d9488,#2dd4bf)}
+  /* --- tapa de grupo + número --- */
+  .gcap{position:absolute;top:0;left:0;right:0;height:4px;border-radius:10px 10px 0 0;background:rgba(255,255,255,.9)}
+  .gnum{position:absolute;top:-8px;left:10px;z-index:7;font-size:9px;font-weight:800;color:#fff;
+    padding:2px 8px;border-radius:999px;box-shadow:0 2px 6px rgba(28,24,20,.25);letter-spacing:.04em}
+  .gnum.a{background:#6d3fd6}.gnum.b{background:#0a7a70}
+  /* --- tallo de origen: "viene de…" sale del borde superior --- */
+  .stem{position:absolute;z-index:7;display:flex;align-items:center}
+  .stem.v{left:12px;width:2.5px;transform:translateX(0)}
+  .stem.v::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,currentColor 0 5px,transparent 5px 10px)}
+  .tag{position:absolute;z-index:8;font-size:8.5px;font-weight:800;color:#fff;padding:2.5px 8px;border-radius:999px;
+    white-space:nowrap;display:flex;align-items:center;gap:4px;box-shadow:0 2px 5px rgba(28,24,20,.22);cursor:help}
+  .tag.a{background:#6d3fd6}.tag.b{background:#0a7a70}
+  .tag .arrow{font-size:9px;animation:nudge 1.5s ease-in-out infinite;display:inline-block}
+  @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(-2px)}}
+  /* latido del tallo: punto que baja/sube indicando continuidad */
+  .stem .pl{position:absolute;left:50%;width:8px;height:8px;border-radius:50%;background:currentColor;
+    transform:translateX(-50%);box-shadow:0 0 8px currentColor;animation:pltravel 1.8s var(--ease) infinite}
+  @keyframes pltravel{0%{top:-4px;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:calc(100% - 4px);opacity:0}}
+  /* --- cinta que cruza columnas (codo) --- */
+  .ribbon{position:absolute;z-index:5;pointer-events:none}
+  .ribbon .h,.ribbon .v{position:absolute;background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 10px)}
+  .ribbon .v{background:repeating-linear-gradient(180deg,currentColor 0 5px,transparent 5px 10px)}
+  .ribbon .h{height:2.5px}
+  .ribbon .v{width:2.5px}
+  .ribbon .dot{position:absolute;width:9px;height:9px;border-radius:50%;background:currentColor;
+    box-shadow:0 0 8px currentColor}
+  .ribbon .arr{position:absolute;font-size:10px;color:currentColor;font-weight:800}
+  .ribbon.ca{color:#8a5cf6}.ribbon.cb{color:#0d9488}
+  /* pulso de flujo horizontal */
+  .ribbon .h .dot{animation:dotx 1.6s linear infinite}
+  .ribbon .v .dot{animation:doty 1.6s linear infinite}
+  @keyframes dotx{0%{left:-4px;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:calc(100% - 5px);opacity:0}}
+  @keyframes doty{0%{top:-4px;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:calc(100% - 5px);opacity:0}}
+  /* fantasma de origen: preview tenue en la columna de donde viene */
+  .ghost{position:absolute;left:7px;right:7px;border-radius:10px;border:1.5px dashed;
+    background:transparent!important;z-index:1;opacity:.55;pointer-events:none}
+  .ghost.a{border-color:rgba(138,92,246,.5)} .ghost.b{border-color:rgba(13,148,136,.5)}
+
+  /* ================================================================
+     REPOSOS EN LA AGENDA — huecos vivos
+     ============================================================ */
+  /* cita con tramo de reposo dentro */
+  .restband{position:absolute;left:2px;right:2px;border-radius:8px;z-index:3;
+    background:repeating-linear-gradient(-45deg,rgba(255,253,251,.92) 0 9px,rgba(115,102,88,.10) 9px 18px);
+    border:1.5px dashed rgba(255,255,255,.85);outline:1.5px dashed rgba(115,102,88,.45);outline-offset:-1px;
+    display:flex;align-items:center;justify-content:center;gap:7px;color:var(--txt2);
+    cursor:grab;transition:background .15s,outline-color .15s,transform .15s var(--ease)}
+  .restband:hover{background:repeating-linear-gradient(-45deg,#fff 0 9px,rgba(15,157,107,.14) 9px 18px);
+    outline-color:var(--ok);transform:scale(1.02);z-index:7}
+  .restband .cup{width:22px;height:22px;border-radius:50%;background:var(--txt3);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .restband .rtx{font-size:9px;font-weight:800;line-height:1.25;text-align:left;color:var(--txt2)}
+  .restband .rtx small{display:block;font-weight:600;font-size:8px;color:var(--txt3)}
+  /* estado drag-over */
+  .restband.drop{background:rgba(15,157,107,.22)!important;outline:2.5px solid var(--ok);
+    animation:dropglow 1s ease-in-out infinite}
+  @keyframes dropglow{0%,100%{box-shadow:0 0 0 0 rgba(15,157,107,.35)}50%{box-shadow:0 0 0 6px rgba(15,157,107,0)}}
+  .restband .plus{position:absolute;top:3px;right:5px;font-size:10px;font-weight:800;color:var(--ok);opacity:0;
+    transition:opacity .15s}
+  .restband:hover .plus{opacity:1;animation:popplus .3s var(--ease)}
+  @keyframes popplus{from{transform:scale(0)}to{transform:scale(1)}}
+  /* etiqueta superior del reposo dentro de la cita */
+  .rlab{position:absolute;left:9px;font-size:7.5px;font-weight:800;letter-spacing:.06em;color:rgba(255,255,255,.85);z-index:2}
+
+  /* hueco libre independiente (arrastrable para agendar) */
+  .freeslot{position:absolute;left:7px;right:7px;border-radius:10px;z-index:3;
+    border:1.5px dashed rgba(15,157,107,.5);background:rgba(15,157,107,.04);color:var(--ok);
+    display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;font-weight:800;
+    cursor:grab;transition:all .18s var(--ease)}
+  .freeslot:hover{background:rgba(15,157,107,.1);border-color:var(--ok);transform:translateY(-1px);
+    box-shadow:0 6px 14px rgba(15,157,107,.18)}
+  .freeslot:active{cursor:grabbing;transform:scale(.98)}
+  .freeslot .fi{width:20px;height:20px;border-radius:50%;background:rgba(15,157,107,.12);
+    display:flex;align-items:center;justify-content:center;font-size:11px;animation:breathslot 2.6s ease-in-out infinite}
+  @keyframes breathslot{0%,100%{box-shadow:0 0 0 0 rgba(15,157,107,.25)}50%{box-shadow:0 0 0 5px rgba(15,157,107,0)}}
+  .freeslot small{font-weight:600;font-size:8.5px;color:var(--txt3)}
+  /* chip arrastrable desde lista de espera */
+  .draggable{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border-hi);
+    border-radius:10px;padding:8px 12px;font-size:11.5px;font-weight:700;cursor:grab;margin:4px 6px 4px 0;
+    transition:all .15s var(--ease);user-select:none}
+  .draggable:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(28,24,20,.12);border-color:var(--fire)}
+  .draggable:active{cursor:grabbing;transform:scale(.97)}
+  .draggable .av{width:22px;height:22px;border-radius:50%;color:#fff;font-size:9px;font-weight:800;
+    display:flex;align-items:center;justify-content:center}
+  .draggable small{font-weight:500;color:var(--txt3)}
+  .dragtray{margin-top:12px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);
+    border-radius:12px;font-size:11px;color:var(--txt3)}
+  .dragtray b{color:var(--txt2)}
+  /* popover al hacer clic en reposo */
+  .pop{position:absolute;z-index:40;background:var(--card);border:1px solid var(--border-hi);border-radius:12px;
+    box-shadow:0 14px 34px rgba(28,24,20,.18);padding:10px;width:190px;font-size:11px;
+    animation:popin .25s var(--ease)}
+  @keyframes popin{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+  .pop h5{font-size:11px;margin-bottom:6px}
+  .pop button{display:flex;width:100%;text-align:left;gap:8px;align-items:center;border:none;background:none;
+    padding:7px 8px;border-radius:8px;font-size:10.5px;font-weight:600;color:var(--txt2);cursor:pointer}
+  .pop button:hover{background:rgba(244,80,30,.07);color:var(--fire-hi)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);z-index:60;
+    background:var(--txt);color:#fff;font-size:12px;font-weight:600;padding:11px 20px;border-radius:12px;
+    box-shadow:0 14px 30px rgba(28,24,20,.35);opacity:0;transition:all .35s var(--ease)}
+  .toast.show{transform:translateX(-50%);opacity:1}
+</style>
+</head>
+<body>
+  <h1>🔗 Encadenadas con origen + ☕ Reposos interactivos — en la rejilla</h1>
+  <p class="sub">Dos focos: <b>(1)</b> cada cita encadenada muestra de dónde viene — tallo punteado con tag "⬅ desde Ana", codo animado cuando cruza de columna, fantasma tenue en la columna de origen, y número de grupo (A/B) para varias cadenas a la vez. <b>(2)</b> El reposo dentro de la cita es un <b>hueco vivo</b>: clic para agendar, y puedes <b>arrastrar una clienta de la bandeja y soltarla</b> sobre el reposo o un hueco libre.</p>
+
+  <!-- ==================== ENCADENADAS ==================== -->
+  <div class="sec">
+    <h2>1 · Encadenadas — se ve de dónde viene cada una</h2>
+
+    <h3>A · Cadena A (violeta): Ana → Marta → Ana · y Cadena B (teal) local de Marta</h3>
+    <div class="mini" id="chMini">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:52px">9:30</span><span style="top:260px">11:30</span><span style="top:468px">13:30</span></div>
+        <div class="pcol" id="chA"><div class="hlns"><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="pcol" id="chB"><div class="hlns"><i></i><i></i><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:10px">El <b>primer eslabón</b> lleva tapa blanca + pastilla "A · 1/3 ▶". Los que <b>vienen de otro profesional</b> tienen el tallo punteado + tag "⬅ desde Ana" y un <b>fantasma</b> (contorno tenue) en la columna de donde provienen. El <b>codo animado</b> conecta el final real de una con el inicio de la siguiente.</p>
+  </div>
+
+  <!-- ==================== REPOSOS ==================== -->
+  <div class="sec">
+    <h2>2 · Reposos en la agenda — clicables y arrastrables</h2>
+    <p class="sub">La franja rayada <b>dentro de la cita</b> es el reposo: la clienta espera (tinte actuando) y el profesional queda libre. Esa franja es <b>zona de drop</b>. También hay <b>huecos libres</b> entre citas (verde punteado). <b>Prueba: arrastra a Rosa o Inés sobre un reposo o hueco libre</b> 👇</p>
+
+    <div class="dragtray">
+      <b>📥 Clientas en espera — arrastra a la agenda:</b><br>
+      <span class="draggable" draggable="true" data-n="Rosa M." data-c="#f4501e" data-d="30">
+        <span class="av" style="background:var(--fire-grad)">RM</span>Rosa M. <small>· corte 30'</small></span>
+      <span class="draggable" draggable="true" data-n="Inés R." data-c="#8a5cf6" data-d="45">
+        <span class="av" style="background:linear-gradient(135deg,#8a5cf6,#b388ff)">IR</span>Inés R. <small>· peinado 45'</small></span>
+    </div>
+
+    <div class="mini" id="rsMini">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:52px">9:30</span><span style="top:260px">11:30</span><span style="top:468px">13:30</span></div>
+        <div class="pcol" id="rsA"><div class="hlns"><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="pcol" id="rsB"><div class="hlns"><i></i><i></i><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const Y=t=>Math.max(0,(t-9)*104+8); /* 104px/hora, arranca 9:00 */
+const mk=(html)=>html;
+
+/* ==================== ENCADENADAS ==================== */
+(function(){
+  const A=document.getElementById('chA'),B=document.getElementById('chB');
+  /* --- CADENA A (violeta) ---
+     1/3: Ana 9:30–10:30 prueba
+     2/3: Marta 10:30–11:15 tinte  ← viene de Ana
+     3/3: Ana 11:30–12:00 lavado   ← viene de Marta                    */
+  /* eslabón 1: tapa + pastilla */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="apt chn ga" style="top:${Y(9.5)}px;height:${Y(10.5)-Y(9.5)-3}px">
+      <div class="gcap"></div><span class="gnum a">A · 1/3 ▶</span>
+      Sofía L. · prueba de color<small>9:30–10:30 · con Ana</small>
+    </div>`);
+  /* eslabón 2 en Marta: tallo arriba + tag origen + fantasma no (el origen está en Ana) */
+  B.insertAdjacentHTML('beforeend',`
+    <div class="apt chn ga" style="top:${Y(10.5)}px;height:${Y(11.25)-Y(10.5)-3}px">
+      <span class="gnum a" style="left:auto;right:10px">2/3</span>
+      <span class="tag a" style="top:-9px;left:34px"><span class="arrow">⬅</span> desde Ana · 10:30</span>
+      <span class="stem v" style="top:-26px;height:26px;left:14px;color:#8a5cf6"><i class="pl"></i></span>
+      Sofía L. · aplicación de tinte<small>10:30–11:15 · con Marta</small>
+    </div>`);
+  /* eslabón 3 en Ana: viene de Marta */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="apt chn ga" style="top:${Y(11.5)}px;height:${Y(12)-Y(11.5)-3}px">
+      <span class="gnum a" style="left:auto;right:10px">3/3 ■</span>
+      <span class="tag a" style="top:-9px;left:34px"><span class="arrow">⬅</span> desde Marta · 11:15</span>
+      <span class="stem v" style="top:-31px;height:31px;left:14px;color:#8a5cf6"><i class="pl"></i></span>
+      Sofía L. · lavado + peinado<small>11:30–12:00 · vuelve Ana</small>
+    </div>`);
+  /* codo: Ana(10:30) → Marta(10:30) */
+  addRibbon('chMini',Y(10.5),'A','chB');
+  /* codo inverso: Marta(11:15 fin) → arriba y a Ana(11:30) */
+  (function(){
+    const mini=document.getElementById('chMini');
+    const pos=mini.querySelector('.cols').getBoundingClientRect();
+    const bB=B.getBoundingClientRect(), aA=A.getBoundingClientRect();
+    const x1=bB.left-pos.left+bB.width*0.5, x2=aA.left-pos.left+aA.width*0.5;
+    const y1=Y(11.25), y2=Y(11.5);
+    mini.insertAdjacentHTML('beforeend',`
+      <div class="ribbon ca" style="left:${x2}px;top:${y1}px;width:${x1-x2}px;height:${y2-y1}px;position:absolute">
+        <div class="v" style="left:0;top:0;height:100%"><i class="dot"></i></div>
+        <div class="h" style="left:0;top:100%;width:100%"><i class="dot"></i></div>
+        <div class="v" style="right:0;top:100%;height:0"></div>
+        <span class="arr" style="right:-2px;top:calc(100% - 7px)">▲</span>
+      </div>`);
+  })();
+  /* cita normal de Ana al final para contexto */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="apt a-fire" style="top:${Y(12.5)}px;height:${Y(13.5)-Y(12.5)-3}px">María G.<small>Corte + barba · 12:30</small></div>`);
+
+  /* --- CADENA B (teal): local de Marta, 12:30–13:40 en dos eslabones pegados --- */
+  B.insertAdjacentHTML('beforeend',`
+    <div class="apt chn gb" style="top:${Y(12.5)}px;height:${Y(13.15)-Y(12.5)-2}px">
+      <div class="gcap"></div><span class="gnum b">B · 1/2 ▶</span>
+      Elena V. · prueba<small>12:30–13:10 · con Marta</small>
+    </div>
+    <div class="apt chn gb" style="top:${Y(13.15)}px;height:${Y(13.7)-Y(13.15)-2}px">
+      <span class="gnum b" style="left:auto;right:10px">2/2 ■</span>
+      <span class="tag b" style="top:-9px;left:34px"><span class="arrow">⬅</span> misma cadena B</span>
+      <span class="stem v" style="top:-2px;height:2px;left:14px;color:#0d9488"></span>
+      Elena V. · montaje<small>13:10–13:40 · en cuanto acaba</small>
+    </div>`);
+  /* cita normal de Marta */
+  B.insertAdjacentHTML('beforeend',`
+    <div class="apt a-green" style="top:${Y(9.5)}px;height:${Y(10.25)-Y(9.5)-3}px">Inés R. · Peinado<small>9:30–10:15</small></div>`);
+
+  function addRibbon(miniId,y,dir,colBId){
+    const mini=document.getElementById(miniId);
+    const cols=mini.querySelector('.cols').getBoundingClientRect();
+    const B2=document.getElementById(colBId).getBoundingClientRect();
+    const A2=document.getElementById('chA').getBoundingClientRect();
+    const xA=A2.left-cols.left+A2.width*0.5, xB=B2.left-cols.left+B2.width*0.5;
+    mini.insertAdjacentHTML('beforeend',`
+      <div class="ribbon ca" style="left:${xA}px;top:${y}px;width:${xB-xA}px;height:16px;position:absolute">
+        <div class="h" style="left:0;top:0;width:100%"><i class="dot"></i></div>
+        <div class="v" style="right:0;top:0;height:100%"><i class="dot"></i></div>
+        <span class="arr" style="right:-4px;top:6px">▶</span>
+      </div>`);
+  }
+})();
+
+/* ==================== REPOSOS ==================== */
+(function(){
+  const A=document.getElementById('rsA'),B=document.getElementById('rsB');
+  /* CITA LARGA de Sofía con Ana: 9:15–12:15, reposo 10:15–11:00 */
+  const t0=9.25,t1=12.25,r0=10.25,r1=11.0;
+  A.insertAdjacentHTML('beforeend',`
+    <div class="apt chn ga" style="top:${Y(t0)}px;height:${Y(t1)-Y(t0)}px;display:flex;flex-direction:column">
+      <div style="padding:6px 9px 0 11px">Sofía L. · Color completo<small>9:15–12:15 · con Ana · activa 9:15–10:15</small></div>
+      <div style="flex:1"></div>
+      <div style="padding:0 9px 6px 11px"><small>activa 11:00–12:15 · lavado + peinado</small></div>
+      <span class="rlab" style="top:${Y(r0)-Y(t0)-11}px">▶ ACTIVA</span>
+      <span class="rlab" style="bottom:6px">ACTIVA ▶</span>
+    </div>`);
+  /* REPOSO: hueco vivo dentro de la cita (dropzone + clic) */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="restband" data-rest="Ana · 10:15–11:00"
+         style="top:${Y(r0)}px;height:${Y(r1)-Y(r0)}px;left:9px;right:9px">
+      <span class="plus">＋</span>
+      <span class="cup">☕</span>
+      <span class="rtx">REPOSO · Ana libre<small>10:15–11:00 · 45 min · tinte actuando</small></span>
+    </div>`);
+  /* HUECO LIBRE entre citas de Ana: 12:30–13:15 */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="apt a-fire" style="top:${Y(12.25)}px;height:${Y(12.75)-Y(12.25)-3}px">Cita corta<small>12:15–12:45</small></div>
+    <div class="freeslot" data-free="12:45–13:30"
+         style="top:${Y(12.75)}px;height:${Y(13.5)-Y(12.75)-3}px">
+      <span class="fi">＋</span><span>LIBRE<small>12:45–13:30 · 45 min · clic o arrastra</small></span>
+    </div>`);
+  /* columna Marta: hueco libre temprano + cita */
+  B.insertAdjacentHTML('beforeend',`
+    <div class="freeslot" data-free="9:00–9:45"
+         style="top:${Y(9)}px;height:${Y(9.75)-Y(9)-3}px">
+      <span class="fi">＋</span><span>LIBRE<small>9:00–9:45</small></span>
+    </div>
+    <div class="apt a-green" style="top:${Y(9.75)}px;height:${Y(10.75)-Y(9.75)-3}px">Inés R. · Peinado<small>9:45–10:45</small></div>
+    <div class="apt a-fire" style="top:${Y(11)}px;height:${Y(12)-Y(11)-3}px">Rosa M. · Corte<small>11:00–12:00</small></div>
+    <div class="freeslot" data-free="13:00–14:00"
+         style="top:${Y(13)}px;height:${Y(14)-Y(13)-3}px">
+      <span class="fi">＋</span><span>LIBRE<small>13:00–14:00</small></span>
+    </div>`);
+
+  /* ---------- interacciones ---------- */
+  const toast=document.getElementById('toast');
+  function say(msg){toast.textContent=msg;toast.classList.add('show');
+    clearTimeout(toast._t);toast._t=setTimeout(()=>toast.classList.remove('show'),2600);}
+
+  /* clic en reposo/hueco → popover */
+  document.querySelectorAll('.restband,.freeslot').forEach(el=>{
+    el.addEventListener('click',e=>{
+      document.querySelectorAll('.pop').forEach(p=>p.remove());
+      const where=el.dataset.rest||('hueco libre '+el.dataset.free);
+      const pop=document.createElement('div');
+      pop.className='pop';
+      pop.innerHTML=`<h5>☕ ${where}</h5>
+        <button>✨ Sugerir clienta de lista de espera</button>
+        <button>👤 Agendar nueva cita aquí</button>
+        <button>🔒 Reservar hueco temporalmente</button>
+        <button>✂️ Dividir el hueco</button>`;
+      const mini=document.getElementById('rsMini');
+      mini.style.position='relative';
+      const mr=mini.getBoundingClientRect(),er=el.getBoundingClientRect();
+      pop.style.left=Math.min(er.left-mr.left+10,mr.width-200)+'px';
+      pop.style.top=(er.bottom-mr.top+6)+'px';
+      mini.appendChild(pop);
+      pop.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+        say('✅ '+b.textContent.trim()+' — '+where);pop.remove();}));
+      e.stopPropagation();
+    });
+  });
+  document.addEventListener('click',()=>document.querySelectorAll('.pop').forEach(p=>p.remove()));
+
+  /* drag & drop: clientas → reposo / hueco */
+  document.querySelectorAll('.draggable').forEach(d=>{
+    d.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text/plain',JSON.stringify({
+        n:d.dataset.n,c:d.dataset.c,dur:d.dataset.d}));
+      d.style.opacity=.4;
+    });
+    d.addEventListener('dragend',()=>d.style.opacity=1);
+  });
+  document.querySelectorAll('.restband,.freeslot').forEach(z=>{
+    z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drop');});
+    z.addEventListener('dragleave',()=>z.classList.remove('drop'));
+    z.addEventListener('drop',e=>{
+      e.preventDefault();z.classList.remove('drop');
+      const d=JSON.parse(e.dataTransfer.getData('text/plain'));
+      const where=z.dataset.rest||('hueco '+z.dataset.free);
+      /* crear mini cita dentro de la zona */
+      const r=z.getBoundingClientRect();
+      const n=document.createElement('div');
+      n.className='apt';n.style.cssText=
+        `position:absolute;left:9px;right:9px;top:${z.offsetTop+2}px;height:${Math.min(z.offsetHeight-4,50)}px;
+         z-index:9;background:${d.c};border-radius:8px;`;
+      n.innerHTML=`${d.n}<small>agendada en ${where.split('·')[0]} · ${d.dur} min</small>`;
+      z.parentElement.appendChild(n);
+      z.style.display='none';
+      say(`✅ ${d.n} agendada en ${where}`);
+    });
+  });
+})();
+</script>
+</body>
+</html>

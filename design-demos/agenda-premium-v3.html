@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hairy · Agenda premium v3 — cadena D3 refinada + chrome de agenda ×3</title>
+<style>
+  :root{
+    --bg:#f6f1ea; --card:#fff; --panel:#fffdfb;
+    --fire:#f4501e; --fire-hi:#c0260a;
+    --fire-grad:linear-gradient(135deg,#e0340e,#ff7a2e 55%,#ffcf4a);
+    --txt:#1c1814; --txt2:#5c5249; --txt3:#736658; --txt4:#b3a89d;
+    --border:rgba(40,30,24,.08); --border-hi:rgba(40,30,24,.14);
+    --ok:#0f9d6b; --amber:#e08a00; --red:#e23b34;
+    --chain:#5c5249;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--txt);padding:28px 22px 110px}
+  h1{font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
+  h2{font-size:15px;margin:38px 0 4px}
+  h3{font-size:12.5px;margin:22px 0 8px;color:var(--txt2)}
+  .sub{color:var(--txt3);font-size:13.5px;margin-bottom:12px;max-width:900px;line-height:1.6}
+  .sub b{color:var(--fire-hi)}
+  .sec{max-width:840px;margin:0 auto}
+
+  /* ================= ANTI-SOLAPE (reglas globales) =================
+     1. Todo texto de cita: nowrap + ellipsis + padding lateral fijo
+     2. Chips/badges anclados a esquinas con reserva de padding-top/right
+     3. Escala en hover: máx 1.012 y z-index:9 para pintar ENCIMA, sin desplazar
+     4. Separación vertical mínima entre bloques: 4px (gap garantizado)
+     5. Riel de cadena: los bloques arrancan 18px a la derecha del riel
+     ================================================================ */
+  .apt{position:absolute;border-radius:10px;color:#fff;cursor:pointer;z-index:3;
+    padding:7px 9px;font-size:11px;font-weight:700;overflow:hidden;
+    display:flex;flex-direction:column;gap:1px;justify-content:flex-start;
+    transition:box-shadow .15s ease,filter .15s;
+    box-shadow:0 1px 3px rgba(28,24,20,.10)}
+  .apt:hover{box-shadow:0 8px 18px rgba(28,24,20,.2);filter:brightness(1.04);z-index:9}
+  .apt .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .apt small{font-weight:500;font-size:9.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .a-fire{background:var(--fire-grad)}
+  .a-ok{background:linear-gradient(135deg,#0f9d6b,#13c38a)}
+  .a-chain{background:linear-gradient(135deg,#5c5249,#a3937f)}
+
+  /* ============ AGENDA BASE ============ */
+  .mini{width:780px;max-width:100%;margin:10px auto;border-radius:14px;background:var(--card);
+    overflow:hidden;position:relative}
+  /* borde con degradado animado (aura Mecha) */
+  @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+  .mini::before{content:'';position:absolute;inset:0;border-radius:14px;padding:1.6px;z-index:30;
+    pointer-events:none;
+    background:conic-gradient(from var(--ang,0deg),
+      rgba(244,80,30,0) 0deg,rgba(244,80,30,0) 120deg,
+      rgba(255,207,74,.9) 165deg,rgba(244,80,30,.95) 190deg,rgba(224,52,14,.9) 215deg,
+      rgba(244,80,30,0) 260deg,rgba(244,80,30,0) 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    animation:borderspin 7s linear infinite}
+  @keyframes borderspin{to{--ang:360deg}}
+  .mini .mh{display:grid;grid-template-columns:64px 1fr 1fr;background:var(--panel);
+    border-bottom:1px solid var(--border-hi);font-size:12.5px;font-weight:700}
+  .mini .mh .prof{padding:9px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .mini .mh .prof .av{width:28px;height:28px;border-radius:50%;color:#fff;font-size:10.5px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(28,24,20,.18)}
+  .mini .mh .prof .nm2{font-size:12px}
+  .mini .mh .prof .ct{font-size:9.5px;font-weight:600;color:var(--txt3)}
+  .cols{position:relative;display:grid;grid-template-columns:64px 1fr 1fr;height:480px}
+  .hrs{position:relative;border-right:1px solid var(--border)}
+  .hrs span{position:absolute;right:10px;font-size:10px;color:var(--txt4);font-weight:600;transform:translateY(-6px)}
+  .pcol{position:relative}
+  .hlns{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .hlns i{display:block;height:96px;border-top:1px solid var(--border)}
+  .wires{position:absolute;inset:0;z-index:5;pointer-events:none}
+
+  /* ============================================================
+     D3 REFINADO v4 — UNA SOLA LÍNEA DE FLUJO por cadena
+     La ruta completa (baja Ana → cruza a Marta → baja → regresa a Ana)
+     es UN path SVG con guiones animados: movimiento en el 100% del
+     recorrido, incluidos los cruces. Los bloques siguen ESTÁTICOS
+     (el movimiento es lenguaje de los estados, no de la cadena).
+     Cadena A = brasa · Cadena B = humo
+     ============================================================ */
+  .d3r .node{position:absolute;width:9px;height:9px;border-radius:50%;z-index:6;
+    background:#fffdfb;border:2.5px solid #c0260a;transform:translate(-3px,-4.5px);
+    box-shadow:0 0 5px rgba(192,38,10,.4)}
+  .d3r .node.start{background:#c0260a;border-radius:3px;width:8px;height:8px}
+  .d3r .node.end{border-radius:2px}
+  .d3r .node.smoke{border-color:#736658;box-shadow:none}
+  .d3r .node.start.smoke{background:#736658}
+  .d3r .seg{left:24px;justify-content:center}
+  /* bloques ESTÁTICOS — sin animación */
+  .d3r .ember{background:linear-gradient(120deg,#7a3e1d,#c77b3a 45%,#e8a54b);
+    box-shadow:0 2px 8px rgba(160,90,20,.35)}
+  .d3r .smokebg{background:linear-gradient(120deg,#6b6258,#a99e90 45%,#c9bda9);
+    box-shadow:0 1px 4px rgba(28,24,20,.18)}
+  .d3r .ix{position:absolute;bottom:4px;right:7px;font-size:8px;font-weight:800;
+    background:rgba(255,253,251,.28);border-radius:4px;padding:1px 5px;letter-spacing:.04em}
+  /* línea de flujo única por cadena */
+  .d3r .flow{fill:none;stroke-width:3;stroke-linecap:round;
+    stroke-dasharray:10 8;animation:flowmove 1s linear infinite}
+  .d3r .flow.ember{stroke:url(#beamA)}
+  .d3r .flow.smoke{stroke:url(#beamB)}
+  @keyframes flowmove{to{stroke-dashoffset:-18}}
+  /* base tenue de la misma ruta (para que exista aunque los guiones pasen) */
+  .d3r .flowbase{fill:none;stroke-width:3;stroke-linecap:round;opacity:.22}
+  .d3r .arrowhead{fill:#c0260a}
+  .d3r .arrowhead.smoke{fill:#736658}
+
+  /* ============================================================
+     REPOSO — limpio, con espacio reservado
+     ============================================================ */
+  .restband{position:absolute;left:9px;right:9px;border-radius:8px;z-index:6;cursor:grab;
+    background:repeating-linear-gradient(-45deg,rgba(255,253,251,.96) 0 8px,rgba(115,102,88,.13) 8px 16px);
+    border:1.5px dashed rgba(92,82,73,.55);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:0 26px 0 10px; /* 26px a la derecha: reserva para el ＋ */
+    transition:filter .15s}
+  .restband:hover{filter:brightness(1.04)}
+  .restband .cup{width:21px;height:21px;border-radius:50%;background:var(--txt3);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .restband .rtx{font-size:9px;font-weight:800;color:var(--txt2);line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .restband .rtx small{display:block;font-size:8px;font-weight:600;color:var(--txt3)}
+  .restband .plus{position:absolute;top:50%;right:6px;transform:translateY(-50%);
+    font-size:11px;font-weight:800;color:var(--ok);opacity:0;transition:opacity .15s}
+  .restband:hover .plus{opacity:1}
+  .actlab{position:absolute;left:11px;font-size:7.5px;font-weight:800;letter-spacing:.07em;
+    color:rgba(255,255,255,.9);z-index:4}
+
+  /* ============================================================
+     CHROME DE AGENDA — 3 diseños
+     ============================================================ */
+
+  /* ---------- A · CLÁSICO REFINADO (hairlines + hora actual burbuja) ---------- */
+  .chA .pcol + .pcol{border-left:1px solid var(--border)}
+  .chA .pcol{transition:background .2s}
+  .chA .pcol:hover{background:rgba(244,80,30,.025)}
+  .chA .hlns i{border-top:1px solid var(--border)}
+  .chA .hlns i:nth-child(odd){border-top-color:rgba(40,30,24,.10)} /* hora entera más firme */
+  .chA .now{position:absolute;left:0;right:0;height:2px;z-index:7;pointer-events:none;
+    background:linear-gradient(90deg,var(--fire),rgba(244,80,30,.06))}
+  .chA .now::before{content:'';position:absolute;left:-3.5px;top:-3px;width:8px;height:8px;border-radius:50%;
+    background:var(--fire);box-shadow:0 0 0 3.5px rgba(244,80,30,.16)}
+  .chA .nowchip{position:absolute;right:6px;top:-9px;background:var(--fire);color:#fff;font-size:9px;
+    font-weight:800;padding:2px 7px;border-radius:999px;box-shadow:0 2px 6px rgba(244,80,30,.35)}
+  .chA .hrs span{font-variant-numeric:tabular-nums}
+  .chA .mh .prof{border-left:1px solid var(--border)}
+  .chA .mh .prof:hover{background:rgba(244,80,30,.03)}
+
+  /* ---------- B · AIRE (sin líneas verticales, columnas por luz) ---------- */
+  .chB .cols{gap:14px}
+  .chB .hrs{border-right:none}
+  .chB .hrs span{right:2px;color:var(--txt4)}
+  .chB .pcol{border-radius:12px;transition:background .25s,box-shadow .25s}
+  .chB .pcol:hover{background:linear-gradient(180deg,rgba(244,80,30,.05),rgba(244,80,30,.015));
+    box-shadow:inset 0 0 0 1.5px rgba(244,80,30,.12)}
+  .chB .hlns i{border-top:1px dashed rgba(40,30,24,.09)}
+  .chB .hlns i:nth-child(even){border-top-color:rgba(40,30,24,.05)}
+  .chB .now{position:absolute;left:0;right:0;height:14px;z-index:7;pointer-events:none;
+    background:radial-gradient(50% 100% at 50% 50%,rgba(244,80,30,.16),transparent 75%)}
+  .chB .now::after{content:'';position:absolute;left:0;right:0;top:6.5px;height:1.5px;
+    background:linear-gradient(90deg,transparent,var(--fire) 12%,var(--fire) 88%,transparent)}
+  .chB .mh{background:transparent;border-bottom:none}
+  .chB .mh .prof{background:var(--panel);border-radius:12px;margin:6px 0 2px;
+    border:1px solid var(--border);transition:all .2s var(--ease)}
+  .chB .mh .prof:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(28,24,20,.1)}
+  .chB .mh .hrs{background:transparent}
+
+  /* ---------- C · TERMINAL PREMIUM (gutter fuerte + tabs) ---------- */
+  .chC .hrs{background:var(--panel);border-right:1.5px solid var(--border-hi);z-index:2}
+  .chC .hrs span{font-family:ui-monospace,'Cascadia Code',monospace;color:var(--txt3);right:8px}
+  .chC .hlns i{border-top:1px solid transparent;position:relative}
+  .chC .hlns i::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;
+    background:repeating-linear-gradient(90deg,rgba(40,30,24,.12) 0 3px,transparent 3px 8px)}
+  .chC .hlns i:nth-child(odd)::before{background:rgba(40,30,24,.14)}
+  .chC .pcol + .pcol{border-left:1px solid var(--border)}
+  .chC .pcol:hover{background:rgba(40,30,24,.02)}
+  .chC .now{position:absolute;left:0;right:0;height:2.5px;z-index:7;pointer-events:none;
+    background:var(--fire-grad);border-radius:2px;
+    box-shadow:0 0 12px rgba(244,80,30,.45)}
+  .chC .now::before{content:'▶';position:absolute;left:56px;top:-4.5px;color:var(--fire);
+    font-size:10px;background:var(--card);border-radius:4px;padding:0 3px}
+  .chC .nowlbl{position:absolute;left:64px;top:-9px;background:var(--txt);color:#fff;font-size:9px;
+    font-weight:800;padding:2.5px 8px;border-radius:6px;font-family:ui-monospace,monospace;
+    box-shadow:0 3px 8px rgba(28,24,20,.3)}
+  .chC .mh .prof{border-left:1px solid var(--border);position:relative}
+  .chC .mh .prof::after{content:'';position:absolute;left:20%;right:20%;bottom:-1px;height:2.5px;
+    border-radius:3px;background:var(--fire-grad);opacity:0;transition:opacity .2s}
+  .chC .mh .prof:hover::after{opacity:1}
+  .chC .mh{border-bottom:1.5px solid var(--border-hi)}
+
+  /* contador animado en cabecera */
+  .ct b{color:var(--fire-hi)}
+</style>
+</head>
+<body>
+  <h1>🔥 Agenda premium v3 — cadena D3 refinada · reposos limpios · chrome ×3</h1>
+  <p class="sub">Reglas <b>anti-solape</b> aplicadas a todo (ver notas al final): texto con ellipsis, chips anclados con espacio reservado, hover sin desplazamiento, riel de cadena con margen propio. Y los <b>3 diseños de estructura</b>: hairlines clásicos, columnas por luz sin bordes, y terminal premium.</p>
+
+  <!-- ==================== D3 REFINADO ==================== -->
+  <div class="sec">
+    <h2>🔗 Cadena D3 refinada — premium, sin ruido</h2>
+    <p class="sub">Respetando el sistema cerrado: <b>los bloques son estáticos</b> — el movimiento es lenguaje exclusivo de los estados. La dirección de la cadena se lee por: <b>riel que fluye hacia abajo</b> (el tiempo avanza), <b>flechas ▶/▼ en cada conector</b> apuntando al siguiente tramo, costura ▼ entre tramos del mismo profesional, nodo ▣ lleno = inicio, ◪ cuadrado claro = cierre. Cadena A brasa · B humo.</p>
+    <div class="mini d3r" id="chain">
+      <div class="mh">
+        <div></div>
+        <div class="prof"><span class="av" style="background:var(--fire-grad)">AN</span><span class="nm2">🔥 Ana</span><span class="ct"><b>2</b> citas · <b>1</b> cadena</span></div>
+        <div class="prof" style="border-left:1px solid var(--border)"><span class="av" style="background:linear-gradient(135deg,#0f9d6b,#13c38a)">MA</span><span class="nm2">💫 Marta</span><span class="ct"><b>2</b> citas · <b>1</b> cadena</span></div>
+      </div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:46px">9:30</span><span style="top:238px">11:30</span><span style="top:430px">13:30</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="node start" style="top:48px;left:8px"></span>
+          <span class="node end" style="top:240px;left:8px"></span>
+          <div class="apt seg ember" style="top:50px;height:92px;padding-bottom:18px">
+            <span class="nm">Sofía L. · prueba de color</span>
+            <small>9:30–10:30 · con Ana</small>
+            <span class="ix">1/3</span>
+          </div>
+          <div class="apt seg ember" style="top:242px;height:44px">
+            <span class="nm">Sofía L. · lavado + peinado</span>
+            <small>11:30–12:00</small>
+            <span class="ix">3/3</span>
+          </div>
+          <div class="apt a-fire" style="top:336px;height:93px;left:8px;right:8px">
+            <span class="nm">María G.</span><small>Corte + barba · 12:30–13:30</small>
+          </div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:48px;height:69px;left:8px;right:8px">
+            <span class="nm">Inés R. · Peinado</span><small>9:30–10:15</small>
+          </div>
+          <span class="node" style="top:144px;left:8px"></span>
+          <div class="apt seg ember" style="top:146px;height:68px;padding-bottom:18px">
+            <span class="nm">Sofía L. · aplicación de tinte</span>
+            <small>10:30–11:15 · con Marta</small>
+            <span class="ix">2/3</span>
+          </div>
+          <!-- cadena B humo -->
+          <span class="node start smoke" style="top:336px;left:8px"></span>
+          <span class="node end smoke" style="top:448px;left:8px"></span>
+          <div class="apt seg smokebg" style="top:338px;height:58px;padding-bottom:18px">
+            <span class="nm">Elena V. · prueba</span>
+            <small>12:30–13:10</small>
+            <span class="ix">1/2</span>
+          </div>
+          <div class="apt seg smokebg" style="top:400px;height:46px">
+            <span class="nm">Elena V. · montaje</span>
+            <small>13:10–13:40</small>
+            <span class="ix">2/2</span>
+          </div>
+        </div>
+        <!-- UNA línea de flujo por cadena: recorre TODO el trayecto -->
+        <svg class="wires" viewBox="0 0 780 480" preserveAspectRatio="none" style="z-index:2">
+          <defs>
+            <linearGradient id="beamA" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#c0260a"/><stop offset=".5" stop-color="#ffcf4a"/><stop offset="1" stop-color="#c0260a"/>
+            </linearGradient>
+            <linearGradient id="beamB" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#736658"/><stop offset=".5" stop-color="#c9bda9"/><stop offset="1" stop-color="#736658"/>
+            </linearGradient>
+          </defs>
+          <!-- ruta cadena A: nodo inicio Ana(72,48) → baja → cruza a Marta(430) → baja → regresa a Ana → nodo fin(72,240) -->
+          <path class="flowbase" stroke="#c0260a"
+            d="M 72 48 V 144 H 430 V 218 H 80 V 236"/>
+          <path class="flow ember"
+            d="M 72 48 V 144 H 430 V 218 H 80 V 236"/>
+          <polygon class="arrowhead" points="424,138 438,144 424,150"/>
+          <polygon class="arrowhead" points="74,230 86,230 80,242"/>
+          <!-- ruta cadena B: vertical en Marta(430) 336→448 -->
+          <path class="flowbase smoke" stroke="#736658" d="M 430 336 V 444"/>
+          <path class="flow smoke" d="M 430 336 V 444"/>
+          <polygon class="arrowhead smoke" points="424,438 436,438 430,450"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== REPOSOS LIMPIOS ==================== -->
+  <div class="sec">
+    <h2>☕ Reposo — tu diseño, blindado contra solapes</h2>
+    <p class="sub">La franja rayada de siempre, ahora con: texto con ellipsis (nunca rebasa), el ＋ con 26px reservados a la derecha (no pisa el texto), tramos activos etiquetados sin invadir el contenido, y hover que no desplaza vecinos.</p>
+    <div class="mini" id="rest">
+      <div class="mh">
+        <div></div>
+        <div class="prof"><span class="av" style="background:var(--fire-grad)">AN</span><span class="nm2">🔥 Ana</span><span class="ct"><b>1</b> cita con reposo</span></div>
+        <div class="prof" style="border-left:1px solid var(--border)"><span class="av" style="background:linear-gradient(135deg,#0f9d6b,#13c38a)">MA</span><span class="nm2">💫 Marta</span><span class="ct"><b>1</b> cita</span></div>
+      </div>
+      <div class="cols">
+        <div class="hrs"><span style="top:22px">9:15</span><span style="top:214px">11:15</span><span style="top:406px">13:15</span></div>
+        <div class="pcol" style="border-left:1px solid var(--border)">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:24px;height:288px;left:8px;right:8px;padding:8px 10px 26px">
+            <span class="nm">Sofía L. · Color completo</span>
+            <small>9:15–12:15 · 168 min</small>
+          </div>
+          <span class="actlab" style="top:38px">▶ ACTIVA 9:15–10:15</span>
+          <span class="actlab" style="top:222px">▶ ACTIVA 11:00–12:15</span>
+          <div class="restband" style="top:138px;height:76px">
+            <span class="cup">☕</span>
+            <span class="rtx">REPOSO · 45 min<small>Ana libre 10:15–11:00 · tinte actuando</small></span>
+            <span class="plus">＋</span>
+          </div>
+        </div>
+        <div class="pcol" style="border-left:1px solid var(--border)">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:72px;height:93px;left:8px;right:8px">
+            <span class="nm">Inés R. · Peinado de gala con rulos</span>
+            <small>9:45–10:45 · texto largo que se corta con puntos suspensivos</small>
+          </div>
+          <div class="apt a-fire" style="top:192px;height:93px;left:8px;right:8px">
+            <span class="nm">Rosa M. · Corte</span><small>11:00–12:00</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CHROME ×3 ==================== -->
+  <div class="sec">
+    <h2>🏛 La agenda en conjunto — 3 diseños de estructura</h2>
+
+    <h3>A · Clásico refinado — hairlines firmes en hora entera, hora actual con burbuja</h3>
+    <p class="sub">Bordes sutiles con jerarquía (hora entera más marcada), columna con tinte al hover, hora actual = línea fuego + punto + <b>burbuja con la hora</b> flotando a la derecha. Avatares de profesional con su color y contador.</p>
+    <div class="mini chA">
+      <div class="mh">
+        <div></div>
+        <div class="prof"><span class="av" style="background:var(--fire-grad)">AN</span><span class="nm2">🔥 Ana</span><span class="ct"><b>3</b> citas · <b>85%</b> ocupada</span></div>
+        <div class="prof"><span class="av" style="background:linear-gradient(135deg,#0f9d6b,#13c38a)">MA</span><span class="nm2">💫 Marta</span><span class="ct"><b>2</b> citas · <b>60%</b> ocupada</span></div>
+      </div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:10px">9:00</span><span style="top:106px">10:00</span><span style="top:202px">11:00</span><span style="top:298px">12:00</span><span style="top:394px">13:00</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:48px;height:93px;left:8px;right:8px"><span class="nm">María G. · Corte + barba</span><small>9:30–10:30</small></div>
+          <div class="apt a-ok" style="top:240px;height:69px;left:8px;right:8px"><span class="nm">Jorge R. · Arranque</span><small>11:30–12:15</small></div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:144px;height:93px;left:8px;right:8px"><span class="nm">Inés R. · Peinado</span><small>10:30–11:30</small></div>
+        </div>
+        <div class="now" style="top:196px"><span class="nowchip">11:44</span></div>
+      </div>
+    </div>
+
+    <h3>B · Aire — sin líneas verticales: las columnas existen por la luz</h3>
+    <p class="sub">Cero divisores verticales: las columnas se separan por <b>espacio + halo al hover</b>. Filas punteadas suaves. La hora actual es una <b>banda de glow</b> que atraviesa toda la fila, más línea fina. Cabeceras como tarjetas flotantes. El más limpio y moderno.</p>
+    <div class="mini chB">
+      <div class="mh">
+        <div></div>
+        <div class="prof"><span class="av" style="background:var(--fire-grad)">AN</span><span class="nm2">🔥 Ana</span><span class="ct"><b>3</b> citas</span></div>
+        <div class="prof"><span class="av" style="background:linear-gradient(135deg,#0f9d6b,#13c38a)">MA</span><span class="nm2">💫 Marta</span><span class="ct"><b>2</b> citas</span></div>
+      </div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:10px">9</span><span style="top:106px">10</span><span style="top:202px">11</span><span style="top:298px">12</span><span style="top:394px">13</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:48px;height:93px"><span class="nm">María G. · Corte + barba</span><small>9:30–10:30</small></div>
+          <div class="apt a-ok" style="top:240px;height:69px"><span class="nm">Jorge R. · Arranque</span><small>11:30–12:15</small></div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:144px;height:93px"><span class="nm">Inés R. · Peinado</span><small>10:30–11:30</small></div>
+        </div>
+        <div class="now" style="top:189px"></div>
+      </div>
+    </div>
+
+    <h3>C · Terminal premium — gutter monoespaciado, medias horas punteadas, hora actual con halo</h3>
+    <p class="sub">Columna de horas en <b>monoespaciada sobre panel</b> con ticks punteados en medias horas (más precisa para agendar). Hora actual: <b>línea con glow fuego + marcador ▶ + etiqueta oscura</b> estilo terminal. Cabeceras con subrayado gradiente al hover. El más "software serio".</p>
+    <div class="mini chC">
+      <div class="mh">
+        <div></div>
+        <div class="prof"><span class="av" style="background:var(--fire-grad)">AN</span><span class="nm2">🔥 Ana</span><span class="ct">3 citas · 85%</span></div>
+        <div class="prof"><span class="av" style="background:linear-gradient(135deg,#0f9d6b,#13c38a)">MA</span><span class="nm2">💫 Marta</span><span class="ct">2 citas · 60%</span></div>
+      </div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:10px">09:00</span><span style="top:106px">10:00</span><span style="top:202px">11:00</span><span style="top:298px">12:00</span><span style="top:394px">13:00</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:48px;height:93px;left:8px;right:8px"><span class="nm">María G. · Corte + barba</span><small>9:30–10:30</small></div>
+          <div class="apt a-ok" style="top:240px;height:69px;left:8px;right:8px"><span class="nm">Jorge R. · Arranque</span><small>11:30–12:15</small></div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:144px;height:93px;left:8px;right:8px"><span class="nm">Inés R. · Peinado</span><small>10:30–11:30</small></div>
+        </div>
+        <div class="now" style="top:195px"><span class="nowlbl">11:43</span></div>
+      </div>
+    </div>
+
+    <div class="audit" style="background:var(--panel);border:1px solid var(--border);border-radius:12px;
+         padding:14px 18px;font-size:12.5px;color:var(--txt3);line-height:1.7;margin-top:20px">
+      <b>🛡 Reglas anti-solape verificadas en todos los diseños:</b><br>
+      · Texto de cita: <code>nowrap + ellipsis</code> — un nombre larguísimo se corta con "…", nunca rebasa ni pisa al vecino (mira a Inés R. en la demo de reposos).<br>
+      · Índice de cadena <code>1/3</code>: esquina inferior derecha <b>con 20px de padding inferior reservado</b> en el bloque — nunca tapa el texto.<br>
+      · El ＋ del reposo: 26px reservados a la derecha de la franja — aparece sobre espacio propio.<br>
+      · Hover: <code>filter/z-index</code> solamente — nada se mueve, nada empuja a los vecinos (canon Mecha: sin desplazamientos).<br>
+      · Riel de cadena: 18px de margen izquierdo reservado; el texto de la cita empieza después.<br>
+      · Etiquetas de tramo activo (▶ ACTIVA): alineadas a zonas del bloque sin contenido (bajo el nombre, sobre el pie).
+    </div>
+  </div>
+</body>
+</html>

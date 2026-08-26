@@ -10,13 +10,12 @@ import { supabase } from '@/lib/supabase';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { TText, TTextInput } from '@/components/ui/TText';
 import { CITA_STATUS } from '@/lib/constants';
+import { metaEstadoCita } from '@/lib/citasEstadoUi';
 
-const ESTADOS_META: Record<string, { label: string; color: string }> = {
-  [CITA_STATUS.CONFIRMADA]:     { label: 'Confirmada',       color: '#f4501e' },
-  [CITA_STATUS.COMPLETADA]:     { label: 'Completada',       color: '#22c55e' },
-  [CITA_STATUS.CANCELADA]:      { label: 'Cancelada',        color: '#94a3b8' },
-  [CITA_STATUS.NO_PRESENTADA]:  { label: 'No presentada',   color: '#ef4444' },
-};
+// Fuente unica de como se pinta cada estado: lib/citasEstadoUi.ts.
+const ESTADOS_META: Record<string, { label: string; color: string }> = Object.fromEntries(
+  Object.values(CITA_STATUS).map((st) => [st, { label: metaEstadoCita(st).label, color: metaEstadoCita(st).color }])
+);
 
 const TRANSICIONES: Record<string, string[]> = {
   [CITA_STATUS.CONFIRMADA]:  [CITA_STATUS.COMPLETADA, CITA_STATUS.NO_PRESENTADA, CITA_STATUS.CANCELADA],
@@ -107,7 +106,8 @@ export default function AgendaDetalleScreen() {
   if (loading) return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#f4501e" /></View>;
   if (!cita) return null;
 
-  const estadoActual = ESTADOS_META[cita.estado] ?? { label: cita.estado, color: '#94a3b8' };
+  const estadoUi = metaEstadoCita(cita.estado);
+  const estadoActual = ESTADOS_META[cita.estado] ?? { label: estadoUi.label, color: estadoUi.color };
   const transicionesDisponibles = TRANSICIONES[cita.estado] ?? [];
   const inicio = new Date(cita.inicio);
   const fin = new Date(cita.fin);

@@ -8,6 +8,7 @@ import {
   useDeferredValue,
 } from "react";
 import { TimelineNowIndicator } from "./TimelineNowIndicator.web";
+import { ChainFlowOverlay, CHAIN_GUTTER } from "./ChainFlowOverlay.web";
 import { createPortal } from "react-dom";
 import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -26,6 +27,11 @@ import { traerAlFoco } from "@/lib/demoScroll";
 import { useCalendarRefresh } from "@/lib/calendarContext";
 import { syncAlergiasACliente } from "@/lib/syncAlergias";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
+import {
+  bloqueDeCita,
+  progresoCita,
+  minutosRestantes,
+} from "@/lib/agendaBloqueUi";
 import { categoryColorHex } from "@/lib/categoryColors";
 import { useResponsive } from "@/lib/hooks/useResponsive";
 import { useCitasRealtime } from "@/lib/hooks/useCitasRealtime";
@@ -488,20 +494,23 @@ const ReposoFreeGapInteractive = memo(
         onClick={handleClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        title={`Reposo de ${clienteNombre} (${iniStr} - ${finStr}, ${gapMin}′ libre) · Haz clic para crear cita en este reposo`}
+        title={`Reposo de ${clienteNombre} (${iniStr} - ${finStr}, ${gapMin}′ libre) · Haz clic para agendar cita en este reposo`}
         style={{
           position: "absolute",
           top: gapTop,
           left: 0,
           right: 0,
           height: gapH,
+          // Verde = "puedes meter a alguien aqui". Es el unico verde del hueco
+          // de reposo: la franja rayada de alrededor va en neutro a proposito,
+          // porque el reposo no es un estado, es estructura de la cita.
           background: hovered
-            ? "rgba(16,185,129,0.28)"
-            : "rgba(16,185,129,0.10)",
+            ? "rgba(15,157,107,0.26)"
+            : "rgba(15,157,107,0.10)",
           boxShadow: hovered
-            ? "inset 0 0 12px rgba(16,185,129,0.50), 0 0 10px rgba(16,185,129,0.30)"
+            ? "inset 0 0 12px rgba(15,157,107,0.45), 0 0 10px rgba(15,157,107,0.28)"
             : "none",
-          border: hovered ? "1.5px solid #10b981" : "none",
+          border: hovered ? `1.5px solid ${TOKENS.success}` : "none",
           borderRadius: hovered ? 6 : 0,
           display: "flex",
           alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
@@ -518,7 +527,7 @@ const ReposoFreeGapInteractive = memo(
             style={{
               padding: hovered ? "3px 10px" : "2px 8px",
               borderRadius: 999,
-              background: hovered ? "#059669" : "#10b981",
+              background: hovered ? TOKENS.successHi : TOKENS.success,
               fontSize: hovered ? 10 : 9.5,
               fontWeight: 700,
               letterSpacing: 0.4,
@@ -526,18 +535,14 @@ const ReposoFreeGapInteractive = memo(
               color: "#ffffff",
               whiteSpace: "nowrap",
               boxShadow: hovered
-                ? "0 2px 8px rgba(16,185,129,0.50)"
-                : "0 1px 3px rgba(0,0,0,0.15)",
+                ? "0 2px 8px rgba(15,157,107,0.45)"
+                : "0 1px 3px rgba(28,24,20,0.15)",
               transform: hovered ? "scale(1.05)" : "scale(1)",
               transition: "all 0.15s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
+              pointerEvents: "none",
             }}
           >
-            {hovered
-              ? `⚡ Creando en reposo ${iniStr}-${finStr}`
-              : `Hueco libre ${gapMin}′`}
+            + LIBRE {gapMin}′
           </span>
         )}
       </div>
@@ -2794,17 +2799,17 @@ export default function AgendaCalendar() {
               {
                 value: CITA_STATUS.COMPLETADA,
                 label: "Completada",
-                dot: "#22c55e",
+                dot: "#0f9d6b",
               },
               {
                 value: CITA_STATUS.CANCELADA,
                 label: "Cancelada",
-                dot: "#ef4444",
+                dot: "#e23b34",
               },
               {
                 value: CITA_STATUS.NO_PRESENTADA,
                 label: "No presentada",
-                dot: "#f59e0b",
+                dot: "#e23b34",
               },
             ];
             return (
@@ -2878,10 +2883,10 @@ export default function AgendaCalendar() {
             padding: "5px 10px",
             fontSize: 11,
             fontWeight: 600,
-            background: "rgba(239,68,68,0.08)",
-            border: "1px solid rgba(239,68,68,0.20)",
+            background: "rgba(226,59,52,0.08)",
+            border: "1px solid rgba(226,59,52,0.20)",
             borderRadius: 8,
-            color: "#ef4444",
+            color: "#e23b34",
             cursor: "pointer",
             transition: "all 0.2s ease",
             display: "flex",
@@ -2890,10 +2895,10 @@ export default function AgendaCalendar() {
             animation: "fadeIn 0.2s ease",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+            e.currentTarget.style.background = "rgba(226,59,52,0.15)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+            e.currentTarget.style.background = "rgba(226,59,52,0.08)";
           }}
         >
           <svg
@@ -3786,18 +3791,18 @@ export default function AgendaCalendar() {
               justifyContent: "space-between",
               padding: "10px 12px",
               borderRadius: 10,
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.25)",
+              background: "rgba(226,59,52,0.08)",
+              border: "1px solid rgba(226,59,52,0.25)",
               cursor: "pointer",
             }}
           >
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#e23b34" }}>
                 Cerrar el salón
               </div>
               <div style={{ fontSize: 11, color: TOKENS.textSec }}>Festivo, obras o cierre puntual</div>
             </div>
-            <Icon name="x" size={16} color="#ef4444" />
+            <Icon name="x" size={16} color="#e23b34" />
           </div>
         </div>
 
@@ -3950,9 +3955,9 @@ export default function AgendaCalendar() {
                 gap: 6,
                 marginTop: 6,
                 padding: "4px 10px",
-                background: "rgba(239,68,68,0.10)",
-                border: "1px solid rgba(239,68,68,0.30)",
-                color: "#ef4444",
+                background: "rgba(226,59,52,0.10)",
+                border: "1px solid rgba(226,59,52,0.30)",
+                color: "#e23b34",
                 borderRadius: 999,
                 fontSize: 11.5,
                 fontWeight: 700,
@@ -3963,7 +3968,7 @@ export default function AgendaCalendar() {
                   width: 6,
                   height: 6,
                   borderRadius: 999,
-                  background: "#ef4444",
+                  background: "#e23b34",
                 }}
               />
               Salon cerrado{cierreHoy.motivo ? ` · ${cierreHoy.motivo}` : ""}
@@ -4018,7 +4023,7 @@ export default function AgendaCalendar() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                color: sinConfirmar48h > 0 ? "#ef4444" : TOKENS.textTer,
+                color: sinConfirmar48h > 0 ? "#e23b34" : TOKENS.textTer,
                 fontSize: 12,
                 fontWeight: 600,
               }}
@@ -4026,7 +4031,7 @@ export default function AgendaCalendar() {
               <Icon
                 name="alert"
                 size={16}
-                color={sinConfirmar48h > 0 ? "#ef4444" : TOKENS.textTer}
+                color={sinConfirmar48h > 0 ? "#e23b34" : TOKENS.textTer}
               />
               {sinConfirmar48h} sin confirmar
             </div>
@@ -4211,9 +4216,9 @@ export default function AgendaCalendar() {
             aria-label="Cerrar salon"
             style={{
               padding: isMobile ? "7px 8px" : "7px 12px",
-              background: "rgba(239,68,68,0.10)",
-              border: "1px solid rgba(239,68,68,0.25)",
-              color: "#ef4444",
+              background: "rgba(226,59,52,0.10)",
+              border: "1px solid rgba(226,59,52,0.25)",
+              color: "#e23b34",
               borderRadius: 9,
               cursor: "pointer",
               fontSize: 12.5,
@@ -4226,13 +4231,13 @@ export default function AgendaCalendar() {
               minHeight: 33,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(239,68,68,0.20)";
+              e.currentTarget.style.background = "rgba(226,59,52,0.20)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(239,68,68,0.10)";
+              e.currentTarget.style.background = "rgba(226,59,52,0.10)";
             }}
           >
-            <Icon name="x" size={15} color="#ef4444" />
+            <Icon name="x" size={15} color="#e23b34" />
             {!isMobile && "Cerrar salon"}
           </button>
           )}
@@ -4303,8 +4308,8 @@ export default function AgendaCalendar() {
                   alignItems: "center",
                   gap: isMobile ? 4 : 6,
                   padding: isMobile ? "3px 8px" : "5px 10px",
-                  background: "rgba(239,68,68,0.12)",
-                  border: "1px solid rgba(239,68,68,0.25)",
+                  background: "rgba(226,59,52,0.12)",
+                  border: "1px solid rgba(226,59,52,0.25)",
                   borderRadius: 8,
                   cursor: "pointer",
                   fontSize: isMobile ? 10.5 : 11,
@@ -4315,10 +4320,10 @@ export default function AgendaCalendar() {
                   flexShrink: 0,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(239,68,68,0.20)";
+                  e.currentTarget.style.background = "rgba(226,59,52,0.20)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(239,68,68,0.12)";
+                  e.currentTarget.style.background = "rgba(226,59,52,0.12)";
                 }}
               >
                 {prof && (
@@ -4332,7 +4337,7 @@ export default function AgendaCalendar() {
                   />
                 )}
                 <span>{cli?.nombre ?? "Cliente"}</span>
-                <span style={{ color: "#ef4444" }}>+{minutosRetraso}min</span>
+                <span style={{ color: "#e23b34" }}>+{minutosRetraso}min</span>
               </button>
             );
           };
@@ -4343,8 +4348,8 @@ export default function AgendaCalendar() {
                 alignItems: "center",
                 gap: isMobile ? 6 : 12,
                 padding: isMobile ? "5px 8px" : "10px 32px",
-                background: "rgba(239,68,68,0.08)",
-                borderBottom: "1px solid rgba(239,68,68,0.20)",
+                background: "rgba(226,59,52,0.08)",
+                borderBottom: "1px solid rgba(226,59,52,0.20)",
                 animation: "fadeIn 0.3s ease",
                 // En movil la cinta es UNA sola fila fina: reloj + nombres que
                 // giran + cruz. Antes envolvia (el rotulo "N retrasos" y la cruz
@@ -4362,11 +4367,11 @@ export default function AgendaCalendar() {
                   gap: isMobile ? 3 : 6,
                   fontSize: isMobile ? 11.5 : 13,
                   fontWeight: 700,
-                  color: "#ef4444",
+                  color: "#e23b34",
                   flexShrink: 0,
                 }}
               >
-                <Icon name="clock" size={isMobile ? 13 : 15} color="#ef4444" />
+                <Icon name="clock" size={isMobile ? 13 : 15} color="#e23b34" />
                 {/* En movil solo la cifra: el rotulo "retrasos" no cabe sin
                     robarle el ancho a los nombres, que es lo util. */}
                 {isMobile
@@ -4414,7 +4419,7 @@ export default function AgendaCalendar() {
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  color: "#ef4444",
+                  color: "#e23b34",
                   opacity: 0.6,
                   padding: isMobile ? 2 : 4,
                   display: "flex",
@@ -5669,13 +5674,13 @@ export default function AgendaCalendar() {
             bottom: 32,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "rgba(239,68,68,0.95)",
+            background: "rgba(226,59,52,0.95)",
             color: "#fff",
             padding: "10px 20px",
             borderRadius: 10,
             fontSize: 13,
             fontWeight: 600,
-            boxShadow: "0 8px 24px rgba(239,68,68,0.4)",
+            boxShadow: "0 8px 24px rgba(226,59,52,0.4)",
             pointerEvents: "none",
             zIndex: 9999,
           }}
@@ -6006,7 +6011,7 @@ export default function AgendaCalendar() {
                   width: isMobile ? "90%" : 440,
                   maxWidth: 440,
                   background: TOKENS.bgPanel,
-                  border: `1px solid rgba(239,68,68,0.30)`,
+                  border: `1px solid rgba(226,59,52,0.30)`,
                   borderRadius: 16,
                   padding: isMobile ? 18 : 28,
                   animation: "scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)",
@@ -6018,7 +6023,7 @@ export default function AgendaCalendar() {
                     marginBottom: 6,
                     fontSize: 18,
                     fontWeight: 700,
-                    color: "#ef4444",
+                    color: "#e23b34",
                   }}
                 >
                   Cerrar salon hoy
@@ -6133,10 +6138,10 @@ export default function AgendaCalendar() {
                       padding: "10px 0",
                       background:
                         count === 0
-                          ? "rgba(239,68,68,0.08)"
-                          : "rgba(239,68,68,0.15)",
-                      color: count === 0 ? TOKENS.textTer : "#ef4444",
-                      border: "1px solid rgba(239,68,68,0.30)",
+                          ? "rgba(226,59,52,0.08)"
+                          : "rgba(226,59,52,0.15)",
+                      color: count === 0 ? TOKENS.textTer : "#e23b34",
+                      border: "1px solid rgba(226,59,52,0.30)",
                       borderRadius: 10,
                       cursor: count === 0 ? "not-allowed" : "pointer",
                       fontSize: 13,
@@ -6146,12 +6151,12 @@ export default function AgendaCalendar() {
                     onMouseEnter={(e) => {
                       if (count > 0)
                         e.currentTarget.style.background =
-                          "rgba(239,68,68,0.25)";
+                          "rgba(226,59,52,0.25)";
                     }}
                     onMouseLeave={(e) => {
                       if (count > 0)
                         e.currentTarget.style.background =
-                          "rgba(239,68,68,0.15)";
+                          "rgba(226,59,52,0.15)";
                     }}
                   >
                     {cierreLoading
@@ -6499,9 +6504,9 @@ export default function AgendaCalendar() {
                     style={{
                       flex: 1,
                       padding: "10px 0",
-                      background: "rgba(239,68,68,0.12)",
-                      color: "#ef4444",
-                      border: "1px solid rgba(239,68,68,0.30)",
+                      background: "rgba(226,59,52,0.12)",
+                      color: "#e23b34",
+                      border: "1px solid rgba(226,59,52,0.30)",
                       borderRadius: 10,
                       cursor: "pointer",
                       fontSize: 13,
@@ -6509,10 +6514,10 @@ export default function AgendaCalendar() {
                       transition: "background 0.15s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(239,68,68,0.22)";
+                      e.currentTarget.style.background = "rgba(226,59,52,0.22)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(239,68,68,0.12)";
+                      e.currentTarget.style.background = "rgba(226,59,52,0.12)";
                     }}
                   >
                     Marcar no presentada
@@ -7635,6 +7640,7 @@ interface DayTimelineAppointmentCardProps {
   profesionalesLength: number;
   completarManual: boolean;
   clientes: any[];
+  profesionales?: any[];
   startDrag: (cita: any, e: React.MouseEvent<HTMLDivElement>) => void;
   toggleCompletada: (citaId: string, estado: string) => void;
   onCreateSlot?: (data: { hora: string; profId: string; reposoContext?: any }) => void;
@@ -7676,6 +7682,7 @@ function areCardPropsEqual(
   if (prev.clienteMap !== next.clienteMap) return false;
   if (prev.servicioMap !== next.servicioMap) return false;
   if (prev.categorias !== next.categorias) return false;
+  if (prev.profesionales !== next.profesionales) return false;
 
   const prevProp = prev.propuestaPorCitaId?.get?.(prev.cita?.id);
   const nextProp = next.propuestaPorCitaId?.get?.(next.cita?.id);
@@ -7714,6 +7721,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
   profesionalesLength,
   completarManual,
   clientes,
+  profesionales = [],
   startDrag,
   toggleCompletada,
   onCreateSlot,
@@ -7749,34 +7757,29 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
   const nestedLeft = `calc(${Math.max(0, nestL)}% + 2px)`;
   const nestedRight = `calc(${Math.max(0, nestR)}% + 2px)`;
   const cancelada = cita.estado === CITA_STATUS.CANCELADA;
-  const actualCitaBg = cancelada
-    ? "rgba(226,59,52,0.04)"
-    : nested
-      ? "#ffffff"
-      : citaBg;
-  const bordeEstado =
-    cita.estado === CITA_STATUS.PENDIENTE ||
-    cita.estado === CITA_STATUS.CONFIRMADA
-      ? ESTADO_CITA_UI[cita.estado].color
-      : null;
-  const actualCitaBorder = nested
-    ? "rgba(34,197,94,0.45)"
-    : (bordeEstado ?? citaBorder);
-  const actualCitaBorderHover = nested
-    ? "rgba(34,197,94,0.85)"
-    : (bordeEstado ?? citaBorderHover);
-  const actualCitaShadow = nested
-    ? "0 6px 16px rgba(40,30,24,0.16), 0 1px 3px rgba(40,30,24,0.08)"
-    : citaShadow;
-  const actualCitaShadowHover = nested
-    ? "0 10px 22px rgba(40,30,24,0.24), 0 2px 6px rgba(40,30,24,0.12)"
-    : citaShadowHover;
   const isChained = !!cita.grupo_id;
+  // Los eslabones cancelados salen de la cuenta: si no, una cadena de tres con
+  // uno anulado decia "2/4" y saltaba del 2 al 4, y el riel (que si los quita,
+  // ver ChainFlowOverlay) dibujaba otra cosa distinta.
   const chainSiblings = isChained
-    ? citasWithLanes.filter((c: any) => c.grupo_id === cita.grupo_id)
+    ? citasWithLanes
+        .filter(
+          (c: any) =>
+            c.grupo_id === cita.grupo_id &&
+            c.estado !== CITA_STATUS.CANCELADA,
+        )
+        .sort(
+          (a: any, b: any) =>
+            (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0) ||
+            new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
+        )
     : [];
   const chainTotal = chainSiblings.length;
-  const chainPos = isChained ? (cita.orden_en_grupo ?? 0) + 1 : 0;
+  const chainPos =
+    chainSiblings.findIndex((c: any) => c.id === cita.id) + 1;
+  // Una cadena de un solo eslabon no es una cadena: ni reserva carril para el
+  // riel ni pinta indice.
+  const enCadena = isChained && chainTotal > 1 && chainPos > 0 && !nested && !cancelada;
   const finActiva = cita.fin_activa ? new Date(cita.fin_activa) : null;
   const finEspera = cita.fin_espera ? new Date(cita.fin_espera) : null;
   const activaPx = finActiva
@@ -7791,19 +7794,200 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
   const cat = srv
     ? (categorias || []).find((cc: any) => cc.id === srv.categoria_id)
     : null;
+  // La categoria de servicio NO pinta el bloque (eso es del estado, canal 1):
+  // se dice con un punto de 6px delante del servicio, y nada mas. Cuando era
+  // un borde superior de 3px competia con el borde del estado y con la barra
+  // del profesional, y una cita acababa teniendo tres colores.
   const catColor = cat ? categoryColorHex(cat.color) : null;
   const catName = cat?.nombre || "";
-  const stripeColor = catColor || profColor;
+
+  // --- Canal 1 de 4: el ESTADO (lib/agendaBloqueUi.ts) --------------------
+  // TODO el color del bloque sale de aqui y de ningun otro sitio.
+  // La hora actual vive DENTRO de la card (tick por minuto): asi "en curso" y
+  // "sin cerrar" se derivan sin re-renderizar la rejilla entera en cada tick.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, []);
+  const bloque = bloqueDeCita(cita, nowTick);
+  const enCurso = bloque.clave === "curso";
+  const progreso = enCurso ? progresoCita(cita, nowTick) : 0;
+  const restantes = enCurso ? minutosRestantes(cita, nowTick) : 0;
+
+  // Densidad en tres niveles. Un bloque de 15 minutos no puede llevar lo mismo
+  // que uno de dos horas: forzarlo es justo lo que produce los solapes.
+  //
+  // Los umbrales son la suma real de lo que hay dentro, no numeros redondos:
+  //   dos filas = 14 (padding) + 15 (nombre) + 4 (hueco) + 17 (chip) = 50px
+  //   tres filas = + 15 del servicio = 65px
+  // Con el umbral en 34 una cita de 15 minutos (40px) entraba en dos filas y el
+  // chip salia cortado por la mitad.
+  //
+  // Y la altura que cuenta no es la del bloque, es la del tramo ACTIVO: en una
+  // cita de una hora con cincuenta minutos de reposo, el texto solo dispone de
+  // los diez primeros minutos. Midiendo el bloque entero se colaba el layout
+  // completo en una franja de 27px.
+  const altoUtil =
+    hasEspera && !nested && !cancelada ? Math.max(20, activaPx) : height;
+  const compacto = altoUtil <= 50;
+  const medio = !compacto && altoUtil <= 64;
+  // En una tira de 16px un barrido no se lee, solo parpadea.
+  const conMotion = !nested && height > 28;
+  const rootCls = conMotion
+    ? [bloque.loop, bloque.entrada].filter(Boolean).join(" ")
+    : "";
+
+  const nombreCliente = clienteMap?.get(cita.cliente_id)?.nombre || "-";
+  const nombreServicio = srv?.nombre || "";
+  const horaIni = start.toLocaleTimeString(LOCALE, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const duracionMin = Math.round((end.getTime() - start.getTime()) / 60000);
+  const colorTexto = cancelada ? TOKENS.textTer : TOKENS.text;
+  const propuesta = propuestaPorCitaId.get(cita.id);
+  const desbordaMin = nested && !cancelada ? cita._desbordaMin || 0 : 0;
+
+  const profIni =
+    (prof?.nombre || "?")
+      .split(/\s+/)
+      .map((w: string) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?";
+
+  const stylistAvatar = (
+    <span
+      title={`Estilista: ${prof?.nombre || ""}`}
+      style={{
+        width: 15,
+        height: 15,
+        borderRadius: 999,
+        overflow: "hidden",
+        flexShrink: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: profColor,
+        border: "1px solid rgba(255,255,255,0.9)",
+      }}
+    >
+      {prof?.foto_perfil ? (
+        <img
+          src={prof.foto_perfil}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <span style={{ fontSize: 7, fontWeight: 800, color: "#ffffff", lineHeight: 1 }}>
+          {profIni}
+        </span>
+      )}
+    </span>
+  );
+
+  const puntoCategoria = catColor ? (
+    <span
+      title={catName}
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        background: catColor,
+        flexShrink: 0,
+        display: "inline-block",
+      }}
+    />
+  ) : null;
+
+  const candado = (
+    <svg width="10" height="10" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+      <rect
+        className="m-st-cobrada-body"
+        x="4"
+        y="10"
+        width="16"
+        height="11"
+        rx="2.5"
+        fill={TOKENS.successHi}
+      />
+      <path
+        className="m-st-cobrada-arc"
+        d="M8 10 V7a4 4 0 0 1 8 0 v3"
+        fill="none"
+        stroke={TOKENS.successHi}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+
+  // Un chip, un mensaje. Nunca dos chips diciendo lo mismo ni el mismo estado
+  // repetido arriba junto a la hora: la esquina superior derecha es de la hora
+  // y de nadie mas.
+  const chipEstado =
+    bloque.label && bloque.chipBg ? (
+      <span
+        title={bloque.label}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 3,
+          minWidth: 0,
+          maxWidth: "100%",
+          padding: "2px 7px",
+          borderRadius: 999,
+          background: bloque.chipBg,
+          color: bloque.acentoTexto || TOKENS.textSec,
+          fontSize: 9.5,
+          fontWeight: 700,
+          lineHeight: 1.4,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {bloque.clave === "cobrada" ? candado : null}
+        {bloque.label}
+      </span>
+    ) : null;
+
+  const indiceCadena = enCadena ? (
+    <span
+      title={`Servicio ${chainPos} de ${chainTotal} de una cadena`}
+      style={{
+        flexShrink: 0,
+        padding: "1.5px 6px",
+        borderRadius: 999,
+        background: TOKENS.chainRailSoft,
+        color: TOKENS.chainRail,
+        fontSize: 8.5,
+        fontWeight: 800,
+        letterSpacing: "0.03em",
+        lineHeight: 1.5,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {chainPos}/{chainTotal}
+    </span>
+  ) : null;
 
   return (
     <div
       key={cita.id}
+      className={rootCls}
       style={{
         position: "absolute",
         top,
+        // Una cita encadenada se aparta para dejarle sitio al riel; ese hueco
+        // es lo que hace que la linea de la cadena nunca pise el texto.
         left: nested
           ? nestedLeft
-          : `calc(${(lane / totalLanes) * 100}% + 4px)`,
+          : `calc(${(lane / totalLanes) * 100}% + ${enCadena ? 4 + CHAIN_GUTTER : 4}px)`,
         right: nested
           ? nestedRight
           : `calc(${((totalLanes - lane - 1) / totalLanes) * 100}% + 4px)`,
@@ -7811,200 +7995,91 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         boxSizing: "border-box",
         pointerEvents: "auto",
         zIndex: nested ? 15 : 10,
-        // La cita es UNA pieza continua, tambien cuando tiene reposo. Antes el
-        // tramo de reposo se pintaba `transparent`: eso abria un agujero en
-        // mitad de la tarjeta y la misma cita se leia como dos o tres citas
-        // distintas apiladas. El reposo ahora se marca DENTRO (banda rayada,
-        // ver mas abajo), que es lo que de verdad es: una fase de esta cita.
-        background: cancelada
-          ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
-          : actualCitaBg,
-        borderWidth: 1,
-        borderStyle: "solid",
-        borderColor: cancelada ? "#55555540" : actualCitaBorder,
-        borderLeft: cancelada
-          ? `${totalLanes > 1 || (profesionalesLength || 1) >= 2 ? 2 : 4}px solid #66666660`
-          : `${totalLanes > 1 || (profesionalesLength || 1) >= 2 ? 2 : 4}px solid ${stripeColor}`,
-        borderTop:
-          isChained && !cancelada ? `2px solid #e0340e` : undefined,
-        borderRadius: height <= 32 ? 6 : 12,
-        padding:
-          hasEspera && activaPx <= 45
-            ? "2px 4px"
-            : height <= 16
-              ? "0px 4px"
-              : height <= 32
-                ? "2px 4px"
-                : "6px 8px",
+        // Un solo lenguaje de color: fondo, borde y barra izquierda salen del
+        // estado. El tinte se pinta SOBRE blanco para que no transparente la
+        // rejilla ni la franja de reposo de debajo.
+        backgroundColor: TOKENS.bgCard,
+        backgroundImage: `linear-gradient(${bloque.fondo}, ${bloque.fondo})`,
+        border: `1px solid ${bloque.borde}`,
+        borderLeft: bloque.acento
+          ? `3px solid ${bloque.acento}`
+          : `1px solid ${bloque.borde}`,
+        // El radio lo manda el bloque real, no el tramo activo: una cita larga
+        // con el activo corto sigue siendo una tarjeta grande.
+        borderRadius: height <= 50 ? 7 : 10,
+        padding: compacto
+          ? "0 7px"
+          : hasEspera && activaPx <= 45
+            ? "3px 8px"
+            : "7px 9px",
         overflow: "hidden",
         cursor: isDragging ? "grabbing" : "grab",
         display: "flex",
         flexDirection: "column",
-        gap: height <= 32 ? 0 : height < 60 ? 1 : 2,
-        boxShadow: cancelada ? "none" : actualCitaShadow,
+        justifyContent: "center",
+        boxShadow: bloque.sombra,
+        // Solo sombra y brillo en el hover: nada que desplace el bloque ni
+        // empuje a los vecinos.
         transition: isBeingDragged
           ? "none"
-          : "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        transform: "scale(1)",
-        opacity: cancelada ? 0.45 : isBeingDragged ? 0.25 : 1,
+          : "box-shadow 0.18s ease, filter 0.18s ease",
+        opacity: bloque.atenuado ? 0.5 : isBeingDragged ? 0.25 : 1,
       }}
       onMouseDown={(e) => {
         if (!cancelada) startDrag(cita, e);
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.02)";
+        e.currentTarget.style.filter = "brightness(1.03)";
+        e.currentTarget.style.zIndex = nested ? "25" : "20";
         e.currentTarget.style.boxShadow = cancelada
           ? "none"
-          : actualCitaShadowHover;
-        e.currentTarget.style.borderColor = cancelada
-          ? "#77777770"
-          : actualCitaBorderHover;
-        e.currentTarget.style.borderLeftColor = cancelada
-          ? "#66666660"
-          : stripeColor;
-        if (isChained && !cancelada)
-          e.currentTarget.style.borderTop = "2px solid #e0340e";
+          : "0 8px 20px rgba(28,24,20,0.14)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = cancelada
-          ? "none"
-          : actualCitaShadow;
-        e.currentTarget.style.borderColor = cancelada
-          ? "#55555540"
-          : actualCitaBorder;
-        e.currentTarget.style.borderLeftColor = cancelada
-          ? "#66666660"
-          : stripeColor;
-        if (isChained && !cancelada)
-          e.currentTarget.style.borderTop = "2px solid #e0340e";
+        e.currentTarget.style.filter = "";
+        e.currentTarget.style.zIndex = nested ? "15" : "10";
+        e.currentTarget.style.boxShadow = bloque.sombra;
       }}
     >
-      {/* Banda de REPOSO: el tramo en que la clienta esta puesta pero el
-          profesional queda libre. Va dentro de la tarjeta (no es un agujero),
-          rayada y hundida, para que se lea "esta misma cita, en pausa" y a la
-          vez siga cantando que ahi cabe otra clienta. Las citas anidadas se
-          pintan encima (zIndex 15), asi que no las tapa. */}
-      {hasEspera && !nested && !cancelada && (
+      {conMotion && cancelada && <span className="m-st-cancelada-strike" aria-hidden />}
+      {conMotion && enCurso && (
         <div
+          className="m-st-curso-progress"
+          style={{ "--p": `${progreso}%` } as any}
           aria-hidden
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: activaPx,
-            height: esperaPx,
-            // Negativo a proposito: por encima del fondo de la tarjeta pero por
-            // DEBAJO de su texto. La cita es su propio contexto de apilado
-            // (position:absolute + zIndex), asi que no se escapa hacia atras.
-            zIndex: -1,
-            pointerEvents: "none",
-            background:
-              "repeating-linear-gradient(-45deg, rgba(40,30,24,0.07) 0px, rgba(40,30,24,0.07) 5px, rgba(255,255,255,0.16) 5px, rgba(255,255,255,0.16) 10px)",
-            borderTop: `1px dashed ${actualCitaBorder}`,
-            borderBottom:
-              activaPx + esperaPx < height - 1
-                ? `1px dashed ${actualCitaBorder}`
-                : undefined,
-          }}
         />
       )}
-      {nested && cita._desbordaMin > 0 && !cancelada && (
-        <span
-          title={`Esta cita se sale ${cita._desbordaMin} min del hueco de reposo`}
-          style={{
-            position: "absolute",
-            top: 2,
-            right: 2,
-            zIndex: 8,
-            padding: "1.5px 6px",
-            borderRadius: 999,
-            background: "#ea580c",
-            color: "#fff",
-            fontSize: 9,
-            fontWeight: 800,
-            lineHeight: 1.3,
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
-            boxShadow: "0 1px 4px rgba(234,88,12,0.35)",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
-          +{cita._desbordaMin}′
-        </span>
-      )}
-      {propuestaPorCitaId.has(cita.id) && !cancelada && (() => {
-        const prop = propuestaPorCitaId.get(cita.id);
-        const hhmm = new Date(prop.inicio_propuesto).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-        return (
-          <span
-            title={`Cambio propuesto a las ${hhmm} — pendiente de confirmación del cliente`}
-            style={{
-              position: "absolute",
-              bottom: 2,
-              left: 2,
-              zIndex: 8,
-              padding: "1px 6px",
-              borderRadius: 999,
-              background: "#7c3aed",
-              color: "#fff",
-              fontSize: 8.5,
-              fontWeight: 800,
-              lineHeight: 1.5,
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-            }}
-          >
-            ↻ {hhmm}
-          </span>
-        );
-      })()}
+
       {hasEspera &&
         !cancelada &&
         (() => {
           const reposoIniMs = finActiva!.getTime();
           const reposoFinMs = finEspera!.getTime();
-          const hayActiva2 = !(
-            finEspera && finEspera < end
-          );
+          const hayActiva2 = !(finEspera && finEspera < end);
           const ocupados = profCitas
             .filter(
               (c: any) =>
-                c._hostId === cita.id &&
-                c.estado !== CITA_STATUS.CANCELADA,
+                c._hostId === cita.id && c.estado !== CITA_STATUS.CANCELADA,
             )
             .map(
               (c: any) =>
-                [
-                  new Date(c.inicio).getTime(),
-                  new Date(c.fin).getTime(),
-                ] as [number, number],
+                [new Date(c.inicio).getTime(), new Date(c.fin).getTime()] as [
+                  number,
+                  number,
+                ],
             )
-            .sort(
-              (
-                a: [number, number],
-                b: [number, number],
-              ) => a[0] - b[0],
-            );
+            .sort((a: [number, number], b: [number, number]) => a[0] - b[0]);
           const libres: [number, number][] = [];
           let cursor = reposoIniMs;
           for (const [ini, fin] of ocupados) {
-            if (ini > cursor)
-              libres.push([
-                cursor,
-                Math.min(ini, reposoFinMs),
-              ]);
+            if (ini > cursor) libres.push([cursor, Math.min(ini, reposoFinMs)]);
             cursor = Math.max(cursor, fin);
           }
-          if (cursor < reposoFinMs)
-            libres.push([cursor, reposoFinMs]);
-          const msToPx = (ms: number) =>
-            (ms / 3600000) * ROW_H;
+          if (cursor < reposoFinMs) libres.push([cursor, reposoFinMs]);
+          const msToPx = (ms: number) => (ms / 3600000) * ROW_H;
           return (
             <div
+              title="Reposo: el producto actua solo y el profesional queda libre"
               style={{
                 position: "absolute",
                 top: activaPx,
@@ -8013,20 +8088,20 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                 height: esperaPx,
                 pointerEvents: "auto",
                 zIndex: 4,
+                // Canal 3: las fases son ESTRUCTURA, no estado. Rayado neutro
+                // calido; el verde se reserva para el hueco aprovechable, que
+                // si es una accion.
                 background:
-                  "repeating-linear-gradient(135deg, rgba(16,185,129,0.15) 0px, rgba(16,185,129,0.15) 5px, rgba(16,185,129,0.04) 5px, rgba(16,185,129,0.04) 11px)",
-                borderTop:
-                  "1.5px dashed rgba(16,185,129,0.55)",
+                  "repeating-linear-gradient(135deg, rgba(115,102,88,0.13) 0px, rgba(115,102,88,0.13) 5px, rgba(255,253,251,0.60) 5px, rgba(255,253,251,0.60) 11px)",
+                borderTop: "1.5px dashed rgba(115,102,88,0.40)",
                 borderBottom: hayActiva2
-                  ? "1.5px dashed rgba(16,185,129,0.55)"
+                  ? "1.5px dashed rgba(115,102,88,0.40)"
                   : "none",
                 overflow: "hidden",
               }}
             >
               {libres.map(([ini, fin], i) => {
-                const gapMin = Math.round(
-                  (fin - ini) / 60000,
-                );
+                const gapMin = Math.round((fin - ini) / 60000);
                 if (gapMin < 5) return null;
                 const gapTop = msToPx(ini - reposoIniMs);
                 const gapH = msToPx(fin - ini);
@@ -8041,17 +8116,9 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                     cita={cita}
                     clienteMap={clienteMap}
                     servicioMap={servicioMap}
-                    onSelectReposo={({
-                      horaStr,
-                      profId,
-                      reposoContext,
-                    }) => {
+                    onSelectReposo={({ horaStr, profId, reposoContext }) => {
                       if (onCreateSlot) {
-                        onCreateSlot({
-                          hora: horaStr,
-                          profId,
-                          reposoContext,
-                        });
+                        onCreateSlot({ hora: horaStr, profId, reposoContext });
                       }
                     }}
                   />
@@ -8060,6 +8127,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
             </div>
           );
         })()}
+
       <div
         style={
           hasEspera && !nested && !cancelada
@@ -8072,909 +8140,233 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                gap: activaPx <= 45 ? 0 : 2,
-                padding:
-                  activaPx <= 45 ? "2px 6px" : "6px 8px",
+                justifyContent: "space-between",
+                padding: activaPx <= 45 ? "3px 8px" : "6px 9px",
                 boxSizing: "border-box",
                 zIndex: 6,
               }
-            : { display: "contents" }
+            : {
+                position: "relative",
+                zIndex: 2,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                height: "100%",
+                width: "100%",
+                minWidth: 0,
+                overflow: "hidden",
+              }
         }
       >
-        {(() => {
-          const narrow = height < 50;
-          const bloqueBajo = height < 64;
-          const nombreCliente =
-            clienteMap?.get(cita.cliente_id)?.nombre ||
-            "-";
-          const nombreServicio =
-            servicioMap?.get(cita.servicio_id)?.nombre ||
-            "";
-          const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })}`;
-          const timeStrCompact =
-            totalLanes > 1 || height <= 32
-              ? start.toLocaleTimeString(LOCALE, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : timeStr;
-          const badgeColor = catColor || profColor;
-          const catIconChip = cat?.icono
-            ? getCategoryIcon(
-                cat.icono,
-                badgeColor,
-                narrow ? 11 : 12,
-              )
-            : null;
-          const iniciales =
-            nombreCliente
-              .split(/\s+/)
-              .map((w: string) => w[0])
-              .filter(Boolean)
-              .slice(0, 2)
-              .join("")
-              .toUpperCase() || "·";
-          const profIni =
-            (prof?.nombre || "?")
-              .split(/\s+/)
-              .map((w: string) => w[0])
-              .filter(Boolean)
-              .slice(0, 2)
-              .join("")
-              .toUpperCase() || "?";
-          const stylistAvatar = (
+        {compacto ? (
+          // Densidad 1: una sola linea. Cabe la hora, el nombre y una senal.
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              width: "100%",
+              minWidth: 0,
+              height: "100%",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+          >
             <span
-              title={`Estilista: ${prof?.nombre || ""}`}
               style={{
-                width: 18,
-                height: 18,
-                borderRadius: 999,
-                overflow: "hidden",
+                fontSize: 9.5,
+                fontWeight: 800,
+                color: colorTexto,
+                fontVariantNumeric: "tabular-nums",
                 flexShrink: 0,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: profColor,
-                border:
-                  "1.5px solid rgba(255,255,255,0.9)",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
               }}
             >
-              {prof?.foto_perfil ? (
-                <img
-                  src={prof.foto_perfil}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                <span
-                  style={{
-                    fontSize: 8,
-                    fontWeight: 800,
-                    color: "#ffffff",
-                    lineHeight: 1,
-                  }}
-                >
-                  {profIni}
-                </span>
-              )}
+              {horaIni}
             </span>
-          );
-          const estrecho =
-            totalLanes > 1 ||
-            (selectedProf === "todos" &&
-              (profesionalesLength || 1) >= 2) ||
-            (profesionalesLength || 1) >= 5;
-          const isSmallOrNarrow =
-            height <= 32 || estrecho;
-          const identidad = isSmallOrNarrow
-            ? iniciales
-            : nombreCliente;
-
-          const esCompletada =
-            cita.estado === CITA_STATUS.COMPLETADA;
-          const esNoShow =
-            cita.estado === CITA_STATUS.NO_PRESENTADA;
-          const isCobrada = !!cita.cobrada;
-          const isCompletadaSinCobrar =
-            !cancelada && !isCobrada && esCompletada;
-
-          let icon: any = null;
-          if (
-            !cancelada &&
-            !esNoShow &&
-            completarManual
-          ) {
-            if (esCompletada) {
-              icon = (
-                <div
-                  title="Desmarcar completada"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleCompletada(
-                      cita.id,
-                      cita.estado,
-                    );
-                  }}
-                  style={{
-                    width: 44,
-                    height: 44,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    margin: "-14px",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 999,
-                      background: "#0f9d6b",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      flexShrink: 0,
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background =
-                        "#0c7d55";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background =
-                        "#0f9d6b";
-                    }}
-                  >
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                </div>
-              );
-            } else {
-              icon = (
-                <div
-                  title="Marcar como completada"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleCompletada(
-                      cita.id,
-                      cita.estado,
-                    );
-                  }}
-                  style={{
-                    width: 44,
-                    height: 44,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    margin: "-14px",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 999,
-                      border: `2px solid ${TOKENS.borderHi}`,
-                      background: "transparent",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "#0f9d6b";
-                      e.currentTarget.style.background =
-                        "rgba(15,157,107,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor =
-                        TOKENS.borderHi;
-                      e.currentTarget.style.background =
-                        "transparent";
-                    }}
-                  />
-                </div>
-              );
-            }
-          }
-
-          const chainBadge = isChained ? (
+            {puntoCategoria}
             <span
+              title={`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ""}`}
               style={{
-                fontSize: 8,
+                fontSize: 10.5,
                 fontWeight: 700,
-                background: "rgba(192,38,10,0.25)",
-                color: "#e0340e",
-                padding: "1px 5px",
-                borderRadius: 4,
-                flexShrink: 0,
-                letterSpacing: 0.3,
+                color: colorTexto,
+                flex: 1,
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                textDecoration: bloque.tachado ? "line-through" : "none",
               }}
             >
-              {chainPos}/{chainTotal}
+              {nombreCliente}
             </span>
-          ) : null;
-
-          const addonsNames = (
-            citaAddonsMap[cita.id] || []
-          )
-            .map((ca: any) => ca.service_addons?.nombre)
-            .filter(Boolean);
-          const addonsStr =
-            addonsNames.length > 0
-              ? "+ " + addonsNames.join(", ")
-              : "";
-
-          if (narrow || estrecho || height <= 32) {
-            const effectiveLanes = nested
-              ? cita._nestedTotal || 1
-              : totalLanes;
-            const superNarrow =
-              height <= 24 || effectiveLanes >= 3;
-            if (height <= 28) {
-              return (
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 6,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    overflow: "hidden",
-                    height: "100%",
-                    padding: "0 4px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      color: cancelada
-                        ? TOKENS.textTer
-                        : TOKENS.text,
-                      flexShrink: 0,
-                      fontVariantNumeric:
-                        "tabular-nums" as any,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {timeStrCompact}
-                  </span>
-                  {chainBadge}
-                  {isCobrada && !cancelada && (
-                    <span
-                      title="Cita cobrada"
-                      style={{
-                        fontSize: 8.5,
-                        fontWeight: 900,
-                        background: "rgba(16,185,129,0.2)",
-                        border: "1px solid rgba(16,185,129,0.6)",
-                        color: "#059669",
-                        padding: "0 4px",
-                        borderRadius: 999,
-                        flexShrink: 0,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      ✓ €
-                    </span>
-                  )}
-                  {isCompletadaSinCobrar && (
-                    <span
-                      title="Cita completada pero pendiente de cobro"
-                      style={{
-                        fontSize: 8.5,
-                        fontWeight: 900,
-                        background: "rgba(245,158,11,0.22)",
-                        border: "1px solid rgba(245,158,11,0.7)",
-                        color: "#b45309",
-                        padding: "0 4px",
-                        borderRadius: 999,
-                        flexShrink: 0,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      ⚠️ Sin cobrar
-                    </span>
-                  )}
-                  {stylistAvatar}
-                  {icon}
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      color: cancelada
-                        ? TOKENS.textTer
-                        : TOKENS.text,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      lineHeight: 1,
-                      flexShrink: 1,
-                      minWidth: 0,
-                      textDecoration: cancelada
-                        ? "line-through"
-                        : "none",
-                    }}
-                  >
-                    {nombreCliente}
-                  </span>
-                  {nombreServicio && (
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        color: cancelada
-                          ? TOKENS.textTer
-                          : TOKENS.text,
-                        background: cancelada
-                          ? "transparent"
-                          : TOKENS.bgCard,
-                        border: cancelada
-                          ? "none"
-                          : `1px solid ${catColor || profColor}55`,
-                        borderLeft: cancelada
-                          ? "none"
-                          : `2px solid ${catColor || profColor}`,
-                        padding: "0 3px",
-                        borderRadius: 3,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        flexShrink: 2,
-                        minWidth: 0,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {nombreServicio}
-                    </span>
-                  )}
-                </div>
-              );
-            }
-            return (
-              <div
+            {bloque.acento && (
+              <span
+                title={bloque.label}
                 style={{
-                  position: "relative",
-                  zIndex: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  justifyContent: "center",
-                  gap: 1,
-                  overflow: "hidden",
-                  height: "100%",
-                  padding: "1px 4px",
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  background: bloque.acento,
+                  flexShrink: 0,
                 }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  {catIconChip && !superNarrow && (
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {catIconChip}
-                    </span>
-                  )}
-                  {!superNarrow && (
-                    <span
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        color: cancelada
-                          ? TOKENS.textTer
-                          : TOKENS.text,
-                        flexShrink: 0,
-                        whiteSpace: "nowrap",
-                        lineHeight: 1,
-                        fontVariantNumeric:
-                          "tabular-nums" as any,
-                      }}
-                    >
-                      {timeStrCompact}
-                    </span>
-                  )}
-                  {chainBadge}
-                  {isCobrada && !cancelada && (
-                    <span
-                      title="Cita cobrada"
-                      style={{
-                        fontSize: 8.5,
-                        fontWeight: 900,
-                        background: "rgba(16,185,129,0.18)",
-                        border: "1px solid rgba(16,185,129,0.55)",
-                        color: "#059669",
-                        padding: "1px 5px",
-                        borderRadius: 999,
-                        flexShrink: 0,
-                        lineHeight: 1.2,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 2,
-                      }}
-                    >
-                      ✓ €
-                    </span>
-                  )}
-                  {isCompletadaSinCobrar && (
-                    <span
-                      title="Cita completada pero pendiente de cobro"
-                      style={{
-                        fontSize: 8.5,
-                        fontWeight: 900,
-                        background: "rgba(245,158,11,0.2)",
-                        border: "1px solid rgba(245,158,11,0.65)",
-                        color: "#b45309",
-                        padding: "1px 5px",
-                        borderRadius: 999,
-                        flexShrink: 0,
-                        lineHeight: 1.2,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 2,
-                      }}
-                    >
-                      ⚠️ Sin cobrar
-                    </span>
-                  )}
-                  {!superNarrow &&
-                    height > 30 &&
-                    stylistAvatar}
-                  {icon}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    maxWidth: "100%",
-                    overflow: "hidden",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 800,
-                      color: cancelada
-                        ? TOKENS.textTer
-                        : TOKENS.text,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      textDecoration: cancelada
-                        ? "line-through"
-                        : "none",
-                    }}
-                  >
-                    {nombreCliente}
-                  </span>
-                  {nombreServicio && height > 32 && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: cancelada
-                          ? TOKENS.textTer
-                          : TOKENS.text,
-                        background: cancelada
-                          ? "transparent"
-                          : TOKENS.bgCard,
-                        border: cancelada
-                          ? "none"
-                          : `1px solid ${catColor || profColor}55`,
-                        borderLeft: cancelada
-                          ? "none"
-                          : `2px solid ${catColor || profColor}`,
-                        padding: "1px 4px",
-                        borderRadius: 4,
-                        boxShadow: cancelada
-                          ? "none"
-                          : "0 1px 2px rgba(0,0,0,0.08)",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        maxWidth: "100%",
-                      }}
-                    >
-                      {nombreServicio}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          }
-
-          return (
+              />
+            )}
+            {indiceCadena}
+          </div>
+        ) : (
+          <>
+            {/* Arriba a la izquierda, quien y que. Arriba a la derecha, la
+                hora y solo la hora. */}
             <div
               style={{
-                position: "relative",
-                zIndex: 6,
-                minWidth: 0,
                 display: "flex",
+                justifyContent: "space-between",
                 alignItems: "flex-start",
-                gap: 7,
-                height: "100%",
-                overflow: "hidden",
+                gap: 6,
+                minWidth: 0,
               }}
             >
-              <span
-                style={{
-                  flexShrink: 0,
-                  width:
-                    hasEspera && activaPx <= 45 ? 22 : 28,
-                  height:
-                    hasEspera && activaPx <= 45 ? 22 : 28,
-                  borderRadius: 8,
-                  background: cancelada
-                    ? "#99999955"
-                    : badgeColor,
-                  display: "grid",
-                  placeItems: "center",
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  marginTop: 1,
-                }}
-                title={
-                  catName
-                    ? `${catName} · ${nombreCliente}`
-                    : nombreCliente
-                }
-              >
-                {iniciales}
-              </span>
-              <div
-                style={{
-                  flex: "0 0 auto",
-                  minWidth: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: height < 64 ? 0 : 1,
-                  position: "relative",
-                  zIndex: 6,
-                }}
-              >
+              <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 6,
+                  onClick={(e) => {
+                    if (onClienteHistorial) {
+                      e.stopPropagation();
+                      const cli = clientes.find(
+                        (cl: any) => cl.id === cita.cliente_id,
+                      );
+                      if (cli) onClienteHistorial(cli);
+                    }
                   }}
-                >
-                  {height > 24 && (
-                    <span
-                      style={{
-                        fontSize:
-                          hasEspera && activaPx <= 45
-                            ? 10.5
-                            : 12.5,
-                        color: cancelada
-                          ? TOKENS.textTer
-                          : TOKENS.text,
-                        fontWeight: 800,
-                        letterSpacing: -0.2,
-                        whiteSpace: "nowrap",
-                        fontVariantNumeric:
-                          "tabular-nums" as any,
-                      }}
-                    >
-                      {height <= 32
-                        ? timeStrCompact
-                        : timeStr}
-                    </span>
-                  )}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {chainBadge}
-                    {isCobrada && !cancelada && (
-                      <span
-                        title="Cita cobrada"
-                        style={{
-                          fontSize: 9.5,
-                          fontWeight: 800,
-                          background: "rgba(16,185,129,0.16)",
-                          border: "1px solid rgba(16,185,129,0.45)",
-                          color: "#059669",
-                          padding: "1.5px 6px",
-                          borderRadius: 6,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 3,
-                          flexShrink: 0,
-                          letterSpacing: 0.2,
-                          boxShadow: "0 1px 2px rgba(16,185,129,0.12)",
-                        }}
-                      >
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Cobrada
-                      </span>
-                    )}
-                    {isCompletadaSinCobrar && (
-                      <span
-                        title="Atención: Cita completada pero pendiente de cobro"
-                        style={{
-                          fontSize: 9.5,
-                          fontWeight: 800,
-                          background: "rgba(245,158,11,0.18)",
-                          border: "1px solid rgba(245,158,11,0.55)",
-                          color: "#b45309",
-                          padding: "1.5px 6px",
-                          borderRadius: 6,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 3,
-                          flexShrink: 0,
-                          letterSpacing: 0.2,
-                          boxShadow: "0 1px 2px rgba(245,158,11,0.15)",
-                        }}
-                      >
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="8" x2="12" y2="12" />
-                          <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        Sin cobrar
-                      </span>
-                    )}
-                    {height > 30 && stylistAvatar}
-                    {icon}
-                  </div>
-                </div>
-                <div
+                  title={nombreCliente}
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: height < 30 ? 0 : 2,
-                    width: "100%",
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    color: colorTexto,
+                    lineHeight: 1.2,
                     overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    cursor: onClienteHistorial ? "pointer" : "default",
+                    textDecoration: bloque.tachado ? "line-through" : "none",
                   }}
                 >
+                  {nombreCliente}
+                </div>
+                {!medio && nombreServicio && (
                   <div
-                    onMouseDown={(e) => {
-                      if (onClienteHistorial)
-                        e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                      if (onClienteHistorial) {
-                        e.stopPropagation();
-                        const cli = clientes.find(
-                          (cl: any) =>
-                            cl.id === cita.cliente_id,
-                        );
-                        if (cli) onClienteHistorial(cli);
-                      }
-                    }}
+                    title={catName ? `${nombreServicio} · ${catName}` : nombreServicio}
                     style={{
-                      width: "fit-content",
-                      maxWidth: "100%",
-                      fontSize:
-                        hasEspera && activaPx <= 45
-                          ? 10.5
-                          : height < 30
-                            ? 11
-                            : 12,
-                      lineHeight:
-                        height < 30 ? "1.1" : "1.2",
-                      fontWeight: 800,
-                      color: cancelada
-                        ? TOKENS.textTer
-                        : TOKENS.text,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      textDecoration: cancelada
-                        ? "line-through"
-                        : "none",
-                      cursor: onClienteHistorial
-                        ? "pointer"
-                        : "default",
                       display: "flex",
                       alignItems: "center",
                       gap: 4,
+                      marginTop: 2,
+                      minWidth: 0,
                     }}
-                    title="Ver historial de este cliente"
                   >
-                    {identidad}
-                    {cita.encadenadoId && !cancelada && (
-                      <Icon
-                        name="link"
-                        size={12}
-                        color={TOKENS.primary}
-                      />
-                    )}
-                    {(cita.fin_activa ||
-                      cita.fin_espera) &&
-                      !cancelada && (
-                        <Icon
-                          name="coffee"
-                          size={12}
-                          color="#f59e0b"
-                        />
-                      )}
-                    {bloqueBajo &&
-                      height > 32 &&
-                      nombreServicio && (
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            color: cancelada
-                              ? TOKENS.textTer
-                              : TOKENS.textSec,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            minWidth: 0,
-                          }}
-                          title={nombreServicio}
-                        >
-                          · {nombreServicio}
-                        </span>
-                      )}
-                  </div>
-                  {height > 32 && !bloqueBajo && (
-                    <div
+                    {puntoCategoria}
+                    <span
                       style={{
-                        background: cancelada
-                          ? "transparent"
-                          : TOKENS.bgCard,
-                        border: cancelada
-                          ? "none"
-                          : `1px solid ${catColor || profColor}55`,
-                        borderLeft: cancelada
-                          ? "none"
-                          : `3px solid ${catColor || profColor}`,
-                        padding:
-                          hasEspera && activaPx <= 45
-                            ? "1px 4px"
-                            : "2px 6px",
-                        borderRadius: 6,
-                        boxShadow: cancelada
-                          ? "none"
-                          : "0 1px 3px rgba(0,0,0,0.08)",
-                        width: "fit-content",
-                        maxWidth: "100%",
-                        fontSize:
-                          hasEspera && activaPx <= 45
-                            ? 9.5
-                            : 10.5,
-                        fontWeight: 700,
-                        color: cancelada
-                          ? TOKENS.textTer
-                          : TOKENS.text,
-                        whiteSpace: "normal",
+                        fontSize: 10.5,
+                        fontWeight: 500,
+                        color: TOKENS.textTer,
+                        lineHeight: 1.2,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        marginTop: 1,
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {catIconChip ? (
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            flexShrink: 0,
-                            marginTop: 2,
-                          }}
-                          title={catName}
-                        >
-                          {catIconChip}
-                        </span>
-                      ) : (
-                        catColor && (
-                          <span
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: 999,
-                              background: catColor,
-                              flexShrink: 0,
-                              marginTop: 4,
-                            }}
-                            title={catName}
-                          />
-                        )
-                      )}
-                      <span
-                        style={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {nombreServicio ||
-                          (cita.servicio_id
-                            ? "Servicio eliminado"
-                            : "Sin servicio")}
-                      </span>
-                    </div>
-                  )}
+                      {nombreServicio}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div
+                style={{
+                  flexShrink: 0,
+                  textAlign: "right",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: colorTexto }}>
+                  {horaIni}
                 </div>
-                {addonsStr && height >= 64 && (
+                {altoUtil > 78 && (
                   <div
-                    style={{
-                      fontSize: 9,
-                      color: "#10b981",
-                      fontWeight: 600,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
+                    style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 1 }}
                   >
-                    {addonsStr}
+                    {enCurso ? `quedan ${restantes}'` : `${duracionMin} min`}
                   </div>
                 )}
               </div>
             </div>
-          );
-        })()}
+
+            {/* Abajo a la izquierda, el estado. Abajo a la derecha, la cadena.
+                Esquinas opuestas: no se pueden solapar. */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 6,
+                minWidth: 0,
+                marginTop: "auto",
+                paddingTop: 4,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  minWidth: 0,
+                  overflow: "hidden",
+                }}
+              >
+                {chipEstado}
+                {stylistAvatar}
+                {propuesta && !cancelada && (
+                  <span
+                    title={`Cambio propuesto a las ${new Date(propuesta.inicio_propuesto).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })} — pendiente de que lo confirme la clienta`}
+                    style={{
+                      flexShrink: 0,
+                      padding: "1.5px 6px",
+                      borderRadius: 999,
+                      background: "rgba(124,58,237,0.12)",
+                      color: "#6d28d9",
+                      fontSize: 8.5,
+                      fontWeight: 800,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {new Date(propuesta.inicio_propuesto).toLocaleTimeString(
+                      LOCALE,
+                      { hour: "2-digit", minute: "2-digit" },
+                    )}
+                  </span>
+                )}
+                {desbordaMin > 0 && (
+                  <span
+                    title={`Esta cita se sale ${desbordaMin} min del hueco de reposo`}
+                    style={{
+                      flexShrink: 0,
+                      padding: "1.5px 6px",
+                      borderRadius: 999,
+                      background: TOKENS.warningSoft,
+                      color: TOKENS.warningHi,
+                      fontSize: 8.5,
+                      fontWeight: 800,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    +{desbordaMin}'
+                  </span>
+                )}
+              </div>
+              {indiceCadena}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -9263,23 +8655,47 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
             const bColor = BLOQUEO_COLORS[b.tipo] || "#94a3b8";
             const cabeEtiqueta =
               blockHeight > labelOffset + 16;
+            // "Fuera de jornada" y "salon cerrado" no son eventos: son el
+            // negativo del dia. Iban rayados en diagonal y ese rayado, repetido
+            // en todas las columnas manana y tarde, es lo que daba a la agenda
+            // aspecto de cuaderno. Pasan a ser un tono plano mas apagado; el
+            // rayado se queda solo para los bloqueos que SI son un evento
+            // (vacaciones, baja, formacion, descanso...).
+            const esNegativoDelDia =
+              b.tipo === "fuera_jornada" || b.tipo === "salon_cerrado";
             return (
               <div
                 key={b.id}
+                className={
+                  b.tipo === "reserva_temporal"
+                    ? "m-st-reservatemp"
+                    : undefined
+                }
                 style={{
                   position: "absolute",
                   top: blockTop,
                   left: 2,
                   right: 2,
                   height: blockHeight,
-                  background: `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
-                  backgroundColor: `${bColor}0a`,
-                  borderLeft: `3px solid ${bColor}99`,
-                  borderRadius: 6,
+                  background: esNegativoDelDia
+                    ? "none"
+                    : `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
+                  backgroundColor: esNegativoDelDia
+                    ? b.tipo === "salon_cerrado"
+                      ? "rgba(40,30,24,0.055)"
+                      : "rgba(40,30,24,0.032)"
+                    : `${bColor}0a`,
+                  borderLeft: esNegativoDelDia
+                    ? "none"
+                    : `3px solid ${bColor}99`,
+                  borderRadius: esNegativoDelDia ? 0 : 6,
                   pointerEvents: "none",
                   zIndex: 1 + labelRow,
                   padding: "4px 6px",
                   overflow: "hidden",
+                  // Las hormigas de 'reserva_temporal' se animan en motion.tsx
+                  // pero el color lo manda BLOQUEO_COLORS, no el CSS.
+                  ["--bloqueo" as any]: `${bColor}8c`,
                   boxSizing: "border-box",
                 }}
               >
@@ -9357,6 +8773,7 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
             profesionalesLength={profesionalesLength}
             completarManual={completarManual}
             clientes={clientes}
+            profesionales={profesionales}
             startDrag={startDrag}
             toggleCompletada={toggleCompletada}
             onCreateSlot={onCreateSlot}
@@ -9832,17 +9249,33 @@ function DayTimeline({
     (cita: any, e: React.MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      const rect = e.currentTarget.getBoundingClientRect();
+      const el = e.currentTarget;
+      const rect = el.getBoundingClientRect();
+      // DOS SISTEMAS DE COORDENADAS, y hay que elegir uno.
+      //
+      // Con zoom de pagina en el navegador, getBoundingClientRect() y
+      // clientX/clientY devuelven pixeles ESCALADOS, mientras que lo que se
+      // escribe en un `style` (o se compara con ROW_H y con los 56px de la
+      // columna de horas) son pixeles CSS. Mezclarlos descuadra el arrastre
+      // entero y ademas de forma acumulativa: con el zoom al 108% el fantasma
+      // salia un 8% mas grande y corrido, la hora de suelta se desviaba un 8%
+      // (mas de veinte minutos a ultima hora de la tarde) y la previa de suelta
+      // se plantaba a mas de cien pixeles de la columna en el lado derecho.
+      //
+      // offsetWidth NO se escala, asi que el cociente da el factor exacto.
+      // Desde aqui todo se guarda ya en pixeles CSS.
+      const escala = el.offsetWidth > 0 ? rect.width / el.offsetWidth : 1;
       const d = {
         cita,
+        escala,
         startX: e.clientX,
         startY: e.clientY,
-        offsetX: e.clientX - rect.left,
-        offsetY: e.clientY - rect.top,
-        ghostX: rect.left,
-        ghostY: rect.top,
-        blockWidth: rect.width,
-        blockHeight: rect.height,
+        offsetX: (e.clientX - rect.left) / escala,
+        offsetY: (e.clientY - rect.top) / escala,
+        ghostX: rect.left / escala,
+        ghostY: rect.top / escala,
+        blockWidth: rect.width / escala,
+        blockHeight: rect.height / escala,
       };
       dragRef.current = d;
       // El fantasma se monta YA (antes aparecia en el primer mousemove). A partir
@@ -9866,10 +9299,13 @@ function DayTimeline({
         Math.abs(e.clientY - d.startY) > 5;
       if (!moved) return;
 
+      // clientX/clientY vienen escalados; offsetX/offsetY ya estan en px CSS,
+      // que es lo que entiende el translate3d del fantasma.
+      const k = d.escala || 1;
       const upd = {
         ...d,
-        ghostX: e.clientX - d.offsetX,
-        ghostY: e.clientY - d.offsetY,
+        ghostX: e.clientX / k - d.offsetX,
+        ghostY: e.clientY / k - d.offsetY,
       };
       dragRef.current = upd;
       // Sin setState: el fantasma se coloca por transform en el proximo frame.
@@ -9887,21 +9323,28 @@ function DayTimeline({
       const grid = gridRef.current;
       if (!grid) return;
       const r = grid.getBoundingClientRect();
-      const relY = e.clientY - r.top;
-      const relX = e.clientX - r.left - 56;
+      // Todo lo que sigue va en pixeles CSS: es lo unico que se puede comparar
+      // con ROW_H y con los 56px de la columna de horas, y lo unico que se
+      // puede volcar despues en un `style` (ver el comentario de startDrag).
+      // El factor es el del zoom de pagina, o sea el mismo para todo el
+      // documento: se reaprovecha el que se midio al empezar a arrastrar en vez
+      // de leer offsetWidth en cada mousemove, que fuerza un reflujo por frame.
+      const anchoCss = r.width / k;
+      const relY = (e.clientY - r.top) / k;
+      const relX = (e.clientX - r.left) / k - 56;
       const profs = _profRef.current;
       if (
         relY < 0 ||
         relY >= HOURS.length * ROW_H ||
         relX < 0 ||
-        relX > r.width - 56 ||
+        relX > anchoCss - 56 ||
         !profs.length
       ) {
         dropRef.current = null;
         setDropSlot(null);
         return;
       }
-      const colW = (r.width - 56) / profs.length;
+      const colW = (anchoCss - 56) / profs.length;
       const profIndex = Math.min(Math.floor(relX / colW), profs.length - 1);
       let minutesFromStart = Math.max(
         0,
@@ -10670,11 +10113,21 @@ function DayTimeline({
           </div>
         )}
         <div
+          // El aura fuego recorre el perimetro cada 7s (lib/motion.tsx). Es el
+          // gesto que separa "producto con IA detras" de "tabla de cuaderno";
+          // por eso el borde fijo se queda en el tono suave y el que llama la
+          // atencion es el halo.
+          className="m-agenda-aura"
           style={{
             // Ancho mínimo del lienzo: N columnas * MIN_COL_W + columna de
             // horas (56px). Garantiza que la cita nunca se deforme.
             minWidth: `${(profesionales.length || 1) * MIN_COL_W + 56}px`,
             position: "relative",
+            borderRadius: 16,
+            border: `1px solid ${TOKENS.border}`,
+            boxShadow: "0 6px 24px rgba(40,30,24,0.07)",
+            background: "#ffffff",
+            overflow: "hidden",
           }}
         >
           <div
@@ -10703,6 +10156,14 @@ function DayTimeline({
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
+                  transition: "background 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background =
+                    "rgba(244,80,30,0.03)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
                 }}
               >
                 {p.foto_perfil ? (
@@ -10766,6 +10227,42 @@ function DayTimeline({
                     return parts[0];
                   })()}
                 </div>
+                {/* §2.3 Mecha: contador de carga — N citas · X% ocupada */}
+                {(() => {
+                  const pc = (citasByProf.get(p.id) || []).filter(
+                    (c: any) => c.estado !== CITA_STATUS.CANCELADA,
+                  );
+                  if (!pc.length) return null;
+                  const occ = Math.min(
+                    100,
+                    Math.round(
+                      (pc.reduce(
+                        (s: number, c: any) =>
+                          s +
+                          (new Date(c.fin).getTime() -
+                            new Date(c.inicio).getTime()) /
+                            60000,
+                        0,
+                      ) /
+                        (HOURS.length * 60)) *
+                        100,
+                    ),
+                  );
+                  return (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: TOKENS.primaryHi,
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
+                        opacity: 0.9,
+                      }}
+                    >
+                      {pc.length} {pc.length === 1 ? "cita" : "citas"} · {occ}%
+                    </span>
+                  );
+                })()}
                 {/* Posicion de la columna: escribe 1 y pasa a ser la primera. */}
                 {onReorderProfs && (
                   <input
@@ -10815,6 +10312,15 @@ function DayTimeline({
               cursor: isDragging ? "grabbing" : "default",
             }}
           >
+            {/* §5 Mecha: línea de flujo única por cadena (debajo de los
+                bloques, zIndex 2 vs 3 del contenedor de citas) */}
+            <ChainFlowOverlay
+              citas={citasWithLanes || []}
+              profesionales={profesionales}
+              START_H={START_H}
+              ROW_H={ROW_H}
+              height={HOURS.length * ROW_H}
+            />
             <TimelineNowIndicator
               selectedDate={selectedDateObj}
               startHour={START_H}
@@ -10827,7 +10333,21 @@ function DayTimeline({
                 const dropProf = profesionales[dropSlot.profIndex];
                 const dropColor = dropProf?.color || TOKENS.primary;
                 const dropTop = (dropSlot.minutesFromStart / 60) * ROW_H;
-                const dropLeft = 56 + dropSlot.profIndex * dropSlot.colW;
+                // La previa tiene que caer EXACTAMENTE donde va a quedar la
+                // cita, no aproximadamente: la tarjeta arranca a 4px del borde
+                // de la columna (y a 4 + CHAIN_GUTTER si es un eslabon de una
+                // cadena, porque deja carril al riel). Sin esos dos sumandos la
+                // previa iba corrida y daba la sensacion de que no encaja.
+                const dragEnCadena =
+                  !!drag.cita.grupo_id &&
+                  (citasWithLanes || []).filter(
+                    (c: any) =>
+                      c.grupo_id === drag.cita.grupo_id &&
+                      c.estado !== CITA_STATUS.CANCELADA,
+                  ).length > 1;
+                const dropInset = 4 + (dragEnCadena ? CHAIN_GUTTER : 0);
+                const dropLeft =
+                  56 + dropSlot.profIndex * dropSlot.colW + dropInset;
                 const dropH = drag.blockHeight;
                 // Si el punto de suelta cae dentro del REPOSO de otra cita, resaltamos ese
                 // hueco con fuerza (aprovechar tiempo muerto) e indicamos si la cita cabe.
@@ -10853,7 +10373,7 @@ function DayTimeline({
                   : null;
                 let hostBand = null;
                 let finalLeft = dropLeft;
-                let finalWidth = dropSlot.colW - 8;
+                let finalWidth = dropSlot.colW - 8 - (dragEnCadena ? CHAIN_GUTTER : 0);
 
                 if (host) {
                   // Find host's lane and totalLanes
@@ -10876,8 +10396,11 @@ function DayTimeline({
                     hostL + ((NEST_INSET_L + nLane * nW) * hostW) / 100;
                   const nestW = (hostW * nArea) / 100 / nTotal;
 
-                  finalLeft = 56 + dropSlot.profIndex * dropSlot.colW + nestL;
-                  finalWidth = nestW - 6;
+                  // La cita encajada real va a `calc(nestL% + 2px)` por cada
+                  // lado, o sea 2px de margen y 4px menos de ancho.
+                  finalLeft =
+                    56 + dropSlot.profIndex * dropSlot.colW + nestL + 2;
+                  finalWidth = nestW - 4;
 
                   const hostRepTop =
                     ((new Date(host.fin_activa).getTime() -
@@ -10896,7 +10419,7 @@ function DayTimeline({
                       60000,
                   );
                   const cabe = overflowMin <= 0;
-                  const bandColor = cabe ? "#22c55e" : "#f59e0b";
+                  const bandColor = cabe ? "#0f9d6b" : "#e08a00";
                   hostBand = (
                     <div
                       style={{
@@ -10982,10 +10505,14 @@ function DayTimeline({
                 style={{
                   display: "grid",
                   gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(${MIN_COL_W}px, 1fr))`,
-                  borderBottom: `1px solid rgba(0,0,0,0.04)`,
+                  // Lineas y bandas en carbon calido, no en negro ni en gris
+                  // frio: el #fafafa de antes era un gris azulado dentro de un
+                  // tema crema y es la mitad del aspecto de papel pautado. La
+                  // otra mitad, el contraste: la banda alterna baja a un tercio.
+                  borderBottom: `1px solid rgba(40,30,24,0.05)`,
                   height: ROW_H,
                   boxSizing: "border-box",
-                  background: idx % 2 === 0 ? "#ffffff" : "#fafafa",
+                  background: idx % 2 === 0 ? "#ffffff" : "#fdfaf6",
                 }}
               >
                 <div
@@ -10993,8 +10520,8 @@ function DayTimeline({
                     position: "sticky",
                     left: 0,
                     zIndex: 50,
-                    background: idx % 2 === 0 ? "#ffffff" : "#fafafa",
-                    borderRight: `1px solid rgba(0,0,0,0.06)`,
+                    background: idx % 2 === 0 ? "#ffffff" : "#fdfaf6",
+                    borderRight: `1px solid rgba(40,30,24,0.06)`,
                   }}
                 >
                   <div
@@ -11026,10 +10553,13 @@ function DayTimeline({
                     >
                       <div
                         style={{
+                          // Las lineas de cuarto de hora estan para orientar,
+                          // no para dibujar una cuadricula: al 40% de lo que
+                          // eran siguen guiando el ojo sin pautar la hoja.
                           borderTop:
                             mm === 30
-                              ? `1px solid rgba(0,0,0,0.04)`
-                              : `1px solid rgba(0,0,0,0.02)`,
+                              ? `1px solid rgba(40,30,24,0.026)`
+                              : `1px solid rgba(40,30,24,0.013)`,
                           marginLeft: 24,
                         }}
                       />
@@ -11055,7 +10585,9 @@ function DayTimeline({
                   <div
                     key={`${h}-${p.id}`}
                     style={{
-                      borderLeft: `1px solid rgba(40,30,24,0.14)`,
+                      // La separacion entre profesionales ya la da la cabecera:
+                      // aqui basta una linea de pelo.
+                      borderLeft: `1px solid rgba(40,30,24,0.07)`,
                       display: "flex",
                       flexDirection: "column",
                     }}
@@ -11171,6 +10703,7 @@ function DayTimeline({
                 display: "grid",
                 gridTemplateColumns: `repeat(${Math.max(1, profesionales.length)}, 1fr)`,
                 pointerEvents: "none",
+                zIndex: 3,
               }}
             >
               {profesionales.map((prof: any) => {
@@ -11279,13 +10812,13 @@ function DayTimeline({
             bottom: 32,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "rgba(239,68,68,0.95)",
+            background: "rgba(226,59,52,0.95)",
             color: "#fff",
             padding: "10px 20px",
             borderRadius: 10,
             fontSize: 13,
             fontWeight: 600,
-            boxShadow: "0 8px 24px rgba(239,68,68,0.4)",
+            boxShadow: "0 8px 24px rgba(226,59,52,0.4)",
             pointerEvents: "none",
             zIndex: 9999,
           }}
@@ -14118,7 +13651,7 @@ function NewCitaModal({
                           height: "100%",
                           borderRadius: 999,
                           background: isOverflow
-                            ? "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)"
+                            ? "linear-gradient(90deg, #f59e0b 0%, #e23b34 100%)"
                             : "linear-gradient(90deg, #10b981 0%, #059669 100%)",
                           transition: "width 0.3s ease",
                         }}
@@ -14320,8 +13853,8 @@ function NewCitaModal({
                         width: 22,
                         height: 22,
                         borderRadius: 6,
-                        background: "rgba(239,68,68,0.08)",
-                        border: "1px solid rgba(239,68,68,0.2)",
+                        background: "rgba(226,59,52,0.08)",
+                        border: "1px solid rgba(226,59,52,0.2)",
                         color: TOKENS.danger,
                         cursor: "pointer",
                         fontSize: 11,
@@ -14332,11 +13865,11 @@ function NewCitaModal({
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background =
-                          "rgba(239,68,68,0.18)";
+                          "rgba(226,59,52,0.18)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background =
-                          "rgba(239,68,68,0.08)";
+                          "rgba(226,59,52,0.08)";
                       }}
                     >
                       x
@@ -16058,8 +15591,8 @@ function NewCitaModal({
           {errMsg && (
             <div
               style={{
-                background: "rgba(239,68,68,0.12)",
-                border: `1px solid rgba(239,68,68,0.3)`,
+                background: "rgba(226,59,52,0.12)",
+                border: `1px solid rgba(226,59,52,0.3)`,
                 borderRadius: 10,
                 padding: 12,
                 marginBottom: 18,
@@ -17226,10 +16759,12 @@ export function DetalleCitaModal({
   // cascade y guardar desde la ficha dejaba el resto de la cadena descolgado.
   const aplicarEstadoCita = useCallback(
     async (nuevoEstado: string): Promise<string[]> => {
+      const dbEstado =
+        nuevoEstado === "finalizada" ? CITA_STATUS.COMPLETADA : nuevoEstado;
       const ids = idsParaEstado();
       const { error } = await supabase
         .from("citas")
-        .update({ estado: nuevoEstado })
+        .update({ estado: dbEstado })
         .in("id", ids);
       if (error) throw error;
       return ids;
@@ -20044,9 +19579,9 @@ export function DetalleCitaModal({
                         borderRadius: 12,
                         background: confirmadaCliente
                           ? "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(16,185,129,0.04))"
-                          : "linear-gradient(180deg, rgba(239,68,68,0.10), rgba(239,68,68,0.04))",
-                        border: `1.5px solid ${confirmadaCliente ? "rgba(16,185,129,0.45)" : "rgba(239,68,68,0.45)"}`,
-                        color: confirmadaCliente ? TOKENS.success : "#ef4444",
+                          : "linear-gradient(180deg, rgba(226,59,52,0.10), rgba(226,59,52,0.04))",
+                        border: `1.5px solid ${confirmadaCliente ? "rgba(16,185,129,0.45)" : "rgba(226,59,52,0.45)"}`,
+                        color: confirmadaCliente ? TOKENS.success : "#e23b34",
                         cursor: togglingConfirma ? "wait" : "pointer",
                         fontFamily: "inherit",
                         textAlign: "left",
@@ -20054,21 +19589,21 @@ export function DetalleCitaModal({
                           "transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease, border-color 0.15s ease",
                         boxShadow: confirmadaCliente
                           ? "0 4px 14px rgba(16,185,129,0.18)"
-                          : "0 4px 14px rgba(239,68,68,0.18)",
+                          : "0 4px 14px rgba(226,59,52,0.18)",
                       }}
                       onMouseEnter={(e) => {
                         if (!togglingConfirma) {
                           e.currentTarget.style.transform = "translateY(-1px)";
                           e.currentTarget.style.boxShadow = confirmadaCliente
                             ? "0 8px 22px rgba(16,185,129,0.30)"
-                            : "0 8px 22px rgba(239,68,68,0.30)";
+                            : "0 8px 22px rgba(226,59,52,0.30)";
                         }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "translateY(0)";
                         e.currentTarget.style.boxShadow = confirmadaCliente
                           ? "0 4px 14px rgba(16,185,129,0.18)"
-                          : "0 4px 14px rgba(239,68,68,0.18)";
+                          : "0 4px 14px rgba(226,59,52,0.18)";
                       }}
                     >
                       <div
@@ -20081,7 +19616,7 @@ export function DetalleCitaModal({
                           justifyContent: "center",
                           background: confirmadaCliente
                             ? "rgba(16,185,129,0.20)"
-                            : "rgba(239,68,68,0.20)",
+                            : "rgba(226,59,52,0.20)",
                           flexShrink: 0,
                         }}
                       >
@@ -20130,7 +19665,7 @@ export function DetalleCitaModal({
                             fontSize: 11,
                             color: confirmadaCliente
                               ? "rgba(16,185,129,0.80)"
-                              : "rgba(239,68,68,0.80)",
+                              : "rgba(226,59,52,0.80)",
                             fontWeight: 500,
                           }}
                         >
@@ -20147,7 +19682,7 @@ export function DetalleCitaModal({
                           borderRadius: 8,
                           background: confirmadaCliente
                             ? "rgba(16,185,129,0.20)"
-                            : "rgba(239,68,68,0.20)",
+                            : "rgba(226,59,52,0.20)",
                           fontSize: 11,
                           fontWeight: 700,
                           letterSpacing: 0.5,
@@ -20557,15 +20092,15 @@ export function DetalleCitaModal({
                         style={{
                           padding: "12px 14px",
                           borderRadius: 12,
-                          border: "1px solid rgba(239,68,68,0.25)",
-                          background: "rgba(239,68,68,0.04)",
+                          border: "1px solid rgba(226,59,52,0.25)",
+                          background: "rgba(226,59,52,0.04)",
                         }}
                       >
                         <div
                           style={{
                             fontSize: 10,
                             fontWeight: 700,
-                            color: "#ef4444",
+                            color: "#e23b34",
                             textTransform: "uppercase",
                             letterSpacing: 1,
                             marginBottom: 8,
@@ -20610,7 +20145,7 @@ export function DetalleCitaModal({
                                   style={{
                                     padding: "8px 10px",
                                     background: TOKENS.bgCard,
-                                    border: `1px solid #ef4444`,
+                                    border: `1px solid #e23b34`,
                                     borderRadius: 6,
                                   }}
                                 >
@@ -20618,7 +20153,7 @@ export function DetalleCitaModal({
                                     style={{
                                       fontSize: 11,
                                       fontWeight: 600,
-                                      color: "#ef4444",
+                                      color: "#e23b34",
                                     }}
                                   >
                                     Anterior finaliza tarde
@@ -20672,7 +20207,7 @@ export function DetalleCitaModal({
                                   style={{
                                     padding: "8px 10px",
                                     background: TOKENS.bgCard,
-                                    border: `1px solid #ef4444`,
+                                    border: `1px solid #e23b34`,
                                     borderRadius: 6,
                                   }}
                                 >
@@ -20680,7 +20215,7 @@ export function DetalleCitaModal({
                                     style={{
                                       fontSize: 11,
                                       fontWeight: 600,
-                                      color: "#ef4444",
+                                      color: "#e23b34",
                                     }}
                                   >
                                     Siguiente comienza temprano
@@ -21324,15 +20859,15 @@ export function DetalleCitaModal({
                           alignItems: "flex-start",
                           gap: 8,
                           padding: 12,
-                          background: "rgba(239,68,68,0.10)",
-                          border: "1px solid rgba(239,68,68,0.40)",
+                          background: "rgba(226,59,52,0.10)",
+                          border: "1px solid rgba(226,59,52,0.40)",
                           borderRadius: 10,
                         }}
                       >
                         <span
                           style={{
                             display: "inline-flex",
-                            color: "#ef4444",
+                            color: "#e23b34",
                             flexShrink: 0,
                             marginTop: 1,
                           }}
@@ -21355,7 +20890,7 @@ export function DetalleCitaModal({
                             style={{
                               fontSize: 11,
                               fontWeight: 700,
-                              color: "#ef4444",
+                              color: "#e23b34",
                               letterSpacing: 0.4,
                               textTransform: "uppercase",
                               marginBottom: 2,
@@ -21366,7 +20901,7 @@ export function DetalleCitaModal({
                           <div
                             style={{
                               fontSize: 12,
-                              color: "#ef4444",
+                              color: "#e23b34",
                               lineHeight: 1.4,
                               whiteSpace: "pre-wrap" as any,
                             }}
@@ -22973,7 +22508,7 @@ export function DetalleCitaModal({
                 disabled={guardando}
                 style={{
                   padding: "9px 14px",
-                  background: "rgba(239,68,68,0.08)",
+                  background: "rgba(226,59,52,0.08)",
                   color: TOKENS.danger,
                   border: `1px solid ${TOKENS.danger}88`,
                   borderRadius: 8,
@@ -24721,13 +24256,6 @@ function WeekView({
                         )
                       : null;
                     const catColor = cat ? categoryColorHex(cat.color) : null;
-                    const catIcon = cat?.icono
-                      ? getCategoryIcon(
-                          cat.icono,
-                          catColor || TOKENS.textSec,
-                          11,
-                        )
-                      : null;
                     const catName = cat?.nombre || "";
 
                     const hora = new Date(c.inicio).toLocaleTimeString(
@@ -24739,9 +24267,13 @@ function WeekView({
                     // el borde/acento de la tarjeta usa el color de categoria, con
                     // fallback al color del profesional si el servicio no tiene categoria.
                     const acentoColor = catColor || profColor;
-                    const done = c.estado === "completada";
                     const cancel = c.estado === "cancelada";
-                    const noShow = c.estado === "no_presentada";
+                    // Misma ley que la rejilla de dia (lib/agendaBloqueUi.ts):
+                    // el color del bloque lo decide el estado y solo el estado.
+                    // Aqui convivian cuatro fondos distintos, un borde del color
+                    // de la categoria y dos insignias sueltas — y un no-show
+                    // salia ambar, que es el color de "te falta algo".
+                    const bloque = bloqueDeCita(c, Date.now());
                     // Iniciales de la clienta para el avatar (max 2 letras).
                     const iniciales =
                       (cli?.nombre || "?")
@@ -24770,36 +24302,25 @@ function WeekView({
                           cursor: "grab",
                           padding: "6px 8px",
                           borderRadius: 8,
-                          background: done
-                            ? "rgba(15,157,107,0.05)"
-                            : cancel
-                              ? "rgba(226,59,52,0.04)"
-                              : noShow
-                                ? "rgba(224,138,0,0.05)"
-                                : TOKENS.bgCardHi,
-                          border: `1px solid ${TOKENS.border}`,
-                          borderLeft: `3.5px solid ${cancel ? TOKENS.danger : acentoColor}`,
-                          opacity: cancel ? 0.6 : 1,
-                          transition: "all 0.12s ease",
+                          backgroundColor: TOKENS.bgCard,
+                          backgroundImage: `linear-gradient(${bloque.fondo}, ${bloque.fondo})`,
+                          border: `1px solid ${bloque.borde}`,
+                          borderLeft: `3.5px solid ${bloque.acento ?? bloque.borde}`,
+                          opacity: bloque.atenuado ? 0.6 : 1,
+                          transition: "box-shadow 0.12s ease, filter 0.12s ease",
                           display: "flex",
                           flexDirection: "column",
                           gap: 3,
                           overflow: "hidden",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = TOKENS.primary;
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.05)";
+                          e.currentTarget.style.filter = "brightness(1.03)";
+                          e.currentTarget.style.boxShadow =
+                            "0 4px 12px rgba(28,24,20,0.12)";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = TOKENS.border;
-                          e.currentTarget.style.background = done
-                            ? "rgba(15,157,107,0.05)"
-                            : cancel
-                              ? "rgba(226,59,52,0.04)"
-                              : noShow
-                                ? "rgba(224,138,0,0.05)"
-                                : TOKENS.bgCardHi;
+                          e.currentTarget.style.filter = "";
+                          e.currentTarget.style.boxShadow = "none";
                         }}
                       >
                         <div
@@ -24817,6 +24338,10 @@ function WeekView({
                               alignItems: "center",
                               gap: 6,
                               minWidth: 0,
+                              // Sin esto el grupo encogia pero sus hijos no, y
+                              // el icono de categoria se metia por debajo del
+                              // chip de estado en una tarjeta de 180px.
+                              overflow: "hidden",
                             }}
                           >
                             <span
@@ -24829,36 +24354,19 @@ function WeekView({
                             >
                               {hora}
                             </span>
-                            {/* Distintivo de categoria del servicio: color + icono (si lo hay). */}
+                            {/* Categoria del servicio: solo el punto. El icono
+                                decia lo mismo y en esta tarjeta no hay ancho
+                                para las dos cosas mas el chip de estado. */}
                             <span
                               title={catName || undefined}
                               style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 3,
+                                width: 6,
+                                height: 6,
+                                borderRadius: 999,
+                                background: acentoColor,
                                 flexShrink: 0,
                               }}
-                            >
-                              <span
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 999,
-                                  background: acentoColor,
-                                  flexShrink: 0,
-                                }}
-                              />
-                              {catIcon && (
-                                <span
-                                  style={{
-                                    display: "inline-flex",
-                                    opacity: 0.85,
-                                  }}
-                                >
-                                  {catIcon}
-                                </span>
-                              )}
-                            </span>
+                            />
                           </div>
                           <div
                             style={{
@@ -24868,56 +24376,27 @@ function WeekView({
                               flexShrink: 0,
                             }}
                           >
-                            {c.cobrada && !cancel && (
+                            {/* Un solo chip, el del estado. Antes habia dos
+                                insignias y ademas un punto verde repitiendo
+                                "cobrada" por tercera vez. */}
+                            {!!bloque.label && !!bloque.chipBg && (
                               <span
-                                title="Cita cobrada"
+                                title={bloque.label}
                                 style={{
-                                  fontSize: 8,
+                                  fontSize: 8.5,
                                   fontWeight: 800,
-                                  background: "rgba(16,185,129,0.18)",
-                                  color: "#059669",
-                                  border: "1px solid rgba(16,185,129,0.45)",
-                                  padding: "1px 4px",
-                                  borderRadius: 4,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 2,
-                                  lineHeight: 1.2,
-                                }}
-                              >
-                                ✓ Cobrada
-                              </span>
-                            )}
-                            {done && !c.cobrada && !cancel && (
-                              <span
-                                title="Completada sin cobrar"
-                                style={{
-                                  fontSize: 8,
-                                  fontWeight: 800,
-                                  background: "rgba(245,158,11,0.2)",
-                                  color: "#b45309",
-                                  border: "1px solid rgba(245,158,11,0.55)",
-                                  padding: "1px 4px",
-                                  borderRadius: 4,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 2,
-                                  lineHeight: 1.2,
-                                }}
-                              >
-                                ⚠️ Sin cobrar
-                              </span>
-                            )}
-                            {done && c.cobrada && (
-                              <span
-                                style={{
-                                  width: 6,
-                                  height: 6,
+                                  background: bloque.chipBg,
+                                  color: bloque.acentoTexto || TOKENS.textSec,
+                                  padding: "1px 6px",
                                   borderRadius: 999,
-                                  background: TOKENS.success,
-                                  flexShrink: 0,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  lineHeight: 1.4,
+                                  whiteSpace: "nowrap",
                                 }}
-                              />
+                              >
+                                {bloque.label}
+                              </span>
                             )}
                           </div>
                         </div>
@@ -24939,13 +24418,10 @@ function WeekView({
                               alignItems: "center",
                             }}
                           >
-                            {c.estado === "Confirmada" && (
-                              <Icon
-                                name="check"
-                                size={10}
-                                color={TOKENS.success}
-                              />
-                            )}
+                            {/* Habia aqui un check verde para c.estado ===
+                                "Confirmada" con mayuscula: los estados van en
+                                minuscula, asi que no se pintaba nunca. Y si se
+                                pintara, seria el estado dicho dos veces. */}
                             {cli?.tag === "VIP" && (
                               <Icon
                                 name="star"
@@ -25399,7 +24875,7 @@ function MonthView({
                       color: TOKENS.danger,
                       fontWeight: 700,
                       padding: "2px 4px",
-                      background: "rgba(239,68,68,0.1)",
+                      background: "rgba(226,59,52,0.1)",
                       borderRadius: 6,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
@@ -25656,10 +25132,10 @@ function ClienteHistorialModal({
           <div
             style={{
               padding: "6px 12px",
-              background: "rgba(239,68,68,0.08)",
+              background: "rgba(226,59,52,0.08)",
               borderRadius: 8,
               fontSize: 11,
-              color: "#ef4444",
+              color: "#e23b34",
               fontWeight: 600,
             }}
           >

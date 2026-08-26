@@ -2745,12 +2745,12 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [], fichasTec
           {clientCitas.length} citas totales
         </div>
         {completadas > 0 && (
-          <div style={{ padding: '5px 10px', background: 'rgba(34,197,94,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#22c55e' }}>
+          <div style={{ padding: '5px 10px', background: 'rgba(15,157,107,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.success }}>
             {completadas} completadas
           </div>
         )}
         {canceladas > 0 && (
-          <div style={{ padding: '5px 10px', background: 'rgba(239,68,68,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+          <div style={{ padding: '5px 10px', background: 'rgba(226,59,52,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.danger }}>
             {canceladas} cancel./no-show
           </div>
         )}

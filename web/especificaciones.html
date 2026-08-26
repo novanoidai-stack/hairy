@@ -173,8 +173,8 @@
   --accent-soft:rgba(244,80,30,.09);
   --ok:#0f9b6c;
   --ok-soft:rgba(15,155,108,.11);
-  --lav:#7c6cf0;
-  --lav-soft:rgba(124,108,240,.13);
+  --lav:#0f766e;
+  --lav-soft:rgba(15,118,110,.12);
   --shadow:0 26px 60px -34px rgba(21,16,11,.32);
   --shadow-s:0 6px 18px -10px rgba(21,16,11,.28);
   --display:'Bricolage Grotesque',system-ui,sans-serif;
@@ -192,7 +192,7 @@ body[data-theme="dark"]{
   --card:#181513;
   --accent-soft:rgba(244,80,30,.22);
   --ok-soft:rgba(15,155,108,.24);
-  --lav-soft:rgba(124,108,240,.24);
+  --lav-soft:rgba(15,118,110,.24);
   --shadow:0 30px 70px -30px rgba(0,0,0,.9);
   --shadow-s:0 8px 20px -12px rgba(0,0,0,.85);
 }
@@ -584,12 +584,12 @@ El software operativo más especializado para peluquerías, barberías y salones
 </div>
 
 <!-- 3. EQUIPO, FICHAJE LEGAL & COMISIONES -->
-<div class="hov-card" data-cat="equipo-legal" id="equipo" style="border:1px solid rgba(124,108,240,.4);border-radius:22px;background:var(--card);padding:26px;box-shadow:var(--shadow-s)">
+<div class="hov-card" data-cat="equipo-legal" id="equipo" style="border:1px solid var(--line-2);border-radius:22px;background:var(--card);padding:26px;box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
 <span style="width:42px;height:42px;border-radius:12px;background:var(--lav-soft);color:var(--lav);display:grid;place-items:center;font-size:20px;flex-shrink:0">👥</span>
 <div>
 <h2 style="font-family:var(--display);font-size:19px;font-weight:800;margin:0">3. Equipo & Fichaje Legal ET</h2>
-<span style="font-size:12px;color:var(--ink-3)">Control horario obligatorio art. 34.9 ET</span>
+<span style="font-size:12px;color:var(--ink-3)">Control horario obligatorio art.&nbsp;34.9 ET</span>
 </div>
 <span class="spec-tag ok" style="margin-left:auto">Disponible</span>
 </div>
@@ -598,31 +598,6 @@ El software operativo más especializado para peluquerías, barberías y salones
 <details class="spec-item"><summary><span style="flex:1">Fichaje inalterable con sellado de servidor</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Entrada, pausas y salida con marcas de tiempo generadas en servidor. Asientos encadenados criptográficamente para cumplir con el art. 34.9 del Estatuto de los Trabajadores sin necesidad de otra app.</div></details>
 <details class="spec-item"><summary><span style="flex:1">Doble conformidad en rectificaciones</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Si se olvida un fichaje, se documenta el motivo y requiere la aprobación tanto de la empresa como del trabajador, preservando el histórico original.</div></details>
 <details class="spec-item"><summary><span style="flex:1">Exportación oficial en PDF y CSV</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Genera los informes mensuales firmados listos para entregar a la gestoría y presentar ante cualquier inspección de trabajo. Conservación obligatoria de 4 años.</div></details>
-<details class="spec-item"><summary><span style="flex:1">Cálculo automático de comisiones</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cálculo de comisiones por porcentaje individual, escalado por tramos, fijos o venta de productos, calculado sobre la base imponible sin IVA.</div></details>
-<details class="spec-item"><summary><span style="flex:1">Profesionales ilimitados</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Añade a todos los miembros de tu salón sin cargos adicionales por usuario o silla.</div></details>
-</div>
-</div>
-
-<!-- 4. COBROS, TPV & FACTURACIÓN VERIFACTU -->
-<div class="hov-card" data-cat="caja-verifactu" id="cobros-y-facturacion" style="border:1px solid rgba(244,80,30,.4);border-radius:22px;background:var(--card);padding:26px;box-shadow:var(--shadow-s)">
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-<span style="width:42px;height:42px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:20px;flex-shrink:0">🧾</span>
-<div>
-<h2 style="font-family:var(--display);font-size:19px;font-weight:800;margin:0">4. TPV & VeriFactu (AEAT)</h2>
-<span style="font-size:12px;color:var(--ink-3)">Facturación 100% legal y caja</span>
-</div>
-<span class="spec-tag ok" style="margin-left:auto">Disponible</span>
-</div>
-<p style="font-size:14px;color:var(--ink-2);margin:0 0 16px">Cobra rápido y emite facturas reglamentarias VeriFactu con QR encadenado sin pagar módulos fiscales aparte.</p>
-<div class="spec-acc">
-<details class="spec-item"><summary><span style="flex:1">VeriFactu homologado ante la AEAT</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Generación automática de facturas simplificadas y completas con código QR VeriFactu y huella de registro encadenada, adaptado al Real Decreto 1007/2023.</div></details>
-<details class="spec-item"><summary><span style="flex:1">TPV libre de comisiones (BYOP)</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Usa tu propio datáfono de tu banco sin recargos intermediarios. Soporta efectivo, datáfono externo, Bizum y Tap to Pay.</div></details>
-<details class="spec-item"><summary><span style="flex:1">Cierre de caja y arqueo diario</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Arqueo con desglose de formas de pago, registro de propinas para el bote y cuadre automático al final del día.</div></details>
-<details class="spec-item"><summary><span style="flex:1">Descarga de facturas para gestoría</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Libro de facturas emitidas exportable en un clic en formato Excel/CSV y PDF para liquidar el trimestre (Modelo 303 / 130).</div></details>
-</div>
-</div>
-
-<!-- 5. RESERVA ONLINE & NO-SHOWS -->
 <div class="hov-card" data-cat="agenda-crm" id="reserva-online" style="border:1px solid var(--line-2);border-radius:22px;background:var(--card);padding:26px;box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
 <span style="width:42px;height:42px;border-radius:12px;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;font-size:20px;flex-shrink:0">🌐</span>
@@ -697,9 +672,9 @@ El software operativo más especializado para peluquerías, barberías y salones
 </div>
 
 <!-- 9. CALCULADORA DE COMISIONES -->
-<div class="hov-card" data-cat="herramientas" id="calculadora-comisiones" style="border:1px solid rgba(124,108,240,.45);border-radius:22px;background:linear-gradient(160deg,var(--lav-soft),var(--card) 60%);padding:26px;box-shadow:var(--shadow-s)">
+<div class="hov-card" data-cat="herramientas" id="calculadora-comisiones" style="border:1px solid var(--line-2);border-radius:22px;background:linear-gradient(160deg,var(--lav-soft),var(--card) 60%);padding:26px;box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-<span style="width:42px;height:42px;border-radius:12px;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:20px;flex-shrink:0;box-shadow:0 6px 14px rgba(124,108,240,.35)">🧮</span>
+<span style="width:42px;height:42px;border-radius:12px;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:20px;flex-shrink:0;box-shadow:0 6px 14px rgba(15,118,110,.35)">🧮</span>
 <div>
 <h2 style="font-family:var(--display);font-size:19px;font-weight:800;margin:0">9. Calculadora de Comisiones</h2>
 <span style="font-size:12px;color:var(--ink-3)">Para barberías y peluquerías</span>
@@ -722,7 +697,6 @@ El software operativo más especializado para peluquerías, barberías y salones
 
 <!-- ═══════════ CTA FINAL ═══════════ -->
 <section class="sec-dark" style="padding:clamp(48px,6vw,88px) 26px;position:relative;overflow:hidden">
-<div style="position:absolute;inset:-30%;pointer-events:none;opacity:.35;background:conic-gradient(from 90deg,transparent,rgba(244,80,30,.35),transparent 160deg,rgba(255,207,74,.25),transparent 300deg);filter:blur(70px);animation:mAurora 40s linear infinite"></div>
 <div style="position:relative;max-width:980px;margin:0 auto;text-align:center">
 <span class="badge-free" style="margin-bottom:14px">Prueba Sin Riesgo</span>
 <h2 style="font-family:var(--display);font-size:clamp(30px,4vw,50px);font-weight:700;letter-spacing:-.03em;margin:0 0 14px;color:#fff">

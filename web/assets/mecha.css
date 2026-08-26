@@ -105,23 +105,11 @@ input,select,textarea{font-family:inherit}
     radial-gradient(60% 50% at 85% 5%, rgba(255,130,40,.12), transparent 70%),
     radial-gradient(65% 55% at 15% 15%, rgba(255,90,30,.12), transparent 70%),
     radial-gradient(75% 60% at 50% 110%, rgba(224,52,14,.09), transparent 70%);}
-/* Fondo limpio sin puntitos - tonos rojizos-anaranjados intensos de Mecha */
-.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;mix-blend-mode:screen;
-  animation:drift 26s var(--ease) infinite alternate}
-.orb.o1{width:520px;height:520px;top:-120px;left:8%;
-  background:radial-gradient(circle,rgba(224,52,14,.75),transparent 65%)}
-.orb.o2{width:440px;height:440px;top:6%;right:-60px;animation-duration:32s;animation-delay:-6s;
-  background:radial-gradient(circle,rgba(255,130,40,.50),transparent 65%)}
-.orb.o3{width:600px;height:600px;top:38%;left:30%;animation-duration:38s;animation-delay:-12s;opacity:.3;
-  background:radial-gradient(circle,rgba(255,110,30,.45),transparent 65%)}
-@keyframes drift{
-  0%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(40px,30px) scale(1.08)}
-  100%{transform:translate(-30px,20px) scale(.96)}}
-.bg-noise{position:absolute;inset:0;opacity:.035;
+/* Fondo limpio y sobrio de Mecha */
+.orb{display:none}
+.bg-noise{position:absolute;inset:0;opacity:.03;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 main,nav,footer{position:relative;z-index:1}
-@media (prefers-reduced-motion:reduce){.orb{animation:none}}
 
 /* ============================================================
    INTRO ANIMATION

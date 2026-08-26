@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hairy · Kinetic Cards — un movimiento por estado</title>
+<style>
+  :root{
+    --bg:#f6f1ea; --card:#ffffff; --panel:#fffdfb;
+    --fire:#f4501e; --fire-hi:#c0260a;
+    --fire-grad:linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%);
+    --txt:#1c1814; --txt2:#5c5249; --txt3:#736658; --txt4:#b3a89d;
+    --border:rgba(40,30,24,.08); --border-hi:rgba(40,30,24,.14);
+    --amber:#e08a00; --ok:#0f9d6b; --ok2:#22c55e; --red:#e23b34; --violet:#8a5cf6; --blue:#3b82f6;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--txt);padding:28px 22px 90px}
+  h1{font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{color:var(--txt3);font-size:13.5px;margin-bottom:22px;max-width:760px;line-height:1.5}
+  .sub b{color:var(--fire)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;max-width:1100px;margin:0 auto}
+  .slot h4{font-size:11px;font-weight:700;color:var(--txt3);margin:0 0 6px 2px;letter-spacing:.03em;text-transform:uppercase}
+  .slot small.hint{display:block;font-size:10.5px;color:var(--txt4);margin:-2px 0 8px 2px;font-style:italic}
+
+  /* ============ BASE KINETIC CARD ============ */
+  .kcard{position:relative;border-radius:12px;background:var(--card);border:1px solid var(--border-hi);
+    padding:12px 14px 12px 18px;overflow:hidden;cursor:pointer;
+    transition:transform .18s var(--ease),box-shadow .18s ease}
+  .kcard:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(28,24,20,.12)}
+  /* canal de energía lateral: gradiente fluyendo hacia abajo = el tiempo avanza */
+  .kcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+    background:linear-gradient(180deg,transparent,var(--c1,#ff7a2e) 30%,var(--c2,#ffcf4a) 50%,var(--c1,#ff7a2e) 70%,transparent);
+    background-size:100% 300%;animation:flowdown var(--fs,7s) linear infinite}
+  @keyframes flowdown{from{background-position:0 -300%}to{background-position:0 300%}}
+  .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .name{font-size:13px;font-weight:700}
+  .svc{font-size:11px;color:var(--txt3);margin-top:1px}
+  .time{font-size:10.5px;color:var(--txt3);font-variant-numeric:tabular-nums;text-align:right}
+  .time b{display:block;color:var(--txt);font-size:11.5px}
+  .meta{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+  .badge{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:6px}
+  .b-amber{background:rgba(224,138,0,.14);color:var(--amber)}
+  .b-green{background:rgba(15,157,107,.12);color:var(--ok)}
+  .b-green2{background:rgba(34,197,94,.12);color:var(--ok2)}
+  .b-red{background:rgba(226,59,52,.10);color:var(--red)}
+  .b-violet{background:rgba(138,92,246,.12);color:var(--violet)}
+  .b-gray{background:rgba(115,102,88,.10);color:var(--txt3)}
+  .b-blue{background:rgba(59,130,246,.10);color:var(--blue)}
+
+  /* ============ 1 · PENDIENTE — respiración paciente ============ */
+  .s-pendiente{--c1:#e08a00;--c2:#ffc24a;--fs:5s}
+  .s-pendiente{animation:breathe 3.4s ease-in-out infinite}
+  @keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(224,138,0,0)}50%{box-shadow:0 0 0 4px rgba(224,138,0,.14)}}
+
+  /* ============ 2 · CONFIRMADA — estable, brillo lento ============ */
+  .s-confirmada{--c1:#0f9d6b;--c2:#13c38a;--fs:9s}
+  .s-confirmada::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 35%,rgba(19,195,138,.10) 47%,rgba(255,255,255,.35) 50%,rgba(19,195,138,.10) 53%,transparent 65%);
+    background-size:250% 100%;animation:sheen 5.5s linear infinite}
+  @keyframes sheen{from{background-position:200% 0}to{background-position:-60% 0}}
+
+  /* ============ 3 · EN CURSO — flujo rápido + progreso ============ */
+  .s-curso{--c1:#f4501e;--c2:#ffcf4a;--fs:2.2s}
+  .s-curso::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,207,74,.22) 44%,rgba(255,255,255,.4) 50%,rgba(255,207,74,.22) 56%,transparent 70%);
+    background-size:220% 100%;animation:sheen 1.9s linear infinite}
+  .progress{height:4px;border-radius:4px;background:rgba(40,30,24,.08);margin-top:10px;overflow:hidden}
+  .progress i{display:block;height:100%;width:var(--p,50%);border-radius:4px;background:var(--fire-grad);
+    background-size:200% 100%;animation:flowdown 2.4s linear infinite}
+  .s-curso .pulse-dot{position:absolute;top:11px;right:11px;width:9px;height:9px;border-radius:50%;background:var(--fire)}
+  .s-curso .pulse-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--fire);
+    animation:ring 1.5s var(--ease) infinite}
+  @keyframes ring{from{transform:scale(.5);opacity:1}to{transform:scale(1.8);opacity:0}}
+
+  /* ============ 4 · COMPLETADA — palomita que se dibuja ============ */
+  .s-completada{--c1:#22c55e;--c2:#86efac;--fs:12s}
+  .s-completada .check{position:absolute;top:8px;right:8px;width:22px;height:22px}
+  .s-completada .check circle{fill:none;stroke:#22c55e;stroke-width:2;stroke-dasharray:63;stroke-dashoffset:63;
+    animation:draw 1.2s var(--ease) .1s forwards}
+  .s-completada .check path{fill:none;stroke:#22c55e;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:20;stroke-dashoffset:20;animation:draw .5s var(--ease) .9s forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+
+  /* ============ 5 · COMPLETADA SIN COBRAR — barra que se llena ============ */
+  .s-sincobrar{--c1:#f59e0b;--c2:#ffc24a;--fs:4s}
+  .s-sincobrar .coin{position:absolute;top:7px;right:7px;width:24px;height:24px;border-radius:50%;
+    background:linear-gradient(135deg,#e08a00,#ffc24a);color:#fff;font-size:12px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;animation:coinpulse 1.8s ease-in-out infinite}
+  @keyframes coinpulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  .paytrack{margin-top:10px;height:6px;border-radius:6px;border:1.5px dashed rgba(224,138,0,.5);overflow:hidden;position:relative}
+  .paytrack i{position:absolute;top:0;bottom:0;width:34%;border-radius:6px;
+    background:linear-gradient(90deg,transparent,#ffc24a,#e08a00);
+    animation:trackrun 2.2s ease-in-out infinite}
+  @keyframes trackrun{0%{left:-34%}60%,100%{left:100%}}
+
+  /* ============ 6 · COBRADA — sello + calma ============ */
+  .s-cobrada{--c1:#0f9d6b;--c2:#13c38a;--fs:14s}
+  .s-cobrada .stamp{position:absolute;top:6px;right:6px;transform:rotate(-8deg);border:2px solid var(--ok);
+    color:var(--ok);font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:5px;
+    animation:stamp .5s var(--ease) backwards}
+  @keyframes stamp{from{transform:rotate(-8deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+
+  /* ============ 7 · CANCELADA — línea que la tacha y se apaga ============ */
+  .s-cancelada{--c1:#b3a89d;--c2:#d6cec4;--fs:14s;filter:saturate(.25);opacity:.62}
+  .s-cancelada::after{content:'';position:absolute;left:-5%;right:-5%;top:50%;height:2px;background:var(--red);
+    transform:scaleX(0);transform-origin:left;animation:strike .6s var(--ease) .3s forwards}
+  @keyframes strike{to{transform:scaleX(1)}}
+
+  /* ============ 8 · NO PRESENTADA — cae y golpea ============ */
+  .s-noshow{--c1:#e23b34;--c2:#ff8a7a;--fs:6s}
+  .s-noshow{animation:drop .7s var(--ease) backwards}
+  @keyframes drop{0%{transform:translateY(-26px);opacity:0}70%{transform:translateY(3px);opacity:1}100%{transform:none}}
+  .s-noshow .flash{position:absolute;inset:0;background:rgba(226,59,52,.14);opacity:0;
+    animation:flash 2.4s ease-out .7s infinite}
+  @keyframes flash{0%{opacity:1}100%{opacity:0}}
+
+  /* ============ 9 · ENCADENADA — puntos fluyendo por el conector ============ */
+  .s-chain .kcard{--c1:#8a5cf6;--c2:#b388ff;--fs:3.4s;margin-top:14px}
+  .connector{position:relative;height:14px;margin-left:18px}
+  .connector .line{position:absolute;top:6px;left:0;right:44px;height:2px;
+    background:repeating-linear-gradient(90deg,#b388ff 0 6px,transparent 6px 12px);
+    animation:march 1.2s linear infinite}
+  @keyframes march{to{background-position:24px 0}}
+  .connector .dot{position:absolute;top:2px;left:0;width:10px;height:10px;border-radius:50%;
+    background:linear-gradient(135deg,#8a5cf6,#b388ff);box-shadow:0 0 8px rgba(138,92,246,.6);
+    animation:travel 1.6s var(--ease) infinite}
+  @keyframes travel{0%{left:0;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:calc(100% - 44px);opacity:0}}
+
+  /* ============ 10 · VENCIDA POR RESOLVER — vibración de alarma ============ */
+  .s-vencida{--c1:#e23b34;--c2:#ffcf4a;--fs:2.8s}
+  .s-vencida{animation:alarm 2.6s ease-in-out infinite}
+  @keyframes alarm{0%,88%,100%{transform:translateX(0)}90%{transform:translateX(-2px)}
+    92%{transform:translateX(2px)}94%{transform:translateX(-1.5px)}96%{transform:translateX(1px)}}
+
+  /* ============ 11 · RESERVA TEMPORAL — marching ants ============ */
+  .s-reserva{border:1.5px dashed rgba(124,58,237,.55);background:rgba(124,58,237,.03);
+    --c1:#7c3aed;--c2:#b388ff;--fs:4.5s}
+  .s-reserva{animation:ants .6s linear infinite}
+  @keyframes ants{to{border-color:rgba(124,58,237,.2)}}
+
+  /* ============ 12 · REPOSO — píldora que respira lenta ============ */
+  .pill{position:relative;border-radius:999px;background:rgba(255,253,251,.9);cursor:pointer;
+    border:1.5px dashed rgba(115,102,88,.35);padding:10px 16px;overflow:hidden;
+    display:flex;align-items:center;gap:10px;
+    transition:border-color .2s,transform .18s var(--ease)}
+  .pill:hover{border-color:rgba(115,102,88,.6);transform:translateY(-1px)}
+  .pill .cup{width:26px;height:26px;border-radius:50%;background:#736658;color:#fff;font-size:12px;
+    display:flex;align-items:center;justify-content:center;flex:none;animation:steam 3.5s ease-in-out infinite}
+  @keyframes steam{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+  .pill .ptxt{font-size:12px;font-weight:600;color:var(--txt2);line-height:1.3}
+  .pill .ptxt small{display:block;font-weight:500;font-size:10px;color:var(--txt3)}
+  .pill::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(-45deg,transparent 0 9px,rgba(115,102,88,.045) 9px 18px);
+    background-size:200% 100%;animation:driftbg 14s linear infinite}
+  @keyframes driftbg{from{background-position:0 0}to{background-position:51px 0}}
+
+  .legend{max-width:1100px;margin:26px auto 0;font-size:11.5px;color:var(--txt3);line-height:1.7;
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+  .legend b{color:var(--txt)}
+</style>
+</head>
+<body>
+  <h1>⚡ Kinetic Cards — un movimiento con intención por cada estado</h1>
+  <p class="sub">Base <b>Kinetic Flow</b>: cada tarjeta tiene un canal lateral de energía que fluye hacia abajo (el tiempo avanza) a una velocidad distinta según el estado. <b>La velocidad del flujo = urgencia.</b> Estados mapeados 1:1 con tu BD (<span style="font-family:monospace">citas.estado</span>, <span style="font-family:monospace">cobrada</span>, <span style="font-family:monospace">grupo_id</span>, bloqueos y derivados).</p>
+
+  <div class="grid">
+
+    <div class="slot"><h4>1 · Pendiente</h4><small class="hint">Respira lento — está viva, espera confirmación</small>
+      <div class="kcard s-pendiente">
+        <div class="top">
+          <div><div class="name">María González</div><div class="svc">Corte + barba</div></div>
+          <div class="time"><b>10:30</b>75 min</div>
+        </div>
+        <div class="meta"><span class="badge b-amber">⏳ Pendiente</span><span class="badge b-gray">sin señal</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>2 · Confirmada</h4><small class="hint">Brillo lento que la recorre — cerrada y tranquila</small>
+      <div class="kcard s-confirmada">
+        <div class="top">
+          <div><div class="name">Jorge Ramírez</div><div class="svc">Arranque + perfilado</div></div>
+          <div class="time"><b>12:00</b>60 min</div>
+        </div>
+        <div class="meta"><span class="badge b-green">✓ Confirmada</span><span class="badge b-green">señal $200</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>3 · En curso</h4><small class="hint">Flujo rápido + pulso — ahora mismo, en la silla</small>
+      <div class="kcard s-curso">
+        <span class="pulse-dot"></span>
+        <div class="top">
+          <div><div class="name">Laura Pérez</div><div class="svc">Mechas balayage</div></div>
+          <div class="time"><b>9:12</b>quedan 32'</div>
+        </div>
+        <div class="progress"><i style="--p:64%"></i></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>4 · Completada</h4><small class="hint">La palomita se dibuja sola — cierre satisfactorio</small>
+      <div class="kcard s-completada">
+        <svg class="check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+        <div class="top">
+          <div><div class="name">Carlos T.</div><div class="svc">Fade + barba</div></div>
+          <div class="time"><b>12:00</b>75 min</div>
+        </div>
+        <div class="meta"><span class="badge b-green2">Completada</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>5 · Completada sin cobrar</h4><small class="hint">Moneda saltando + pista de cobro corriendo — no la pierdas de vista</small>
+      <div class="kcard s-sincobrar">
+        <span class="coin">$</span>
+        <div class="top">
+          <div><div class="name">Diego A.</div><div class="svc">Corte clásico</div></div>
+          <div class="time"><b>11:30</b>salieron 14:10</div>
+        </div>
+        <div class="paytrack"><i></i></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>6 · Cobrada</h4><small class="hint">Sello que cae y se queda quieto — caso cerrado</small>
+      <div class="kcard s-cobrada">
+        <span class="stamp">COBRADA</span>
+        <div class="top">
+          <div><div class="name">Elena Vázquez</div><div class="svc">Peinado de gala</div></div>
+          <div class="time"><b>14:00</b>$450</div>
+        </div>
+        <div class="meta"><span class="badge b-green">✓ Cobrada</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>7 · Cancelada</h4><small class="hint">Línea roja la tacha y la card se apaga — no molesta</small>
+      <div class="kcard s-cancelada">
+        <div class="top">
+          <div><div class="name">Ada Q.</div><div class="svc">Ritual capilar</div></div>
+          <div class="time"><b>15:00</b>60 min</div>
+        </div>
+        <div class="meta"><span class="badge b-gray">Cancelada</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>8 · No presentada</h4><small class="hint">Cae al entrar y destella — el golpe del no-show</small>
+      <div class="kcard s-noshow">
+        <div class="flash"></div>
+        <div class="top">
+          <div><div class="name">Pedro M.</div><div class="svc">Corte clásico</div></div>
+          <div class="time"><b>10:00</b>60 min</div>
+        </div>
+        <div class="meta"><span class="badge b-red">No presentada</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>9 · Encadenada (grupo_id)</h4><small class="hint">Punto viajando por el conector — una sola operación en 2 partes</small>
+      <div>
+        <div class="kcard s-chain">
+          <div class="top">
+            <div><div class="name">Sofía L. · parte 1/2</div><div class="svc">Color — prueba + mezcla</div></div>
+            <div class="time"><b>14:30</b>60 min</div>
+          </div>
+        </div>
+        <div class="connector"><i class="line"></i><i class="dot"></i></div>
+        <div class="kcard s-chain" style="margin-top:0">
+          <div class="top">
+            <div><div class="name">Sofía L. · parte 2/2</div><div class="svc">Aplicación + lavado</div></div>
+            <div class="time"><b>15:30</b>90 min</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>10 · Vencida por resolver</h4><small class="hint">Vibra cada pocos segundos — requires acción</small>
+      <div class="kcard s-vencida">
+        <div class="top">
+          <div><div class="name">Nuria C.</div><div class="svc">Tratamiento (hora pasada)</div></div>
+          <div class="time"><b>16:00</b>sin marcar</div>
+        </div>
+        <div class="meta"><span class="badge b-red">⚠ Resolver estado</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>11 · Reserva temporal (bloqueo)</h4><small class="hint">Borde punteado en marcha — hueco retenido mientras la clienta decide</small>
+      <div class="kcard s-reserva">
+        <div class="top">
+          <div><div class="name">Hueco reservado</div><div class="svc">Oferta enviada a clienta de lista de espera</div></div>
+          <div class="time"><b>17:00</b>45 min</div>
+        </div>
+        <div class="meta"><span class="badge b-violet">Reserva temporal</span></div>
+      </div>
+    </div>
+
+    <div class="slot"><h4>12 · Reposo (fin_activa / fin_espera)</h4><small class="hint">Píldora silenciosa con vapor — el profesional descansa, la vista descansa</small>
+      <div class="pill">
+        <span class="cup">☕</span>
+        <span class="ptxt">Reposo de Ana<small>13:00 · 30 min · vuelve 13:30</small></span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <b>Regla de oro del sistema:</b> el canal lateral de cada tarjeta fluye a una velocidad proporcional a la urgencia —
+    <b>cobrada</b> casi quieta (14s), <b>confirmada</b> serena (9s), <b>pendiente</b> atenta (5s),
+    <b>en curso</b> acelerada (2.2s), <b>vencida</b> alarma (2.8s). El ojo detecta sin leer qué necesita atención.
+    Estados muertos (cancelada) pierden saturación y no tienen carril propio, igual que en tu rejilla actual.
+  </div>
+</body>
+</html>

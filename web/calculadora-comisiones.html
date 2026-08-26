@@ -58,8 +58,8 @@
   --accent-soft:rgba(244,80,30,.09);
   --ok:#0f9b6c;
   --ok-soft:rgba(15,155,108,.11);
-  --lav:#7c6cf0;
-  --lav-soft:rgba(124,108,240,.13);
+  --lav:#0f766e;
+  --lav-soft:rgba(15,118,110,.12);
   --shadow:0 26px 60px -34px rgba(21,16,11,.32);
   --shadow-s:0 6px 18px -10px rgba(21,16,11,.28);
   --display:'Bricolage Grotesque',system-ui,sans-serif;
@@ -77,7 +77,7 @@ body[data-theme="dark"]{
   --card:#181513;
   --accent-soft:rgba(244,80,30,.22);
   --ok-soft:rgba(15,155,108,.24);
-  --lav-soft:rgba(124,108,240,.24);
+  --lav-soft:rgba(15,118,110,.24);
   --shadow:0 30px 70px -30px rgba(0,0,0,.9);
   --shadow-s:0 8px 20px -12px rgba(0,0,0,.85);
 }
@@ -143,7 +143,7 @@ a{text-decoration:none;color:inherit}
 }
 .step-num{
   width:36px;height:36px;border-radius:12px;background:var(--lav);color:#fff;
-  display:grid;place-items:center;font-family:var(--display);font-size:18px;font-weight:800;flex-shrink:0;box-shadow:0 6px 14px rgba(124,108,240,.35);
+  display:grid;place-items:center;font-family:var(--display);font-size:18px;font-weight:800;flex-shrink:0;box-shadow:0 6px 14px rgba(15,118,110,.35);
 }
 .calc-modes{
   display:inline-flex;background:var(--paper);border:1px solid var(--line-2);
@@ -195,10 +195,10 @@ a{text-decoration:none;color:inherit}
 .btn-del:hover{color:#e0340e;border-color:#e0340e;background:rgba(224,52,14,.08)}
 .btn-add{
   font-family:var(--body);font-size:13.5px;font-weight:700;color:var(--lav);
-  background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);
+  background:var(--lav-soft);border:1px solid rgba(15,118,110,.3);
   padding:10px 18px;border-radius:12px;cursor:pointer;transition:all .2s ease;
 }
-.btn-add:hover{background:rgba(124,108,240,.22);transform:translateY(-1px)}
+.btn-add:hover{background:rgba(15,118,110,.22);transform:translateY(-1px)}
 
 /* Results */
 .result-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
@@ -210,12 +210,12 @@ a{text-decoration:none;color:inherit}
   background:linear-gradient(135deg,rgba(15,155,108,.16),var(--paper));border-color:var(--ok);
 }
 .res-card .res-k{font-size:12.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
-.res-card .res-v{font-family:var(--display);font-size:32px;font-weight:800;color:var(--ink);line-height:1}
+.res-card .res-v{font-family:var(--display);font-size:32px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
 .res-card.hero .res-v{color:var(--ok)}
 .res-card .res-n{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.4}
 
 .calc-table-wrap{overflow-x:auto;margin:18px 0;border-radius:14px;border:1px solid var(--line-2)}
-.calc-table{width:100%;border-collapse:collapse;font-size:13px;text-align:right}
+.calc-table{width:100%;border-collapse:collapse;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
 .calc-table th{background:var(--paper);padding:12px 14px;font-weight:700;color:var(--ink-2);border-bottom:1px solid var(--line-2)}
 .calc-table th:first-child,.calc-table td:first-child{text-align:left}
 .calc-table td{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--ink)}
@@ -225,7 +225,7 @@ a{text-decoration:none;color:inherit}
   display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:14px;
   font-size:13px;line-height:1.5;margin-top:12px;
 }
-.calc-aviso.info{background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);color:var(--ink)}
+.calc-aviso.info{background:var(--lav-soft);border:1px solid rgba(15,118,110,.3);color:var(--ink)}
 .calc-aviso.warn{background:rgba(224,52,14,.08);border:1px solid rgba(224,52,14,.3);color:var(--ink)}
 
 /* FAQ */
@@ -505,11 +505,10 @@ Cambiar tema
 <main id="top">
 
 <!-- HERO -->
-<section style="position:relative;overflow:hidden;padding:clamp(40px,5vw,70px) 26px clamp(24px,3vw,44px);background:radial-gradient(120% 90% at 50% 0%,var(--accent-soft),transparent 60%)">
-<div style="position:absolute;inset:-45% -25%;pointer-events:none;opacity:.4;background:conic-gradient(from 20deg,transparent 0deg,var(--accent-soft) 70deg,transparent 150deg,var(--lav-soft) 230deg,transparent 310deg);filter:blur(70px);animation:mAurora 50s linear infinite"></div>
+<section style="position:relative;overflow:hidden;padding:clamp(40px,5vw,70px) 26px clamp(24px,3vw,44px);background:radial-gradient(100% 70% at 50% 0%,var(--accent-soft),transparent 70%)">
 <div style="position:relative;max-width:1080px;margin:0 auto;text-align:center">
-<div style="display:inline-flex;align-items:center;gap:9px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--lav);margin-bottom:16px">
-<span style="width:7px;height:7px;border-radius:50%;background:var(--lav);animation:mPulse 2s ease-in-out infinite"></span>
+<div style="display:inline-flex;align-items:center;gap:9px;background:var(--lav-soft);border:1px solid rgba(15,118,110,.3);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--lav);margin-bottom:16px">
+<span style="width:7px;height:7px;border-radius:50%;background:var(--lav)"></span>
 Simulador Financiero Legal 2026 · 100% Gratuito
 </div>
 <h1 style="font-family:var(--display);font-weight:700;font-size:clamp(34px,4.8vw,60px);line-height:1.04;letter-spacing:-.035em;margin:0 0 16px">

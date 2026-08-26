@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hairy · Mecha v2 — Encadenados ×3 correctos + Reposos en agenda ×3</title>
+<style>
+  /* ================================================================
+     MECHA — sistema coherente (auditado)
+     · Solo tokens del designTokens.ts: fire/hi, success, warning, danger
+     · Cadenas: marrón Mecha (#5c5249→#a3937f), grupo por PASTILLA no por color
+     · Completada = success #0f9d6b (fuera #22c55e) · no-presentada = danger
+     · Reposo de cita ≠ bloqueo descanso: lenguajes distintos
+     · Canon: hover eleva, click hunde · urgencia ∝ velocidad de animación
+     ================================================================ */
+  :root{
+    --bg:#f6f1ea; --card:#fff; --panel:#fffdfb;
+    --fire:#f4501e; --fire-hi:#c0260a;
+    --fire-grad:linear-gradient(135deg,#e0340e,#ff7a2e 55%,#ffcf4a);
+    --txt:#1c1814; --txt2:#5c5249; --txt3:#736658; --txt4:#b3a89d;
+    --border:rgba(40,30,24,.08); --border-hi:rgba(40,30,24,.14);
+    --ok:#0f9d6b; --amber:#e08a00; --red:#e23b34;
+    --chain-grad:linear-gradient(135deg,#5c5249,#a3937f); /* marrón Mecha */
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--txt);padding:28px 22px 110px}
+  h1{font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
+  h2{font-size:15px;margin:38px 0 4px}
+  h3{font-size:12.5px;margin:22px 0 8px;color:var(--txt2)}
+  .sub{color:var(--txt3);font-size:13.5px;margin-bottom:12px;max-width:900px;line-height:1.6}
+  .sub b{color:var(--fire-hi)}
+  .sec{max-width:820px;margin:0 auto}
+
+  .audit{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;
+    font-size:12.5px;color:var(--txt3);line-height:1.7;margin:14px 0 8px}
+  .audit b{color:var(--txt2)} .audit code{background:rgba(40,30,24,.05);padding:1px 5px;border-radius:4px;font-size:11px}
+
+  /* ============ AGENDA — geometría fija y exacta ============ */
+  .mini{width:760px;max-width:100%;margin:10px auto;border:1px solid var(--border-hi);
+    border-radius:14px;background:var(--card);overflow:hidden}
+  .mini .mh{display:grid;grid-template-columns:56px 352px 352px;background:var(--panel);
+    border-bottom:1px solid var(--border-hi);font-size:12.5px;font-weight:700}
+  .mini .mh div{padding:10px 8px;text-align:center}
+  .mini .mh .hr{border-left:1px solid var(--border)}
+  .cols{position:relative;display:grid;grid-template-columns:56px 352px 352px;height:480px}
+  .hrs{position:relative;border-right:1px solid var(--border)}
+  .hrs span{position:absolute;right:8px;font-size:10px;color:var(--txt4);font-weight:600;transform:translateY(-6px)}
+  .pcol{position:relative;border-left:1px solid var(--border)}
+  .hlns{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .hlns i{display:block;height:96px;border-top:1px solid var(--border)}
+  .wires{position:absolute;inset:0;z-index:5;pointer-events:none}
+
+  /* cita */
+  .apt{position:absolute;left:8px;right:8px;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:700;
+    color:#fff;cursor:pointer;overflow:visible;z-index:3;transition:transform .15s var(--ease),box-shadow .15s;
+    box-shadow:0 1px 3px rgba(28,24,20,.12)}
+  .apt:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(28,24,20,.2);z-index:9}
+  .apt small{display:block;font-weight:500;font-size:9.5px;opacity:.85;margin-top:1px}
+  .a-fire{background:var(--fire-grad)}
+  .a-ok{background:linear-gradient(135deg,#0f9d6b,#13c38a)}
+  .a-chain{background:var(--chain-grad)}
+
+  /* ================================================================
+     CADENAS — piezas comunes
+     ============================================================ */
+  .pill{position:absolute;font-size:9px;font-weight:800;color:#fff;padding:2px 9px;border-radius:999px;
+    letter-spacing:.05em;box-shadow:0 2px 6px rgba(28,24,20,.28);z-index:8;white-space:nowrap}
+  .pill.solid{background:#3f3830}           /* grupo A: pastilla sólida */
+  .pill.line{background:#fffdfb;color:#5c5249;border:1.5px solid #5c5249} /* grupo B: delineada */
+  .capline{position:absolute;left:8px;right:8px;height:3.5px;border-radius:3px;background:#fff;z-index:4}
+  .origin{position:absolute;font-size:8.5px;font-weight:800;color:#fff;background:#3f3830;
+    padding:2px 8px 2px 6px;border-radius:999px;z-index:8;display:flex;align-items:center;gap:4px;
+    box-shadow:0 2px 5px rgba(28,24,20,.25);white-space:nowrap}
+  .origin .a{display:inline-block;animation:nudge 1.4s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(-2px)}}
+  .origin.line{background:#fffdfb;color:#5c5249;border:1.5px solid #5c5249}
+
+  /* ============ D1 · TALLO Y ETIQUETA ============ */
+  .d1 .stem{position:absolute;width:2.5px;background:repeating-linear-gradient(180deg,#5c5249 0 5px,transparent 5px 10px);z-index:4}
+  .d1 .wire{stroke:#5c5249;stroke-width:2.5;fill:none;stroke-dasharray:6 6;
+    animation:dashmove 1.1s linear infinite}
+  @keyframes dashmove{to{stroke-dashoffset:-12}}
+  .d1 .wirehead{fill:#5c5249}
+
+  /* ============ D2 · CÁPSULA CON ENCHUFE ============ */
+  .d2 .capsule{position:absolute;left:8px;right:8px;border-radius:12px;z-index:3;cursor:pointer;
+    box-shadow:0 1px 3px rgba(28,24,20,.12);transition:transform .15s var(--ease)}
+  .d2 .capsule:hover{transform:translateY(-1px)}
+  .d2 .cseg{position:relative;padding:7px 10px 7px 13px;color:#fff}
+  .d2 .cseg + .cseg{border-top:1.5px solid rgba(255,253,251,.4)}
+  .d2 .cseg .seam{position:absolute;top:-7px;left:10px;width:14px;height:14px;border-radius:50%;
+    background:#fffdfb;border:2px solid #5c5249;color:#5c5249;font-size:8px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;z-index:6;
+    animation:gearspin 5s linear infinite}
+  @keyframes gearspin{to{transform:rotate(360deg)}}
+  /* enchufe (fin) y toma (inicio de la siguiente) */
+  .d2 .plug{position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:0;height:0;z-index:7;
+    border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:10px solid #5c5249}
+  .d2 .socket{position:absolute;left:-7px;top:50%;transform:translateY(-50%);width:0;height:0;z-index:7;
+    border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:10px solid #5c5249}
+  .d2 .energy{stroke:#5c5249;stroke-width:2.5;fill:none;stroke-dasharray:5 6;animation:dashmove .9s linear infinite}
+
+  /* ============ D3 · RIEL COMPARTIDO ============ */
+  .d3 .rail{position:absolute;left:8px;width:4px;border-radius:4px;z-index:2;
+    background:linear-gradient(180deg,rgba(92,82,73,.12),#5c5249 50%,rgba(92,82,73,.12));
+    background-size:100% 300%;animation:railflow 3s linear infinite}
+  @keyframes railflow{from{background-position:0 -300%}to{background-position:0 300%}}
+  .d3 .seg{left:20px}
+  .d3 .node{position:absolute;left:8px;width:16px;height:16px;z-index:6;transform:translate(-6px,-8px);
+    background:#fffdfb;border:3px solid #5c5249;border-radius:50%;
+    display:flex;align-items:center;justify-content:center}
+  .d3 .node.start{background:#3f3830;border-color:#3f3830}
+  .d3 .node.start::after{content:'';border-left:5px solid #fff;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;margin-left:2px}
+  .d3 .node.end{border-radius:3px}
+  .d3 .node.end::after{content:'';width:6px;height:6px;background:#5c5249}
+  .d3 .xcable{stroke:#5c5249;stroke-width:4;fill:none;stroke-linecap:round;
+    stroke-dasharray:8 7;animation:dashmove 1.3s linear infinite}
+
+  /* ================================================================
+     REPOSOS EN LA AGENDA — 3 diseños, todos drop-zone
+     ============================================================ */
+  .restband{position:absolute;left:9px;right:9px;border-radius:9px;z-index:6;cursor:grab;
+    transition:transform .15s var(--ease),filter .15s}
+  .restband:hover{transform:scale(1.015);filter:brightness(1.05);z-index:10}
+  .restband .plus{position:absolute;top:3px;right:6px;font-size:11px;font-weight:800;color:var(--ok);
+    opacity:0;transition:opacity .15s}
+  .restband:hover .plus{opacity:1}
+  .restband.drop{filter:brightness(1.1);outline:2.5px solid var(--ok);outline-offset:1px;
+    animation:dropglow 1s ease-in-out infinite}
+  @keyframes dropglow{0%,100%{box-shadow:0 0 0 0 rgba(15,157,107,.4)}50%{box-shadow:0 0 0 7px rgba(15,157,107,0)}}
+
+  /* R1 · FRANJA TRAMO (timeline dentro del bloque) */
+  .r1{background:repeating-linear-gradient(-45deg,rgba(255,253,251,.95) 0 8px,rgba(115,102,88,.12) 8px 16px);
+    border:1.5px dashed rgba(92,82,73,.55);
+    display:flex;align-items:center;justify-content:center;gap:8px}
+  .r1 .cup{width:22px;height:22px;border-radius:50%;background:var(--txt3);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;flex:none;animation:steamb 3.4s ease-in-out infinite}
+  @keyframes steamb{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+  .r1 .rtx{font-size:9px;font-weight:800;color:var(--txt2);line-height:1.3}
+  .r1 .rtx small{display:block;font-size:8px;font-weight:600;color:var(--txt3)}
+  .r1 .edgetop,.r1 .edgebot{position:absolute;left:10px;right:10px;height:0;border-top:1.5px dotted rgba(255,255,255,.75)}
+
+  /* R2 · CINTURÓN CONTINUO (cruza el bloque de lado a lado, sin inset) */
+  .r2{left:0;right:0;border-radius:0;
+    background:linear-gradient(90deg,rgba(115,102,88,.14),rgba(115,102,88,.07) 15%,rgba(115,102,88,.07) 85%,rgba(115,102,88,.14));
+    border-top:1.5px dashed rgba(92,82,73,.6);border-bottom:1.5px dashed rgba(92,82,73,.6);
+    display:flex;align-items:center;justify-content:center;gap:7px;overflow:hidden}
+  .r2::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);
+    background-size:220% 100%;animation:sweep 3.8s linear infinite}
+  @keyframes sweep{from{background-position:200% 0}to{background-position:-60% 0}}
+  .r2 .rtx{font-size:9px;font-weight:800;color:#fffdfb;text-shadow:0 1px 2px rgba(28,24,20,.4);letter-spacing:.05em;z-index:1}
+  .r2 .cup{font-size:13px;z-index:1;animation:steamb 3.4s ease-in-out infinite}
+
+  /* R3 · MEDIDOR CIRCULAR (progreso del reposo) */
+  .r3{background:rgba(255,253,251,.9);border:1.5px dashed rgba(92,82,73,.55);
+    display:flex;align-items:center;justify-content:center;gap:9px}
+  .r3 .dial{width:30px;height:30px;flex:none;position:relative}
+  .r3 .dial svg{transform:rotate(-90deg)}
+  .r3 .dial .bgc{stroke:rgba(92,82,73,.15)}
+  .r3 .dial .fgc{stroke:var(--amber);stroke-dasharray:75.4;animation:drain 20s linear infinite}
+  @keyframes drain{from{stroke-dashoffset:0}to{stroke-dashoffset:75.4}}
+  .r3 .dial .ctr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+  .r3 .rtx{font-size:9px;font-weight:800;color:var(--txt2);line-height:1.3}
+  .r3 .rtx small{display:block;font-size:8px;font-weight:600;color:var(--txt3)}
+
+  /* tramos activos visibles */
+  .actlab{position:absolute;left:11px;font-size:7.5px;font-weight:800;letter-spacing:.07em;
+    color:rgba(255,255,255,.9);z-index:4}
+
+  /* hueco libre arrastrable */
+  .freeslot{position:absolute;left:8px;right:8px;border-radius:10px;z-index:4;
+    border:1.5px dashed rgba(15,157,107,.5);background:rgba(15,157,107,.04);color:var(--ok);
+    display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;font-weight:800;
+    cursor:grab;transition:all .18s var(--ease)}
+  .freeslot:hover{background:rgba(15,157,107,.1);border-color:var(--ok);transform:translateY(-1px);
+    box-shadow:0 6px 14px rgba(15,157,107,.18)}
+  .freeslot:active{cursor:grabbing;transform:scale(.98)}
+  .freeslot.drop{outline:2.5px solid var(--ok);animation:dropglow 1s ease-in-out infinite}
+  .freeslot .fi{width:19px;height:19px;border-radius:50%;background:rgba(15,157,107,.12);
+    display:flex;align-items:center;justify-content:center;font-size:11px;
+    animation:breathslot 2.6s ease-in-out infinite}
+  @keyframes breathslot{0%,100%{box-shadow:0 0 0 0 rgba(15,157,107,.25)}50%{box-shadow:0 0 0 5px rgba(15,157,107,0)}}
+  .freeslot small{font-weight:600;font-size:8.5px;color:var(--txt3)}
+
+  .draggable{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border-hi);
+    border-radius:10px;padding:8px 12px;font-size:11.5px;font-weight:700;cursor:grab;margin:4px 6px 4px 0;
+    transition:all .15s var(--ease);user-select:none}
+  .draggable:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(28,24,20,.12);border-color:var(--fire)}
+  .draggable:active{cursor:grabbing;transform:scale(.97)}
+  .draggable .av{width:22px;height:22px;border-radius:50%;color:#fff;font-size:9px;font-weight:800;
+    display:flex;align-items:center;justify-content:center}
+  .draggable small{font-weight:500;color:var(--txt3)}
+  .dragtray{max-width:760px;margin:14px auto 0;padding:10px 12px;background:var(--panel);
+    border:1px solid var(--border);border-radius:12px;font-size:11px;color:var(--txt3)}
+  .dragtray b{color:var(--txt2)}
+  .pop{position:absolute;z-index:40;background:var(--card);border:1px solid var(--border-hi);border-radius:12px;
+    box-shadow:0 14px 34px rgba(28,24,20,.18);padding:8px;width:210px;animation:popin .22s var(--ease)}
+  @keyframes popin{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+  .pop h5{font-size:10.5px;margin:2px 6px 6px;color:var(--txt2)}
+  .pop button{display:flex;width:100%;text-align:left;gap:8px;align-items:center;border:none;background:none;
+    padding:7px 8px;border-radius:8px;font-size:10.5px;font-weight:600;color:var(--txt2);cursor:pointer}
+  .pop button:hover{background:rgba(244,80,30,.07);color:var(--fire-hi)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);z-index:60;
+    background:var(--txt);color:#fff;font-size:12px;font-weight:600;padding:11px 20px;border-radius:12px;
+    box-shadow:0 14px 30px rgba(28,24,20,.35);opacity:0;transition:all .35s var(--ease)}
+  .toast.show{transform:translateX(-50%);opacity:1}
+</style>
+</head>
+<body>
+  <h1>🔥 Mecha v2 — Encadenados ×3 · Reposos en agenda ×3</h1>
+  <p class="sub">Geometría recalculada al píxel (760px fijos, 96px/hora, sin medición en JS — nada roto). Escenario idéntico en los 3 diseños: <b>Cadena A</b> (pastilla sólida) Ana 9:30 → Marta 10:30 → Ana 11:30 · <b>Cadena B</b> (pastilla delineada) local de Marta 12:30–13:40 en dos eslabones pegados.</p>
+
+  <div class="sec">
+    <div class="audit">
+      <b>🧭 Auditoría de coherencia Mecha</b> — lo que corregí en esta versión:<br>
+      · <b>Colores foráneos fuera:</b> <code>#22c55e</code>, <code>#8a5cf6</code>, <code>#0d9488</code>, <code>#ef4444</code> no existen en <code>designTokens.ts</code>. Completada ahora usa <code>success #0f9d6b</code>; no-presentada usa <code>danger #e23b34</code>.<br>
+      · <b>Cadenas en marrón Mecha</b> (<code>#5c5249→#a3937f</code>, familia de <code>txt2/txt3</code>): una cadena es <i>operación logística</i>, no urgencia — no compite con fuego/verde/ámbar. Los grupos se distinguen por <b>pastilla</b> (A sólida · B delineada), no por colores ajenos al sistema.<br>
+      · <b>Reposo ≠ descanso:</b> el reposo es tramo interno de una cita (franja rayada marrón, drop-zone); el bloqueo "descanso" del profesional es otra pieza (ámbar, del sistema de bloqueos). Lenguajes separados, como en tu BD (<code>fin_activa/fin_espera</code> vs <code>bloqueos.tipo='descanso'</code>).<br>
+      · <b>Canon de movimiento:</b> hover eleva · click hunde · la velocidad de animación es proporcional a la urgencia. Reposo y cadenas son lentas y serenas; solo lo que pide acción pulsa rápido.
+    </div>
+  </div>
+
+  <!-- ==================== D1 ==================== -->
+  <div class="sec">
+    <h2>🔗 D1 · Tallo y etiqueta — el origen escrito en el bloque</h2>
+    <p class="sub">Cada continuación lleva <b>tallo punteado + etiqueta "⬅ desde Ana"</b> saliendo de su borde superior, y un <b>cable animado</b> (codo con punto viajero) conecta el fin real de un eslabón con el inicio del siguiente. Primero: tapa blanca + <code>A ▶ 1/3</code>. Último: <code>3/3 ■</code>.</p>
+    <div class="mini d1">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:46px">9:30</span><span style="top:238px">11:30</span><span style="top:430px">13:30</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <!-- 1/3 Ana 9:30–10:30  y=48..144 -->
+          <div class="apt a-chain" style="top:48px;height:93px">
+            <div class="capline" style="top:-2px"></div>
+            <span class="pill solid" style="top:-9px;left:10px">A ▶ 1/3</span>
+            Sofía L. · prueba de color<small>9:30–10:30 · con Ana</small>
+          </div>
+          <!-- 3/3 Ana 11:30–12:00 y=240..288 (viene de Marta) -->
+          <div class="apt a-chain" style="top:240px;height:45px">
+            <span class="pill solid" style="top:-9px;right:10px">3/3 ■</span>
+            <span class="origin" style="top:-9px;left:34px"><span class="a">⬅</span> desde Marta</span>
+            <div class="stem" style="top:-22px;height:22px;left:14px"></div>
+            Sofía L. · lavado + peinado<small>11:30–12:00 · vuelve con Ana</small>
+          </div>
+          <div class="apt a-fire" style="top:336px;height:93px">María G.<small>Corte + barba · 12:30–13:30</small></div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:48px;height:69px">Inés R. · Peinado<small>9:30–10:15</small></div>
+          <!-- 2/3 Marta 10:30–11:15 y=144..216 (viene de Ana) -->
+          <div class="apt a-chain" style="top:144px;height:69px">
+            <span class="origin" style="top:-9px;left:34px"><span class="a">⬅</span> desde Ana</span>
+            <div class="stem" style="top:-18px;height:18px;left:14px"></div>
+            <span class="pill solid" style="top:-9px;right:10px">2/3</span>
+            Sofía L. · aplicación de tinte<small>10:30–11:15 · con Marta</small>
+          </div>
+          <!-- Cadena B local: 12:30–13:10 y 13:10–13:40 -->
+          <div class="apt a-chain" style="top:336px;height:59px">
+            <div class="capline" style="top:-2px"></div>
+            <span class="pill line" style="top:-9px;left:10px">B ▶ 1/2</span>
+            Elena V. · prueba<small>12:30–13:10</small>
+          </div>
+          <div class="apt a-chain" style="top:398px;height:47px">
+            <span class="pill line" style="top:-9px;right:10px">2/2 ■</span>
+            <span class="origin line" style="top:-9px;left:34px"><span class="a">⬅</span> misma cadena B</span>
+            <div class="stem" style="top:-5px;height:5px;left:14px"></div>
+            Elena V. · montaje<small>13:10–13:40 · arranca al acabar</small>
+          </div>
+        </div>
+        <!-- cables: A→B en 10:30 (y=144) y B→A de 11:15 a 11:30 -->
+        <svg class="wires" viewBox="0 0 760 480">
+          <path class="wire" d="M 240 146 H 560"/>
+          <polygon class="wirehead" points="560,140 572,146 560,152"/>
+          <circle r="4" fill="#5c5249"><animateMotion dur="1.6s" repeatCount="indefinite" path="M 240 146 H 560"/></circle>
+          <path class="wire" d="M 560 218 H 250 V 238"/>
+          <polygon class="wirehead" points="244,238 256,238 250,248"/>
+          <circle r="4" fill="#5c5249"><animateMotion dur="1.9s" repeatCount="indefinite" path="M 560 218 H 250 V 238"/></circle>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== D2 ==================== -->
+  <div class="sec">
+    <h2>🔗 D2 · Cápsula con enchufe — metáfora de conexión física</h2>
+    <p class="sub">Los eslabones del mismo profesional forman <b>una cápsula</b> con costura engranada ⚙. Cuando la cadena cruza a otra profesional, la cápsula termina en <b>enchufe ▷</b> y la siguiente empieza con <b>toma ◁</b>, unidos por un <b>cable de energía</b> animado. Imposible no entender de dónde viene.</p>
+    <div class="mini d2">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:46px">9:30</span><span style="top:238px">11:30</span><span style="top:430px">13:30</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <!-- cápsula Ana parte 1: 9:30–10:30, con enchufe a la derecha -->
+          <div class="capsule" style="top:48px;height:96px;background:var(--chain-grad);border-radius:12px">
+            <div class="cseg" style="height:96px;padding-top:11px">
+              <span class="pill solid" style="top:-9px;left:10px">A ▶ 1/3</span>
+              Sofía L. · prueba de color<small>9:30–10:30 · con Ana</small>
+            </div>
+            <span class="plug"></span>
+          </div>
+          <!-- cápsula Ana parte 3: 11:30–12:00, con toma a la izquierda -->
+          <div class="capsule" style="top:240px;height:48px;background:var(--chain-grad)">
+            <div class="cseg" style="height:48px">
+              <span class="socket"></span>
+              <span class="pill solid" style="top:-9px;right:10px">3/3 ■</span>
+              <span class="origin" style="top:-9px;left:40px"><span class="a">⬅</span> Marta la trae de vuelta</span>
+              Sofía L. · lavado + peinado<small>11:30–12:00</small>
+            </div>
+          </div>
+          <div class="apt a-fire" style="top:336px;height:93px">María G.<small>Corte + barba · 12:30–13:30</small></div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:48px;height:69px">Inés R. · Peinado<small>9:30–10:15</small></div>
+          <!-- cápsula Marta parte 2: toma + enchufe (llega y sigue) -->
+          <div class="capsule" style="top:144px;height:72px;background:var(--chain-grad)">
+            <div class="cseg" style="height:72px">
+              <span class="socket"></span>
+              <span class="origin" style="top:-9px;left:40px"><span class="a">⬅</span> enchufada desde Ana</span>
+              <span class="pill solid" style="top:-9px;right:10px">2/3</span>
+              Sofía L. · aplicación de tinte<small>10:30–11:15 · con Marta</small>
+            </div>
+            <span class="plug" style="right:auto;left:50%;top:100%;transform:rotate(45deg) translate(-4px,-2px)"></span>
+          </div>
+          <!-- cadena B: cápsula con costura interna -->
+          <div class="capsule" style="top:336px;height:110px;background:var(--chain-grad)">
+            <div class="cseg" style="height:62px;padding-top:11px">
+              <span class="pill line" style="top:-9px;left:10px">B ▶ 1/2</span>
+              Elena V. · prueba<small>12:30–13:10</small>
+              <span class="seam">⚙</span>
+            </div>
+            <div class="cseg" style="height:48px">
+              <span class="pill line" style="top:4px;right:10px">2/2 ■</span>
+              Elena V. · montaje<small>13:10–13:40 · misma cápsula</small>
+            </div>
+          </div>
+        </div>
+        <!-- cables de energía: enchufe→toma -->
+        <svg class="wires" viewBox="0 0 760 480">
+          <path class="energy" d="M 410 96 C 440 96 440 180 410 180"/>
+          <circle r="4.5" fill="#5c5249"><animateMotion dur="1.5s" repeatCount="indefinite" path="M 410 96 C 440 96 440 180 410 180"/></circle>
+          <path class="energy" d="M 408 216 C 360 216 300 228 240 240 C 200 248 190 252 196 264"/>
+          <circle r="4.5" fill="#5c5249"><animateMotion dur="2s" repeatCount="indefinite" path="M 408 216 C 360 216 300 228 240 240 C 200 248 190 252 196 264"/></circle>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== D3 ==================== -->
+  <div class="sec">
+    <h2>🔗 D3 · Riel compartido — la cadena como línea de producción</h2>
+    <p class="sub">Un <b>riel marrón</b> recorre la cadena en cada columna; los eslabones cuelgan de él. Cada inicio tiene un <b>nodo</b>: ▶ lleno en el primero, anillo en los intermedios, cuadrado ■ en el último. El cruce entre profesionales es un <b>cable grueso</b> que une rieles. Un punto viaja todo el recorrido.</p>
+    <div class="mini d3">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols" style="position:relative">
+        <div class="hrs"><span style="top:46px">9:30</span><span style="top:238px">11:30</span><span style="top:430px">13:30</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <!-- riel Ana: 9:30–12:00 -->
+          <div class="rail" style="top:48px;height:240px"></div>
+          <span class="node start" style="top:48px"></span>
+          <span class="node" style="top:240px"></span>
+          <div class="apt a-chain seg" style="top:52px;height:89px">
+            <span class="pill solid" style="top:-13px;left:24px">A ▶ 1/3</span>
+            Sofía L. · prueba de color<small>9:30–10:30 · con Ana</small>
+          </div>
+          <div class="apt a-chain seg" style="top:244px;height:41px">
+            <span class="pill solid" style="top:-13px;right:10px">3/3 ■</span>
+            <span class="origin" style="top:-13px;left:24px"><span class="a">⬅</span> vuelve por el riel</span>
+            Sofía L. · lavado + peinado<small>11:30–12:00</small>
+          </div>
+          <div class="apt a-fire" style="top:336px;height:93px">María G.<small>Corte + barba · 12:30–13:30</small></div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok seg" style="top:48px;height:69px">Inés R. · Peinado<small>9:30–10:15</small></div>
+          <!-- riel Marta A: 10:30–11:15 · riel B: 12:30–13:40 -->
+          <div class="rail" style="top:144px;height:72px"></div>
+          <div class="rail" style="top:336px;height:112px"></div>
+          <span class="node" style="top:144px"></span>
+          <span class="node start" style="top:336px"></span>
+          <span class="node end" style="top:448px"></span>
+          <div class="apt a-chain seg" style="top:148px;height:65px">
+            <span class="origin" style="top:-13px;left:24px"><span class="a">⬅</span> llega por el cable</span>
+            <span class="pill solid" style="top:-13px;right:10px">2/3</span>
+            Sofía L. · aplicación de tinte<small>10:30–11:15 · con Marta</small>
+          </div>
+          <div class="apt a-chain seg" style="top:340px;height:56px">
+            <span class="pill line" style="top:-13px;left:24px">B ▶ 1/2</span>
+            Elena V. · prueba<small>12:30–13:10</small>
+          </div>
+          <div class="apt a-chain seg" style="top:402px;height:44px">
+            <span class="pill line" style="top:-13px;right:10px">2/2 ■</span>
+            <span class="origin line" style="top:-13px;left:24px"><span class="a">⬅</span> cadena B</span>
+            Elena V. · montaje<small>13:10–13:40</small>
+          </div>
+        </div>
+        <!-- cables gruesos entre rieles -->
+        <svg class="wires" viewBox="0 0 760 480">
+          <path class="xcable" d="M 64 146 H 420"/>
+          <path class="xcable" d="M 420 218 H 64 V 242"/>
+          <circle r="5" fill="#5c5249"><animateMotion dur="2.4s" repeatCount="indefinite"
+            path="M 64 48 V 288 H 560 V 216 H 420"/></circle>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== REPOSOS ==================== -->
+  <div class="sec">
+    <h2>☕ Reposos en la agenda — 3 diseños, todos clicables y drop-zone</h2>
+    <p class="sub">Cita de Sofía 9:15–12:15 con reposo 10:15–11:00 (tinte actuando, <b>Ana libre</b>). Tramos activos visibles antes y después. <b>Arrastra a Rosa o Inés</b> desde la bandeja sobre cualquier franja de reposo o hueco libre.</p>
+    <div class="dragtray">
+      <b>📥 Clientas en espera — arrastra:</b>
+      <span class="draggable" draggable="true" data-n="Rosa M." data-c="#f4501e" data-d="30">
+        <span class="av" style="background:var(--fire-grad)">RM</span>Rosa M. <small>· corte 30'</small></span>
+      <span class="draggable" draggable="true" data-n="Inés R." data-c="#0f9d6b" data-d="45">
+        <span class="av" style="background:linear-gradient(135deg,#0f9d6b,#13c38a)">IR</span>Inés R. <small>· peinado 45'</small></span>
+    </div>
+
+    <!-- R1 -->
+    <h3>R1 · Franja tramo — timeline activo ▮ / reposo ░ / activo ▮</h3>
+    <div class="mini" id="rm1">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:22px">9:15</span><span style="top:214px">11:15</span><span style="top:406px">13:15</span></div>
+        <div class="pcol" data-col>
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:24px;height:288px;display:flex;flex-direction:column;justify-content:space-between;padding:8px 10px">
+            <div>Sofía L. · Color completo<small>9:15–12:15 · 168 min</small></div>
+            <div style="text-align:right"><small>10:40–12:15 activa · lavado</small></div>
+          </div>
+          <span class="actlab" style="top:36px">▶ TRAMO ACTIVO 9:15–10:15</span>
+          <span class="actlab" style="top:218px">▶ TRAMO ACTIVO 11:00–12:15</span>
+          <div class="restband r1" data-rest="reposo de Sofía · Ana libre 10:15–11:00" style="top:138px;height:76px">
+            <span class="plus">＋</span><span class="cup">☕</span>
+            <span class="rtx">REPOSO · 45 min<small>Ana libre 10:15–11:00 · tinte actuando</small></span>
+          </div>
+          <div class="freeslot" data-free="12:45–13:30" style="top:360px;height:67px">
+            <span class="fi">＋</span><span>LIBRE<small>12:45–13:30 · arrastra aquí</small></span>
+          </div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="freeslot" data-free="9:00–9:45" style="top:8px;height:59px">
+            <span class="fi">＋</span><span>LIBRE<small>9:00–9:45</small></span>
+          </div>
+          <div class="apt a-ok" style="top:72px;height:93px">Inés R. · Peinado<small>9:45–10:45</small></div>
+          <div class="apt a-fire" style="top:192px;height:93px">Rosa M. · Corte<small>11:00–12:00</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- R2 -->
+    <h3>R2 · Cinturón continuo — el reposo cruza la cita de lado a lado</h3>
+    <div class="mini" id="rm2">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:22px">9:15</span><span style="top:214px">11:15</span><span style="top:406px">13:15</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:24px;height:288px;display:flex;flex-direction:column;justify-content:space-between;padding:8px 10px">
+            <div>Sofía L. · Color completo<small>9:15–12:15</small></div>
+            <div style="text-align:right"><small>11:00–12:15 activa</small></div>
+          </div>
+          <div class="restband r2" data-rest="reposo de Sofía · Ana libre 10:15–11:00" style="top:138px;height:76px">
+            <span class="plus" style="z-index:2">＋</span><span class="cup">☕</span>
+            <span class="rtx">REPOSO · ANA LIBRE · 10:15–11:00 · ARRASTRA O CLIC</span>
+          </div>
+          <div class="freeslot" data-free="12:45–13:30" style="top:360px;height:67px">
+            <span class="fi">＋</span><span>LIBRE<small>12:45–13:30</small></span>
+          </div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-ok" style="top:72px;height:93px">Inés R. · Peinado<small>9:45–10:45</small></div>
+          <div class="freeslot" data-free="11:00–12:00" style="top:192px;height:93px">
+            <span class="fi">＋</span><span>LIBRE<small>11:00–12:00 · 60 min</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- R3 -->
+    <h3>R3 · Medidor circular — el reposo avanza, el dial se vacía</h3>
+    <div class="mini" id="rm3">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:22px">9:15</span><span style="top:214px">11:15</span><span style="top:406px">13:15</span></div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:24px;height:288px;display:flex;flex-direction:column;justify-content:space-between;padding:8px 10px">
+            <div>Sofía L. · Color completo<small>9:15–12:15</small></div>
+            <div style="text-align:right"><small>11:00–12:15 activa</small></div>
+          </div>
+          <div class="restband r3" data-rest="reposo de Sofía · Ana libre 10:15–11:00" style="top:138px;height:76px">
+            <span class="plus">＋</span>
+            <span class="dial">
+              <svg width="30" height="30"><circle class="bgc" cx="15" cy="15" r="12" fill="none" stroke-width="4"/>
+              <circle class="fgc" cx="15" cy="15" r="12" fill="none" stroke-width="4" stroke-linecap="round"/></svg>
+              <span class="ctr">☕</span>
+            </span>
+            <span class="rtx">REPOSO · 45 min<small>quedan 32 · Ana libre 10:15–11:00</small></span>
+          </div>
+          <div class="freeslot" data-free="12:45–13:30" style="top:360px;height:67px">
+            <span class="fi">＋</span><span>LIBRE<small>12:45–13:30</small></span>
+          </div>
+        </div>
+        <div class="pcol">
+          <div class="hlns"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="apt a-fire" style="top:48px;height:93px">Rosa M. · Corte<small>9:30–10:30</small></div>
+          <div class="freeslot" data-free="11:00–12:00" style="top:192px;height:93px">
+            <span class="fi">＋</span><span>LIBRE<small>11:00–12:00</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ---------- interacciones (reposos + huecos) ---------- */
+const toast=document.getElementById('toast');
+function say(m){toast.textContent=m;toast.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(()=>toast.classList.remove('show'),2600);}
+
+document.querySelectorAll('.restband,.freeslot').forEach(el=>{
+  el.addEventListener('click',e=>{
+    document.querySelectorAll('.pop').forEach(p=>p.remove());
+    const where=el.dataset.rest||('hueco libre '+el.dataset.free);
+    const mini=el.closest('.mini');
+    const pop=document.createElement('div');pop.className='pop';
+    pop.innerHTML=`<h5>☕ ${where}</h5>
+      <button>✨ Sugerir clienta de lista de espera</button>
+      <button>👤 Agendar nueva cita aquí</button>
+      <button>🔒 Reservar hueco temporal</button>
+      <button>✂️ Dividir hueco</button>`;
+    const mr=mini.getBoundingClientRect(),er=el.getBoundingClientRect();
+    pop.style.left=Math.min(er.left-mr.left+12,mr.width-220)+'px';
+    pop.style.top=Math.min(er.bottom-mr.top+6,mr.height-160)+'px';
+    mini.appendChild(pop);
+    pop.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      say('✅ '+b.textContent.trim());pop.remove();}));
+    e.stopPropagation();
+  });
+});
+document.addEventListener('click',()=>document.querySelectorAll('.pop').forEach(p=>p.remove()));
+
+document.querySelectorAll('.draggable').forEach(d=>{
+  d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',JSON.stringify(
+    {n:d.dataset.n,c:d.dataset.c,dur:d.dataset.d}));d.style.opacity=.4;});
+  d.addEventListener('dragend',()=>d.style.opacity=1);
+});
+document.querySelectorAll('.restband,.freeslot').forEach(z=>{
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drop');});
+  z.addEventListener('dragleave',()=>z.classList.remove('drop'));
+  z.addEventListener('drop',e=>{
+    e.preventDefault();z.classList.remove('drop');
+    const d=JSON.parse(e.dataTransfer.getData('text/plain'));
+    const where=z.dataset.rest||('hueco '+z.dataset.free);
+    const n=document.createElement('div');n.className='apt';
+    n.style.cssText=`top:${z.offsetTop+2}px;height:${Math.min(z.offsetHeight-4,48)}px;
+      z-index:9;background:${d.c};border-radius:8px;left:9px;right:9px;`;
+    n.innerHTML=`${d.n}<small>en ${where.split('·')[0]} · ${d.dur} min</small>`;
+    z.parentElement.appendChild(n);z.style.display='none';
+    say(`✅ ${d.n} agendada en ${where}`);
+  });
+});
+</script>
+</body>
+</html>

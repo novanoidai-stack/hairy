@@ -36,11 +36,11 @@ export const ESTADO_CITA_UI: Record<string, EstadoCitaUi> = {
     color: '#0f9d6b',
     soft: 'rgba(15,157,107,0.12)',
   },
-  // Verde mas claro: ya paso y salio bien.
+  // Verde de marca (success canon Mecha): ya paso y salio bien.
   [CITA_STATUS.COMPLETADA]: {
     label: 'Completada',
-    color: '#22c55e',
-    soft: 'rgba(34,197,94,0.12)',
+    color: '#0f9d6b',
+    soft: 'rgba(15,157,107,0.12)',
   },
   [CITA_STATUS.CANCELADA]: {
     label: 'Cancelada',
@@ -48,10 +48,11 @@ export const ESTADO_CITA_UI: Record<string, EstadoCitaUi> = {
     soft: 'rgba(226,59,52,0.12)',
   },
   // Rojo apagado, no ambar: un no-show es una perdida, no un aviso pendiente.
+  // Danger canon Mecha (#e23b34), no el rojo Tailwind.
   [CITA_STATUS.NO_PRESENTADA]: {
     label: 'No presentada',
-    color: '#ef4444',
-    soft: 'rgba(239,68,68,0.15)',
+    color: '#e23b34',
+    soft: 'rgba(226,59,52,0.14)',
   },
 };
 

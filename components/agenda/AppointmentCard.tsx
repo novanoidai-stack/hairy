@@ -2,14 +2,17 @@ import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { fontSize, fontWeight, radius, useTheme } from '@/lib/theme';
 import { TText } from '@/components/ui/TText';
 import type { Cita } from './AgendaView';
-import { STATUS_META } from '@/lib/designTokens';
+import { bloqueDeCita } from '@/lib/agendaBloqueUi';
 
-const ESTADO_COLORS: Record<Cita['estado'], string> = {
-  confirmada: STATUS_META.confirmada.color,
-  completada: STATUS_META.completada.color,
-  cancelada: STATUS_META.cancelada.color,
-  no_presentada: STATUS_META.no_show.color,
-};
+// Misma ley que la agenda web (lib/agendaBloqueUi.ts): el color del bloque lo
+// decide SOLO el estado. Aqui no hay animacion (el sistema de motion es de
+// web); el nativo se queda con el mapa de color, que es lo que tiene que
+// coincidir para que las dos plataformas cuenten lo mismo.
+//
+// Antes esta tarjeta pintaba el fondo y el borde izquierdo con el color del
+// servicio, el borde superior con ese mismo color otra vez, y encima metia un
+// punto de estado y dos insignias en la misma esquina: cuatro senales, tres
+// colores y ni una jerarquia.
 
 interface Props {
   cita: Cita;
@@ -20,11 +23,7 @@ interface Props {
 
 export function AppointmentCard({ cita, top, height, onPress }: Props) {
   const { c } = useTheme();
-  const bg = cita.color + '22';
-  const border = cita.color;
-  const isCobrada = !!cita.cobrada;
-  const isCompletadaSinCobrar = !isCobrada && cita.estado === 'completada';
-  const estadoColor = ESTADO_COLORS[cita.estado];
+  const bloque = bloqueDeCita(cita, Date.now());
   const compact = height < 48;
 
   return (
@@ -35,32 +34,40 @@ export function AppointmentCard({ cita, top, height, onPress }: Props) {
         {
           top,
           height,
-          backgroundColor: bg,
-          borderLeftColor: border,
+          backgroundColor: bloque.fondo,
+          borderColor: bloque.borde,
+          borderLeftColor: bloque.acento ?? bloque.borde,
+          borderLeftWidth: bloque.acento ? 3 : 1,
+          opacity: bloque.atenuado ? 0.5 : 1,
         },
       ]}
       activeOpacity={0.8}
     >
-      <View style={{ position: 'absolute', top: 4, right: 4, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-        {isCobrada && (
-          <View style={{ backgroundColor: '#10b981', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 1 }}>
-            <TText style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>✓ €</TText>
-          </View>
-        )}
-        {isCompletadaSinCobrar && (
-          <View style={{ backgroundColor: '#f59e0b', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 1 }}>
-            <TText style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>⚠️</TText>
-          </View>
-        )}
-        <View style={[s.estadoDot, { backgroundColor: estadoColor }]} />
-      </View>
-      <TText style={[s.cliente, { color: border }]} numberOfLines={1}>
+      <TText
+        style={[
+          s.cliente,
+          {
+            color: c.text,
+            textDecorationLine: bloque.tachado ? 'line-through' : 'none',
+          },
+        ]}
+        numberOfLines={1}
+      >
         {cita.clienteNombre}
       </TText>
       {!compact && (
         <TText style={[s.servicio, { color: c.textSecondary }]} numberOfLines={1}>
           {cita.servicioNombre}
         </TText>
+      )}
+      {/* Una sola marca de estado, abajo, y solo si dice algo: una cita que va
+          segun lo previsto no lleva chip. */}
+      {!compact && !!bloque.label && !!bloque.chipBg && (
+        <View style={[s.chip, { backgroundColor: bloque.chipBg }]}>
+          <TText style={[s.chipTexto, { color: bloque.acentoTexto ?? c.textSecondary }]}>
+            {bloque.label}
+          </TText>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -72,17 +79,9 @@ const s = StyleSheet.create({
     left: 3,
     right: 3,
     borderRadius: radius.sm,
-    borderLeftWidth: 3,
-    padding: 5,
+    borderWidth: 1,
+    padding: 6,
     overflow: 'hidden',
-  },
-  estadoDot: {
-    position: 'absolute',
-    top: 5,
-    right: 5,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
   },
   cliente: {
     fontSize: fontSize.xs,
@@ -90,7 +89,17 @@ const s = StyleSheet.create({
   },
   servicio: {
     fontSize: 10,
-    color: '#64748b',
     marginTop: 2,
+  },
+  chip: {
+    alignSelf: 'flex-start',
+    marginTop: 'auto',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  chipTexto: {
+    fontSize: 9.5,
+    fontWeight: '700',
   },
 });

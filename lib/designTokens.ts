@@ -33,6 +33,15 @@ export const DESIGN_TOKENS = {
   // Gradiente fuego (CTAs, badges, highlights IA) — UNICA fuente de verdad
   fireGradient: 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)',
 
+  // Cadenas de citas (grupo_id). Una cadena es una RELACION entre citas, no un
+  // estado: por eso NO tiñe el bloque (eso lo hace solo el estado) y vive en el
+  // riel exterior, en carbón cálido, que no compite con ámbar/fuego/verde/rojo.
+  // Antes esto era un gradiente slate/indigo de Tailwind: pintaba la cita de
+  // negro en un tema crema y encima chocaba con el chip de estado.
+  chainRail: '#5c5249',
+  chainRailSoft: 'rgba(92,82,73,0.22)',
+  chainDot: '#ffcf4a',
+
   // Tokens específicos de la capa IA (superficies Chispa)
   ia: {
     // Bloques del panel (burbujas, tarjetas de acción, formularios)
@@ -87,6 +96,14 @@ export const DESIGN_TOKENS = {
   warningSoft: 'rgba(224,138,0,0.16)',
   danger: '#e23b34',
   dangerSoft: 'rgba(226,59,52,0.14)',
+
+  // Variantes profundas de los semánticos, SOLO para texto pequeño (9–11px)
+  // sobre su propio fondo *Soft. El color plano no llega a contraste AA a ese
+  // tamaño: #e08a00 sobre warningSoft se queda en ~3:1 y los chips de la agenda
+  // se leían lavados. Estas sí pasan (~6:1). No usarlas como color de relleno.
+  successHi: '#0b7d54',
+  warningHi: '#9a5f00',
+  dangerHi: '#b52a24',
 
   // Additional
   violet: '#c0260a',

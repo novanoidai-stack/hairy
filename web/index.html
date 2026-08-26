@@ -473,8 +473,8 @@
   --accent-soft:rgba(244,80,30,.09);
   --ok:#0f9b6c;
   --ok-soft:rgba(15,155,108,.11);
-  --lav:#7c6cf0;
-  --lav-soft:rgba(124,108,240,.13);
+  --lav:#0f766e;
+  --lav-soft:rgba(15,118,110,.10);
   --peach:rgba(255,176,90,.18);
   --mint:rgba(15,155,108,.13);
   --shadow:0 26px 60px -34px rgba(21,16,11,.32);
@@ -497,8 +497,8 @@ body[data-theme="dark"]{
   --accent-soft:rgba(244,80,30,.18);
   --ok:#10b981;
   --ok-soft:rgba(16,185,129,.20);
-  --lav:#8b7cf7;
-  --lav-soft:rgba(139,124,247,.22);
+  --lav:#14b8a6;
+  --lav-soft:rgba(20,184,166,.18);
   --peach:rgba(255,176,90,.18);
   --mint:rgba(16,185,129,.18);
   --shadow:0 30px 70px -30px rgba(0,0,0,.85);
@@ -555,24 +555,7 @@ body::before{
   opacity:.6;
 }
 
-/* Cursor ambient spotlight glow */
-.cursor-glow{
-  position:fixed;
-  width:460px;
-  height:460px;
-  border-radius:50%;
-  pointer-events:none;
-  background:radial-gradient(circle,rgba(244,80,30,.11) 0%,rgba(255,138,61,.04) 45%,transparent 70%);
-  transform:translate(-50%,-50%);
-  z-index:0;
-  filter:blur(30px);
-  will-change:left,top,opacity;
-  opacity:0;
-  transition:opacity .4s ease;
-}
-body[data-theme="dark"] .cursor-glow{
-  background:radial-gradient(circle,rgba(244,80,30,.15) 0%,rgba(124,108,240,.07) 45%,transparent 70%);
-}
+.cursor-glow{display:none}
 
 a{color:var(--accent);text-decoration:none;transition:color .2s ease}
 a:hover{color:var(--accent-hi)}
@@ -580,18 +563,13 @@ img,svg{display:block;max-width:100%}
 button,input{font-family:inherit}
 ::selection{background:var(--accent);color:#fff}
 
-/* Tipografía de títulos con brillo en palabras clave */
+/* Tipografía de títulos con énfasis editorial */
 .fx-title-accent{
-  background:linear-gradient(115deg,var(--accent) 0%,var(--gold) 50%,var(--accent-hi) 100%);
-  background-size:200% auto;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  animation:fxTextGlow 6s linear infinite;
+  color:var(--accent);
+  font-family:var(--serif);
+  font-style:italic;
+  font-weight:400;
   display:inline;
-}
-@keyframes fxTextGlow{
-  0%,100%{background-position:0% 50%}
-  50%{background-position:100% 50%}
 }
 
 /* Cifras con ancho tabular alineado */
@@ -599,20 +577,14 @@ button,input{font-family:inherit}
   font-variant-numeric:tabular-nums;
 }
 
-/* Keyframes de animación */
+/* Keyframes de animación sutiles */
 @keyframes mFade{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes mPulse{0%,100%{box-shadow:0 0 0 0 rgba(244,80,30,.45)}50%{box-shadow:0 0 0 8px rgba(244,80,30,0)}}
 @keyframes mDot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3.5px)}}
 @keyframes mSlide{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
 @keyframes mBlink{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes mGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes mDrift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(5%,-4%) scale(1.08)}66%{transform:translate(-4%,3%) scale(.96)}100%{transform:translate(0,0) scale(1)}}
-@keyframes mAurora{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-@keyframes mQueue{0%,5%{opacity:.5;transform:translateY(5px)}14%,30%{opacity:1;transform:translateY(0)}44%,100%{opacity:.84;transform:translateY(0)}}
-@keyframes mCheck{0%,8%{transform:scale(.4);opacity:.2}18%{transform:scale(1.18);opacity:1}28%,100%{transform:scale(1);opacity:1}}
-@keyframes mFill{0%,40%{width:0}70%,100%{width:100%}}
-@keyframes mRing{0%{stroke-dashoffset:352}100%{stroke-dashoffset:38}}
-@keyframes mWave{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+@keyframes btnShine{0%{left:-100%}100%{left:200%}}
 @keyframes btnShine{0%{left:-100%}100%{left:200%}}
 
 /* Barra de progreso superior ultra-nítida */
@@ -1299,14 +1271,6 @@ body[data-theme="dark"] [data-sticky-cta]{
     font-size:14.5px!important;
   }
 
-  /* Hero Gauge compacto y centrado */
-  #mHeroGauge{grid-template-columns:1fr!important}
-  #mHeroGauge .gauge-wrap{width:92px!important;height:92px!important;margin:0 auto}
-  #mHeroGauge .gauge-wrap svg{width:92px!important;height:92px!important}
-  #mHeroGauge .gauge-pct{font-size:24px!important}
-  #mHeroGauge > div:last-child{min-height:auto!important;padding:10px!important}
-  .qrow-item, #mHeroGauge .qrow-item{padding:8px 10px!important;border-radius:10px!important}
-
   /* Sección #gestion: Evitar overflow horizontal por minmax(300px) */
   #gestion .reveal > div[style*="minmax(300px"]{
     grid-template-columns:1fr!important;
@@ -1560,34 +1524,9 @@ body[data-theme="dark"] [data-sticky-cta]{
   }
 
   /* 3 · HERO ------------------------------------------------------------ */
-  /* La tarjeta "Gestión de hoy" media 767px de los 1.409 de la seccion. */
-  #mHeroGauge > div:first-child{
-    flex-direction:row!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:14px!important;
-    padding:12px!important;
-  }
-  #mHeroGauge .gauge-wrap{margin:0!important;flex:none}
-  #mHeroGauge > div:first-child > div:last-child{text-align:left!important}
-  /* La cola de tareas cicla con retardos escalonados: con cuatro se lee el
-     mismo mensaje y se ahorran ~125px. */
-  #mHeroGauge .qrow-item:nth-child(n+5){display:none!important}
   main > section:first-child h1{margin-bottom:14px!important}
   main > section:first-child h1 + p{margin-bottom:18px!important;font-size:16px!important;line-height:1.35!important}
   main > section:first-child .grid2 > div:first-child > div:first-child{margin-bottom:12px!important}
-
-  /* Este CTA del pie de la tarjeta del hero se quedaba en 19px de alto: no
-     lleva display en su estilo en linea, asi que la regla generica de 44px
-     no lo alcanzaba. OJO: hay que apuntar SOLO al del pie de la tarjeta
-     (hermano de #mHeroGauge). Un a[href="#contacto"] a secas tambien pilla
-     "contáctanos aquí", que va DENTRO de un parrafo, y darle inline-flex le
-     mete 44px de interlineado al parrafo entero. */
-  #mHeroGauge ~ div > a[href="#contacto"]{
-    display:inline-flex!important;
-    align-items:center;
-    min-height:44px;
-  }
   /* Todo lo que va DEBAJO de los dos botones es letra chica de apoyo: la
      linea de WhatsApp y los cuatro sellos. En la primera impresion tienen
      que estar, pero pesando poco, no como un segundo parrafo. */
@@ -2230,10 +2169,8 @@ Cambiar tema claro / oscuro
 <main id="top" style="position:relative">
 
 <!-- ═══════════ HERO ═══════════ -->
-<section style="position:relative;overflow:hidden;padding:clamp(40px,5.5vw,78px) 26px clamp(30px,4vw,56px);background:radial-gradient(120% 90% at 15% 0%,var(--accent-soft),transparent 60%)">
-<div style="position:absolute;inset:-45% -25%;pointer-events:none;opacity:.5;background:conic-gradient(from 20deg,transparent 0deg,var(--accent-soft) 70deg,transparent 150deg,var(--lav-soft) 230deg,transparent 310deg);filter:blur(70px);animation:mAurora 50s linear infinite"></div>
-<div data-spot style="position:absolute;width:600px;height:600px;left:-160px;top:-220px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(244,80,30,.20),transparent 66%);filter:blur(24px);animation:mDrift 28s ease-in-out infinite"></div>
-<div style="position:absolute;inset:0;pointer-events:none;opacity:.45;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%);-webkit-mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%)"></div>
+<section style="position:relative;overflow:hidden;padding:clamp(40px,5.5vw,78px) 26px clamp(30px,4vw,56px);background:radial-gradient(100% 70% at 20% 0%,var(--accent-soft),transparent 70%)">
+<div style="position:absolute;inset:0;pointer-events:none;opacity:.4;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%);-webkit-mask-image:radial-gradient(75% 60% at 50% 30%,#000,transparent 80%)"></div>
 
 <div class="grid2 hero-grid" style="position:relative;max-width:1220px;margin:0 auto;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:clamp(30px,4.5vw,56px);align-items:center">
 <div>
@@ -2256,76 +2193,74 @@ Cambiar tema claro / oscuro
 </div>
 
 <div style="position:relative">
-<div style="position:relative;border-radius:26px;border:1px solid var(--line-2);background:var(--card);box-shadow:var(--shadow);overflow:hidden">
-<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:linear-gradient(120deg,var(--accent-soft),transparent)">
-<span style="width:8px;height:8px;border-radius:50%;background:var(--ok);animation:mBlink 2.2s infinite"></span>
-<b style="font-family:var(--display);font-size:15px">Gestión de hoy · en piloto automático</b>
-<span style="margin-left:auto;font-size:11px;color:var(--ink-3)">jueves, 15 oct</span>
-</div>
-<div id="mHeroGauge" style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:0">
-<div style="padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--paper)">
-<div class="gauge-wrap" style="position:relative;width:118px;height:118px">
-<svg viewBox="0 0 128 128" style="width:118px;height:118px;transform:rotate(-90deg)">
-<defs>
-<linearGradient id="mg5" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0%" stop-color="#f4501e"/>
-<stop offset="60%" stop-color="#ff8a3d"/>
-<stop offset="100%" stop-color="#ffcf4a"/>
-</linearGradient>
-</defs>
-<circle cx="64" cy="64" r="56" fill="none" stroke="var(--line)" stroke-width="11"/>
-<circle cx="64" cy="64" r="56" fill="none" stroke="url(#mg5)" stroke-width="11" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352" style="animation:mRing 1.6s cubic-bezier(.22,.61,.36,1) .3s forwards"/>
-</svg>
-<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-<b class="gauge-pct" style="font-family:var(--display);font-size:30px;letter-spacing:-.03em;line-height:1"><span data-count="90" data-suffix="%">90%</span></b>
-<span style="font-size:10.5px;color:var(--ink-3);text-align:center;line-height:1.2">de la gestión<br />hecha sola</span>
-</div>
-</div>
-<div style="text-align:center;font-size:11.5px;color:var(--ink-2);line-height:1.4"><b style="color:var(--ink)">4 h 20</b> de tareas<br />→ <b style="color:var(--ok)">24 min</b> tuyos</div>
-</div>
-<div style="padding:14px;display:flex;flex-direction:column;gap:8px;min-height:288px;overflow:hidden;position:relative">
-<div style="position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,transparent,var(--card));pointer-events:none;z-index:2"></div>
-<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) infinite">
-<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) infinite;flex:none">✓</span>
-<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">12 citas confirmadas por WhatsApp</div><div style="font-size:11px;color:var(--ink-3)">sin escribir un mensaje</div></div>
-<span style="font-size:11px;color:var(--ok);font-weight:600">−38 min</span>
-</div>
-<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 2s infinite">
-<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 2s infinite;flex:none">✓</span>
-<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Reposo del tinte vendido</div><div style="font-size:11px;color:var(--ink-3)">corte encajado desde la lista de espera</div></div>
-<span style="font-size:11px;color:var(--ok);font-weight:600">+18 €</span>
-</div>
-<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 4s infinite">
-<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 4s infinite;flex:none">✓</span>
-<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">9 facturas VeriFactu enviadas a la AEAT</div><div style="font-size:11px;color:var(--ink-3)">con su QR y su hash encadenado</div></div>
-<span style="font-size:11px;color:var(--ok);font-weight:600">−45 min</span>
-</div>
-<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 6s infinite">
-<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 6s infinite;flex:none">✓</span>
-<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Jornada del equipo registrada</div><div style="font-size:11px;color:var(--ink-3)">3 fichajes, 1,9 h extra, comisiones al día</div></div>
-<span style="font-size:11px;color:var(--ok);font-weight:600">−25 min</span>
-</div>
-<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 8s infinite">
-<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 8s infinite;flex:none">✓</span>
-<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Caja cuadrada y arqueo cerrado</div><div style="font-size:11px;color:var(--ink-3)">1.284 € · propinas y comisiones repartidas</div></div>
-<span style="font-size:11px;color:var(--ok);font-weight:600">−40 min</span>
-</div>
-<div class="qrow-item" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:var(--paper);animation:mQueue 12s cubic-bezier(.3,.7,.3,1) 10s infinite">
-<span style="width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px;animation:mCheck 12s cubic-bezier(.3,.7,.3,1) 10s infinite;flex:none">✓</span>
-<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Informe del mes listo</div><div style="font-size:11px;color:var(--ink-3)">ocupación, margen y fugas, en PDF</div></div>
-<span style="font-size:11px;color:var(--ok);font-weight:600">−30 min</span>
-</div>
-</div>
-</div>
-<div style="display:flex;align-items:center;gap:9px;padding:12px 18px;border-top:1px solid var(--line);background:linear-gradient(90deg,var(--accent-soft),var(--paper));font-size:12px;color:var(--ink-2)">
-<svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg> <span>Un día cualquiera en un salón con Mecha. <b style="color:var(--ink)">Te lo dejamos así montado.</b></span>
-</div>
+<div style="position:relative;border-radius:24px;border:1px solid var(--line-2);background:var(--card);box-shadow:var(--shadow);overflow:hidden">
+  
+  <!-- Header: Salón en directo -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--paper)">
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span>
+      <b style="font-family:var(--display);font-size:14.5px;color:var(--ink)">Studio Norte · Agenda de Sofía</b>
+    </div>
+    <span style="font-size:11.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px">
+      ✓ 0 no-shows hoy
+    </span>
+  </div>
+
+  <!-- Timeline de citas reales -->
+  <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+
+    <!-- Cita 1: Aplicación Balayage -->
+    <div style="border-radius:14px;border:1px solid var(--line);background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11.5px;font-weight:800;font-family:var(--display);color:var(--ink-3)">10:00 — 10:45 · 45 min</span>
+        <span style="font-size:11px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:2px 7px;border-radius:6px">Señal 15 € Stripe</span>
+      </div>
+      <div style="font-weight:700;font-size:14px;color:var(--ink)">Mechas Balayage & Diagnóstico</div>
+      <div style="font-size:12px;color:var(--ink-2)">Clienta: Elena R. · <span style="color:var(--ink-3)">Fase activa de aplicación</span></div>
+    </div>
+
+    <!-- Cita 2: EL TIEMPO DE REPOSO (Monetizado con Mecha) -->
+    <div style="border-radius:14px;border:1.5px dashed var(--accent);background:linear-gradient(135deg,var(--accent-soft),var(--card) 70%);padding:12px 14px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)">
+          Reposo de tinte (40 min libres)
+        </span>
+        <span style="font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);padding:2px 8px;border-radius:6px">
+          +18 € ganado
+        </span>
+      </div>
+      <div style="font-weight:800;font-size:13.5px;color:var(--ink);display:flex;align-items:center;gap:6px">
+        <span>⚡ Hueco vendido: Corte Express</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--ink-2);margin-top:2px">
+        Encajado automáticamente desde lista de espera mientras actúa el producto.
+      </div>
+    </div>
+
+    <!-- Cita 3: Aclarado y Matiz -->
+    <div style="border-radius:14px;border:1px solid var(--line);background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11.5px;font-weight:800;font-family:var(--display);color:var(--ink-3)">11:25 — 11:55 · 30 min</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink-3)">Lavado & Ficha</span>
+      </div>
+      <div style="font-weight:700;font-size:14px;color:var(--ink)">Aclarado, Matiz & Peinado</div>
+      <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono,monospace)">Fórmula: 35g 7.1 + 15g 7.0 + Ox 20vol (sin PPD)</div>
+    </div>
+
+  </div>
+
+  <!-- Pie de la tarjeta con balance real -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--paper);font-size:11.5px;text-align:center">
+    <div><b style="color:var(--ok);font-size:13.5px;display:block">+18 €</b><span style="color:var(--ink-3)">Reposo vendido</span></div>
+    <div><b style="color:var(--ink);font-size:13.5px;display:block">0 €</b><span style="color:var(--ink-3)">No-shows</span></div>
+    <div><b style="color:var(--ink);font-size:13.5px;display:block">VeriFactu ✓</b><span style="color:var(--ink-3)">Factura emitida</span></div>
+  </div>
+
 </div>
 </div>
 </div>
 
-<!-- Arranque de la cronologia: el pie del hero anuncia el primer capitulo
-     en vez de dejar al visitante decidiendo si merece la pena bajar. -->
+<!-- Arranque de la cronologia: el pie del hero anuncia el primer capitulo -->
 <a href="#comparativa" class="hero-abajo" aria-label="Empezar el recorrido: dónde se queda corto lo que usas">
   <span class="hero-abajo-num">01</span>
   <span class="hero-abajo-txt"><b>Empieza aquí el recorrido</b><small>Ocho pasos: de lo que usas hoy a tu salón en automático</small></span>
@@ -2465,7 +2400,7 @@ Rápido de montar. Y luego el salón se adapta al programa.
 <div style="padding:22px 28px;background:linear-gradient(135deg,rgba(244,80,30,.10),transparent 60%);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px">
 <div>
 <div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--accent);margin-bottom:10px">
-<svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg> Traspaso asistido, gratis y sin riesgos
+<svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg> Traspaso asistido, gratis y sin riesgos
 </div>
 <h3 style="font-family:var(--display);font-size:21px;font-weight:800;color:var(--ink);margin:0 0 6px;line-height:1.25">
 Cambiar de programa no te va a costar un día de trabajo. Lo hacemos nosotros.
@@ -2497,12 +2432,11 @@ Cambiar de programa no te va a costar un día de trabajo. Lo hacemos nosotros.
 
 <div class="puente reveal"><span class="puente-linea" aria-hidden="true"></span><p>Un salón que va fino no solo cunde más: <b>también aguanta al equipo.</b></p></div>
 
-<!-- ═══════════ 2 · EL EQUIPO ═══════════ -->
-<section id="equipo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);overflow:hidden;background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
-<div style="position:absolute;width:560px;height:560px;right:-200px;top:0;border-radius:50%;background:radial-gradient(circle,var(--lav-soft),transparent 70%);filter:blur(30px);animation:mDrift 32s ease-in-out infinite;pointer-events:none"></div>
+<!-- ═══════════ 3 · EL EQUIPO ═══════════ -->
+<section id="equipo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
 <div style="position:relative;max-width:1120px;margin:0 auto">
 <div class="reveal" style="max-width:780px;margin-bottom:clamp(26px,3.5vw,44px)">
-<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--lav);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">3</span>El equipo</span>
+<span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">3</span>El equipo</span>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">El software que hace que <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">la gente se quede</span></h2>
 <p style="font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin:0;text-wrap:pretty">Lo difícil no es llenar la agenda: es tener con quién. Aquí cada uno ve <b>sus horas, su comisión y su objetivo</b> sin preguntarte.</p>
 </div>
@@ -2510,7 +2444,7 @@ Cambiar de programa no te va a costar un día de trabajo. Lo hacemos nosotros.
 <div class="equipo-cards" style="display:flex;flex-direction:column;gap:12px">
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
 <b style="font-family:var(--display);font-size:17px">Fichaje legal, dentro</b>
-<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Entrada, descanso y salida. Registro del art. 34.9 ET en PDF, sin otra app.</p>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Entrada, descanso y salida. Registro del art.&nbsp;34.9 ET en PDF, sin otra app.</p>
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
 <b style="font-family:var(--display);font-size:17px">Comisiones solas</b>
@@ -2518,9 +2452,9 @@ Cambiar de programa no te va a costar un día de trabajo. Lo hacemos nosotros.
 </div>
 <div class="reveal" style="border:1px solid var(--line-2);border-radius:18px;padding:20px;background:var(--card);box-shadow:var(--shadow-s)">
 <b style="font-family:var(--display);font-size:17px">Cada uno ve lo justo</b>
-<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Tú ves la caja; cada uno ve lo suyo. Dar de alta: 2 minutos y 0 €.</p>
+<p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Tú ves la caja; cada uno ve lo suyo. Dar de alta: 2&nbsp;minutos y 0&nbsp;€.</p>
 </div>
-<div class="reveal" style="border:1px solid rgba(124,108,240,.45);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--lav-soft),var(--card) 65%)">
+<div class="reveal" style="border:1px solid rgba(244,80,30,.35);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--accent-soft),var(--card) 65%)">
 <b style="font-family:var(--display);font-size:17px">Un salón ordenado retiene</b>
 <p style="margin:6px 0 0;font-size:15px;color:var(--ink-2)">Nadie se va de un sitio donde cobra bien y a tiempo.</p>
 </div>
@@ -2537,30 +2471,30 @@ Cambiar de programa no te va a costar un día de trabajo. Lo hacemos nosotros.
 <div style="padding:12px 8px;border-radius:12px;border:1px solid rgba(244,80,30,.35);background:var(--accent-soft)"><div style="font-family:var(--display);font-weight:800;font-size:19px;color:var(--accent)">+1,9 h</div><div style="color:var(--ink-3)">extra del mes</div></div>
 </div>
 <div>
-<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span>Objetivo del mes</span><b>3.420 € / 4.000 €</b></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span>Objetivo del mes</span><b>3.420&nbsp;€ / 4.000&nbsp;€</b></div>
 <div style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><div style="width:86%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--gold));animation:mGrow 1s ease both;transform-origin:left"></div></div>
 </div>
 <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px">
-<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Comisión acumulada</span><b style="color:var(--ok)">418,60 €</b></div>
-<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Propinas del mes</span><b>96,00 €</b></div>
+<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Comisión acumulada</span><b style="color:var(--ok)">418,60&nbsp;€</b></div>
+<div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Propinas del mes</span><b>96,00&nbsp;€</b></div>
 <div style="display:flex;justify-content:space-between;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--paper)"><span>Clientas que repiten con ella</span><b>78%</b></div>
 </div>
-<div style="padding:12px 14px;border-radius:12px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:12.5px;color:var(--ink-2)">Su jornada del mes, firmada y lista para la gestoría. <b style="color:var(--ink)">Exportar PDF</b></div>
+<div style="padding:12px 14px;border-radius:12px;background:var(--accent-soft);border:1px solid rgba(244,80,30,.25);font-size:12.5px;color:var(--ink-2)">Su jornada del mes, firmada y lista para la gestoría. <b style="color:var(--ink)">Exportar PDF</b></div>
 </div>
 </div>
 </div>
-<div class="reveal" style="margin-top:20px;text-align:center;padding:14px 20px;border-radius:16px;background:var(--lav-soft);border:1px solid rgba(124,108,240,.3);font-size:13.5px;color:var(--ink-2)">
-<svg class="ic" aria-hidden="true"><use href="#i-users" /></svg> <b>Profesionales ilimitados, 0 € por silla.</b> Pruébalo con todo tu equipo <b style="color:var(--ink)">30 días gratis</b>.
+<div class="reveal" style="margin-top:20px;text-align:center;padding:14px 20px;border-radius:16px;background:var(--card);border:1px solid var(--line-2);font-size:13.5px;color:var(--ink-2)">
+<svg class="ic" aria-hidden="true"><use href="#i-users" /></svg> <b>Profesionales ilimitados, 0&nbsp;€ por silla.</b> Pruébalo con todo tu equipo <b style="color:var(--ink)">30&nbsp;días gratis</b>.
 </div>
-<div class="reveal" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-radius:18px;background:linear-gradient(135deg,var(--lav-soft),var(--card) 60%);border:1px solid rgba(124,108,240,.35);flex-wrap:wrap;box-shadow:var(--shadow-s)">
+<div class="reveal" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-radius:18px;background:linear-gradient(135deg,var(--accent-soft),var(--card) 60%);border:1px solid rgba(244,80,30,.35);flex-wrap:wrap;box-shadow:var(--shadow-s)">
 <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:240px">
-<span style="width:42px;height:42px;border-radius:12px;background:var(--lav);color:#fff;display:grid;place-items:center;font-size:20px;flex-shrink:0;box-shadow:0 6px 14px rgba(124,108,240,.35)"><svg class="ic" aria-hidden="true"><use href="#i-calc" /></svg></span>
+<span style="width:42px;height:42px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:20px;flex-shrink:0;box-shadow:0 6px 14px rgba(244,80,30,.35)"><svg class="ic" aria-hidden="true"><use href="#i-calc" /></svg></span>
 <div>
 <b style="font-size:15.5px;color:var(--ink);font-family:var(--display)">Calculadora de comisiones para salones</b>
 <div style="font-size:13px;color:var(--ink-2);margin-top:2px">Base sin IVA, cuota patronal 2026, aviso de SMI y coste real por profesional.</div>
 </div>
 </div>
-<a href="/calculadora-comisiones.html" style="display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:700;font-size:13.5px;text-decoration:none;transition:background .2s ease" onmouseover="this.style.background='var(--lav)'" onmouseout="this.style.background='var(--ink)'">Abrir calculadora gratis →</a>
+<a href="/calculadora-comisiones.html" style="display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:700;font-size:13.5px;text-decoration:none;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Abrir calculadora gratis →</a>
 </div>
 </div>
 </section>
@@ -2627,19 +2561,27 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 <p style="margin:0;font-size:14px;color:var(--ink-2)">Da y mueve citas, dice precios, pide la señal. Nunca ofrece un hueco que no existe: lee tu agenda de verdad. <b style="color:var(--ink)">Pruébala aquí al lado.</b></p>
 </div>
 <div style="border:1px solid rgba(244,80,30,.4);border-radius:18px;padding:20px;background:linear-gradient(160deg,var(--accent-soft),var(--card) 60%);box-shadow:var(--shadow-s)">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span><b style="font-family:var(--display);font-size:17px">IA de voz</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px">29 €/mes</span></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:16px"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg></span><b style="font-family:var(--display);font-size:17px">IA de voz telefónica</b><span style="margin-left:auto;font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px">29 €/mes</span></div>
 <p style="margin:0 0 12px;font-size:14px;color:var(--ink-2)">Coge el teléfono y da cita. Te deja transcripción y resumen, y te pasa la llamada si la clienta te prefiere a ti.</p>
-<div style="display:flex;align-items:flex-end;gap:3px;height:26px">
-<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out infinite"></span>
-<span style="flex:1;background:var(--accent-hi);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .12s infinite"></span>
-<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .24s infinite"></span>
-<span style="flex:1;background:var(--gold);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .36s infinite"></span>
-<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .48s infinite"></span>
-<span style="flex:1;background:var(--accent-hi);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .6s infinite"></span>
-<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .72s infinite"></span>
-<span style="flex:1;background:var(--gold);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .84s infinite"></span>
-<span style="flex:1;background:var(--accent);border-radius:3px;height:100%;transform-origin:bottom;animation:mWave 1s ease-in-out .96s infinite"></span>
+
+<!-- Reproductor interactivo de nota de voz (Gemini 3.1 Flash TTS) -->
+<div style="background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:12px">
+<button type="button" id="btnChispaAudio" onclick="toggleChispaAudio()" aria-label="Reproducir llamada de ejemplo" style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:grid;place-items:center;flex:none;box-shadow:0 4px 12px rgba(244,80,30,.4);transition:transform .18s ease">
+  <svg id="icChispaPlay" viewBox="0 0 24 24" style="width:17px;height:17px;fill:#fff;margin-left:2px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  <svg id="icChispaPause" viewBox="0 0 24 24" style="width:17px;height:17px;fill:#fff;display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+</button>
+<div style="flex:1;min-width:0">
+  <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:4px">
+    <b style="color:var(--ink);font-family:var(--display)">Escuchar llamada real de Chispa</b>
+    <span id="txtChispaAudioTime" style="color:var(--ink-3);font-variant-numeric:tabular-nums">0:15</span>
+  </div>
+  <div id="barChispaTrack" onclick="seekChispaAudio(event)" style="height:6px;border-radius:99px;background:var(--line-2);cursor:pointer;overflow:hidden;position:relative">
+    <div id="barChispaProg" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px;transition:width .1s linear"></div>
+  </div>
 </div>
+<audio id="audioChispaVoz" src="assets/chispa-voz-gemini.wav" preload="metadata"></audio>
+</div>
+
 </div>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 18px;border-radius:16px;border:1px dashed rgba(244,80,30,.45)"><span style="flex:1;min-width:200px;font-size:14px;color:var(--ink-2)"><b style="color:var(--ink)">Las dos juntas: +39 €/mes</b>, sin permanencia.</span><a href="/acceso.html?next=demo#signup" data-demo-link style="padding:11px 18px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px;transition:background .2s ease" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--ink)'">Ver demo completa →</a></div>
 </div>
@@ -2651,7 +2593,6 @@ Reservado ✅ Se descuenta del total. Te recuerdo el viernes.</div>
 
 <!-- ═══════════ 4 · DEMO ═══════════ -->
 <section id="demo" style="position:relative;padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px);overflow:hidden;background:linear-gradient(180deg,transparent,var(--paper-2) 18%,var(--paper-2) 82%,transparent)">
-<div style="position:absolute;inset:-30% -10%;pointer-events:none;opacity:.4;background:conic-gradient(from 140deg,transparent,var(--accent-soft) 80deg,transparent 200deg,var(--peach),transparent 340deg);filter:blur(70px);animation:mAurora 46s linear infinite"></div>
 <div style="position:relative;max-width:1020px;margin:0 auto;text-align:center">
 <div class="reveal">
 <span style="display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span>Pruébalo tú · 1 mes gratis</span>
@@ -2777,27 +2718,27 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow)">
 <label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Horas al día en gestión: <b id="lHoras" style="color:var(--accent);font-size:16px">4 h</b></label>
 <input id="rHoras" type="range" min="0.5" max="6" step="0.5" value="4" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
-<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Plantones al mes: <b id="lNoShows" style="color:var(--accent);font-size:16px">6</b></label>
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Plantones al mes: <b id="lNoShows" style="color:var(--accent);font-size:16px;font-variant-numeric:tabular-nums">6</b></label>
 <input id="rNoShows" type="range" min="1" max="40" value="6" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
-<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Ticket medio: <b id="lTicket" style="color:var(--accent);font-size:16px">45 €</b></label>
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Ticket medio: <b id="lTicket" style="color:var(--accent);font-size:16px;font-variant-numeric:tabular-nums">45&nbsp;€</b></label>
 <input id="rTicket" type="range" min="15" max="180" step="5" value="45" style="width:100%;accent-color:var(--accent);margin-bottom:20px" />
-<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Profesionales: <b id="lSillas" style="color:var(--accent);font-size:16px">3</b></label>
+<label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Profesionales: <b id="lSillas" style="color:var(--accent);font-size:16px;font-variant-numeric:tabular-nums">3</b></label>
 <input id="rSillas" type="range" min="1" max="20" value="3" style="width:100%;accent-color:var(--accent)" />
 <p style="font-size:12px;color:var(--ink-3);margin:18px 0 0;line-height:1.5">Con 2 o con 20 profesionales pagas lo mismo. Sube el slider y compruébalo.</p>
 <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--line)">
 <label style="display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px">Tu plan</label>
 <div id="planToggle" role="group" aria-label="Elige tu plan de Mecha" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-<button type="button" class="plan-opt is-on" data-plan="39" aria-pressed="true">Esencial <b>39 €</b></button>
-<button type="button" class="plan-opt" data-plan="59" aria-pressed="false">Estudio <b>59 €</b></button>
+<button type="button" class="plan-opt is-on" data-plan="39" aria-pressed="true">Esencial <b>39&nbsp;€</b></button>
+<button type="button" class="plan-opt" data-plan="59" aria-pressed="false">Estudio <b>59&nbsp;€</b></button>
 </div>
-<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.5">Mismo software en los dos. Los recepcionistas con IA son un añadido aparte, desde 19 €/mes.</p>
+<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.5">Mismo software en los dos. Los recepcionistas con IA son un añadido aparte, desde 19&nbsp;€/mes.</p>
 </div>
 </div>
 <div style="border:1px solid var(--line-2);border-radius:20px;padding:26px;background:linear-gradient(160deg,var(--accent-soft),transparent 60%);display:flex;flex-direction:column;gap:14px">
 <div>
 <div style="font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">Tiempo de gestión al mes</div>
-<div style="font-family:var(--display);font-weight:800;font-size:clamp(34px,4.4vw,52px);line-height:1;letter-spacing:-.03em;color:var(--accent)"><span id="oHorasMes">104 h</span><span style="font-size:16px;font-weight:600;color:var(--ink-3)"> → <span id="oHorasMecha">10 h</span></span></div>
-<div style="font-size:13.5px;color:var(--ink-2);margin-top:6px">Te devolvemos <b id="oHorasLibres">94 h al mes</b>. A precio de hora de salón, son <b id="oValorHoras">2.820 €</b> de tu tiempo.</div>
+<div style="font-family:var(--display);font-weight:800;font-size:clamp(34px,4.4vw,52px);line-height:1;letter-spacing:-.03em;color:var(--accent);font-variant-numeric:tabular-nums"><span id="oHorasMes">104 h</span><span style="font-size:16px;font-weight:600;color:var(--ink-3)"> → <span id="oHorasMecha">10 h</span></span></div>
+<div style="font-size:13.5px;color:var(--ink-2);margin-top:6px">Te devolvemos <b id="oHorasLibres" style="font-variant-numeric:tabular-nums">94&nbsp;h al mes</b>. A precio de hora de salón, son <b id="oValorHoras" style="font-variant-numeric:tabular-nums">2.820&nbsp;€</b> de tu tiempo.</div>
 <!-- Barra visual de tiempo recuperado vs tradicional -->
 <div style="margin-top:10px;background:rgba(21,16,11,.10);height:10px;border-radius:999px;overflow:hidden;position:relative">
 <div id="barAhorro" style="height:100%;width:90%;border-radius:999px;background:linear-gradient(90deg,var(--ok),#25d366);transition:width .3s ease"></div>
@@ -2809,13 +2750,13 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 </div>
 <div style="height:1px;background:var(--line)"></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Plantones al mes</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--accent)" id="oPerdidaMes">270 €</div></div>
-<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Recuperable con señal</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)" id="oRecuperado">251 €</div></div>
-<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste de Mecha</div><div style="font-family:var(--display);font-weight:700;font-size:23px" id="oCosteMecha">39 €</div></div>
-<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste extra por profesional</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok)">0 €</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Plantones al mes</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--accent);font-variant-numeric:tabular-nums" id="oPerdidaMes">270&nbsp;€</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Recuperable con señal</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok);font-variant-numeric:tabular-nums" id="oRecuperado">251&nbsp;€</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste de Mecha</div><div style="font-family:var(--display);font-weight:700;font-size:23px;font-variant-numeric:tabular-nums" id="oCosteMecha">39&nbsp;€</div></div>
+<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px"><div style="font-size:11.5px;color:var(--ink-3);margin-bottom:4px">Coste extra por profesional</div><div style="font-family:var(--display);font-weight:700;font-size:23px;color:var(--ok);font-variant-numeric:tabular-nums">0&nbsp;€</div></div>
 </div>
 <div style="background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:15px;font-size:13px;color:var(--ink-2)">Entre tiempo recuperado y plantones evitados, Mecha se paga <b style="color:var(--ink)" id="oVeces">52 veces</b> cada mes.</div>
-<a href="/acceso.html#signup" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="btn-grad" style="margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border-radius:12px;font-weight:700;font-size:15px">Empezar 30&nbsp;días gratis →</a>
 </div>
 </div>
 </div>
@@ -2827,16 +2768,16 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <section id="precios" style="padding:clamp(40px,5vw,72px) 26px clamp(48px,6vw,88px)">
 <div style="max-width:920px;margin:0 auto">
 <div class="reveal" style="text-align:center;max-width:640px;margin:0 auto clamp(24px,3vw,40px)">
-<div style="display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.14em"><svg class="ic" aria-hidden="true"><use href="#i-spark" /></svg>Oferta de lanzamiento · Primer mes 0 €</div>
+<div style="display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.14em"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Oferta de lanzamiento · Primer mes 0&nbsp;€</div>
 <h2 style="font-family:var(--display);font-weight:700;font-size:clamp(30px,3.9vw,50px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px">Un precio que se paga <span class="fx-title-accent" style="font-family:var(--serif);font-style:italic;font-weight:400">solo</span></h2>
-<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes, profesionales ilimitados en los dos. El primer mes, 0 €.</p>
+<p style="font-size:16.5px;color:var(--ink-2);margin:0">Dos planes, profesionales ilimitados en los dos. El primer mes, 0&nbsp;€.</p>
 </div>
 <div class="reveal m-carrusel" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
 <div class="hov-card" style="border:1px solid var(--line-2);border-radius:22px;padding:28px;background:var(--card);display:flex;flex-direction:column;gap:13px;box-shadow:var(--shadow-s)">
 <div style="font-family:var(--display);font-weight:800;font-size:21px">Esencial</div>
 <div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">La base sólida para gestionar tu salón</div>
-<div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">39 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
-<div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-top:-6px;display:flex;align-items:center;gap:6px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Primer mes: 0 € completamente gratis</div>
+<div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em;font-variant-numeric:tabular-nums">39&nbsp;€<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
+<div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-top:-6px;display:flex;align-items:center;gap:6px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Primer mes: 0&nbsp;€ completamente gratis</div>
 <div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--ink-2);flex:1">
 <span>✓ Agenda con <b style="color:var(--ink)">tiempos de reposo</b> y servicios encadenados</span>
 <span>✓ Fichas con <b style="color:var(--ink)">fórmulas de color</b>, fotos y alergias</span>
@@ -2845,14 +2786,14 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <span>✓ <b style="color:var(--ink)">VeriFactu</b> y <b style="color:var(--ink)">control horario</b> del equipo</span>
 <span>✓ Informes — <b style="color:var(--ink)">profesionales ilimitados</b></span>
 </div>
-<a href="/acceso.html#signup" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="hov-card" style="text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line-2);color:var(--ink);font-weight:700;font-size:14.5px">Empezar 30&nbsp;días gratis →</a>
 </div>
 <div class="hov-card" style="position:relative;border:1px solid rgba(244,80,30,.55);border-radius:22px;padding:32px 28px 28px;background:linear-gradient(170deg,var(--accent-soft),var(--card) 55%);display:flex;flex-direction:column;gap:13px;box-shadow:0 26px 60px -30px rgba(224,52,14,.45);overflow:visible">
 <span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,var(--accent),var(--gold));color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px rgba(244,80,30,.45);z-index:3">Recomendado</span>
 <div style="font-family:var(--display);font-weight:800;font-size:21px">Estudio</div>
 <div style="font-size:13.5px;color:var(--ink-3);margin-top:-8px">Para salones que quieren ir en automático</div>
-<div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em">59 €<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
-<div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-top:-6px;display:flex;align-items:center;gap:6px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Primer mes: 0 € completamente gratis</div>
+<div style="font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.03em;font-variant-numeric:tabular-nums">59&nbsp;€<span style="font-size:14px;font-weight:600;color:var(--ink-3)"> /mes + IVA</span></div>
+<div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-top:-6px;display:flex;align-items:center;gap:6px"><svg class="ic" aria-hidden="true"><use href="#i-gift" /></svg>Primer mes: 0&nbsp;€ completamente gratis</div>
 <div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--ink-2);flex:1">
 <span>✓ <b style="color:var(--ink)">Todo lo del plan Esencial</b></span>
 <span>✓ <b style="color:var(--ink)">Señales por Stripe</b> contra los plantones</span>
@@ -2861,7 +2802,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <span>✓ Inventario y presupuestos</span>
 <span>✓ Migración y puesta en marcha incluidas</span>
 </div>
-<a href="/acceso.html#signup" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30 días gratis →</a>
+<a href="/acceso.html#signup" class="btn-grad" style="text-align:center;padding:13px;border-radius:12px;font-weight:700;font-size:14.5px">Empezar 30&nbsp;días gratis →</a>
 </div>
 </div>
 <div class="reveal" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 20px;margin-top:22px;font-size:13.5px;color:var(--ink-2)">
@@ -2873,7 +2814,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:10px">
 <span style="font-size:22px"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg></span>
-<b style="font-family:var(--display);font-size:17px;color:var(--ink)">Los 30 días, sin letra pequeña</b>
+<b style="font-family:var(--display);font-size:17px;color:var(--ink)">Los 30&nbsp;días, sin letra pequeña</b>
 </div>
 <span style="font-size:11px;font-weight:800;color:var(--ok);background:rgba(15,155,108,.12);border:1px solid rgba(15,155,108,.25);padding:4px 12px;border-radius:999px">100% Transparente</span>
 </div>
@@ -2884,7 +2825,7 @@ Lo que paga un salón de 3 profesionales por tener cada cosa en un sitio distint
 <div><b style="color:var(--ink)">2. Sin tarjeta:</b> no te pedimos datos de pago para empezar.</div>
 <div><b style="color:var(--ink)">3. Sin permanencia:</b> lo dejas cuando quieras, sin penalización.</div>
 <div><b style="color:var(--ink)">4. Migración gratis:</b> desde Booksy, Fresha, Treatwell, Excel o papel.</div>
-<div><b style="color:var(--ink)">5. El día 31:</b> eliges Esencial (39 €) o Estudio (59 €). Si no sigues, la cuenta se pausa: ningún cobro sorpresa y tus datos protegidos (RGPD).</div>
+<div><b style="color:var(--ink)">5. El día 31:</b> eliges Esencial (39&nbsp;€) o Estudio (59&nbsp;€). Si no sigues, la cuenta se pausa: ningún cobro sorpresa y tus datos protegidos (RGPD).</div>
 </div>
 </details>
 <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
@@ -3153,8 +3094,8 @@ Nombre y teléfono. Te llamamos hoy.
 </div>
 </a>
 <!-- Alexandru Iscrulescu -->
-<a href="https://www.linkedin.com/in/alexandru-iscrulescu-a831002a2/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:#ffffff;text-decoration:none;transition:all .25s ease" onmouseover="this.style.background='rgba(124,108,240,.14)';this.style.borderColor='rgba(124,108,240,.5)';this.style.transform='translateY(-2.5px)'" onmouseout="this.style.background='rgba(255,255,255,.035)';this.style.borderColor='rgba(255,255,255,.09)';this.style.transform='none'">
-<div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#7c6cf0,#9f8eff);display:grid;place-items:center;font-weight:800;font-size:16px;color:#fff;flex:none;box-shadow:0 8px 18px -4px rgba(124,108,240,.5)">AI</div>
+<a href="https://www.linkedin.com/in/alexandru-iscrulescu-a831002a2/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);color:#ffffff;text-decoration:none;transition:all .25s ease" onmouseover="this.style.background='rgba(2,132,199,.14)';this.style.borderColor='rgba(2,132,199,.5)';this.style.transform='translateY(-2.5px)'" onmouseout="this.style.background='rgba(255,255,255,.035)';this.style.borderColor='rgba(255,255,255,.09)';this.style.transform='none'">
+<div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#0284c7,#38bdf8);display:grid;place-items:center;font-weight:800;font-size:16px;color:#fff;flex:none;box-shadow:0 8px 18px -4px rgba(2,132,199,.5)">AI</div>
 <div style="flex:1;min-width:0">
 <div style="display:flex;align-items:center;gap:6px">
 <b style="font-size:15px;color:#ffffff;font-family:var(--display)">Alexandru Iscrulescu</b>
@@ -3439,52 +3380,64 @@ function arrancar(){
   pintarScroll();
 }
 
-// Spotlight interactivo que sigue al ratón con interpolación a 60fps
-let focoRaton = null, cursorGlow = null;
-let mouseTargetX = -999, mouseTargetY = -999, mouseCurrentX = -999, mouseCurrentY = -999;
-let mouseMoving = false;
+// Reproductor de llamada real de Chispa (Google Gemini 3.1 Flash TTS)
+function toggleChispaAudio() {
+  const audio = document.getElementById("audioChispaVoz");
+  const playIcon = document.getElementById("icChispaPlay");
+  const pauseIcon = document.getElementById("icChispaPause");
+  if (!audio) return;
 
-function updateMouseSpotlight(){
-  if (mouseCurrentX === -999) {
-    mouseCurrentX = mouseTargetX;
-    mouseCurrentY = mouseTargetY;
+  if (audio.paused) {
+    audio.play().then(() => {
+      if (playIcon) playIcon.style.display = "none";
+      if (pauseIcon) pauseIcon.style.display = "block";
+    }).catch(err => {
+      console.warn("Audio play error:", err);
+    });
   } else {
-    mouseCurrentX += (mouseTargetX - mouseCurrentX) * 0.14;
-    mouseCurrentY += (mouseTargetY - mouseCurrentY) * 0.14;
-  }
-  
-  if (cursorGlow) {
-    cursorGlow.style.left = mouseCurrentX.toFixed(1) + "px";
-    cursorGlow.style.top = mouseCurrentY.toFixed(1) + "px";
-    cursorGlow.style.opacity = "1";
-  }
-  if (focoRaton) {
-    focoRaton.style.marginLeft = (mouseCurrentX * 0.02) + "px";
-  }
-  
-  if (Math.abs(mouseTargetX - mouseCurrentX) > 0.4 || Math.abs(mouseTargetY - mouseCurrentY) > 0.4) {
-    requestAnimationFrame(updateMouseSpotlight);
-  } else {
-    mouseMoving = false;
+    audio.pause();
+    if (playIcon) playIcon.style.display = "block";
+    if (pauseIcon) pauseIcon.style.display = "none";
   }
 }
 
-addEventListener("mousemove", e => {
-  if (!cursorGlow) cursorGlow = document.getElementById("cursorGlow");
-  if (!focoRaton) focoRaton = document.querySelector("[data-spot]");
-  mouseTargetX = e.clientX;
-  mouseTargetY = e.clientY;
-  if (!mouseMoving) {
-    mouseMoving = true;
-    requestAnimationFrame(updateMouseSpotlight);
-  }
-}, { passive: true });
+function seekChispaAudio(e) {
+  const audio = document.getElementById("audioChispaVoz");
+  const track = document.getElementById("barChispaTrack");
+  if (!audio || !track || !audio.duration) return;
+  const rect = track.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const pct = Math.max(0, Math.min(1, clickX / rect.width));
+  audio.currentTime = pct * audio.duration;
+}
 
-document.addEventListener("mouseleave", () => {
-  if (cursorGlow) cursorGlow.style.opacity = "0";
-});
+(function initChispaAudio() {
+  const audio = document.getElementById("audioChispaVoz");
+  if (!audio) return;
+  const prog = document.getElementById("barChispaProg");
+  const txtTime = document.getElementById("txtChispaAudioTime");
+  const playIcon = document.getElementById("icChispaPlay");
+  const pauseIcon = document.getElementById("icChispaPause");
 
-// Reflejo interactivo en tarjetas
+  audio.addEventListener("timeupdate", () => {
+    if (!audio.duration) return;
+    const p = (audio.currentTime / audio.duration) * 100;
+    if (prog) prog.style.width = p.toFixed(1) + "%";
+    const rem = Math.max(0, Math.ceil(audio.duration - audio.currentTime));
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    if (txtTime) txtTime.textContent = (m + ":" + (s < 10 ? "0" : "") + s);
+  });
+
+  audio.addEventListener("ended", () => {
+    if (prog) prog.style.width = "0%";
+    if (txtTime) txtTime.textContent = "0:15";
+    if (playIcon) playIcon.style.display = "block";
+    if (pauseIcon) pauseIcon.style.display = "none";
+  });
+})();
+
+// Reflejo táctil sutil en tarjetas
 document.querySelectorAll(".hov-card").forEach(card => {
   card.addEventListener("mousemove", e => {
     const rect = card.getBoundingClientRect();
@@ -3585,7 +3538,7 @@ function calc(){
   const horas=+R("rHoras").value, noShows=+R("rNoShows").value, ticket=+R("rTicket").value, sillas=+R("rSillas").value;
   R("lHoras").textContent=(horas%1?horas.toFixed(1):horas)+" h";
   R("lNoShows").textContent=noShows;
-  R("lTicket").textContent=ticket+" €";
+  R("lTicket").textContent=ticket+"\u00A0€";
   R("lSillas").textContent=sillas;
   
   ["rHoras","rNoShows","rTicket","rSillas"].forEach(id => updateSliderTrack(R(id)));
@@ -3594,13 +3547,13 @@ function calc(){
   const perdida=noShows*ticket*Math.max(1,Math.round(sillas/3));
   const hMes=horas*26, hMecha=hMes*0.1;
   const hLibres = hMes - hMecha;
-  R("oHorasMes").textContent=nf(hMes)+" h";
-  R("oHorasMecha").textContent=nf(hMecha)+" h";
-  R("oHorasLibres").textContent=nf(hLibres)+" h al mes";
-  R("oValorHoras").textContent=nf(hLibres*(ticket/1.5))+" €";
-  R("oPerdidaMes").textContent=nf(perdida)+" €";
-  R("oRecuperado").textContent=nf(perdida*0.93)+" €";
-  R("oCosteMecha").textContent=planMecha+" €";
+  R("oHorasMes").textContent=nf(hMes)+"\u00A0h";
+  R("oHorasMecha").textContent=nf(hMecha)+"\u00A0h";
+  R("oHorasLibres").textContent=nf(hLibres)+"\u00A0h al mes";
+  R("oValorHoras").textContent=nf(hLibres*(ticket/1.5))+"\u00A0€";
+  R("oPerdidaMes").textContent=nf(perdida)+"\u00A0€";
+  R("oRecuperado").textContent=nf(perdida*0.93)+"\u00A0€";
+  R("oCosteMecha").textContent=planMecha+"\u00A0€";
   R("oVeces").textContent=Math.max(1,Math.round((perdida*0.93+hLibres*(ticket/1.5))/planMecha));
 
   const barAhorro = document.getElementById("barAhorro");
