@@ -1368,19 +1368,26 @@ export default function ConfiguracionWeb() {
         )}
       </header>
 
-      {!paginaManual.loading && !paginaManual.visto && (
-        <div style={{ padding: isMobile ? '12px 16px 0' : '16px 28px 0' }}>
-          <AvisoPrimeraVisita
-            content={manualConfiguracion}
-            isMobile={isMobile}
-            onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
-            onCerrar={paginaManual.marcarVisto}
-          />
-        </div>
-      )}
-
       {/* ── Grid: tabs rail + content ──────────────────────────────────── */}
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '232px 1fr', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '232px 1fr', overflow: 'hidden' }}>
+        {/* El aviso va absoluto y solo sobre la columna de contenido: en el flujo le
+            robaba altura a la rejilla y el rail de pestanas se quedaba corto por abajo. */}
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{
+            position: 'absolute', top: 0, left: isMobile ? 0 : 232, right: 0, zIndex: 25,
+            padding: isMobile ? '12px 16px 0' : '16px 28px 0',
+            pointerEvents: 'none',
+          }}>
+            <div style={{ pointerEvents: 'auto' }}>
+              <AvisoPrimeraVisita
+                content={manualConfiguracion}
+                isMobile={isMobile}
+                onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+                onCerrar={paginaManual.marcarVisto}
+              />
+            </div>
+          </div>
+        )}
         {/* Tabs rail */}
         <nav style={{
           display: (isMobile && tab !== null) ? 'none' : 'flex',
