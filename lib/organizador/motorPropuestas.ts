@@ -76,10 +76,11 @@ export interface MotorOpts {
 
 // Penalizaciones del score. Valores en "puntos": un minuto de compactacion = 1
 // punto. Asi se puede razonar cuanto pesa cada cosa en terminos de minutos.
-const PENAL_CAMBIO_DIA = 90; // mover de dia cuesta como 90 min de compactacion
-const PENAL_CAMBIO_TRABAJADOR = 60; // reasignar cuesta como 60 min
-const PENAL_RETRASO = 0.5; // cada minuto que se retrasa la cita resta 0.5
-const BONUS_REPOSO = 25; // aprovechar un reposo libre suma 25
+// Exportadas: agenda-optimizador las inyecta en el prompt del LLM (logica pura).
+export const PENAL_CAMBIO_DIA = 90; // mover de dia cuesta como 90 min de compactacion
+export const PENAL_CAMBIO_TRABAJADOR = 60; // reasignar cuesta como 60 min
+export const PENAL_RETRASO = 0.5; // cada minuto que se retrasa la cita resta 0.5
+export const BONUS_REPOSO = 25; // aprovechar un reposo libre suma 25
 
 // ¿La cita (sus fases) cabe COMPLETA dentro de algun tramo del profesional ese
 // dia, sin caer en un bloqueo? Hard constraint: si no, score = DESCARTADO.
@@ -357,9 +358,16 @@ export function evaluarTodas(
   citas: CitaOrganizar[],
   opts: MotorOpts,
 ): PropuestasCita[] {
+  // FIX (ago-2026): ademas del estado/fecha, la cita debe EMPEZAR dentro del
+  // rango visible (desdeMs..hastaMs). Antes solo se exigia inicio >= ahora, asi
+  // que con el buffer completo de la rejilla (-60/+120 dias) la seccion
+  // "Oportunidades del motor" mostraba citas de otros dias aunque estuvieras
+  // viendo hoy. El rango debe acotar tanto los DESTINOS como el ORIGEN.
   const movibles = citas.filter(
     (c) => !c.grupoId && (c.estado === 'confirmada' || c.estado === 'pendiente') &&
-      +new Date(c.inicio) >= opts.ahoraMs,
+      +new Date(c.inicio) >= opts.ahoraMs &&
+      +new Date(c.inicio) >= opts.desdeMs &&
+      +new Date(c.inicio) < opts.hastaMs,
   );
   const out: PropuestasCita[] = [];
   for (const c of movibles) {

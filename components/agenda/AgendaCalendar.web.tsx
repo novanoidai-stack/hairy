@@ -61,6 +61,7 @@ import {
 } from "@/lib/agendaUndo";
 import RetrasoEstrategiasModal from "./RetrasoEstrategiasModal";
 import OrganizarAgendaPanel from "./OrganizarAgendaPanel.web";
+import CerebroIAIcon from "./CerebroIAIcon";
 import {
   analizarAgendaDia,
   ordenarPorPrioridad,
@@ -1839,8 +1840,11 @@ export default function AgendaCalendar() {
           },
         ),
       );
-    } catch {
-      // El badge nunca debe tumbar la agenda: sin analisis, sin badge.
+    } catch (e) {
+      // El badge nunca debe tumbar la agenda: sin analisis, sin badge. Pero
+      // antes este catch era MUDO y un bug del analizador hacia desaparecer el
+      // contador sin dejar rastro; ahora al menos queda en consola.
+      console.warn("[organizador] fallo el analisis del badge:", e);
       return [];
     }
   }, [
@@ -2507,7 +2511,7 @@ export default function AgendaCalendar() {
           e.currentTarget.style.transform = "scale(1)";
         }}
       >
-        <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
+        <CerebroIAIcon size={isMobile ? 15 : 17} variant={problemasAgenda.length > 0 ? 'alerta' : 'idle'} />
         {problemasAgenda.length > 0 && (
           <span
             aria-hidden
@@ -3556,7 +3560,7 @@ export default function AgendaCalendar() {
           flexShrink: 0,
         }}
       >
-        <Icon name="list" size={12} color={TOKENS.text} />
+        <CerebroIAIcon size={14} variant={problemasAgenda.length > 0 ? 'alerta' : 'idle'} />
         <span>Auto</span>
         {problemasAgenda.length > 0 && (
           <span

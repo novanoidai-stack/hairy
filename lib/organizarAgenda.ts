@@ -46,8 +46,11 @@ import {
 } from './constants.ts';
 
 const MIN = 60000;
-const UMBRAL_RETRASO_MIN = 10; // por debajo, no merece abrir el flujo de retraso
-const MAX_RETRASO_MIN = 240; // citas "olvidadas" de hace horas no cuentan como retraso activo
+// Exportados (Fase 4): agenda-optimizador los inyecta en el system prompt del
+// LLM para que la IA razone con la LÓGICA PURA del motor, no con números de
+// memoria. Si estos umbrales cambian, el prompt cambia con ellos.
+export const UMBRAL_RETRASO_MIN = 10; // por debajo, no merece abrir el flujo de retraso
+export const MAX_RETRASO_MIN = 240; // citas "olvidadas" de hace horas no cuentan como retraso activo
 // Re-export por compatibilidad: el default vive en constants.ts junto al techo de adelanto,
 // porque los dos son ajustes de salon (claves agendaUmbralHuecoMin / agendaMaxAdelantoMin).
 export const UMBRAL_HUECO_MIN_DEFAULT = AGENDA_UMBRAL_HUECO_MIN_DEFAULT;
@@ -68,7 +71,24 @@ export type TipoProblemaAgenda =
   // queja mas frecuente: "no avisa de que hay una cita en un tramo en el que el
   // trabajador no trabaja". Aunque la cita se creara ANTES de que se pusiera el
   // bloqueo, hay que avisar para poder reubicarla o avisar al cliente.
-  | 'fuera_jornada';
+  | 'fuera_jornada'
+  // --- Detectores Fase 4 (ago-2026): "que detecte absolutamente cualquier
+  //     cosa". Todos informativos (estrategias: []) y activados con
+  //     AnalisisAgendaOpts.detectarAvisos para no cambiar el contrato de los
+  //     consumidores historicos (badge, useAvisos, vigilar-agenda). ---
+  // Cita pendiente que empieza en menos de 24 h y nadie la ha confirmado.
+  | 'sin_confirmar'
+  // Cliente con historial de no_presentada (en el buffer de citas recibido) con
+  // una cita proxima: avisar para que el salon confirme o pida senal.
+  | 'no_show_riesgo'
+  // Profesional con jornada configurada ese dia (horarios_profesional) y CERO
+  // citas: capacidad desaprovechada. Solo se emite si hay horario explicito
+  // (sin el, no sabemos si ese dia le toca trabajar o no).
+  | 'jornada_sin_cubrir'
+  // El salon no tiene negocio_horarios configurados y el analisis esta usando
+  // el horario global de respaldo: las propuestas pueden no cuadrar con la
+  // realidad. Solo con detectarAvisos + avisoConfigFaltante.
+  | 'config_faltante';
 
 // Cita de entrada: lo que ya pide CitaRetraso (fases + cliente/telefono/servicio
 // para las tarjetas) mas lo que este modulo necesita para agrupar y filtrar.
@@ -144,7 +164,8 @@ export interface ProblemaAgenda {
 //
 // Dentro de cada grupo manda el tamaño (minutos de retraso o de hueco), asi que
 // un retraso de 40' pesa mas que uno de 5'.
-const PESO_TIPO: Record<TipoProblemaAgenda, number> = {
+// Exportado: mismo motivo que UMBRAL_RETRASO_MIN (el prompt del LLM lo cita).
+export const PESO_TIPO: Record<TipoProblemaAgenda, number> = {
   solape: 4000,
   // Fuera de jornada: pesa CASI como un solape. Es una cita mal puesta que ya
   // esta comprometida con la clienta: hay que reubicarla o avisar cuanto antes.
@@ -153,6 +174,12 @@ const PESO_TIPO: Record<TipoProblemaAgenda, number> = {
   hueco_muerto: 2000,
   reposo_desaprovechado: 1800,
   hueco_vacio: 1000,
+  // Fase 4: los avisos suaves pesan MENOS que un hueco vacio: no hay que hacer
+  // nada urgente con ellos, solo enterarse.
+  no_show_riesgo: 950,
+  sin_confirmar: 900,
+  jornada_sin_cubrir: 500,
+  config_faltante: 400,
 };
 
 export function prioridadProblema(p: ProblemaAgenda): number {
@@ -309,6 +336,17 @@ export interface AnalisisAgendaOpts {
   // enterarse y contestar. Es el limite que de verdad manda; el techo de
   // adelanto queda como red de seguridad. 0 lo desactiva.
   margenReaccionMin?: number;
+  // Fase 4: activa los detectores de avisos suaves (sin_confirmar,
+  // no_show_riesgo, jornada_sin_cubrir, config_faltante). Los consumidores
+  // historicos (badge, useAvisos, vigilar-agenda) no lo pasan y siguen viendo
+  // exactamente lo mismo que antes.
+  detectarAvisos?: boolean;
+  // Fase 4: ventana (h) dentro de la cual una cita 'pendiente' que empieza
+  // genera el aviso sin_confirmar. Default 24.
+  ventanaSinConfirmarH?: number;
+  // Fase 4: numero de no_presentadas previas del mismo cliente que activan el
+  // aviso no_show_riesgo. Default 1.
+  umbralNoShow?: number;
 }
 
 // 'HH:MM' o 'HH:MM:SS' -> ms sobre la fecha de referencia (hora local del salon).
@@ -433,37 +471,59 @@ function fmtFechaHora(iso: string): string {
   return `el ${dia} ${fecha} a las ${time}`;
 }
 
-// --- 1) Retraso real: la cita activa (pendiente/confirmada) mas antigua que
-//        ya deberia haber acabado (fin_activa/fin < ahora) y sigue abierta. ---
-function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number, aperturaMs: number, maxAdelantoMs: number): ProblemaAgenda | null {
-  const candidata = citasProf
-    .filter((c) => +new Date(c.inicio) <= ahoraMs)
+// --- 1) Retraso real: TODAS las citas activas (pendiente/confirmada) que ya
+//        deberian haber acabado (fin_activa/fin < ahora) y siguen abiertas.
+//        Antes solo se reportaba la mas antigua y el resto de retrasos del
+//        profesional quedaban invisibles hasta aplicar el primero ("el
+//        organizador no veia la segunda cita retrasada"). Tope de 3 por pasada
+//        para no empapar la tarjeta, y se saltan las citas ya comprometidas por
+//        otro arreglo de esta misma pasada. ---
+function detectarRetrasos(
+  citasProf: CitaOrganizar[],
+  ahoraMs: number,
+  cierreMs: number,
+  aperturaMs: number,
+  maxAdelantoMs: number,
+  excluirIds: Set<string>,
+): ProblemaAgenda[] {
+  const candidatas = citasProf
+    .filter((c) => +new Date(c.inicio) <= ahoraMs && !excluirIds.has(c.id))
     .map((c) => ({ c, retrasoMin: (ahoraMs - +new Date(c.fin_activa || c.fin)) / MIN }))
     .filter((x) => x.retrasoMin >= UMBRAL_RETRASO_MIN && x.retrasoMin <= MAX_RETRASO_MIN)
-    .sort((a, b) => +new Date(a.c.inicio) - +new Date(b.c.inicio))[0];
-  if (!candidata) return null;
+    .sort((a, b) => +new Date(a.c.inicio) - +new Date(b.c.inicio));
 
-  const minutos = Math.max(5, Math.round(candidata.retrasoMin / 5) * 5);
-  const estrategias = calcularEstrategiasRetraso(citasProf, candidata.c.id, minutos, { cierreMs, aperturaMs, maxAdelantoMs });
-  if (estrategias.length === 0) return null; // algun hueco ya absorbe el retraso: nada que reorganizar
+  const problemas: ProblemaAgenda[] = [];
+  const comprometidas = new Set<string>(excluirIds);
+  for (const candidata of candidatas.slice(0, 3)) {
+    const minutos = Math.max(5, Math.round(candidata.retrasoMin / 5) * 5);
+    const estrategias = calcularEstrategiasRetraso(citasProf, candidata.c.id, minutos, { cierreMs, aperturaMs, maxAdelantoMs });
+    if (estrategias.length === 0) continue; // algun hueco ya absorbe el retraso: nada que reorganizar
 
-  const citaIds = new Set<string>([candidata.c.id]);
-  estrategias.forEach((e) => e.updates.forEach((u) => citaIds.add(u.id)));
+    const citaIds = new Set<string>([candidata.c.id]);
+    estrategias.forEach((e) => e.updates.forEach((u) => citaIds.add(u.id)));
+    // Si este arreglo toca citas ya comprometidas por otro retraso de esta
+    // pasada, no lo proponemos: dos ordenes contradictorias sobre la misma cita.
+    let choca = false;
+    for (const id of citaIds) if (comprometidas.has(id)) { choca = true; break; }
+    if (choca) continue;
+    citaIds.forEach((id) => comprometidas.add(id));
 
-  return {
-    id: `retraso:${candidata.c.id}`,
-    tipo: 'retraso',
-    profesionalId: candidata.c.profesional_id,
-    profesionalNombre: '',
-    titulo: `Retraso de ${minutos} min`,
-    descripcion: `${candidata.c.cliente ?? 'La clienta'} deberia haber terminado ${fmtFechaHora(candidata.c.fin_activa || candidata.c.fin)} y la cita sigue abierta.`,
-    citaIds: Array.from(citaIds),
-    estrategias,
-    minutos,
-    zona: zona(candidata.c.profesional_id, +new Date(candidata.c.inicio), +new Date(candidata.c.fin)),
-    accionCorta: `Va ${minutos} min tarde`,
-    porQue: `Se cuenta como retraso a partir de ${UMBRAL_RETRASO_MIN} min de desfase y hasta ${MAX_RETRASO_MIN / 60} h (mas alla se da por olvidada, no por retrasada).`,
-  };
+    problemas.push({
+      id: `retraso:${candidata.c.id}`,
+      tipo: 'retraso',
+      profesionalId: candidata.c.profesional_id,
+      profesionalNombre: '',
+      titulo: `Retraso de ${minutos} min`,
+      descripcion: `${candidata.c.cliente ?? 'La clienta'} deberia haber terminado ${fmtFechaHora(candidata.c.fin_activa || candidata.c.fin)} y la cita sigue abierta.`,
+      citaIds: Array.from(citaIds),
+      estrategias,
+      minutos,
+      zona: zona(candidata.c.profesional_id, +new Date(candidata.c.inicio), +new Date(candidata.c.fin)),
+      accionCorta: `Va ${minutos} min tarde`,
+      porQue: `Se cuenta como retraso a partir de ${UMBRAL_RETRASO_MIN} min de desfase y hasta ${MAX_RETRASO_MIN / 60} h (mas alla se da por olvidada, no por retrasada).`,
+    });
+  }
+  return problemas;
 }
 
 // --- 2) Solape activa-activa: estado inconsistente (no deberia ocurrir, pero si
@@ -793,6 +853,126 @@ function detectarFueraJornada(
   return problemas;
 }
 
+// --- 6) Fase 4: avisos suaves (detectarAvisos). Informativos, sin estrategias:
+//         son "cosas que el organizador ya ve" pero que antes no decia. ---
+
+// Cita 'pendiente' que empieza en menos de ventanaSinConfirmarH horas y nadie
+// ha confirmado. El salon decide: confirmar, avisar por WhatsApp o dejarla.
+function detectarSinConfirmar(
+  citasProf: CitaOrganizar[],
+  ahoraMs: number,
+  ventanaMs: number,
+  esHoy: boolean,
+): ProblemaAgenda[] {
+  if (!esHoy) return []; // solo importa para citas que estan a punto de llegar
+  const problemas: ProblemaAgenda[] = [];
+  for (const c of citasProf) {
+    const ini = +new Date(c.inicio);
+    if (c.estado !== 'pendiente') continue;
+    if (ini <= ahoraMs) continue; // ya empezo: dejo de ser "sin confirmar"
+    if (ini - ahoraMs > ventanaMs) continue;
+    problemas.push({
+      id: `sin_confirmar:${c.id}`,
+      tipo: 'sin_confirmar',
+      profesionalId: c.profesional_id,
+      profesionalNombre: '',
+      titulo: 'Cita sin confirmar',
+      descripcion: `${c.cliente ?? 'Una clienta'} llega ${fmtFechaHora(c.inicio)} y la cita sigue pendiente de confirmar.`,
+      citaIds: [c.id],
+      estrategias: [],
+      zona: zona(c.profesional_id, ini, +new Date(c.fin)),
+      accionCorta: 'Sin confirmar',
+      porQue: `Se avisa de las citas pendientes que empiezan en menos de ${Math.round(ventanaMs / 3600000)} h: es el momento de confirmar o avisar, no cuando ya esta en la puerta.`,
+    });
+  }
+  return problemas;
+}
+
+// Cliente con no_presentadas previas (historial dentro del buffer de citas que
+// recibe el analizador) con una cita proxima. Cada ausencia pasada cuesta el
+// hueco entero: conviene confirmar de verdad o pedir senal.
+function detectarNoShowRiesgo(
+  citasProf: CitaOrganizar[],
+  historial: CitaOrganizar[], // TODAS las citas del buffer (incluidas pasadas)
+  ahoraMs: number,
+  umbralNoShow: number,
+  esHoy: boolean,
+): ProblemaAgenda[] {
+  if (!esHoy) return [];
+  // Veces que cada cliente no se presento en el pasado (cualquier profesional).
+  const noShowsPorCliente = new Map<string, number>();
+  for (const h of historial) {
+    if (h.estado !== 'no_presentada') continue;
+    if (+new Date(h.inicio) >= ahoraMs) continue;
+    if (!h.cliente) continue;
+    noShowsPorCliente.set(h.cliente, (noShowsPorCliente.get(h.cliente) ?? 0) + 1);
+  }
+  const problemas: ProblemaAgenda[] = [];
+  for (const c of citasProf) {
+    if (!c.cliente) continue;
+    const faltas = noShowsPorCliente.get(c.cliente) ?? 0;
+    if (faltas < umbralNoShow) continue;
+    if (+new Date(c.inicio) <= ahoraMs) continue;
+    problemas.push({
+      id: `no_show_riesgo:${c.id}`,
+      tipo: 'no_show_riesgo',
+      profesionalId: c.profesional_id,
+      profesionalNombre: '',
+      titulo: 'Riesgo de ausencia',
+      descripcion: `${c.cliente} no se presento ${faltas} vez${faltas > 1 ? 'es' : ''} antes y tiene cita ${fmtFechaHora(c.inicio)}. Confirma o pide senal.`,
+      citaIds: [c.id],
+      estrategias: [],
+      zona: zona(c.profesional_id, +new Date(c.inicio), +new Date(c.fin)),
+      accionCorta: 'Riesgo de ausencia',
+      porQue: `El aviso salta a partir de ${umbralNoShow} ausencia${umbralNoShow > 1 ? 's' : ''} previa${umbralNoShow > 1 ? 's' : ''} del mismo cliente dentro de la ventana de citas cargada.`,
+    });
+  }
+  return problemas;
+}
+
+// Profesional ACTIVO con horario explicito ese dia (horarios_profesional) y
+// cero citas. Sin horario explicito no se emite: no sabemos si ese dia le toca
+// trabajar, y un falso "jornada sin cubrir" cada semana seria ruido.
+function detectarJornadaSinCubrir(
+  profesionales: { id: string; nombre: string; categoria?: string | null; activo?: boolean }[],
+  citasDelDia: Map<string, CitaOrganizar[]>,
+  horariosProf: HorarioProfesional[] | undefined,
+  fechaRefIso: string,
+): ProblemaAgenda[] {
+  if (!horariosProf || horariosProf.length === 0) return [];
+  const dow = new Date(fechaRefIso).getDay(); // 0=domingo, como horarios_profesional
+  const problemas: ProblemaAgenda[] = [];
+  for (const p of profesionales) {
+    if (p.activo === false) continue;
+    const trabajaHoy = horariosProf.some((h) => h.profesional_id === p.id && h.dia_semana === dow);
+    if (!trabajaHoy) continue;
+    const citas = citasDelDia.get(p.id);
+    if (citas && citas.length > 0) continue;
+    // Zona = primer tramo del dia (para poder ensenar la jornada vacia).
+    const tramos = horariosProf
+      .filter((h) => h.profesional_id === p.id && h.dia_semana === dow)
+      .map((h) => ({ desdeMs: horaSobreFecha(fechaRefIso, h.hora_inicio), hastaMs: horaSobreFecha(fechaRefIso, h.hora_fin) }))
+      .filter((t): t is { desdeMs: number; hastaMs: number } => t.desdeMs != null && t.hastaMs != null)
+      .sort((a, b) => a.desdeMs - b.desdeMs);
+    const primero = tramos[0];
+    if (!primero) continue;
+    problemas.push({
+      id: `jornada_sin_cubrir:${p.id}:${fechaRefIso.substring(0, 10)}`,
+      tipo: 'jornada_sin_cubrir',
+      profesionalId: p.id,
+      profesionalNombre: '',
+      titulo: 'Jornada sin citas',
+      descripcion: `${p.nombre} trabaja este dia segun su horario y no tiene ninguna cita: capacidad desaprovechada.`,
+      citaIds: [],
+      estrategias: [],
+      zona: zona(p.id, primero.desdeMs, primero.hastaMs),
+      accionCorta: 'Jornada vacia',
+      porQue: 'Solo se avisa cuando el profesional tiene horario configurado para este dia: sin fila en horarios_profesional no se sabe si le toca trabajar.',
+    });
+  }
+  return problemas;
+}
+
 // --- Orquestador: agrupa por profesional, prioriza retraso > solape > huecos,
 //     filtra al dia de ahoraMs y rellena el nombre del profesional. ---
 export function analizarAgendaDia(
@@ -872,13 +1052,14 @@ export function analizarAgendaDia(
     );
 
     // El retraso solo tiene sentido HOY: en un dia futuro nadie llega tarde
-    // todavia, y mirando un dia pasado saldria todo retrasado.
-    const retraso = esHoy
-      ? detectarRetraso(citasProf, ahoraMs, cierreMs, aperturaMs, maxAdelantoMs)
-      : null;
-    if (retraso) {
-      problemas.push(retraso);
-      retraso.citaIds.forEach((id) => comprometidas.add(id));
+    // todavia, y mirando un dia pasado saldria todo retrasado. Fase 4: ahora se
+    // reportan TODOS los retrasos del profesional (tope 3), no solo el primero.
+    const retrasos = esHoy
+      ? detectarRetrasos(citasProf, ahoraMs, cierreMs, aperturaMs, maxAdelantoMs, comprometidas)
+      : [];
+    for (const r of retrasos) {
+      problemas.push(r);
+      r.citaIds.forEach((id) => comprometidas.add(id));
     }
 
     const candidatos = activos
@@ -920,6 +1101,38 @@ export function analizarAgendaDia(
         esHoy,
       ),
     );
+
+    // Fase 4: avisos suaves, solo si el consumidor los pide (detectarAvisos).
+    if (opts?.detectarAvisos) {
+      problemas.push(
+        ...detectarSinConfirmar(citasProf, ahoraMs, (opts?.ventanaSinConfirmarH ?? 24) * 60 * MIN, esHoy),
+        ...detectarNoShowRiesgo(citasProf, citas, ahoraMs, opts?.umbralNoShow ?? 1, esHoy),
+      );
+    }
+  }
+
+  // Fase 4: jornada sin cubrir y config faltante, una sola vez por dia. Solo
+  // con detectarAvisos (los consumidores historicos no los piden).
+  if (opts?.detectarAvisos) {
+    const fechaRefIso = new Date(diaMs).toISOString();
+    problemas.push(
+      ...detectarJornadaSinCubrir(activos, porProfesional, opts?.horariosProfesional, fechaRefIso),
+    );
+    if (!opts?.horarios || opts.horarios.length === 0) {
+      problemas.push({
+        id: `config_faltante:${new Date(diaMs).toISOString().substring(0, 10)}`,
+        tipo: 'config_faltante',
+        profesionalId: '',
+        profesionalNombre: 'Salón',
+        titulo: 'Horario del salón sin configurar',
+        descripcion: 'No hay horarios en Configuración, así que el organizador está usando un horario de respaldo genérico. Configura tus horarios para que las propuestas encajen con tu jornada real.',
+        citaIds: [],
+        estrategias: [],
+        zona: zona('', inicioDelDia.getTime(), inicioDelDia.getTime() + 60 * MIN),
+        accionCorta: 'Falta configurar',
+        porQue: 'Sin negocio_horarios, el análisis usa un horario global por defecto y puede proponer horas fuera de tu jornada real.',
+      });
+    }
   }
 
   // Orden temporal: por la cita implicada o, si no hay ninguna (hueco_vacio),

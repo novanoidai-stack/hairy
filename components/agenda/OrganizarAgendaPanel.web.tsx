@@ -19,6 +19,7 @@ import { evaluarTodas, type MotorOpts } from '@/lib/organizador/motorPropuestas'
 import type { MovimientoCandidato, PropuestasCita } from '@/lib/organizador/__types';
 import { proponerCambioCita, avisoRiesgoPropuesta } from '@/lib/propuestasCambio';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
+import CerebroIAIcon from './CerebroIAIcon';
 
 // Panel "Organizar mi agenda" (Sesion 5, PLAN-IA-CHISPA-V2-REDISENO.md): analiza
 // el dia de HOY (determinista, sin LLM: lib/organizarAgenda.ts) y ofrece un
@@ -105,6 +106,17 @@ function iconoTipo(tipo: ProblemaAgenda['tipo']) {
       // Verde, igual que la etiqueta "Hueco libre" de la rejilla: es una
       // oportunidad que llenar, no una averia que arreglar.
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /><line x1="4.9" y1="4.9" x2="19.1" y2="19.1" /></svg>;
+    case 'sin_confirmar':
+      // Reloj con interrogacion: la cita existe pero nadie la ha confirmado.
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
+    case 'no_show_riesgo':
+      // Usuario tachado: el cliente tiene ausencias previas.
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="9.5" cy="7" r="4" /><line x1="17" y1="8" x2="22" y2="13" /><line x1="22" y1="8" x2="17" y2="13" /></svg>;
+    case 'jornada_sin_cubrir':
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>;
+    case 'config_faltante':
+      // Engranaje: falta configuracion del salon.
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
     default:
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>;
   }
@@ -114,6 +126,7 @@ function fondoTipo(tipo: ProblemaAgenda['tipo']): string {
   if (tipo === 'solape') return T.dangerSoft;
   if (tipo === 'fuera_jornada') return T.dangerSoft;
   if (tipo === 'hueco_vacio') return T.successSoft;
+  if (tipo === 'sin_confirmar' || tipo === 'no_show_riesgo' || tipo === 'config_faltante') return T.amberSoft;
   return T.primarySoft;
 }
 
@@ -167,6 +180,62 @@ export default function OrganizarAgendaPanel({
   // latidos constantes" (req. del usuario): reevalua aunque nadie pulse nada,
   // p.ej. cuando una cita se va quedando retrasada por el paso del tiempo.
   const [latidoTick, setLatidoTick] = useState(0);
+  // Fase 4 — "Análisis de Chispa": capa de IA (edge agenda-optimizador) que
+  // busca PATRONES que el motor determinista no ve (huecos recurrentes,
+  // descompensacion de carga, servicios que dejan minutos muertos...). Se pide
+  // al abrir el panel y al cambiar de vista; no en cada latido (gasta tokens).
+  const [analizandoIA, setAnalizandoIA] = useState(false);
+  const [analisisIA, setAnalisisIA] = useState<{
+    resumen: string;
+    metricas?: { nombre: string; valor: string }[];
+    recomendaciones: {
+      tipo: string;
+      titulo: string;
+      detalle: string;
+      impacto_min?: number;
+      confianza?: string;
+    }[];
+  } | null>(null);
+  const [errorIA, setErrorIA] = useState('');
+  // true para errores que no tiene sentido reintentar (sin addon, cupo agotado).
+  const [errorIAPermanente, setErrorIAPermanente] = useState(false);
+
+  const pedirAnalisisIA = async () => {
+    if (esDemoCompartida) return; // la demo no gasta tokens del analisis real
+    setAnalizandoIA(true);
+    setErrorIA('');
+    try {
+      const { data, error } = await supabase.functions.invoke('agenda-optimizador', {
+        body: { dias: vista === 'semana' ? 7 : 1, desde: (fechaVista ?? new Date()).toISOString() },
+      });
+      if (error || !data?.ok) {
+        // 402 (sin addon de IA) y 429 (cupo por hora agotado): aviso claro, sin
+        // boton de reintentar que solo llevaria al mismo error.
+        if (data?.codigo === 'addon_ia_insuficiente') {
+          setErrorIA('El análisis con IA es parte del addon de Chispa. Actívalo en Configuración para usarlo.');
+          setErrorIAPermanente(true);
+        } else if (data?.codigo === 'cupo_agotado') {
+          setErrorIA('Has llegado al límite de análisis por hora. Espera un poco y vuelve a intentarlo.');
+          setErrorIAPermanente(true);
+        } else {
+          setErrorIA(error?.message ?? data?.error ?? 'No se pudo analizar la agenda.');
+          setErrorIAPermanente(false);
+        }
+        setAnalisisIA(null);
+      } else {
+        setAnalisisIA(data.analisis);
+      }
+    } catch (e) {
+      setErrorIA('No se pudo analizar la agenda.');
+    } finally {
+      setAnalizandoIA(false);
+    }
+  };
+
+  useEffect(() => {
+    pedirAnalisisIA();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vista, fechaVista?.toDateString()]);
 
   useEffect(() => {
     let cancel = false;
@@ -209,6 +278,10 @@ export default function OrganizarAgendaPanel({
         cierres,
         maxAdelantoMin: limites?.maxAdelantoMin,
         umbralHuecoMin: limites?.umbralHuecoMin,
+        // Fase 4: avisos suaves (sin confirmar, riesgo de ausencia, jornada sin
+        // cubrir, config faltante). El badge de la rejilla NO los pide: siguen
+        // contando solo retrasos/solapes/huecos/fuera de jornada.
+        detectarAvisos: true,
       };
       if (vista === 'semana') {
         const desde = new Date(ahora);
@@ -451,7 +524,7 @@ export default function OrganizarAgendaPanel({
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '18px 20px 14px', borderBottom: `1px solid ${T.border}`, position: 'sticky', top: 0, background: T.panel, zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ display: 'inline-flex', width: 34, height: 34, borderRadius: 10, background: T.primarySoft, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.primaryHi} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
+              <CerebroIAIcon size={22} variant={analizandoIA ? 'thinking' : pendientes.length > 0 ? 'alerta' : 'idle'} />
             </span>
             <div>
               <div style={{ fontSize: 16.5, fontWeight: 800, color: T.text }}>Organizar mi agenda</div>
@@ -506,7 +579,7 @@ export default function OrganizarAgendaPanel({
             <div style={{ padding: '10px 12px', borderRadius: 10, background: T.successSoft, color: T.success, fontSize: 13, marginBottom: 12 }}>{avisoDemo}</div>
           )}
 
-          {pendientes.length === 0 && oportunidades.length === 0 ? (
+          {pendientes.length === 0 && oportunidades.length === 0 && !analizandoIA && !analisisIA ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 10px', textAlign: 'center' }}>
               <span style={{ display: 'inline-flex', width: 40, height: 40, borderRadius: 999, background: T.successSoft, alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -514,6 +587,12 @@ export default function OrganizarAgendaPanel({
               <div style={{ fontSize: 14, color: T.textSec, maxWidth: 320 }}>
                 Sin retrasos, solapes ni huecos muertos por resolver. Vuelve a pulsar este boton si algo cambia durante el dia.
               </div>
+              {esDemoCompartida && (
+                <div style={{ fontSize: 12.5, color: T.textTer, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CerebroIAIcon size={16} variant="idle" />
+                  En tu cuenta, aquí Chispa analiza tu agenda con IA buscando patrones y optimizaciones.
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -656,6 +735,72 @@ export default function OrganizarAgendaPanel({
                   return elems;
                 });
               })()}
+              {/* Análisis de Chispa (Fase 4): recomendaciones estrategicas del
+                  modelo. El cerebro animado en modo 'thinking' mientras razona. */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: pendientes.length > 0 || oportunidades.length > 0 ? 6 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 2 }}>
+                  <CerebroIAIcon size={16} variant={analizandoIA ? 'thinking' : 'idle'} />
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.4, flex: 1 }}>
+                    Análisis de Chispa
+                  </span>
+                  {!analizandoIA && (
+                    <button
+                      onClick={pedirAnalisisIA}
+                      disabled={bloqueado}
+                      style={{ padding: '3px 10px', borderRadius: 7, border: `1px solid ${T.border}`, background: 'transparent', color: T.textSec, fontSize: 11, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer' }}
+                    >
+                      Re-analizar
+                    </button>
+                  )}
+                </div>
+                {analizandoIA ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: T.card, border: `1px solid ${T.border}`, fontSize: 12.5, color: T.textSec }}>
+                    <CerebroIAIcon size={20} variant="thinking" />
+                    Mirando tu agenda en busca de patrones y optimizaciones...
+                  </div>
+                ) : errorIA ? (
+                  <div style={{ padding: '10px 12px', borderRadius: 10, background: T.card, border: `1px solid ${T.border}`, fontSize: 12, color: T.textSec }}>
+                    {errorIA}{' '}
+                    {!errorIAPermanente && (
+                      <button onClick={pedirAnalisisIA} style={{ background: 'none', border: 'none', color: T.primaryHi, fontWeight: 700, cursor: 'pointer', fontSize: 12, padding: 0 }}>
+                        Reintentar
+                      </button>
+                    )}
+                  </div>
+                ) : analisisIA ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ padding: '12px 14px', borderRadius: 14, background: T.card, border: `1px solid ${T.border}`, fontSize: 12.5, color: T.textSec, lineHeight: 1.5 }}>
+                      {analisisIA.resumen}
+                      {analisisIA.metricas && analisisIA.metricas.length > 0 && (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                          {analisisIA.metricas.slice(0, 5).map((m, i) => (
+                            <span key={i} style={{ padding: '3px 9px', borderRadius: 999, background: T.primarySoft, color: T.primaryHi, fontSize: 11, fontWeight: 700 }}>
+                              {m.nombre}: {m.valor}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {analisisIA.recomendaciones.map((r, i) => (
+                      <div key={i} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <CerebroIAIcon size={14} variant="idle" glow={0.4} />
+                          <span style={{ fontSize: 13, fontWeight: 800, color: T.text, flex: 1 }}>{r.titulo}</span>
+                          {typeof r.impacto_min === 'number' && r.impacto_min > 0 && (
+                            <span style={{ fontSize: 11, fontWeight: 700, color: T.success, whiteSpace: 'nowrap' }}>~{r.impacto_min} min</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45, marginLeft: 22 }}>{r.detalle}</div>
+                        {r.confianza && (
+                          <div style={{ fontSize: 11, color: T.textTer, marginLeft: 22 }}>
+                            Confianza: {r.confianza} · tipo: {r.tipo}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
               {oportunidades.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: pendientes.length > 0 ? 6 : 0 }}>
                   <div style={{ fontSize: 11.5, fontWeight: 800, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.4, paddingLeft: 2 }}>

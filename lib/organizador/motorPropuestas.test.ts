@@ -224,3 +224,26 @@ Deno.test('motor: descarta mover a un día cerrado por cierres_negocio', () => {
     'no debe proponer mover a un día cerrado',
   );
 });
+
+Deno.test('motor: evaluarTodas NO evalua citas de otros dias fuera del rango (fix ago-2026)', () => {
+  // Antes solo se exigia inicio >= ahora: una cita de MAÑANA (que llega por el
+  // buffer de la rejilla -60/+120) aparecia en "Oportunidades del motor"
+  // aunque estuvieras viendo HOY. Ahora el rango acota tambien el ORIGEN.
+  const manana = new Date(`${D}T00:00:00`);
+  manana.setDate(manana.getDate() + 1);
+  const hoy = cita('A', 'P1', 17, 0, 30);
+  const otroDia: CitaOrganizar = {
+    ...cita('B', 'P2', 11, 0, 30),
+    inicio: new Date(manana.getTime() + 11 * 3600000).toISOString(),
+    fin: new Date(manana.getTime() + 11.5 * 3600000).toISOString(),
+  };
+  const opts = optsBase({
+    // Rango = SOLO hoy.
+    desdeMs: ms(0, 0),
+    hastaMs: ms(23, 59),
+    horariosProfesional: [horarioProf('P1', 9, 20), horarioProf('P2', 9, 20)],
+  });
+  const todas = evaluarTodas([hoy, otroDia], opts);
+  assert(todas.some((p) => p.citaId === 'A'), 'la cita de HOY debe evaluarse');
+  assert(!todas.some((p) => p.citaId === 'B'), 'la cita de otro dia NO debe evaluarse');
+});

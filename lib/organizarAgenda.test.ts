@@ -852,3 +852,78 @@ Deno.test('cierres: respeta el horario del profesional también con cierre en ot
   });
   assert(problemas.some((p) => p.tipo === 'fuera_jornada'));
 });
+
+// --- Fase 4 (ago-2026): retrasos multiples y avisos suaves (detectarAvisos) ---
+
+Deno.test('retrasos: se detectan varios retrasos a la vez (antes solo el primero)', () => {
+  // Dos citas acabadas y aun abiertas, en profesionales distintos. Antes solo
+  // salia el retraso mas antiguo del DIA (uno en total); ahora cada
+  // profesional reporta el suyo. Dentro del MISMO profesional, si el arreglo
+  // del primero ya arrastra la segunda cita (esta en sus updates), esta no se
+  // duplica: dos ordenes contradictorias sobre la misma cita no.
+  const citas = [
+    cita('A', 'P1', 9, 0, 30), // 9:00-9:30 (P1)
+    cita('B', 'P2', 10, 0, 30), // 10:00-10:30 (P2)
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(11, 0) });
+  const retrasos = problemas.filter((p) => p.tipo === 'retraso');
+  assertEquals(retrasos.length, 2, `deberia ver 2 retrasos, ve ${retrasos.length}`);
+  assert(retrasos.some((p) => p.id === 'retraso:A'));
+  assert(retrasos.some((p) => p.id === 'retraso:B'));
+});
+
+Deno.test('avisos: sin_confirmar salta para una pendiente a menos de 24 h (solo con detectarAvisos)', () => {
+  const citas = [cita('A', 'P1', 18, 0, 30, { estado: 'pendiente' })];
+  // A las 10:00 faltan 8 h: dentro de la ventana de 24 h.
+  const sin = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 0) });
+  assertEquals(sin.filter((p) => p.tipo === 'sin_confirmar').length, 0, 'sin detectarAvisos no se emite');
+  const con = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 0), detectarAvisos: true });
+  const aviso = con.find((p) => p.tipo === 'sin_confirmar');
+  assert(aviso, 'deberia emitir sin_confirmar');
+  assertEquals(aviso?.citaIds, ['A']);
+});
+
+Deno.test('avisos: no_show_riesgo salta si el cliente fallo antes y vuelve a tener cita', () => {
+  const pasada = cita('X', 'P2', 10, 0, 30, { estado: 'no_presentada', cliente: 'Juana' });
+  // La no_presentada es de hace 30 dias (fuera del dia analizado pero dentro del buffer).
+  const d = new Date(`${D}T10:00:00`);
+  d.setDate(d.getDate() - 30);
+  pasada.inicio = d.toISOString();
+  pasada.fin = new Date(d.getTime() + 30 * 60000).toISOString();
+  const futura = cita('A', 'P1', 18, 0, 30, { cliente: 'Juana' });
+  const problemas = analizarAgendaDia([pasada, futura], PROFS, {
+    ahoraMs: ms(10, 0),
+    detectarAvisos: true,
+  });
+  const aviso = problemas.find((p) => p.tipo === 'no_show_riesgo');
+  assert(aviso, 'deberia emitir no_show_riesgo para Juana');
+  assertEquals(aviso?.citaIds, ['A']);
+});
+
+Deno.test('avisos: jornada_sin_cubrir solo si el profesional tiene horario explicito ese dia', () => {
+  const citas = [cita('A', 'P1', 10, 0, 30)];
+  const horariosProf = [
+    { profesional_id: 'P2', dia_semana: new Date(`${D}T00:00:00`).getDay(), hora_inicio: '09:00:00', hora_fin: '14:00:00', turno: 1 },
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(10, 0),
+    detectarAvisos: true,
+    horariosProfesional: horariosProf,
+  });
+  const aviso = problemas.find((p) => p.tipo === 'jornada_sin_cubrir');
+  assert(aviso, 'P2 trabaja hoy y no tiene citas: deberia avisar');
+  assertEquals(aviso?.profesionalId, 'P2');
+});
+
+Deno.test('avisos: config_faltante cuando el salon no tiene negocio_horarios', () => {
+  const citas = [cita('A', 'P1', 10, 0, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(10, 0),
+    detectarAvisos: true,
+    horarios: [],
+  });
+  assert(problemas.some((p) => p.tipo === 'config_faltante'));
+  // Sin detectarAvisos, nada (contrato historico intacto).
+  const sin = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 0), horarios: [] });
+  assertEquals(sin.filter((p) => p.tipo === 'config_faltante').length, 0);
+});
