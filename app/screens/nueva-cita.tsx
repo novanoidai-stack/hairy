@@ -277,7 +277,21 @@ export default function NuevaCitaScreen() {
     setGuardando(false);
   }
 
-  async function guardar() {
+  // Aviso confirmable (web + nativo): permite crear la cita fuera de horario
+  // siempre que el usuario acepte el aviso de que el profesional no atiende.
+  function confirmarAviso(titulo: string, msg: string): Promise<boolean> {
+    if (typeof window !== 'undefined' && typeof (window as any).confirm === 'function') {
+      return Promise.resolve((window as any).confirm(`${titulo}\n\n${msg}`));
+    }
+    return new Promise(resolve => {
+      Alert.alert(titulo, msg, [
+        { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
+        { text: 'Crear igual', style: 'destructive', onPress: () => resolve(true) },
+      ]);
+    });
+  }
+
+  async function guardar(forzarHorario = false) {
     if (!profSeleccionado || !servicioSeleccionado) {
       setErrMsg('Selecciona un profesional y un servicio.');
       return;
@@ -305,17 +319,25 @@ export default function NuevaCitaScreen() {
         .lt('inicio', fin.toISOString())
         .gt('fin', inicio.toISOString());
 
-      if (bloqueos && bloqueos.length > 0) {
-        bloquear(`Profesional no disponible: ${bloqueos[0].motivo || bloqueos[0].tipo}`);
-        return;
+      if (bloqueos && bloqueos.length > 0 && !forzarHorario) {
+        const ok = await confirmarAviso(
+          'Profesional no disponible',
+          `El profesional tiene un bloqueo en ese horario (${bloqueos[0].motivo || bloqueos[0].tipo}). ¿Quieres crear la cita de todos modos?`,
+        );
+        if (!ok) { setGuardando(false); return; }
+        return guardar(true);
       }
 
       // 2. Check working hours: respeta turnos / horario partido (Modular 3 s5).
       const diaSemana = inicio.getDay();
       const errHorario = await validarHorarioLaboral(profSeleccionado, inicio, fin);
-      if (errHorario) {
-        bloquear(`${errHorario} los ${diaNombre(diaSemana)}`);
-        return;
+      if (errHorario && !forzarHorario) {
+        const ok = await confirmarAviso(
+          'Fuera de horario',
+          `${errHorario} los ${diaNombre(diaSemana)}. El profesional no atiende en ese horario. ¿Quieres crear la cita de todos modos?`,
+        );
+        if (!ok) { setGuardando(false); return; }
+        return guardar(true);
       }
 
       // 3. No pisar el trabajo real de otra cita del profesional.
@@ -771,7 +793,7 @@ export default function NuevaCitaScreen() {
             <TText style={s.errText}>{errMsg}</TText>
           </View>
         ) : null}
-        <TouchableOpacity style={[s.btnGuardar, guardando && { opacity: 0.6 }]} onPress={guardar} disabled={guardando}>
+        <TouchableOpacity style={[s.btnGuardar, guardando && { opacity: 0.6 }]} onPress={() => guardar()} disabled={guardando}>
           {guardando
             ? <ActivityIndicator color="#fff" size="small" />
             : <TText style={s.btnGuardarText}>Crear cita</TText>}
