@@ -133,3 +133,8 @@ web/tts-muestras/
 # Los MP3 de web/narracion/<recorrido>/ SI se versionan: son el entregable y no
 # hay de donde sacarlos en el build de Vercel.
 web/narracion/_wav/
+
+# Capturas de verificacion de los disenos de agenda (design-demos/*.png): son
+# 5 MB de pantallazos de usar y tirar. Los prototipos .html y los documentos de
+# decisiones SI se versionan, que son la referencia.
+design-demos/*.png

@@ -8741,25 +8741,24 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
             // "Fuera de jornada" y "salon cerrado" son los negativos del día
             const isSalonCerrado = b.tipo === "salon_cerrado";
             const isFueraJornada = b.tipo === "fuera_jornada";
-            const esNegativoDelDia = isFueraJornada || isSalonCerrado;
 
-            const bgPattern = isSalonCerrado
-              ? "repeating-linear-gradient(135deg, rgba(87,83,78,0.14) 0px, rgba(87,83,78,0.14) 4px, rgba(40,30,24,0.07) 4px, rgba(40,30,24,0.07) 12px)"
+            const bgStyle = isSalonCerrado
+              ? "linear-gradient(180deg, rgba(20, 16, 14, 0.46) 0%, rgba(20, 16, 14, 0.38) 100%)"
               : isFueraJornada
-                ? "repeating-linear-gradient(135deg, rgba(40,30,24,0.045) 0px, rgba(40,30,24,0.045) 3px, transparent 3px, transparent 9px)"
-                : `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`;
-
-            const bgColor = isSalonCerrado
-              ? "rgba(40,30,24,0.10)"
-              : isFueraJornada
-                ? "rgba(40,30,24,0.05)"
-                : `${bColor}0a`;
+                ? "linear-gradient(180deg, rgba(30, 24, 20, 0.22) 0%, rgba(30, 24, 20, 0.17) 100%)"
+                : `${bColor}12`;
 
             const borderLeftStyle = isSalonCerrado
-              ? "3px solid #78716c"
+              ? "3px solid #ef4444"
               : isFueraJornada
-                ? "2px solid rgba(40,30,24,0.18)"
+                ? "2px solid rgba(120, 113, 108, 0.35)"
                 : `3px solid ${bColor}99`;
+
+            const borderBoxStyle = isSalonCerrado
+              ? "1px solid rgba(255, 255, 255, 0.08)"
+              : isFueraJornada
+                ? "1px solid rgba(0, 0, 0, 0.04)"
+                : "none";
 
             return (
               <div
@@ -8775,14 +8774,17 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   left: 2,
                   right: 2,
                   height: blockHeight,
-                  background: bgPattern,
-                  backgroundColor: bgColor,
+                  background: bgStyle,
                   borderLeft: borderLeftStyle,
-                  borderRadius: esNegativoDelDia ? 3 : 6,
+                  borderRight: borderBoxStyle,
+                  borderTop: borderBoxStyle,
+                  borderBottom: borderBoxStyle,
+                  borderRadius: 6,
                   pointerEvents: "none",
                   zIndex: 1 + labelRow,
-                  padding: "4px 6px",
+                  padding: "5px 7px",
                   overflow: "hidden",
+                  boxShadow: isSalonCerrado ? "0 2px 6px rgba(0,0,0,0.14)" : "none",
                   // Las hormigas de 'reserva_temporal' se animan en motion.tsx
                   // pero el color lo manda BLOQUEO_COLORS, no el CSS.
                   ["--bloqueo" as any]: `${bColor}8c`,
@@ -8793,29 +8795,37 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   <div
                     style={{
                       fontSize: 10,
-                      color: isSalonCerrado ? "#ffffff" : TOKENS.text,
+                      color: isSalonCerrado ? "#ffffff" : isFueraJornada ? "#f5f5f4" : TOKENS.text,
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                       marginTop: labelOffset,
-                      background: isSalonCerrado ? "#57534e" : `${bColor}2b`,
-                      border: isSalonCerrado ? "1px solid #44403c" : `1px solid ${bColor}44`,
-                      borderRadius: 4,
-                      padding: isSalonCerrado ? "2px 7px" : "1px 5px",
+                      background: isSalonCerrado
+                        ? "rgba(18, 14, 12, 0.90)"
+                        : isFueraJornada
+                          ? "rgba(35, 28, 24, 0.85)"
+                          : `${bColor}2b`,
+                      border: isSalonCerrado
+                        ? "1px solid rgba(255, 255, 255, 0.16)"
+                        : isFueraJornada
+                          ? "1px solid rgba(255, 255, 255, 0.10)"
+                          : `1px solid ${bColor}44`,
+                      borderRadius: 5,
+                      padding: isSalonCerrado ? "2px 8px" : "1px 6px",
                       width: "fit-content",
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 4,
+                      gap: 5,
                       lineHeight: "14px",
-                      boxShadow: isSalonCerrado ? "0 1px 3px rgba(0,0,0,0.18)" : "none",
+                      boxShadow: isSalonCerrado ? "0 1px 4px rgba(0,0,0,0.25)" : "none",
                     }}
                   >
                     {isSalonCerrado && (
                       <span
                         style={{
-                          width: 5,
-                          height: 5,
+                          width: 6,
+                          height: 6,
                           borderRadius: 999,
-                          background: "#f87171",
+                          background: "#ef4444",
                           display: "inline-block",
                         }}
                       />
@@ -8828,14 +8838,14 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                     <div
                       style={{
                         fontSize: 9.5,
-                        color: isSalonCerrado ? "#44403c" : TOKENS.textSec,
+                        color: isSalonCerrado ? "#e7e5e4" : isFueraJornada ? "#d6d3d1" : TOKENS.textSec,
                         fontWeight: isSalonCerrado ? 600 : 400,
-                        marginTop: 3,
+                        marginTop: 4,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                        paddingLeft: 2,
-                        lineHeight: "13px",
+                        paddingLeft: 3,
+                        lineHeight: "14px",
                       }}
                     >
                       {b.motivo}
