@@ -8745,24 +8745,35 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
             // "Fuera de jornada" y "salon cerrado" son los negativos del día
             const isSalonCerrado = b.tipo === "salon_cerrado";
             const isFueraJornada = b.tipo === "fuera_jornada";
+            const isDescanso = b.tipo === "descanso";
 
-            const bgStyle = isSalonCerrado
-              ? "linear-gradient(180deg, rgba(20, 16, 14, 0.46) 0%, rgba(20, 16, 14, 0.38) 100%)"
-              : isFueraJornada
-                ? "linear-gradient(180deg, rgba(30, 24, 20, 0.22) 0%, rgba(30, 24, 20, 0.17) 100%)"
-                : `${bColor}12`;
+            let bgStyle = `${bColor}18`;
+            let borderLeftStyle = `3.5px solid ${bColor}`;
+            let borderBoxStyle = `1px solid ${bColor}35`;
+            let boxShadowStyle = `0 1px 4px ${bColor}18`;
 
-            const borderLeftStyle = isSalonCerrado
-              ? "3px solid #ef4444"
-              : isFueraJornada
-                ? "2px solid rgba(120, 113, 108, 0.35)"
-                : `3px solid ${bColor}99`;
-
-            const borderBoxStyle = isSalonCerrado
-              ? "1px solid rgba(255, 255, 255, 0.08)"
-              : isFueraJornada
-                ? "1px solid rgba(0, 0, 0, 0.04)"
-                : "none";
+            if (isSalonCerrado) {
+              bgStyle = "linear-gradient(180deg, rgba(20, 16, 14, 0.46) 0%, rgba(20, 16, 14, 0.38) 100%)";
+              borderLeftStyle = "3.5px solid #ef4444";
+              borderBoxStyle = "1px solid rgba(255, 255, 255, 0.08)";
+              boxShadowStyle = "0 2px 6px rgba(0,0,0,0.14)";
+            } else if (isFueraJornada) {
+              bgStyle = "linear-gradient(180deg, rgba(30, 24, 20, 0.22) 0%, rgba(30, 24, 20, 0.17) 100%)";
+              borderLeftStyle = "2px solid rgba(120, 113, 108, 0.35)";
+              borderBoxStyle = "1px solid rgba(0, 0, 0, 0.04)";
+              boxShadowStyle = "none";
+            } else if (isDescanso) {
+              // Descansos / Pausas de comida: ámbar cálido destacado con alto contraste y visibilidad
+              bgStyle = "linear-gradient(180deg, rgba(245, 158, 11, 0.24) 0%, rgba(245, 158, 11, 0.14) 100%)";
+              borderLeftStyle = "3.5px solid #d97706";
+              borderBoxStyle = "1px solid rgba(217, 119, 6, 0.35)";
+              boxShadowStyle = "0 2px 6px rgba(217, 119, 6, 0.15), inset 0 0 12px rgba(245, 158, 11, 0.08)";
+            } else {
+              bgStyle = `linear-gradient(180deg, ${bColor}28 0%, ${bColor}16 100%)`;
+              borderLeftStyle = `3.5px solid ${bColor}`;
+              borderBoxStyle = `1px solid ${bColor}44`;
+              boxShadowStyle = `0 1px 5px ${bColor}25`;
+            }
 
             return (
               <div
@@ -8788,7 +8799,7 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   zIndex: 1 + labelRow,
                   padding: "5px 7px",
                   overflow: "hidden",
-                  boxShadow: isSalonCerrado ? "0 2px 6px rgba(0,0,0,0.14)" : "none",
+                  boxShadow: boxShadowStyle,
                   // Las hormigas de 'reserva_temporal' se animan en motion.tsx
                   // pero el color lo manda BLOQUEO_COLORS, no el CSS.
                   ["--bloqueo" as any]: `${bColor}8c`,
@@ -8799,7 +8810,7 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                   <div
                     style={{
                       fontSize: 10,
-                      color: isSalonCerrado ? "#ffffff" : isFueraJornada ? "#f5f5f4" : TOKENS.text,
+                      color: isFueraJornada ? "#f5f5f4" : "#ffffff",
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                       marginTop: labelOffset,
@@ -8807,20 +8818,28 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                         ? "rgba(18, 14, 12, 0.90)"
                         : isFueraJornada
                           ? "rgba(35, 28, 24, 0.85)"
-                          : `${bColor}2b`,
+                          : isDescanso
+                            ? "#d97706"
+                            : bColor,
                       border: isSalonCerrado
                         ? "1px solid rgba(255, 255, 255, 0.16)"
                         : isFueraJornada
                           ? "1px solid rgba(255, 255, 255, 0.10)"
-                          : `1px solid ${bColor}44`,
+                          : isDescanso
+                            ? "1px solid #b45309"
+                            : `1px solid ${bColor}`,
                       borderRadius: 5,
-                      padding: isSalonCerrado ? "2px 8px" : "1px 6px",
+                      padding: isSalonCerrado ? "2px 8px" : "2px 7px",
                       width: "fit-content",
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 5,
+                      gap: 4,
                       lineHeight: "14px",
-                      boxShadow: isSalonCerrado ? "0 1px 4px rgba(0,0,0,0.25)" : "none",
+                      boxShadow: isSalonCerrado
+                        ? "0 1px 4px rgba(0,0,0,0.25)"
+                        : isDescanso
+                          ? "0 1px 4px rgba(180, 83, 9, 0.40)"
+                          : `0 1px 3px ${bColor}40`,
                     }}
                   >
                     {isSalonCerrado && (
@@ -8834,6 +8853,9 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                         }}
                       />
                     )}
+                    {isDescanso && (
+                      <span style={{ fontSize: 10, lineHeight: 1 }}>☕</span>
+                    )}
                     {BLOQUEO_LABELS[b.tipo] || b.tipo}
                   </div>
                 )}
@@ -8842,8 +8864,14 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
                     <div
                       style={{
                         fontSize: 9.5,
-                        color: isSalonCerrado ? "#e7e5e4" : isFueraJornada ? "#d6d3d1" : TOKENS.textSec,
-                        fontWeight: isSalonCerrado ? 600 : 400,
+                        color: isSalonCerrado
+                          ? "#e7e5e4"
+                          : isFueraJornada
+                            ? "#d6d3d1"
+                            : isDescanso
+                              ? "#92400e"
+                              : TOKENS.text,
+                        fontWeight: isSalonCerrado || isDescanso ? 700 : 600,
                         marginTop: 4,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
