@@ -33,7 +33,8 @@ export function ProximaAccionLauncher() {
   const [sugerencia, setSugerencia] = useState<SugerenciaProxima | null>(null);
 
   const grupo = String(segments[0] ?? '');
-  const pagina = grupo === '(tabs)' ? String(segments[1] ?? 'index') : '';
+  const pagina =
+    grupo === '(tabs)' ? String((segments as readonly string[])[1] ?? 'index') : '';
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   useEffect(() => {
