@@ -289,9 +289,19 @@ Deno.serve(async (req) => {
         svc.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').eq('negocio_id', negocioId),
       ]);
       const citas2 = citasRes2.data ?? [];
-      if (citas2.length === 0) return json({ ok: true, ojo: true, citas: 0, hallazgos: 0 });
-
-      const problemasOjo: ProblemaAgenda[] = analizarAgendaRango(
+      // Agregado por tipo, mismo contrato que vigilar-agenda (idempotente). Se
+      // calcula ANTES del return temprano de "dia sin citas": con el mapa vacio
+      // la RPC recibe count 0 y auto-descarta los hallazgos abiertos de una
+      // pasada anterior — sin esto, borrar la ultima cita del dia dejaba el
+      // hallazgo colgado para siempre (el ojo dejaba de mirar).
+      const RESUMEN_OJO: Record<string, string> = {
+        retraso: 'Retrasos en curso (tiempo real)',
+        solape: 'Citas que se solapan (tiempo real)',
+        fuera_jornada: 'Citas fuera de jornada (tiempo real)',
+        hueco_muerto: 'Huecos muertos (tiempo real)',
+        reposo_desaprovechado: 'Reposos sin aprovechar (tiempo real)',
+      };
+      const problemasOjo: ProblemaAgenda[] = citas2.length === 0 ? [] : analizarAgendaRango(
         prepararCitas(citas2 as any, [], (srvRes2.data ?? []) as any),
         (profsRes2.data ?? []) as any,
         {
@@ -306,14 +316,6 @@ Deno.serve(async (req) => {
           horariosProfesional: alRelojDelSalon(horProfRes2.data, ['hora_inicio', 'hora_fin'], desde) as any,
         },
       );
-      // Agregado por tipo, mismo contrato que vigilar-agenda (idempotente).
-      const RESUMEN_OJO: Record<string, string> = {
-        retraso: 'Retrasos en curso (tiempo real)',
-        solape: 'Citas que se solapan (tiempo real)',
-        fuera_jornada: 'Citas fuera de jornada (tiempo real)',
-        hueco_muerto: 'Huecos muertos (tiempo real)',
-        reposo_desaprovechado: 'Reposos sin aprovechar (tiempo real)',
-      };
       let escritos = 0;
       for (const [tipo, resumen] of Object.entries(RESUMEN_OJO)) {
         const items = problemasOjo.filter((p) => p.tipo === tipo);

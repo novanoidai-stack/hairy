@@ -97,6 +97,11 @@ export function categoriaDeHallazgo(h: Pick<Hallazgo, 'tipo' | 'familia'>): Avis
     case 'inventario': return 'inventario';
     case 'recuperar': return 'clientes';
     case 'operativa': return 'agenda';
+    // Familia que escribe upsert_hallazgo_agenda (vigilancia de agenda):
+    // retraso, solape, hueco_muerto, reposo_desaprovechado y fuera_jornada.
+    // Sin este case, TODOS caian a 'otros' y la categoria Eficiencia era
+    // codigo muerto pese a estar en CATEGORIA_META y CATEGORIA_ORDEN.
+    case 'ineficiencia': return 'ineficiencia';
     default: return 'otros';
   }
 }

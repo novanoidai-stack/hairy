@@ -30,18 +30,21 @@ const RESUMEN: Record<string, string> = {
   solape: 'Citas que se solapan',
   hueco_muerto: 'Huecos muertos',
   reposo_desaprovechado: 'Tiempos muertos sin aprovechar',
+  fuera_jornada: 'Citas fuera de jornada',
 };
 const DETALLE: Record<string, string> = {
   retraso: 'Citas que ya deberian haber acabado y siguen abiertas',
   solape: 'Dos citas del mismo profesional pisandose',
   hueco_muerto: 'Huecos que se pueden compactar adelantando citas',
   reposo_desaprovechado: 'Reposos en los que cabria atender a otra clienta',
+  fuera_jornada: 'Citas en tramos que el profesional no trabaja, bloqueos o festivos',
 };
 // Un solape es un error de datos (dos clientas a la vez); el resto es optimizacion.
 // Nunca 'urgente': eso mandaria un WhatsApp cada 15 min.
 const SEVERIDAD: Record<string, string> = {
   solape: 'alta',
   retraso: 'alta',
+  fuera_jornada: 'alta',
   hueco_muerto: 'baja',
   reposo_desaprovechado: 'baja',
 };
@@ -70,6 +73,42 @@ function alRelojDelSalon<T extends Record<string, unknown>>(
   referencia: Date,
 ): T[] {
   return horariosAlRelojDelRuntime(filas ?? [], campos, { referencia });
+}
+
+// Escribe el estado del dia en hallazgos_ia: un upsert AGREGADO por tipo con el
+// conteo real (0 incluido — con count 0 la RPC auto-descarta los hallazgos
+// abiertos de ese tipo). Los return tempranos de "dia sin citas" y "salon
+// cerrado" se saltaban esta pasada y un hallazgo podia quedarse colgado para
+// siempre si se borraba la ultima cita del dia; ahora tambien esos caminos
+// pasan por aqui con el mapa vacio.
+async function escribirHallazgos(
+  // any deliberado: los genericos de SupabaseClient derivados de esm.sh no
+  // casan entre la firma del helper y la instanciacion de abajo.
+  supabase: any,
+  negocioId: string,
+  porTipo: Map<string, ProblemaAgenda[]>,
+): Promise<number> {
+  let nuevos = 0;
+  for (const tipo of Object.keys(RESUMEN)) {
+    const items = porTipo.get(tipo) ?? [];
+    const { data, error } = await supabase.rpc('upsert_hallazgo_agenda', {
+      p_negocio: negocioId,
+      p_tipo: tipo,
+      p_severidad: SEVERIDAD[tipo],
+      p_resumen: RESUMEN[tipo],
+      p_detalle: DETALLE[tipo],
+      p_count: items.length,
+      p_items: items.slice(0, 50).map((p) => ({
+        profesional: p.profesionalNombre,
+        titulo: p.titulo,
+        descripcion: p.descripcion,
+        cita_ids: p.citaIds,
+      })),
+    });
+    if (error) throw new Error(`${error.message} (${negocioId}/${tipo})`);
+    nuevos += (data as number) ?? 0;
+  }
+  return nuevos;
 }
 
 Deno.serve(async (req) => {
@@ -141,7 +180,10 @@ Deno.serve(async (req) => {
       }
 
       const citas = citasRes.data ?? [];
-      if (citas.length === 0) { salida.push({ negocioId, citas: 0, hallazgos: 0 }); continue; }
+      // Sin citas (o salon cerrado, abajo) NO se salta la pasada de hallazgos:
+      // se escribe con count 0 para que la RPC auto-descarte los que quedaran
+      // abiertos de una pasada anterior (p.ej. se borro la ultima cita del dia).
+      const sinCitas = citas.length === 0;
 
       // Solo con el salon abierto: analizar la agenda a las 4:00 no aporta nada.
       // Aqui se usan las filas CRUDAS a proposito: solo se miran dia_semana y
@@ -149,7 +191,12 @@ Deno.serve(async (req) => {
       const horarios = horRes.data ?? [];
       const dia = (hoy.getDay() + 6) % 7; // OJO: dia_semana es 0=LUNES, getDay() es 0=domingo
       const fila = horarios.find((h: { dia_semana: number }) => h.dia_semana === dia);
-      if (fila && !fila.abierto) { salida.push({ negocioId, cerrado: true }); continue; }
+      const cerrado = !!fila && !fila.abierto;
+      if (sinCitas || cerrado) {
+        const descartados = await escribirHallazgos(supabase, negocioId, new Map());
+        salida.push({ negocioId, ...(sinCitas ? { citas: 0 } : { cerrado: true }), hallazgos: descartados });
+        continue;
+      }
 
       const srvMap = new Map(
         (srvRes.data ?? []).map(
@@ -201,26 +248,7 @@ Deno.serve(async (req) => {
         porTipo.set(p.tipo, [...(porTipo.get(p.tipo) ?? []), p]);
       }
 
-      let nuevos = 0;
-      for (const tipo of Object.keys(RESUMEN)) {
-        const items = porTipo.get(tipo) ?? [];
-        const { data, error } = await supabase.rpc('upsert_hallazgo_agenda', {
-          p_negocio: negocioId,
-          p_tipo: tipo,
-          p_severidad: SEVERIDAD[tipo],
-          p_resumen: RESUMEN[tipo],
-          p_detalle: DETALLE[tipo],
-          p_count: items.length,
-          p_items: items.slice(0, 50).map((p) => ({
-            profesional: p.profesionalNombre,
-            titulo: p.titulo,
-            descripcion: p.descripcion,
-            cita_ids: p.citaIds,
-          })),
-        });
-        if (error) return new Response(JSON.stringify({ error: error.message, negocioId, tipo }), { status: 500 });
-        nuevos += (data as number) ?? 0;
-      }
+      const nuevos = await escribirHallazgos(supabase, negocioId, porTipo);
       salida.push({ negocioId, citas: citas.length, problemas: problemas.length, hallazgosNuevos: nuevos });
     }
 

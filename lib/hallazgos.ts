@@ -18,7 +18,9 @@ export interface Hallazgo {
   id: string;
   negocio_id: string;
   tipo: string;
-  familia: 'operativa' | 'recuperar' | 'inventario' | 'setup';
+  // 'ineficiencia': la escriben upsert_hallazgo_agenda y familia (vigilancia de
+  // agenda: retrasos, solapes, huecos, reposos, fuera_jornada).
+  familia: 'operativa' | 'recuperar' | 'inventario' | 'setup' | 'ineficiencia';
   severidad: SeveridadHallazgo;
   entidad: string | null;
   entidad_id: string | null;

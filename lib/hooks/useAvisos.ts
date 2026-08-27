@@ -491,9 +491,24 @@ function construirItems(d: Datos): AvisoItem[] {
     });
   });
 
-  // Ineficiencias de agenda (huecos, retrasos severos)
+  // Ineficiencias de agenda (huecos, retrasos severos).
+  //
+  // RECONCILIACION DE LAS DOS FUENTES (ago-2026): la vigilancia del servidor
+  // (vigilar-agenda cada 15 min + modo "ojo" en cada movimiento) escribe ESTOS
+  // MISMOS problemas agregados por tipo en hallazgos_ia (familia
+  // 'ineficiencia'), y el bucle de arriba ya los pinta como hallazgo. El
+  // hallazgo MANDA cuando existe: ve horarios_profesional y cierres (este
+  // analisis cliente no se los pasa, asi que detecta menos y peor), persiste
+  // entre dispositivos y se puede resolver/descartar (hallazgoId). El item del
+  // cliente queda como RESPALDO por tipo: sin hallazgo de ese tipo (la
+  // vigilancia aun no ha pasado, o este negocio no la tiene) se sigue viendo el
+  // problema en vivo. En la demo (demo_salon_001 / modo demo) cargarHallazgos
+  // devuelve [] a proposito, asi que alli el respaldo es la unica fuente y la
+  // campana no se queda sin avisos de agenda.
+  const tiposConHallazgo = new Set(hallazgos.map((h) => h.tipo));
   ineficiencias.forEach((prob) => {
     if (prob.tipo === 'hueco_muerto') return; // The user asked to remove "huecos muertos" notifications
+    if (tiposConHallazgo.has(prob.tipo)) return; // ya lo pinta el hallazgo del servidor, mejor informado
     out.push({
       id: `ineficiencia:${prob.id}`,
       categoria: 'ineficiencia',
