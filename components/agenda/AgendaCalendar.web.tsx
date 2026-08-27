@@ -9483,6 +9483,11 @@ function DayTimeline({
         ghostY: rect.top / escala,
         blockWidth: rect.width / escala,
         blockHeight: rect.height / escala,
+        // Rect de la rejilla cacheado (se rellena justo debajo y se refresca
+        // en onScroll): leerlo en cada mousemove forzaba un reflow por evento.
+        gridRect: undefined as
+          | { left: number; top: number; width: number }
+          | undefined,
       };
       // Rect de la rejilla cacheado: leerlo en cada mousemove forzaba un
       // reflow por evento y el arrastre iba a tirones. Se refresca solo

@@ -1,13 +1,12 @@
+import { assertEquals } from 'jsr:@std/assert';
 import { parseDurationToMinutes } from './importadorIA';
 
-describe('Importador IA - Duraciones y Tarifas', () => {
-  test('debe convertir duraciones en horas y minutos correctamente', () => {
-    expect(parseDurationToMinutes('1 h 15 min')).toBe(75);
-    expect(parseDurationToMinutes('30 min')).toBe(30);
-    expect(parseDurationToMinutes('2 h 30 min')).toBe(150);
-    expect(parseDurationToMinutes('4 h')).toBe(240);
-    expect(parseDurationToMinutes('20 min')).toBe(20);
-    expect(parseDurationToMinutes('1h')).toBe(60);
-    expect(parseDurationToMinutes(45)).toBe(45);
-  });
+Deno.test('Importador IA - Duraciones y Tarifas', () => {
+  assertEquals(parseDurationToMinutes('1 h 15 min'), 75);
+  assertEquals(parseDurationToMinutes('30 min'), 30);
+  assertEquals(parseDurationToMinutes('2 h 30 min'), 150);
+  assertEquals(parseDurationToMinutes('4 h'), 240);
+  assertEquals(parseDurationToMinutes('20 min'), 20);
+  assertEquals(parseDurationToMinutes('1h'), 60);
+  assertEquals(parseDurationToMinutes(45), 45);
 });

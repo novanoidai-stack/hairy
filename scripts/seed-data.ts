@@ -1,9 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  'https://vtrggiogjrhqtwbhbgia.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njc1NzI5NSwiZXhwIjoyMDkyMzMzMjk1fQ.5ejE9ktV7edy2jC4uaDbBvmj34_yPn8wscX6JGDSTZ4'
-);
+// ⚠️ Seguridad: la service_role key de este script estaba hardcodeada en el
+// historial del repo y ha sido retirada. HAY QUE ROTARLA en Supabase
+// (Settings > API) porque la version antigua sigue comprometida en el historial git.
+const supabaseUrl = process.env.SUPABASE_URL ?? '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error(
+    'Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el entorno.',
+  );
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 const NEGOCIO_ID = 'prueba_46980';
 

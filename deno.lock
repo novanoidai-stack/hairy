@@ -191,11 +191,9 @@
         "npm:expo-status-bar@~56.0.4",
         "npm:expo-system-ui@~56.0.5",
         "npm:expo@~56.0.15",
-        "npm:gsap@^3.15.0",
         "npm:jspdf@^4.2.1",
         "npm:jszip@^3.10.1",
         "npm:libphonenumber-js@^1.13.7",
-        "npm:moti@0.30",
         "npm:qrcode-generator@^2.0.4",
         "npm:react-dom@19.2.3",
         "npm:react-native-gesture-handler@~2.31.1",
@@ -208,7 +206,6 @@
         "npm:react-native-worklets@0.8.3",
         "npm:react-native@0.85.3",
         "npm:react@19.2.3",
-        "npm:three@0.184",
         "npm:typescript@~5.8.3"
       ]
     }

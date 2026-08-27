@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck + Tests + Verificaciones
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Typecheck (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Tests unitarios (Deno, lib/)
+        run: npm test
+
+      - name: Tests gateway IA (Deno)
+        run: deno task test:ia
+
+      - name: Verificar catálogo de modelos IA
+        run: npm run verificar:modelos
+
+      - name: Chequeo de tipos de Edge Functions críticas
+        run: deno task check:edges

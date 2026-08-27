@@ -1,9 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  'https://aujlzfmrtafbmmjybjxz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1amx6Zm1ydGFmYm1tanlianh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NzcsImV4cCI6MjA4Nzg3MDU3N30.P2KLATSZ6CNB74BsvZo-S5zFVk_Ok0fL_eZn3sTu_po'
-);
+// Proyecto secundario de pruebas: configurar por entorno, nunca hardcodeado.
+//   SUPABASE_AUX_URL / SUPABASE_AUX_ANON_KEY
+const supabaseUrl = process.env.SUPABASE_AUX_URL ?? '';
+const supabaseAnonKey = process.env.SUPABASE_AUX_ANON_KEY ?? '';
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    'Faltan SUPABASE_AUX_URL y SUPABASE_AUX_ANON_KEY en el entorno. Este script apunta al proyecto auxiliar de pruebas.',
+  );
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function deleteProfesionals() {
   try {

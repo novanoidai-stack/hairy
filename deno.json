@@ -1,6 +1,12 @@
 {
+  "imports": {
+    "@/": "./",
+    "react-native": "./tools/deno-shims/reactNative.js",
+    "react-native-url-polyfill/auto": "./tools/deno-shims/urlPolyfillAuto.js",
+    "@/lib/supabase": "./tools/deno-shims/supabaseClient.js"
+  },
   "tasks": {
-    "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts lib/utils/appointment.test.ts lib/horariosFranjas.test.ts lib/migracionParserLocal.test.ts",
+    "test": "deno test --allow-read --allow-env --sloppy-imports --no-check lib/",
     "test:ia": "deno test --no-config --allow-net supabase/functions/shared/openrouterClient.test.ts",
     "verificar:modelos": "node scripts/verificar-modelos.mjs",
     "check:edges": "deno check --no-config supabase/functions/vigilar-agenda/index.ts supabase/functions/agenda-optimizador/index.ts"

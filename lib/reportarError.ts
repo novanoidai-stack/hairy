@@ -14,7 +14,7 @@
 //   - En la demo no manda nada: alli los errores son de escaparate, no de un
 //     salon de verdad.
 
-import { supabase, IS_DEMO_MODE } from './supabase';
+import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { rescatarSiChunkCaducado } from './chunkCaducado';
 
 const yaEnviados = new Set<string>();
