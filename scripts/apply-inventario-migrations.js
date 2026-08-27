@@ -23,7 +23,7 @@ async function applyMigration() {
   console.log('🔧 Aplicando migración de inventario v0...\n');
 
   // Leer el archivo de migración
-  const migrationPath = path.join(__dirname, '../migrations/inventario-v0.sql');
+  const migrationPath = path.join(__dirname, '../archive/migraciones-legacy/inventario-v0.sql');
   const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
 
   // Dividir el SQL en statements individuales (método básico)

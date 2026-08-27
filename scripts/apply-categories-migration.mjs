@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import 'dotenv/config';
 
 const { Client } = pg;
-const sql = readFileSync('./migrations/categorias-servicio.sql', 'utf-8');
+const sql = readFileSync('./archive/migraciones-legacy/categorias-servicio.sql', 'utf-8');
 
 // Parse connection URL and add sslmode=require
 let dbUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;

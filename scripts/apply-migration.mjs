@@ -15,7 +15,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const sql = readFileSync('./migrations/categorias-servicio.sql', 'utf-8');
+const sql = readFileSync('./archive/migraciones-legacy/categorias-servicio.sql', 'utf-8');
 
 console.log('Applying categorias-servicio.sql migration...');
 

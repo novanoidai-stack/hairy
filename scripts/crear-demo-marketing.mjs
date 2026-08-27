@@ -28,7 +28,7 @@ const EMAIL = 'demomarketing@mecha.app';
 const PASSWORD = 'Demo2026!';
 
 // 1) Aplicar la migracion via Management API
-const sql = readFileSync(new URL('../migrations/demo-marketing-account.sql', import.meta.url), 'utf8');
+const sql = readFileSync(new URL('../archive/migraciones-legacy/demo-marketing-account.sql', import.meta.url), 'utf8');
 console.log('Aplicando migrations/demo-marketing-account.sql...');
 const res = await fetch(`https://api.supabase.com/v1/projects/${REF}/database/query`, {
   method: 'POST',
