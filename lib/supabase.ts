@@ -1,6 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
 
 // Fallback a los mismos valores publicos que ya usa la web (web/assets/auth.js).
 // La anon key es la publishable: esta pensada para vivir en el cliente. El
@@ -174,6 +175,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: { fetch: fetchSinRepetir },
 });
+
+// La misma instancia (misma sesion, mismo fetchSinRepetir), tipada con el
+// schema real (types/database.types.ts, autogenerado con `supabase gen types`).
+// Las pantallas existentes siguen usando `supabase` sin tipos para no romper
+// los 199 puntos de uso de golpe; el codigo nuevo y la capa de datos usan
+// este, y cuando una pantalla se migra, cambia su import por supabaseTipado.
+export const supabaseTipado = supabase as SupabaseClient<Database>;
 
 // Cuenta de demo compartida (las credenciales son publicas a proposito: ya
 // viven en web/assets/auth.js; la cuenta es free, del tenant demo, y RLS
