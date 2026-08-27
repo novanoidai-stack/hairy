@@ -1,6 +1,6 @@
 # Ship: el respaldo cliente de Avisos analiza la agenda a ciegas (sin jornadas ni cierres)
 
-**Estado:** abierto · **Detectado:** 2026-08-27, durante la reconciliación de fuentes de Avisos · **Zona:** `lib/hooks/useAvisos.ts`
+**Estado:** cerrado 2026-08-27 (código) · Añadidas `horarios_profesional` (columnas mínimas) y `cierres_negocio` (solo `fecha`) al `Promise.all` de `useAvisos.ts` y pasadas a `analizarAgendaDia` como `horariosProfesional`/`cierres`. Pendiente: verificación visual en demo/salón real de que la detección coincide con vigilar-agenda. `npx tsc --noEmit` sin errores nuevos (el de `gridRect` en AgendaCalendar.web.tsx es previo y ajeno).
 
 ## Contexto
 

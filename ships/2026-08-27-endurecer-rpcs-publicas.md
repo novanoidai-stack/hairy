@@ -1,6 +1,6 @@
 # Ship: auditoría de seguridad — RPCs públicas SECURITY DEFINER y leftovers
 
-**Estado:** abierto · **Detectado:** 2026-08-27, advisors de Supabase tras la migración `hallazgos-agenda-fuera-jornada` · **Zona:** base de datos
+**Estado:** cerrado 2026-08-27 · Migración `endurecer-internas-advisors` aplicada en producción: (1) política `restrictive using(false)` para anon/authenticated en `agenda_ojos_latido` (tabla solo-servicio por diseño; el trigger corre como postgres); (2) `pg_net` reinstalada en schema `extensions` — `net.http_post` sigue existiendo y el cron `vigilar-agenda` corrió `succeeded` 3 min después. Auditoría de las 3 candidatas: `horas_llamada_ocupadas` y `obtener_estadisticas_mecha` son lecturas públicas de marketing (web/reservar.html, diseno-*.html), intencionales; `registrar_error_cliente` ya tiene rate-limit por IP (40/60 s), truncado y allowlists — 115 filas / 32 huellas, sin señal de abuso. Ningún revoke necesario: todas las RPC públicas restantes son del portal (p_slug/p_token/captcha). Baseline de advisors: los dos lints diana ya no aparecen; quedan solo los WARN de RPCs intencionalmente públicas.
 
 ## Contexto
 

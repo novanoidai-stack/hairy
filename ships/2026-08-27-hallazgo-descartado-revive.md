@@ -1,6 +1,6 @@
 # Ship: descartar un hallazgo de agenda hace reaparecer su gemelo del cliente
 
-**Estado:** abierto · **Detectado:** 2026-08-27 · **Zona:** `lib/hooks/useAvisos.ts`
+**Estado:** cerrado 2026-08-27 · Decisión de producto: opción 1 ("descarte manda 1 h", elegida por el usuario). Implementado en `useAvisos.ts`: mapa módulo-nivel `descartesRecientes` (tipo → timestamp) alimentado en `resolverHallazgo` cuando el estado es `descartado`; `construirItems` suprime el respaldo cliente de los tipos descartados hace <1 h (con auto-limpieza). Nota: la vigilancia del servidor seguirá reescribiendo el hallazgo en su siguiente pasada si el problema persiste — cuestión de producto pendiente por sí misma.
 
 ## Contexto
 

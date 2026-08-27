@@ -1,6 +1,6 @@
 # Ship: deno check de las edges falla en silencio (deno.json las excluye)
 
-**Estado:** abierto · **Detectado:** 2026-08-27 · **Zona:** `deno.json`, `supabase/functions/`
+**Estado:** cerrado 2026-08-27 · Añadida `deno task check:edges` (con `--no-config`, ambas edges) y comentario en `deno.json` explicando por qué siguen en `exclude`. Se dejó el exclude (los imports relativos a `../../../lib/*.ts` requieren resolución bundler).
 
 ## Contexto
 

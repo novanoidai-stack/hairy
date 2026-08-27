@@ -101,6 +101,23 @@ let enVuelo: Promise<void> | null = null;
 let ultimaCargaMs = 0;
 let eventosEnganchados = false;
 
+// Tipos de hallazgo descartados hace menos de una hora (tipo -> timestamp).
+// Sin esto, al descartar el hallazgo del servidor su tipo deja de estar en
+// `tiposConHallazgo` y el RESPALDO cliente revive el mismo problema como
+// tarjetas por cita en el siguiente sondeo ("lo quité y volvió"). El descarte
+// manda 1 h; si el problema sigue, la vigilancia reescribira el hallazgo.
+const DESCARTE_VIGENCIA_MS = 3600000;
+const descartesRecientes = new Map<string, number>();
+
+function tiposDescartadosRecientes(ahoraMs: number): Set<string> {
+  const vivos = new Set<string>();
+  descartesRecientes.forEach((ts, tipo) => {
+    if (ahoraMs - ts < DESCARTE_VIGENCIA_MS) vivos.add(tipo);
+    else descartesRecientes.delete(tipo);
+  });
+  return vivos;
+}
+
 function emitir() {
   instantanea = { ...datos, refresh, resolverHallazgo };
   suscriptores.forEach((avisar) => avisar());
@@ -131,6 +148,12 @@ async function resolverHallazgo(
   estado: Extract<EstadoHallazgo, 'resuelto' | 'descartado'>,
 ) {
   // Optimista: quita el hallazgo de la lista al instante; la recarga reconcilia.
+  // Si se DESCARTA, se recuerda el tipo 1 h para que el respaldo cliente no
+  // lo reviva en el siguiente sondeo.
+  const descartado = datos.hallazgos.find((h) => h.id === id);
+  if (estado === 'descartado' && descartado) {
+    descartesRecientes.set(descartado.tipo, Date.now());
+  }
   fijar({ hallazgos: datos.hallazgos.filter((h) => h.id !== id) });
   await marcarHallazgo(id, estado);
   void cargar();
@@ -281,7 +304,7 @@ async function cargar(): Promise<void> {
         servicio: 'Servicio',
       }));
 
-      const [{ data: bloqueosData }, { data: horariosData }, { data: cfgData }] = await Promise.all([
+      const [{ data: bloqueosData }, { data: horariosData }, { data: cfgData }, { data: horariosProfData }, { data: cierresData }] = await Promise.all([
         supabase
           .from('bloqueos_profesional')
           .select('profesional_id, inicio, fin')
@@ -295,6 +318,18 @@ async function cargar(): Promise<void> {
           .select('config')
           .eq('negocio_id', negocioId)
           .maybeSingle(),
+        // Jornadas reales por profesional y cierres del salon: sin esto el
+        // respaldo cliente no puede ver fuera_jornada y marca huecos en horas
+        // que la persona no trabaja (p. ej. la pausa de comida entre turnos).
+        // Columnas minimas: este hook es el mayor lastre de la app.
+        supabase
+          .from('horarios_profesional')
+          .select('profesional_id, dia_semana, hora_inicio, hora_fin, turno')
+          .eq('negocio_id', negocioId),
+        supabase
+          .from('cierres_negocio')
+          .select('fecha')
+          .eq('negocio_id', negocioId),
       ]);
       const cfgAgenda = ((cfgData as any)?.config ?? {}) as any;
 
@@ -302,6 +337,8 @@ async function cargar(): Promise<void> {
         ahoraMs: ahora.getTime(),
         bloqueos: bloqueosData ?? [],
         horarios: horariosData ?? [],
+        horariosProfesional: horariosProfData ?? [],
+        cierres: cierresData ?? [],
         maxAdelantoMin: cfgAgenda.agendaMaxAdelantoMin,
         umbralHuecoMin: cfgAgenda.agendaUmbralHuecoMin,
       });
@@ -506,9 +543,11 @@ function construirItems(d: Datos): AvisoItem[] {
   // devuelve [] a proposito, asi que alli el respaldo es la unica fuente y la
   // campana no se queda sin avisos de agenda.
   const tiposConHallazgo = new Set(hallazgos.map((h) => h.tipo));
+  const tiposDescartados = tiposDescartadosRecientes(ahora);
   ineficiencias.forEach((prob) => {
     if (prob.tipo === 'hueco_muerto') return; // The user asked to remove "huecos muertos" notifications
     if (tiposConHallazgo.has(prob.tipo)) return; // ya lo pinta el hallazgo del servidor, mejor informado
+    if (tiposDescartados.has(prob.tipo)) return; // el usuario lo descartó hace <1 h: el descarte manda
     out.push({
       id: `ineficiencia:${prob.id}`,
       categoria: 'ineficiencia',

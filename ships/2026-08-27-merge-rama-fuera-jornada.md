@@ -1,6 +1,6 @@
 # Ship: merge de la rama paralela de fuera_jornada (diaCerrado + tests) sobre master
 
-**Estado:** abierto · **Detectado:** 2026-08-27 · **Zona:** rama de worktree con `fuera_jornada` restringido a día cerrado (sesión Claude paralela)
+**Estado:** cerrado 2026-08-27 como obsoleto · Verificado contra master: `diaCerrado`, el discriminador y TODOS los tests de `fuera_jornada` ya viven en master (`lib/organizarAgenda.ts` / `.test.ts`); ninguna rama viva contiene `soloPublicable`; el único commit no mergeado (claude/quirky-swanson, 8a5dd3abe) es un `chore` que borra `web/demo_v2.html`, sin relación con esta ship. No hubo nada que mergear.
 
 ## Contexto
 

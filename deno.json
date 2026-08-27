@@ -2,7 +2,8 @@
   "tasks": {
     "test": "deno test --allow-read --sloppy-imports --no-check lib/metricasNegocio.test.ts lib/caja/ lib/citasEstados.test.ts lib/utils/appointment.test.ts lib/horariosFranjas.test.ts lib/migracionParserLocal.test.ts",
     "test:ia": "deno test --no-config --allow-net supabase/functions/shared/openrouterClient.test.ts",
-    "verificar:modelos": "node scripts/verificar-modelos.mjs"
+    "verificar:modelos": "node scripts/verificar-modelos.mjs",
+    "check:edges": "deno check --no-config supabase/functions/vigilar-agenda/index.ts supabase/functions/agenda-optimizador/index.ts"
   },
   "exclude": [
     "node_modules/",
@@ -11,5 +12,8 @@
     ".expo/",
     "supabase/functions/",
     "lib/chispaOps.test.ts"
-  ]
+  ],
+  "comments": {
+    "exclude": "supabase/functions/ se excluye porque sus imports relativos ../../../lib/*.ts requieren resolución bundler; validarlas con `deno task check:edges` (--no-config ignora este exclude)"
+  }
 }
