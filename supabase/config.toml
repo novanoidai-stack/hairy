@@ -48,3 +48,13 @@ verify_jwt = false
 # crons "mecha_informe_semanal" (lunes 6:00) y "mecha_informe_mensual" (dia 1, 6:30).
 [functions.enviar-informe-periodico]
 verify_jwt = false
+
+# --- Llamadas desde fuera que no tienen JWT ---------------------------------
+
+# La llama GitHub Actions (la CI en cada PR y el canario cada hora) para publicar
+# el informe de los vigilantes. Un workflow no tiene sesion, asi que no hay JWT
+# que verificar. Autoriza por su cuenta con VIGILANCIA_TOKEN, un secreto propio
+# que NO es una clave de Supabase: si se filtra, lo peor que se puede hacer con
+# el es ensuciar la pestaña Salud del panel. Ver el propio index.ts.
+[functions.registrar-vigilancia]
+verify_jwt = false
