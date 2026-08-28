@@ -28,6 +28,31 @@ import {
   listarRecursos,
 } from "@/lib/datos/configuracionSalon";
 import { isTimeSlotOccupied, citaSolapaOcupacion } from "@/lib/utils/appointment";
+import { resolverSenalStaff } from "@/lib/senalStaff";
+import { avisoDeRecurso, type Recurso } from "@/lib/recursos";
+import { categoryColorHex } from "@/lib/categoryColors";
+import { traerAlFoco } from "@/lib/demoScroll";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import {
+  validarHorarioLaboral,
+  slotsQueCaben,
+  cabeEnAlgunaFranja,
+  franjasTexto,
+} from "@/lib/horarios";
+import { duracionRealAprendida, type CitaHistorial } from "@/lib/retrasos";
+import {
+  CITA_STATUS,
+  CITA_STATUS_BLOQUEAN_SOLAPE,
+  HORARIO_APERTURA,
+  HORARIO_CIERRE,
+  INTERVALO_MINUTOS,
+  LOCALE,
+  sigueViva,
+} from "@/lib/constants";
+import { TimeDrumPicker } from "@/components/ui/Pickers";
+import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { Icon } from "../ui/Icon.web";
 import type { Cita, Profesional } from "../tipos";
 import {
   Avatar,
@@ -43,6 +68,7 @@ import {
   TimeSlider,
   getCategoryIcon,
   norm,
+  fmtHHMM,
 } from "../ui/atomos.web";
 
 const ModalAhoraBadge = memo(function ModalAhoraBadge() {
