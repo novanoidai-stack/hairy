@@ -24,7 +24,11 @@
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
     "deadcode": "knip",
-    "test:componentes": "vitest run"
+    "test:componentes": "vitest run",
+    "vigilar": "node scripts/vigilantes/index.mjs",
+    "vigilar:rapido": "node scripts/vigilantes/index.mjs --rapido",
+    "vigilar:bd": "node scripts/vigilantes/index.mjs --bd",
+    "vigilar:test": "node --test \"scripts/vigilantes/*.test.mjs\""
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

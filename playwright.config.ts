@@ -18,6 +18,10 @@ const SPECS_PUBLICOS = [
   '**/marketplace.spec.ts',
   '**/portal-reserva.spec.ts',
   '**/agenda-demo.spec.ts',
+  // El smoke de pantallas: una pantalla, un test (carga + consola + red +
+  // botones). Es publico: corre sobre la demo compartida y contra produccion
+  // en el canario horario (.github/workflows/canario.yml).
+  '**/smoke/pantallas.spec.ts',
 ];
 
 export default defineConfig({
@@ -31,12 +35,18 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   workers: 1,
   reporter: [['html', { open: 'never' }], ['list']],
-  webServer: {
-    command: 'node scripts/serve-web.mjs',
-    url: 'http://127.0.0.1:8080',
-    reuseExistingServer: true,
-    timeout: 30000,
-  },
+  // Contra produccion (canario) no hay servidor local que arrancar. Sin esto,
+  // Playwright intentaria levantar scripts/serve-web.mjs en el runner del
+  // canario, no encontraria web/app (no se ha compilado) y fallaria antes de
+  // empezar. El canario pasa PW_NO_SERVER=1.
+  webServer: process.env.PW_NO_SERVER
+    ? undefined
+    : {
+        command: 'node scripts/serve-web.mjs',
+        url: 'http://127.0.0.1:8080',
+        reuseExistingServer: true,
+        timeout: 30000,
+      },
   use: {
     // Por defecto servidor local rapido y determinista. Para probar contra produccion:
     //   PLAYWRIGHT_BASE_URL=https://www.mechaa.es npx playwright test

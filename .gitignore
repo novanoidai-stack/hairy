@@ -158,3 +158,7 @@ temp_*.txt
 # fuera del repo: engordaban el pack de git y hacian reventar por memoria a
 # cualquier analizador estatico.
 ui-references/
+
+# Informes de los vigilantes (los escribe la CI y el canario, no se versionan).
+vigilancia*.json
+smoke.json

@@ -1,0 +1,70 @@
+name: Canario
+
+# Cada hora, el mismo smoke de pantallas pero contra PRODUCCION. Detecta lo que
+# la CI no puede ver: la cache, una variable de Vercel sin actualizar, un deploy
+# a medias, Supabase caido. Ver
+# docs/superpowers/plans/2026-08-28-vigilantes-de-regresion.md
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: canario
+  cancel-in-progress: true
+
+jobs:
+  humo:
+    name: Humo contra www.mechaa.es
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Instalar navegador de Playwright
+        run: npx playwright install --with-deps chromium
+
+      # Contra produccion NO hace falta build:web ni servidor local: la app ya
+      # esta desplegada. El webServer de playwright.config.ts se desactiva con
+      # PW_NO_SERVER (ver el config).
+      - name: Smoke contra produccion
+        id: smoke
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_BASE_URL: https://www.mechaa.es
+          PW_NO_SERVER: '1'
+        run: npx playwright test tests/smoke --project=publico --reporter=json > smoke.json
+
+      # El canario SIEMPRE publica, tanto si va bien como si va mal: si dejara
+      # de publicar, el panel no distinguiria "todo verde" de "el canario esta
+      # muerto" (por eso staff_vigilancia_resumen marca canario_mudo a las 26 h).
+      - name: Publicar el resultado
+        if: always()
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/smoke-a-hallazgos.mjs smoke.json vigilancia-canario.json canario
+          node scripts/vigilantes/enviar.mjs vigilancia-canario.json
+
+      - name: Guardar el informe si algo falla
+        if: steps.smoke.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: canario-report
+          path: |
+            playwright-report/
+            smoke.json
+          retention-days: 7
+
+      - name: Poner el workflow en rojo si hay pantallas rotas
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1

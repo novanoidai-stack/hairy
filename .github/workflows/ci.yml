@@ -64,6 +64,36 @@ jobs:
       - name: Chequeo de tipos de Edge Functions críticas
         run: deno task check:edges
 
+      # Vigilantes de invariantes. Cazan lo que no caza ningún tipo ni ningún
+      # test: cosas que viven en varios sitios a la vez y se desincronizan en
+      # silencio (precios en 3 sitios, referidos en 4), rutas que se abren sin
+      # sesión, la caché de /app y la deuda de código muerto. Dos niveles: los
+      # bloqueantes paran esto, los avisos solo salen en el log y en el panel.
+      # Detalle: docs/superpowers/plans/2026-08-28-vigilantes-de-regresion.md
+      - name: Tests de los propios vigilantes
+        run: npm run vigilar:test
+
+      - name: Vigilantes de invariantes
+        run: node scripts/vigilantes/index.mjs --json vigilancia.json
+
+      # Publica el informe en la pestaña Salud del panel de staff. Si los
+      # secrets no están definidos no hace nada y no rompe: el veredicto ya lo
+      # dio el paso anterior, esto es solo el registro.
+      - name: Publicar el informe de vigilancia
+        if: always()
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: node scripts/vigilantes/enviar.mjs vigilancia.json
+
+      - name: Guardar el informe de vigilancia
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vigilancia
+          path: vigilancia.json
+          retention-days: 14
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
@@ -102,6 +132,23 @@ jobs:
       # sembrar un tenant de pruebas propio, no quitar el job.
       - name: E2E públicos (sin credenciales)
         run: npx playwright test --project=publico
+
+      # El smoke de pantallas (tests/smoke/), traducido a hallazgos para la
+      # pestaña Salud. Sin `continue-on-error`: si una pantalla está rota, la CI
+      # tiene que ponerse roja. Lo que no puede tumbar la CI es el ENVÍO del
+      # informe, y por eso ese paso lleva if: always().
+      - name: Smoke de pantallas
+        id: smoke
+        run: npx playwright test tests/smoke --project=publico --reporter=json > smoke.json
+
+      - name: Publicar el smoke en el panel
+        if: always() && steps.smoke.conclusion != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/smoke-a-hallazgos.mjs smoke.json vigilancia-smoke.json ci
+          node scripts/vigilantes/enviar.mjs vigilancia-smoke.json
 
       - name: E2E autenticados (solo si hay secrets)
         if: ${{ env.E2E_EMAIL != '' }}

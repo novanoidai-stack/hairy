@@ -1,0 +1,12 @@
+{
+  "_comentario": "Deuda de codigo muerto CONGELADA el 28 ago 2026. El vigilante solo grita si algun numero SUBE; si baja, avisa para que se baje tambien aqui. El trinquete solo gira hacia abajo. Regenerar con: npx knip --reporter json",
+  "_de-donde-salen-estos-numeros": "Antes de montar los vigilantes knip daba 14 ficheros muertos y 6 unlisted. Anadir el script vigilar:test (node --test) hizo que knip descubriera tambien los *.test.ts de supabase/functions como entradas: 6 ficheros que parecian muertos resultaron estar vivos (14 -> 8). Los jsr:/npm: de esos tests de Deno se fueron a ignoreDependencies en knip.json porque knip no resuelve esos esquemas y nunca los va a resolver (6 -> 2 unlisted). Los tipos suben de 8 a 9 por la misma razon: se ve mas grafo, se ve un tipo mas sin usar.",
+  "files": 8,
+  "exports": 66,
+  "types": 9,
+  "duplicates": 28,
+  "unlisted": 2,
+  "dependencies": 1,
+  "devDependencies": 1,
+  "binaries": 1
+}

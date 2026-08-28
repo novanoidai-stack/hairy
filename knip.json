@@ -15,7 +15,7 @@
     "app/app/**",
     "types/database.types.ts"
   ],
-  "ignoreDependencies": ["zustand"],
+  "ignoreDependencies": ["zustand", "jsr", "npm"],
   "ignoreBinaries": ["ffmpeg"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": false
