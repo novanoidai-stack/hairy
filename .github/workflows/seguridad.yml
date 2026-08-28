@@ -58,4 +58,4 @@ jobs:
       # medium en adelante bloquea (templates de inyección, secretos en
       # workflows); lo cosmético queda en el log.
       - name: Auditar los workflows
-        run: zizmor --fail-severity medium .
+        run: zizmor --min-severity medium .
