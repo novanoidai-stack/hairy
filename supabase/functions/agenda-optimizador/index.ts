@@ -23,7 +23,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { llamarIAJson } from '../shared/openrouterClient.ts';
 import { auditar, auditarFallo } from '../shared/chispa-auditoria.ts';
 import { comprobarCupo } from '../shared/cupo.ts';
-import { claveServicio, esClaveDeServicio } from '../shared/claveServicio.ts';
+import { claveServicio, peticionDeServicio } from '../shared/claveServicio.ts';
 import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
 import {
   analizarAgendaRango,
@@ -280,10 +280,7 @@ Deno.serve(async (req) => {
     //     false` en supabase/config.toml. El verificador de la PLATAFORMA solo
     //     entiende JWT, asi que rechazaria la peticion con una secret key ANTES
     //     de que llegue aqui. La autorizacion ya la hace esta comprobacion.
-    const claveEntrante = authHeader.startsWith('Bearer ')
-      ? authHeader.slice('Bearer '.length)
-      : (req.headers.get('apikey') ?? '');
-    if (body?.ojo === true && esClaveDeServicio(claveEntrante)) {
+    if (body?.ojo === true && peticionDeServicio(req)) {
       const negocioId: string | undefined = body.negocio_id;
       if (!negocioId) return json({ error: 'falta negocio_id' }, 400);
       const hoy = new Date();

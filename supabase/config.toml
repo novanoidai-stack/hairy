@@ -1,0 +1,50 @@
+# Configuracion del proyecto para el CLI de Supabase.
+#
+# Nace el 28 ago 2026 con un unico proposito: apagar `verify_jwt` en las cinco
+# funciones a las que llama la propia base de datos (crons de pg_cron y el
+# trigger de agenda). Contexto completo en
+# informes/MIGRACION-CLAVES-SUPABASE-2026-08-28.md.
+#
+# POR QUE HAY QUE APAGARLO
+# El verificador de la plataforma solo entiende JWT. Las claves nuevas
+# (`sb_secret_...`) NO lo son, asi que en cuanto el vault pase a una, estas
+# llamadas se rechazarian con 401 ANTES de llegar al codigo de la funcion.
+#
+# POR QUE NO LAS DEJA ABIERTAS
+# Porque la autorizacion ya no depende de la plataforma: las cinco llaman a
+# `peticionDeServicio(req)` (shared/claveServicio.ts), que compara la clave
+# entrante contra la real del proyecto en tiempo constante, aceptando la nueva y
+# la heredada mientras convivan, y por las dos cabeceras.
+#
+# La comprobacion que habia antes en tres de ellas NO servia para esto: leia la
+# carga del JWT sin verificar la firma. Con `verify_jwt` encendido daba igual
+# (la plataforma comprobaba la firma primero), pero apagandolo cualquiera podria
+# haber fabricado un token sin firmar con `role: service_role`.
+#
+# OJO: esto solo se aplica si las funciones se despliegan con el CLI
+# (`supabase functions deploy`). Si se despliegan desde el panel, el interruptor
+# hay que tocarlo alli, funcion por funcion.
+
+project_id = "vtrggiogjrhqtwbhbgia"
+
+# --- Llamadas desde la propia base de datos (pg_cron / triggers) -------------
+
+# cron "vigilar-agenda-pruebas", cada 15 min.
+[functions.vigilar-agenda]
+verify_jwt = false
+
+# trigger `agenda_ojos_notify`, en CADA movimiento de agenda (modo "ojo").
+[functions.agenda-optimizador]
+verify_jwt = false
+
+# cron "mecha_avisos_prueba", 3:00.
+[functions.avisar-fin-prueba]
+verify_jwt = false
+
+# cron "mecha_descuento_referidos", 3:40.
+[functions.sincronizar-descuento-referidos]
+verify_jwt = false
+
+# crons "mecha_informe_semanal" (lunes 6:00) y "mecha_informe_mensual" (dia 1, 6:30).
+[functions.enviar-informe-periodico]
+verify_jwt = false

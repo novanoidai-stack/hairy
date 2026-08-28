@@ -18,7 +18,7 @@
 
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { claveServicio, peticionDeServicio } from '../shared/claveServicio.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -64,15 +64,7 @@ Deno.serve(async (req) => {
 
   // La plataforma valida la firma (verify_jwt on); aqui se exige ademas que el
   // rol del token sea service_role, que es lo que manda el cron.
-  const bearer = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-  let esServiceRole = false;
-  try {
-    const p = bearer.split('.');
-    if (p.length === 3) {
-      esServiceRole = JSON.parse(atob(p[1].replace(/-/g, '+').replace(/_/g, '/'))).role === 'service_role';
-    }
-  } catch { /* token ilegible: se queda en false */ }
-  if (!esServiceRole) return json({ error: 'unauthorized' }, 401);
+  if (!peticionDeServicio(req)) return json({ error: 'unauthorized' }, 401);
 
   const { data: filas, error } = await admin
     .from('profiles')

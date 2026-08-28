@@ -139,6 +139,42 @@ export function esClaveDeServicio(valor: string | null | undefined): boolean {
   return alguna;
 }
 
+/**
+ * Saca la clave que trae una peticion, mire donde mire.
+ *
+ * Las claves heredadas viajan en `Authorization: Bearer`; las nuevas NO pueden
+ * (no son JWT) y van en `apikey`. Se aceptan las dos para que cambiar el emisor
+ * (el vault, un cron, n8n) y desplegar la funcion no tengan que ser el mismo dia.
+ */
+export function claveEntrante(req: Request): string {
+  const auth = req.headers.get("Authorization") ?? "";
+  if (auth.toLowerCase().startsWith("bearer ")) return auth.slice(7).trim();
+  return (req.headers.get("apikey") ?? "").trim();
+}
+
+/**
+ * ¿La manda alguien de casa (un cron, un trigger, otro backend)?
+ *
+ * SUSTITUYE A UNA COMPROBACION QUE NO VALIA. Varias funciones hacian esto:
+ *
+ *     const p = bearer.split('.');
+ *     esServiceRole = JSON.parse(atob(p[1])).role === 'service_role';
+ *
+ * es decir, se creian la carga del JWT **sin verificar la firma**. Hoy no es
+ * explotable porque el `verify_jwt` de la plataforma comprueba la firma antes de
+ * que la peticion llegue al codigo. Pero el paso a las claves nuevas obliga a
+ * apagar `verify_jwt` (la plataforma solo entiende JWT), y en ese momento
+ * cualquiera podria fabricar un token sin firmar con `role: service_role` y
+ * entrar. Ademas fallaria igualmente: una `sb_secret_...` no tiene tres partes,
+ * asi que el `split('.')` la rechazaria y el cron se quedaria fuera.
+ *
+ * Aqui se compara contra la clave REAL del proyecto, en tiempo constante, y se
+ * admiten la nueva y la heredada mientras convivan.
+ */
+export function peticionDeServicio(req: Request): boolean {
+  return esClaveDeServicio(claveEntrante(req));
+}
+
 function igualesEnTiempoConstante(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diferencia = 0;

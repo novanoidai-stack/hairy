@@ -24,7 +24,7 @@ import {
   type ProblemaAgenda,
 } from '../../../lib/organizarAgenda.ts';
 import { horariosAlRelojDelRuntime } from '../shared/relojSalon.ts';
-import { claveServicioOpcional } from '../shared/claveServicio.ts';
+import { claveServicioOpcional, peticionDeServicio } from '../shared/claveServicio.ts';
 
 const RESUMEN: Record<string, string> = {
   retraso: 'Retrasos en curso',
@@ -114,6 +114,14 @@ async function escribirHallazgos(
 
 Deno.serve(async (req) => {
   try {
+    // Esta funcion NO comprobaba quien la llamaba: se apoyaba entera en el
+    // `verify_jwt` de la plataforma. Al pasar a las claves nuevas hay que apagar
+    // ese verificador (solo entiende JWT), asi que sin esto quedaria abierta a
+    // cualquiera: recorre TODOS los negocios y escribe hallazgos.
+    if (!peticionDeServicio(req)) {
+      return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
+    }
+
     const url = Deno.env.get('SUPABASE_URL');
     // Opcional a proposito: esta funcion ya responde un 500 legible cuando falta
     // la clave, y eso se conserva. La version que lanza cambiaria ese error

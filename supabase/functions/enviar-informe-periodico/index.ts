@@ -24,7 +24,7 @@ import {
   serieBaseFidelizada, embudoFidelizacion, frecuenciaRetorno, cohortesRetencion,
   frasesCohortes, type VisitaHistorica,
 } from './lib/retencionClientes.ts';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { claveServicio, peticionDeServicio } from '../shared/claveServicio.ts';
 
 const SERVICE_ROLE = claveServicio();
 const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', SERVICE_ROLE);
@@ -342,13 +342,7 @@ Deno.serve(async (req) => {
   // Mismo candado que avisar-fin-prueba: la plataforma ya valido la firma del JWT
   // (verify_jwt on), aqui solo comprobamos que el rol del token sea service_role
   // (el cron manda esa clave), sin depender de comparar el string exacto.
-  const bearer = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-  let esServiceRole = false;
-  try {
-    const p = bearer.split('.');
-    if (p.length === 3) esServiceRole = JSON.parse(atob(p[1].replace(/-/g, '+').replace(/_/g, '/'))).role === 'service_role';
-  } catch { esServiceRole = false; }
-  if (!esServiceRole) return json({ error: 'unauthorized' }, 401);
+  if (!peticionDeServicio(req)) return json({ error: 'unauthorized' }, 401);
 
   let body: { tipo?: string; test_email?: string } = {};
   try { body = await req.json(); } catch { /* body vacio: error abajo */ }

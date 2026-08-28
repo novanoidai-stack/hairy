@@ -65,9 +65,57 @@ se puede hacer cliente a cliente, sin corte.
 
 ---
 
-## 4. Lo que falta (manual, en el panel)
+## 3.bis Inventario real de quién usa la clave
 
-### Paso 1 — Crear/localizar la secret key
+Consultado contra la base de datos, no supuesto.
+
+**Vault:** un solo secreto, `service_role_key` (*"para que pg_cron llame a edge
+functions"*). **Ninguno de los seis llamadores lleva la clave incrustada**: los
+seis la leen de ahí, así que cambiar ese único secreto los actualiza a todos.
+
+| Quién | Cuándo | Llama a |
+|---|---|---|
+| cron `vigilar-agenda-pruebas` | cada 15 min | `vigilar-agenda` |
+| cron `mecha_avisos_prueba` | 3:00 | `avisar-fin-prueba` |
+| cron `mecha_descuento_referidos` | 3:40 | `sincronizar-descuento-referidos` |
+| cron `mecha_informe_semanal` | lunes 6:00 | `enviar-informe-periodico` |
+| cron `mecha_informe_mensual` | día 1, 6:30 | `enviar-informe-periodico` |
+| trigger `agenda_ojos_notify` | cada movimiento de agenda | `agenda-optimizador` |
+
+De paso: `chispa_tts_keepwarm` sí tiene una clave incrustada, pero es la **`anon`**,
+pública por diseño. No es una filtración.
+
+---
+
+## 3.ter Un agujero que había que cerrar antes de apagar `verify_jwt`
+
+Tres de esas funciones (`avisar-fin-prueba`, `sincronizar-descuento-referidos`,
+`enviar-informe-periodico`) comprobaban quién llamaba así:
+
+```ts
+const p = bearer.split('.');
+esServiceRole = JSON.parse(atob(p[1])).role === 'service_role';
+```
+
+Es decir, **se creían la carga del JWT sin verificar la firma**. Hoy no es
+explotable porque `verify_jwt` valida la firma antes de que la petición llegue al
+código. Pero esta migración obliga a apagarlo, y en ese momento cualquiera podría
+fabricar un token sin firmar con `role: service_role` y entrar. Y además fallaría
+igual: una `sb_secret_...` no tiene tres partes, así que el `split('.')` la
+rechazaría y el cron se quedaría fuera.
+
+`vigilar-agenda` era peor: **no comprobaba nada**, dependía entera de `verify_jwt`,
+y recorre todos los negocios escribiendo hallazgos.
+
+Las cinco usan ahora `peticionDeServicio(req)`: comparación exacta contra la clave
+real del proyecto, en tiempo constante, aceptando las dos claves y las dos
+cabeceras. Hay una prueba dedicada a que un JWT forjado salga rechazado.
+
+---
+
+## 4. Lo que falta
+
+### Paso 1 — Crear/localizar la secret key *(panel)*
 Supabase → **Settings → API Keys → "Publishable and secret API keys"**.
 
 En Mecha el sistema nuevo **ya está activo** (convive la `anon` heredada con una
@@ -75,20 +123,36 @@ En Mecha el sistema nuevo **ya está activo** (convive la `anon` heredada con un
 probablemente ya existe. Si no, el botón "Create new API keys" la crea; es seguro
 y no toca las heredadas.
 
-### Paso 2 — Repartirla
-- **Tu `.env` local** → `SUPABASE_SERVICE_ROLE_KEY=` (los nombres están en
-  `.env.example`). No hace falta esperar a nada: el código acepta las dos.
-- **Edge functions** → confirmar que Supabase inyecta `SUPABASE_SECRET_KEYS` en
-  *Edge Functions → Secrets*. En cuanto esté, `claveServicio()` la prefiere sola.
+### Paso 2 — Desplegar las edge functions *(Alexandro)*
+Con `supabase/config.toml`, que apaga `verify_jwt` en las cinco funciones a las
+que llama la base de datos. **Este paso va primero**: apagar el verificador sin la
+comprobación propia dejaría esas funciones abiertas.
+
+Si el despliegue no es por CLI sino por panel, el interruptor hay que tocarlo
+allí, función por función.
+
+### Paso 3 — Aplicar la migración *(SQL)*
+`supabase/migrations/20260828120000_claves_pg_net_cabecera_apikey.sql`.
+
+Pasa los seis llamadores a la cabecera `apikey` **manteniendo el `Authorization`**,
+para que este paso y el anterior no tengan que ser el mismo minuto. Sigue
+funcionando con la clave heredada.
+
+### Paso 4 — Repartir la clave nueva
+- **Vault** → cambiar el secreto `service_role_key`. Actualiza los seis de golpe.
+- **Edge functions** → confirmar que `SUPABASE_SECRET_KEYS` aparece en
+  *Edge Functions → Secrets*. Supabase la inyecta sola; no hay que pegar nada.
 - **n8n** → credenciales de los workflows que hablen con Supabase.
-- **Vault** → el secreto que usan los triggers para llamar a `agenda-optimizador`.
+- **Tu `.env` local** → solo si llegas a usar los scripts. Los nombres están en
+  `.env.example`.
 
-### Paso 3 — Verificar que nadie usa ya la heredada
-No hay indicador automático de uso. Hay que repasarlo a mano. Los que se olvidan:
-CI/CD, integraciones de terceros, crons, `pg_net` y Database Webhooks.
+### Paso 5 — Verificar que nadie usa ya la heredada
+No hay indicador automático de uso. Los que se olvidan: CI/CD, integraciones de
+terceros, apps ya instaladas, y cualquier webhook.
 
-### Paso 4 — Desactivar la heredada
+### Paso 6 — Desactivar la heredada *(panel)*
 En esa misma pantalla. **Es reversible**: si te dejaste un cliente, la reactivas.
+Hasta aquí, la filtración sigue abierta.
 
 ---
 
@@ -108,10 +172,9 @@ incrustada en el SQL.
 
 **`verify_jwt` tumba las funciones llamadas con la clave nueva.** El verificador de
 la plataforma solo entiende JWT: rechazaría la petición **antes** de que llegue al
-código. Las funciones a las que llame un cron o un trigger necesitarán
-`verify_jwt = false` en `supabase/config.toml` y autorizar por su cuenta —
-`agenda-optimizador` ya lo hace, y ya acepta la clave por las dos cabeceras.
-**Este repo no tiene `supabase/config.toml`: hay que crearlo.**
+código. Ya resuelto: `supabase/config.toml` (creado para esto, el repo no tenía)
+lo apaga en las cinco, y las cinco autorizan por su cuenta con
+`peticionDeServicio`.
 
 **Realtime público queda limitado a 24 h** por conexión salvo que la sesión se
 eleve con autenticación de usuario.
@@ -125,8 +188,10 @@ código evita filtraciones futuras; no borra la que ya salió. **La única cura 
 desactivarlas.** Hasta entonces, dar por comprometidos los datos de los dos
 proyectos.
 
-Y la pregunta de fondo: **¿debe el repo ser público?** Mientras lo sea, cualquier
-secreto que entre queda quemado desde el primer push. Ya ha pasado dos veces.
+**Poner el repo en privado tampoco lo arregla.** Es buena idea y corta la
+exposición futura, pero no invalida la clave que ya salió: estuvo en un repo
+público con la clave dentro, y hay bots rastreando GitHub justo para eso. Cualquier
+fork que exista se queda como está. Las dos cosas, no una u otra.
 
 ---
 
