@@ -49,7 +49,9 @@ import {
   registrar as registrarPaso,
   deshacer as deshacerPaso,
   rehacer as rehacerPaso,
+  descartar as descartarPaso,
   snapshotDe,
+  mismoSitioInstante,
   type PilaAgenda,
   type PasoAgenda,
 } from "@/lib/agendaUndo";
@@ -1319,14 +1321,68 @@ export default function AgendaCalendar() {
 
   // Aplica un lote de movimientos (deshacer o rehacer) usando el snapshot indicado.
   // Solo mueve marcas horarias y profesional: no toca estado, cobros ni notificaciones.
+  //
+  // "obsoleto" = el paso ya no se puede aplicar nunca (la cita se movio por otro
+  // lado, se cerro o desaparecio); el llamador lo tira de la pila. "fallo" = algo
+  // transitorio (la red, la BD), asi que el paso se queda donde esta y se reintenta.
   async function aplicarPasoAgenda(
     paso: PasoAgenda,
     sentido: "antes" | "despues",
-  ) {
+  ): Promise<"aplicado" | "obsoleto" | "fallo"> {
+    const verbo = sentido === "antes" ? "deshacer" : "rehacer";
+    const avisar = (msg: string) => {
+      setUndoError(msg);
+      setTimeout(() => setUndoError(null), 3000);
+    };
     setUndoBusy(true);
     try {
       const profile = await getUserProfile();
       const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+
+      // Guarda de snapshot rancio. La pila vive en memoria de ESTA sesion, pero la
+      // cita es compartida: otra persona del salon ha podido moverla, cancelarla o
+      // cerrarla desde que se apilo el paso. Escribir el snapshot a ciegas pisaria
+      // ese cambio ajeno sin avisar.
+      //
+      // Se comprueba el lote ENTERO antes de escribir nada: la cascada del
+      // organizador es un solo paso y aplicarla a medias deja la agenda peor que
+      // antes (mismo motivo por el que `registrar` apila el lote junto).
+      const { data: actuales, error: errorLectura } = await supabase
+        .from("citas")
+        .select("id, estado, inicio, fin, fin_activa, fin_espera, profesional_id")
+        .in(
+          "id",
+          paso.map((c) => c.citaId),
+        );
+      if (errorLectura) {
+        avisar("No se ha podido comprobar el estado de las citas: " + errorLectura.message);
+        return "fallo";
+      }
+      for (const cambio of paso) {
+        const actual = actuales?.find((c: any) => c.id === cambio.citaId);
+        if (!actual) {
+          avisar("No se puede " + verbo + ": la cita ya no existe.");
+          return "obsoleto";
+        }
+        // Misma regla que el arrastre, que solo se niega con las canceladas
+        // (AppointmentCard). Con `sigueViva` esto era MAS estricto que la accion
+        // que lo genera: el cron autocompleta las citas en cuanto pasan de hora,
+        // asi que mover una de la manana se dejaba hacer y luego no se podia
+        // deshacer. Deshacer tiene que alcanzar a todo lo que se puede mover.
+        if (actual.estado === CITA_STATUS.CANCELADA) {
+          avisar("No se puede " + verbo + ": la cita esta cancelada.");
+          return "obsoleto";
+        }
+        // Donde deberia estar la cita AHORA para que este paso tenga sentido.
+        // Por instante y no por texto: un lado viene de la BD y el otro se
+        // construyo en el navegador (ver `mismoSitioInstante`).
+        const origen = sentido === "antes" ? cambio.despues : cambio.antes;
+        if (!mismoSitioInstante(snapshotDe(actual), origen)) {
+          avisar("No se puede " + verbo + ": la cita se ha movido por otro lado.");
+          return "obsoleto";
+        }
+      }
+
       for (const cambio of paso) {
         const destino = cambio[sentido];
         const origen = sentido === "antes" ? cambio.despues : cambio.antes;
@@ -1342,14 +1398,8 @@ export default function AgendaCalendar() {
           .update(payload)
           .eq("id", cambio.citaId);
         if (error) {
-          setUndoError(
-            "No se ha podido " +
-              (sentido === "antes" ? "deshacer" : "rehacer") +
-              ": " +
-              error.message,
-          );
-          setTimeout(() => setUndoError(null), 3000);
-          return false;
+          avisar("No se ha podido " + verbo + ": " + error.message);
+          return "fallo";
         }
         setCitas((prev: any[]) =>
           prev.map((c) => (c.id === cambio.citaId ? { ...c, ...payload } : c)),
@@ -1372,7 +1422,7 @@ export default function AgendaCalendar() {
           sentido === "antes" ? "Deshacer movimiento" : "Rehacer movimiento",
         );
       }
-      return true;
+      return "aplicado";
     } finally {
       setUndoBusy(false);
     }
@@ -1381,14 +1431,67 @@ export default function AgendaCalendar() {
   async function handleDeshacer() {
     const r = deshacerPaso(pilaAgenda);
     if (!r) return;
-    if (await aplicarPasoAgenda(r.aplicar, "antes")) setPilaAgenda(r.pila);
+    const res = await aplicarPasoAgenda(r.aplicar, "antes");
+    if (res === "aplicado") setPilaAgenda(r.pila);
+    // Un paso obsoleto no vuelve a valer: se tira en vez de dejarlo arriba
+    // atascando el atajo (ver `descartar` en lib/agendaUndo).
+    else if (res === "obsoleto")
+      setPilaAgenda((prev) => descartarPaso(prev, "deshacer"));
   }
 
   async function handleRehacer() {
     const r = rehacerPaso(pilaAgenda);
     if (!r) return;
-    if (await aplicarPasoAgenda(r.aplicar, "despues")) setPilaAgenda(r.pila);
+    const res = await aplicarPasoAgenda(r.aplicar, "despues");
+    if (res === "aplicado") setPilaAgenda(r.pila);
+    else if (res === "obsoleto")
+      setPilaAgenda((prev) => descartarPaso(prev, "rehacer"));
   }
+
+  // Capas que tapan la rejilla. Con una abierta, el atajo de deshacer no dispara:
+  // moveria una cita por detras del modal, a ciegas y sin que se vea.
+  const hayCapaEncima =
+    showNewCita ||
+    showEditCita ||
+    showNotif ||
+    showManualPanel ||
+    showOrganizar ||
+    showCierreSalon ||
+    showMobileCalendar ||
+    showOnboardingPanel ||
+    !!showRetrasoProf ||
+    !!showClientaTarde ||
+    !!showClienteHistorial ||
+    !!showStatsModal;
+
+  // Deshacer/rehacer por teclado. La maquinaria (pila, snapshots, historial) ya
+  // estaba entera y probada desde jul 2026, pero se quedo sin puerta: los botones
+  // de la cabecera se retiraron y nadie llamaba a los handlers. Se devuelve por
+  // atajo y no por botones para no volver a cargar la barra de la agenda.
+  useEffect(() => {
+    const escribiendoEnUnCampo = (destino: EventTarget | null) => {
+      const el = destino as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName?.toLowerCase();
+      // Dentro de un campo, Ctrl+Z es el deshacer del TEXTO. No se toca.
+      return tag === "input" || tag === "textarea" || el.isContentEditable;
+    };
+    const alPulsar = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const tecla = e.key.toLowerCase();
+      if (tecla !== "z" && tecla !== "y") return;
+      if (hayCapaEncima || undoBusy || escribiendoEnUnCampo(e.target)) return;
+      // Ctrl+Y es el rehacer de siempre en Windows; Ctrl/Cmd+Shift+Z, el del resto.
+      const esRehacer = tecla === "y" || e.shiftKey;
+      const pendientes = esRehacer ? pilaAgenda.rehacer : pilaAgenda.deshacer;
+      // Sin nada que hacer se deja pasar la pulsacion en vez de tragarsela.
+      if (pendientes.length === 0) return;
+      e.preventDefault();
+      void (esRehacer ? handleRehacer() : handleDeshacer());
+    };
+    window.addEventListener("keydown", alPulsar);
+    return () => window.removeEventListener("keydown", alPulsar);
+  }, [hayCapaEncima, undoBusy, pilaAgenda]);
 
   async function cierreMasivoSalon() {
     setCierreLoading(true);

@@ -67,11 +67,41 @@ export function mismoSitio(a: SnapshotCita, b: SnapshotCita): boolean {
   );
 }
 
+// Lo mismo que `mismoSitio` pero comparando el INSTANTE, no el texto.
+//
+// Los dos lados de una comparacion no llegan en el mismo formato: el snapshot
+// `antes` sale de la fila tal cual la devuelve la BD, mientras que el `despues`
+// se construye en el navegador con `.toISOString()` ("...T10:00:00.000Z"). El
+// servidor devuelve la misma hora escrita de otra manera (offset explicito, y a
+// veces microsegundos), asi que comparar cadenas da "distinto" para dos marcas
+// que son el mismo momento. Se usa siempre que uno de los lados venga de la BD.
+export function mismoSitioInstante(a: SnapshotCita, b: SnapshotCita): boolean {
+  const mismaMarca = (x: string | null, y: string | null) => {
+    if (x === null || y === null) return x === y;
+    const mx = new Date(x).getTime();
+    const my = new Date(y).getTime();
+    // Una marca ilegible no se da por igual a nada: mejor cortar que mover a ciegas.
+    if (Number.isNaN(mx) || Number.isNaN(my)) return false;
+    return mx === my;
+  };
+  return (
+    mismaMarca(a.inicio, b.inicio) &&
+    mismaMarca(a.fin, b.fin) &&
+    mismaMarca(a.fin_activa, b.fin_activa) &&
+    mismaMarca(a.fin_espera, b.fin_espera) &&
+    a.profesional_id === b.profesional_id
+  );
+}
+
 // Registra un paso nuevo. Descarta los cambios que no mueven nada (un drag que
 // suelta la cita donde estaba no debe gastar un paso de deshacer) y vacia la pila
 // de rehacer: una vez haces algo nuevo, el futuro que habias deshecho ya no existe.
+//
+// El filtro compara por instante y no por texto a proposito: `antes` viene de la
+// fila de la BD y `despues` se construye con `.toISOString()`, asi que el drag que
+// devuelve la cita a su sitio se colaba como paso util solo por el formato.
 export function registrar(pila: PilaAgenda, paso: PasoAgenda): PilaAgenda {
-  const utiles = paso.filter((c) => !mismoSitio(c.antes, c.despues));
+  const utiles = paso.filter((c) => !mismoSitioInstante(c.antes, c.despues));
   if (utiles.length === 0) return pila;
   return {
     deshacer: [...pila.deshacer, utiles].slice(-MAX_PASOS),
@@ -97,4 +127,17 @@ export function rehacer(pila: PilaAgenda): { pila: PilaAgenda; aplicar: PasoAgen
     pila: { deshacer: [...pila.deshacer, paso].slice(-MAX_PASOS), rehacer: pila.rehacer.slice(0, -1) },
     aplicar: paso,
   };
+}
+
+// Tira el ultimo paso del lado indicado SIN pasarlo al otro lado.
+//
+// Es para el paso que ya no se puede aplicar: la pila vive en memoria de esta
+// sesion, pero la cita puede haberla movido otra persona del salon, o haberse
+// cancelado, desde que se apilo. Ese paso no va a valer nunca mas, y dejarlo
+// arriba atasca el atajo para siempre (cada Ctrl+Z reintentaria el mismo paso
+// imposible en vez de llegar al anterior, que quiza si se puede deshacer).
+export function descartar(pila: PilaAgenda, lado: "deshacer" | "rehacer"): PilaAgenda {
+  return lado === "deshacer"
+    ? { deshacer: pila.deshacer.slice(0, -1), rehacer: pila.rehacer }
+    : { deshacer: pila.deshacer, rehacer: pila.rehacer.slice(0, -1) };
 }

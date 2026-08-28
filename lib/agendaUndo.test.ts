@@ -7,8 +7,10 @@ import {
   registrar,
   deshacer,
   rehacer,
+  descartar,
   snapshotDe,
   mismoSitio,
+  mismoSitioInstante,
   type SnapshotCita,
   type PasoAgenda,
 } from './agendaUndo.ts';
@@ -112,4 +114,65 @@ Deno.test('mismoSitio compara las 5 marcas, no solo la hora', () => {
   assert(mismoSitio(a, { ...a }));
   assert(!mismoSitio(a, { ...a, profesional_id: 'P2' }));
   assert(!mismoSitio(a, { ...a, fin_activa: '2026-07-16T10:15:00.000Z' }));
+});
+
+Deno.test('mismoSitioInstante iguala la misma hora escrita de dos formas', () => {
+  // Izquierda: como la devuelve la BD. Derecha: como la construye el navegador.
+  const bd: SnapshotCita = {
+    inicio: '2026-07-16T10:00:00+00:00',
+    fin: '2026-07-16T10:30:00+00:00',
+    fin_activa: null,
+    fin_espera: null,
+    profesional_id: 'P1',
+  };
+  const navegador = snap(10);
+  assert(!mismoSitio(bd, navegador), 'por texto son distintas: ese era el fallo');
+  assert(mismoSitioInstante(bd, navegador), 'pero es el mismo momento');
+});
+
+Deno.test('mismoSitioInstante sigue viendo los movimientos de verdad', () => {
+  const a = snap(10);
+  assert(!mismoSitioInstante(a, snap(11)), 'media hora mas tarde no es el mismo sitio');
+  assert(!mismoSitioInstante(a, { ...a, profesional_id: 'P2' }));
+  assert(!mismoSitioInstante(a, { ...a, fin_activa: '2026-07-16T10:15:00.000Z' }));
+});
+
+Deno.test('mismoSitioInstante no da por buena una marca ilegible', () => {
+  const a = snap(10);
+  assert(!mismoSitioInstante(a, { ...a, inicio: 'vete a saber' }));
+  assert(!mismoSitioInstante({ ...a, inicio: 'vete a saber' }, { ...a, inicio: 'vete a saber' }));
+});
+
+Deno.test('registrar ignora el drag que devuelve la cita a su sitio', () => {
+  // `antes` en formato BD y `despues` en formato navegador: la misma posicion.
+  const bd: SnapshotCita = {
+    inicio: '2026-07-16T10:00:00+00:00',
+    fin: '2026-07-16T10:30:00+00:00',
+    fin_activa: null,
+    fin_espera: null,
+    profesional_id: 'P1',
+  };
+  const pila = registrar(PILA_VACIA, [{ citaId: 'C1', antes: bd, despues: snap(10) }]);
+  assertEquals(pila.deshacer.length, 0, 'no se gasta un paso por no moverla');
+});
+
+Deno.test('descartar tira el paso imposible sin pasarlo al otro lado', () => {
+  const pila = registrar(registrar(PILA_VACIA, paso('C1', 10, 12)), paso('C2', 9, 11));
+  const tras = descartar(pila, 'deshacer');
+  assertEquals(tras.deshacer.length, 1, 'se va solo el ultimo');
+  assertEquals(tras.rehacer.length, 0, 'un paso que no se pudo aplicar NO se puede rehacer');
+  assertEquals(deshacer(tras)!.aplicar[0].citaId, 'C1', 'ahora se llega al paso anterior');
+});
+
+Deno.test('descartar del lado de rehacer no toca la pila de deshacer', () => {
+  const pila = deshacer(registrar(PILA_VACIA, paso('C1', 10, 12)))!.pila;
+  assertEquals(pila.rehacer.length, 1);
+  const tras = descartar(pila, 'rehacer');
+  assertEquals(tras.rehacer.length, 0);
+  assertEquals(tras.deshacer.length, 0);
+});
+
+Deno.test('descartar sobre una pila vacia no revienta', () => {
+  assertEquals(descartar(PILA_VACIA, 'deshacer'), PILA_VACIA);
+  assertEquals(descartar(PILA_VACIA, 'rehacer'), PILA_VACIA);
 });
