@@ -1,5 +1,21 @@
 # AGENTS.md - Your Workspace
 
+> **LEE `CLAUDE.md` ANTES DE TOCAR ESTE REPO.** Este fichero es andamiaje gen√©rico de
+> agente; las reglas del proyecto (Mecha, SaaS de peluquer√≠as) est√°n en `CLAUDE.md`.
+>
+> Lo m√≠nimo, por si no lees nada m√°s:
+> - **Ninguna clave se escribe en un fichero del repo.** Ni Supabase, ni Stripe, ni
+>   OpenRouter, ni "temporalmente" para probar. Van en `.env` (gitignored) o en el Vault.
+>   Esto no es teor√≠a: el 28 ago 2026 se encontraron cinco ficheros versionados con la
+>   `service_role` de producci√≥n en claro, en un repo que entonces era p√∫blico, y segu√≠a
+>   viva. Ver `informes/MIGRACION-CLAVES-SUPABASE-2026-08-28.md`.
+> - Las claves heredadas de Supabase (`eyJ...`) **no se pueden rotar**: se sustituyen por
+>   `sb_publishable_` (cliente) y `sb_secret_` (servidor). Decisi√≥n 9 de `CLAUDE.md`.
+> - En edge functions, la clave se pide a `claveServicio()`; para autorizar a quien llama,
+>   `peticionDeServicio(req)`. Nunca `Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')` a pelo ni
+>   decodificar un JWT para mirar su `role`.
+> - Multi-tenant: toda consulta y toda pol√≠tica llevan `negocio_id`.
+
 This folder is home. Treat it that way.
 
 ## First Run
@@ -232,12 +248,12 @@ When you apply knowledge from a previously evolved rule (AGENTS.md, MEMORY.md, T
 briefly mention it in your response: "ÔºàÂü∫‰∫é‰πãÂâçÁöÑÁªèÈ™åÔºö<one-line rule summary>Ôºâ".
 Keep it to one short line at most. Do not echo on every turn ‚Äî only when an evolved rule directly influenced your approach.
 <!-- /autoclaw:hermes-evolution-guidance -->
- # # #   †&˛  M o d i f i c a c i Û n   S e g u r a   d e   R e a c t   y   J S X 
- -   * * V e r i f i c a c i Û n   p r e v i a   e s t r i c t a : * *   A n t e s   d e   u s a r   l a s   h e r r a m i e n t a s   d e   r e e m p l a z o   p a r a   m o v e r   o   e d i t a r   J S X   e n   a r c h i v o s   g r a n d e s ,   D E B O   i n s p e c c i o n a r   l a s   l Ì n e a s   e x a c t a s   p a r a   a s e g u r a r   q u e   n o   r o m p o   e l   b a l a n c e o   d e   e t i q u e t a s   o   l l a v e s .   N u n c a   a s u m i r   q u e   d o s   c o m p o n e n t e s   e s t · n   j u n t o s   s i n   l e e r   e l   c Û d i g o . 
- -   * * V a l i d a c i Û n   a u t o m · t i c a : * *   D e s p u È s   d e   r e a l i z a r   c a m b i o s   e s t r u c t u r a l e s   e n   a r c h i v o s   R e a c t ,   D E B O   e j e c u t a r   s i e m p r e   \ 
- p x   t s c   - - n o E m i t \   e n   s e g u n d o   p l a n o   p a r a   a s e g u r a r   q u e   n o   h e   i n t r o d u c i d o   e r r o r e s   d e   s i n t a x i s   a n t e s   d e   a v i s a r   a l   u s u a r i o   d e   q u e   e l   c a m b i o   e s t ·   l i s t o . 
+ # # #   ÔøΩ&ÔøΩ  M o d i f i c a c i ÔøΩ n   S e g u r a   d e   R e a c t   y   J S X 
+ -   * * V e r i f i c a c i ÔøΩ n   p r e v i a   e s t r i c t a : * *   A n t e s   d e   u s a r   l a s   h e r r a m i e n t a s   d e   r e e m p l a z o   p a r a   m o v e r   o   e d i t a r   J S X   e n   a r c h i v o s   g r a n d e s ,   D E B O   i n s p e c c i o n a r   l a s   l ÔøΩ n e a s   e x a c t a s   p a r a   a s e g u r a r   q u e   n o   r o m p o   e l   b a l a n c e o   d e   e t i q u e t a s   o   l l a v e s .   N u n c a   a s u m i r   q u e   d o s   c o m p o n e n t e s   e s t ÔøΩ n   j u n t o s   s i n   l e e r   e l   c ÔøΩ d i g o . 
+ -   * * V a l i d a c i ÔøΩ n   a u t o m ÔøΩ t i c a : * *   D e s p u ÔøΩ s   d e   r e a l i z a r   c a m b i o s   e s t r u c t u r a l e s   e n   a r c h i v o s   R e a c t ,   D E B O   e j e c u t a r   s i e m p r e   \ 
+ p x   t s c   - - n o E m i t \   e n   s e g u n d o   p l a n o   p a r a   a s e g u r a r   q u e   n o   h e   i n t r o d u c i d o   e r r o r e s   d e   s i n t a x i s   a n t e s   d e   a v i s a r   a l   u s u a r i o   d e   q u e   e l   c a m b i o   e s t ÔøΩ   l i s t o . 
  
- # # #   <ÿﬂ  G e s t i Û n   d e l   S e r v i d o r   E x p o   /   M e t r o 
- -   S i   e l   u s u a r i o   e s t ·   u s a n d o   u n   p u e r t o   e s p e c Ì f i c o   ( e j .   8 0 8 0 ) ,   N U N C A   a r r a n c a r   s e r v i d o r e s   p a r a l e l o s   e n   o t r o s   p u e r t o s   ( c o m o   e l   8 0 8 1 )   a   m e n o s   q u e   s e   s o l i c i t e   e x p l Ì c i t a m e n t e . 
+ # # #   <ÔøΩÔøΩ  G e s t i ÔøΩ n   d e l   S e r v i d o r   E x p o   /   M e t r o 
+ -   S i   e l   u s u a r i o   e s t ÔøΩ   u s a n d o   u n   p u e r t o   e s p e c ÔøΩ f i c o   ( e j .   8 0 8 0 ) ,   N U N C A   a r r a n c a r   s e r v i d o r e s   p a r a l e l o s   e n   o t r o s   p u e r t o s   ( c o m o   e l   8 0 8 1 )   a   m e n o s   q u e   s e   s o l i c i t e   e x p l ÔøΩ c i t a m e n t e . 
  -   S i   u n   e r r o r   d e   s i n t a x i s   d e t i e n e   e l   s e r v i d o r   d e l   u s u a r i o ,   p e d i r l e   a m a b l e m e n t e   q u e   l o   r e i n i c i e   r e s p e t a n d o   e l   p u e r t o   o r i g i n a l .  
  

@@ -126,6 +126,41 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      **no se aplica** y se avisa a gritos en los logs.
    - Tests: `deno task test:ia`.
 
+9. **CLAVES DE SUPABASE: nunca en el código, y las heredadas están muertas (28 ago 2026).**
+   Se encontraron cinco ficheros versionados con la `service_role` en claro **en un repo que
+   entonces era público**, y seguía viva. Detalle y runbook:
+   `informes/MIGRACION-CLAVES-SUPABASE-2026-08-28.md`.
+   - **Regla dura: ninguna clave se escribe en un fichero del repo. Ninguna.** Ni en `.ts`,
+     ni en `.mjs`, ni en SQL, ni en un comentario, ni "temporalmente". Van en `.env`
+     (gitignored, ver `.env.example`) o en el Vault. Y quien las lee **falla ruidosamente
+     si faltan**, nunca tira de un valor por defecto: así fue como esto pasó desapercibido.
+   - **Las heredadas (`anon` y `service_role`, JWT que empiezan por `eyJ`) NO SE PUEDEN
+     ROTAR.** No es que no encuentres el botón: Supabase eliminó la operación. Se sustituyen
+     por `sb_publishable_...` (cliente) y `sb_secret_...` (servidor), que sí se crean, nombran
+     y revocan por separado. No pierdas el tiempo buscando "rotar".
+   - **En edge functions, una sola puerta: `claveServicio()` de
+     `supabase/functions/shared/claveServicio.ts`.** Nunca `Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')`
+     a pelo. Devuelve la nueva si está y la heredada si no, para que un despliegue no tenga
+     que coincidir con un cambio de clave.
+   - **Para autorizar llamadas internas (crons, triggers, otro backend): `peticionDeServicio(req)`.**
+     **PROHIBIDO** el patrón que había antes —decodificar el JWT y mirar si `role === 'service_role'`—
+     porque **no verifica la firma**: con `verify_jwt` apagado, cualquiera fabrica ese token.
+     Y falla igual con las claves nuevas, que no son JWT y no tienen tres partes.
+   - **Una secret key no es un JWT: viaja en la cabecera `apikey`, no en `Authorization: Bearer`.**
+     Vale para `pg_net`, Database Webhooks y n8n. La clave se lee del Vault en cada llamada,
+     nunca incrustada en el SQL.
+   - **Las funciones que llama la base de datos necesitan `verify_jwt = false`** en
+     `supabase/config.toml` — el verificador de la plataforma solo entiende JWT — **y por eso
+     autorizan por su cuenta**. Si añades una función a esa lista, añádele también su
+     `peticionDeServicio` o la dejas abierta al mundo.
+   - **Pendiente:** el cliente (`lib/supabase.ts`, `web/assets/*.js`, `web/*.html`) todavía
+     lleva la `anon` heredada incrustada. Hasta que se cambie por la publishable, **no se
+     pueden desactivar las claves heredadas**: el botón se las lleva a las dos y tumba login,
+     app, marketplace, demo y portal a la vez.
+   - Tests: `deno task test:claves`.
+   - Trampa de Windows: **nunca `echo "X=y" >> .env`** en PowerShell. Escribe UTF-16 y deja el
+     fichero ilegible para el CLI de Supabase. A mano, con el editor.
+
 ## Convenciones de código
 
 - Código en inglés, comentarios en español (sin emojis en código/UI).
