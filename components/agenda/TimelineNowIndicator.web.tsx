@@ -60,6 +60,11 @@ export const TimelineNowIndicator = memo(function TimelineNowIndicator({
 
   return (
     <div
+      // Gancho para tests de caracterizacion (tests/agenda-demo.spec.ts). Es un
+      // atributo, no entra en ninguna decision de render. La hora va en el valor
+      // para poder comprobar que el indicador se coloca donde toca sin depender
+      // de estilos ni de la posicion en pixeles.
+      data-mecha-ahora={horaStr}
       style={{
         position: "absolute",
         left,
