@@ -153,10 +153,45 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      `supabase/config.toml` — el verificador de la plataforma solo entiende JWT — **y por eso
      autorizan por su cuenta**. Si añades una función a esa lista, añádele también su
      `peticionDeServicio` o la dejas abierta al mundo.
-   - **Pendiente:** el cliente (`lib/supabase.ts`, `web/assets/*.js`, `web/*.html`) todavía
-     lleva la `anon` heredada incrustada. Hasta que se cambie por la publishable, **no se
-     pueden desactivar las claves heredadas**: el botón se las lleva a las dos y tumba login,
-     app, marketplace, demo y portal a la vez.
+   - **El cliente ya usa la publishable (28 ago 2026).** `sb_publishable_...` sustituye a la
+     `anon` en los 20 ficheros que la llevaban incrustada (app, landing, demo, marketplace,
+     portal, scripts de diagnóstico y specs E2E), en `EXPO_PUBLIC_SUPABASE_ANON_KEY` (`.env` y
+     `.env.example`) y en la función `public.chispa_tts_keepwarm`. Es pública por diseño, así
+     que va en el código igual que iba la `anon` — **no es un secreto**.
+     El nombre de la variable NO cambió a propósito: lo leen `app.config.js`, los scripts de
+     SEO y el build de Expo, y renombrarlo era un segundo fallo posible sin ninguna ganancia.
+     **Trampa verificada: Metro incrusta los `EXPO_PUBLIC_*` como literal y cachea esa
+     transformación por fichero.** Cambiar `.env` NO invalida los ficheros que no tocaste:
+     el bundle salió con la clave vieja en dos sitios aunque el código fuente estaba limpio
+     y los tests pasaban. Tras tocar una clave, reconstruir con la caché limpia y verificar
+     **el bundle**, no el código:
+     `rm -rf web/app .expo node_modules/.cache/metro && npm run build:web`
+     y luego `grep -rl 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' web/app/` → tiene que dar 0.
+   - **La clave PUBLICA también tiene su puerta: `clavePublicable()` (28 ago 2026).** No
+     basta con `claveServicio()`: **22 edge functions** creaban además un `userClient` con
+     `createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {headers:{Authorization}})`
+     para actuar EN NOMBRE de quien llama. Esa variable es la `anon` **heredada** — la
+     documentación de Supabase la clasifica como *legacy key* junto a `SUPABASE_SERVICE_ROLE_KEY`.
+     Al desactivar las heredadas el gateway las rechaza y esas 22 dejan de funcionar, aunque
+     su cliente admin ya use la clave nueva. La sustituta es `SUPABASE_PUBLISHABLE_KEYS`
+     (JSON indexado por nombre, igual que `SUPABASE_SECRET_KEYS`).
+     Nunca `Deno.env.get('SUPABASE_ANON_KEY')` a pelo: `clavePublicable()`, o
+     `clavePublicableOpcional()` si la función ya trata la ausencia como caso normal.
+   - **Para saber quién usa todavía una clave heredada, los logs lo dicen:** `edge_logs`
+     guarda `request.sb.jwt.apikey.payload.role` por petición. `anon`/`service_role` = clave
+     heredada; vacío = clave nueva (no son JWT y no tienen carga). Es la única forma fiable
+     de contestar "¿puedo apagarlas ya?" — el `curl` a `/rest/v1/` NO sirve, devuelve 401
+     con cualquier clave, viva o muerta.
+     **Dos pasos manuales que quedan (del usuario, no del agente):**
+     1. Poner la publishable en `EXPO_PUBLIC_SUPABASE_ANON_KEY` de **Vercel** y redesplegar.
+        `.env` no se despliega; la variable de Vercel gana al fallback del código.
+     2. **Cambiar la credencial de Supabase en n8n.** Medido en `edge_logs`: los workflows
+        (`axios/1.13.5`) llaman a `notificaciones_pendientes`, `expirar_citas_sin_senal` y
+        `marcar_notificacion_enviada` con la **`service_role` heredada**. Si se apagan las
+        heredadas antes de cambiar esto, se paran los WhatsApp de confirmación, recordatorio
+        y reseña de TODOS los salones, y los huecos de señal impagada dejan de liberarse.
+     3. Desactivar las heredadas en Settings → API Keys. Hasta entonces la `anon` filtrada
+        sigue viva. Es reversible.
    - Tests: `deno task test:claves`.
    - Trampa de Windows: **nunca `echo "X=y" >> .env`** en PowerShell. Escribe UTF-16 y deja el
      fichero ilegible para el CLI de Supabase. A mano, con el editor.

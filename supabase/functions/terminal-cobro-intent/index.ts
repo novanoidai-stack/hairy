@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 // S7.2 — Datafono virtual (Tap to Pay). Crea el PaymentIntent card_present para cobrar el TOTAL de
 // una cita por NFC. Auth staff (verify_jwt): iniciar_cobro_terminal() valida el negocio, crea/reusa
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     const { cita_id, propina_cents, descuento_cents } = await req.json().catch(() => ({}));
     if (!cita_id) return json({ error: 'cita_id requerido' }, 400);
 
-    const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    const userClient = createClient(url, clavePublicable(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: r, error } = await userClient.rpc('iniciar_cobro_terminal', {

@@ -11,6 +11,9 @@ import {
   claveEntrante,
   peticionDeServicio,
   _reiniciarAvisoLegado,
+  clavePublicable,
+  clavePublicableOpcional,
+  _reiniciarAvisoAnonLegado,
 } from "./claveServicio.ts";
 
 const pet = (cabeceras: Record<string, string>) =>
@@ -203,5 +206,101 @@ Deno.test("Authorization manda sobre apikey, y si trae basura no cuela", () => {
 Deno.test("el prefijo Bearer se lee sin importar mayusculas", () => {
   conEntorno({ [NUEVAS]: undefined, [LEGADO]: "eyJlegado" }, () =>
     assertEquals(claveEntrante(pet({ Authorization: "bearer eyJlegado" })), "eyJlegado"),
+  );
+});
+
+// --- Clave publicable (el `userClient` de 21 funciones) ----------------------
+// Vigilan lo mismo que las de arriba pero para la clave PUBLICA: que el dia que
+// se desactive la `anon` heredada esas funciones sigan actuando en nombre del
+// usuario, y que una variable nueva vacia o rota no las deje sin clave.
+const NUEVAS_PUB = "SUPABASE_PUBLISHABLE_KEYS";
+const LEGADO_PUB = "SUPABASE_ANON_KEY";
+
+function conEntornoPub(
+  vars: Record<string, string | undefined>,
+  prueba: () => void,
+) {
+  const previo: Record<string, string | undefined> = {};
+  for (const [k, v] of Object.entries(vars)) {
+    previo[k] = Deno.env.get(k);
+    if (v === undefined) Deno.env.delete(k);
+    else Deno.env.set(k, v);
+  }
+  _reiniciarAvisoAnonLegado();
+  try {
+    prueba();
+  } finally {
+    for (const [k, v] of Object.entries(previo)) {
+      if (v === undefined) Deno.env.delete(k);
+      else Deno.env.set(k, v);
+    }
+  }
+}
+
+Deno.test("publicable: prefiere la nueva cuando estan las dos", () => {
+  conEntornoPub(
+    {
+      [NUEVAS_PUB]: JSON.stringify({ default: "sb_publishable_nueva" }),
+      [LEGADO_PUB]: "eyJanonLegada",
+    },
+    () => assertEquals(clavePublicable(), "sb_publishable_nueva"),
+  );
+});
+
+Deno.test("publicable: usa la heredada mientras no exista la nueva", () => {
+  conEntornoPub(
+    { [NUEVAS_PUB]: undefined, [LEGADO_PUB]: "eyJanonLegada" },
+    () => assertEquals(clavePublicable(), "eyJanonLegada"),
+  );
+});
+
+Deno.test("publicable: JSON roto no deja sin clave, cae al legado", () => {
+  conEntornoPub(
+    { [NUEVAS_PUB]: "{esto no es json", [LEGADO_PUB]: "eyJanonLegada" },
+    () => assertEquals(clavePublicable(), "eyJanonLegada"),
+  );
+});
+
+Deno.test("publicable: si falta el nombre pedido cae al legado", () => {
+  conEntornoPub(
+    {
+      [NUEVAS_PUB]: JSON.stringify({ otra: "sb_publishable_otra" }),
+      [LEGADO_PUB]: "eyJanonLegada",
+    },
+    () => assertEquals(clavePublicable(), "eyJanonLegada"),
+  );
+});
+
+Deno.test("publicable: sabe leer una clave que no es la 'default'", () => {
+  conEntornoPub(
+    {
+      [NUEVAS_PUB]: JSON.stringify({ default: "sb_pub_def", movil: "sb_pub_movil" }),
+      [LEGADO_PUB]: undefined,
+    },
+    () => assertEquals(clavePublicable("movil"), "sb_pub_movil"),
+  );
+});
+
+Deno.test("publicable: sin ninguna de las dos revienta con mensaje claro", () => {
+  conEntornoPub(
+    { [NUEVAS_PUB]: undefined, [LEGADO_PUB]: undefined },
+    () => assertThrows(() => clavePublicable(), Error, "Falta la clave publicable"),
+  );
+});
+
+Deno.test("publicable: la variante opcional devuelve undefined en vez de lanzar", () => {
+  conEntornoPub(
+    { [NUEVAS_PUB]: undefined, [LEGADO_PUB]: undefined },
+    () => assertEquals(clavePublicableOpcional(), undefined),
+  );
+});
+
+Deno.test("publicable: el dia del apagon (solo la nueva) sigue funcionando", () => {
+  conEntornoPub(
+    {
+      [NUEVAS_PUB]: JSON.stringify({ default: "sb_publishable_nueva" }),
+      [LEGADO_PUB]: undefined,
+    },
+    () => assertEquals(clavePublicable(), "sb_publishable_nueva"),
   );
 });

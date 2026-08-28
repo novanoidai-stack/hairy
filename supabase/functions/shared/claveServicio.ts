@@ -104,6 +104,106 @@ export function claveServicioOpcional(
   }
 }
 
+/** Nombre de la clave dentro de `SUPABASE_PUBLISHABLE_KEYS`. Supabase crea la suya como `default`. */
+const NOMBRE_PUBLICABLE_POR_DEFECTO = "default";
+
+let avisadoDelAnonLegado = false;
+
+/**
+ * La clave PUBLICA con la que se crea el cliente que SI respeta las RLS.
+ *
+ * POR QUE EXISTE (28 ago 2026, segundo hallazgo)
+ * `claveServicio()` arreglo la clave de servidor, pero 21 edge functions crean
+ * ademas un `userClient` para actuar EN NOMBRE del usuario que llama:
+ *
+ *     createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+ *       global: { headers: { Authorization: authHeader } },
+ *     })
+ *
+ * Esa variable es la `anon` HEREDADA. La documentacion de Supabase la clasifica
+ * literalmente como *legacy key*, junto a `SUPABASE_SERVICE_ROLE_KEY`. El dia
+ * que se desactiven las heredadas, el gateway rechaza esas peticiones y esas 21
+ * funciones dejan de funcionar — aunque su cliente admin ya use la clave nueva.
+ *
+ * Se comprobo en los logs (`edge_logs`) que el problema es real y no teorico.
+ *
+ * La sustituta es `SUPABASE_PUBLISHABLE_KEYS`, que Supabase inyecta igual que
+ * `SUPABASE_SECRET_KEYS`: un JSON indexado por nombre, no una cadena suelta.
+ *
+ * Misma estrategia que `claveServicio`: prefiere la nueva y cae a la heredada
+ * mientras siga viva, para que desplegar esto NO cambie nada hoy y siga
+ * funcionando el dia del apagon. Sin ventana de corte.
+ *
+ * OJO: esta clave NO da permisos por si misma. Quien decide que puede hacer la
+ * peticion es el JWT del usuario en `Authorization` y las RLS. Por eso es
+ * publica y por eso vive en el navegador.
+ *
+ * @throws Si no hay ninguna de las dos. Preferible reventar con un mensaje claro
+ *         que crear el cliente con cadena vacia y morir despues en la primera
+ *         consulta con un error que no dice nada — que es justo lo que hacia el
+ *         `?? ''` que habia antes.
+ */
+export function clavePublicable(
+  nombre: string = NOMBRE_PUBLICABLE_POR_DEFECTO,
+): string {
+  const nuevas = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+  if (nuevas) {
+    try {
+      const mapa = JSON.parse(nuevas) as Record<string, unknown>;
+      const clave = mapa?.[nombre];
+      if (typeof clave === "string" && clave.length > 0) return clave;
+      console.warn(
+        `[clavePublicable] SUPABASE_PUBLISHABLE_KEYS no trae ninguna clave "${nombre}". ` +
+          `Disponibles: ${Object.keys(mapa ?? {}).join(", ") || "(ninguna)"}. Se usa la heredada.`,
+      );
+    } catch {
+      // JSON roto: se cae al legado en vez de tumbar la funcion, igual que arriba.
+      console.warn(
+        "[clavePublicable] SUPABASE_PUBLISHABLE_KEYS no es JSON valido. Se usa la heredada.",
+      );
+    }
+  }
+
+  const legado = Deno.env.get("SUPABASE_ANON_KEY");
+  if (legado) {
+    if (!avisadoDelAnonLegado) {
+      avisadoDelAnonLegado = true;
+      console.warn(
+        "[clavePublicable] Usando la anon HEREDADA. Ya no se puede rotar: " +
+          "migrar a una publishable (sb_publishable_...) en Settings > API Keys.",
+      );
+    }
+    return legado;
+  }
+
+  throw new Error(
+    "Falta la clave publicable: ni SUPABASE_PUBLISHABLE_KEYS ni SUPABASE_ANON_KEY " +
+      "estan definidas en el entorno de esta edge function.",
+  );
+}
+
+/**
+ * Igual que `clavePublicable` pero devuelve `undefined` en vez de reventar.
+ *
+ * Para las funciones que YA tratan la ausencia como un caso normal y responden
+ * algo sensato (`notificar-soporte` devuelve 401). Ahi lanzar cambiaria el
+ * comportamiento, que es lo que una mudanza de claves no debe hacer.
+ */
+export function clavePublicableOpcional(
+  nombre: string = NOMBRE_PUBLICABLE_POR_DEFECTO,
+): string | undefined {
+  try {
+    return clavePublicable(nombre);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Solo para tests: olvida que ya se aviso del anon heredado. */
+export function _reiniciarAvisoAnonLegado(): void {
+  avisadoDelAnonLegado = false;
+}
+
 /**
  * ¿Es `valor` una clave de servicio valida de este proyecto?
  *

@@ -13,6 +13,7 @@
 //           MECHA_CONTACTO_EMAIL (def contacto@mechaa.es)
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { clavePublicableOpcional } from '../shared/claveServicio.ts';
 
 const ORIGENES = [
   'https://www.mechaa.es',
@@ -81,7 +82,7 @@ Deno.serve(async (req: Request) => {
   // usuario autenticado. Evita que cualquiera use este endpoint para spamear
   // el buzon de Mecha sin haber creado antes un ticket real.
   const url = Deno.env.get('SUPABASE_URL');
-  const anon = Deno.env.get('SUPABASE_ANON_KEY');
+  const anon = clavePublicableOpcional();
   const auth = req.headers.get('authorization') || '';
   if (!url || !anon || !auth) return json({ enviado: false, error: 'no_autorizado' }, 401, req);
   const db = createClient(url, anon, { global: { headers: { Authorization: auth } } });

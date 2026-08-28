@@ -12,7 +12,7 @@
 // Sin `accion` se asume 'invitar' (compatibilidad con las llamadas antiguas).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -102,14 +102,13 @@ Deno.serve(async (req: Request) => {
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_ROLE = claveServicio();
-  const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   // ---- Identificar y autorizar al solicitante (owner/admin de su negocio) ----
   const authHeader = req.headers.get('Authorization') || '';
-  const caller = createClient(SUPABASE_URL, ANON_KEY, {
+  const caller = createClient(SUPABASE_URL, clavePublicable(), {
     global: { headers: { Authorization: authHeader } },
     auth: { autoRefreshToken: false, persistSession: false },
   });

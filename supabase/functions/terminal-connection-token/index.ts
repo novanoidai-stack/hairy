@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 // S7.2 — Datafono virtual (Tap to Pay). Devuelve un ConnectionToken de Stripe Terminal para que la
 // SDK del movil del estilista se conecte. Auth staff (verify_jwt): terminal_contexto() valida el
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     if (!authHeader) return json({ error: 'no_autorizado' }, 401);
 
-    const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    const userClient = createClient(url, clavePublicable(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: ctx } = await userClient.rpc('terminal_contexto');

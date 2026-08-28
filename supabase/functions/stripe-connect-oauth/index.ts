@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 // S5 (Connect Standard) — onboarding OAuth. Dos modos en una misma edge (verify_jwt=false porque
 // Stripe redirige el callback sin JWT):
@@ -20,7 +20,6 @@ const json = (b: unknown, status = 200) =>
 const redirect = (loc: string) => new Response(null, { status: 302, headers: { Location: loc } });
 
 const URL_SUPA = Deno.env.get('SUPABASE_URL') ?? '';
-const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const SERVICE_ROLE = claveServicio();
 const service = createClient(URL_SUPA, SERVICE_ROLE);
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' });
@@ -74,7 +73,7 @@ Deno.serve(async (req) => {
     if (!authHeader) return json({ error: 'no_autorizado' }, 401);
     if (!CLIENT_ID) return json({ error: 'connect_no_configurado' }, 500);
 
-    const userClient = createClient(URL_SUPA, ANON, { global: { headers: { Authorization: authHeader } } });
+    const userClient = createClient(URL_SUPA, clavePublicable(), { global: { headers: { Authorization: authHeader } } });
     const { data: userData } = await userClient.auth.getUser();
     const uid = userData?.user?.id;
     if (!uid) return json({ error: 'no_autorizado' }, 401);

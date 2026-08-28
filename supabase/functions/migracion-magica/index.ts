@@ -24,6 +24,7 @@ import {
 } from '../shared/openrouterClient.ts';
 import { comprobarCupo } from '../shared/cupo.ts';
 import { auditar, auditarFallo } from '../shared/chispa-auditoria.ts';
+import { clavePublicable } from '../shared/claveServicio.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +36,6 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 
 /** Tope por documento. Un base64 de ~18 MB de chars ~ 13 MB de fichero real. */
@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
 
   const arranque = Date.now();
   const authHeader = req.headers.get('Authorization') ?? '';
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const userClient = createClient(SUPABASE_URL, clavePublicable(), {
     global: { headers: { Authorization: authHeader } },
   });
 

@@ -15,7 +15,7 @@
 
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -26,7 +26,6 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const admin = createClient(SUPABASE_URL, claveServicio());
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' });
@@ -49,7 +48,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
   const authHeader = req.headers.get('Authorization') || '';
-  const caller = createClient(SUPABASE_URL, ANON_KEY, {
+  const caller = createClient(SUPABASE_URL, clavePublicable(), {
     global: { headers: { Authorization: authHeader } },
     auth: { autoRefreshToken: false, persistSession: false },
   });

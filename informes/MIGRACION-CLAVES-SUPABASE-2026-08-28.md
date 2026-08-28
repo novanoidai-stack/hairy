@@ -143,6 +143,11 @@ Moraleja para la próxima: un 401 que no dice *por qué* cuesta una tarde. Por e
 
 > **Estado a 28 ago 2026, 17:00.** Pasos 1 a 5: **HECHOS y verificados**. Queda
 > solo el paso 6, que es el que cierra la fuga.
+>
+> **Corrección (28 ago 2026, tarde).** Ese "queda solo el paso 6" era falso: el
+> paso 6 apaga la `anon` **y** la `service_role` a la vez, y la `anon` seguía
+> incrustada en el cliente. Faltaba un paso entero, ahora documentado como
+> **paso 5.bis**. Hecho también. Ahora sí: solo queda el 6.
 
 ### Paso 1 — Crear/localizar la secret key *(panel)* — HECHO
 Supabase → **Settings → API Keys → "Publishable and secret API keys"**.
@@ -179,9 +184,191 @@ funcionando con la clave heredada.
 No hay indicador automático de uso. Los que se olvidan: CI/CD, integraciones de
 terceros, apps ya instaladas, y cualquier webhook.
 
+### Paso 5.bis — Migrar el CLIENTE a la publishable — HECHO (28 ago 2026)
+
+Este es el paso que faltaba y el que de verdad bloqueaba el 6. La `anon` heredada
+estaba incrustada en el navegador; apagarla sin esto tumba login, app,
+marketplace, demo y portal a la vez, para todos los salones.
+
+**La publishable es la sustituta directa de la `anon`:** mismos privilegios bajos,
+mismas RLS, pensada para vivir en el navegador. **No es un secreto** — va en el
+código exactamente como iba la `anon`. La clave `default` es
+`sb_publishable_...` (46 caracteres).
+
+**Alcance real: 21 apariciones en 20 ficheros**, no los 9 que decía el encargo.
+El barrido bueno es decodificar la carga de cada JWT y quedarse con los de
+`role: anon`, no fiarse de una lista escrita antes:
+
+```
+git ls-files -z | xargs -0 grep -l "eyJ"
+```
+
+- **App y web:** `lib/supabase.ts`, `web/assets/{auth,directorio,directorio-contacto,salon-directorio,reportarError}.js`,
+  `web/index.html` (×2), `web/demo.html`, `web/demo_v2.html`.
+- **Scripts de diagnóstico** (no los mencionaba el encargo): `check-citas.mjs`,
+  `generate-massive.mjs`, `inspect-db.mjs`, `inspect-schema.mjs`, `test-auth.mjs`,
+  `scripts/check-inventario-tables.js`.
+- **Cadena de build de SEO** (tampoco): `scripts/seo/data.mjs`. Lo arrastra
+  `npm run build:web` vía `generate-seo` y `generate-sitemap`, así que una clave
+  muerta ahí rompe el build, no solo un script suelto.
+- **Specs E2E** (tampoco): `tests/{caja-sesion,inventario-gramos,recursos-puestos}.spec.ts`.
+- **Variable de build:** `EXPO_PUBLIC_SUPABASE_ANON_KEY` en `.env` y `.env.example`.
+  En `lib/supabase.ts` la clave incrustada era el **fallback** de esa variable:
+  cambiar solo una de las dos deja la vieja en pie.
+- **Base de datos:** `public.chispa_tts_keepwarm` la llevaba en su definición →
+  `supabase/migrations/20260828180000_chispa_tts_keepwarm_publishable.sql`.
+
+**El nombre de la variable NO se cambió** (sigue `..._ANON_KEY` aunque ya no haya
+`anon`): lo leen `app.config.js`, los scripts de SEO y el build de Expo.
+Renombrarlo era un segundo punto de fallo sin ninguna ganancia.
+
+#### La trampa que casi lo tumba: Metro cachea el valor de `EXPO_PUBLIC_*`
+
+Los `EXPO_PUBLIC_*` **no se leen en tiempo de ejecución**: Metro los **incrusta
+como literal al transformar cada fichero**, y cachea esa transformación por
+fichero. Cambiar `.env` **no invalida** la caché de los ficheros que no tocaste.
+
+Pasó de verdad, y el `.env` ya estaba bien tres minutos antes del build:
+
+| | leía | en el bundle |
+|---|---|---|
+| `lib/supabase.ts` (editado) | `process.env... \|\| '<publishable>'` | publishable ✓ |
+| `clientes.web.tsx` (NO editado) | `process.env... \|\| ''` | **`anon` legada** ✗ |
+| `ColorTryOnModal.web.tsx` (NO editado) | `process.env... \|\| ''` | **`anon` legada** ✗ |
+
+Compilaba, pasaba los tests y el `grep eyJ` del repo daba limpio, porque la clave
+vieja ya no estaba en **el código fuente** — estaba en la **caché de Metro**.
+Habría llegado a producción y habría muerto al apagar las heredadas.
+
+**Por eso hay que reconstruir con la caché limpia y verificar el bundle, no el
+código:**
+
+```bash
+rm -rf web/app .expo node_modules/.cache/metro && npm run build:web
+grep -rl 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' web/app/   # tiene que dar 0
+```
+
+De paso se quitó la causa raíz: esos dos ficheros leían la variable **por su
+cuenta** con `|| ''`, o sea que una variable mal puesta les dejaba el `apikey`
+**vacío en silencio** — justo lo que la decisión 9 prohíbe. Ahora importan
+`SUPABASE_ANON_KEY` de `lib/supabase.ts`, que es la única fuente.
+
+#### ⚠️ Antes de desplegar: la variable en VERCEL
+
+`.env` está gitignorado; **Vercel compila con sus propias variables**. Si
+`EXPO_PUBLIC_SUPABASE_ANON_KEY` sigue valiendo la `anon` vieja en el proyecto de
+Vercel, el build de producción la volverá a incrustar y apagar las heredadas
+tumbará la app igual — la variable gana al fallback del código.
+
+**Hay que actualizarla en Vercel → Settings → Environment Variables** (los tres
+entornos) y **redesplegar**. No se puede comprobar desde aquí: el CLI de Vercel
+no está instalado y el conector de Vercel no está autorizado en esta sesión.
+
+**Lo que queda con `eyJ` y es correcto que quede:** prosa en `CLAUDE.md`,
+`AGENTS.md`, `.env.example` y este informe; el fixture `eyJlegado` de
+`claveServicio.test.ts`; el `ilike '%eyJhbGci%'` de la migración
+`20260828120000`, que es un *detector* de claves incrustadas; y binarios
+(`.png`, `.wav`) que son falsos positivos del grep.
+
+### Paso 5.ter — La clave PÚBLICA del servidor: 22 funciones más — HECHO
+
+`claveServicio()` arregló el cliente admin. Pero **22 edge functions** creaban
+además un cliente para actuar **en nombre del usuario que llama**:
+
+```ts
+const userClient = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+  global: { headers: { Authorization: authHeader } },
+});
+```
+
+Esa variable es la **`anon` heredada**. La documentación de Supabase la lista
+literalmente bajo *«Legacy keys»*, junto a `SUPABASE_SERVICE_ROLE_KEY`. El día
+del apagón el gateway rechaza esas peticiones y las 22 dejan de funcionar,
+**aunque su cliente admin ya use la secret key nueva**. Se habría notado en:
+agenda-asistente, crear-acceso-empleado, los tres checkouts de Stripe, los holds,
+el TPV, todas las de Chispa/visión, migración mágica y onboarding.
+
+La sustituta es `SUPABASE_PUBLISHABLE_KEYS`, que Supabase inyecta igual que
+`SUPABASE_SECRET_KEYS`: JSON indexado por nombre, la clave se llama `default`.
+
+Solución simétrica a la de servicio, en el mismo fichero:
+`clavePublicable()` y `clavePublicableOpcional()` en
+`supabase/functions/shared/claveServicio.ts`. Prefieren la nueva, caen a la
+heredada mientras viva, y revientan con mensaje claro si no hay ninguna — en vez
+del `?? ''` de antes, que construía el cliente con cadena vacía y moría después
+con un error que no decía nada. 8 pruebas nuevas (`deno task test:claves`, 31 en
+total). Las 22 pasan `deno check`.
+
+### Quién usa todavía una clave heredada — la respuesta está en los logs
+
+No hace falta adivinar. `edge_logs` guarda `request.sb.jwt.apikey.payload.role`
+en cada petición: si sale `anon` o `service_role`, esa petición fue con una clave
+heredada; si sale vacío, fue con una nueva (no son JWT, no tienen carga).
+
+Medido el 28 ago 2026 (ventana de 24 h):
+
+| clave | peticiones | quién |
+|---|---|---|
+| `anon` heredada | 26 542 | navegadores (`supabase-js runtime=web`), incl. móviles reales |
+| clave nueva | 19 011 | edge functions ya migradas |
+| `service_role` heredada | **1 689** | **n8n** (`axios/1.13.5`) |
+| `supabase_admin` | 2 | plataforma |
+
+**n8n es el bloqueo que no se ve desde el repo**, y aquí queda medido. Llama a
+`notificaciones_pendientes` (cada 2 min), `expirar_citas_sin_senal` y
+`marcar_notificacion_enviada` con la `service_role` heredada. Apagar antes de
+cambiar esa credencial **para los WhatsApp de todos los salones** (confirmación,
+recordatorio, reseña, enlace de señal) y deja de liberar los huecos de las
+señales impagadas.
+
+Consulta para repetirlo:
+
+```sql
+select coalesce(nullIf(log_attributes['request.sb.jwt.apikey.payload.role'],''),'(clave nueva)') as rol,
+       log_attributes['request.headers.user_agent'] as agente,
+       count(*) as n, max(timestamp) as ultima
+  from logs where source = 'edge_logs'
+ group by rol, agente order by n desc;
+```
+
+### Cómo comprobar si una clave sigue viva — OJO, el `curl` obvio no vale
+
+```
+curl -s -o /dev/null -w "%{http_code}\n" -H "apikey: <clave>" \
+  https://vtrggiogjrhqtwbhbgia.supabase.co/rest/v1/
+```
+
+**Esto no sirve.** Medido el 28 ago 2026: la raíz `/rest/v1/` devuelve **401 con
+todo** — con la `anon` viva, con la publishable y con un JWT inventado. Da igual
+lo que pases. Quien lo use va a dar por muerta una clave que sigue abriendo la
+puerta.
+
+Lo que sí discrimina es pedir **una tabla**, y mirar 401 contra cualquier otra cosa:
+
+```
+curl -s -o /dev/null -w "%{http_code}\n" -H "apikey: <clave>" \
+  'https://vtrggiogjrhqtwbhbgia.supabase.co/rest/v1/negocios?select=id&limit=1'
+```
+
+| clave | raíz `/rest/v1/` | tabla `negocios` | lectura |
+|---|---|---|---|
+| `anon` heredada (viva) | 401 | **404** | aceptada |
+| `sb_publishable_...` | 401 | **404** | aceptada |
+| JWT inventado | 401 | **401** | rechazada |
+
+**401 = clave rechazada (muerta). Cualquier otra cosa = sigue viva.** El 404 es
+que la tabla no está expuesta en el esquema público, y eso solo se contesta
+*después* de aceptar la clave.
+
+Y esto solo dice si la clave **vive**, no si alguien **la usa**. Para lo segundo,
+los logs de Supabase (source `edge_logs`) unas horas después de desplegar.
+
 ### Paso 6 — Desactivar la heredada *(panel)* — LO ÚNICO QUE QUEDA
 En esa misma pantalla. **Es reversible**: si te dejaste un cliente, la reactivas.
 Hasta aquí, la filtración sigue abierta.
+
+**Este paso es del usuario, no del agente.** El repo queda listo; el botón lo
+pulsa una persona, después de desplegar y de mirar los logs.
 
 ---
 

@@ -15,7 +15,7 @@ import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
 import { fasesDe, chocaActivaActiva } from '../../../lib/retrasos.ts';
 import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
 import { cuerpoAgendaAsistente, validarCuerpo } from '../shared/esquemas.ts';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -834,7 +834,7 @@ Deno.serve(async (req) => {
   try {
     // --- Auth: resolver usuario ---
     const authHeader = req.headers.get('Authorization') ?? '';
-    const userClient = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    const userClient = createClient(SUPABASE_URL, clavePublicable(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData } = await userClient.auth.getUser();

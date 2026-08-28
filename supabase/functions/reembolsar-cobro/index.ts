@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 // Reembolso de un cobro online (Stripe) desde Mecha. Auth staff (verify_jwt). Autoriza con
 // iniciar_reembolso_cobro, hace el refund en Stripe y persiste via registrar_reembolso (idempotente,
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const { cobro_id, importe_cents } = await req.json().catch(() => ({}));
     if (!cobro_id) return json({ error: 'cobro_id requerido' }, 400);
 
-    const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    const userClient = createClient(url, clavePublicable(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: info, error: eAuth } = await userClient.rpc('iniciar_reembolso_cobro', {

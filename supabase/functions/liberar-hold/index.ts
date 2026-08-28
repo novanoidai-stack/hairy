@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { claveServicio } from '../shared/claveServicio.ts';
+import { clavePublicable, claveServicio } from '../shared/claveServicio.ts';
 
 // Libera un hold (fianza retenida). Auth staff (verify_jwt). S5: cuenta Stripe del negocio o plataforma.
 
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     const { pago_id, cita_id } = await req.json().catch(() => ({}));
     if (!pago_id && !cita_id) return json({ error: 'pago_id o cita_id requerido' }, 400);
 
-    const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    const userClient = createClient(url, clavePublicable(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: info, error: eAuth } = await userClient.rpc('iniciar_liberacion_hold', {

@@ -4,6 +4,7 @@
 // Entrada: imageUrl (URL firmada privada del bucket cliente-fotos), targetColor (color a aplicar).
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { clavePublicable } from '../shared/claveServicio.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +22,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
   const authHeader = req.headers.get('Authorization') ?? '';
-  const userClient = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+  const userClient = createClient(SUPABASE_URL, clavePublicable(), {
     global: { headers: { Authorization: authHeader } },
   });
   const { data: userData } = await userClient.auth.getUser();
