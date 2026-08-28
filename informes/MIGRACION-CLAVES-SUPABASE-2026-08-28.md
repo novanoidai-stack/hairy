@@ -113,9 +113,38 @@ cabeceras. Hay una prueba dedicada a que un JWT forjado salga rechazado.
 
 ---
 
+## 3.quater El giro: Supabase ya había migrado las funciones
+
+Descubierto al desplegar, instrumentando el 401 que devolvía el cron:
+
+```
+entrante:                  len=219  pre=eyJh   <- el vault mandaba la JWT heredada
+SUPABASE_SERVICE_ROLE_KEY: len=41   pre=sb_s   <- ya era una secret key
+SUPABASE_SECRET_KEYS:      len=55   pre={"de   <- el JSON nuevo
+```
+
+**La plataforma ya había sustituido `SUPABASE_SERVICE_ROLE_KEY` en el entorno de
+las edge functions por una `sb_secret_...`.** Las 31 ya hablaban con la base de
+datos con la clave nueva, incluso con el código viejo. El único sitio que seguía
+con la clave filtrada era el vault.
+
+Y eso destapó un **bug silencioso en producción**: `agenda-optimizador` autenticaba
+el modo "ojo" comparando la JWT entrante contra esa variable de entorno. Cuando la
+plataforma la cambió, la comparación dejó de casar y **cada movimiento de agenda
+fallaba con 401 "No autenticado"**, sin que saltara nada. Arreglado de rebote: ahora
+responde 200 con sus hallazgos.
+
+Moraleja para la próxima: un 401 que no dice *por qué* cuesta una tarde. Por eso
+`peticionDeServicio` deja la huella (longitud y 4 caracteres) de las tres claves.
+
+---
+
 ## 4. Lo que falta
 
-### Paso 1 — Crear/localizar la secret key *(panel)*
+> **Estado a 28 ago 2026, 17:00.** Pasos 1 a 5: **HECHOS y verificados**. Queda
+> solo el paso 6, que es el que cierra la fuga.
+
+### Paso 1 — Crear/localizar la secret key *(panel)* — HECHO
 Supabase → **Settings → API Keys → "Publishable and secret API keys"**.
 
 En Mecha el sistema nuevo **ya está activo** (convive la `anon` heredada con una
@@ -123,7 +152,7 @@ En Mecha el sistema nuevo **ya está activo** (convive la `anon` heredada con un
 probablemente ya existe. Si no, el botón "Create new API keys" la crea; es seguro
 y no toca las heredadas.
 
-### Paso 2 — Desplegar las edge functions *(Alexandro)*
+### Paso 2 — Desplegar las edge functions — HECHO (las 31)
 Con `supabase/config.toml`, que apaga `verify_jwt` en las cinco funciones a las
 que llama la base de datos. **Este paso va primero**: apagar el verificador sin la
 comprobación propia dejaría esas funciones abiertas.
@@ -131,14 +160,14 @@ comprobación propia dejaría esas funciones abiertas.
 Si el despliegue no es por CLI sino por panel, el interruptor hay que tocarlo
 allí, función por función.
 
-### Paso 3 — Aplicar la migración *(SQL)*
+### Paso 3 — Aplicar la migración — HECHO
 `supabase/migrations/20260828120000_claves_pg_net_cabecera_apikey.sql`.
 
 Pasa los seis llamadores a la cabecera `apikey` **manteniendo el `Authorization`**,
 para que este paso y el anterior no tengan que ser el mismo minuto. Sigue
 funcionando con la clave heredada.
 
-### Paso 4 — Repartir la clave nueva
+### Paso 4 — Repartir la clave nueva — HECHO (vault) · pendiente n8n
 - **Vault** → cambiar el secreto `service_role_key`. Actualiza los seis de golpe.
 - **Edge functions** → confirmar que `SUPABASE_SECRET_KEYS` aparece en
   *Edge Functions → Secrets*. Supabase la inyecta sola; no hay que pegar nada.
@@ -146,11 +175,11 @@ funcionando con la clave heredada.
 - **Tu `.env` local** → solo si llegas a usar los scripts. Los nombres están en
   `.env.example`.
 
-### Paso 5 — Verificar que nadie usa ya la heredada
+### Paso 5 — Verificar que nadie usa ya la heredada — HECHO salvo n8n
 No hay indicador automático de uso. Los que se olvidan: CI/CD, integraciones de
 terceros, apps ya instaladas, y cualquier webhook.
 
-### Paso 6 — Desactivar la heredada *(panel)*
+### Paso 6 — Desactivar la heredada *(panel)* — LO ÚNICO QUE QUEDA
 En esa misma pantalla. **Es reversible**: si te dejaste un cliente, la reactivas.
 Hasta aquí, la filtración sigue abierta.
 
