@@ -9,7 +9,10 @@ export default function ResenaRedirect() {
 
   useEffect(() => {
     if (slug && typeof window !== 'undefined') {
-      window.location.replace('/r/' + slug + '?action=review');
+      // OJO con la ruta: el portal vive en /app/r/[slug]. Un '/r/' a secas no lo
+      // sirve nadie (ni vercel.json ni el espejo local) y acababa en 404 — lo
+      // encontro el smoke de pantallas el 28 ago 2026.
+      window.location.replace('/app/r/' + slug + '?action=review');
     }
   }, [slug]);
 

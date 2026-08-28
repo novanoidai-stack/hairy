@@ -322,10 +322,14 @@ async function cargar(): Promise<void> {
         // respaldo cliente no puede ver fuera_jornada y marca huecos en horas
         // que la persona no trabaja (p. ej. la pausa de comida entre turnos).
         // Columnas minimas: este hook es el mayor lastre de la app.
+        // `horarios_profesional` NO tiene negocio_id (solo profesional_id): la
+        // consulta anterior con .eq('negocio_id', ...) devolvia un 400 silencioso
+        // y los avisos trabajaban sin jornadas reales. Lo encontro el smoke de
+        // pantallas el 28 ago 2026 (mismo fallo que 17a1103f1 arreglo en la agenda).
         supabase
           .from('horarios_profesional')
           .select('profesional_id, dia_semana, hora_inicio, hora_fin, turno')
-          .eq('negocio_id', negocioId),
+          .in('profesional_id', profesionales.map((p: any) => p.id)),
         supabase
           .from('cierres_negocio')
           .select('fecha')
