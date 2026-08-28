@@ -1,7 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://aujlzfmrtafbmmjybjxz.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1amx6Zm1ydGFmYm1tanlianh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjI5NDU3NywiZXhwIjoyMDg3ODcwNTc3fQ.zS5vCJeXDTlfdafNYZ6ct4pbE6Bk7QNyOym79jTzL60';
+// OJO: este script es del proyecto de novanoidai.com, NO del de Mecha.
+// Variable distinta a proposito para no apuntar la clave de un proyecto al otro.
+process.loadEnvFile?.();
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY_NOVANOIDAI;
+if (!supabaseKey) {
+  console.error("Falta SUPABASE_SERVICE_ROLE_KEY_NOVANOIDAI. Ponla en .env (ver .env.example).");
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

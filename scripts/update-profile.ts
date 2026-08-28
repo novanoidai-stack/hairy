@@ -1,8 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
+// OJO: este script es del proyecto de novanoidai.com, NO del de Mecha. Variable
+// distinta a proposito para no apuntar la clave de un proyecto al otro.
+//
+// La service_role se salta TODAS las RLS: es la llave maestra del proyecto, no
+// una credencial mas. Nunca se escribe en el codigo -- vive en .env, que esta
+// en .gitignore. Ver .env.example.
+process.loadEnvFile?.();
+const claveServicio = process.env.SUPABASE_SERVICE_ROLE_KEY_NOVANOIDAI;
+if (!claveServicio) {
+  console.error('Falta SUPABASE_SERVICE_ROLE_KEY_NOVANOIDAI. Ponla en .env (ver .env.example).');
+  process.exit(1);
+}
+
 const supabase = createClient(
   'https://aujlzfmrtafbmmjybjxz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1amx6Zm1ydGFmYm1tanlianh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjI5NDU3NywiZXhwIjoyMDg3ODcwNTc3fQ.zS5vCJeXDTlfdafNYZ6ct4pbE6Bk7QNyOym79jTzL60'
+  claveServicio,
 );
 
 async function updateProfile() {

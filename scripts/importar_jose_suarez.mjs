@@ -3,9 +3,19 @@ import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import XLSX from 'xlsx';
 
-// Usar la URL de producción y la service_role key
-const supabaseUrl = 'https://vtrggiogjrhqtwbhbgia.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njc1NzI5NSwiZXhwIjoyMDkyMzMzMjk1fQ.5ejE9ktV7edy2jC4uaDbBvmj34_yPn8wscX6JGDSTZ4';
+// Usar la URL de producción y la service_role key.
+//
+// La service_role se salta TODAS las RLS: es la llave maestra del proyecto, no
+// una credencial mas. Nunca se escribe en el codigo -- vive en .env, que esta
+// en .gitignore. Ver .env.example.
+process.loadEnvFile?.();
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://vtrggiogjrhqtwbhbgia.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!supabaseServiceKey) {
+  console.error("Falta SUPABASE_SERVICE_ROLE_KEY. Ponla en .env (ver .env.example).");
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

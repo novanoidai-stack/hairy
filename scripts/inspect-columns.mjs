@@ -4,8 +4,16 @@ import fs from 'fs';
 
 const envConfig = dotenv.parse(fs.readFileSync('.env'));
 const supabaseUrl = envConfig.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = envConfig.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njc1NzI5NSwiZXhwIjoyMDkyMzMzMjk1fQ.5ejE9ktV7edy2jC4uaDbBvmj34_yPn8wscX6JGDSTZ4';
+
+// La service_role se salta TODAS las RLS: es la llave maestra del proyecto, no
+// una credencial mas. Nunca se escribe en el codigo -- vive en .env, que esta
+// en .gitignore. Ver .env.example.
+const supabaseServiceKey =
+  envConfig.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!supabaseServiceKey) {
+  console.error('Falta SUPABASE_SERVICE_ROLE_KEY. Ponla en .env (ver .env.example).');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
