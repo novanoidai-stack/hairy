@@ -163,8 +163,10 @@ Deno.serve(async (req) => {
       const desde = new Date(hoy); desde.setHours(0, 0, 0, 0);
       const hasta = new Date(desde); hasta.setDate(hasta.getDate() + 1);
 
-      // NI horarios_profesional NI bloqueos_profesional llevan negocio_id (se
-      // llega a ellas via profesional_id). Filtrarlas por negocio_id hacia que
+      // horarios_profesional NO lleva negocio_id: se llega via profesional_id.
+      // (bloqueos_profesional SI lo tiene, se le anadio despues; este comentario
+      // decia que ninguna de las dos y no era cierto ya.) Filtrarlas por
+      // negocio_id hacia que
       // PostgREST reventase con "column ... does not exist" y este cron llevaba
       // dias sin vigilar NADA. Ahora se resuelven en una SEGUNDA fase, cuando la
       // lista de profesionales del negocio ya existe.

@@ -80,15 +80,23 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      eslabones en su cadena de huellas VeriFactu. Migraciones `seguridad-multitenant-*.sql`.
      El guard deja pasar el `uid` nulo A PROPÓSITO: como esas funciones no están concedidas a
      `anon`, un uid nulo solo puede ser una llamada interna del portal público o service_role.
-   - **Los advisors NO se limpian, se auditan.** De los 250 iniciales, 226 son
+   - **Los advisors NO se limpian, se auditan.** La inmensa mayoría son
      `*_security_definer_function_executable`: es la arquitectura (el cliente no toca tablas,
      llama a RPCs definer que comprueban permiso dentro). "Arreglarlos" es apagar la API.
      `auth_leaked_password_protection` tampoco se irá nunca: el interruptor es de plan Pro y
-     ya se resuelve contra HaveIBeenPwned por nuestra cuenta. Quedan 228 y ese es el suelo
+     ya se resuelve contra HaveIBeenPwned por nuestra cuenta. Medido el 29 ago 2026: **214
+     funciones definer al alcance de `anon` y 218 al de `authenticated`**, y ese es el suelo
      razonable — si alguien vuelve a proponer bajarlo, esto es por qué no.
-     La consulta que sí vale la pena repetir: buscar funciones `definer` abiertas a
-     `authenticated` que reciban parámetros y NO mencionen `auth.uid()`, `is_staff()`,
-     `my_negocio_id_text()` ni `exige_mi_negocio()`. Hoy da **0**.
+   - **Contar advisors NO es auditarlos, y la consulta que había aquí daba un cero falso
+     (29 ago 2026).** Decía "funciones `definer` abiertas a `authenticated` que reciban
+     parámetros y no mencionen `auth.uid()`, `is_staff()`, `my_negocio_id_text()` ni
+     `exige_mi_negocio()`; hoy da 0". Daba 0 por dos motivos y ninguno era que estuviera
+     limpio: le faltaba `auth.role()` (que es como se atan las RPC de servicio) y no seguía
+     la indirección (`jornada_estado()` no nombra `auth.uid()`, pero llama a
+     `jornada_contexto()`, que sí). Corregida, encontró **29 funciones** abiertas a `anon`
+     sin ninguna atadura — la peor devolvía nombre y teléfono de clientas de cualquier salón.
+     No vuelvas a escribir esa consulta a mano: **la comprobación 2 de `public.vigilancia_bd()`
+     ya la lleva**, con la indirección incluida. `npm run vigilar:bd`.
 5. **Sin claims falsos:** nada de reseñas/ratings inventados en structured data ni cifras
    sin fuente en la landing (ya se retiraron una vez).
 6. **RLS rápida (17 ago 2026):** toda política nueva envuelve sus llamadas en `(select ...)`
@@ -227,6 +235,22 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
     - **El canario mudo no es verde.** Si lleva más de 26 h sin correr,
       `staff_vigilancia_resumen` lo marca y el panel lo dice: un panel en verde porque
       nadie está mirando es peor que uno en rojo.
+    - **Y el cron que mira poco tampoco (29 ago 2026).** El job de `vigilar-agenda` llevaba
+      desde su creación con `body := {'negocio_id':'prueba_46980'}` incrustado: 4.144
+      ejecuciones, todas en verde, todas sobre un tenant de pruebas vacío, y **cero hallazgos
+      de agenda escritos en toda la vida del sistema** mientras la cartera real no tenía ojos.
+      Un cron correcto y un cron que no vigila nada dan exactamente el mismo verde si nadie
+      pregunta *a cuántos* mira. Por eso `vigilancia_bd()` comprueba ahora el **alcance** del
+      job (7) y su **existencia** (8), no solo que corra.
+    - **Un trigger no puede leer un campo que su tabla no tiene (29 ago 2026).**
+      `agenda_ojos_notify()` hacía `new.negocio_id` sobre `horarios_profesional`, que se llega
+      por `profesional_id`. En PL/pgSQL eso no da null: lanza `42703`, y al ser `FOR EACH ROW`
+      **tumba la escritura entera** — no se podía guardar el horario de un trabajador ni
+      terminar el alta de un salón nuevo. Se lee la fila con
+      `to_jsonb(coalesce(new, old))->>'campo'`, que devuelve null y no rompe. Lo vigila la
+      comprobación 9 de `vigilancia_bd()`. Ojo con el dato de partida: `bloqueos_profesional`
+      **sí** tiene `negocio_id` (se añadió después); la que no lo tiene es
+      `horarios_profesional`. Hay comentarios en el repo que aún dicen que ninguna de las dos.
     - Correr: `npm run vigilar` · `npm run vigilar:bd` · `npm run vigilar:test` ·
       `npx playwright test tests/smoke --project=publico`.
 

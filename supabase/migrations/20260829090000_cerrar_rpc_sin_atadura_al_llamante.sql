@@ -369,6 +369,45 @@ begin
     'hallazgos_ia no recibe nada de agenda y el panel se queda en verde por silencio.'
   where not exists (select 1 from cron.job j where j.command ~* 'vigilar-agenda' and j.active);
 
+  -- 9. TRIGGERS QUE LEEN UN CAMPO QUE SU TABLA NO TIENE.
+  -- En PL/pgSQL `new.campo_que_no_existe` no da null: lanza 42703, y como el
+  -- trigger es FOR EACH ROW se lleva por delante la escritura entera. Asi es
+  -- como agenda_ojos_notify() dejo sin poder guardarse el horario de los
+  -- trabajadores y sin poder terminar el alta a los salones nuevos: leia
+  -- new.negocio_id sobre horarios_profesional, que se llega por profesional_id.
+  -- Se saltan las funciones que ramifican por TG_TABLE_NAME: esas ya saben que
+  -- sirven a varias tablas distintas.
+  return query
+  with disparadores as (
+    select t.tgname, c.oid as tabla_oid, c.relname as tabla, p.proname as funcion, p.prosrc
+    from pg_trigger t
+    join pg_class c on c.oid = t.tgrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    join pg_proc p on p.oid = t.tgfoid
+    where n.nspname = 'public' and not t.tgisinternal
+      and p.prosrc !~* '\mTG_TABLE_NAME\M'
+  ),
+  campos as (
+    select d.*, lower(m[1]) as campo
+    from disparadores d,
+         lateral regexp_matches(d.prosrc, '\m(?:new|old)\.([a-zA-Z_][a-zA-Z0-9_]*)', 'gi') as m
+  )
+  select distinct
+    'bd/trigger-campo-inexistente:' || f.tabla || '.' || f.campo,
+    'bloqueante',
+    'seguridad',
+    'El trigger ' || f.tgname || ' de ' || f.tabla || ' lee un campo que esa tabla no tiene (' || f.campo || ')',
+    'La funcion ' || f.funcion || '() hace new.' || f.campo || ' / old.' || f.campo ||
+    ' pero ' || f.tabla || ' no tiene esa columna. En PL/pgSQL eso no devuelve null: lanza '
+    '42703, y al ser FOR EACH ROW tumba el INSERT/UPDATE/DELETE entero. Leer la fila '
+    'como to_jsonb(coalesce(new, old))->>''campo'' devuelve null y no rompe.'
+  from campos f
+  where not exists (
+    select 1 from pg_attribute a
+    where a.attrelid = f.tabla_oid and a.attnum > 0 and not a.attisdropped
+      and a.attname = f.campo
+  );
+
 end;
 $fn$;
 
