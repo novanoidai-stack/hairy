@@ -157,7 +157,12 @@ Deno.serve(async (req) => {
       const desde = new Date(hoy); desde.setHours(0, 0, 0, 0);
       const hasta = new Date(desde); hasta.setDate(hasta.getDate() + 1);
 
-      const [citasRes, profsRes, srvRes, bloqRes, horRes, horProfRes, cierresRes, cfgRes] = await Promise.all([
+      // NI horarios_profesional NI bloqueos_profesional llevan negocio_id (se
+      // llega a ellas via profesional_id). Filtrarlas por negocio_id hacia que
+      // PostgREST reventase con "column ... does not exist" y este cron llevaba
+      // dias sin vigilar NADA. Ahora se resuelven en una SEGUNDA fase, cuando la
+      // lista de profesionales del negocio ya existe.
+      const [citasRes, profsRes, srvRes, horRes, cierresRes, cfgRes] = await Promise.all([
         supabase.from('citas')
           .select('id, profesional_id, cliente_id, servicio_id, estado, inicio, fin, fin_activa, fin_espera, grupo_id')
           .eq('negocio_id', negocioId)
@@ -166,12 +171,7 @@ Deno.serve(async (req) => {
           .lt('inicio', hasta.toISOString()),
         supabase.from('profesionales').select('id, nombre, categoria, activo').eq('negocio_id', negocioId),
         supabase.from('servicios').select('id, nombre, categoria_minima, duracion_minima_min').eq('negocio_id', negocioId),
-        supabase.from('bloqueos_profesional').select('profesional_id, inicio, fin').eq('negocio_id', negocioId),
         supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', negocioId),
-        // Jornada REAL de cada profesional (turnos de mañana/tarde; el hueco de
-        // en medio es la comida). Sin esto la vigilancia usaba la ventana del
-        // SALON para todos y marcaba huecos en horas que esa persona no trabaja.
-        supabase.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').eq('negocio_id', negocioId),
         // Festivos / cierre colectivo del dia analizado. Igual que en
         // agenda-optimizador: sin esto el organizador ignora la tabla y trata un
         // dia cerrado como un dia normal lleno de huecos que ofrecer.
@@ -184,11 +184,32 @@ Deno.serve(async (req) => {
 
       // Fallos ruidosos: sin esto, un error de permisos se veria como "0 citas" y la
       // vigilancia diria que todo va bien mientras esta ciega.
-      const errores = [citasRes.error, profsRes.error, srvRes.error, bloqRes.error, horRes.error, horProfRes.error, cierresRes.error]
+      const erroresFase1 = [citasRes.error, profsRes.error, srvRes.error, horRes.error, cierresRes.error]
         .filter(Boolean)
         .map((e) => e!.message);
-      if (errores.length > 0) {
-        return new Response(JSON.stringify({ error: 'consulta fallida', negocioId, errores }), { status: 500 });
+      if (erroresFase1.length > 0) {
+        return new Response(JSON.stringify({ error: 'consulta fallida', negocioId, errores: erroresFase1 }), { status: 500 });
+      }
+
+      const profIds = ((profsRes.data ?? []) as { id: string }[]).map((p) => p.id);
+      // Jornada REAL de cada profesional (turnos de mañana/tarde; el hueco de
+      // en medio es la comida) y sus bloqueos. Sin la jornada la vigilancia
+      // usaba la ventana del SALON para todos y marcaba huecos en horas que esa
+      // persona no trabaja. Con cero profesionales no hay nada que pedir (un
+      // .in() vacio es error de PostgREST, no lista vacia).
+      type ResBloqueos = { data: { profesional_id: string; inicio: string; fin: string }[] | null; error: { message: string } | null };
+      type ResJornadas = { data: { profesional_id: string; dia_semana: number; hora_inicio: string; hora_fin: string; turno: number }[] | null; error: { message: string } | null };
+      let bloqRes: ResBloqueos = { data: [], error: null };
+      let horProfRes: ResJornadas = { data: [], error: null };
+      if (profIds.length > 0) {
+        [bloqRes, horProfRes] = await Promise.all([
+          supabase.from('bloqueos_profesional').select('profesional_id, inicio, fin').in('profesional_id', profIds),
+          supabase.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').in('profesional_id', profIds),
+        ]);
+        const erroresFase2 = [bloqRes.error, horProfRes.error].filter(Boolean).map((e) => e!.message);
+        if (erroresFase2.length > 0) {
+          return new Response(JSON.stringify({ error: 'consulta fallida', negocioId, errores: erroresFase2 }), { status: 500 });
+        }
       }
 
       const citas = citasRes.data ?? [];

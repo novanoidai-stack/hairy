@@ -287,7 +287,7 @@ Deno.serve(async (req) => {
       const desde = new Date(hoy); desde.setHours(0, 0, 0, 0);
       const hasta = new Date(desde); hasta.setDate(hasta.getDate() + 1);
 
-      const [citasRes2, profsRes2, srvRes2, bloqRes2, horRes2, horProfRes2] = await Promise.all([
+      const [citasRes2, profsRes2, srvRes2, horRes2] = await Promise.all([
         svc.from('citas')
           .select('id, profesional_id, cliente_id, servicio_id, estado, inicio, fin, fin_activa, fin_espera, grupo_id')
           .eq('negocio_id', negocioId)
@@ -301,10 +301,33 @@ Deno.serve(async (req) => {
           .lt('inicio', hasta.toISOString()),
         svc.from('profesionales').select('id, nombre, categoria, activo').eq('negocio_id', negocioId),
         svc.from('servicios').select('id, nombre, categoria_minima, duracion_minima_min').eq('negocio_id', negocioId),
-        svc.from('bloqueos_profesional').select('profesional_id, inicio, fin').eq('negocio_id', negocioId),
         svc.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', negocioId),
-        svc.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').eq('negocio_id', negocioId),
       ]);
+      // AQUI no se usa el patron `.data ?? []` a ciegas: horarios_profesional y
+      // bloqueos_profesional NO tienen negocio_id, y un error de consulta
+      // tragado en silencio dejaba este "ojo" analizando con CERO jornadas —
+      // escribia hallazgos de una agenda que no estaba mirando. Si algo falla,
+      // se devuelve 500 SIN tocar hallazgos (escribir count 0 sobre un error
+      // descartaria hallazgos reales de una pasada anterior).
+      const errOjo = [citasRes2.error, profsRes2.error, srvRes2.error, horRes2.error].filter(Boolean);
+      if (errOjo.length) {
+        return json({ error: 'consulta fallida', errores: errOjo.map((e: any) => e.message) }, 500);
+      }
+      const profIds2 = ((profsRes2.data ?? []) as { id: string }[]).map((p) => p.id);
+      type ResBloqueos = { data: { profesional_id: string; inicio: string; fin: string }[] | null; error: { message: string } | null };
+      type ResJornadas = { data: { profesional_id: string; dia_semana: number; hora_inicio: string; hora_fin: string; turno: number }[] | null; error: { message: string } | null };
+      let bloqRes2: ResBloqueos = { data: [], error: null };
+      let horProfRes2: ResJornadas = { data: [], error: null };
+      if (profIds2.length > 0) {
+        [bloqRes2, horProfRes2] = await Promise.all([
+          svc.from('bloqueos_profesional').select('profesional_id, inicio, fin').in('profesional_id', profIds2),
+          svc.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').in('profesional_id', profIds2),
+        ]);
+        const errOjo2 = [bloqRes2.error, horProfRes2.error].filter(Boolean);
+        if (errOjo2.length) {
+          return json({ error: 'consulta fallida', errores: errOjo2.map((e: any) => e.message) }, 500);
+        }
+      }
       const citas2 = citasRes2.data ?? [];
       // Agregado por tipo, mismo contrato que vigilar-agenda (idempotente). Se
       // calcula ANTES del return temprano de "dia sin citas": con el mapa vacio
@@ -421,7 +444,7 @@ Deno.serve(async (req) => {
     hasta.setDate(hasta.getDate() + dias);
 
     // --- Contexto: mismas tablas que vigilar-agenda + nombres de cliente. ---
-    const [citasRes, profsRes, cliRes, srvRes, bloqRes, horRes, horProfRes, cierresRes, cfgRes, histRes] = await Promise.all([
+    const [citasRes, profsRes, cliRes, srvRes, horRes, cierresRes, cfgRes, histRes] = await Promise.all([
       svc.from('citas')
         .select('id, profesional_id, cliente_id, servicio_id, estado, inicio, fin, fin_activa, fin_espera, grupo_id')
         .eq('negocio_id', negocioId)
@@ -433,9 +456,7 @@ Deno.serve(async (req) => {
       svc.from('profesionales').select('id, nombre, categoria, activo').eq('negocio_id', negocioId),
       svc.from('clientes').select('id, nombre').eq('negocio_id', negocioId).limit(500),
       svc.from('servicios').select('id, nombre, categoria_minima, duracion_minima_min').eq('negocio_id', negocioId),
-      svc.from('bloqueos_profesional').select('profesional_id, inicio, fin').eq('negocio_id', negocioId),
       svc.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', negocioId),
-      svc.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').eq('negocio_id', negocioId),
       svc.from('cierres_negocio').select('fecha, motivo').eq('negocio_id', negocioId).gte('fecha', desde.toISOString().slice(0, 10)).lt('fecha', hasta.toISOString().slice(0, 10)),
       svc.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
       // Movimientos reales de los ultimos 30 d: QUE se mueve en este salon y
@@ -447,8 +468,31 @@ Deno.serve(async (req) => {
         .gte('created_at', new Date(desde.getTime() - 30 * 86400000).toISOString())
         .limit(3000),
     ]);
-    const errQ = [citasRes.error, profsRes.error, srvRes.error, horRes.error].filter(Boolean);
+    const errQ = [citasRes.error, profsRes.error, srvRes.error, horRes.error, cierresRes.error].filter(Boolean);
     if (errQ.length) return json({ error: 'consulta fallida', errores: errQ.map((e: any) => e.message) }, 500);
+
+    // horarios_profesional y bloqueos_profesional NO tienen negocio_id (antes
+    // se filtraba por ahi y el `.data ?? []` se tragaba el error: el analisis
+    // seguia con CERO jornadas y el prompt afirmaba cosas sobre capacidad que
+    // no podia ver). Segunda fase, cuando ya hay lista de profesionales; si
+    // falla, se corta AQUI en vez de analizar con datos vacios.
+    const profIds = ((profsRes.data ?? []) as { id: string }[]).map((p) => p.id);
+    type ResBloqueos = { data: { profesional_id: string; inicio: string; fin: string }[] | null; error: { message: string } | null };
+    type ResJornadas = { data: { profesional_id: string; dia_semana: number; hora_inicio: string; hora_fin: string; turno: number }[] | null; error: { message: string } | null };
+    let bloqRes: ResBloqueos = { data: [], error: null };
+    let horProfRes: ResJornadas = { data: [], error: null };
+    if (profIds.length > 0) {
+      [bloqRes, horProfRes] = await Promise.all([
+        svc.from('bloqueos_profesional').select('profesional_id, inicio, fin').in('profesional_id', profIds),
+        svc.from('horarios_profesional').select('profesional_id, dia_semana, hora_inicio, hora_fin, turno').in('profesional_id', profIds),
+      ]);
+      const errQ2 = [bloqRes.error, horProfRes.error].filter(Boolean);
+      if (errQ2.length) return json({ error: 'consulta fallida', errores: errQ2.map((e: any) => e.message) }, 500);
+    } else {
+      // Sin profesionales configurados el analisis de carga no tiene sentido:
+      // se registra para que no vuelva a ser un fallo invisible.
+      console.warn(`[agenda-optimizador] ${negocioId}: cero profesionales, analisis sin jornadas ni bloqueos`);
+    }
 
     const citas = citasRes.data ?? [];
     if (citas.length === 0) return json({ error: 'No hay citas en el rango para analizar.' }, 400);
