@@ -314,3 +314,31 @@ Deno.test('motor: un bloqueo a primera hora no borra el turno entero del destino
     );
   }
 });
+
+Deno.test('motor: recortar el buffer no cambia ni una propuesta', () => {
+  // evaluarTodas solo mira las citas que pueden chocar con un candidato
+  // ([desde - ventanaDias, hasta + ventanaDias]). Este test fija que ese recorte
+  // es puro rendimiento: con o sin las citas lejanas del buffer (-60/+120 dias
+  // que trae la rejilla), el resultado tiene que ser identico.
+  const cercanas = [cita('A', 'P1', 17, 0, 30), cita('B', 'P2', 11, 0, 30)];
+  const lejos: CitaOrganizar[] = [-45, -20, 30, 90].map((d, i) => {
+    const ini = new Date(`${D}T11:00:00`);
+    ini.setDate(ini.getDate() + d);
+    return {
+      id: `L${i}`, profesional_id: 'P1', estado: 'confirmada',
+      inicio: ini.toISOString(), fin: new Date(+ini + 30 * 60000).toISOString(),
+      cliente: 'lejos', telefono: '600000000', servicio: 'srv',
+    };
+  });
+  const opts = optsBase({
+    desdeMs: ms(0, 0), hastaMs: ms(23, 59),
+    horariosProfesional: [horarioProf('P1', 9, 20), horarioProf('P2', 9, 20)],
+  });
+  const soloCerca = evaluarTodas(cercanas, opts);
+  const conBuffer = evaluarTodas([...cercanas, ...lejos], opts);
+  assertEquals(
+    JSON.stringify(conBuffer),
+    JSON.stringify(soloCerca),
+    'el buffer lejano no puede alterar las propuestas',
+  );
+});
