@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, SUPABASE_ANON_KEY } from '@/lib/supabase';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 
 // Minimal tokens
@@ -103,7 +103,7 @@ export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { clie
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+          apikey: SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

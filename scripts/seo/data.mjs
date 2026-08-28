@@ -1,6 +1,11 @@
 // Capa de datos compartida por todos los generadores SEO/AIO.
-// Fuente unica de verdad: un unico fetch a Supabase (anon key publica + RLS)
-// reutilizado por sitemap, prerender de fichas, paginas de ciudad y landings.
+// Fuente unica de verdad: un unico fetch a Supabase (publishable key publica +
+// RLS) reutilizado por sitemap, prerender de fichas, paginas de ciudad y landings.
+//
+// Esto corre EN EL BUILD (`npm run build:web` -> generate-seo + generate-sitemap),
+// asi que la clave de aqui tiene que estar viva o el despliegue se queda sin
+// sitemap ni fichas prerenderizadas. Por eso entro en la migracion de claves del
+// 28 ago 2026 aunque no sea codigo de cliente.
 
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -10,7 +15,10 @@ export const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 export const BASE_URL = 'https://www.mechaa.es';
 
 const DEFAULT_SUPABASE_URL = 'https://vtrggiogjrhqtwbhbgia.supabase.co';
-const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+// Nombre historico: hoy contiene la publishable, no la anon heredada. Se
+// conserva el nombre porque la env var que lo sobreescribe (mas abajo) es la
+// misma que usa Vercel para el build de Expo.
+const DEFAULT_ANON_KEY = 'sb_publishable_7cHF-908rCrGKTaFoYZ4Wg__Znc3kLR';
 
 // Fallback minimo: garantiza que siempre haya al menos una ficha renderizable
 // y una ciudad, incluso si Supabase no responde durante el build.

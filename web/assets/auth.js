@@ -1,11 +1,12 @@
 /* Mecha - capa de datos del sitio publico.
    Requiere cargar antes el UMD de supabase-js:
    <script src="/assets/vendor/supabase-2.45.4.js"></script>
-   Usa la anon key (publica). El destino de la app ("el software") se puede sobreescribir
+   Usa la publishable key (`sb_publishable_...`, publica por diseno, sustituye a la
+   anon heredada). El destino de la app ("el software") se puede sobreescribir
    con window.MECHA_APP_URL antes de cargar este script. */
 (function () {
   var SUPABASE_URL = 'https://vtrggiogjrhqtwbhbgia.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+  var SUPABASE_ANON_KEY = 'sb_publishable_7cHF-908rCrGKTaFoYZ4Wg__Znc3kLR';
   var APP_URL = window.MECHA_APP_URL || '/app';
 
   if (!window.supabase || !window.supabase.createClient) {

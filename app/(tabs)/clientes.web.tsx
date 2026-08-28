@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { supabase, SUPABASE_ANON_KEY } from '@/lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { claves, FRESCURA } from '@/lib/datos/queryClient';
 import { cacheado } from '@/lib/datos/cacheado';
@@ -2136,7 +2136,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+          apikey: SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ formula: ficha, marca_destino: marcaDestino }),

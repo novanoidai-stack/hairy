@@ -4,10 +4,19 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 
 // Fallback a los mismos valores publicos que ya usa la web (web/assets/auth.js).
-// La anon key es la publishable: esta pensada para vivir en el cliente. El
-// fallback garantiza que la app arranque aunque Vercel no inyecte las env vars
-// en el build de Expo (sin esto, createClient recibe undefined y la app peta
-// dejando la pantalla en negro).
+// La clave es la PUBLISHABLE (`sb_publishable_...`), publica por diseno igual
+// que lo era la anon: mismos privilegios bajos, mismas RLS, pensada para vivir
+// en el navegador. El fallback garantiza que la app arranque aunque Vercel no
+// inyecte las env vars en el build de Expo (sin esto, createClient recibe
+// undefined y la app peta dejando la pantalla en negro).
+//
+// OJO CON EL NOMBRE: la variable se sigue llamando ..._ANON_KEY a proposito,
+// porque asi esta dada de alta en Vercel. Renombrarla obliga a cambiar el panel
+// en el mismo minuto; el valor es lo que importa. Si Vercel todavia inyecta la
+// anon heredada, ESA gana y el fallback no llega a usarse nunca: hay que
+// cambiarla alli tambien. Contexto: decision 9 de CLAUDE.md e
+// informes/MIGRACION-CLAVES-SUPABASE-2026-08-28.md.
+//
 // Exportadas (no solo locales): lib/hooks/useChispaVoz.web.ts las necesita para
 // llamar a los edge de voz con fetch directo (los endpoints devuelven audio
 // binario, que supabase.functions.invoke no serializa bien).
@@ -15,7 +24,7 @@ export const SUPABASE_URL =
   process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://vtrggiogjrhqtwbhbgia.supabase.co';
 export const SUPABASE_ANON_KEY =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+  'sb_publishable_7cHF-908rCrGKTaFoYZ4Wg__Znc3kLR';
 const supabaseUrl = SUPABASE_URL;
 const supabaseAnonKey = SUPABASE_ANON_KEY;
 

@@ -27,7 +27,7 @@ test('el inventario carga y trae la medida de cada producto', async ({ page }) =
   const res = await page.evaluate(async () => {
     const url = 'https://vtrggiogjrhqtwbhbgia.supabase.co';
     const ANON =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+      'sb_publishable_7cHF-908rCrGKTaFoYZ4Wg__Znc3kLR';
     const clave = Object.keys(localStorage).find((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
     const token = clave ? JSON.parse(localStorage.getItem(clave) as string)?.access_token : null;
     if (!token) return { error: 'sin sesion' };

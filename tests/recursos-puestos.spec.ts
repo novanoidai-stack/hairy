@@ -38,10 +38,10 @@ test('sin puestos configurados el servidor sigue diciendo que cabe', async ({ pa
     // La app expone su cliente ya autenticado; si no, se compone a mano con la
     // sesion del localStorage.
     const url = 'https://vtrggiogjrhqtwbhbgia.supabase.co';
-    // La anon key va en la cabecera apikey y el token del usuario en Authorization.
-    // Con el token en las dos, PostgREST responde 401.
+    // La clave publica (publishable) va en la cabecera apikey y el token del
+    // usuario en Authorization. Con el token en las dos, PostgREST responde 401.
     const ANON =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cmdnaW9nanJocXR3YmhiZ2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTcyOTUsImV4cCI6MjA5MjMzMzI5NX0.bghNzAZ-urn9nnp8TVlqF4Ckw5MZD7Ut2bh7Z-4efW8';
+      'sb_publishable_7cHF-908rCrGKTaFoYZ4Wg__Znc3kLR';
     const clave = Object.keys(localStorage).find((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
     const token = clave ? JSON.parse(localStorage.getItem(clave) as string)?.access_token : null;
     if (!token) return { error: 'sin sesion' };
