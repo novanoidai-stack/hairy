@@ -172,7 +172,28 @@ export function claveEntrante(req: Request): string {
  * admiten la nueva y la heredada mientras convivan.
  */
 export function peticionDeServicio(req: Request): boolean {
-  return esClaveDeServicio(claveEntrante(req));
+  const entrante = claveEntrante(req);
+  const ok = esClaveDeServicio(entrante);
+  if (!ok) {
+    // Sin la huella no hay forma de distinguir "no mandan clave" de "mandan una
+    // que ya no vale", y esa diferencia costo una tarde: el 28 ago 2026 el vault
+    // seguia con la JWT heredada mientras las funciones ya recibian una
+    // sb_secret_... de la plataforma, y el 401 no decia por que.
+    //
+    // Nunca imprime la clave: solo si existe, su longitud y 4 caracteres de
+    // prefijo (la propia documentacion de Supabase permite hasta 6).
+    const huella = (v: string | undefined) =>
+      v === undefined ? "AUSENTE" : `len=${v.length} pre=${v.slice(0, 4)}`;
+    console.warn(
+      "[claveServicio] peticion rechazada. entrante:",
+      huella(entrante || undefined),
+      "| SUPABASE_SERVICE_ROLE_KEY:",
+      huella(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")),
+      "| SUPABASE_SECRET_KEYS:",
+      huella(Deno.env.get("SUPABASE_SECRET_KEYS")),
+    );
+  }
+  return ok;
 }
 
 function igualesEnTiempoConstante(a: string, b: string): boolean {
