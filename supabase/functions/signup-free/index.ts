@@ -7,6 +7,7 @@
 // Cuerpo esperado (POST JSON): { email, password, nombre, salon, telefono }
 // Respuestas: 200 { ok:true, user_id } | 4xx { error: codigo }
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -136,7 +137,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-  const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const SERVICE_ROLE = claveServicio();
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { autoRefreshToken: false, persistSession: false },
   });

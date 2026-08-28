@@ -1,6 +1,7 @@
 import Stripe from 'npm:stripe@16';
 import forge from 'npm:node-forge@1';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 // Cobro del TOTAL de una cita. S5: cuenta Stripe del negocio o plataforma. S6: si proveedor='redsys',
 // firma y devuelve los params del form Redsys en vez del checkout de Stripe. Propina (S4) incluida en el importe.
@@ -15,7 +16,7 @@ const json = (b: unknown, status = 200) =>
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+  claveServicio(),
 );
 const SUPA_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const PLATFORM_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';

@@ -11,9 +11,10 @@
 // POST { token: string, contexto?: 'cita'|'resena'|'solicitud' }
 // -> 200 { ok: true, captcha_token: uuid } | { ok: false, error }
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 const SECRET = Deno.env.get('TURNSTILE_SECRET_KEY') ?? '';
-const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', claveServicio());
 
 const ORIGENES = ['https://www.mechaa.es', 'https://mechaa.es', 'https://hairy-two.vercel.app', 'https://www.novanoidai.com'];
 function esOrigenPermitido(o: string): boolean {

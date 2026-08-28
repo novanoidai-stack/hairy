@@ -1,5 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 // Captura un hold (fianza retenida). Auth staff (verify_jwt). S5: usa la cuenta Stripe del negocio
 // (la misma con la que se coloco el hold) o fallback a plataforma.
@@ -13,7 +14,7 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 const url = Deno.env.get('SUPABASE_URL') ?? '';
-const service = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+const service = createClient(url, claveServicio());
 const PLATFORM_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 
 async function stripeParaNegocio(negocioId: string | null): Promise<Stripe> {

@@ -52,6 +52,12 @@ jobs:
       - name: Validacion de entradas de edge functions (Zod)
         run: deno task test:esquemas
 
+      # Vigila la puerta unica a la clave de servicio. Lo que rompe si esto
+      # falla: el dia que se desactive la service_role heredada, las 31 edge
+      # functions se quedan sin clave a la vez.
+      - name: Puerta de la clave de servicio (Deno)
+        run: deno task test:claves
+
       - name: Verificar catálogo de modelos IA
         run: npm run verificar:modelos
 

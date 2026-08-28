@@ -1,5 +1,6 @@
 import forge from 'npm:node-forge@1';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 // Notificacion online de Redsys (BYOP S6). Cada salon apunta su DS_MERCHANT_MERCHANTURL a
 // .../redsys-notificacion?negocio=<id>. Verificamos la firma con la clave del salon (Vault) y
@@ -13,7 +14,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+  claveServicio(),
 );
 
 // Relleno de ceros (zeropadding) para 3DES, igual que crear-checkout-cobro (NUL).

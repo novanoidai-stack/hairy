@@ -24,6 +24,7 @@ import {
   type ProblemaAgenda,
 } from '../../../lib/organizarAgenda.ts';
 import { horariosAlRelojDelRuntime } from '../shared/relojSalon.ts';
+import { claveServicioOpcional } from '../shared/claveServicio.ts';
 
 const RESUMEN: Record<string, string> = {
   retraso: 'Retrasos en curso',
@@ -114,7 +115,10 @@ async function escribirHallazgos(
 Deno.serve(async (req) => {
   try {
     const url = Deno.env.get('SUPABASE_URL');
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    // Opcional a proposito: esta funcion ya responde un 500 legible cuando falta
+    // la clave, y eso se conserva. La version que lanza cambiaria ese error
+    // claro por un stack trace.
+    const serviceKey = claveServicioOpcional();
     if (!url || !serviceKey) {
       return new Response(
         JSON.stringify({ error: 'faltan secrets', url: !!url, serviceKey: !!serviceKey }),

@@ -15,6 +15,7 @@ import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
 import { fasesDe, chocaActivaActiva } from '../../../lib/retrasos.ts';
 import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
 import { cuerpoAgendaAsistente, validarCuerpo } from '../shared/esquemas.ts';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -34,7 +35,7 @@ const json = (b: unknown, status = 200) =>
 // Clientes globales (se inicializan una vez en cold start)
 // ---------------------------------------------------------------------------
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+const svc = createClient(SUPABASE_URL, claveServicio());
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 
 // La cascada de modelos NO se escribe aqui: la calcula shared/openrouterClient

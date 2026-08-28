@@ -12,6 +12,7 @@
 //   (acepta tambien EMAIL_HOST/PORT/USER/PASS/FROM)
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 const ORIGINS = ['https://www.mechaa.es','https://mechaa.es','https://hairy-two.vercel.app','https://www.novanoidai.com','http://localhost:8080','http://localhost:8081','http://localhost:3000','http://localhost:19006'];
 const MECHA_WEB = 'https://www.novanoidai.com';
@@ -52,7 +53,7 @@ Deno.serve(async (req: Request) => {
   const id = (body.presupuesto_id || '').trim();
   if (!id) return json({ sent: false, error: 'falta_presupuesto_id' }, 400, req);
 
-  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { autoRefreshToken: false, persistSession: false } });
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, claveServicio(), { auth: { autoRefreshToken: false, persistSession: false } });
 
   const jwt = (req.headers.get('Authorization') || '').replace('Bearer ', '');
   const { data: ud } = await admin.auth.getUser(jwt);

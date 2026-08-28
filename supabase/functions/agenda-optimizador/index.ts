@@ -23,6 +23,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { llamarIAJson } from '../shared/openrouterClient.ts';
 import { auditar, auditarFallo } from '../shared/chispa-auditoria.ts';
 import { comprobarCupo } from '../shared/cupo.ts';
+import { claveServicio, esClaveDeServicio } from '../shared/claveServicio.ts';
 import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
 import {
   analizarAgendaRango,
@@ -250,7 +251,7 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
   const apiKey = Deno.env.get('OPENROUTER_API_KEY') ?? '';
   if (!SUPABASE_URL || !apiKey) return json({ error: 'faltan secrets' }, 500);
-  const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+  const svc = createClient(SUPABASE_URL, claveServicio());
   // Para la auditoria de fallo: se rellenan en cuanto resuelve el auth.
   let negocioAudit = 'desconocido';
   let usuarioAudit = 'desconocido';
@@ -268,8 +269,21 @@ Deno.serve(async (req) => {
     //     Auth: service_role key (los triggers la sacan del vault, como los
     //     cron). Asi el panel y la pagina de Avisos ven los problemas en
     //     segundos, no a los 15 min del cron de vigilar-agenda. ---
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    if (body?.ojo === true && serviceKey && authHeader === `Bearer ${serviceKey}`) {
+    //     Se acepta la clave por DOS cabeceras a proposito. Las secret keys
+    //     nuevas (sb_secret_...) no son JWT y no valen en `Authorization: Bearer`,
+    //     asi que cuando el vault pase a una habra que mandarla en `apikey`.
+    //     Aceptando las dos, el cambio del vault y el de esta funcion no tienen
+    //     que ser el mismo dia. Y `esClaveDeServicio` admite tanto la nueva como
+    //     la heredada, para que el trigger no deje de autenticarse en silencio.
+    //
+    //     OJO al desactivar la heredada: esta funcion necesitara `verify_jwt =
+    //     false` en supabase/config.toml. El verificador de la PLATAFORMA solo
+    //     entiende JWT, asi que rechazaria la peticion con una secret key ANTES
+    //     de que llegue aqui. La autorizacion ya la hace esta comprobacion.
+    const claveEntrante = authHeader.startsWith('Bearer ')
+      ? authHeader.slice('Bearer '.length)
+      : (req.headers.get('apikey') ?? '');
+    if (body?.ojo === true && esClaveDeServicio(claveEntrante)) {
       const negocioId: string | undefined = body.negocio_id;
       if (!negocioId) return json({ error: 'falta negocio_id' }, 400);
       const hoy = new Date();

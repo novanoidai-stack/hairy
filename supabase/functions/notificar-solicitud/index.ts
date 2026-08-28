@@ -18,6 +18,7 @@
 //           MECHA_CONTACTO_EMAIL (def contacto@mechaa.es)
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicioOpcional } from '../shared/claveServicio.ts';
 
 const ORIGENES = [
   'https://www.mechaa.es',
@@ -54,7 +55,10 @@ function json(body: unknown, status = 200, req?: Request) {
 // service_role, nunca el navegador.
 async function dentroDelLimite(cubo: string, clave: string, max: number, minutos: number): Promise<boolean> {
   const url = Deno.env.get('SUPABASE_URL');
-  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  // Opcional a proposito: aqui la ausencia de clave YA significa "no bloqueamos"
+  // (un fallo nuestro no puede dejar sin contacto a un cliente real). La version
+  // que lanza convertiria esa decision deliberada en un 500.
+  const key = claveServicioOpcional();
   if (!url || !key || !clave) return true; // sin con que comprobar, no bloqueamos
   try {
     const db = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });

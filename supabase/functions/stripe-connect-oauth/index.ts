@@ -1,5 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 // S5 (Connect Standard) — onboarding OAuth. Dos modos en una misma edge (verify_jwt=false porque
 // Stripe redirige el callback sin JWT):
@@ -20,7 +21,7 @@ const redirect = (loc: string) => new Response(null, { status: 302, headers: { L
 
 const URL_SUPA = Deno.env.get('SUPABASE_URL') ?? '';
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const SERVICE_ROLE = claveServicio();
 const service = createClient(URL_SUPA, SERVICE_ROLE);
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' });
 const CLIENT_ID = Deno.env.get('STRIPE_CONNECT_CLIENT_ID') ?? '';

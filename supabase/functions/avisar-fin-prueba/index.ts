@@ -5,8 +5,9 @@
 // solo se envia por SMTP (Hostinger) y se marca. Si el envio falla, no se marca.
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
-const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const SERVICE_ROLE = claveServicio();
 const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', SERVICE_ROLE);
 const SMTP_HOST = Deno.env.get('SMTP_HOST') ?? 'smtp.hostinger.com';
 const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') ?? '465');

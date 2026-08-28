@@ -1,5 +1,6 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 // S5 (mono-cuenta): cada salon apunta su webhook Stripe a .../stripe-webhook?negocio=<negocio_id>.
 // La firma se verifica con el signing secret de ESE salon (Vault); sin ?negocio se usa el de
@@ -9,7 +10,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+  claveServicio(),
 );
 const PLATFORM_WHSEC = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 

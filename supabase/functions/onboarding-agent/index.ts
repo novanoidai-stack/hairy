@@ -9,6 +9,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
 import { auditar } from '../shared/chispa-auditoria.ts';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +20,7 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+const svc = createClient(SUPABASE_URL, claveServicio());
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 
 type TemaId = 'datos_negocio' | 'servicios' | 'equipo' | 'horario_salon' | 'reserva_online' | 'notificaciones';

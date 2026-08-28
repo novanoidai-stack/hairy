@@ -4,6 +4,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { llamarIA, type MensajeIA } from '../shared/openrouterClient.ts';
+import { claveServicio } from '../shared/claveServicio.ts';
 
 const ALLOWED_ORIGINS = [
   'https://www.mechaa.es',
@@ -101,7 +102,7 @@ Deno.serve(async (req: Request) => {
 
   // Inicializar cliente Supabase para comprobar rate limit (como service_role para evitar RLS)
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-  const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const SERVICE_ROLE = claveServicio();
   const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
