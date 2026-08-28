@@ -98,7 +98,7 @@ Deno.test('cadena: requisito imposible devuelve lista vacia, no un modelo cualqu
 // ─── Coste ─────────────────────────────────────────────────────────────────
 
 Deno.test('coste: usa el precio real del modelo', () => {
-  // gemini-3.7-flash: 0.375 in / 1.875 out por 1M
+  // gemini-3.7-flash: 0.75 in / 3.75 out por 1M
   const coste = calcularCoste('google/gemini-3.7-flash', 1_000_000, 1_000_000);
   assertEquals(Number(coste.toFixed(4)), 2.25);
 });

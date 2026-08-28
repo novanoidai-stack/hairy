@@ -23,6 +23,9 @@ const NUL = String.fromCharCode(0);
 function deriveKey(order: string, secretKeyB64: string): Uint8Array {
   const keyBin = forge.util.decode64(secretKeyB64);
   const iv = forge.util.createBuffer(NUL.repeat(8));
+  // nosemgrep: create-de-cipher-no-iv — falso positivo a conciencia: esto es
+  // node-forge (no el crypto de Node) implementando el 3DES-CBC que exige el
+  // protocolo Redsys del banco. El IV a ceros es parte de la especificacion.
   const cipher = forge.cipher.createCipher('3DES-CBC', keyBin);
   cipher.start({ iv });
   const pad = (8 - (order.length % 8)) % 8;

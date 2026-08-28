@@ -12,7 +12,7 @@
 // recomendaciones strategicas en JSON tipado. El panel "Organizar mi agenda"
 // las pinta en la seccion "Análisis de Chispa".
 //
-// Modelo: perfil 'calidad' => google/gemini-3.7-flash primero (0.375/1.875 USD
+// Modelo: perfil 'calidad' => google/gemini-3.7-flash primero (0.75/3.75 USD
 // por 1M; un analisis de dia/semana son ~3-8k tokens => <$0.001) con cascada
 // de fallback (qwen3.7-flash, gpt-4.1-mini...). La calidad de razonamiento
 // importa aqui mucho mas que el ahorro de centesimas.
