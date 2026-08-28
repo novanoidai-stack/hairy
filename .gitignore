@@ -121,6 +121,8 @@ test-results/
 .zcode/
 .env.*
 .env_*
+# La plantilla SI se versiona: solo lleva nombres de variables, ningun valor.
+!.env.example
 *.bak*
 /*.png
 

@@ -8,8 +8,26 @@ const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 // la app en /app, por eso el salto landing -> software conserva el login).
 const CLAVE_SESION = 'sb-vtrggiogjrhqtwbhbgia-auth-token';
 
+// Credenciales de la cuenta de pruebas. NUNCA en el codigo: hasta el 27 ago 2026
+// vivieron aqui en claro el correo y la contrasena PERSONALES de Carlos, y por
+// tanto siguen en el historial de git (por eso esa contrasena hay que rotarla,
+// no basta con este cambio). Ahora salen del entorno:
+//   - en local, de un .env que no se versiona (ver .env.example);
+//   - en CI, de los secrets del repositorio.
+// Si faltan, el setup revienta aqui con un mensaje claro en vez de intentar el
+// login con undefined y dejar un storageState vacio, que es el fallo que luego
+// aparece como specs autenticados cayendose "al azar".
+const E2E_EMAIL = process.env.E2E_EMAIL;
+const E2E_PASSWORD = process.env.E2E_PASSWORD;
+
 setup('authenticate', async ({ page }) => {
   setup.setTimeout(90000);
+
+  expect(
+    E2E_EMAIL && E2E_PASSWORD,
+    'Faltan E2E_EMAIL / E2E_PASSWORD. En local, copia .env.example a .env y rellenalos; ' +
+      'en CI, definelos como secrets del repositorio.',
+  ).toBeTruthy();
 
   const authDir = path.dirname(authFile);
   if (!fs.existsSync(authDir)) {
@@ -45,8 +63,8 @@ setup('authenticate', async ({ page }) => {
   await expect(emailInput).toBeVisible({ timeout: 30000 });
   await expect(loginBtn).toBeEnabled({ timeout: 10000 });
 
-  await emailInput.fill('carlitosocanamartinez@gmail.com');
-  await pwInput.fill('minicharlie2007');
+  await emailInput.fill(E2E_EMAIL!);
+  await pwInput.fill(E2E_PASSWORD!);
 
   console.log('Submitting login credentials...');
   await loginBtn.click();

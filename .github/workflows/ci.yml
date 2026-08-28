@@ -44,3 +44,54 @@ jobs:
 
       - name: Chequeo de tipos de Edge Functions críticas
         run: deno task check:edges
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: check
+    # Las credenciales llegan como secrets del repositorio. Si NO están
+    # definidas, este job sigue siendo útil: ejecuta igualmente todos los specs
+    # del proyecto "publico" (landing, marketplace, portal y la agenda sobre la
+    # demo compartida), que no necesitan sesión. Los autenticados se saltan.
+    env:
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Instalar navegador de Playwright
+        run: npx playwright install --with-deps chromium
+
+      # scripts/serve-web.mjs (el webServer de playwright.config.ts) sirve
+      # web/, y la SPA vive en web/app, que está en .gitignore: sin este build
+      # /app devuelve 404 y todos los specs del software fallan.
+      - name: Compilar la app web
+        run: npm run build:web
+
+      # Ojo: estos specs leen de la Supabase REAL (tenant público de la demo).
+      # Es lectura pura, pero implica que una caída de Supabase pone la CI en
+      # rojo sin que nadie haya roto nada. Si eso llega a molestar, la salida es
+      # sembrar un tenant de pruebas propio, no quitar el job.
+      - name: E2E públicos (sin credenciales)
+        run: npx playwright test --project=publico
+
+      - name: E2E autenticados (solo si hay secrets)
+        if: ${{ env.E2E_EMAIL != '' }}
+        run: npx playwright test --project=chromium
+
+      - name: Guardar informe si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
