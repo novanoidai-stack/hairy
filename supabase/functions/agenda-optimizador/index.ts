@@ -23,6 +23,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { llamarIAJson } from '../shared/openrouterClient.ts';
 import { auditar, auditarFallo } from '../shared/chispa-auditoria.ts';
 import { comprobarCupo } from '../shared/cupo.ts';
+import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
 import {
   analizarAgendaRango,
   prepararCitas,
@@ -279,7 +280,12 @@ Deno.serve(async (req) => {
         svc.from('citas')
           .select('id, profesional_id, cliente_id, servicio_id, estado, inicio, fin, fin_activa, fin_espera, grupo_id')
           .eq('negocio_id', negocioId)
-          .in('estado', ['pendiente', 'confirmada'])
+          // Lo que bloquea solape es pendiente + confirmada + COMPLETADA, que es
+          // lo que este mismo fichero le dice al modelo en su prompt. Faltaba
+          // `completada`: como el cron autocompleta al pasar la hora, una cita
+          // recien terminada desaparecia del mapa y el optimizador podia
+          // proponer mover a alguien a un sillon que aun estaba ocupado.
+          .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
           .gte('inicio', desde.toISOString())
           .lt('inicio', hasta.toISOString()),
         svc.from('profesionales').select('id, nombre, categoria, activo').eq('negocio_id', negocioId),

@@ -11,6 +11,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { useTheme } from '@/lib/theme';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
+import { CITA_STATUS_BLOQUEAN_SOLAPE } from '@/lib/constants';
 import { getUserProfile } from '@/lib/auth';
 import { Topbar, Card, Btn, Loading } from '@/components/ui/DesignComponents';
 import { TText } from '@/components/ui/TText';
@@ -167,13 +168,17 @@ export default function EquipoScreen() {
     if (!profSeleccionada) return;
     setGuardandoBloqueo(true);
 
-    // CE-AG-08: check for confirmed/proposed citas in the block period
+    // CE-AG-08: citas que el bloqueo dejaria sin sitio.
+    // Los estados que ocupan hueco son CITA_STATUS_BLOQUEAN_SOLAPE (pendiente,
+    // confirmada y completada), nunca solo 'confirmada': filtrando por
+    // confirmada se creaba el bloqueo encima de una cita PENDIENTE sin avisar
+    // de ella. Misma regla que usa la agenda.
     const { data: citasAfectadas } = await supabase
       .from('citas')
       .select('id, inicio, fin, fin_espera, clientes(nombre)')
       .eq('negocio_id', negocioId)
       .eq('profesional_id', profSeleccionada.id)
-      .eq('estado', 'confirmada')
+      .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
       .lt('inicio', fechaFin.toISOString())
       .gt('fin', fechaInicio.toISOString());
 
@@ -238,11 +243,17 @@ export default function EquipoScreen() {
       let asignada = false;
 
       for (const prof of otrosProfesionales) {
+        // Se busca a quien reasignar la cita: hay que mirar TODO lo que ocupa
+        // hueco (pendiente, confirmada y completada). Con solo 'confirmada' se
+        // le colgaba la cita a un profesional que ya tenia una pendiente ahi.
+        // El rango es a bloque macizo (sin descontar reposos) a proposito: aqui
+        // conviene pasarse de prudente, porque el coste de equivocarse es
+        // reasignar encima de alguien.
         const { data: solapeCitas } = await supabase
           .from('citas')
           .select('id')
           .eq('profesional_id', prof.id)
-          .eq('estado', 'confirmada')
+          .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
           .lt('inicio', citaFin)
           .gt('fin', cita.inicio)
           .limit(1);

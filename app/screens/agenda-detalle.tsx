@@ -9,7 +9,12 @@ import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { TText, TTextInput } from '@/components/ui/TText';
-import { CITA_STATUS } from '@/lib/constants';
+import {
+  CITA_STATUS,
+  CITA_STATUS_ACTIVOS,
+  CITA_STATUS_BLOQUEAN_SOLAPE,
+} from '@/lib/constants';
+import { pisaOtraCitaAlSoltar } from '@/lib/agenda/solapeAlSoltar';
 import { metaEstadoCita } from '@/lib/citasEstadoUi';
 
 // Fuente unica de como se pinta cada estado: lib/citasEstadoUi.ts.
@@ -503,56 +508,45 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
     const nuevoFinEspera = new Date(nuevoFinActiva.getTime() + finEsperaMs);
     const nuevoFin = new Date(nuevoFinEspera.getTime() + activo2Ms);
 
-    // Validar solapamiento fase activa 1
-    const { data: sol1 } = await supabase
+    // Validar solape con la regla de la casa.
+    //
+    // Antes habia aqui TRES consultas hechas a mano y las tres se equivocaban
+    // igual que la copia que hubo en el arrastre de la agenda web:
+    //   - filtraban `estado = 'confirmada'`, con lo que una cita PENDIENTE o
+    //     COMPLETADA no contaba y se podia mover encima de ella. Lo que ocupa
+    //     hueco es CITA_STATUS_BLOQUEAN_SOLAPE;
+    //   - filtraban por `fin_activa`/`fin_espera` EN LA CONSULTA, y un
+    //     `.gt('fin_activa', ...)` no devuelve las filas con fin_activa NULL:
+    //     esas citas eran invisibles para la comprobacion.
+    // Ahora se traen las candidatas por rango y decide `pisaOtraCitaAlSoltar`,
+    // que delega en `citaSolapaOcupacion` (lib/agenda/solapeAlSoltar.ts, con
+    // tests). La tercera consulta ("excede el tiempo de espera") no necesita
+    // caso propio: caer en el reposo de otra y pasarse de su final es un choque
+    // activa-contra-activa como cualquier otro, y la regla ya lo ve.
+    const { data: candidatas } = await supabase
       .from('citas')
-      .select('id')
+      .select('id, inicio, fin_activa, fin_espera, fin')
       .eq('negocio_id', cita.negocio_id)
       .eq('profesional_id', cita.profesional_id)
-      .eq('estado', CITA_STATUS.CONFIRMADA)
+      .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
       .neq('id', cita.id)
-      .lt('inicio', nuevoFinActiva.toISOString())
-      .gt('fin_activa', nuevoInicio.toISOString());
+      .lt('inicio', nuevoFin.toISOString())
+      .gt('fin', nuevoInicio.toISOString());
 
-    if (sol1 && sol1.length > 0) {
+    const choca = pisaOtraCitaAlSoltar(
+      {
+        inicio: nuevoInicio,
+        finActiva: nuevoFinActiva,
+        finEspera: nuevoFinEspera,
+        fin: nuevoFin,
+      },
+      candidatas,
+      cita.profesional_id,
+      cita.id,
+    );
+
+    if (choca) {
       setMoveError('El profesional ya tiene una cita activa en ese horario.');
-      return;
-    }
-
-    // Validar solapamiento fase activa 2 (si existe)
-    if (activo2Ms > 0) {
-      const { data: sol2 } = await supabase
-        .from('citas')
-        .select('id')
-        .eq('negocio_id', cita.negocio_id)
-        .eq('profesional_id', cita.profesional_id)
-        .eq('estado', CITA_STATUS.CONFIRMADA)
-        .neq('id', cita.id)
-        .lt('inicio', nuevoFin.toISOString())
-        .gt('fin_activa', nuevoFinEspera.toISOString());
-
-      if (sol2 && sol2.length > 0) {
-        setMoveError('El profesional ya tiene una cita activa en ese horario.');
-        return;
-      }
-    }
-
-    // Validar excedeLaEspera: la cita movida cae en el tiempo de espera de otra
-    // y su fase activa supera el fin de ese tiempo de espera
-    const { data: sol3 } = await supabase
-      .from('citas')
-      .select('id')
-      .eq('negocio_id', cita.negocio_id)
-      .eq('profesional_id', cita.profesional_id)
-      .eq('estado', CITA_STATUS.CONFIRMADA)
-      .neq('id', cita.id)
-      .lte('fin_activa', nuevoInicio.toISOString())
-      .gt('fin_espera', nuevoInicio.toISOString())
-      .lt('fin_espera', nuevoFinActiva.toISOString())
-      .not('fin_espera', 'is', null);
-
-    if (sol3 && sol3.length > 0) {
-      setMoveError('El tiempo activo supera el tiempo de espera de otra cita.');
       return;
     }
 
@@ -605,7 +599,12 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
       .eq('negocio_id', cita.negocio_id)
       .eq('profesional_id', cita.profesional_id)
       .neq('id', cita.id)
-      .eq('estado', CITA_STATUS.CONFIRMADA)
+      // Quien me acoge en su reposo ocupa hueco: vale cualquier estado de
+      // CITA_STATUS_BLOQUEAN_SOLAPE, no solo 'confirmada'.
+      // (Los filtros por fin_activa/fin_espera SI son correctos aqui: no se
+      // busca un solape, se busca la cita cuyo reposo me contiene, y una fila
+      // sin fin_espera no tiene reposo en el que acoger a nadie.)
+      .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
       .lte('fin_activa', inicio.toISOString())
       .gt('fin_espera', inicio.toISOString())
       .not('fin_espera', 'is', null);
@@ -641,7 +640,12 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
         .gte('inicio', originalFinActiva.toISOString())
         .lt('inicio', originalFinEspera.toISOString())
         .neq('id', cita.id)
-        .eq('estado', CITA_STATUS.CONFIRMADA)
+        // Aqui se EMPUJA la cola, que no es lo mismo que ocupar hueco: el
+        // predicado correcto es "sigue viva" (pendiente + confirmada), no
+        // BLOQUEAN_SOLAPE, porque una completada ya paso y no se mueve. Con
+        // solo 'confirmada' las PENDIENTES se quedaban clavadas mientras las
+        // de alrededor se desplazaban, y acababan solapando.
+        .in('estado', CITA_STATUS_ACTIVOS)
         .eq('oculta_en_calendario', false);
       if (citasEnEspera) {
         for (const sig of citasEnEspera as any[]) {
@@ -667,7 +671,8 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
         .gte('inicio', originalFin.toISOString())
         .lte('inicio', diaFin.toISOString())
         .neq('id', cita.id)
-        .eq('estado', CITA_STATUS.CONFIRMADA)
+        // Mismo caso que arriba: empujar la cola del dia usa "sigue viva".
+        .in('estado', CITA_STATUS_ACTIVOS)
         .eq('oculta_en_calendario', false);
 
       if (siguientes && siguientes.length > 0) {

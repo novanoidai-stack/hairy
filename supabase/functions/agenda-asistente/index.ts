@@ -10,6 +10,10 @@ import { auditar } from '../shared/chispa-auditoria.ts';
 import { can, roleOf, toolPermitida, esEscritura, accionPermitidaEnSuperficie, esLectura, SUPERFICIE_ACCIONES, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
+// Regla unica de ocupacion activa/reposo. Se importa de retrasos.ts (Deno la
+// resuelve: usa imports con extension) y NO de utils/appointment.ts.
+import { fasesDe, chocaActivaActiva } from '../../../lib/retrasos.ts';
+import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -1669,7 +1673,10 @@ async function ejecutarLectura(
         .from('citas')
         .select('inicio, fin, fin_activa, fin_espera, profesional_id')
         .eq('negocio_id', negocioId)
-        .eq('estado', 'confirmada')
+        // Para saber que huecos quedan libres hay que contar TODO lo que ocupa
+        // sitio, no solo lo confirmado: con `eq('estado','confirmada')` una cita
+        // PENDIENTE no contaba y la IA ofrecia como libre un hueco ya cogido.
+        .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
         .gte('inicio', `${dia}T00:00:00`)
         .lt('inicio', `${dia}T23:59:59`);
 
@@ -2791,8 +2798,18 @@ export async function construirPropuesta(
       const finEsperaISO = finEspera.toISOString();
       const finISO = fin.toISOString();
 
-      // 6. Detectar solapa (replica AgendaCalendar.web.tsx:3205-3220)
-      const solapa = await detectarSolapa(profesional.id, inicioISO, finISO, finActivaISO);
+      // 6. Detectar solape con la regla unica de la casa.
+      // Se le pasa fin_espera: sin el, la SEGUNDA fase activa de un color
+      // (la de despues del reposo) no se comprobaria y la IA podria colocarla
+      // encima del trabajo de otra cita.
+      const solapa = await detectarSolapa(
+        profesional.id,
+        inicioISO,
+        finISO,
+        finActivaISO,
+        undefined,
+        durEspera > 0 ? finEsperaISO : null,
+      );
 
       const resumen = `${servicio.nombre} con ${profesional.nombre}${clienteNombre ? ` para ${clienteNombre}` : ''} el ${inicio.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}`;
 
@@ -3053,9 +3070,27 @@ export async function construirPropuesta(
 }
 
 // ---------------------------------------------------------------------------
-// Detectar solapa (replica AgendaCalendar.web.tsx:3205-3220)
-// Devuelve true si hay citas confirmadas del mismo profesional que solapan
-// con la fase activa de la nueva cita.
+// Detectar solape antes de que la IA escriba una cita.
+//
+// Esto estuvo escrito a mano ("replica AgendaCalendar.web.tsx", decia el
+// comentario) y no decia lo mismo que la regla de la casa. Tres fallos, los tres
+// del lado peligroso (dejaban pasar solapes que si lo son):
+//
+//   1. `.eq('estado','confirmada')`: lo que ocupa hueco es
+//      CITA_STATUS_BLOQUEAN_SOLAPE (pendiente + confirmada + completada), asi
+//      que la IA podia reservar encima de una cita PENDIENTE. El propio prompt
+//      de agenda-optimizador ya decia la regla bien; era el codigo el que no.
+//   2. Solo miraba la PRIMERA fase activa de la cita propuesta. Un color tiene
+//      dos (activa - reposo - activa): si la segunda caia sobre el trabajo de
+//      otra, pasaba el control.
+//   3. `new Date(c.fin_activa)` sin alternativa para NULL. En JS `new Date(null)`
+//      es el epoch de 1970, asi que la comparacion siempre daba falso: una fila
+//      con fin_activa a NULL era invisible y nunca producia choque.
+//
+// Ahora delega en `fasesDe` + `chocaActivaActiva` de lib/retrasos.ts, que es la
+// MISMA regla que usan la agenda, la pantalla de nueva cita y el SQL del portal.
+// Se importa de `lib/retrasos.ts` y no de `lib/utils/appointment.ts` porque ese
+// importa sin extension `.ts` y Deno no lo resuelve.
 // ---------------------------------------------------------------------------
 async function detectarSolapa(
   profesionalId: string,
@@ -3063,12 +3098,13 @@ async function detectarSolapa(
   fin: string,
   finActiva: string,
   excluirCitaId?: string,
+  finEspera?: string | null,
 ): Promise<boolean> {
   let q = svc
     .from('citas')
     .select('id, inicio, fin_activa, fin_espera, fin')
     .eq('profesional_id', profesionalId)
-    .eq('estado', 'confirmada')
+    .in('estado', CITA_STATUS_BLOQUEAN_SOLAPE)
     .lt('inicio', fin)
     .gt('fin', inicio);
 
@@ -3077,22 +3113,19 @@ async function detectarSolapa(
   const { data: candidatas } = await q;
   if (!candidatas || candidatas.length === 0) return false;
 
-  const cInicio = new Date(inicio);
-  const cFinActiva = new Date(finActiva);
-
-  return candidatas.some((c: {
-    inicio: string; fin_activa: string; fin_espera: string | null; fin: string;
-  }) => {
-    const ci = new Date(c.inicio);
-    const cfa = new Date(c.fin_activa);
-    const cfe = c.fin_espera ? new Date(c.fin_espera) : null;
-    const cf = new Date(c.fin);
-    // Solapa activa-activa
-    if (ci < cFinActiva && cfa > cInicio) return true;
-    // Solapa con la fase activa extra de la candidata
-    if (cfe && cf.getTime() > cfe.getTime() && cfe < cFinActiva && cf > cInicio) return true;
-    return false;
+  // Las marcas de la cita propuesta se leen igual que las de una fila guardada:
+  // sin fin_espera no se puede afirmar que haya reposo, asi que ocupa entera.
+  const propuesta = fasesDe({
+    id: '__propuesta__',
+    inicio,
+    fin,
+    fin_activa: finActiva,
+    fin_espera: finEspera ?? null,
   });
+
+  return (candidatas as Array<{
+    id: string; inicio: string; fin_activa: string | null; fin_espera: string | null; fin: string;
+  }>).some((c) => chocaActivaActiva(propuesta, fasesDe(c)));
 }
 
 // ---------------------------------------------------------------------------
