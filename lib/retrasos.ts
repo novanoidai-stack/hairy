@@ -331,12 +331,23 @@ function cierreDelta(citas: CitaRetraso[], updates: UpdateRetraso[]): number {
 // Busca el primer inicio (snap a slot) >= desdeMs donde `cita` no choca activa-activa
 // con ninguno de `obstaculos`. Si soloReposo, ademas exige que arranque dentro de un
 // reposo de algun obstaculo (tiempo muerto productivo).
+//
+// `bloqueosMs` (opcional) son los tramos no disponibles del profesional destino
+// -- vacaciones, descansos, bajas, reservas temporales. Sin ellos esta funcion
+// devolvia el PRIMER hueco libre de citas aunque cayera dentro de un bloqueo, y
+// quien la llama (el motor de propuestas) lo descartaba despues: como solo se
+// pide un slot por tramo, un bloqueo de 45 min a primera hora hacia desaparecer
+// el turno ENTERO de ese profesional como destino. Filtrando aqui, la busqueda
+// sigue avanzando hasta el primer hueco realmente utilizable.
+// Se comparan solo las VENTANAS ACTIVAS (igual que chocaActivaActiva): un
+// bloqueo puede caer dentro del reposo de la cita sin impedir nada.
 export function buscarHueco(
   citaFases: Fases,
   obstaculos: Fases[],
   desdeMs: number,
   hastaMs: number,
   soloReposo: boolean,
+  bloqueosMs: [number, number][] = [],
 ): number | null {
   const dur = citaFases.fin - citaFases.ini;
   const step = SLOT_MIN * MIN;
@@ -344,6 +355,10 @@ export function buscarHueco(
   for (; t + dur <= hastaMs; t += step) {
     const cand = reubicar(citaFases, t);
     if (obstaculos.some((o) => chocaActivaActiva(cand, o))) continue;
+    if (bloqueosMs.length > 0) {
+      const ventanas = ventanasActivas(cand);
+      if (bloqueosMs.some((b) => ventanas.some((v) => solapan(v, b)))) continue;
+    }
     if (soloReposo) {
       const enReposo = obstaculos.some((o) => o.finE > o.finA && t >= o.finA && t < o.finE);
       if (!enReposo) continue;

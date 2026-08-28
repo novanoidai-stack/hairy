@@ -55,6 +55,14 @@ import {
 const MIN = 60000;
 const SLOT_MS = 15 * MIN; // SLOT_MIN (lib/constants.ts) = 15 min
 
+// Redondea hacia ARRIBA al siguiente slot de 15 min. El generador de candidatos
+// partia de `ahoraMs` en crudo (Date.now(), con sus segundos), asi que las horas
+// propuestas heredaban el desfase: a las 17:03:47 ofrecia "adelantar a las
+// 17:03:47", y eso es lo que se escribia en citas.inicio al aplicar.
+function alSlot(ms: number): number {
+  return Math.ceil(ms / SLOT_MS) * SLOT_MS;
+}
+
 export interface MotorOpts {
   ahoraMs: number;
   // Limite del rango a evaluar (analizarAgendaRango ya acota el analisis; el
@@ -194,6 +202,13 @@ export function proponerMovimientosCita(
     const cand = reubicar(propia, nuevoInicioMs);
     // Hard constraints (descartan):
     const ctx = ctxPara(pid, new Date(nuevoInicioMs).toISOString());
+    // 0. NUNCA una hora que ya ha pasado. Solo el generador A (deltas del mismo
+    //    dia) acotaba por `ahoraMs`; B (snap a reposo), C (otro profesional) y D
+    //    (otro dia con signo negativo) no. Con una cita de las 18:00 a las 17:00
+    //    de la tarde, el snap al reposo de las 10:30 salia como MEJOR propuesta
+    //    (score 475) y ademas como "aplicable de un clic": un boton que movia la
+    //    cita seis horas al pasado.
+    if (nuevoInicioMs < opts.ahoraMs) return;
     // 1. Dia cerrado por el salon.
     if (esCierreDelDia(new Date(nuevoInicioMs).toISOString(), opts.cierres)) return;
     // 2. Fuera de los tramos del profesional o dentro de un bloqueo.
@@ -293,7 +308,9 @@ export function proponerMovimientosCita(
   const ctxActual = ctxPara(profActualId, new Date(propia.ini).toISOString());
   const aperturaActual = ctxActual.salon.aperturaMs;
   const cierreActual = ctxActual.salon.cierreMs;
-  const limiteInf = Math.max(opts.ahoraMs, aperturaActual, propia.ini - maxAdelantoMs);
+  // alSlot: sin esto los candidatos heredan los segundos de `ahoraMs` y el panel
+  // ofrece horas como las 17:03:47 (ver alSlot arriba).
+  const limiteInf = alSlot(Math.max(opts.ahoraMs, aperturaActual, propia.ini - maxAdelantoMs));
   const limiteSup = Math.min(cierreActual, propia.ini + maxRetrasoMs);
   for (let t = limiteInf; t <= limiteSup; t += SLOT_MS) {
     if (Math.abs(t - propia.ini) < SLOT_MS) continue; // mismo sitio
@@ -313,7 +330,11 @@ export function proponerMovimientosCita(
     if (p.id === profActualId) continue;
     const ctxP = ctxPara(p.id, new Date(propia.ini).toISOString());
     for (const tramo of ctxP.tramos) {
-      const slot = buscarHueco(propia, fasesPorProf.get(p.id) ?? [], tramo.desdeMs, tramo.hastaMs, false);
+      // El piso de `ahoraMs` y los bloqueos del destino van DENTRO de la
+      // busqueda, no como filtro posterior: solo se pide un slot por tramo, asi
+      // que un slot descartado despues se lleva por delante el turno entero.
+      const desde = Math.max(tramo.desdeMs, opts.ahoraMs);
+      const slot = buscarHueco(propia, fasesPorProf.get(p.id) ?? [], desde, tramo.hastaMs, false, ctxP.bloqueosMs);
       if (slot != null) addCandidato(slot, p.id, diaActualYmd, 'cambiar_trabajador');
     }
   }
@@ -329,7 +350,8 @@ export function proponerMovimientosCita(
       const ctxOtro = ctxPara(profActualId, fechaOtro.toISOString());
       const fechaYmd = fechaYmdLocal(t);
       for (const tramo of ctxOtro.tramos) {
-        const slot = buscarHueco(propia, fasesPorProf.get(profActualId) ?? [], tramo.desdeMs, tramo.hastaMs, false);
+        const desde = Math.max(tramo.desdeMs, opts.ahoraMs);
+        const slot = buscarHueco(propia, fasesPorProf.get(profActualId) ?? [], desde, tramo.hastaMs, false, ctxOtro.bloqueosMs);
         if (slot != null) addCandidato(slot, profActualId, fechaYmd, 'cambiar_dia');
       }
     }

@@ -151,6 +151,12 @@ Deno.serve(async (req) => {
     negocios = negocios.filter((n) => n !== 'demo_salon_001');
 
     const salida: Record<string, unknown>[] = [];
+    // Un salon que falla NO puede llevarse por delante la pasada de los demas.
+    // Antes cada error hacia `return` con un 500 desde DENTRO del bucle: el
+    // primer negocio con una consulta rota dejaba sin vigilar a todos los que
+    // venian detras, y encima el cron lo veia como una sola llamada fallida sin
+    // decir a cuantos habia dejado ciegos.
+    const fallos: Record<string, unknown>[] = [];
 
     for (const negocioId of negocios) {
       const hoy = new Date(ahoraMs);
@@ -188,7 +194,8 @@ Deno.serve(async (req) => {
         .filter(Boolean)
         .map((e) => e!.message);
       if (erroresFase1.length > 0) {
-        return new Response(JSON.stringify({ error: 'consulta fallida', negocioId, errores: erroresFase1 }), { status: 500 });
+        fallos.push({ negocioId, fase: 1, errores: erroresFase1 });
+        continue;
       }
 
       const profIds = ((profsRes.data ?? []) as { id: string }[]).map((p) => p.id);
@@ -208,7 +215,8 @@ Deno.serve(async (req) => {
         ]);
         const erroresFase2 = [bloqRes.error, horProfRes.error].filter(Boolean).map((e) => e!.message);
         if (erroresFase2.length > 0) {
-          return new Response(JSON.stringify({ error: 'consulta fallida', negocioId, errores: erroresFase2 }), { status: 500 });
+          fallos.push({ negocioId, fase: 2, errores: erroresFase2 });
+          continue;
         }
       }
 
@@ -226,8 +234,12 @@ Deno.serve(async (req) => {
       const fila = horarios.find((h: { dia_semana: number }) => h.dia_semana === dia);
       const cerrado = !!fila && !fila.abierto;
       if (sinCitas || cerrado) {
-        const descartados = await escribirHallazgos(supabase, negocioId, new Map());
-        salida.push({ negocioId, ...(sinCitas ? { citas: 0 } : { cerrado: true }), hallazgos: descartados });
+        try {
+          const descartados = await escribirHallazgos(supabase, negocioId, new Map());
+          salida.push({ negocioId, ...(sinCitas ? { citas: 0 } : { cerrado: true }), hallazgos: descartados });
+        } catch (e) {
+          fallos.push({ negocioId, fase: 'hallazgos', errores: [String(e)] });
+        }
         continue;
       }
 
@@ -281,13 +293,21 @@ Deno.serve(async (req) => {
         porTipo.set(p.tipo, [...(porTipo.get(p.tipo) ?? []), p]);
       }
 
-      const nuevos = await escribirHallazgos(supabase, negocioId, porTipo);
-      salida.push({ negocioId, citas: citas.length, problemas: problemas.length, hallazgosNuevos: nuevos });
+      try {
+        const nuevos = await escribirHallazgos(supabase, negocioId, porTipo);
+        salida.push({ negocioId, citas: citas.length, problemas: problemas.length, hallazgosNuevos: nuevos });
+      } catch (e) {
+        fallos.push({ negocioId, fase: 'hallazgos', errores: [String(e)] });
+      }
     }
 
-    return new Response(JSON.stringify({ ok: true, negocios: salida }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // 207 si alguno fallo: el cron y el panel tienen que poder distinguir "he
+    // vigilado a todos" de "he vigilado a la mitad". Un 200 pelado en ese caso
+    // seria el mismo canario mudo que ya nos ha mordido una vez.
+    return new Response(
+      JSON.stringify({ ok: fallos.length === 0, negocios: salida, ...(fallos.length > 0 ? { fallos } : {}) }),
+      { status: fallos.length > 0 ? 207 : 200, headers: { 'Content-Type': 'application/json' } },
+    );
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500 });
   }
