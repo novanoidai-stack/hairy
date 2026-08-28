@@ -146,3 +146,15 @@ design-demos/*.png
 # Salidas regenerables de scripts de verificacion
 verif-pricing.png
 temp_*.txt
+
+# Worktrees de tareas derivadas: son checkouts completos del repo. Siete de
+# ellos llegaron a sumar 78.000 ficheros .ts y hacian reventar por memoria a
+# cualquier analizador estatico (Knip). Nunca se versionan.
+.claude/worktrees/
+
+# Referencias visuales de librerias ajenas (MUI, Chakra, Mantine, Carbon...).
+# 30.709 ficheros y 613 MB que NADIE importa: no son codigo del producto, son
+# material de consulta. Siguen en el disco de quien los quiera mirar, pero
+# fuera del repo: engordaban el pack de git y hacian reventar por memoria a
+# cualquier analizador estatico.
+ui-references/

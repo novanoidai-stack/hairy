@@ -1,8 +1,0 @@
-{
-  "expo": {
-    "name": "HelloWorld",
-    "slug": "contrived-template",
-    "android": { "package": "com.example.minimal" },
-    "ios": { "bundleIdentifier": "com.example.minimal" }
-  }
-}

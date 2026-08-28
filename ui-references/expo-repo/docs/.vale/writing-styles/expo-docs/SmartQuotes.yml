@@ -1,9 +1,0 @@
-extends: existence
-message: Use straight quotes instead of smart quotes.
-level: error
-nonword: true
-tokens:
-  - “
-  - ”
-  - ‘
-  - ’

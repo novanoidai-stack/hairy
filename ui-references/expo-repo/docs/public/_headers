@@ -1,3 +1,0 @@
-# Next.js hashed assets - immutable, cache forever
-/_next/*
-  Cache-Control: public, max-age=31536000, immutable
