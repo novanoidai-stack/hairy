@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "schedule:weekly"],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Expo/React Native van de la mano: agruparlas",
+      "matchPackagePatterns": ["expo", "react-native"],
+      "groupName": "expo"
+    },
+    {
+      "description": "Supabase: probar siempre junto (cliente + edges)",
+      "matchPackagePatterns": ["supabase", "@supabase"],
+      "groupName": "supabase"
+    }
+  ]
+}
