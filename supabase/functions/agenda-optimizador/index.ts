@@ -23,8 +23,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { llamarIAJson } from '../shared/openrouterClient.ts';
 import { auditar, auditarFallo } from '../shared/chispa-auditoria.ts';
 import { comprobarCupo } from '../shared/cupo.ts';
-import { claveServicio, peticionDeServicio } from '../shared/claveServicio.ts';
 import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
+import { clavePublicable, claveServicio, peticionDeServicio } from '../shared/claveServicio.ts';
 import {
   analizarAgendaRango,
   prepararCitas,
@@ -379,7 +379,7 @@ Deno.serve(async (req) => {
     }
 
     // --- Auth: JWT del usuario; el negocio sale del perfil (no del body). ---
-    const userClient = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+    const userClient = createClient(SUPABASE_URL, clavePublicable(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData } = await userClient.auth.getUser();
