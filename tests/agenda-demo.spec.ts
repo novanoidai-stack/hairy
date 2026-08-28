@@ -92,16 +92,22 @@ test.describe('Agenda (demo) — caracterizacion', () => {
     const antes = await app.locator('[data-mecha-cita]').count();
 
     for (const vista of [/^Semana$/, /^Mes$/, /^D[ií]a$/]) {
-      const tab = app.getByText(vista).first();
+      // OJO con el selector, que aqui hay dos trampas juntas:
+      //   1. La agenda pinta VARIAS barras de vistas a la vez (escritorio y
+      //      movil), asi que hay tres botones "Semana" en el DOM.
+      //   2. El boton de la vista ACTIVA se renderiza a 0x0.
+      // Con `.first()` se acababa agarrando la copia invisible, y un
+      // `click({force:true})` sobre un elemento de 0x0 no dispara nada: la vista
+      // no cambiaba y la prueba fallaba culpando al producto. Hay que filtrar
+      // por visible.
+      const tab = app.getByRole('button', { name: vista }).filter({ visible: true }).first();
       if ((await tab.count()) === 0) continue;
-      // force: true a proposito. La agenda tiene elementos en animacion
-      // continua (linea AHORA pulsante, fondos degradados por profesional), asi
-      // que Playwright nunca da el boton por "stable" y se agota el timeout
-      // esperando a que se quede quieto algo que no va a pararse. Aqui se
-      // comprueba que los datos sobreviven al cambio de vista, no si el boton
-      // es clicable. Mismo patron que tests/staff-jornada.spec.ts.
+      // force: true se mantiene: la agenda tiene elementos en animacion continua
+      // (linea AHORA pulsante, fondos degradados por profesional) y Playwright
+      // nunca da el boton por "stable". Aqui se comprueba que los datos
+      // sobreviven al cambio de vista, no si el boton es clicable.
       await tab.click({ force: true });
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1500);
     }
 
     // De vuelta en Dia deben seguir estando las mismas citas. El bug que esto

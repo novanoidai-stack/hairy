@@ -1,0 +1,37 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "app/**/*.{ts,tsx}",
+    "supabase/functions/*/index.ts",
+    "scripts/*.mjs",
+    "tests/**/*.{ts,mjs}",
+    "lib/**/*.test.ts"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "supabase/functions/**/*.ts",
+    "scripts/**/*.mjs",
+    "tests/**/*.{ts,mjs}"
+  ],
+  "ignore": [
+    "web/**",
+    "scratch/**",
+    "scratch_redesign/**",
+    "design-demos/**",
+    "html_pages/**",
+    "project/**",
+    "ui-references/**",
+    "motion_design_pack/**",
+    ".claude/**",
+    ".agents/**",
+    "app/app/**",
+    "types/database.types.ts"
+  ],
+  "ignoreDependencies": [
+    "@expo-google-fonts/inter",
+    "expo-*"
+  ],
+  "ignoreExportsUsedInFile": true
+}

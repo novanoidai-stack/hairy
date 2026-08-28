@@ -156,6 +156,7 @@ import {
   SummaryCell,
   TimeSlider,
   norm,
+  fmtHHMM,
 } from "./ui/atomos.web";
 import { cacheado } from "@/lib/datos/cacheado";
 import {
@@ -362,9 +363,6 @@ function hexToRgba(hex: string | undefined | null, alpha: number): string {
 
 
 
-function fmtHHMM(d: Date): string {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
 
 const ReposoFreeGapInteractive = memo(
   ({

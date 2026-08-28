@@ -975,3 +975,8 @@ export function getCategoryIcon(icono: string, color: string, size = 14) {
   if (iconFn) return iconFn(color, size);
   return CATEGORY_ICONS.general(color, size);
 }
+
+// Hora corta HH:MM. La usan la agenda y los modales.
+export function fmtHHMM(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
