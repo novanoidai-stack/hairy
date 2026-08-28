@@ -1,0 +1,663 @@
+<!DOCTYPE html><html>
+<head>
+<title>6.3 Biophysical Origin of Adaptation | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch6.S4.html" title="6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S1.html" title="6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S4.html" title="6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch6.S5.html" title="6.5 Summary â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                  , 
+                  , Hodgkin-Huxley model, adaptation, biophysical origin, bursting, dendrite, firing pattern, reduction, spike-triggered, subthreshold">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6 </span>Adaptation and Firing Patterns</span></a><a href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2 </span>Firing Patterns</span></a><a href="Ch6.S4.html" title="6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4 </span>Spike response model (SRM)</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6.3 </span>Biophysical Origin of Adaptation</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">We have
+introduced, in SectionÂ <a href="Ch6.S1.html" title="6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.1</span></a>, formal adaptation variables <math id="p1.m1" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math>
+which evolve according to a linear differential
+equation (<a href="Ch6.S1.html#Ch6.E2" title="(6.2) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.2</span></a>).
+We now show
+that the variables <math id="p1.m2" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math> can be linked
+to the biophysics of ion channels
+and dendrites.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.3.1 </span>Subthreshold adaptation by a single slow channel</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">First we focus on
+one variable <math id="SS1.p1.m1" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> at a time
+and study its <span class="ltx_text ltx_font_italic">subthreshold</span> coupling to the voltage.
+In other words, the aim is to give a biophysical interpretation
+of the parameters <math id="SS1.p1.m2" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>, <math id="SS1.p1.m3" class="ltx_Math" alttext="\tau_{w}" display="inline"><semantics><msub><mi>Ï</mi><mi>w</mi></msub><annotation encoding="application/x-tex">\tau_{w}</annotation></semantics></math>, and the variable <math id="SS1.p1.m4" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+that show up in the adaptation equation</p>
+<table id="Ch6.E15" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E15.m1" class="ltx_Math" alttext="\tau_{w}\frac{{\text{d}}w}{{\text{d}}t}=a\,(u-E_{0})-w\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>Ï</mi><mi>w</mi></msub><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>w</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mpadded width="+1.7pt"><mi>w</mi></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{w}\frac{{\text{d}}w}{{\text{d}}t}=a\,(u-E_{0})-w\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.15)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The biophysical components of <span class="ltx_text ltx_font_italic">spike-triggered</span>
+adaptation (i.e., the interpretation of the reset parameter <math id="SS1.p1.m5" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>)
+is deferred to
+SectionÂ <a href="#SS2" title="6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.3.2</span></a>.
+Here and in the following we write <math id="SS1.p1.m6" class="ltx_Math" alttext="E_{0}" display="inline"><semantics><msub><mi>E</mi><mn>0</mn></msub><annotation encoding="application/x-tex">E_{0}</annotation></semantics></math> instead of <math id="SS1.p1.m7" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>
+in order to simplify notation
+and keep the treatment slightly more general.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">As discussed in
+ChapterÂ <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>,
+neurons contain numerous ion channels
+(SectionÂ <a href="Ch2.S3.html" title="2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>). Rapid activation of the sodium
+channels, important during
+the upswing
+of action potentials, is
+well approximated (Fig. <a href="Ch5.S2.html#Ch5.F4" title="Fig.Â 5.4 â£ 5.2.1 Extracting the Nonlinearity from Data â£ 5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.4</span></a>) by the exponential
+nonlinearity in the voltage equation
+of the AdEx model, Eq. (<a href="Ch6.S1.html#Ch6.E3" title="(6.3) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.3</span></a>).
+We will see now that the
+subthreshold current <math id="SS1.p2.m1" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is linked
+to the dynamics of other ion channels
+with a slower dynamics.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Let us focus on the model of a membrane
+with a leak current and a single,
+slow, ion channel, say a potassium channel
+of the Hodgkin-Huxley type</p>
+<table id="Ch6.E16" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E16.m1" class="ltx_Math" alttext="\tau_{m}\frac{{\text{d}}u}{{\text{d}}t}=-(u-E_{L})-R_{L}\,g_{K}\,n^{p}\,(u-E_{%
+K})+R_{L}\,I_{\rm ext}" display="block"><semantics><mrow><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>L</mi></msub></mrow><mo>)</mo></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi>g</mi><mi>K</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>n</mi><mi>p</mi></msup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><msub><mi>I</mi><mi>ext</mi></msub></mrow></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}\frac{{\text{d}}u}{{\text{d}}t}=-(u-E_{L})-R_{L}\,g_{K}\,n^{p}\,(u-E_{%
+K})+R_{L}\,I_{\rm ext}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.16)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS1.p3.m1" class="ltx_Math" alttext="R_{L}" display="inline"><semantics><msub><mi>R</mi><mi>L</mi></msub><annotation encoding="application/x-tex">R_{L}</annotation></semantics></math> and <math id="SS1.p3.m2" class="ltx_Math" alttext="E_{L}" display="inline"><semantics><msub><mi>E</mi><mi>L</mi></msub><annotation encoding="application/x-tex">E_{L}</annotation></semantics></math> are the resistance
+and reversal potential of the leak current,
+<math id="SS1.p3.m3" class="ltx_Math" alttext="\tau_{m}=R_{L}C" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>=</mo><mrow><msub><mi>R</mi><mi>L</mi></msub><mo>â¢</mo><mi>C</mi></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}=R_{L}C</annotation></semantics></math> the membrane
+time constant, <math id="SS1.p3.m4" class="ltx_Math" alttext="g_{K}" display="inline"><semantics><msub><mi>g</mi><mi>K</mi></msub><annotation encoding="application/x-tex">g_{K}</annotation></semantics></math> the maximal conductance of the open channel
+and <math id="SS1.p3.m5" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+the gating variable (which appears with arbitrary power <math id="SS1.p3.m6" class="ltx_Math" alttext="p" display="inline"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>) with dynamics</p>
+<table id="Ch6.E17" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E17.m1" class="ltx_Math" alttext="\frac{{\text{d}}n}{{\text{d}}t}=-\frac{n-n_{0}(u)}{\tau_{n}(u)}\,." display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>n</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mpadded width="+1.7pt"><mfrac><mrow><mi>n</mi><mo>-</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\frac{{\text{d}}n}{{\text{d}}t}=-\frac{n-n_{0}(u)}{\tau_{n}(u)}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.17)</span></td>
+</tr>
+</table>
+<p class="ltx_p">As long as the membrane potential stays below threshold,
+we can linearize the equations (<a href="#Ch6.E16" title="(6.16) â£ 6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.16</span></a>) and (<a href="#Ch6.E17" title="(6.17) â£ 6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.17</span></a>)
+around the resting voltage <math id="SS1.p3.m7" class="ltx_Math" alttext="E_{0}" display="inline"><semantics><msub><mi>E</mi><mn>0</mn></msub><annotation encoding="application/x-tex">E_{0}</annotation></semantics></math>, given by the fixed point condition</p>
+<table id="Ch6.E18" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E18.m1" class="ltx_Math" alttext="E_{0}={E_{L}+(R_{L}\,g_{K})\,n_{0}(E_{0})^{p}\,E_{K}\over 1+(R_{L}\,g_{K})\,n_%
+{0}(E_{0})^{p}\,}\,." display="block"><semantics><mrow><mrow><msub><mi>E</mi><mn>0</mn></msub><mo>=</mo><mpadded width="+1.7pt"><mfrac><mrow><msub><mi>E</mi><mi>L</mi></msub><mo>+</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><msub><mi>g</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow><mi>p</mi></msup></mpadded><mo>â¢</mo><msub><mi>E</mi><mi>K</mi></msub></mrow></mrow><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><msub><mi>g</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow><mi>p</mi></msup></mpadded></mrow></mrow></mfrac></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">E_{0}={E_{L}+(R_{L}\,g_{K})\,n_{0}(E_{0})^{p}\,E_{K}\over 1+(R_{L}\,g_{K})\,n_%
+{0}(E_{0})^{p}\,}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.18)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The resting potential is shifted with respect
+to the leak reversal potential
+if the channel is partially open at rest,
+<math id="SS1.p3.m8" class="ltx_Math" alttext="n_{0}(E_{0})&gt;0" display="inline"><semantics><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">n_{0}(E_{0})&gt;0</annotation></semantics></math>.
+We introduce
+a parameter <math id="SS1.p3.m9" class="ltx_Math" alttext="\beta=g_{K}\,p\,n_{0}(E_{0})^{p-1}\,(E_{0}-E_{K})" display="inline"><semantics><mrow><mi>Î²</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>K</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>p</mi></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow><mrow><mi>p</mi><mo>-</mo><mn>1</mn></mrow></msup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>E</mi><mn>0</mn></msub><mo>-</mo><msub><mi>E</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\beta=g_{K}\,p\,n_{0}(E_{0})^{p-1}\,(E_{0}-E_{K})</annotation></semantics></math>
+and expand <math id="SS1.p3.m10" class="ltx_Math" alttext="n_{0}(u)=n_{0}(E_{0})+n_{0}^{\prime}\,(u-E_{0})" display="inline"><semantics><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msubsup><mi>n</mi><mn>0</mn><mo>â²</mo></msubsup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">n_{0}(u)=n_{0}(E_{0})+n_{0}^{\prime}\,(u-E_{0})</annotation></semantics></math>
+where <math id="SS1.p3.m11" class="ltx_Math" alttext="n_{0}^{\prime}" display="inline"><semantics><msubsup><mi>n</mi><mn>0</mn><mo>â²</mo></msubsup><annotation encoding="application/x-tex">n_{0}^{\prime}</annotation></semantics></math> is the derivative <math id="SS1.p3.m12" class="ltx_Math" alttext="dn_{0}/du" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">dn_{0}/du</annotation></semantics></math> evaluated at <math id="SS1.p3.m13" class="ltx_Math" alttext="E_{0}" display="inline"><semantics><msub><mi>E</mi><mn>0</mn></msub><annotation encoding="application/x-tex">E_{0}</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">The variable <math id="SS1.p4.m1" class="ltx_Math" alttext="w=\beta\,[n-n_{0}(E_{0})]" display="inline"><semantics><mrow><mi>w</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>Î²</mi></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>n</mi><mo>-</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">w=\beta\,[n-n_{0}(E_{0})]</annotation></semantics></math>
+then follows the linear
+equation</p>
+<table id="Ch6.E19" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E19.m1" class="ltx_Math" alttext="\tau_{n}(E_{0})\frac{{\text{d}}w}{{\text{d}}t}=a\,(u-E_{0})-w\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>w</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mpadded width="+1.7pt"><mi>w</mi></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{n}(E_{0})\frac{{\text{d}}w}{{\text{d}}t}=a\,(u-E_{0})-w\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.19)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We emphasize that the time constant of the variable
+<math id="SS1.p4.m2" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is given by the time constant of the channel
+at the resting potential.
+The parameter <math id="SS1.p4.m3" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> is proportional to the sensitivity of the channel
+to a change in the membrane voltage, as measured by the slope
+<math id="SS1.p4.m4" class="ltx_Math" alttext="dn_{0}/du" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">dn_{0}/du</annotation></semantics></math>
+at the equilibrium potential <math id="SS1.p4.m5" class="ltx_Math" alttext="E_{0}" display="inline"><semantics><msub><mi>E</mi><mn>0</mn></msub><annotation encoding="application/x-tex">E_{0}</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">The adaptation variable <math id="SS1.p5.m1" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+is coupled into the voltage equation in the standard form</p>
+<table id="Ch6.E20" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E20.m1" class="ltx_Math" alttext="\tau_{m}^{\rm eff}\frac{{\text{d}}u}{{\text{d}}t}=-(u-E_{0})-R\,w+R\,I_{\rm ext}." display="block"><semantics><mrow><mrow><mrow><msubsup><mi>Ï</mi><mi>m</mi><mi>eff</mi></msubsup><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>w</mi></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mi>ext</mi></msub></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau_{m}^{\rm eff}\frac{{\text{d}}u}{{\text{d}}t}=-(u-E_{0})-R\,w+R\,I_{\rm ext}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.20)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Note that the membrane time constant and the resistance
+are rescaled by a factor <math id="SS1.p5.m2" class="ltx_Math" alttext="[1+(R_{L}\,g_{K})\,n_{0}(E_{0})^{p}\,]^{-1}" display="inline"><semantics><msup><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><msub><mi>g</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow><mi>p</mi></msup></mpadded></mrow></mrow><mo>]</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">[1+(R_{L}\,g_{K})\,n_{0}(E_{0})^{p}\,]^{-1}</annotation></semantics></math>
+with respect to their values in the passive membrane
+equation, Eq. ((<a href="#Ch6.E16" title="(6.16) â£ 6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.16</span></a>)).
+In fact, both are smaller
+because of partial opening of the channel at rest.</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">In summary, each channel with nonzero slope
+<math id="SS1.p6.m1" class="ltx_Math" alttext="dn_{0}/du" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">dn_{0}/du</annotation></semantics></math> at the equilibrium potential <math id="SS1.p6.m2" class="ltx_Math" alttext="E_{0}" display="inline"><semantics><msub><mi>E</mi><mn>0</mn></msub><annotation encoding="application/x-tex">E_{0}</annotation></semantics></math>
+gives rise to an effective
+adaptation variable <math id="SS1.p6.m3" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>.
+Since there are many channels, we can expect
+many variables <math id="SS1.p6.m4" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math>. Those with similar time
+constants can be summed and grouped
+into a single equation.
+But if time constants are different by
+an order of magnitude or more then
+several adaptation variables are needed,
+which leads to the model equations
+(<a href="Ch6.S1.html#Ch6.E1" title="(6.1) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.1</span></a>) and (<a href="Ch6.S1.html#Ch6.E2" title="(6.2) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.2</span></a>).</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.3.2 </span>Spike-triggered adaptation arising from a biophysical ion-channel</h1>
+
+<figure id="Ch6.T2" class="ltx_table">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_border_t">Type</th>
+<th class="ltx_td ltx_align_center ltx_border_t">Fig.</th>
+<th class="ltx_td ltx_align_center ltx_border_t">act./inact.</th>
+<th class="ltx_td ltx_align_center ltx_border_t">
+<math id="Ch6.T2.m1" class="ltx_Math" alttext="\tau_{w}" display="inline"><semantics><msub><mi>Ï</mi><mi>w</mi></msub><annotation encoding="application/x-tex">\tau_{w}</annotation></semantics></math> (ms)</th>
+<th class="ltx_td ltx_align_center ltx_border_t">
+<math id="Ch6.T2.m2" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi>Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math> (pA)</th>
+<th class="ltx_td ltx_align_center ltx_border_t">a (nS)</th>
+<th class="ltx_td ltx_align_center ltx_border_t">
+                    <math id="Ch6.T2.m3" class="ltx_Math" alttext="\delta_{x}" display="inline"><semantics><msub><mi>Î´</mi><mi>x</mi></msub><annotation encoding="application/x-tex">\delta_{x}</annotation></semantics></math>
+                  </th>
+<th class="ltx_td ltx_align_center ltx_border_t">
+<math id="Ch6.T2.m4" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math> (pA)</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_t">
+                    <math id="Ch6.T2.m5" class="ltx_Math" alttext="I_{\rm Na}" display="inline"><semantics><msub><mi>I</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">I_{\rm Na}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_t">
+                    <a href="Ch2.S2.html#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_t">inact.</td>
+<td class="ltx_td ltx_align_center ltx_border_t">20</td>
+<td class="ltx_td ltx_align_center ltx_border_t">-120</td>
+<td class="ltx_td ltx_align_center ltx_border_t">5.0</td>
+<td class="ltx_td ltx_align_center ltx_border_t">-</td>
+<td class="ltx_td ltx_align_center ltx_border_t">-</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch6.T2.m6" class="ltx_Math" alttext="I_{\rm M}" display="inline"><semantics><msub><mi>I</mi><mi mathvariant="normal">M</mi></msub><annotation encoding="application/x-tex">I_{\rm M}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center">
+                    <a href="Ch2.S3.html#Ch2.F13" title="Fig.Â 2.13 â£ 2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.13</span></a>
+                  </td>
+<td class="ltx_td ltx_align_center">act.</td>
+<td class="ltx_td ltx_align_center">61</td>
+<td class="ltx_td ltx_align_center">12</td>
+<td class="ltx_td ltx_align_center">0.0</td>
+<td class="ltx_td ltx_align_center">0.0085</td>
+<td class="ltx_td ltx_align_center">0.1</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch6.T2.m7" class="ltx_Math" alttext="I_{\rm A}" display="inline"><semantics><msub><mi>I</mi><mi mathvariant="normal">A</mi></msub><annotation encoding="application/x-tex">I_{\rm A}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center">
+                    <a href="Ch2.S3.html#Ch2.F14" title="Fig.Â 2.14 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.14</span></a>
+                  </td>
+<td class="ltx_td ltx_align_center">act.</td>
+<td class="ltx_td ltx_align_center">33</td>
+<td class="ltx_td ltx_align_center">12</td>
+<td class="ltx_td ltx_align_center">0.3</td>
+<td class="ltx_td ltx_align_center">0.04</td>
+<td class="ltx_td ltx_align_center">0.5</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch6.T2.m8" class="ltx_Math" alttext="I_{\rm HVA}+I_{\rm K[Ca]}" display="inline"><semantics><mrow><msub><mi>I</mi><mi>HVA</mi></msub><mo>+</mo><msub><mi>I</mi><mrow><mi mathvariant="normal">K</mi><mo>â¢</mo><mrow><mo>[</mo><mi>Ca</mi><mo>]</mo></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">I_{\rm HVA}+I_{\rm K[Ca]}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center">
+                    <a href="Ch2.S3.html#Ch2.F16" title="Fig.Â 2.16 â£ 2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.16</span></a>
+                  </td>
+<td class="ltx_td ltx_align_center">act.</td>
+<td class="ltx_td ltx_align_center">150</td>
+<td class="ltx_td ltx_align_center">12</td>
+<td class="ltx_td ltx_align_center">0</td>
+<td class="ltx_td ltx_align_center">0.05</td>
+<td class="ltx_td ltx_align_center">0.6</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch6.T2.m9" class="ltx_Math" alttext="I_{h}" display="inline"><semantics><msub><mi>I</mi><mi>h</mi></msub><annotation encoding="application/x-tex">I_{h}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center">
+                    <a href="Ch2.S3.html#Ch2.F18" title="Fig.Â 2.18 â£ 2.3.4 Subthreshold Effects â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.18</span></a>
+                  </td>
+<td class="ltx_td ltx_align_center">inact.</td>
+<td class="ltx_td ltx_align_center">8.5</td>
+<td class="ltx_td ltx_align_center">-48</td>
+<td class="ltx_td ltx_align_center">0.8</td>
+<td class="ltx_td ltx_align_center">-</td>
+<td class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_b">
+                    <math id="Ch6.T2.m10" class="ltx_Math" alttext="I_{\rm NaS}" display="inline"><semantics><msub><mi>I</mi><mi>NaS</mi></msub><annotation encoding="application/x-tex">I_{\rm NaS}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_b">
+                    <a href="Ch2.S3.html#Ch2.F19" title="Fig.Â 2.19 â£ 2.3.4 Subthreshold Effects â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.19</span></a>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_b">act</td>
+<td class="ltx_td ltx_align_center ltx_border_b">200</td>
+<td class="ltx_td ltx_align_center ltx_border_b">-120</td>
+<td class="ltx_td ltx_align_center ltx_border_b">-0.08</td>
+<td class="ltx_td ltx_align_center ltx_border_b">0.0041</td>
+<td class="ltx_td ltx_align_center ltx_border_b">-0.48</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">TableÂ 6.2: </span>Parameter values for ion channels presented in Chapter <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> for model linearized around <math id="Ch6.T2.m19" class="ltx_Math" alttext="-65" display="inline"><semantics><mrow><mo>-</mo><mn>65</mn></mrow><annotation encoding="application/x-tex">-65</annotation></semantics></math>Â mV for <math id="Ch6.T2.m20" class="ltx_Math" alttext="Rg_{k}=1" display="inline"><semantics><mrow><mrow><mi>R</mi><mo>â¢</mo><msub><mi>g</mi><mi>k</mi></msub></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Rg_{k}=1</annotation></semantics></math>. The action potential is assumed to consist of a pulse of <math id="Ch6.T2.m21" class="ltx_Math" alttext="1" display="inline"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>Â ms duration at <math id="Ch6.T2.m22" class="ltx_Math" alttext="0" display="inline"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>Â mV. The approximation to obtain <math id="Ch6.T2.m23" class="ltx_Math" alttext="\delta_{x}" display="inline"><semantics><msub><mi>Î´</mi><mi>x</mi></msub><annotation encoding="application/x-tex">\delta_{x}</annotation></semantics></math> and <math id="Ch6.T2.m24" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math> is valid only when <math id="Ch6.T2.m25" class="ltx_Math" alttext="\tau_{x}(0" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>x</mi></msub><mrow><mo stretchy="false">(</mo><mn>0</mn></mrow></mrow><annotation encoding="application/x-tex">\tau_{x}(0</annotation></semantics></math>mV<math id="Ch6.T2.m26" class="ltx_Math" alttext=")" display="inline"><semantics><mo stretchy="false">)</mo><annotation encoding="application/x-tex">)</annotation></semantics></math> is significantly larger than one millisecond. </figcaption>
+</figure>
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">We have seen in Chapter <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> that some ion channels
+are partially open at the resting potential, while
+others react only when the membrane potential
+is well above the firing threshold.
+We now focus on the second group in order
+to give a biophysical interpretation
+of the jump amplitude <math id="SS2.p1.m1" class="ltx_Math" alttext="b" display="inline"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+of a spike-triggered adaptation current.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">Let us return to the example of a single ion channel of the Hodgkin and Huxley type such as the potassium current in Eq. (<a href="#Ch6.E16" title="(6.16) â£ 6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.16</span></a>).
+In contrast to the treatment before, we now study
+the change in the state of the ion channel
+induced during the large-amplitude excursion of the voltage
+trajectory during a spike.
+During the spike, the target <math id="SS2.p2.m1" class="ltx_Math" alttext="n_{0}(u)" display="inline"><semantics><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">n_{0}(u)</annotation></semantics></math>
+of the gating variable is close to one; but since the time
+constant <math id="SS2.p2.m2" class="ltx_Math" alttext="\tau_{n}" display="inline"><semantics><msub><mi>Ï</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\tau_{n}</annotation></semantics></math> is long, the target is not reached during
+the short time that the voltage stays above the activation threshold.
+Nevertheless, the ion channel is partially activated by the spike.
+Unless the neuron is firing at a very large firing rate, each additional
+spike activate the channel further, always by the same amount <math id="SS2.p2.m3" class="ltx_Math" alttext="\Delta_{n}" display="inline"><semantics><msub><mi mathvariant="normal">Î</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\Delta_{n}</annotation></semantics></math>,
+which depends on the duration of the spike and the
+activation threshold of the current (Table <a href="#Ch6.T2" title="TableÂ 6.2 â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.2</span></a>).
+The spike-triggered jump in the adapting current <math id="SS2.p2.m4" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> is then
+</p>
+<table id="Ch6.E21" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E21.m1" class="ltx_Math" alttext="b=\beta\Delta_{n}\,." display="block"><semantics><mrow><mrow><mi>b</mi><mo>=</mo><mrow><mi>Î²</mi><mo>â¢</mo><mpadded width="+1.7pt"><msub><mi mathvariant="normal">Î</mi><mi>n</mi></msub></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">b=\beta\Delta_{n}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.21)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.p2.m5" class="ltx_Math" alttext="\beta=g_{K}\,p\,n_{0}(E_{0})^{p-1}\,(E_{0}-E_{K})" display="inline"><semantics><mrow><mi>Î²</mi><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>K</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>p</mi></mpadded><mo>â¢</mo><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>(</mo><msub><mi>E</mi><mn>0</mn></msub><mo>)</mo></mrow><mrow><mi>p</mi><mo>-</mo><mn>1</mn></mrow></msup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>E</mi><mn>0</mn></msub><mo>-</mo><msub><mi>E</mi><mi>K</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\beta=g_{K}\,p\,n_{0}(E_{0})^{p-1}\,(E_{0}-E_{K})</annotation></semantics></math> has been defined before.</p>
+</div>
+<figure id="Ch6.F10" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x168.png" id="Ch6.F10.g1" class="ltx_graphics" width="590" height="197" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"><img src="x169.png" id="Ch6.F10.g2" class="ltx_graphics" width="589" height="193" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 6.10: </span>Another type of bursting in a model with two spike-triggered currents. <span class="ltx_text ltx_font_bold">A</span> Voltage trace of the neuron model Eq. (<a href="Ch6.S1.html#Ch6.E3" title="(6.3) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.3</span></a>)-(<a href="Ch6.S1.html#Ch6.E4" title="(6.4) â£ 6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.4</span></a>) with <math id="Ch6.F10.m10" class="ltx_Math" alttext="u_{\rm reset}=-55" display="inline"><semantics><mrow><msub><mi>u</mi><mi>reset</mi></msub><mo>=</mo><mrow><mo>-</mo><mn>55</mn></mrow></mrow><annotation encoding="application/x-tex">u_{\rm reset}=-55</annotation></semantics></math>Â mV, <math id="Ch6.F10.m11" class="ltx_Math" alttext="\vartheta_{\rm rh}=-50" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>rh</mi></msub><mo>=</mo><mrow><mo>-</mo><mn>50</mn></mrow></mrow><annotation encoding="application/x-tex">\vartheta_{\rm rh}=-50</annotation></semantics></math>Â mV, <math id="Ch6.F10.m12" class="ltx_Math" alttext="b_{1}=-12" display="inline"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>=</mo><mrow><mo>-</mo><mn>12</mn></mrow></mrow><annotation encoding="application/x-tex">b_{1}=-12</annotation></semantics></math>Â pA, <math id="Ch6.F10.m13" class="ltx_Math" alttext="b_{2}=60" display="inline"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><mn>60</mn></mrow><annotation encoding="application/x-tex">b_{2}=60</annotation></semantics></math>Â pA, <math id="Ch6.F10.m14" class="ltx_Math" alttext="\tau_{1}=20" display="inline"><semantics><mrow><msub><mi>Ï</mi><mn>1</mn></msub><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">\tau_{1}=20</annotation></semantics></math>Â ms, <math id="Ch6.F10.m15" class="ltx_Math" alttext="\tau_{2}=61" display="inline"><semantics><mrow><msub><mi>Ï</mi><mn>2</mn></msub><mo>=</mo><mn>61</mn></mrow><annotation encoding="application/x-tex">\tau_{2}=61</annotation></semantics></math>Â ms, <math id="Ch6.F10.m16" class="ltx_Math" alttext="a_{1}=-3" display="inline"><semantics><mrow><msub><mi>a</mi><mn>1</mn></msub><mo>=</mo><mrow><mo>-</mo><mn>3</mn></mrow></mrow><annotation encoding="application/x-tex">a_{1}=-3</annotation></semantics></math>Â nS and <math id="Ch6.F10.m17" class="ltx_Math" alttext="a_{2}=0" display="inline"><semantics><mrow><msub><mi>a</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">a_{2}=0</annotation></semantics></math>. Parameters were chosen to correspond to a neuron coupled with a dendritic compartment and <math id="Ch6.F10.m18" class="ltx_Math" alttext="I_{\rm M}" display="inline"><semantics><msub><mi>I</mi><mi mathvariant="normal">M</mi></msub><annotation encoding="application/x-tex">I_{\rm M}</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">B</span>. Voltage deflection brought by an isolated spike. Each spike brings first refractoriness, then a facilitation and finally adaptation on a longer timescale. </figcaption>
+</figure>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">Again, real neurons with their large quantity of ion channels have many adaptation currents <math id="SS2.p3.m1" class="ltx_Math" alttext="w_{k}" display="inline"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_{k}</annotation></semantics></math>, each with its own time constant <math id="SS2.p3.m2" class="ltx_Math" alttext="\tau_{k}" display="inline"><semantics><msub><mi>Ï</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\tau_{k}</annotation></semantics></math>, subthreshold coupling <math id="SS2.p3.m3" class="ltx_Math" alttext="a_{k}" display="inline"><semantics><msub><mi>a</mi><mi>k</mi></msub><annotation encoding="application/x-tex">a_{k}</annotation></semantics></math> and spike-triggered jump <math id="SS2.p3.m4" class="ltx_Math" alttext="b_{k}" display="inline"><semantics><msub><mi>b</mi><mi>k</mi></msub><annotation encoding="application/x-tex">b_{k}</annotation></semantics></math>. The effective parameter values depend on the properties of the ion channels (Table <a href="#Ch6.T2" title="TableÂ 6.2 â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.2</span></a>).</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Calculating the jump <math id="SS2.p4.m1" class="ltx_Math" alttext="b" display="inline"><semantics><mi mathsize="normal" stretchy="false">b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math> of the spike-triggered adaptation current</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We consider
+a gating dynamics</span>
+              </p>
+<table id="Ch6.E22" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch6.E22.m1" class="ltx_Math" alttext="\frac{{\text{d}}n}{{\text{d}}t}=-\frac{n-n_{0}(u)}{\tau_{n}(u)}\,." display="block"><semantics><mrow><mrow><mfrac><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>n</mi></mrow><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mo>-</mo><mpadded width="+1.7pt"><mfrac><mrow><mi>n</mi><mo>-</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\frac{{\text{d}}n}{{\text{d}}t}=-\frac{n-n_{0}(u)}{\tau_{n}(u)}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.22)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with the steplike activation function
+<math id="SS2.p4.m2" class="ltx_Math" alttext="n_{0}(u)=\Theta(u-u_{0}^{\rm act})" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">n</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">-</mo><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" stretchy="false">act</mi></msubsup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">n_{0}(u)=\Theta(u-u_{0}^{\rm act})</annotation></semantics></math> where <math id="SS2.p4.m3" class="ltx_Math" alttext="u_{0}^{\rm act}=-30" display="inline"><semantics><mrow><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" stretchy="false">act</mi></msubsup><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">30</mn></mrow></mrow><annotation encoding="application/x-tex">u_{0}^{\rm act}=-30</annotation></semantics></math>mV
+and <math id="SS2.p4.m4" class="ltx_Math" alttext="\tau_{n}(u)=100" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">100</mn></mrow><annotation encoding="application/x-tex">\tau_{n}(u)=100</annotation></semantics></math>ms independent of <math id="SS2.p4.m5" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>.
+Thus, the gating variable <math id="SS2.p4.m6" class="ltx_Math" alttext="n" display="inline"><semantics><mi mathsize="normal" stretchy="false">n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> approaches a target value of 1
+whenever the voltage <math id="SS2.p4.m7" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is above the activation threshold
+<math id="SS2.p4.m8" class="ltx_Math" alttext="u_{0}^{\rm act}" display="inline"><semantics><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" stretchy="false">act</mi></msubsup><annotation encoding="application/x-tex">u_{0}^{\rm act}</annotation></semantics></math>.
+Since the activation threshold of -30mV
+is <span class="ltx_text ltx_font_italic">above</span> the firing threshold (typically in the range of -40mV)
+we can safely state that the neuron
+activation of the channel can only occur
+during an action potential.
+Assuming that, during an action potential
+the voltage remains for <math id="SS2.p4.m9" class="ltx_Math" alttext="\Delta_{t}=1" display="inline"><semantics><mrow><msub><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">t</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">\Delta_{t}=1</annotation></semantics></math>ms above <math id="SS2.p4.m10" class="ltx_Math" alttext="u_{0}^{\rm act}" display="inline"><semantics><msubsup><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" stretchy="false">act</mi></msubsup><annotation encoding="application/x-tex">u_{0}^{\rm act}</annotation></semantics></math>,
+we can integrate Eq.Â (<a href="#Ch6.E22" title="(6.22) â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.22</span></a>) and find
+that each spike causes an increase <math id="SS2.p4.m11" class="ltx_Math" alttext="\Delta_{n}=\Delta_{t}/\tau_{n}" display="inline"><semantics><mrow><msub><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">n</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">t</mi></msub><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub></mrow></mrow><annotation encoding="application/x-tex">\Delta_{n}=\Delta_{t}/\tau_{n}</annotation></semantics></math>
+where we have exploited that <math id="SS2.p4.m12" class="ltx_Math" alttext="\Delta_{t}\ll\tau_{n}" display="inline"><semantics><mrow><msub><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">t</mi></msub><mo mathsize="normal" stretchy="false">âª</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub></mrow><annotation encoding="application/x-tex">\Delta_{t}\ll\tau_{n}</annotation></semantics></math>.
+If we plug in the above numbers, we see
+that each spike causes an increase of <math id="SS2.p4.m13" class="ltx_Math" alttext="n" display="inline"><semantics><mi mathsize="normal" stretchy="false">n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> by a value of 0.01.
+If the duration of the spike were twice as long, the increase would
+be 0.02. After the spike the gating variable decays
+with the time constant <math id="SS2.p4.m14" class="ltx_Math" alttext="\tau_{n}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub><annotation encoding="application/x-tex">\tau_{n}</annotation></semantics></math> back to zero.
+The increase <math id="SS2.p4.m15" class="ltx_Math" alttext="\Delta_{n}" display="inline"><semantics><msub><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">n</mi></msub><annotation encoding="application/x-tex">\Delta_{n}</annotation></semantics></math> leads to a jump
+amplitude of the adaptation current
+given by Eq. (<a href="#Ch6.E21" title="(6.21) â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.21</span></a>).</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.3.3 </span>Subthreshold adaptation caused by passive dendrites</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">While in the previous paragraph, we have focused on the role
+of ion channels, here we show that a passive
+dendrite can also give rise
+to a subthreshold coupling of the form of
+Eq.Â (<a href="#Ch6.E15" title="(6.15) â£ 6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.15</span></a>).
+<br class="ltx_break">We focus on a simple neuron model with two compartments,
+representing the soma and the dendrite, superscripts <math id="SS3.p1.m1" class="ltx_Math" alttext="s" display="inline"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math> and <math id="SS3.p1.m2" class="ltx_Math" alttext="d" display="inline"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math> respectively. The two compartments are both passive with membrane potential <math id="SS3.p1.m3" class="ltx_Math" alttext="V^{s},\,V^{d}" display="inline"><semantics><mrow><msup><mi>V</mi><mi>s</mi></msup><mo separator="true">,â</mo><msup><mi>V</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">V^{s},\,V^{d}</annotation></semantics></math>, transversal resistance <math id="SS3.p1.m4" class="ltx_Math" alttext="R_{\text{T}}^{s},\,R_{\text{T}}^{d}" display="inline"><semantics><mrow><msubsup><mi>R</mi><mtext>T</mtext><mi>s</mi></msubsup><mo separator="true">,â</mo><msubsup><mi>R</mi><mtext>T</mtext><mi>d</mi></msubsup></mrow><annotation encoding="application/x-tex">R_{\text{T}}^{s},\,R_{\text{T}}^{d}</annotation></semantics></math>, capacity <math id="SS3.p1.m5" class="ltx_Math" alttext="C^{s},\,C^{d}" display="inline"><semantics><mrow><msup><mi>C</mi><mi>s</mi></msup><mo separator="true">,â</mo><msup><mi>C</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">C^{s},\,C^{d}</annotation></semantics></math> and resting potential <math id="SS3.p1.m6" class="ltx_Math" alttext="u_{\rm r},\,E^{d}" display="inline"><semantics><mrow><msub><mi>u</mi><mi mathvariant="normal">r</mi></msub><mo separator="true">,â</mo><msup><mi>E</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">u_{\rm r},\,E^{d}</annotation></semantics></math>. The two compartments are linked by a longitudinal resistance <math id="SS3.p1.m7" class="ltx_Math" alttext="R_{\text{L}}" display="inline"><semantics><msub><mi>R</mi><mtext>L</mtext></msub><annotation encoding="application/x-tex">R_{\text{L}}</annotation></semantics></math> (see Chapter <a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>). If current is injected only in the soma, then the two-compartment model with passive dendrites corresponds to
+</p>
+<table id="Ch20.S4.EGx25" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch6.E23" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E23.m1" class="ltx_Math" alttext="\displaystyle{{\text{d}}\over{\text{d}}t}V^{s}" display="inline"><semantics><mrow><mstyle displaystyle="true"><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle><mo>â¢</mo><msup><mi>V</mi><mi>s</mi></msup></mrow><annotation encoding="application/x-tex">\displaystyle{{\text{d}}\over{\text{d}}t}V^{s}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E23.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E23.m3" class="ltx_Math" alttext="\displaystyle\frac{1}{C^{s}}\,\left[-{(V^{s}-u_{\rm rest})\over R_{\text{T}}^{%
+s}}-{V^{s}-V^{d}\over R_{\text{L}}}+I(t)\right]\,," display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><msup><mi>C</mi><mi>s</mi></msup></mfrac></mstyle></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mo>-</mo><mstyle displaystyle="true"><mfrac><mrow><mo>(</mo><mrow><msup><mi>V</mi><mi>s</mi></msup><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><msubsup><mi>R</mi><mtext>T</mtext><mi>s</mi></msubsup></mfrac></mstyle><mo>-</mo><mstyle displaystyle="true"><mfrac><mrow><msup><mi>V</mi><mi>s</mi></msup><mo>-</mo><msup><mi>V</mi><mi>d</mi></msup></mrow><msub><mi>R</mi><mtext>L</mtext></msub></mfrac></mstyle><mo>+</mo><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle\frac{1}{C^{s}}\,\left[-{(V^{s}-u_{\rm rest})\over R_{\text{T}}^{%
+s}}-{V^{s}-V^{d}\over R_{\text{L}}}+I(t)\right]\,,</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.23)</span></td>
+</tr>
+<tr id="Ch6.E24" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E24.m1" class="ltx_Math" alttext="\displaystyle{{\text{d}}\over{\text{d}}t}V^{d}" display="inline"><semantics><mrow><mstyle displaystyle="true"><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle><mo>â¢</mo><msup><mi>V</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">\displaystyle{{\text{d}}\over{\text{d}}t}V^{d}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E24.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E24.m3" class="ltx_Math" alttext="\displaystyle\frac{1}{C^{d}}\,\left[-{(V^{d}-E^{d})\over R_{\text{T}}^{d}}-{V^%
+{d}-V^{s}\over R_{\text{L}}}\right]\,." display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><msup><mi>C</mi><mi>d</mi></msup></mfrac></mstyle></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mo>-</mo><mstyle displaystyle="true"><mfrac><mrow><mo>(</mo><mrow><msup><mi>V</mi><mi>d</mi></msup><mo>-</mo><msup><mi>E</mi><mi>d</mi></msup></mrow><mo>)</mo></mrow><msubsup><mi>R</mi><mtext>T</mtext><mi>d</mi></msubsup></mfrac></mstyle><mo>-</mo><mstyle displaystyle="true"><mfrac><mrow><msup><mi>V</mi><mi>d</mi></msup><mo>-</mo><msup><mi>V</mi><mi>s</mi></msup></mrow><msub><mi>R</mi><mtext>L</mtext></msub></mfrac></mstyle></mrow><mo>]</mo></mrow></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle\frac{1}{C^{d}}\,\left[-{(V^{d}-E^{d})\over R_{\text{T}}^{d}}-{V^%
+{d}-V^{s}\over R_{\text{L}}}\right]\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.24)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Such a system of differential equations can be mapped
+to the form of Eq.Â (<a href="#Ch6.E15" title="(6.15) â£ 6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.15</span></a>) by considering
+that the variable <math id="SS3.p1.m8" class="ltx_Math" alttext="w" display="inline"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> represents the current flowing
+from the dendrite into the soma.
+In order to keep the treatment transparent,
+we assume that <math id="SS3.p1.m9" class="ltx_Math" alttext="E^{d}=u_{\rm rest}=E" display="inline"><semantics><mrow><msup><mi>E</mi><mi>d</mi></msup><mo>=</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>=</mo><mi>E</mi></mrow><annotation encoding="application/x-tex">E^{d}=u_{\rm rest}=E</annotation></semantics></math>.
+In this case the adaptation current is
+<math id="SS3.p1.m10" class="ltx_Math" alttext="w=-(V^{d}-u_{\rm rest})/R_{\text{L}}" display="inline"><semantics><mrow><mi>w</mi><mo>=</mo><mrow><mo>-</mo><mrow><mrow><mo>(</mo><mrow><msup><mi>V</mi><mi>d</mi></msup><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><mo>/</mo><msub><mi>R</mi><mtext>L</mtext></msub></mrow></mrow></mrow><annotation encoding="application/x-tex">w=-(V^{d}-u_{\rm rest})/R_{\text{L}}</annotation></semantics></math>
+and the two equations above reduce to</p>
+<table id="Ch20.S4.EGx26" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch6.E25" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E25.m1" class="ltx_Math" alttext="\displaystyle\tau^{\rm eff}{dV^{s}\over dt}" display="inline"><semantics><mrow><msup><mi>Ï</mi><mi>eff</mi></msup><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mi>d</mi><mo>â¢</mo><msup><mi>V</mi><mi>s</mi></msup></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau^{\rm eff}{dV^{s}\over dt}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E25.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E25.m3" class="ltx_Math" alttext="\displaystyle-(V^{s}-E)-R^{\rm eff}\,w" display="inline"><semantics><mrow><mo>-</mo><mrow><mo>(</mo><mrow><msup><mi>V</mi><mi>s</mi></msup><mo>-</mo><mi>E</mi></mrow><mo>)</mo></mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><msup><mi>R</mi><mi>eff</mi></msup></mpadded><mo>â¢</mo><mi>w</mi></mrow></mrow><annotation encoding="application/x-tex">\displaystyle-(V^{s}-E)-R^{\rm eff}\,w</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.25)</span></td>
+</tr>
+<tr id="Ch6.E26" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch6.E26.m1" class="ltx_Math" alttext="\displaystyle\tau_{w}{dw\over dt}" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>w</mi></msub><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mi>d</mi><mo>â¢</mo><mi>w</mi></mrow><mrow><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle\tau_{w}{dw\over dt}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch6.E26.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch6.E26.m3" class="ltx_Math" alttext="\displaystyle a\,(V^{s}-E)-w" display="inline"><semantics><mrow><mrow><mpadded width="+1.7pt"><mi>a</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><msup><mi>V</mi><mi>s</mi></msup><mo>-</mo><mi>E</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">\displaystyle a\,(V^{s}-E)-w</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(6.26)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with
+an effective input resistance
+<math id="SS3.p1.m11" class="ltx_Math" alttext="R^{\rm eff}=R^{s}_{\rm T}/[1+(R^{s}_{\rm T}/R_{\rm L})]" display="inline"><semantics><mrow><msup><mi>R</mi><mi>eff</mi></msup><mo>=</mo><mrow><msubsup><mi>R</mi><mi mathvariant="normal">T</mi><mi>s</mi></msubsup><mo>/</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mo>(</mo><mrow><msubsup><mi>R</mi><mi mathvariant="normal">T</mi><mi>s</mi></msubsup><mo>/</mo><msub><mi>R</mi><mi mathvariant="normal">L</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">R^{\rm eff}=R^{s}_{\rm T}/[1+(R^{s}_{\rm T}/R_{\rm L})]</annotation></semantics></math>,
+an effective somatic time constant
+<math id="SS3.p1.m12" class="ltx_Math" alttext="\tau^{\rm eff}=C^{s}\,R^{\rm eff}" display="inline"><semantics><mrow><msup><mi>Ï</mi><mi>eff</mi></msup><mo>=</mo><mrow><mpadded width="+1.7pt"><msup><mi>C</mi><mi>s</mi></msup></mpadded><mo>â¢</mo><msup><mi>R</mi><mi>eff</mi></msup></mrow></mrow><annotation encoding="application/x-tex">\tau^{\rm eff}=C^{s}\,R^{\rm eff}</annotation></semantics></math>
+an effective adaptation time constant
+<math id="SS3.p1.m13" class="ltx_Math" alttext="\tau_{w}=R_{\rm L}\,C^{d}/[1+(R_{\rm L}/R_{\rm D})]" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>w</mi></msub><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>R</mi><mi mathvariant="normal">L</mi></msub></mpadded><mo>â¢</mo><msup><mi>C</mi><mi>d</mi></msup></mrow><mo>/</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mo>(</mo><mrow><msub><mi>R</mi><mi mathvariant="normal">L</mi></msub><mo>/</mo><msub><mi>R</mi><mi mathvariant="normal">D</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\tau_{w}=R_{\rm L}\,C^{d}/[1+(R_{\rm L}/R_{\rm D})]</annotation></semantics></math>
+and a coupling between somatic voltage and adaptation current
+<math id="SS3.p1.m14" class="ltx_Math" alttext="a=-[R_{\rm L}+(R^{2}_{\rm L}/R_{\rm D})]^{-1}" display="inline"><semantics><mrow><mi>a</mi><mo>=</mo><mrow><mo>-</mo><msup><mrow><mo>[</mo><mrow><msub><mi>R</mi><mi mathvariant="normal">L</mi></msub><mo>+</mo><mrow><mo>(</mo><mrow><msubsup><mi>R</mi><mi mathvariant="normal">L</mi><mn>2</mn></msubsup><mo>/</mo><msub><mi>R</mi><mi mathvariant="normal">D</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">a=-[R_{\rm L}+(R^{2}_{\rm L}/R_{\rm D})]^{-1}</annotation></semantics></math>.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">There are three conclusions we should retain from this mapping.
+First, <math id="SS3.p2.m1" class="ltx_Math" alttext="a" display="inline"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math> is always negative, which means that passive dendrites
+introduce a <span class="ltx_text ltx_font_italic">facilitating</span> subthreshold coupling.
+Second, facilitation is particularly strong with a small longitudinal resistance.
+Third, the timescale of the facilitation <math id="SS3.p2.m2" class="ltx_Math" alttext="\tau_{w}" display="inline"><semantics><msub><mi>Ï</mi><mi>w</mi></msub><annotation encoding="application/x-tex">\tau_{w}</annotation></semantics></math> is smaller than the dendritic time constant <math id="SS3.p2.m3" class="ltx_Math" alttext="R^{d}_{\text{T}}C^{d}" display="inline"><semantics><mrow><msubsup><mi>R</mi><mtext>T</mtext><mi>d</mi></msubsup><mo>â¢</mo><msup><mi>C</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">R^{d}_{\text{T}}C^{d}</annotation></semantics></math> - so that, compared to other âadaptationâ currents, the dendritic current is a relatively fast one.</p>
+</div>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">In addition to the subthreshold coupling
+discussed here, dendritic coupling
+can also lead to a spike-triggered current
+as we will see in the next example.</p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Bursting with a Passive Dendrite and <math id="SS3.p4.m1" class="ltx_Math" alttext="I_{\rm M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{\rm M}</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Suppose that the action potential can be approximated by a one-millisecond pulse at 0Â mV.
+Then each spike brings an increase in the dendritic membrane potential. In terms of the current <math id="SS3.p4.m2" class="ltx_Math" alttext="w" display="inline"><semantics><mi mathsize="normal" stretchy="false">w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>, the increase is <math id="SS3.p4.m3" class="ltx_Math" alttext="b=-aE_{0}(1-e^{1\text{ ms}/\tau_{w}})" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">b</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">-</mo><msup><mi mathsize="normal" stretchy="false">e</mi><mrow><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">Â ms</mtext></mrow><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">w</mi></msub></mrow></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">b=-aE_{0}(1-e^{1\text{ ms}/\tau_{w}})</annotation></semantics></math>. Again, the spike-triggered jump is always negative, leading to spike-triggered facilitation.
+Figure <a href="#Ch6.F10" title="Fig.Â 6.10 â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.10</span></a> shows an example where we combined a dendritic compartment with the linearized effects of the M-current (Table <a href="#Ch6.T2" title="TableÂ 6.2 â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.2</span></a>)
+to result in regular bursting.
+The bursting is mediated by the dendritic facilitation which is counterbalanced by the adapting effects of <math id="SS3.p4.m4" class="ltx_Math" alttext="I_{\rm M}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">M</mi></msub><annotation encoding="application/x-tex">I_{\rm M}</annotation></semantics></math>.
+The firing pattern looks different to the bursting in the AdEx (Fig. <a href="Ch6.S2.html#Ch6.F4" title="Fig.Â 6.4 â£ 6.2.2 Phase plane analysis
+of non-linear integrate-and-fire models in two dimensions â£ 6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.4</span></a>) as there is no alternation between detour and direct resets. Indeed, many different types of bursting are possible (see <cite class="ltx_cite">(<a href="bib.html#bib99" title="Solving the distal reward problem through linkage of STDP and dopamine signaling" class="ltx_ref">238</a>)</cite>).
+This example (especially Fig. <a href="#Ch6.F10" title="Fig.Â 6.10 â£ 6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6.10</span></a>B) suggests
+that the dynamics of spike-triggered currents on multiple timescales can be understood in terms of their stereotypical effect on the membrane potential -
+and this insight is the starting point for the
+Spike Response Model in the next section.</span>
+              </p>
+</span>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2 </span>Firing Patterns</span></a><a href="Ch6.S4.html" title="6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4 </span>Spike response model (SRM)</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

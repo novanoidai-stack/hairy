@@ -1,0 +1,1072 @@
+<!DOCTYPE html><html>
+<head>
+<title>2.2 Hodgkin-Huxley Model | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch2.S1.html" title="2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch2.S3.html" title="2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch2.S1.html" title="2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch2.S3.html" title="2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch2.S4.html" title="2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , 
+                    , Hodgkin-Huxley model, action potential, channel dynamics, channel opening, conductance-based neuron model, gating variable, ion channel, of Hodgkin-Huxley model, threshold">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2 </span>The Hodgkin-Huxley Model</span></a><a href="Ch2.S1.html" title="2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.1 </span>Equilibrium potential</span></a><a href="Ch2.S3.html" title="2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3 </span>The Zoo of Ion Channels</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2.2 </span>Hodgkin-Huxley Model</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p"><cite class="ltx_cite">Hodgkin and Huxley (<a href="bib.html#bib20" title="A quantitative description of membrane current and its application to conduction and excitation in nerve." class="ltx_ref">222</a>)</cite> performed experiments on the giant axon of
+the squid and found three different types of ion current, viz., sodium,
+potassium, and a leak current that consists mainly of Cl<math id="p1.m1" class="ltx_Math" alttext="{}^{-}" display="inline"><semantics><msup><mi></mi><mo>-</mo></msup><annotation encoding="application/x-tex">{}^{-}</annotation></semantics></math> ions. Specific
+voltage-dependent ion channels, one for sodium and another one for potassium,
+control the flow of those ions through the cell membrane. The leak current
+takes care of other channel types which are not described explicitly.
+
+</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_centering ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2.1 </span>Definition of the model</h1>
+
+<figure id="Ch2.F2" class="ltx_figure ltx_align_center"><img src="x25.png" id="Ch2.F2.g1" class="ltx_graphics ltx_centering" width="590" height="199" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.2: </span>Schematic diagram for the Hodgkin-Huxley model.</figcaption>
+</figure>
+<div id="SS1.p1" class="ltx_para ltx_centering">
+<p class="ltx_p">The Hodgkin-Huxley model can be understood with the help of
+Fig. <a href="#Ch2.F2" title="Fig.Â 2.2 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2</span></a>.
+The semipermeable cell membrane separates the interior of
+the cell from the extracellular liquid and acts as a capacitor. If an input
+current <math id="SS1.p1.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> is injected into the cell, it may add further charge on the
+capacitor, or leak through the channels in the cell membrane.
+Each channel type is represented in Fig. <a href="#Ch2.F2" title="Fig.Â 2.2 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2</span></a>
+by a resistor. The unspecific channel has a leak resistance <math id="SS1.p1.m2" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>,
+the sodium channel a resistance <math id="SS1.p1.m3" class="ltx_Math" alttext="R_{\rm Na}" display="inline"><semantics><msub><mi>R</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">R_{\rm Na}</annotation></semantics></math> and the
+potassium channel a resistance <math id="SS1.p1.m4" class="ltx_Math" alttext="R_{\rm K}" display="inline"><semantics><msub><mi>R</mi><mi mathvariant="normal">K</mi></msub><annotation encoding="application/x-tex">R_{\rm K}</annotation></semantics></math>. The diagonal
+arrow across the diagram of the resistor indicates that the value
+of the resistance is not fixed, but changes depending on whether the ion
+channel is open or closed.
+Because of
+active ion transport through the cell membrane, the ion concentration inside
+the cell is different from that in the extracellular liquid. The Nernst
+potential generated by the difference in ion concentration is represented by a
+battery in Fig. <a href="#Ch2.F2" title="Fig.Â 2.2 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2</span></a>. Since the Nernst potential is different
+for each ion type, there are separate
+batteries for sodium, potassium, and the unspecific third channel,
+with battery voltages <math id="SS1.p1.m5" class="ltx_Math" alttext="E_{\rm Na},E_{\rm K}" display="inline"><semantics><mrow><msub><mi>E</mi><mi>Na</mi></msub><mo>,</mo><msub><mi>E</mi><mi mathvariant="normal">K</mi></msub></mrow><annotation encoding="application/x-tex">E_{\rm Na},E_{\rm K}</annotation></semantics></math> and <math id="SS1.p1.m6" class="ltx_Math" alttext="E_{L}" display="inline"><semantics><msub><mi>E</mi><mi>L</mi></msub><annotation encoding="application/x-tex">E_{L}</annotation></semantics></math>, respectively.</p>
+</div>
+<div id="SS1.p2" class="ltx_para ltx_centering">
+<p class="ltx_p">Let us now translate the above schema of an electrical circuit into mathematical equations.
+The conservation of electric charge on a piece of membrane implies that the
+applied current <math id="SS1.p2.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> may be split in a capacitive current <math id="SS1.p2.m2" class="ltx_Math" alttext="I_{C}" display="inline"><semantics><msub><mi>I</mi><mi>C</mi></msub><annotation encoding="application/x-tex">I_{C}</annotation></semantics></math> which
+charges the capacitor <math id="SS1.p2.m3" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math> and further components <math id="SS1.p2.m4" class="ltx_Math" alttext="I_{k}" display="inline"><semantics><msub><mi>I</mi><mi>k</mi></msub><annotation encoding="application/x-tex">I_{k}</annotation></semantics></math> which pass through
+the ion channels. Thus</p>
+<table id="Ch2.E3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E3.m1" class="ltx_Math" alttext="I(t)=I_{C}(t)+\sum_{k}I_{k}(t)" display="block"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)=I_{C}(t)+\sum_{k}I_{k}(t)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.3)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where the sum runs over all ion channels. In the standard Hodgkin-Huxley
+model there are only three types of channel: a sodium channel with index Na, a
+potassium channel with index K and an unspecific leakage channel with
+resistance <math id="SS1.p2.m5" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>; cf.Â Fig.Â <a href="#Ch2.F2" title="Fig.Â 2.2 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2</span></a>. From the definition of a capacity
+<math id="SS1.p2.m6" class="ltx_Math" alttext="C=q/u" display="inline"><semantics><mrow><mi>C</mi><mo>=</mo><mrow><mi>q</mi><mo>/</mo><mi>u</mi></mrow></mrow><annotation encoding="application/x-tex">C=q/u</annotation></semantics></math> where <math id="SS1.p2.m7" class="ltx_Math" alttext="q" display="inline"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math> is a charge and <math id="SS1.p2.m8" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> the voltage across the capacitor, we
+find the charging current <math id="SS1.p2.m9" class="ltx_Math" alttext="I_{C}=C\,{\text{d}}u/{\text{d}}t" display="inline"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>=</mo><mrow><mrow><mrow><mpadded width="+1.7pt"><mi>C</mi></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">I_{C}=C\,{\text{d}}u/{\text{d}}t</annotation></semantics></math>. Hence from
+(<a href="#Ch2.E3" title="(2.3) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>)</p>
+<table id="Ch2.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E4.m1" class="ltx_Math" alttext="C{{\text{d}}u\over{\text{d}}t}=-\sum_{k}I_{k}(t)+I(t)\,." display="block"><semantics><mrow><mrow><mrow><mi>C</mi><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder><mrow><msub><mi>I</mi><mi>k</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>+</mo><mrow><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">C{{\text{d}}u\over{\text{d}}t}=-\sum_{k}I_{k}(t)+I(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In biological terms, <math id="SS1.p2.m10" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is the voltage across the membrane and <math id="SS1.p2.m11" class="ltx_Math" alttext="\sum_{k}I_{k}" display="inline"><semantics><mrow><msub><mo largeop="true" symmetric="true">â</mo><mi>k</mi></msub><msub><mi>I</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\sum_{k}I_{k}</annotation></semantics></math>
+is the sum of the ionic currents which pass through the cell membrane.</p>
+</div>
+<figure id="Ch2.F3" class="ltx_figure ltx_align_center">
+<p class="ltx_p ltx_align_center">
+
+<table class="ltx_tabular ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left"><span class="ltx_text ltx_font_bold">A</span></th>
+<th class="ltx_td ltx_align_left"><span class="ltx_text ltx_font_bold">B</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"><img src="x26.png" id="Ch2.F3.g1" class="ltx_graphics" width="293" height="235" alt=""></td>
+<td class="ltx_td ltx_align_left"><img src="x27.png" id="Ch2.F3.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+</p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.3: </span>
+The Hodgkin-Huxley model. <span class="ltx_text ltx_font_bold">A</span>. The equilibrium functions for the three
+variables <math id="Ch2.F3.m3" class="ltx_Math" alttext="m,n,h" display="inline"><semantics><mrow><mi>m</mi><mo>,</mo><mi>n</mi><mo>,</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">m,n,h</annotation></semantics></math> in the Hodgkin-Huxley model. <span class="ltx_text ltx_font_bold">B</span>. The voltage dependent time constant. The resting potential is
+at <math id="Ch2.F3.m4" class="ltx_Math" alttext="u=-65mV" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><mrow><mo>-</mo><mrow><mn>65</mn><mo>â¢</mo><mi>m</mi><mo>â¢</mo><mi>V</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">u=-65mV</annotation></semantics></math> (arrow) and parameters are those given in Table <a href="#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>.
+</figcaption>
+</figure>
+<div id="SS1.p3" class="ltx_para ltx_centering">
+<p class="ltx_p">As mentioned above, the Hodgkin-Huxley model describes three types of channel.
+All channels may be characterized by their resistance or, equivalently, by
+their conductance.
+
+The leakage channel is described by a
+voltage-independent conductance <math id="SS1.p3.m1" class="ltx_Math" alttext="g_{L}=1/R" display="inline"><semantics><mrow><msub><mi>g</mi><mi>L</mi></msub><mo>=</mo><mrow><mn>1</mn><mo>/</mo><mi>R</mi></mrow></mrow><annotation encoding="application/x-tex">g_{L}=1/R</annotation></semantics></math>.
+Since <math id="SS1.p3.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is the total voltage
+across the cell membrane and <math id="SS1.p3.m3" class="ltx_Math" alttext="E_{L}" display="inline"><semantics><msub><mi>E</mi><mi>L</mi></msub><annotation encoding="application/x-tex">E_{L}</annotation></semantics></math> the voltage of the battery,
+the voltage at the leak resistor in
+Fig. <a href="#Ch2.F2" title="Fig.Â 2.2 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2</span></a>
+is <math id="SS1.p3.m4" class="ltx_Math" alttext="u-E_{L}" display="inline"><semantics><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">u-E_{L}</annotation></semantics></math>. Using Ohmâs law, we get a leak current
+<math id="SS1.p3.m5" class="ltx_Math" alttext="I_{L}=g_{L}\,(u-E_{L})" display="inline"><semantics><mrow><msub><mi>I</mi><mi>L</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>L</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{L}=g_{L}\,(u-E_{L})</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p4" class="ltx_para ltx_centering">
+<p class="ltx_p">The mathematics of the other ion channels is analogous except that their conductance
+is voltage and time dependent. If all channels are open, they
+transmit currents with a maximum conductance <math id="SS1.p4.m1" class="ltx_Math" alttext="g_{\rm Na}" display="inline"><semantics><msub><mi>g</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">g_{\rm Na}</annotation></semantics></math> or <math id="SS1.p4.m2" class="ltx_Math" alttext="g_{\rm K}" display="inline"><semantics><msub><mi>g</mi><mi mathvariant="normal">K</mi></msub><annotation encoding="application/x-tex">g_{\rm K}</annotation></semantics></math>,
+respectively. Normally, however, some of the channels are blocked.
+The breakthrough of Hodgkin and Huxley was that they succeeded
+to measure how the effective resistance of a channel
+changes as a function of time and voltage. Moreover, they proposed
+a mathematical description of their observations.
+Specifically, they introduced additional âgatingâ variables
+<math id="SS1.p4.m3" class="ltx_Math" alttext="m,n" display="inline"><semantics><mrow><mi>m</mi><mo>,</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">m,n</annotation></semantics></math> and <math id="SS1.p4.m4" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> to model the
+probability that a channel is open
+at a given moment in time.
+The combined action of <math id="SS1.p4.m5" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> and <math id="SS1.p4.m6" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> controls the Na<math id="SS1.p4.m7" class="ltx_Math" alttext="{}^{+}" display="inline"><semantics><msup><mi></mi><mo>+</mo></msup><annotation encoding="application/x-tex">{}^{+}</annotation></semantics></math> channels while
+the K<math id="SS1.p4.m8" class="ltx_Math" alttext="{}^{+}" display="inline"><semantics><msup><mi></mi><mo>+</mo></msup><annotation encoding="application/x-tex">{}^{+}</annotation></semantics></math> gates are controlled by <math id="SS1.p4.m9" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>.
+For example, the effective conductance
+of sodium channels is modeled as <math id="SS1.p4.m10" class="ltx_Math" alttext="1/R_{\rm Na}=g_{\rm Na}\,m^{3}\,h" display="inline"><semantics><mrow><mrow><mn>1</mn><mo>/</mo><msub><mi>R</mi><mi>Na</mi></msub></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>Na</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>m</mi><mn>3</mn></msup></mpadded><mo>â¢</mo><mi>h</mi></mrow></mrow><annotation encoding="application/x-tex">1/R_{\rm Na}=g_{\rm Na}\,m^{3}\,h</annotation></semantics></math>,
+where <math id="SS1.p4.m11" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> describes the activation (opening) of the channel
+and <math id="SS1.p4.m12" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> its inactivation (blocking). The conductance
+of potassium is <math id="SS1.p4.m13" class="ltx_Math" alttext="1/R_{\rm K}=g_{\rm K}\,n^{4}" display="inline"><semantics><mrow><mrow><mn>1</mn><mo>/</mo><msub><mi>R</mi><mi mathvariant="normal">K</mi></msub></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi mathvariant="normal">K</mi></msub></mpadded><mo>â¢</mo><msup><mi>n</mi><mn>4</mn></msup></mrow></mrow><annotation encoding="application/x-tex">1/R_{\rm K}=g_{\rm K}\,n^{4}</annotation></semantics></math>, where
+<math id="SS1.p4.m14" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> describes the activation of the channel.</p>
+</div>
+<div id="SS1.p5" class="ltx_para ltx_centering">
+<p class="ltx_p">In summary, Hodgkin and Huxley
+formulated the three ion currents
+on the right-hand-side of Eq. (<a href="#Ch2.E4" title="(2.4) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.4</span></a>) as</p>
+<table id="Ch2.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E5.m1" class="ltx_Math" alttext="\sum_{k}I_{k}=g_{\rm Na}\,m^{3}h\,(u-E_{\rm Na})+g_{\rm K}\,n^{4}\,(u-E_{\rm K%
+})+g_{L}\,(u-E_{L})." display="block"><semantics><mrow><mrow><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>k</mi></munder><msub><mi>I</mi><mi>k</mi></msub></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>Na</mi></msub></mpadded><mo>â¢</mo><msup><mi>m</mi><mn>3</mn></msup><mo>â¢</mo><mpadded width="+1.7pt"><mi>h</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>Na</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi mathvariant="normal">K</mi></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>n</mi><mn>4</mn></msup></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi mathvariant="normal">K</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>L</mi></msub></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>E</mi><mi>L</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\sum_{k}I_{k}=g_{\rm Na}\,m^{3}h\,(u-E_{\rm Na})+g_{\rm K}\,n^{4}\,(u-E_{\rm K%
+})+g_{L}\,(u-E_{L}).</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The parameters <math id="SS1.p5.m1" class="ltx_Math" alttext="E_{\rm Na}" display="inline"><semantics><msub><mi>E</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">E_{\rm Na}</annotation></semantics></math>, <math id="SS1.p5.m2" class="ltx_Math" alttext="E_{\rm K}" display="inline"><semantics><msub><mi>E</mi><mi mathvariant="normal">K</mi></msub><annotation encoding="application/x-tex">E_{\rm K}</annotation></semantics></math>, and <math id="SS1.p5.m3" class="ltx_Math" alttext="E_{L}" display="inline"><semantics><msub><mi>E</mi><mi>L</mi></msub><annotation encoding="application/x-tex">E_{L}</annotation></semantics></math> are the reversal
+potentials.</p>
+</div>
+<figure id="Ch2.T1" class="ltx_table ltx_align_center">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_border_tt">
+                    <math id="Ch2.T1.m1" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+                  </th>
+<th class="ltx_td ltx_align_center ltx_border_tt">
+                    <math id="Ch2.T1.m2" class="ltx_Math" alttext="E_{x}\,[{\rm mV}]" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>E</mi><mi>x</mi></msub></mpadded><mo>â¢</mo><mrow><mo>[</mo><mi>mV</mi><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">E_{x}\,[{\rm mV}]</annotation></semantics></math>
+                  </th>
+<th class="ltx_td ltx_align_center ltx_border_tt">
+                    <math id="Ch2.T1.m3" class="ltx_Math" alttext="g_{x}\,[{\rm mS/cm}^{2}]" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>x</mi></msub></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>mS</mi><mo>/</mo><msup><mi>cm</mi><mn>2</mn></msup></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">g_{x}\,[{\rm mS/cm}^{2}]</annotation></semantics></math>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_border_t">
+                    <math id="Ch2.T1.m4" class="ltx_Math" alttext="{\rm Na}" display="inline"><semantics><mi>Na</mi><annotation encoding="application/x-tex">{\rm Na}</annotation></semantics></math>
+                  </th>
+<td class="ltx_td ltx_align_center ltx_border_t">55</td>
+<td class="ltx_td ltx_align_center ltx_border_t">40</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center">
+                    <math id="Ch2.T1.m5" class="ltx_Math" alttext="{\rm K}" display="inline"><semantics><mi mathvariant="normal">K</mi><annotation encoding="application/x-tex">{\rm K}</annotation></semantics></math>
+                  </th>
+<td class="ltx_td ltx_align_center">-77</td>
+<td class="ltx_td ltx_align_center">35</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_border_bb">
+                    <math id="Ch2.T1.m6" class="ltx_Math" alttext="L" display="inline"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+                  </th>
+<td class="ltx_td ltx_align_center ltx_border_bb">-65</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">0.3</td>
+</tr>
+</tbody>
+</table>
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td"></td>
+</tr>
+</tbody>
+</table>
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_border_tt">
+                    <math id="Ch2.T1.m7" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+                  </th>
+<th class="ltx_td ltx_align_center ltx_border_tt">
+                    <math id="Ch2.T1.m8" class="ltx_Math" alttext="\alpha_{x}(u\,/\,\mbox{mV})\,[{\rm ms}^{-1}]" display="inline"><semantics><mrow><msub><mi>Î±</mi><mi>x</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>u</mi></mpadded><mo rspace="4.2pt">/</mo><mtext>mV</mtext></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>[</mo><msup><mi>ms</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\alpha_{x}(u\,/\,\mbox{mV})\,[{\rm ms}^{-1}]</annotation></semantics></math>
+                  </th>
+<th class="ltx_td ltx_align_center ltx_border_tt">
+                    <math id="Ch2.T1.m9" class="ltx_Math" alttext="\beta_{x}(u\,/\,\mbox{mV})\,[{\rm ms}^{-1}]" display="inline"><semantics><mrow><msub><mi>Î²</mi><mi>x</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>u</mi></mpadded><mo rspace="4.2pt">/</mo><mtext>mV</mtext></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>[</mo><msup><mi>ms</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">\beta_{x}(u\,/\,\mbox{mV})\,[{\rm ms}^{-1}]</annotation></semantics></math>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_t">
+                    <math id="Ch2.T1.m10" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_t">
+                    <math id="Ch2.T1.m11" class="ltx_Math" alttext="0.02(u-25)\,/\,[1-e^{-(u-25)\,/\,9}]" display="inline"><semantics><mrow><mrow><mn>0.02</mn><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mn>25</mn></mrow><mo>)</mo></mrow></mpadded></mrow><mo rspace="4.2pt">/</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mn>25</mn></mrow><mo>)</mo></mrow></mpadded><mo>/</mo><mn>â9</mn></mrow></mrow></msup></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">0.02(u-25)\,/\,[1-e^{-(u-25)\,/\,9}]</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_t">
+                    <math id="Ch2.T1.m12" class="ltx_Math" alttext="-0.002(u-25)\,/\,[1-e^{(u-25)\,/\,9}]" display="inline"><semantics><mrow><mo>-</mo><mrow><mrow><mn>0.002</mn><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mn>25</mn></mrow><mo>)</mo></mrow></mpadded></mrow><mo rspace="4.2pt">/</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mi>e</mi><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><mn>25</mn></mrow><mo>)</mo></mrow></mpadded><mo>/</mo><mn>â9</mn></mrow></msup></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">-0.002(u-25)\,/\,[1-e^{(u-25)\,/\,9}]</annotation></semantics></math>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch2.T1.m13" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch2.T1.m14" class="ltx_Math" alttext="0.182(u+35)\,/\,[1-e^{-(u+35)\,/\,9}]" display="inline"><semantics><mrow><mrow><mn>0.182</mn><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>+</mo><mn>35</mn></mrow><mo>)</mo></mrow></mpadded></mrow><mo rspace="4.2pt">/</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>+</mo><mn>35</mn></mrow><mo>)</mo></mrow></mpadded><mo>/</mo><mn>â9</mn></mrow></mrow></msup></mrow><mo>]</mo></mrow></mrow><annotation encoding="application/x-tex">0.182(u+35)\,/\,[1-e^{-(u+35)\,/\,9}]</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center">
+                    <math id="Ch2.T1.m15" class="ltx_Math" alttext="-0.124(u+35)\,/\,[1-e^{(u+35)\,/\,9}]" display="inline"><semantics><mrow><mo>-</mo><mrow><mrow><mn>0.124</mn><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>+</mo><mn>35</mn></mrow><mo>)</mo></mrow></mpadded></mrow><mo rspace="4.2pt">/</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mi>e</mi><mrow><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>+</mo><mn>35</mn></mrow><mo>)</mo></mrow></mpadded><mo>/</mo><mn>â9</mn></mrow></msup></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">-0.124(u+35)\,/\,[1-e^{(u+35)\,/\,9}]</annotation></semantics></math>
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_bb">
+                    <math id="Ch2.T1.m16" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_bb">
+                    <math id="Ch2.T1.m17" class="ltx_Math" alttext="0.25\;e^{-(u+90)/12}" display="inline"><semantics><mrow><mn>0</mn><mo>.</mo><mn>25</mn><mo>&#160;</mo><msup><mi>e</mi><mrow><mo>-</mo><mo>(</mo><mi>u</mi><mo>+</mo><mn>90</mn><mo>)</mo><mo>/</mo><mn>12</mn></mrow></msup></mrow><annotation encoding="application/x-tex">0.25\;e^{-(u+90)/12}</annotation></semantics></math>
+                  </td>
+<td class="ltx_td ltx_align_center ltx_border_bb">
+                           <math id="Ch2.T1.m18" class="ltx_Math" alttext="0.25\;e^{(u+62)/6}/e^{(u+90)/12}" display="inline"><semantics><mrow>
+                           <mn>0</mn><mo>.</mo><mn>25</mn><mo>&#160;</mo><msup><mi>e</mi><mrow><mo>(</mo><mi>u</mi><mo>+</mo><mn>62</mn><mo>)</mo><mo>/</mo><mn>6</mn></mrow></msup><mo>/</mo><msup><mi>e</mi><mrow><mo>(</mo><mi>u</mi><mo>+</mo><mn>90</mn><mo>)</mo><mo>/</mo><mn>12</mn></mrow></msup></mrow><annotation encoding="application/x-tex">0.25\;e^{(u+62)/6}/e^{(u+90)/12}</annotation></semantics></math>
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">TableÂ 2.1: </span>
+
+Parameters for the Hodgkin-Huxley equations fitted on pyramidal neurons of the cortex. The parameters for <math id="Ch2.T1.m23" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and <math id="Ch2.T1.m24" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> were fitted by Zach Mainen <cite class="ltx_cite">(<a href="bib.html#bib22" title="A model of spike initiation in neocortical pyramidal neurons." class="ltx_ref">323</a>)</cite> on experiments reported by <cite class="ltx_cite">Huguenard<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib23" title="Developmental changes in na+ conductances in rat neocortical neurons: appearance of a slowly inactivating component" class="ltx_ref">233</a>)</cite> and the parameters for <math id="Ch2.T1.m25" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> by Richard Naud on the experiments reported in <cite class="ltx_cite">Hamill<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib24" title="Patch-clamp studies of voltage-gated currents in identified neurons of the rat cerebral cortex" class="ltx_ref">205</a>)</cite>. Voltage is measured in mV and the membrane capacity is
+<math id="Ch2.T1.m26" class="ltx_Math" alttext="C=1\mu\mbox{F/cm}^{2}" display="inline"><semantics><mrow><mi>C</mi><mo>=</mo><mrow><mn>1</mn><mo>â¢</mo><mi>Î¼</mi><mo>â¢</mo><msup><mtext>F/cm</mtext><mn>2</mn></msup></mrow></mrow><annotation encoding="application/x-tex">C=1\mu\mbox{F/cm}^{2}</annotation></semantics></math>. </figcaption>
+</figure>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">The three gating variables <math id="SS1.p6.m1" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>, <math id="SS1.p6.m2" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>, and <math id="SS1.p6.m3" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+evolve according to differential
+equations of the form</p>
+<table id="Ch2.E6" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E6.m1" class="ltx_Math" alttext="\dot{x}=-{1\over\tau_{x}(u)}[x-x_{0}(u)]," display="block"><semantics><mrow><mrow><mover accent="true"><mi>x</mi><mo>Ë</mo></mover><mo>=</mo><mrow><mo>-</mo><mrow><mfrac><mn>1</mn><mrow><msub><mi>Ï</mi><mi>x</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mfrac><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>x</mi><mo>-</mo><mrow><msub><mi>x</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\dot{x}=-{1\over\tau_{x}(u)}[x-x_{0}(u)],</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.6)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with <math id="SS1.p6.m4" class="ltx_Math" alttext="\dot{x}={\text{d}}x/{\text{d}}t" display="inline"><semantics><mrow><mover accent="true"><mi>x</mi><mo>Ë</mo></mover><mo>=</mo><mrow><mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>x</mi></mrow><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">\dot{x}={\text{d}}x/{\text{d}}t</annotation></semantics></math>, and where <math id="SS1.p6.m5" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> stands for <math id="SS1.p6.m6" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>, <math id="SS1.p6.m7" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>, or <math id="SS1.p6.m8" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>.
+The interpretation of Eq. <a href="#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a> is simple:
+For a fixed voltage <math id="SS1.p6.m9" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>, the variable
+<math id="SS1.p6.m10" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> approaches the target value <math id="SS1.p6.m11" class="ltx_Math" alttext="x_{0}(u)" display="inline"><semantics><mrow><msub><mi>x</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">x_{0}(u)</annotation></semantics></math> with a time constant <math id="SS1.p6.m12" class="ltx_Math" alttext="\tau_{x}(u)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>x</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{x}(u)</annotation></semantics></math>.
+The voltage dependence of the time constant and asymptotic value is
+illustrated in Fig. <a href="#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>.
+The form of the functions plotted in Fig. <a href="#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>
+as well as the maximum conductances
+and reversal potentials
+in Eq. (<a href="#Ch2.E5" title="(2.5) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.5</span></a>)
+were deduced by Hodgkin and Huxley
+from empirical measurements.</p>
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Voltage Step</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Experimentalists can hold the voltage across the cell membrane
+at a desired value by injecting an appropriate current into the cell.
+Suppose that the experimentalist keeps
+the cell at resting potential <math id="SS1.p6.m13" class="ltx_Math" alttext="u_{0}=-65" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">65</mn></mrow></mrow><annotation encoding="application/x-tex">u_{0}=-65</annotation></semantics></math>Â mV for <math id="SS1.p6.m14" class="ltx_Math" alttext="t&lt;t_{0}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">&lt;</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">t&lt;t_{0}</annotation></semantics></math>
+and switches the voltage at <math id="SS1.p6.m15" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> to a new value <math id="SS1.p6.m16" class="ltx_Math" alttext="u_{1}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><annotation encoding="application/x-tex">u_{1}</annotation></semantics></math>.
+Integration of the differential equation (<a href="#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>)
+gives, for <math id="SS1.p6.m17" class="ltx_Math" alttext="t&gt;t_{0}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">&gt;</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">t&gt;t_{0}</annotation></semantics></math>, the dynamics</span>
+              </p>
+<table id="Ch20.S4.EGx4" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch2.Ex1" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch2.Ex1.m1" class="ltx_Math" alttext="\displaystyle m(t)" display="inline"><semantics><mrow><mi>m</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle m(t)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch2.Ex1.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch2.Ex1.m3" class="ltx_Math" alttext="\displaystyle m_{0}(u_{1})+[m_{0}(u_{0})-m_{0}(u_{1})]\exp\left[{-{(t-t_{0})}%
+\over{\tau_{m}(u_{1})}}\right]," display="inline"><semantics><mrow><mrow><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mrow><mo>[</mo><mrow><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mstyle displaystyle="true"><mfrac><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mrow><msub><mi>Ï</mi><mi>m</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow></mfrac></mstyle><mo>]</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle m_{0}(u_{1})+[m_{0}(u_{0})-m_{0}(u_{1})]\exp\left[{-{(t-t_{0})}%
+\over{\tau_{m}(u_{1})}}\right],</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr id="Ch2.E7" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                          <math id="Ch2.E7.m1" class="ltx_Math" alttext="\displaystyle h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle h(t)</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_center">
+                          <math id="Ch2.E7.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                        </td>
+<td class="ltx_td ltx_align_left">
+                          <math id="Ch2.E7.m3" class="ltx_Math" alttext="\displaystyle h_{0}(u_{1})+[h_{0}(u_{0})-h_{0}(u_{1})]\exp\left[{-{(t-t_{0})}%
+\over{\tau_{h}(u_{1})}}\right]," display="inline"><semantics><mrow><mrow><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mrow><mo>[</mo><mrow><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mstyle displaystyle="true"><mfrac><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mrow><msub><mi>Ï</mi><mi>h</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow></mfrac></mstyle><mo>]</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle h_{0}(u_{1})+[h_{0}(u_{0})-h_{0}(u_{1})]\exp\left[{-{(t-t_{0})}%
+\over{\tau_{h}(u_{1})}}\right],</annotation></semantics></math>
+                        </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.7)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">so that, based on the model with given functions
+for <math id="SS1.p6.m18" class="ltx_Math" alttext="m_{0}(u),\,h_{0}(u),\,\tau_{m}(u),\,\tau_{h}(u)" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">m</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" separator="true" stretchy="false">,â</mo><mrow><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" separator="true" stretchy="false">,â</mo><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">m</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" separator="true" stretchy="false">,â</mo><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">h</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">m_{0}(u),\,h_{0}(u),\,\tau_{m}(u),\,\tau_{h}(u)</annotation></semantics></math>,
+we can predict the sodium current
+<math id="SS1.p6.m19" class="ltx_Math" alttext="I_{\rm Na}(t)=g_{\rm Na}\,[m(t)^{3}]\,h(t)\,(u_{1}-E_{\rm Na})" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Na</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" stretchy="false">Na</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mi mathsize="normal" stretchy="false">m</mi><mo mathsize="small" stretchy="false">â¢</mo><msup><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><mn mathsize="normal" stretchy="false">3</mn></msup></mrow><mo mathsize="small" stretchy="false">]</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" stretchy="false">Na</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm Na}(t)=g_{\rm Na}\,[m(t)^{3}]\,h(t)\,(u_{1}-E_{\rm Na})</annotation></semantics></math>
+for <math id="SS1.p6.m20" class="ltx_Math" alttext="t&gt;t_{0}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">&gt;</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">t&gt;t_{0}</annotation></semantics></math>
+generated by voltage step at <math id="SS1.p6.m21" class="ltx_Math" alttext="t=t_{0}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">t=t_{0}</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Similarly, the potassium current caused by a voltage step
+is
+<math id="SS1.p6.m22" class="ltx_Math" alttext="I_{\rm K}(t)=g_{\rm K}\,[n(t)^{4}]\,(u_{1}-E_{\rm K})" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mi mathsize="normal" stretchy="false">n</mi><mo mathsize="small" stretchy="false">â¢</mo><msup><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><mn mathsize="normal" stretchy="false">4</mn></msup></mrow><mo mathsize="small" stretchy="false">]</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm K}(t)=g_{\rm K}\,[n(t)^{4}]\,(u_{1}-E_{\rm K})</annotation></semantics></math>
+with</span>
+              </p>
+<table id="Ch2.E8" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch2.E8.m1" class="ltx_Math" alttext="n(t)=n_{0}(u_{1})+[n_{0}(u_{0})-n_{0}(u_{1})]\exp\left[{-{(t-t_{0})}\over{\tau%
+_{n}(u_{1})}}\right]." display="block"><semantics><mrow><mrow><mrow><mi>n</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mrow><mo>[</mo><mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mfrac><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mrow><msub><mi>Ï</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>)</mo></mrow></mrow></mfrac><mo>]</mo></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">n(t)=n_{0}(u_{1})+[n_{0}(u_{0})-n_{0}(u_{1})]\exp\left[{-{(t-t_{0})}\over{\tau%
+_{n}(u_{1})}}\right].</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.8)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Hodgkin and Huxley used the
+equations (<a href="#Ch2.E7" title="(2.7) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.7</span></a>) and (<a href="#Ch2.E8" title="(2.8) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>) to work the other way round.
+After blocking the sodium channel with appropriate pharmacological agents,
+they applied a voltage step and
+measured the time course
+of the potassium current.
+Dividing the recorded current through the driving potential <math id="SS1.p6.m23" class="ltx_Math" alttext="(u_{1}-E_{\rm K})" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(u_{1}-E_{\rm K})</annotation></semantics></math>
+yields the time-dependent conductance <math id="SS1.p6.m24" class="ltx_Math" alttext="g_{\rm K}\,[n(t)^{4}]" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" mathvariant="normal" stretchy="false">K</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mi mathsize="normal" stretchy="false">n</mi><mo mathsize="small" stretchy="false">â¢</mo><msup><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><mn mathsize="normal" stretchy="false">4</mn></msup></mrow><mo mathsize="small" stretchy="false">]</mo></mrow></mrow><annotation encoding="application/x-tex">g_{\rm K}\,[n(t)^{4}]</annotation></semantics></math>; cf.
+Fig. <a href="#Ch2.F4" title="Fig.Â 2.4 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.4</span></a>.
+Using
+Eq. (<a href="#Ch2.E8" title="(2.8) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>), Hodgkin and Huxley deduced the value of
+<math id="SS1.p6.m25" class="ltx_Math" alttext="n_{0}(u_{1})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">n</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">n_{0}(u_{1})</annotation></semantics></math> and <math id="SS1.p6.m26" class="ltx_Math" alttext="\tau_{n}(u_{1})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{n}(u_{1})</annotation></semantics></math> as well as the exponent of four in
+<math id="SS1.p6.m27" class="ltx_Math" alttext="n^{4}(t)" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">n</mi><mn mathsize="normal" stretchy="false">4</mn></msup><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">n^{4}(t)</annotation></semantics></math> for potassium.
+Repeating the experiments for different values <math id="SS1.p6.m28" class="ltx_Math" alttext="u_{1}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">1</mn></msub><annotation encoding="application/x-tex">u_{1}</annotation></semantics></math>
+gives the experimental curves for <math id="SS1.p6.m29" class="ltx_Math" alttext="n_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">n</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">n_{0}(u)</annotation></semantics></math> and <math id="SS1.p6.m30" class="ltx_Math" alttext="\tau_{n}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">n</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{n}(u)</annotation></semantics></math>.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch2.F4" class="ltx_figure"><img src="x28.png" id="Ch2.F4.g1" class="ltx_graphics ltx_centering" width="590" height="255" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.4: </span>
+Original data and fit of Hodgkin and Huxley (1952). The measured time course of the potassium conductance (circles)
+after application of a voltage step of 25mV (left, marked A)
+and after return to resting potential (right, B). The fit (solid line) is based on
+Eq. (<a href="#Ch2.E8" title="(2.8) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>).
+Adapted from <cite class="ltx_cite">(<a href="bib.html#bib20" title="A quantitative description of membrane current and its application to conduction and excitation in nerve." class="ltx_ref">222</a>)</cite>.</figcaption>
+</figure>
+<div id="SS1.p7" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Activation and De-inactivation</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The variable <math id="SS1.p7.m1" class="ltx_Math" alttext="m" display="inline"><semantics><mi mathsize="normal" stretchy="false">m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> is called an activation variable.
+To understand this terminology, we note
+from Fig. <a href="#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a> that the value of <math id="SS1.p7.m2" class="ltx_Math" alttext="m_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">m</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(u)</annotation></semantics></math>
+at the neuronal resting potential of <math id="SS1.p7.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>=-65mV is close to zero.
+Therefore, at rest,
+the sodium current
+<math id="SS1.p7.m4" class="ltx_Math" alttext="I_{\rm Na}=g_{\rm Na}\,m^{3}h\,(u-E_{\rm Na})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Na</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mpadded width="+1.7pt"><msub><mi mathsize="normal" stretchy="false">g</mi><mi mathsize="normal" stretchy="false">Na</mi></msub></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" stretchy="false">m</mi><mn mathsize="normal" stretchy="false">3</mn></msup><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">h</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" stretchy="false">Na</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I_{\rm Na}=g_{\rm Na}\,m^{3}h\,(u-E_{\rm Na})</annotation></semantics></math>
+through the channel vanishes. In other words,
+the sodium channel is closed.
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">When the membrane potential
+increases significantly above the resting potential, the gating variable <math id="SS1.p7.m5" class="ltx_Math" alttext="m" display="inline"><semantics><mi mathsize="normal" stretchy="false">m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> increases
+to its new value <math id="SS1.p7.m6" class="ltx_Math" alttext="m_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">m</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">m_{0}(u)</annotation></semantics></math>.
+As long as <math id="SS1.p7.m7" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> does not change, the sodium current increases
+and the gate opens.
+Therefore the variable <math id="SS1.p7.m8" class="ltx_Math" alttext="m" display="inline"><semantics><mi mathsize="normal" stretchy="false">m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> âactivatesâ the channel.
+If, after a return of the voltage to rest,
+<math id="SS1.p7.m9" class="ltx_Math" alttext="m" display="inline"><semantics><mi mathsize="normal" stretchy="false">m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> decays back to zero, it is said to be âde-activatingâ.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The terminology of the âinactivationâ variable <math id="SS1.p7.m10" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> is
+analogous. At rest, <math id="SS1.p7.m11" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> has a large positive value.
+If the voltage increases to a value above -40mV, <math id="SS1.p7.m12" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> approaches a new value
+<math id="SS1.p7.m13" class="ltx_Math" alttext="h_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">h</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">h_{0}(u)</annotation></semantics></math> which is close to rest. Therefore the channel
+âinactivatesâ (blocks) with a time constant that is given by <math id="SS1.p7.m14" class="ltx_Math" alttext="\tau_{h}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">h</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{h}(u)</annotation></semantics></math>.
+If the voltage returns to zero, <math id="SS1.p7.m15" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> increases so that the channel
+undergoes âde-inactivationâ. This sounds like a
+tricky vocabulary, but it turns out to be useful
+to distinguish between a deactivated channel (<math id="SS1.p7.m16" class="ltx_Math" alttext="m" display="inline"><semantics><mi mathsize="normal" stretchy="false">m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> close to zero
+and <math id="SS1.p7.m17" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> close to one)
+and an
+inactivated channel (<math id="SS1.p7.m18" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> close to zero).</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2.2 </span>Stochastic Channel Opening</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">The number of ion channels
+in a patch of membrane is finite
+and individual ion channels open and close stochastically.
+Thus, when an experimentalist records the current
+flowing through a small patch of membrane,
+he does not find a smooth and reliable
+evolution of the measured variable over time but rather
+a highly fluctuating current, which looks different
+at each repetition of the experiment (Fig. <a href="#Ch2.F5" title="Fig.Â 2.5 â£ 2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.5</span></a>).</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">The Hodgkin-Huxley equations which describe
+the opening and closing of ion channels
+with deterministic equations for the variables
+<math id="SS2.p2.m1" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>, <math id="SS2.p2.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>, and <math id="SS2.p2.m3" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>, correspond
+to the
+current density through a hypothetical,
+extremely large patch of membrane containing an
+infinite number of channels or, alternatively,
+to the current through a small patch of membrane but averaged over many
+repetitions of the same experiment
+(Fig. <a href="#Ch2.F5" title="Fig.Â 2.5 â£ 2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.5</span></a>).
+The stochastic aspects can be included by
+adding appropriate noise to the model.</p>
+</div>
+<figure id="Ch2.F5" class="ltx_figure"><img src="x29.png" id="Ch2.F5.g1" class="ltx_graphics ltx_centering" width="444" height="578" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.5: </span>
+Stochastic Channel Activation.
+The current flowing through a small patch
+of membrane after application of a voltage step (top row)
+shows step-like changes and is different
+in each trial (subsequent traces).
+Averaging over many trials yields the bottom trace.
+Adapted from Patlak and Ortiz, 1985 <cite class="ltx_cite"></cite>.
+</figcaption>
+</figure>
+<div id="SS2.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Time Constants, Transition Rates, and Channel Kinetics</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">As an alternative to the formulation of channel gating in Eq. (<a href="#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>),
+the activation and inactivation dynamics of each channel type can also
+be described in terms of
+voltage-dependent transition rates <math id="SS2.p3.m1" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> and <math id="SS2.p3.m2" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>,</span>
+              </p>
+<table id="Ch20.S4.EGx5" class="ltx_equationgroup ltx_eqn_align">
+
+<tr id="Ch2.Ex2" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch2.Ex2.m1" class="ltx_Math" alttext="\displaystyle\dot{m}=" display="inline"><semantics><mrow><mover accent="true"><mi>m</mi><mo>Ë</mo></mover><mo>=</mo><mi></mi></mrow><annotation encoding="application/x-tex">\displaystyle\dot{m}=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch2.Ex2.m2" class="ltx_Math" alttext="\displaystyle\alpha_{m}(u)\,(1-m)-\beta_{m}(u)\,m" display="inline"><semantics><mrow><mrow><msub><mi>Î±</mi><mi>m</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>m</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>Î²</mi><mi>m</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>m</mi></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\alpha_{m}(u)\,(1-m)-\beta_{m}(u)\,m</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+<tr id="Ch2.E9" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch2.E9.m1" class="ltx_Math" alttext="\displaystyle\dot{n}=" display="inline"><semantics><mrow><mover accent="true"><mi>n</mi><mo>Ë</mo></mover><mo>=</mo><mi></mi></mrow><annotation encoding="application/x-tex">\displaystyle\dot{n}=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch2.E9.m2" class="ltx_Math" alttext="\displaystyle\alpha_{n}(u)\,(1-n)-\beta_{n}(u)\,n" display="inline"><semantics><mrow><mrow><msub><mi>Î±</mi><mi>n</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>n</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>Î²</mi><mi>n</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>n</mi></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\alpha_{n}(u)\,(1-n)-\beta_{n}(u)\,n</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(2.9)</span></td>
+</tr>
+<tr id="Ch2.Ex3" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch2.Ex3.m1" class="ltx_Math" alttext="\displaystyle\dot{h}=" display="inline"><semantics><mrow><mover accent="true"><mi>h</mi><mo>Ë</mo></mover><mo>=</mo><mi></mi></mrow><annotation encoding="application/x-tex">\displaystyle\dot{h}=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch2.Ex3.m2" class="ltx_Math" alttext="\displaystyle\alpha_{h}(u)\,(1-h)-\beta_{h}(u)\,h." display="inline"><semantics><mrow><mrow><mrow><msub><mi>Î±</mi><mi>h</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>h</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>Î²</mi><mi>h</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle\alpha_{h}(u)\,(1-h)-\beta_{h}(u)\,h.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The two formulations Eqs. (<a href="#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>) and (<a href="#Ch2.Ex2" title="2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2.2</span></a>) are equivalent.
+The asymptotic value <math id="SS2.p3.m3" class="ltx_Math" alttext="x_{0}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">x_{0}(u)</annotation></semantics></math> and the time constant <math id="SS2.p3.m4" class="ltx_Math" alttext="\tau_{x}(u)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau_{x}(u)</annotation></semantics></math> are
+given by the
+transformation <math id="SS2.p3.m5" class="ltx_Math" alttext="x_{0}(u)=\alpha_{x}(u)/[\alpha_{x}(u)+\beta_{x}(u)]" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Î±</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Î±</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">+</mo><mrow><msub><mi mathsize="normal" stretchy="false">Î²</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">x_{0}(u)=\alpha_{x}(u)/[\alpha_{x}(u)+\beta_{x}(u)]</annotation></semantics></math> and
+<math id="SS2.p3.m6" class="ltx_Math" alttext="\tau_{x}(u)=[\alpha_{x}(u)+\beta_{x}(u)]^{-1}" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><msup><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Î±</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">+</mo><mrow><msub><mi mathsize="normal" stretchy="false">Î²</mi><mi mathsize="normal" stretchy="false">x</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\tau_{x}(u)=[\alpha_{x}(u)+\beta_{x}(u)]^{-1}</annotation></semantics></math>.
+The various functions <math id="SS2.p3.m7" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> and
+<math id="SS2.p3.m8" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>, given in Table <a href="#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>, are empirical functions of <math id="SS2.p3.m9" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> that
+produce the curves in Figure
+<a href="#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Equations (<a href="#Ch2.Ex2" title="2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2.2</span></a>) are typical equations used in chemistry
+to describe the stochastic dynamics of an activation
+process with rate constants <math id="SS2.p3.m10" class="ltx_Math" alttext="\alpha" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î±</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math> and <math id="SS2.p3.m11" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>.
+We may interpret this process as a molecular switch
+between two states
+with voltage-dependent transition rates.
+For example, the activation variable <math id="SS2.p3.m12" class="ltx_Math" alttext="n" display="inline"><semantics><mi mathsize="normal" stretchy="false">n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> can be interpreted
+as the probability of finding a single potassium channel open. Therefore in
+a patch with <math id="SS2.p3.m13" class="ltx_Math" alttext="K" display="inline"><semantics><mi mathsize="normal" stretchy="false">K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> channels, approximately <math id="SS2.p3.m14" class="ltx_Math" alttext="k\approx(1-n)K" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">k</mi><mo mathsize="normal" stretchy="false">â</mo><mrow><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">n</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">K</mi></mrow></mrow><annotation encoding="application/x-tex">k\approx(1-n)K</annotation></semantics></math> channels
+are expected to be closed. We may interpret
+<math id="SS2.p3.m15" class="ltx_Math" alttext="\alpha_{n}(u)\Delta t" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Î±</mi><mi mathsize="normal" stretchy="false">n</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><annotation encoding="application/x-tex">\alpha_{n}(u)\Delta t</annotation></semantics></math>
+as the probability that in a short time interval <math id="SS2.p3.m16" class="ltx_Math" alttext="\Delta t" display="inline"><semantics><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+one of the momentarily closed channels switches to the open state.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2.3 </span>Dynamics</h1>
+
+<figure id="Ch2.F6" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td"></th>
+<td class="ltx_td ltx_align_left">
+                    <img src="x30.png" id="Ch2.F6.g1" class="ltx_graphics" width="590" height="167" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td"></th>
+<td class="ltx_td ltx_align_left">
+                    <img src="x31.png" id="Ch2.F6.g2" class="ltx_graphics" width="590" height="167" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </th>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><img src="x32.png" id="Ch2.F6.g3" class="ltx_graphics" width="590" height="203" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.6: </span>
+<span class="ltx_text ltx_font_bold">A</span>. <span class="ltx_text ltx_font_italic">Action potential</span>. The Hodgkin-Huxley model is
+stimulated by a short, but strong, current pulse between <math id="Ch2.F6.m17" class="ltx_Math" alttext="t=1" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t=1</annotation></semantics></math> and <math id="Ch2.F6.m18" class="ltx_Math" alttext="t=2" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">t=2</annotation></semantics></math>Â ms. The time
+course of the membrane potential <math id="Ch2.F6.m19" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math> for
+<math id="Ch2.F6.m20" class="ltx_Math" alttext="t&gt;2" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">t&gt;2</annotation></semantics></math>ms shows the action potential (positive peak) followed by a relative
+refractory period where the potential is below the resting potential
+<math id="Ch2.F6.m21" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math> (dashed line). The right panel shows an expanded view of the action potential between <math id="Ch2.F6.m22" class="ltx_Math" alttext="t=2" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">t=2</annotation></semantics></math> and <math id="Ch2.F6.m23" class="ltx_Math" alttext="t=5" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">t=5</annotation></semantics></math> ms. <span class="ltx_text ltx_font_bold">B</span>. The dynamics of gating variables <math id="Ch2.F6.m24" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>, <math id="Ch2.F6.m25" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>, <math id="Ch2.F6.m26" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> illustrate how the action potential is mediated by sodium and potassium channels. <span class="ltx_text ltx_font_bold">C</span>.
+The sodium current <math id="Ch2.F6.m27" class="ltx_Math" alttext="I_{\rm Na}" display="inline"><semantics><msub><mi>I</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">I_{\rm Na}</annotation></semantics></math> which depends on the variables <math id="Ch2.F6.m28" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> and <math id="Ch2.F6.m29" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+has a sharp peak during the upswing of an action potential.
+The potassium current <math id="Ch2.F6.m30" class="ltx_Math" alttext="I_{\rm K}" display="inline"><semantics><msub><mi>I</mi><mi mathvariant="normal">K</mi></msub><annotation encoding="application/x-tex">I_{\rm K}</annotation></semantics></math> is controlled by the variable <math id="Ch2.F6.m31" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> and starts with a delay compared to <math id="Ch2.F6.m32" class="ltx_Math" alttext="I_{\rm Na}" display="inline"><semantics><msub><mi>I</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">I_{\rm Na}</annotation></semantics></math>.
+
+
+
+</figcaption>
+</figure>
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">In this subsection we study the dynamics of the Hodgkin-Huxley model for
+different types of input. Pulse input, constant input, step current input,
+and time-dependent input are considered in turn. These input scenarios have
+been chosen so as to provide an intuitive understanding of the dynamics of the
+Hodgkin-Huxley model.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">The most important property of the Hodgkin-Huxley
+model is its ability to generate action potentials.
+In Fig.Â <a href="#Ch2.F6" title="Fig.Â 2.6 â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>A
+an action potential has been initiated by a short current
+pulse of 1Â ms duration applied at <math id="SS3.p2.m1" class="ltx_Math" alttext="t=1" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t=1</annotation></semantics></math>ms.
+The spike has an amplitude of nearly 100mV and
+a width at half maximum of about 2.5ms.
+After the spike, the membrane potential falls below the resting
+potential and returns only slowly back to its resting value of -65mV.</p>
+</div>
+<section id="SS3.SSSx1" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Ion channel dynamics during spike generation</h1>
+
+<div id="SS3.SSSx1.p1" class="ltx_para">
+<p class="ltx_p">In order to understand the biophysics underlying the generation of
+an action potential we return to
+Fig.Â <a href="#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>A. We find that <math id="SS3.SSSx1.p1.m1" class="ltx_Math" alttext="m_{0}" display="inline"><semantics><msub><mi>m</mi><mn>0</mn></msub><annotation encoding="application/x-tex">m_{0}</annotation></semantics></math> and <math id="SS3.SSSx1.p1.m2" class="ltx_Math" alttext="n_{0}" display="inline"><semantics><msub><mi>n</mi><mn>0</mn></msub><annotation encoding="application/x-tex">n_{0}</annotation></semantics></math> increase with <math id="SS3.SSSx1.p1.m3" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+whereas <math id="SS3.SSSx1.p1.m4" class="ltx_Math" alttext="h_{0}" display="inline"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_{0}</annotation></semantics></math> decreases. Thus, if some external input causes the membrane
+voltage to rise, the conductance of sodium channels increases due to
+increasing <math id="SS3.SSSx1.p1.m5" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>. As a result, positive sodium ions flow into the cell and
+raise the membrane potential even further. If this positive feedback is
+large enough, an action potential is initiated.
+The explosive increase comes to a natural halt when
+the membrane potential approaches the reversal potential <math id="SS3.SSSx1.p1.m6" class="ltx_Math" alttext="E_{\rm Na}" display="inline"><semantics><msub><mi>E</mi><mi>Na</mi></msub><annotation encoding="application/x-tex">E_{\rm Na}</annotation></semantics></math>
+of the sodium current.
+
+</p>
+</div>
+<div id="SS3.SSSx1.p2" class="ltx_para">
+<p class="ltx_p">At high values of <math id="SS3.SSSx1.p2.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> the sodium conductance is slowly shut off due to the factor
+<math id="SS3.SSSx1.p2.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>. As indicated in Fig.Â <a href="#Ch2.F3" title="Fig.Â 2.3 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3</span></a>B, the âtime constantâ <math id="SS3.SSSx1.p2.m3" class="ltx_Math" alttext="\tau_{h}" display="inline"><semantics><msub><mi>Ï</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\tau_{h}</annotation></semantics></math> is
+always larger than <math id="SS3.SSSx1.p2.m4" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi>Ï</mi><mi>m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math>. Thus the variable <math id="SS3.SSSx1.p2.m5" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> which inactivates the channels
+reacts more slowly to the voltage increase than the variable <math id="SS3.SSSx1.p2.m6" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> which opens
+the channel. On a similar slow time scale, the potassium (K<math id="SS3.SSSx1.p2.m7" class="ltx_Math" alttext="{}^{+}" display="inline"><semantics><msup><mi></mi><mo>+</mo></msup><annotation encoding="application/x-tex">{}^{+}</annotation></semantics></math>) current sets
+in Fig.Â <a href="#Ch2.F6" title="Fig.Â 2.6 â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>C. Since it is a current in outward direction, it lowers the potential. The
+overall effect of the sodium and potassium currents is a short action
+potential followed by a negative overshoot; cf. Fig.Â <a href="#Ch2.F6" title="Fig.Â 2.6 â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>A.
+The negative overshoot, called
+hyperpolarizing spike-after potential, is due to
+the slow de-inactivation of the sodium channel,
+caused by the <math id="SS3.SSSx1.p2.m8" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>-variable.</p>
+</div>
+<figure id="Ch2.F7" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">A</span>
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">B</span>
+                    </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <img src="x33.png" id="Ch2.F7.g1" class="ltx_graphics" width="293" height="235" alt="">
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <img src="x34.png" id="Ch2.F7.g2" class="ltx_graphics" width="293" height="235" alt="">
+                    </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">C</span>
+                    </td>
+<td class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">D</span>
+                    </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <img src="x35.png" id="Ch2.F7.g3" class="ltx_graphics" width="293" height="220" alt="">
+                    </td>
+<td class="ltx_td ltx_align_left"><img src="x36.png" id="Ch2.F7.g4" class="ltx_graphics" width="293" height="218" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.7: </span>
+<span class="ltx_text ltx_font_bold">A</span>. Spike train of the Hodgkin-Huxley model (with the parameters
+used in this book)
+for constant input current
+<math id="Ch2.F7.m4" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">B</span>. Gain function. The mean firing rate <math id="Ch2.F7.m5" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi>Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math> is plotted as
+a function of <math id="Ch2.F7.m6" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>. The gain function of the Hodgkin-Huxley model
+is of type II, because it exhibits a jump.
+<span class="ltx_text ltx_font_bold">C</span>. Same as A, but for the original parameters found by Hodgkin and Huxley
+to describe the ion currents in the giant axon of the squid.
+<span class="ltx_text ltx_font_bold">D</span>. Gain function for the model in C.
+
+</figcaption>
+</figure>
+<div id="SS3.SSSx1.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">Example: Mean firing rates and gain function</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">The Hodgkin-Huxley equations (<a href="#Ch2.E4" title="(2.4) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.4</span></a>)-(<a href="#Ch2.Ex2" title="2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.2.2</span></a>) may also be studied for
+constant input <math id="SS3.SSSx1.p3.m1" class="ltx_Math" alttext="I(t)=I_{0}" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><annotation encoding="application/x-tex">I(t)=I_{0}</annotation></semantics></math> for <math id="SS3.SSSx1.p3.m2" class="ltx_Math" alttext="t&gt;0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t&gt;0</annotation></semantics></math>. (The input is zero for <math id="SS3.SSSx1.p3.m3" class="ltx_Math" alttext="t\leq 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">â¤</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">t\leq 0</annotation></semantics></math>).
+If the value <math id="SS3.SSSx1.p3.m4" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> is larger than a critical value <math id="SS3.SSSx1.p3.m5" class="ltx_Math" alttext="I_{\theta}\approx 2.7\mu" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Î¸</mi></msub><mo mathsize="normal" stretchy="false">â</mo><mrow><mn mathsize="normal" stretchy="false">2.7</mn><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">Î¼</mi></mrow></mrow><annotation encoding="application/x-tex">I_{\theta}\approx 2.7\mu</annotation></semantics></math>A/cm<math id="SS3.SSSx1.p3.m6" class="ltx_Math" alttext="{}^{2}" display="inline"><semantics><msup><mi></mi><mn mathsize="normal" stretchy="false">2</mn></msup><annotation encoding="application/x-tex">{}^{2}</annotation></semantics></math>, we observe regular spiking; Fig.Â <a href="#Ch2.F7" title="Fig.Â 2.7 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.7</span></a>A. We may
+define a firing rate <math id="SS3.SSSx1.p3.m7" class="ltx_Math" alttext="\nu=1/T" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î½</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">T</mi></mrow></mrow><annotation encoding="application/x-tex">\nu=1/T</annotation></semantics></math> where <math id="SS3.SSSx1.p3.m8" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> is the inter-spike interval.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">The firing rate as a function of the constant input <math id="SS3.SSSx1.p3.m9" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>,
+often called the âfrequency-currentâ relation or âf-I-plotâ,
+defines the gain
+function plotted in Fig.Â <a href="#Ch2.F7" title="Fig.Â 2.7 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.7</span></a>B.
+With the parameters given in Table <a href="#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>,
+the gain function exhibits a jump at <math id="SS3.SSSx1.p3.m10" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math>.
+Gain functions with a discontinuity are called âtype IIâ.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">If we shift the curve of the inactivation variable <math id="SS3.SSSx1.p3.m11" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> to more
+positive voltages, and keep otherwise the same parameters,
+the modified Hodgkin-Huxley model exhibits a smooth
+gain function; see Section <a href="Ch2.S3.html#SS2" title="2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.3.2</span></a> and Fig.Â <a href="Ch2.S3.html#Ch2.F11" title="Fig.Â 2.11 â£ 2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.11</span></a>.
+Neuron models or, more generally, âexcitable membranesâ
+are called âtype Iâ or âclass Iâ if they
+have a continuous frequency-current relation.
+The distinction between excitability of type I and II can
+be traced back to <cite class="ltx_cite">Hodgkin (<a href="bib.html#bib26" title="The local electric changes associated with repetitive action in a non-medullated axon." class="ltx_ref">223</a>)</cite>.</span>
+                </p>
+</span>
+</div>
+<figure id="Ch2.F8" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">A</span>
+                    </th>
+<th class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">B</span>
+                    </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <img src="x37.png" id="Ch2.F8.g1" class="ltx_graphics" width="293" height="237" alt="">
+                    </td>
+<td class="ltx_td ltx_align_left"><img src="x38.png" id="Ch2.F8.g2" class="ltx_graphics" width="307" height="245" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.8: </span>
+<span class="ltx_text ltx_font_bold">A</span>. Spike train of the Hodgkin-Huxley model driven by a time dependent
+input current. The action potentials occur irregularly. The figure shows
+the voltage <math id="Ch2.F8.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> as a function of time.
+<span class="ltx_text ltx_font_bold">B</span>.
+Threshold effect. A short current pulse of 1ms is applied
+which leads to a excursion of the membrane potential of a few millivolt (dashed line).
+A slight increase of the strength of the current pulse
+leads to the generation of an action potential (solid line) with an amplitude
+of about 100mV above rest (out of bounds).
+</figcaption>
+</figure>
+<div id="SS3.SSSx1.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">Example: Stimulation by time-dependent input</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">In order to explore a more realistic input scenario, we stimulate the
+Hodgkin-Huxley model by a time-dependent input current <math id="SS3.SSSx1.p4.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> that is
+generated by the following procedure. Every 2Â ms, a random number is drawn
+from a Gaussian distribution with zero mean and standard deviation <math id="SS3.SSSx1.p4.m2" class="ltx_Math" alttext="\sigma=34\mu" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mn mathsize="normal" stretchy="false">34</mn><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">Î¼</mi></mrow></mrow><annotation encoding="application/x-tex">\sigma=34\mu</annotation></semantics></math>A/cm<math id="SS3.SSSx1.p4.m3" class="ltx_Math" alttext="{}^{2}" display="inline"><semantics><msup><mi></mi><mn mathsize="normal" stretchy="false">2</mn></msup><annotation encoding="application/x-tex">{}^{2}</annotation></semantics></math>. To get a continuous input current, a linear interpolation was
+used between the target values. The resulting time-dependent input current
+was then applied to the Hodgkin-Huxley model (<a href="#Ch2.E4" title="(2.4) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.4</span></a>) - (<a href="#Ch2.E6" title="(2.6) â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.6</span></a>). The response to the
+current is the voltage trace shown in Fig.Â <a href="#Ch2.F8" title="Fig.Â 2.8 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>A. Note that
+action potentials occur at irregular intervals.</span>
+                </p>
+</span>
+</div>
+<div id="SS3.SSSx1.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">Example: Firing threshold</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">In Fig.Â <a href="#Ch2.F8" title="Fig.Â 2.8 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>B an action potential (solid line) has been initiated
+by a short current pulse of 1ms duration.
+If the amplitude of the stimulating
+current pulse is reduced below some critical value, the membrane potential
+(dashed line)
+returns to the rest value without a large spike-like excursion; cf. Fig.Â <a href="#Ch2.F8" title="Fig.Â 2.8 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>B.
+Thus we have a threshold-type behavior.
+
+</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">If we increased the amplitude of the current by a factor of two,
+but reduced the duration of the current pulse to 0.5ms,
+so that the current pulse delivers
+exactly the same
+electric charge as before,
+the response curves in <a href="#Ch2.F8" title="Fig.Â 2.8 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.8</span></a>B
+would look exactly the same.
+Thus, the threshold of spike initiation can <span class="ltx_text ltx_font_italic">not</span>
+be defined via the amplitude of the current pulse.
+Rather, it is the charge delivered by the pulse
+or, equivalently, the membrane voltage immediately
+after the pulse, which determines whether an action potential
+is triggered or not. However,
+while the notion of a voltage threshold for firing
+is useful
+for a qualitative understanding of spike initiation
+in response to current pulses, it is in itself not sufficient
+to capture the dynamics of the Hodgkin-Huxley model;
+see the discussion in this and the next two chapters.</span>
+                </p>
+</span>
+</div>
+<div id="SS3.SSSx1.p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">Example: Refractoriness</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">In order to study neuronal refractoriness, we stimulate the Hodgkin-Huxley
+model by a first current pulse that is sufficiently strong to excite a spike.
+A second current pulse of the <span class="ltx_text ltx_font_italic">same</span> amplitude as the first one is used to
+probe the responsiveness of the neuron during the phase of hyperpolarization
+that follows the action potential. If the second stimulus is not sufficient
+to trigger another action potential, we have a clear signature of neuronal
+refractoriness. In the simulation shown in Fig.Â <a href="#Ch2.F9" title="Fig.Â 2.9 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.9</span></a>, a second
+spike is not emitted if
+the second stimulus is given less than 40 milliseconds after the first one.
+It would, of course, be possible to trigger a second spike after
+a shorter interval, if a significantly stronger stimulation pulse was used;
+for classical experiments along those lines, see, e.g. <cite class="ltx_cite">(<a href="bib.html#bib27" title="Interpretation of the repetitive firing of nerve cells" class="ltx_ref">162</a>)</cite>.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">If we look more closely at the voltage trajectory of Fig.Â <a href="#Ch2.F9" title="Fig.Â 2.9 â£ Ion channel dynamics during spike generation â£ 2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.9</span></a>,
+we see that neuronal refractoriness manifests itself in two different
+forms. First, due to the hyperpolarizing spike after-potential the voltage is
+lower. More stimulation is therefore needed to reach the firing threshold.
+Second, since a large portion of channels is open immediately after a spike,
+the resistance of the membrane is reduced compared to the situation at
+rest. The depolarizing effect of a stimulating current pulse decays therefore
+faster immediately after the spike than ten milliseconds later. An efficient
+description of refractoriness plays a major role for simplified neuron models
+discussed in ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.</span>
+                </p>
+</span>
+</div>
+<figure id="Ch2.F9" class="ltx_figure"><img src="x39.png" id="Ch2.F9.g1" class="ltx_graphics" width="590" height="190" alt="">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 2.9: </span>Refractoriness of the Hodgkin-Huxley model. At <math id="Ch2.F9.m4" class="ltx_Math" alttext="t=20" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">t=20</annotation></semantics></math>Â ms the
+model is stimulated by a short current pulse (left arrow) so as to trigger an action
+potential. A second current pulse of the same amplitude applied at <math id="Ch2.F9.m5" class="ltx_Math" alttext="t=35,45" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mn>35</mn><mo>,</mo><mn>45</mn></mrow></mrow><annotation encoding="application/x-tex">t=35,45</annotation></semantics></math>, or <math id="Ch2.F9.m6" class="ltx_Math" alttext="55" display="inline"><semantics><mn>55</mn><annotation encoding="application/x-tex">55</annotation></semantics></math>Â ms (subsequent arrows) is not sufficient to trigger a second action
+potential.
+</figcaption>
+</figure>
+<div id="SS3.SSSx1.p7" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">Example: Damped Oscillations and Transient Spiking</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">When stimulated with a small step-increase in current, the Hodgkin-Huxley model with parameters as in
+Table <a href="#Ch2.T1" title="TableÂ 2.1 â£ 2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>
+exhibits a damped oscillation with a maximum about 20ms after the onset of the current
+step; cf. Fig. <a href="Ch2.S3.html#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>.
+If the step size is large enough, but not sufficient to
+cause sustained firing,
+a single spike can be generated. Note that
+in Fig. <a href="Ch2.S3.html#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a> the input current returns
+at 200ms to the <span class="ltx_text ltx_font_italic">same</span> value it had a hundred milliseconds before.
+While the neuron stays quiescent after the first step,
+it fires a transient spike the second time not because the total input
+is stronger but because the step
+<span class="ltx_text ltx_font_italic">starts</span> from a strong negative value.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">A spike which is elicited by a step current that
+starts from a strong negative value
+and then switches back to zero,
+would be called a rebound spike.
+In other words, a rebound spike is triggered by release from inhibition.
+For example, the Hodgkin-Huxley model with the original parameters
+for the giant axon of the squid exhibits
+rebound spikes when a prolonged negative input current is stopped;
+the model with the set of parameters adopted in this book, however, does not.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">The transient spike in Fig. <a href="Ch2.S3.html#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>
+occurs about 20 ms after the start of the step.
+A simple explanation of the transient spike is
+that the peak of the membrane potential oscillation after the step
+reaches the voltage threshold for spike initiation, so that a single action potential is triggered.
+It is indeed the subthreshold oscillations that underly the transient spiking illustrated in Fig. <a href="Ch2.S3.html#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">Damped oscillations result from subthreshold inactivation of the sodium current. At rest the sodium currents are not activated (<math id="SS3.SSSx1.p7.m1" class="ltx_Math" alttext="m\approx 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">m</mi><mo mathsize="normal" stretchy="false">â</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">m\approx 0</annotation></semantics></math>) but only partially inactivated (<math id="SS3.SSSx1.p7.m2" class="ltx_Math" alttext="h\approx 0.6" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="normal" stretchy="false">â</mo><mn mathsize="normal" stretchy="false">0.6</mn></mrow><annotation encoding="application/x-tex">h\approx 0.6</annotation></semantics></math>). Responding to the step stimulus, the membrane potential increases, which activates slightly and de-inactivates slowly the sodium channel. When the input is not strong enough for an action potential to be initiated, the de-inactivation of <math id="SS3.SSSx1.p7.m3" class="ltx_Math" alttext="I_{\rm Na}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">Na</mi></msub><annotation encoding="application/x-tex">I_{\rm Na}</annotation></semantics></math> reduces the effective drive and thus the membrane potential. The system then relaxes to an equilibrium. If, on the other hand, the current was strong enough to elicit a spike, the equilibrium may be reached only after the spike. A further increase
+in the step current
+drives sustained firing (Fig. <a href="Ch2.S3.html#Ch2.F10" title="Fig.Â 2.10 â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.10</span></a>).</span>
+                </p>
+</span>
+</div>
+</section>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch2.S1.html" title="2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.1 </span>Equilibrium potential</span></a><a href="Ch2.S3.html" title="2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3 </span>The Zoo of Ion Channels</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

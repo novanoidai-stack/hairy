@@ -1,0 +1,293 @@
+<!DOCTYPE html><html>
+<head>
+<title>3.3 Spatial Structure: Axons | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S1.html" title="3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch3.S5.html" title="3.5 Summary â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="Fitzhugh-Nagumo model, axon, myelinated, unmyelinated">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Dendrites and Synapses</span></a><a href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2 </span>Spatial Structure: The Dendritic Tree</span></a><a href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.4 </span>Compartmental Models</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3.3 </span>Spatial Structure: Axons</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Any given neuron has a single axon that leaves the soma to make synaptic contacts. Like dendrites, axons have a range of different morphologies. Some axons project mainly to neurons close by. This is the case for neurons in the layer 2-3 of cortex, their axons branch out in all directions from the soma forming a star-shaped axonal arbor called a âdaisyâ. Other neurons such as pyramidal neurons situated deeper in the cortex have axons that plunge in the white matter and may cross the whole brain to reach another brain area. There are even longer axons that leave the central nervous system and travel down the spinal cord to reach muscles at the tip of the foot.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">In terms of propagation dynamics, we distinguish two types of axons: the myelinated and the unmyelinated axons. We will see that myelin is useful to increase propagation speed in far-reaching projections. This is the case for cortical projections passing through the white matter, or for axons crossing the spinal cord. Short projections on the other hand use axons devoid of myelin.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3.1 </span>Unmyelinated Axons</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">Mathematical description of the membrane potential in the axon is identical to that of dendrites with active ion channels. Unmyelinated axons contain sodium and potassium channels uniformly distributed over their entire length. The classical example is the squid giant axon investigated by Hodgkin and Huxley. The Hodgkin-Huxley model described in Chapter <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> was developed for a small axon segment. The general equation for ion channels imbedded on a passive membrane is
+</p>
+<table id="Ch3.E37" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E37.m1" class="ltx_Math" alttext="c\,r_{L}\frac{\partial}{\partial t}\,u(t,x)=\frac{\partial^{2}}{\partial x^{2}%
+}\,u(t,x)-r_{L}(u(t,x)-E_{l})-r_{L}i_{\text{ion}}[u](t,x)\,." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><mi>c</mi></mpadded><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mpadded><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mfrac><msup><mo>â</mo><mn>2</mn></msup><mrow><mo>â</mo><mo>â¡</mo><msup><mi>x</mi><mn>2</mn></msup></mrow></mfrac></mpadded><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>r</mi><mi>L</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>E</mi><mi>l</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>r</mi><mi>L</mi></msub><mo>â¢</mo><msub><mi>i</mi><mtext>ion</mtext></msub><mo>â¢</mo><mrow><mo>[</mo><mi>u</mi><mo>]</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">c\,r_{L}\frac{\partial}{\partial t}\,u(t,x)=\frac{\partial^{2}}{\partial x^{2}%
+}\,u(t,x)-r_{L}(u(t,x)-E_{l})-r_{L}i_{\text{ion}}[u](t,x)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.37)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where we have reverted to a variable <math id="SS1.p1.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> in units of mV from the equation of active dendrites seen in Sect. <a href="Ch3.S2.html#SS3" title="3.2.3 Non-linear Extensions to the Cable Equation â£ 3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.2.3</span></a>. For the giant squid axon, the ionic current are described by the Hodgkin-Huxley model</p>
+<table id="Ch3.E38" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E38.m1" class="ltx_Math" alttext="i_{\text{ion}}[u](t,x)=g_{\rm Na}\,m^{3}(t,x)h(t,x)\,(u(t,x)-E_{\rm Na})+g_{%
+\rm K}\,n^{4}(t,x)\,(u(t,x)-E_{\rm K})." display="block"><semantics><mrow><mrow><mrow><msub><mi>i</mi><mtext>ion</mtext></msub><mo>â¢</mo><mrow><mo>[</mo><mi>u</mi><mo>]</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi>Na</mi></msub></mpadded><mo>â¢</mo><msup><mi>m</mi><mn>3</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>E</mi><mi>Na</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>g</mi><mi mathvariant="normal">K</mi></msub></mpadded><mo>â¢</mo><msup><mi>n</mi><mn>4</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>E</mi><mi mathvariant="normal">K</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">i_{\text{ion}}[u](t,x)=g_{\rm Na}\,m^{3}(t,x)h(t,x)\,(u(t,x)-E_{\rm Na})+g_{%
+\rm K}\,n^{4}(t,x)\,(u(t,x)-E_{\rm K}).</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.38)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In other systems, the axon may be covered with other types of sodium or potassium ion channels.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">When an action potential is fired in the axon initial segment, the elevated membrane potential will depolarize the adjacent axonal segments. Sodium channels farther down the axon which were previously closed will start to open, thereby depolarizing the membrane further. The action potential propagates by activating sodium channels along the cable rather than by spreading the charges such as in a passive dendrite. The properties of the ion channels strongly influence conduction velocity. In the unmyelinated axons of the hippocampus, the conduction velocity axons is 0.25Â m/s.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">The dynamics described by Eqs. (<a href="#Ch3.E37" title="(3.37) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.37</span></a>)-(<a href="#Ch3.E38" title="(3.38) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.38</span></a>) reproduce many properties of real axons. In particular, two spikes traveling in opposite direction will collide and annihilate each other. This is unlike wave propagating on water. Another property is reflection at branch points. When the impedance mismatch at the point where a single axon splits into two can is significant, the action potential can reflect and start travelling in the direction it came from.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">The solution of Eq. (<a href="#Ch3.E37" title="(3.37) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.37</span></a>) with sodium and postassium ion channels such as in Eq. (<a href="#Ch3.E38" title="(3.38) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.38</span></a>) can not be written in a closed form. Properties of axonal propagation are either studied numerically (see Sect. <a href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.4</span></a>) or with reduced models of ion channels.</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Speed of Propagation with Simplified Action Potential Dynamics</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">For the sake of studying propagation properties, we can replace the active properties of a small axonal segment by a bistable switch <cite class="ltx_cite">(<a href="bib.html#bib56" title="Impulses and physiological states in models of nerve membrane" class="ltx_ref">152</a>; <a href="bib.html#bib57" title="An active pulse transmission line simulating nerve axon" class="ltx_ref">356</a>)</cite> . We can write the time- and space-dependent membrane potential as</span>
+              </p>
+<table id="Ch3.E39" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E39.m1" class="ltx_Math" alttext="c\,r_{L}\frac{\partial}{\partial t}\,u(t,x)=\frac{\partial^{2}}{\partial x^{2}%
+}\,u(t,x)-\frac{r_{L}g}{1-a}u(t,x)(u(t,x)-1)(u(t,x)-a)\,." display="block"><semantics><mrow><mrow><mrow><mpadded width="+1.7pt"><mi>c</mi></mpadded><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mo>â</mo><mrow><mo>â</mo><mo>â¡</mo><mi>t</mi></mrow></mfrac></mpadded><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mfrac><msup><mo>â</mo><mn>2</mn></msup><mrow><mo>â</mo><mo>â¡</mo><msup><mi>x</mi><mn>2</mn></msup></mrow></mfrac></mpadded><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mfrac><mrow><msub><mi>r</mi><mi>L</mi></msub><mo>â¢</mo><mi>g</mi></mrow><mrow><mn>1</mn><mo>-</mo><mi>a</mi></mrow></mfrac><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>,</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mi>a</mi></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">c\,r_{L}\frac{\partial}{\partial t}\,u(t,x)=\frac{\partial^{2}}{\partial x^{2}%
+}\,u(t,x)-\frac{r_{L}g}{1-a}u(t,x)(u(t,x)-1)(u(t,x)-a)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.39)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS1.p5.m1" class="ltx_Math" alttext="a&lt;1/2" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mn mathsize="normal" stretchy="false">2</mn></mrow></mrow><annotation encoding="application/x-tex">a&lt;1/2</annotation></semantics></math> and <math id="SS1.p5.m2" class="ltx_Math" alttext="g" display="inline"><semantics><mi mathsize="normal" stretchy="false">g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> are parameters. The membrane potential is scaled such that it rests at zero but may be activated to <math id="SS1.p5.m3" class="ltx_Math" alttext="u=1" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">u=1</annotation></semantics></math>. The reduced model can switch between <math id="SS1.p5.m4" class="ltx_Math" alttext="u=0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">u=0</annotation></semantics></math> and <math id="SS1.p5.m5" class="ltx_Math" alttext="u=1" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><annotation encoding="application/x-tex">u=1</annotation></semantics></math> if it is pushed above <math id="SS1.p5.m6" class="ltx_Math" alttext="u=a" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">a</mi></mrow><annotation encoding="application/x-tex">u=a</annotation></semantics></math>, but does not reproduce the full upswing followed by downswing of action potentials.
+
+</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">It turns out that Eq. <a href="#Ch3.E39" title="(3.39) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.39</span></a> can also be interpreted as a model of flame front propagation. The solution of this equation follows <cite class="ltx_cite">(<a href="bib.html#bib58" title="Thermal theory of flame propagation" class="ltx_ref">564</a>)</cite></span>
+              </p>
+<table id="Ch3.E40" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E40.m1" class="ltx_Math" alttext="u(x,t)=\frac{1}{1+\exp\left(\frac{x-{\sf v}t}{\sqrt{2}\lambda^{\ast}}\right)}" display="block"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mfrac><mrow><mi>x</mi><mo>-</mo><mrow><mi>ð</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mrow><msqrt><mn>2</mn></msqrt><mo>â¢</mo><msup><mi>Î»</mi><mo>â</mo></msup></mrow></mfrac><mo>)</mo></mrow></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">u(x,t)=\frac{1}{1+\exp\left(\frac{x-{\sf v}t}{\sqrt{2}\lambda^{\ast}}\right)}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.40)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with traveling speed</span>
+              </p>
+<table id="Ch3.E41" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E41.m1" class="ltx_Math" alttext="{\sf v}=\frac{c(1-2a)}{\sqrt{2(1-a)r_{L}/g}}." display="block"><semantics><mrow><mrow><mi>ð</mi><mo>=</mo><mfrac><mrow><mi>c</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mrow><mn>2</mn><mo>â¢</mo><mi>a</mi></mrow></mrow><mo>)</mo></mrow></mrow><msqrt><mrow><mrow><mn>2</mn><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>a</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub></mrow><mo>/</mo><mi>g</mi></mrow></msqrt></mfrac></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\sf v}=\frac{c(1-2a)}{\sqrt{2(1-a)r_{L}/g}}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.41)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The propagation velocity depends on the capacitance per unit length <math id="SS1.p5.m7" class="ltx_Math" alttext="c" display="inline"><semantics><mi mathsize="normal" stretchy="false">c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>, the longitudinal resistance per unit length <math id="SS1.p5.m8" class="ltx_Math" alttext="r_{L}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">r</mi><mi mathsize="normal" stretchy="false">L</mi></msub><annotation encoding="application/x-tex">r_{L}</annotation></semantics></math>, and the excitability parameters <math id="SS1.p5.m9" class="ltx_Math" alttext="g" display="inline"><semantics><mi mathsize="normal" stretchy="false">g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> and <math id="SS1.p5.m10" class="ltx_Math" alttext="a" display="inline"><semantics><mi mathsize="normal" stretchy="false">a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">How does the conduction velocity scale with axon size? Since <math id="SS1.p5.m11" class="ltx_Math" alttext="r_{L}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">r</mi><mi mathsize="normal" stretchy="false">L</mi></msub><annotation encoding="application/x-tex">r_{L}</annotation></semantics></math>, <math id="SS1.p5.m12" class="ltx_Math" alttext="c" display="inline"><semantics><mi mathsize="normal" stretchy="false">c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math> and <math id="SS1.p5.m13" class="ltx_Math" alttext="g" display="inline"><semantics><mi mathsize="normal" stretchy="false">g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> themselves depend on the diameter of the axon, we expect the velocity to reflect that relationship. The parameters <math id="SS1.p5.m14" class="ltx_Math" alttext="c" display="inline"><semantics><mi mathsize="normal" stretchy="false">c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math> and <math id="SS1.p5.m15" class="ltx_Math" alttext="g" display="inline"><semantics><mi mathsize="normal" stretchy="false">g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> scale with the circumference of the cellular membrane and therefore scale linearly with the radius <math id="SS1.p5.m16" class="ltx_Math" alttext="\rho" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>. The cytoplasmic resistance per unit length, however, scales with the cross-sectional area, <math id="SS1.p5.m17" class="ltx_Math" alttext="r_{L}\propto\rho^{2}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">r</mi><mi mathsize="normal" stretchy="false">L</mi></msub><mo mathsize="normal" stretchy="false">â</mo><msup><mi mathsize="normal" stretchy="false">Ï</mi><mn mathsize="normal" stretchy="false">2</mn></msup></mrow><annotation encoding="application/x-tex">r_{L}\propto\rho^{2}</annotation></semantics></math>. With these relations in mind, eq. (<a href="#Ch3.E41" title="(3.41) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.41</span></a>) shows that the conduction velocity is proportional to the square root of the diameter <math id="SS1.p5.m18" class="ltx_Math" alttext="{\sf v}\propto\sqrt{\rho}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">ð</mi><mo mathsize="normal" stretchy="false">â</mo><msqrt><mi mathsize="normal" stretchy="false">Ï</mi></msqrt></mrow><annotation encoding="application/x-tex">{\sf v}\propto\sqrt{\rho}</annotation></semantics></math>. Therefore, increasing the diameter improves propagation velocity. This is thought to be the reason why the unmyelinated axons that Hodgkin and Huxley studied were so large (up to <math id="SS1.p5.m19" class="ltx_Math" alttext="\rho=500" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">500</mn></mrow><annotation encoding="application/x-tex">\rho=500</annotation></semantics></math>Â <math id="SS1.p5.m20" class="ltx_Math" alttext="\mu" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î¼</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>m).</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3.2 </span>Myelinated Axons</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Myelinated axons have sodium and potassium channels only in restricted segments called <em class="ltx_emph">nodes of Ranvier</em>. These nodes form only 0.2% of the axonal length, the rest is considered a passive membrane that is wrapped into a myelin sheath. Myelin mainly decreases the membrane capacitance <math id="SS2.p1.m1" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math> and increase the resistance <math id="SS2.p1.m2" class="ltx_Math" alttext="R_{T}" display="inline"><semantics><msub><mi>R</mi><mi>T</mi></msub><annotation encoding="application/x-tex">R_{T}</annotation></semantics></math> by a factor of up to 300 <cite class="ltx_cite">(<a href="bib.html#bib59" title="Axon physiology" class="ltx_ref">118</a>)</cite>. Ions are trapped by myelin since it prevents them to either flow outside the axon or accumulate on the membrane. Instead, ions flow in and out of the the nodes such that an ion leaving a node of Ranvier forces another to enter the following node. Assuming that the nodes are equally separated by a myelinated segment of length <math id="SS2.p1.m3" class="ltx_Math" alttext="L" display="inline"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>, we can model the evolution of the membrane potential at each node <math id="SS2.p1.m4" class="ltx_Math" alttext="u_{n}" display="inline"><semantics><msub><mi>u</mi><mi>n</mi></msub><annotation encoding="application/x-tex">u_{n}</annotation></semantics></math>. The dynamics of idealized myelinated axons follow Kirchoffâs equation with a resistance <math id="SS2.p1.m5" class="ltx_Math" alttext="R_{L}=L\,r_{L}" display="inline"><semantics><mrow><msub><mi>R</mi><mi>L</mi></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>L</mi></mpadded><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub></mrow></mrow><annotation encoding="application/x-tex">R_{L}=L\,r_{L}</annotation></semantics></math> replacing the myelinated segment</p>
+<table id="Ch3.E42" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E42.m1" class="ltx_Math" alttext="C\frac{{\text{d}}u_{n}}{{\text{d}}t}=\frac{1}{L\,r_{L}}(u_{n+1}(t)-2u_{n}(t)+u%
+_{n-1}(t))-\sum_{ion}I_{ion,n}(t)" display="block"><semantics><mrow><mrow><mi>C</mi><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><msub><mi>u</mi><mi>n</mi></msub></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mrow><mfrac><mn>1</mn><mrow><mpadded width="+1.7pt"><mi>L</mi></mpadded><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub></mrow></mfrac><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><msub><mi>u</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mn>2</mn><mo>â¢</mo><msub><mi>u</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>u</mi><mrow><mi>n</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>i</mi><mo>â¢</mo><mi>o</mi><mo>â¢</mo><mi>n</mi></mrow></munder><mrow><msub><mi>I</mi><mrow><mrow><mi>i</mi><mo>â¢</mo><mi>o</mi><mo>â¢</mo><mi>n</mi></mrow><mo>,</mo><mi>n</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">C\frac{{\text{d}}u_{n}}{{\text{d}}t}=\frac{1}{L\,r_{L}}(u_{n+1}(t)-2u_{n}(t)+u%
+_{n-1}(t))-\sum_{ion}I_{ion,n}(t)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.42)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.p1.m6" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math> is the total capacitance of the node. This equation was encountered in the derivation of the Cable Equation (Section <a href="Ch3.S2.html#Ch3.E17" title="(3.17) â£ 3.2.1 Derivation of the Cable Equation â£ 3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.17</span></a>). The conduction velocity is greatly increased by myelin such that some nerves reach 70-80Â m/s<cite class="ltx_cite">(<a href="bib.html#bib59" title="Axon physiology" class="ltx_ref">118</a>)</cite>.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Propagation Speed with Simplified Action Potential Dynamics</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Using the simplification of the ion channel dynamics in Eq. (<a href="#Ch3.E39" title="(3.39) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.39</span></a>) for each node</span>
+              </p>
+<table id="Ch3.E43" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E43.m1" class="ltx_Math" alttext="C\frac{{\text{d}}u_{n}}{{\text{d}}t}=\frac{1}{L\,r_{L}}(u_{n+1}(t)-2u_{n}(t)+u%
+_{n-1}(t))-\frac{g}{1-a}u_{n}(t)(u_{n}(t)-1)(u_{n}(t)-a)" display="block"><semantics><mrow><mrow><mi>C</mi><mo>â¢</mo><mfrac><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><msub><mi>u</mi><mi>n</mi></msub></mrow><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mrow><mfrac><mn>1</mn><mrow><mpadded width="+1.7pt"><mi>L</mi></mpadded><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub></mrow></mfrac><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><msub><mi>u</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mn>2</mn><mo>â¢</mo><msub><mi>u</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>u</mi><mrow><mi>n</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mfrac><mi>g</mi><mrow><mn>1</mn><mo>-</mo><mi>a</mi></mrow></mfrac><mo>â¢</mo><msub><mi>u</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><msub><mi>u</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mn>1</mn></mrow><mo>)</mo></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><msub><mi>u</mi><mi>n</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>a</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">C\frac{{\text{d}}u_{n}}{{\text{d}}t}=\frac{1}{L\,r_{L}}(u_{n+1}(t)-2u_{n}(t)+u%
+_{n-1}(t))-\frac{g}{1-a}u_{n}(t)(u_{n}(t)-1)(u_{n}(t)-a)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.43)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS2.p2.m1" class="ltx_Math" alttext="g" display="inline"><semantics><mi mathsize="normal" stretchy="false">g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> and <math id="SS2.p2.m2" class="ltx_Math" alttext="a&lt;1/2" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">a</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mn mathsize="normal" stretchy="false">2</mn></mrow></mrow><annotation encoding="application/x-tex">a&lt;1/2</annotation></semantics></math> are parameters regulating the excitability of the node. Unlike the Eq. (<a href="#Ch3.E39" title="(3.39) â£ 3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.39</span></a>), the parameter <math id="SS2.p2.m3" class="ltx_Math" alttext="g" display="inline"><semantics><mi mathsize="normal" stretchy="false">g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math> has units of conductance per node since we nodes of Ranvier discrete segments. An activated node may fail to excite the adjacent nodes if the membrane potential does not reach <math id="SS2.p2.m4" class="ltx_Math" alttext="u=a" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">a</mi></mrow><annotation encoding="application/x-tex">u=a</annotation></semantics></math>. In this model, the internodal distance must satisfy <cite class="ltx_cite">(<a href="bib.html#bib60" title="Propagating waves in discrete bistable reaction-diffusion systems" class="ltx_ref">142</a>)</cite></span>
+              </p>
+<table id="Ch3.E44" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E44.m1" class="ltx_Math" alttext="L&lt;L^{\ast}=\frac{1-a}{4a^{2}r_{L}g}" display="block"><semantics><mrow><mi>L</mi><mo>&lt;</mo><msup><mi>L</mi><mo>â</mo></msup><mo>=</mo><mfrac><mrow><mn>1</mn><mo>-</mo><mi>a</mi></mrow><mrow><mn>4</mn><mo>â¢</mo><msup><mi>a</mi><mn>2</mn></msup><mo>â¢</mo><msub><mi>r</mi><mi>L</mi></msub><mo>â¢</mo><mi>g</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">L&lt;L^{\ast}=\frac{1-a}{4a^{2}r_{L}g}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.44)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">for propagation to be sustained. When the internodal distance <math id="SS2.p2.m5" class="ltx_Math" alttext="L" display="inline"><semantics><mi mathsize="normal" stretchy="false">L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math> is smaller than <math id="SS2.p2.m6" class="ltx_Math" alttext="L^{\ast}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">L</mi><mo mathsize="normal" stretchy="false">â</mo></msup><annotation encoding="application/x-tex">L^{\ast}</annotation></semantics></math>, propagation will succeed. When the internodal distance is larger, propagation will fail.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The propagation velocity for small <math id="SS2.p2.m7" class="ltx_Math" alttext="L^{\ast}-L" display="inline"><semantics><mrow><msup><mi mathsize="normal" stretchy="false">L</mi><mo mathsize="normal" stretchy="false">â</mo></msup><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">L</mi></mrow><annotation encoding="application/x-tex">L^{\ast}-L</annotation></semantics></math>
+follows <cite class="ltx_cite">(<a href="bib.html#bib61" title="Ephaptic coupling of myelinated nerve fibers" class="ltx_ref">59</a>)</cite>
+</span>
+              </p>
+<table id="Ch3.E45" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch3.E45.m1" class="ltx_Math" alttext="{\sf v}\approx\frac{\pi g\,a}{(1-a)C}\sqrt{L(L^{\ast}-L)}" display="block"><semantics><mrow><mi>ð</mi><mo>â</mo><mrow><mfrac><mrow><mi>Ï</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>g</mi></mpadded><mo>â¢</mo><mi>a</mi></mrow><mrow><mrow><mo>(</mo><mrow><mn>1</mn><mo>-</mo><mi>a</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>C</mi></mrow></mfrac><mo>â¢</mo><msqrt><mrow><mi>L</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msup><mi>L</mi><mo>â</mo></msup><mo>-</mo><mi>L</mi></mrow><mo>)</mo></mrow></mrow></msqrt></mrow></mrow><annotation encoding="application/x-tex">{\sf v}\approx\frac{\pi g\,a}{(1-a)C}\sqrt{L(L^{\ast}-L)}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(3.45)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">which is maximum at <math id="SS2.p2.m8" class="ltx_Math" alttext="L=L^{\ast}/2" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">L</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><msup><mi mathsize="normal" stretchy="false">L</mi><mo mathsize="normal" stretchy="false">â</mo></msup><mo mathsize="normal" stretchy="false">/</mo><mn mathsize="normal" stretchy="false">2</mn></mrow></mrow><annotation encoding="application/x-tex">L=L^{\ast}/2</annotation></semantics></math>. Since in most myelinated axons, internodal distance scales linearly with their radius <cite class="ltx_cite">(<a href="bib.html#bib62" title="Determinants of conduction velocity in myelinated nerve fibers" class="ltx_ref">545</a>)</cite>, the velocity of myelinated axons also scales linearly with radius, <math id="SS2.p2.m9" class="ltx_Math" alttext="{\sf v}\propto L\propto\rho" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">ð</mi><mo mathsize="normal" stretchy="false">â</mo><mi mathsize="normal" stretchy="false">L</mi><mo mathsize="normal" stretchy="false">â</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow><annotation encoding="application/x-tex">{\sf v}\propto L\propto\rho</annotation></semantics></math>.
+</span>
+              </p>
+</span>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2 </span>Spatial Structure: The Dendritic Tree</span></a><a href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.4 </span>Compartmental Models</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

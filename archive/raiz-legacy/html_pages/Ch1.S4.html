@@ -1,0 +1,405 @@
+<!DOCTYPE html><html>
+<head>
+<title>1.4 Limitations of the Leaky Integrate-and-Fire Model | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S2.html" title="1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S6.html" title="1.6 Summary â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="adaptation, bursting, dendrite, dendritic, dendritic spike, excitatory, inhibition, inhibitory rebound, inhibtory, neuron, postsynaptic potential, rebound, inhibitory, reversal potential, shunting, shunting inhibition, spike">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1 </span>Introduction</span></a><a href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3 </span>Integrate-And-Fire Models</span></a><a href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.5 </span>What Can We Expect from Integrate-And-Fire Models?</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1.4 </span>Limitations of the Leaky Integrate-and-Fire Model</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">The leaky integrate-and-fire model presented in Section <a href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.3</span></a>
+is highly simplified and
+neglects many aspects of neuronal dynamics. In particular,
+input, which may arise from presynaptic neurons
+or from current injection, is integrated linearly,
+independently of the state of
+the postsynaptic neuron:</p>
+<table id="Ch1.E31" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E31.m1" class="ltx_Math" alttext="\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,I(t)\," display="block"><semantics><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded><mo>â¢</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>[</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>]</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><annotation encoding="application/x-tex">\tau_{m}\,{{\text{d}}u\over{\text{d}}t}=-[u(t)-u_{\rm rest}]+R\,I(t)\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.31)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="p1.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> is the input current.
+Furthermore, after each output spike the membrane potential is reset,
+</p>
+<table id="Ch1.E32" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E32.m1" class="ltx_Math" alttext="{\rm if~{}}u(t)=\vartheta{~{}\rm then~{}}\lim_{\delta\to 0;\delta&gt;0}u(t+\delta%
+)=u_{r}" display="block"><semantics><mrow><mrow><mpadded width="+3.3pt"><mi>if</mi></mpadded><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+3.3pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>then</mi></mpadded><mo>â¢</mo><mrow><munder><mo movablelimits="false">lim</mo><mrow><mrow><mi>Î´</mi><mo>â</mo><mn>0</mn></mrow><mo>;</mo><mrow><mi>Î´</mi><mo>&gt;</mo><mn>0</mn></mrow></mrow></munder><mo>â¡</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>+</mo><mi>Î´</mi></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>=</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">{\rm if~{}}u(t)=\vartheta{~{}\rm then~{}}\lim_{\delta\to 0;\delta&gt;0}u(t+\delta%
+)=u_{r}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.32)</span></td>
+</tr>
+</table>
+<p class="ltx_p">so that no memory of previous spikes
+is kept.
+Let us list the major limitations of the simplified
+model discussed so far. All of these limitations
+will be addressed in the extension of the leaky integrate-and-fire
+model presented in Part II of the book.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.4.1 </span>Adaptation, Bursting, and Inhibitory Rebound</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">To study neuronal dynamics experimentally, neurons can be isolated and
+stimulated by current injection through an intracellular electrode. In a
+standard experimental protocol we could, for example, impose a stimulating
+current that is switched at time <math id="SS1.p1.m1" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> from a value <math id="SS1.p1.m2" class="ltx_Math" alttext="I_{1}" display="inline"><semantics><msub><mi>I</mi><mn>1</mn></msub><annotation encoding="application/x-tex">I_{1}</annotation></semantics></math> to a new value
+<math id="SS1.p1.m3" class="ltx_Math" alttext="I_{2}" display="inline"><semantics><msub><mi>I</mi><mn>2</mn></msub><annotation encoding="application/x-tex">I_{2}</annotation></semantics></math>. Let us suppose that <math id="SS1.p1.m4" class="ltx_Math" alttext="I_{1}=0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>1</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{1}=0</annotation></semantics></math> so that the neuron is quiescent for <math id="SS1.p1.m5" class="ltx_Math" alttext="t&lt;t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>&lt;</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t&lt;t_{0}</annotation></semantics></math>. If the current <math id="SS1.p1.m6" class="ltx_Math" alttext="I_{2}" display="inline"><semantics><msub><mi>I</mi><mn>2</mn></msub><annotation encoding="application/x-tex">I_{2}</annotation></semantics></math> is sufficiently large, it will evoke spikes for
+<math id="SS1.p1.m7" class="ltx_Math" alttext="t&gt;t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t&gt;t_{0}</annotation></semantics></math>. Most neurons will respond to the current step with a spike train
+where intervals between spikes increase successively until a steady state of
+periodic firing is reached; cf. Fig.Â <a href="#Ch1.F10" title="Fig.Â 1.10 â£ 1.4.1 Adaptation, Bursting, and Inhibitory Rebound â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.10</span></a>C. Neurons that show this
+type of adaptation are called regularly-firing neurons <cite class="ltx_cite">(<a href="bib.html#bib5" title="Intrinsic firing patterns of diverse cortical neurons" class="ltx_ref">102</a>)</cite>.
+Adaptation is a slow process that builds up over several spikes. Since the
+standard leaky integrate-and-fire model
+resets the voltage after each spike to the same value and restarts
+the integration process, no memory is kept beyond the most recent spike.
+Therefore,
+the leaky integrate-and-fire neuron cannot capture
+adaptation. Detailed neuron models, which will be discussed in
+ChapterÂ <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, explicitly describe the slow processes that lead to adaptation. To mimic these processes in integrate-and-fire neurons,
+we need to add up the contributions to refractoriness of several spikes back in
+the past. As we will see in ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>,
+this can be done
+in the âfilterâ framework of Eq.Â (<a href="Ch1.S3.html#Ch1.E22" title="(1.22) â£ 1.3.5 Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.22</span></a>)
+by using a filter <math id="SS1.p1.m8" class="ltx_Math" alttext="\eta" display="inline"><semantics><mi>Î·</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math> for refractoriness with a time constant much slower
+than that of the membrane potential.
+Or by combining the differential equation
+of the leaky integrate-and-fire model with a second differential equation
+describing the evolution of a slow variable;
+cf. ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.</p>
+</div>
+<figure id="Ch1.F10" class="ltx_figure"><img src="x18.png" id="Ch1.F10.g1" class="ltx_graphics ltx_centering" width="589" height="264" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.10: </span>
+Response to a current step. In <span class="ltx_text ltx_font_bold">A</span> - <span class="ltx_text ltx_font_bold">C</span>, the current is switched on at
+<math id="Ch1.F10.m4" class="ltx_Math" alttext="t=t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t=t_{0}</annotation></semantics></math> to a value <math id="Ch1.F10.m5" class="ltx_Math" alttext="I_{2}&gt;0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>2</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{2}&gt;0</annotation></semantics></math>. Fast-spiking neurons (<span class="ltx_text ltx_font_bold">A</span>)
+have short interspike intervals without adaptation
+while regular-spiking neurons (<span class="ltx_text ltx_font_bold">C</span>) exhibit
+adaptation, visible as an increase in the duration of interspike intervals.
+An example of a stuttering neuron is shown in <span class="ltx_text ltx_font_bold">B</span>. Many
+neurons emit an inhibitory rebound spike (<span class="ltx_text ltx_font_bold">D</span>) after an inhibitory current
+<math id="Ch1.F10.m6" class="ltx_Math" alttext="I_{1}&lt;0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>1</mn></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{1}&lt;0</annotation></semantics></math> is switched off. Data is a courtesy of Henry Markram and Maria Toledo-Rodriguez <cite class="ltx_cite">(<a href="bib.html#bib6" title="Interneurons of the neocortical inhibitory system" class="ltx_ref">329</a>; <a href="bib.html#bib2" title="Correlation maps allow neuronal electrical properties to be predicted from single-cell gene expression profiles in rat neocortex" class="ltx_ref">514</a>)</cite>.</figcaption>
+</figure>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">A second class of neurons are fast-spiking neurons. These neurons show no
+adaptation (cf. Fig.Â <a href="#Ch1.F10" title="Fig.Â 1.10 â£ 1.4.1 Adaptation, Bursting, and Inhibitory Rebound â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.10</span></a>A) and can therefore be well approximated by
+non-adapting integrate-and-fire models.
+Many inhibitory neurons are
+fast-spiking neurons. Apart from regular-spiking and fast-spiking neurons,
+there are also bursting and stuttering neurons which form a separate group <cite class="ltx_cite">(<a href="bib.html#bib5" title="Intrinsic firing patterns of diverse cortical neurons" class="ltx_ref">102</a>)</cite>.
+These neurons respond to constant stimulation by a sequence of spikes that is
+periodically (bursting) or aperiodically (stuttering) interrupted by rather long intervals; cf. Fig.Â <a href="#Ch1.F10" title="Fig.Â 1.10 â£ 1.4.1 Adaptation, Bursting, and Inhibitory Rebound â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.10</span></a>B.
+Again, a neuron model that has no memory beyond the most recent spike
+cannot describe bursting, but
+the framework in Eq. (<a href="Ch1.S3.html#Ch1.E22" title="(1.22) â£ 1.3.5 Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.22</span></a>) with arbitrary âfiltersâ
+is general enough to account for bursting as well.
+</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Another frequently observed behavior is post-inhibitory rebound. Consider a
+step current with <math id="SS1.p3.m1" class="ltx_Math" alttext="I_{1}&lt;0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>1</mn></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{1}&lt;0</annotation></semantics></math> and <math id="SS1.p3.m2" class="ltx_Math" alttext="I_{2}=0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{2}=0</annotation></semantics></math>, i.e., an inhibitory input that is
+switched off at time <math id="SS1.p3.m3" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>; cf. Fig.Â <a href="#Ch1.F10" title="Fig.Â 1.10 â£ 1.4.1 Adaptation, Bursting, and Inhibitory Rebound â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.10</span></a>D. Many neurons respond to
+such a change with one or more ârebound spikesâ: Even the release of inhibition
+can trigger action potentials. We will return to inhibitory
+rebound in ChapterÂ <a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>.</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.4.2 </span>Shunting Inhibition and Reversal Potential</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">In the previous paragraph we focused on an isolated neuron stimulated by an applied current. In reality, neurons are embedded into a large network and receive input from many other neurons.
+Suppose a spike from a presynaptic neuron <math id="SS2.p1.m1" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> is sent at time <math id="SS2.p1.m2" class="ltx_Math" alttext="t_{j}^{(f)}" display="inline"><semantics><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{j}^{(f)}</annotation></semantics></math>
+towards the synapse of a postsynaptic neuron <math id="SS2.p1.m3" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.
+When we introduced
+in Fig. <a href="Ch1.S2.html#Ch1.F5" title="Fig.Â 1.5 â£ 1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a> the postsynaptic potential
+that is generated after the arrival of the spike at the synapse,
+its shape and amplitude
+did
+not depend on the state of the postsynaptic neuron <math id="SS2.p1.m4" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>. This is of course a
+simplification and reality is somewhat more complicated. In
+ChapterÂ <a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> we will discuss detailed neuron models that describe
+synaptic input as a change of the membrane conductance. Here we simply
+summarize the major phenomena.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">In Fig.Â <a href="#Ch1.F11" title="Fig.Â 1.11 â£ 1.4.2 Shunting Inhibition and Reversal Potential â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.11</span></a> we have sketched schematically an experiment where the
+neuron is driven by a constant current <math id="SS2.p2.m1" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>. We assume that <math id="SS2.p2.m2" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math> is too
+weak to evoke firing so that, after some relaxation time, the membrane
+potential settles at a constant value <math id="SS2.p2.m3" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math>. At <math id="SS2.p2.m4" class="ltx_Math" alttext="t=t^{(f)}" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">t=t^{(f)}</annotation></semantics></math>
+one of the presynaptic neurons emits a spike so that shortly afterwards
+the action potential arrives at the synapse
+and provides additional stimulation of the postsynaptic neuron.
+More precisely,
+the spike generates a current pulse at the postsynaptic neuron
+(postsynaptic current, PSC) with amplitude</p>
+<table id="Ch1.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E33.m1" class="ltx_Math" alttext="{\rm PSC}\propto\quad[u_{0}-E_{\rm syn}]" display="block"><semantics><mrow><mi>PSC</mi><mo>â</mo><mo mathvariant="italic" separator="true">â</mo><mrow><mo stretchy="false">[</mo><msub><mi>u</mi><mn>0</mn></msub><mo>-</mo><msub><mi>E</mi><mi>syn</mi></msub><mo stretchy="false">]</mo></mrow></mrow><annotation encoding="application/x-tex">{\rm PSC}\propto\quad[u_{0}-E_{\rm syn}]</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.33)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.p2.m5" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math> is the membrane potential and <math id="SS2.p2.m6" class="ltx_Math" alttext="E_{\rm syn}" display="inline"><semantics><msub><mi>E</mi><mi>syn</mi></msub><annotation encoding="application/x-tex">E_{\rm syn}</annotation></semantics></math> is the âreversal
+potentialâ of the synapse. Since the amplitude of the current input depends on
+<math id="SS2.p2.m7" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math>, the response of the postsynaptic potential does so as well. Reversal
+potentials are systematically introduced in ChapterÂ <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>; models of
+synaptic input are discussed in ChapterÂ <a href="Ch3.S1.html" title="3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.1</span></a>.
+</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Shunting inhibition</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The dependence of the postsynaptic response upon the momentary state of the
+neuron is most pronounced for inhibitory synapses. The reversal potential of
+inhibitory synapses <math id="SS2.p3.m1" class="ltx_Math" alttext="E_{\rm syn}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" stretchy="false">syn</mi></msub><annotation encoding="application/x-tex">E_{\rm syn}</annotation></semantics></math> is below, but usually close to the resting
+potential. Input spikes thus have hardly any effect on the membrane potential
+if the neuron is at rest; cf. Fig.Â <a href="#Ch1.F11" title="Fig.Â 1.11 â£ 1.4.2 Shunting Inhibition and Reversal Potential â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.11</span></a>A. However, if the membrane is
+depolarized, the very same input spikes evoke a larger inhibitory postsynaptic
+potential. If the membrane is already hyperpolarized, the input spike can
+even produce a depolarizing effect. There is an intermediate value <math id="SS2.p3.m2" class="ltx_Math" alttext="u_{0}=E_{\rm syn}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">=</mo><msub><mi mathsize="normal" stretchy="false">E</mi><mi mathsize="normal" stretchy="false">syn</mi></msub></mrow><annotation encoding="application/x-tex">u_{0}=E_{\rm syn}</annotation></semantics></math> â the reversal potential â where the response to inhibitory
+input âreversesâ from hyperpolarizing to depolarizing.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Though inhibitory input usually has only a small impact on the membrane
+potential, the local conductivity of the cell membrane can be significantly
+increased. Inhibitory synapses are often located on the soma or on the shaft
+of the dendritic tree. Due to their strategic position, a few inhibitory input
+spikes can âshuntâ the whole input that is gathered by the dendritic tree from
+hundreds of excitatory synapses. This phenomenon is called âshunting
+inhibitionâ.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The reversal potential for excitatory synapses is usually significantly above
+the resting potential. If the membrane is depolarized <math id="SS2.p3.m3" class="ltx_Math" alttext="u_{0}\gg u_{\rm rest}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">â«</mo><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{0}\gg u_{\rm rest}</annotation></semantics></math>
+the amplitude of an excitatory postsynaptic potential is reduced, but the
+effect is not as pronounced as for inhibition. For very high levels of
+depolarization a saturation of the EPSPs can be observed; cf.Â <a href="#Ch1.F11" title="Fig.Â 1.11 â£ 1.4.2 Shunting Inhibition and Reversal Potential â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.11</span></a>B.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch1.F11" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x636.png" id="Ch1.F11.g1" class="ltx_graphics" width="293" height="128" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x637.png" id="Ch1.F11.g2" class="ltx_graphics" width="293" height="129" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.11: </span>
+The shape of postsynaptic potentials depends on the momentary level of
+depolarization.
+<span class="ltx_text ltx_font_bold">A</span>. A presynaptic spike that arrives at time <math id="Ch1.F11.m4" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> at an inhibitory
+synapse has hardly any effect on the membrane potential when the neuron is
+at rest, but a large effect if the membrane potential <math id="Ch1.F11.m5" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> is above the
+resting potential. If the membrane is hyperpolarized below the reversal
+potential of the inhibitory synapse, the response to the presynaptic input
+changes sign. <span class="ltx_text ltx_font_bold">B</span>. A spike at an excitatory synapse evokes a
+postsynaptic potential with an amplitude that depends only slightly on the
+momentary voltage <math id="Ch1.F11.m6" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>. For large depolarizations the amplitude saturates and becomes
+smaller. (Schematic figure.) </figcaption>
+</figure>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.4.3 </span>Conductance Changes after a Spike</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">The shape of the postsynaptic potentials does not only depend on the level of
+depolarization but, more generally, on the internal state of the neuron, e.g.,
+on the timing relative to previous action potentials.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">Suppose that an action potential has occurred at time <math id="SS3.p2.m1" class="ltx_Math" alttext="t_{i}^{(f)}" display="inline"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{i}^{(f)}</annotation></semantics></math> and that a
+presynaptic spike arrives at a time <math id="SS3.p2.m2" class="ltx_Math" alttext="t_{j}^{(f)}&gt;t_{i}^{(f)}" display="inline"><semantics><mrow><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><mo>&gt;</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">t_{j}^{(f)}&gt;t_{i}^{(f)}</annotation></semantics></math> at the synapse <math id="SS3.p2.m3" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>. The form of the
+postsynaptic potential depends now on the time <math id="SS3.p2.m4" class="ltx_Math" alttext="t_{j}^{(f)}-t_{i}^{(f)}" display="inline"><semantics><mrow><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><mo>-</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">t_{j}^{(f)}-t_{i}^{(f)}</annotation></semantics></math>;
+cf. Fig.Â <a href="#Ch1.F12" title="Fig.Â 1.12 â£ 1.4.4 Spatial Structure â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.12</span></a>. If the presynaptic spike arrives during or shortly
+after a postsynaptic action potential, it has little effect because some of the
+ion channels that were involved in firing the action potential are still
+open. If the input spike arrives much later, it generates a postsynaptic
+potential of the usual size. We will return to this effect in
+ChapterÂ <a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.</p>
+</div>
+</section>
+<section id="SS4" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.4.4 </span>Spatial Structure</h1>
+
+<figure id="Ch1.F12" class="ltx_figure"><img src="x21.png" id="Ch1.F12.g1" class="ltx_graphics ltx_centering" width="589" height="238" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.12: </span>
+The shape of postsynaptic potentials (dashed lines) depends on the time
+<math id="Ch1.F12.m5" class="ltx_Math" alttext="t-t_{i}^{(f)}" display="inline"><semantics><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">t-t_{i}^{(f)}</annotation></semantics></math> that has passed since the last output spike of neuron
+<math id="Ch1.F12.m6" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>. The postsynaptic spike has been triggered at time <math id="Ch1.F12.m7" class="ltx_Math" alttext="t_{i}^{(f)}" display="inline"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{i}^{(f)}</annotation></semantics></math>. A
+presynaptic spike that arrives at time <math id="Ch1.F12.m8" class="ltx_Math" alttext="t_{j}^{(f)}" display="inline"><semantics><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_{j}^{(f)}</annotation></semantics></math> shortly after the spike of
+the postsynaptic neuron has a smaller effect than a spike that arrives
+much later. Data is a courtesy of Thomas Berger <cite class="ltx_cite">(<a href="bib.html#bib7" title="Frequency-dependent disynaptic inhibition in the pyramidal network: a ubiquitous pathway in the developing rat neocortex" class="ltx_ref">49</a>)</cite>. </figcaption>
+</figure>
+<div id="SS4.p1" class="ltx_para">
+<p class="ltx_p">The form of postsynaptic potentials also depends on the location of the
+synapse on the dendritic tree. Synapses that are located
+far away from the soma
+are expected to evoke a smaller postsynaptic response at the
+soma than a synapse that is located directly on the soma;
+cf. ChapterÂ <a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. If several inputs occur on the same dendritic
+branch within a few milliseconds, the first input will cause local changes of
+the membrane potential that influence the amplitude of the response to the
+input spikes that arrive slightly later. This may lead to saturation or, in
+the case of so-called âactiveâ currents, to an enhancement of the response.
+Such nonlinear interactions between different presynaptic spikes are neglected
+in the leaky integrate-and-fire model.
+Whereas a purely linear dendrite can be
+incorporated in the âfilterâ description of the model,
+as we will see in ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>,
+nonlinear interactions cannot.
+Small regions on the dendrite where a strong nonlinear boosting of synaptic
+currents occurs are sometimes called dendritic âhot spotsâ.
+The boosting can lead to dendritic spikes which, in contrast
+to normal somatic action potentials last for tens of milliseconds
+<cite class="ltx_cite">(<a href="bib.html#bib8" title="Synaptic clustering by dendritic signalling mechanisms" class="ltx_ref">289</a>)</cite>.</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3 </span>Integrate-And-Fire Models</span></a><a href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.5 </span>What Can We Expect from Integrate-And-Fire Models?</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

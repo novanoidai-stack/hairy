@@ -248,3 +248,34 @@ export function progresoCita(cita: CitaBloque, nowMs: number): number {
 export function minutosRestantes(cita: CitaBloque, nowMs: number): number {
   return Math.max(0, Math.round((ms(cita.fin) - nowMs) / 60000));
 }
+
+export const BLOQUEO_COLORS: Record<string, string> = {
+  // Fuera de la jornada del profesional: gris apagado, deliberadamente distinto
+  // de "libre" (blanco) y de una ausencia puntual (vacaciones, baja...).
+  fuera_jornada: "#94a3b8",
+  // Salon cerrado (negocio_horarios / cierres_negocio): tono distinto y mas
+  // oscuro que fuera_jornada, porque es un bloqueo del NEGOCIO entero, no de
+  // un profesional individual — no deben confundirse a simple vista.
+  salon_cerrado: "#57534e",
+  vacaciones: "#0f9d6b",
+  reunion: "#3b82f6",
+  baja: "#e23b34",
+  formacion: "#c0260a",
+  descanso: "#e08a00",
+  // Reserva temporal: hueco retenido mientras una clienta decide si acepta un
+  // cambio propuesto (citas_propuestas_cambio). Violeta, deliberadamente
+  // distinto de cualquier bloqueo de persona, para que se vea que es un hueco
+  // "con nombre" esperando confirmacion, no un tramo no laborable.
+  reserva_temporal: "#7c3aed",
+};
+export const BLOQUEO_LABELS: Record<string, string> = {
+  fuera_jornada: "Fuera de jornada",
+  salon_cerrado: "Salón cerrado",
+  vacaciones: "Vacaciones",
+  reunion: "Reunión",
+  baja: "Baja",
+  formacion: "Formación",
+  descanso: "Descanso",
+  reserva_temporal: "Hueco reservado",
+};
+

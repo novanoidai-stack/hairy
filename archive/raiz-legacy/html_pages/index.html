@@ -1,0 +1,1316 @@
+<!DOCTYPE html><html>
+<head>
+<title>
+Table of contents | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 10:27:00 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="next" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="computational neuroscience, textbook, neural modeling, integrate-and-fire model,spiking neuron, spikes, neural code, neuronal coding, Hodgkin-Huxley model,
+Generalized Linear Model,firing rate, rate code, neural networks, population activity,
+population dynamics, Wilson-Cowan equation, density equation,spike-timing-dependent plasticity, STDP, LTP, synaptic plasticity, Hebb rule, Hebbian learning, book,wulfram gerstner,liam paninski,richard naud,werner kistler,neuroscience,dynamics,neuronal,neuron,brain,science,textbook,university,epfl,lausanne,computational,mathematics,physics,biological physics,biophysics,life sciences,biology,dynamical systems,nonlinear dynamics,stochastic processes,math,learn,help,exercises,free,online book,online resources,cambridge,memory,consciousness,hodkin huxley,integrate,fire,adex,adaptive,exponential,networks,populations,cognition">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML_fix.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+
+<h1 style="margin-bottom:0px">Neuronal Dynamics <small><i>online book</i></small></h1>
+<h3 class="text-info" style="margin-top:0px;">From single neurons to networks and models of cognition</h3>
+<h4 class="text-muted">Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski</h4>
+
+<div class="row" style="margin-top:20px;">
+	<div class="col-md-6">
+		<div class="panel panel-danger">
+		  <div class="panel-heading">
+		    <h3 class="panel-title">Copyright notice</h3>
+		  </div>
+		  <div class="panel-body">
+		     Â© Cambridge University Press. This online book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.
+		  </div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="panel panel-warning">
+		  <div class="panel-heading">
+		    <h3 class="panel-title">First-edition Errata</h3>
+		  </div>
+		  <div class="panel-body">
+		  	Errors found in the first edition are collected in the <a href="errata.html">First-edition Errata section</a> and corrected in the online version. Should you find any errors, please write to <a href="mailto:wulfram.gerstner@epfl.ch">Wulfram Gerstner</a>.
+		  </div>
+		</div>
+	</div>
+</div>
+
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">I </span>Foundations of Neuronal Dynamics</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="../exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcnwww.epfl.ch/gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_document ltx_authors_1line">
+
+
+
+<h3>Table of Contents</h3>
+
+
+<ul class="ltx_toclist">
+<li class="ltx_tocentry">
+<a class="toc_part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">I </span>Foundations of Neuronal Dynamics</span></a>
+<ul class="ltx_toclist ltx_toc_part">
+<li class="ltx_tocentry">
+<a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1 </span>Introduction</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1 </span>Elements of Neuronal Systems</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch1.S1.html#SS1" title="1.1.1 The Ideal Spiking Neuron â£ 1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1.1 </span>The Ideal Spiking Neuron</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S1.html#SS2" title="1.1.2 Spike Trains â£ 1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1.2 </span>Spike Trains</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S1.html#SS3" title="1.1.3 Synapses â£ 1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1.3 </span>Synapses</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S1.html#SS4" title="1.1.4 Neurons are part of a big system â£ 1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1.4 </span>Neurons are part of a big system</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch1.S2.html" title="1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.2 </span>Elements of Neuronal Dynamics</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch1.S2.html#SS1" title="1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.2.1 </span>Postsynaptic Potentials</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S2.html#SS2" title="1.2.2 Firing Threshold and Action Potential â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.2.2 </span>Firing Threshold and Action Potential</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3 </span>Integrate-And-Fire Models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch1.S3.html#SS1" title="1.3.1 Integration of Inputs â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3.1 </span>Integration of Inputs</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S3.html#SS2" title="1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3.2 </span>Pulse Input</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S3.html#SS3" title="1.3.3 The Threshold for Spike Firing â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3.3 </span>The Threshold for Spike Firing</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S3.html#SS4" title="1.3.4 Time-dependent Input (*)Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book. â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3.4 </span>Time-dependent Input (*)<span class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup>Sections marked by an asterisk
+are mathematically more advanced and can be omitted during a first reading of the book.</span></span></span></span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S3.html#SS5" title="1.3.5 Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3.5 </span>Linear Differential Equation vs. Linear Filter: Two Equivalent Pictures (*)</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S3.html#SS6" title="1.3.6 Periodic drive and Fourier transform (*) â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3.6 </span>Periodic drive and Fourier transform (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch1.S4.html" title="1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4 </span>Limitations of the Leaky Integrate-and-Fire Model</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch1.S4.html#SS1" title="1.4.1 Adaptation, Bursting, and Inhibitory Rebound â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4.1 </span>Adaptation, Bursting, and Inhibitory Rebound</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S4.html#SS2" title="1.4.2 Shunting Inhibition and Reversal Potential â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4.2 </span>Shunting Inhibition and Reversal Potential</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S4.html#SS3" title="1.4.3 Conductance Changes after a Spike â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4.3 </span>Conductance Changes after a Spike</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S4.html#SS4" title="1.4.4 Spatial Structure â£ 1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.4.4 </span>Spatial Structure</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.5 </span>What Can We Expect from Integrate-And-Fire Models?</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch1.S6.html" title="1.6 Summary â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.6 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch1.S6.html#SSx1" title="Literature â£ 1.6 Summary â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch1.S6.html#SSx2" title="Exercises â£ 1.6 Summary â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2 </span>The Hodgkin-Huxley Model</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch2.S1.html" title="2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.1 </span>Equilibrium potential</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch2.S1.html#SS1" title="2.1.1 Nernst potential â£ 2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.1.1 </span>Nernst potential</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S1.html#SS2" title="2.1.2 Reversal Potential â£ 2.1 Equilibrium potential â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.1.2 </span>Reversal Potential</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch2.S2.html" title="2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2 </span>Hodgkin-Huxley Model</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch2.S2.html#SS1" title="2.2.1 Definition of the model â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2.1 </span>Definition of the model</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S2.html#SS2" title="2.2.2 Stochastic Channel Opening â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2.2 </span>Stochastic Channel Opening</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S2.html#SS3" title="2.2.3 Dynamics â£ 2.2 Hodgkin-Huxley Model â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2.3 </span>Dynamics</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch2.S3.html" title="2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3 </span>The Zoo of Ion Channels</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch2.S3.html#SS1" title="2.3.1 Framework for biophysical neuron models â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3.1 </span>Framework for biophysical neuron models</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S3.html#SS2" title="2.3.2 Sodium Ion Channels and the Type-I Regime â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3.2 </span>Sodium Ion Channels and the Type-I Regime</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S3.html#SS3" title="2.3.3 Adaptation and Refractoriness â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3.3 </span>Adaptation and Refractoriness</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S3.html#SS4" title="2.3.4 Subthreshold Effects â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3.4 </span>Subthreshold Effects</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S3.html#SS5" title="2.3.5 Calcium spikes and postinhibitory rebound â£ 2.3 The Zoo of Ion Channels â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.3.5 </span>Calcium spikes and postinhibitory rebound</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch2.S4.html" title="2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.4 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch2.S4.html#SSx1" title="Literature â£ 2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch2.S4.html#SSx2" title="Exercises â£ 2.4 Summary â£ ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Dendrites and Synapses</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch3.S1.html" title="3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.1 </span>Synapses</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch3.S1.html#SS1" title="3.1.1 Inhibitory Synapses â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.1.1 </span>Inhibitory Synapses</span></a></li>
+<li class="ltx_tocentry"><a href="Ch3.S1.html#SS2" title="3.1.2 Excitatory Synapses â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.1.2 </span>Excitatory Synapses</span></a></li>
+<li class="ltx_tocentry"><a href="Ch3.S1.html#SS3" title="3.1.3 Rapid synaptic dynamics â£ 3.1 Synapses â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.1.3 </span>Rapid synaptic dynamics</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch3.S2.html" title="3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2 </span>Spatial Structure: The Dendritic Tree</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch3.S2.html#SS1" title="3.2.1 Derivation of the Cable Equation â£ 3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2.1 </span>Derivation of the Cable Equation</span></a></li>
+<li class="ltx_tocentry"><a href="Ch3.S2.html#SS2" title="3.2.2 Greenâs Function of the passive Cable â£ 3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2.2 </span>Greenâs Function of the passive Cable</span></a></li>
+<li class="ltx_tocentry"><a href="Ch3.S2.html#SS3" title="3.2.3 Non-linear Extensions to the Cable Equation â£ 3.2 Spatial Structure: The Dendritic Tree â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2.3 </span>Non-linear Extensions to the Cable Equation</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch3.S3.html" title="3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.3 </span>Spatial Structure: Axons</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch3.S3.html#SS1" title="3.3.1 Unmyelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.3.1 </span>Unmyelinated Axons</span></a></li>
+<li class="ltx_tocentry"><a href="Ch3.S3.html#SS2" title="3.3.2 Myelinated Axons â£ 3.3 Spatial Structure: Axons â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.3.2 </span>Myelinated Axons</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch3.S4.html" title="3.4 Compartmental Models â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.4 </span>Compartmental Models</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch3.S5.html" title="3.5 Summary â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.5 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch3.S5.html#SSx1" title="Literature â£ 3.5 Summary â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch3.S5.html#SSx2" title="Exercises â£ 3.5 Summary â£ ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Dimensionality Reduction and Phase Plane Analysis</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch4.S1.html" title="4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.1 </span>Threshold effects</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch4.S1.html#SS1" title="4.1.1 Pulse Input â£ 4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.1.1 </span>Pulse Input</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S1.html#SS2" title="4.1.2 Step Current Input â£ 4.1 Threshold effects â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.1.2 </span>Step Current Input</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch4.S2.html" title="4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.2 </span>Reduction to two dimensions</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch4.S2.html#SS1" title="4.2.1 General approach â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.2.1 </span>General approach</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S2.html#SS2" title="4.2.2 Mathematical steps (*) â£ 4.2 Reduction to two dimensions â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.2.2 </span>Mathematical steps (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3 </span>Phase plane analysis</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch4.S3.html#SS1" title="4.3.1 Nullclines â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3.1 </span>Nullclines</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S3.html#SS2" title="4.3.2 Stability of Fixed Points â£ 4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3.2 </span>Stability of Fixed Points</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch4.S4.html" title="4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.4 </span>Type I and Type II neuron models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch4.S4.html#SS1" title="4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.4.1 </span>TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S4.html#SS2" title="4.4.2 TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.4.2 </span>TypeÂ II Models and Saddle-Node-off-Limit-Cycle Bifurcation</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S4.html#SS3" title="4.4.3 Type II Models and Hopf Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.4.3 </span>Type II Models and Hopf Bifurcation</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch4.S5.html" title="4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.5 </span>Threshold and excitability</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch4.S5.html#SS1" title="4.5.1 Type I models â£ 4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.5.1 </span>Type I models</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S5.html#SS2" title="4.5.2 Hopf Bifurcations â£ 4.5 Threshold and excitability â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.5.2 </span>Hopf Bifurcations</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch4.S6.html" title="4.6 Separation of time scales and reduction to one dimension â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.6 </span>Separation of time scales and reduction to one dimension</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch4.S7.html" title="4.7 Summary â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.7 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch4.S7.html#SSx1" title="Literature â£ 4.7 Summary â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch4.S7.html#SSx2" title="Exercises â£ 4.7 Summary â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a class="toc_part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a>
+<ul class="ltx_toclist ltx_toc_part">
+<li class="ltx_tocentry">
+<a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5 </span>Nonlinear Integrate-and-Fire Models</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1 </span>Thresholds in a nonlinear integrate-and-fire model</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch5.S1.html#SS1" title="5.1.1 Where is the firing threshold? â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1.1 </span>Where is the firing threshold?</span></a></li>
+<li class="ltx_tocentry"><a href="Ch5.S1.html#SS2" title="5.1.2 Detour: Analysis of One-Dimensional Differential Equations â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1.2 </span>Detour: Analysis of One-Dimensional Differential Equations</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Exponential Integrate-and-Fire Model</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch5.S2.html#SS1" title="5.2.1 Extracting the Nonlinearity from Data â£ 5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2.1 </span>Extracting the Nonlinearity from Data</span></a></li>
+<li class="ltx_tocentry"><a href="Ch5.S2.html#SS2" title="5.2.2 From Hodgkin-Huxley to Exponential Integrate-and-Fire â£ 5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2.2 </span>From Hodgkin-Huxley to Exponential Integrate-and-Fire</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch5.S3.html" title="5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3 </span>Quadratic Integrate and Fire</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch5.S3.html#SS1" title="5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3.1 </span>Canonical Type I model (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.4 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch5.S4.html#SSx1" title="Literature â£ 5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch5.S4.html#SSx2" title="Exercises â£ 5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6 </span>Adaptation and Firing Patterns</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch6.S1.html" title="6.1 Adaptive Exponential Integrate-and-Fire â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.1 </span>Adaptive Exponential Integrate-and-Fire</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch6.S2.html" title="6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2 </span>Firing Patterns</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch6.S2.html#SS1" title="6.2.1 Classification of Firing Patterns â£ 6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2.1 </span>Classification of Firing Patterns</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S2.html#SS2" title="6.2.2 Phase plane analysis
+of non-linear integrate-and-fire models in two dimensions â£ 6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2.2 </span>Phase plane analysis
+of non-linear integrate-and-fire models in two dimensions</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S2.html#SS3" title="6.2.3 Exploring the Space of Reset Parameters â£ 6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2.3 </span>Exploring the Space of Reset Parameters</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S2.html#SS4" title="6.2.4 Exploring the Space of Subthreshold Parameters â£ 6.2 Firing Patterns â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2.4 </span>Exploring the Space of Subthreshold Parameters</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch6.S3.html" title="6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.3 </span>Biophysical Origin of Adaptation</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch6.S3.html#SS1" title="6.3.1 Subthreshold adaptation by a single slow channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.3.1 </span>Subthreshold adaptation by a single slow channel</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S3.html#SS2" title="6.3.2 Spike-triggered adaptation arising from a biophysical ion-channel â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.3.2 </span>Spike-triggered adaptation arising from a biophysical ion-channel</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S3.html#SS3" title="6.3.3 Subthreshold adaptation caused by passive dendrites â£ 6.3 Biophysical Origin of Adaptation â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.3.3 </span>Subthreshold adaptation caused by passive dendrites</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch6.S4.html" title="6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4 </span>Spike response model (SRM)</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch6.S4.html#SS1" title="6.4.1 Definition of the SRM â£ 6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4.1 </span>Definition of the SRM</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S4.html#SS2" title="6.4.2 Interpretation of Î· and Îº â£ 6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4.2 </span>Interpretation of <math class="ltx_Math" alttext="\eta" display="inline"><semantics><mi>Î·</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math> and <math class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math></span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S4.html#SS3" title="6.4.3 Mapping the Integrate-and-Fire Model to the SRM â£ 6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4.3 </span>Mapping the Integrate-and-Fire Model to the SRM</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S4.html#SS4" title="6.4.4 Multi-compartment integrate-and-fire model as a SRM (*) â£ 6.4 Spike response model (SRM) â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4.4 </span>Multi-compartment integrate-and-fire model as a SRM (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch6.S5.html" title="6.5 Summary â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.5 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch6.S5.html#SSx1" title="Literature â£ 6.5 Summary â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch6.S5.html#SSx2" title="Exercises â£ 6.5 Summary â£ ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7 </span>Variability of Spike Trains and Neural Codes</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch7.S1.html" title="7.1 Spike train variability â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.1 </span>Spike train variability</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch7.S1.html#SS1" title="7.1.1 Are neurons noisy? â£ 7.1 Spike train variability â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.1.1 </span>Are neurons noisy?</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S1.html#SS2" title="7.1.2 Noise from the Network â£ 7.1 Spike train variability â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.1.2 </span>Noise from the Network</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch7.S2.html" title="7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.2 </span>Mean Firing Rate</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch7.S2.html#SS1" title="7.2.1 Rate as a Spike Count and Fano Factor â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.2.1 </span>Rate as a Spike Count and Fano Factor</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S2.html#SS2" title="7.2.2 Rate as a Spike Density and the Peri-Stimulus-Time Histogram â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.2.2 </span>Rate as a Spike Density and the Peri-Stimulus-Time Histogram</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S2.html#SS3" title="7.2.3 Rate as a Population Activity (Average over Several Neurons) â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.2.3 </span>Rate as a Population Activity (Average over Several Neurons)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch7.S3.html" title="7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.3 </span>Interval distribution and coefficient of variation</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch7.S3.html#SS1" title="7.3.1 Coefficient of variation CV â£ 7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.3.1 </span>Coefficient of variation <math class="ltx_Math" alttext="C_{V}" display="inline"><semantics><msub><mi>C</mi><mi>V</mi></msub><annotation encoding="application/x-tex">C_{V}</annotation></semantics></math></span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.4 </span>Autocorrelation function and noise spectrum</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch7.S5.html" title="7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5 </span>Renewal statistics</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch7.S5.html#SS1" title="7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5.1 </span>Survivor function and hazard</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S5.html#SS2" title="7.5.2 Renewal theory and experiments â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5.2 </span>Renewal theory and experiments</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S5.html#SS3" title="7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5.3 </span>Autocorrelation and noise spectrum of a renewal process (*)</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S5.html#SS4" title="7.5.4 Input dependent renewal theory (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5.4 </span>Input dependent renewal theory (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6 </span>The Problem of Neural Coding</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch7.S6.html#SS1" title="7.6.1 Limits of rate codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6.1 </span>Limits of rate codes</span></a></li>
+<li class="ltx_tocentry"><a href="Ch7.S6.html#SS2" title="7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6.2 </span>Candidate temporal codes</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch7.S7.html" title="7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.7 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch7.S7.html#SSx1" title="Literature â£ 7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8 </span>Noisy Input Models: Barrage of Spike Arrivals</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch8.S1.html" title="8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.1 </span>Noise input</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch8.S1.html#SS1" title="8.1.1 White noise â£ 8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.1.1 </span>White noise</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.S1.html#SS2" title="8.1.2 Noisy versus noiseless membrane potential â£ 8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.1.2 </span>Noisy versus noiseless membrane potential</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.S1.html#SS3" title="8.1.3 Colored Noise â£ 8.1 Noise input â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.1.3 </span>Colored Noise</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch8.S2.html" title="8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.2 </span>Stochastic spike arrival</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch8.S2.html#SS1" title="8.2.1 Membrane potential fluctuations
+caused by spike arrivals â£ 8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.2.1 </span>Membrane potential fluctuations
+caused by spike arrivals</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.S2.html#SS2" title="8.2.2 Balanced excitation and inhibition â£ 8.2 Stochastic spike arrival â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.2.2 </span>Balanced excitation and inhibition</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch8.S3.html" title="8.3 Subthreshold vs. Superthreshold regime â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.3 </span>Subthreshold vs. Superthreshold regime</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch8.S4.html" title="8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.4 </span>Diffusion limit and Fokker-Planck equation(*)</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch8.S4.html#SS1" title="8.4.1 Threshold and firing â£ 8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.4.1 </span>Threshold and firing</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.S4.html#SS2" title="8.4.2 Interval distribution for the diffusive noise model â£ 8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.4.2 </span>Interval distribution for the diffusive noise model</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.S4.html#SS3" title="8.4.3 Mean interval and mean firing rate (diffusive noise) â£ 8.4 Diffusion limit and Fokker-Planck equation(*) â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.4.3 </span>Mean interval and mean firing rate (diffusive noise)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch8.S5.html" title="8.5 Summary â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">8.5 </span>Summary</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.Sx1.html" title="Literature â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch8.Sx2.html" title="Exercises â£ ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9 </span>Noisy Output: Escape Rate and Soft Threshold</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch9.S1.html" title="9.1 Escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.1 </span>Escape noise</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch9.S1.html#SS1" title="9.1.1 Escape rate â£ 9.1 Escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.1.1 </span>Escape rate</span></a></li>
+<li class="ltx_tocentry"><a href="Ch9.S1.html#SS2" title="9.1.2 Transition from continuous time to discrete time â£ 9.1 Escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.1.2 </span>Transition from continuous time to discrete time</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch9.S2.html" title="9.2 Likelihood of a spike train â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.2 </span>Likelihood of a spike train</span></a></li>
+<li class="ltx_tocentry"><a href="Ch9.S3.html" title="9.3 Renewal Approximation of the Spike Response Model â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.3 </span>Renewal Approximation of the Spike Response Model</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch9.S4.html" title="9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.4 </span>From noisy inputs to escape noise</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch9.S4.html#SS1" title="9.4.1 Leaky integrate-and-fire model with noisy input â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.4.1 </span>Leaky integrate-and-fire model with noisy input</span></a></li>
+<li class="ltx_tocentry"><a href="Ch9.S4.html#SS2" title="9.4.2 Stochastic resonance â£ 9.4 From noisy inputs to escape noise â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.4.2 </span>Stochastic resonance</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch9.S5.html" title="9.5 Summary â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">9.5 </span>Summary</span></a></li>
+<li class="ltx_tocentry"><a href="Ch9.Sx1.html" title="Literature â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch9.Sx2.html" title="Exercises â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10 </span>Estimating Models</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1 </span>Parameter optimization in linear and nonlinear models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch10.S1.html#SS1" title="10.1.1 Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1.1 </span>Linear Models</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S1.html#SS2" title="10.1.2 Generalized Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1.2 </span>Generalized Linear Models</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch10.S2.html" title="10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.2 </span>Statistical Formulation of Encoding Models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch10.S2.html#SS1" title="10.2.1 Parameter estimation â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.2.1 </span>Parameter estimation</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S2.html#SS2" title="10.2.2 Regularization: maximum penalized likelihood â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.2.2 </span>Regularization: maximum penalized likelihood</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S2.html#SS3" title="10.2.3 Fitting Generalized Integrate-and-Fire models to Data â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.2.3 </span>Fitting Generalized Integrate-and-Fire models to Data</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S2.html#SS4" title="10.2.4 Extensions (*) â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.2.4 </span>Extensions (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3 </span>Evaluating Goodness-of-fit</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch10.S3.html#SS1" title="10.3.1 Comparing Spiking Membrane Potential Recordings â£ 10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3.1 </span>Comparing Spiking Membrane Potential Recordings</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S3.html#SS2" title="10.3.2 Spike Train Likelihood â£ 10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3.2 </span>Spike Train Likelihood</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S3.html#SS3" title="10.3.3 Time-rescaling Theorem â£ 10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3.3 </span>Time-rescaling Theorem</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S3.html#SS4" title="10.3.4 Spike Train Metric â£ 10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3.4 </span>Spike Train Metric</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S3.html#SS5" title="10.3.5 Comparing Sets of Spike Trains â£ 10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3.5 </span>Comparing Sets of Spike Trains</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch10.S4.html" title="10.4 Closed-loop stimulus design â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.4 </span>Closed-loop stimulus design</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch10.S5.html" title="10.5 Summary â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.5 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch10.S5.html#SSx1" title="Literature â£ 10.5 Summary â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch10.S5.html#SSx2" title="Exercises â£ 10.5 Summary â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11 </span>Encoding and Decoding with Stochastic Neuron models</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch11.S1.html" title="11.1 Encoding Models for Intracellular Recordings â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.1 </span>Encoding Models for Intracellular Recordings</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch11.S1.html#SS1" title="11.1.1 Predicting Membrane Potential â£ 11.1 Encoding Models for Intracellular Recordings â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.1.1 </span>Predicting Membrane Potential</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.S1.html#SS2" title="11.1.2 Predicting Spikes â£ 11.1 Encoding Models for Intracellular Recordings â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.1.2 </span>Predicting Spikes</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.S1.html#SS3" title="11.1.3 How good are generalized integrate-and-fire models? â£ 11.1 Encoding Models for Intracellular Recordings â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.1.3 </span>How good are generalized integrate-and-fire models?</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch11.S2.html" title="11.2 Encoding Models in Systems Neuroscience â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.2 </span>Encoding Models in Systems Neuroscience</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch11.S2.html#SS1" title="11.2.1 Receptive fields and Linear-Nonlinear Poisson Model â£ 11.2 Encoding Models in Systems Neuroscience â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.2.1 </span>Receptive fields and Linear-Nonlinear Poisson Model</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.S2.html#SS2" title="11.2.2 Multiple Neurons â£ 11.2 Encoding Models in Systems Neuroscience â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.2.2 </span>Multiple Neurons</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch11.S3.html" title="11.3 Decoding â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.3 </span>Decoding</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch11.S3.html#SS1" title="11.3.1 Maximum a posteriori decoding â£ 11.3 Decoding â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.3.1 </span>Maximum <em class="ltx_emph">a posteriori</em> decoding</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.S3.html#SS2" title="11.3.2 Assessing decoding uncertainty (*) â£ 11.3 Decoding â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.3.2 </span>Assessing decoding uncertainty (*)</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.S3.html#SS3" title="11.3.3 Decoding in vision and neuroprosthetics â£ 11.3 Decoding â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.3.3 </span>Decoding in vision and neuroprosthetics</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch11.S4.html" title="11.4 Summary â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">11.4 </span>Summary</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.Sx1.html" title="Literature â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch11.Sx2.html" title="Exercises â£ ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a class="toc_part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">III </span>Networks of Neurons and Population Activity</span></a>
+<ul class="ltx_toclist ltx_toc_part">
+<li class="ltx_tocentry">
+<a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12 </span>Neuronal Populations</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch12.S1.html" title="12.1 Columnar organization â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.1 </span>Columnar organization</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch12.S1.html#SS1" title="12.1.1 Receptive fields â£ 12.1 Columnar organization â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.1.1 </span>Receptive fields</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S1.html#SS2" title="12.1.2 How many populations? â£ 12.1 Columnar organization â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.1.2 </span>How many populations?</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S1.html#SS3" title="12.1.3 Distributed assemblies â£ 12.1 Columnar organization â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.1.3 </span>Distributed assemblies</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch12.S2.html" title="12.2 Identical Neurons: A Mathematical Abstraction â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.2 </span>Identical Neurons: A Mathematical Abstraction</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch12.S2.html#SS1" title="12.2.1 Homogeneous networks â£ 12.2 Identical Neurons: A Mathematical Abstraction â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.2.1 </span>Homogeneous networks</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S2.html#SS2" title="12.2.2 Heterogeneous networks â£ 12.2 Identical Neurons: A Mathematical Abstraction â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.2.2 </span>Heterogeneous networks</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch12.S3.html" title="12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3 </span>Connectivity Schemes</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS1" title="12.3.1 Full connectivity â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.1 </span>Full connectivity</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS2" title="12.3.2 Random coupling: Fixed coupling probability â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.2 </span>Random coupling: Fixed coupling probability</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS3" title="12.3.3 Random coupling: Fixed number of presynaptic partners â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.3 </span>Random coupling: Fixed number of presynaptic partners</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS4" title="12.3.4 Balanced excitation and inhibition â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.4 </span>Balanced excitation and inhibition</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS5" title="12.3.5 Interacting Populations â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.5 </span>Interacting Populations</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS6" title="12.3.6 Distance dependent connectivity â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.6 </span>Distance dependent connectivity</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S3.html#SS7" title="12.3.7 Spatial Continuum Limit (*) â£ 12.3 Connectivity Schemes â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.3.7 </span>Spatial Continuum Limit (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch12.S4.html" title="12.4 From Microscopic to Macroscopic â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.4 </span>From Microscopic to Macroscopic</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch12.S4.html#SS1" title="12.4.1 Stationary activity and asynchronous firing â£ 12.4 From Microscopic to Macroscopic â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.4.1 </span>Stationary activity and asynchronous firing</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S4.html#SS2" title="12.4.2 Stationary Activity as Single-Neuron Firing Rate â£ 12.4 From Microscopic to Macroscopic â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.4.2 </span>Stationary Activity as Single-Neuron Firing Rate</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S4.html#SS3" title="12.4.3 Activity of a fully connected network â£ 12.4 From Microscopic to Macroscopic â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.4.3 </span>Activity of a fully connected network</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S4.html#SS4" title="12.4.4 Activity of a randomly connected network â£ 12.4 From Microscopic to Macroscopic â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.4.4 </span>Activity of a randomly connected network</span></a></li>
+<li class="ltx_tocentry"><a href="Ch12.S4.html#SS5" title="12.4.5 Apparent stochasticity and chaos in a deterministic network â£ 12.4 From Microscopic to Macroscopic â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.4.5 </span>Apparent stochasticity and chaos in a deterministic network</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch12.S5.html" title="12.5 Summary â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">12.5 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch12.S5.html#SSx1" title="Literature â£ 12.5 Summary â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch12.Sx1.html" title="Exercises â£ ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13 </span>Continuity Equation and the Fokker-Planck Approach</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch13.S1.html" title="13.1 Continuity equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.1 </span>Continuity equation</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.S1.html#SS1" title="13.1.1 Distribution of membrane potentials â£ 13.1 Continuity equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.1.1 </span>Distribution of membrane potentials</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S1.html#SS2" title="13.1.2 Flux and continuity equation â£ 13.1 Continuity equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.1.2 </span>Flux and continuity equation</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch13.S2.html" title="13.2 Stochastic spike arrival â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.2 </span>Stochastic spike arrival</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.S2.html#SS1" title="13.2.1 Jumps of membrane potential due to stochastic spike arrival â£ 13.2 Stochastic spike arrival â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.2.1 </span>Jumps of membrane potential due to stochastic spike arrival</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S2.html#SS2" title="13.2.2 Drift of membrane potential â£ 13.2 Stochastic spike arrival â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.2.2 </span>Drift of membrane potential</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S2.html#SS3" title="13.2.3 Population activity â£ 13.2 Stochastic spike arrival â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.2.3 </span>Population activity</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S2.html#SS4" title="13.2.4 Single neuron versus population of neurons â£ 13.2 Stochastic spike arrival â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.2.4 </span>Single neuron versus population of neurons</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch13.S3.html" title="13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.3 </span>Fokker-Planck equation</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.S3.html#SS1" title="13.3.1 Stationary solution for leaky integrate-and-fire neurons(*) â£ 13.3 Fokker-Planck equation â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.3.1 </span>Stationary solution for leaky integrate-and-fire neurons(*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch13.S4.html" title="13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.4 </span>Networks of leaky integrate-and-fire neurons</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.S4.html#SS1" title="13.4.1 Multiple populations â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.4.1 </span>Multiple populations</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S4.html#SS2" title="13.4.2 Synchrony, oscillations, and irregularity â£ 13.4 Networks of leaky integrate-and-fire neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.4.2 </span>Synchrony, oscillations, and irregularity</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch13.S5.html" title="13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.5 </span>Networks of Nonlinear Integrate-and-Fire Neurons</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.S5.html#SS1" title="13.5.1 Steady state population activity â£ 13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.5.1 </span>Steady state population activity</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S5.html#SS2" title="13.5.2 Response to modulated input (*) â£ 13.5 Networks of Nonlinear Integrate-and-Fire Neurons â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.5.2 </span>Response to modulated input (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch13.S6.html" title="13.6 Neuronal adaptation and synaptic conductance â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.6 </span>Neuronal adaptation and synaptic conductance</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.S6.html#SS1" title="13.6.1 Adaptation currents â£ 13.6 Neuronal adaptation and synaptic conductance â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.6.1 </span>Adaptation currents</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S6.html#SS2" title="13.6.2 Embedding in a network â£ 13.6 Neuronal adaptation and synaptic conductance â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.6.2 </span>Embedding in a network</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S6.html#SS3" title="13.6.3 Conductance input vs. current input â£ 13.6 Neuronal adaptation and synaptic conductance â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.6.3 </span>Conductance input vs. current input</span></a></li>
+<li class="ltx_tocentry"><a href="Ch13.S6.html#SS4" title="13.6.4 Colored Noise (*) â£ 13.6 Neuronal adaptation and synaptic conductance â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.6.4 </span>Colored Noise (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch13.S7.html" title="13.7 Summary â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">13.7 </span>Summary</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch13.Sx1.html" title="Literature â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch13.Sx1.html#SSx1" title="Exercises â£ Literature â£ ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14 </span>The Integral-equation Approach</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch14.S1.html" title="14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.1 </span>Population activity equations</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch14.S1.html#SS1" title="14.1.1 Assumptions of time-dependent renewal theory â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.1.1 </span>Assumptions of time-dependent renewal theory</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S1.html#SS2" title="14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.1.2 </span>Integral equations
+for non-adaptive neurons</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S1.html#SS3" title="14.1.3 Normalization and derivation of the integral equation â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.1.3 </span>Normalization and derivation of the integral equation</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S1.html#SS4" title="14.1.4 Integral equation for adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.1.4 </span>Integral equation for adaptive neurons</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S1.html#SS5" title="14.1.5 Numerical methods for integral equations (*) â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.1.5 </span>Numerical methods for integral equations (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch14.S2.html" title="14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.2 </span>Recurrent Networks and Interacting Populations</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch14.S2.html#SS1" title="14.2.1 Several populations and networks with self-interaction â£ 14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.2.1 </span>Several populations and networks with self-interaction</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S2.html#SS2" title="14.2.2 Stationary states and fixed points of activity â£ 14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.2.2 </span>Stationary states and fixed points of activity</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S2.html#SS3" title="14.2.3 Oscillations and stability of the stationary state (*) â£ 14.2 Recurrent Networks and Interacting Populations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.2.3 </span>Oscillations and stability of the stationary state (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.3 </span>Linear response to time-dependent input</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch14.S3.html#SS1" title="14.3.1 Derivation of the linear response filter (*) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.3.1 </span>Derivation of the linear response filter (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch14.S4.html" title="14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.4 </span>Density equations vs. integral equations</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch14.S4.html#SS1" title="14.4.1 Refractory densities â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.4.1 </span>Refractory densities</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S4.html#SS2" title="14.4.2 From refractory densities to the integral equation (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.4.2 </span>From refractory densities to the integral equation (*)</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S4.html#SS3" title="14.4.3 From refractory densities to membrane potential densities (*) â£ 14.4 Density equations vs. integral equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.4.3 </span>From refractory densities to membrane potential densities (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5 </span>Adaptation in Population Equations</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch14.S5.html#SS1" title="14.5.1 Quasi-Renewal Theory (*) â£ 14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5.1 </span>Quasi-Renewal Theory (*)</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.S5.html#SS2" title="14.5.2 Event-based Moment Expansion (*) â£ 14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.5.2 </span>Event-based Moment Expansion (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch14.S6.html" title="14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.6 </span>Heterogeneity and Finite Size</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch14.S6.html#SSx1" title="Finite number of neurons (*) â£ 14.6 Heterogeneity and Finite Size â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Finite number of neurons (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch14.S7.html" title="14.7 Summary â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">14.7 </span>Summary</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.Sx1.html" title="Literature â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch14.Sx2.html" title="Exercises â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15 </span>Fast Transients and Rate Models</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.1 </span>How fast are population responses?</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2 </span>Fast transients vs. slow transients in models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch15.S2.html#SS1" title="15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2.1 </span>Fast transients for low noise or âslowâ noise</span></a></li>
+<li class="ltx_tocentry"><a href="Ch15.S2.html#SS2" title="15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2.2 </span>Populations of neurons with escape noise</span></a></li>
+<li class="ltx_tocentry"><a href="Ch15.S2.html#SS3" title="15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2.3 </span>Populations of neurons with diffusive noise</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3 </span>Rate models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch15.S3.html#SS1" title="15.3.1 Rate models have slow transients â£ 15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3.1 </span>Rate models have slow transients</span></a></li>
+<li class="ltx_tocentry"><a href="Ch15.S3.html#SS2" title="15.3.2 Networks of rate models â£ 15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3.2 </span>Networks of rate models</span></a></li>
+<li class="ltx_tocentry"><a href="Ch15.S3.html#SS3" title="15.3.3 Linear-Nonlinear-Poisson and improved transients â£ 15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3.3 </span>Linear-Nonlinear-Poisson and improved transients</span></a></li>
+<li class="ltx_tocentry"><a href="Ch15.S3.html#SS4" title="15.3.4 Adaptation â£ 15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3.4 </span>Adaptation</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch15.S4.html" title="15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.4 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch15.S4.html#SSx1" title="Literature â£ 15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch15.S4.html#SSx2" title="Exercises â£ 15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a class="toc_part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">IV </span>Dynamics of Cognition</span></a>
+<ul class="ltx_toclist ltx_toc_part">
+<li class="ltx_tocentry">
+<a href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16 </span>Competing Populations and Decision Making</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch16.S1.html" title="16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.1 </span>Perceptual Decision Making</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch16.S1.html#SS1" title="16.1.1 Perception of motion â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.1.1 </span>Perception of motion</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S1.html#SS2" title="16.1.2 Where is the decision taken? â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.1.2 </span>Where is the decision taken?</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch16.S2.html" title="16.2 Competition through common inhibition â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.2 </span>Competition through common inhibition</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch16.S3.html" title="16.3 Dynamics of decision making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.3 </span>Dynamics of decision making</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch16.S3.html#SS1" title="16.3.1 Model with three populations â£ 16.3 Dynamics of decision making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.3.1 </span>Model with three populations</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S3.html#SS2" title="16.3.2 Effective inhibition â£ 16.3 Dynamics of decision making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.3.2 </span>Effective inhibition</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S3.html#SS3" title="16.3.3 Phase plane analysis â£ 16.3 Dynamics of decision making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.3.3 </span>Phase plane analysis</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S3.html#SS4" title="16.3.4 Formal winner-take-all networks â£ 16.3 Dynamics of decision making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.3.4 </span>Formal winner-take-all networks</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch16.S4.html" title="16.4 Alternative Decision Models â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.4 </span>Alternative Decision Models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch16.S4.html#SS1" title="16.4.1 The energy picture â£ 16.4 Alternative Decision Models â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.4.1 </span>The energy picture</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S4.html#SS2" title="16.4.2 Drift-Diffusion Model â£ 16.4 Alternative Decision Models â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.4.2 </span>Drift-Diffusion Model</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch16.S5.html" title="16.5 Human Decisions, Determinism, and Free Will â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.5 </span>Human Decisions, Determinism, and Free Will</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch16.S5.html#SS1" title="16.5.1 The Libet experiment â£ 16.5 Human Decisions, Determinism, and Free Will â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.5.1 </span>The Libet experiment</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S5.html#SS2" title="16.5.2 Relevant and irrelevant decisions - a critique â£ 16.5 Human Decisions, Determinism, and Free Will â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.5.2 </span>Relevant and irrelevant decisions - a critique</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch16.S6.html" title="16.6 Summary â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.6 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch16.S6.html#SSx1" title="Literature â£ 16.6 Summary â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch16.S6.html#SSx2" title="Exercises â£ 16.6 Summary â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17 </span>Memory and Attractor Dynamics</span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch17.S1.html" title="17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.1 </span>Associations and memory</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch17.S1.html#SS1" title="17.1.1 Recall, recognition, and partial information â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.1.1 </span>Recall, recognition, and partial information</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S1.html#SS2" title="17.1.2 Neuronal assemblies â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.1.2 </span>Neuronal assemblies</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S1.html#SS3" title="17.1.3 Working memory and delayed matching-to-sample tasks â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.1.3 </span>Working memory and delayed matching-to-sample tasks</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2 </span>Hopfield Model</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch17.S2.html#SS1" title="17.2.1 Detour: Magnetic analogy â£ 17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2.1 </span>Detour: Magnetic analogy</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S2.html#SS2" title="17.2.2 Patterns in the Hopfield model â£ 17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2.2 </span>Patterns in the Hopfield model</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S2.html#SS3" title="17.2.3 Pattern retrieval â£ 17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2.3 </span>Pattern retrieval</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S2.html#SS4" title="17.2.4 Memory capacity â£ 17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2.4 </span>Memory capacity</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S2.html#SS5" title="17.2.5 The energy picture â£ 17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2.5 </span>The energy picture</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S2.html#SS6" title="17.2.6 Retrieval of low-activity patterns â£ 17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2.6 </span>Retrieval of low-activity patterns</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch17.S3.html" title="17.3 Memory networks with spiking neurons â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.3 </span>Memory networks with spiking neurons</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch17.S3.html#SS1" title="17.3.1 Activity of spiking networks â£ 17.3 Memory networks with spiking neurons â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.3.1 </span>Activity of spiking networks</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S3.html#SS2" title="17.3.2 Excitatory and inhibitory neurons â£ 17.3 Memory networks with spiking neurons â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.3.2 </span>Excitatory and inhibitory neurons</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch17.S4.html" title="17.4 Summary â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.4 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch17.S4.html#SSx1" title="Literature â£ 17.4 Summary â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch17.S4.html#SSx2" title="Exercises â£ 17.4 Summary â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">
+          <span class="ltx_text">18</span>
+         </span>
+        <span class="ltx_text">Cortical Field Models for Perception</span></span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch18.S1.html" title="18.1 Spatial continuum model â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.1 </span>Spatial continuum model</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch18.S1.html#SS1" title="18.1.1 Mexican-hat coupling â£ 18.1 Spatial continuum model â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.1.1 </span>Mexican-hat coupling</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch18.S2.html" title="18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2 </span>Input-driven regime and sensory cortex models</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch18.S2.html#SS1" title="18.2.1 Homogeneous solutions â£ 18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2.1 </span>Homogeneous solutions</span></a></li>
+<li class="ltx_tocentry"><a href="Ch18.S2.html#SS2" title="18.2.2 Stability of homogeneous states (*) â£ 18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2.2 </span>Stability of homogeneous states (*)</span></a></li>
+<li class="ltx_tocentry"><a href="Ch18.S2.html#SS3" title="18.2.3 Contrast enhancement â£ 18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2.3 </span>Contrast enhancement</span></a></li>
+<li class="ltx_tocentry"><a href="Ch18.S2.html#SS4" title="18.2.4 Inhibition, surround suppression, and cortex models â£ 18.2 Input-driven regime and sensory cortex models â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.2.4 </span>Inhibition, surround suppression, and cortex models</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch18.S3.html" title="18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.3 </span>Bump attractors and spontaneous pattern formation</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch18.S3.html#SS1" title="18.3.1 âBlobsâ of activity: inhomogeneous states â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.3.1 </span>âBlobsâ of activity: inhomogeneous states</span></a></li>
+<li class="ltx_tocentry"><a href="Ch18.S3.html#SS2" title="18.3.2 Sense of Orientation and Head Direction Cells â£ 18.3 Bump attractors and spontaneous pattern formation â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.3.2 </span>Sense of Orientation and Head Direction Cells</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch18.S4.html" title="18.4 Summary â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">18.4 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch18.S4.html#SSx1" title="Exercises â£ 18.4 Summary â£ ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">
+          <span class="ltx_text">19</span>
+         </span>
+        <span class="ltx_text">Synaptic Plasticity and Learning</span></span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch19.S1.html" title="19.1 Hebb rule and experiments â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.1 </span>Hebb rule and experiments</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch19.S1.html#SS1" title="19.1.1 Long-Term Potentiation â£ 19.1 Hebb rule and experiments â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.1.1 </span>Long-Term Potentiation</span></a></li>
+<li class="ltx_tocentry"><a href="Ch19.S1.html#SS2" title="19.1.2 Spike-timing-dependent plasticity â£ 19.1 Hebb rule and experiments â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.1.2 </span>Spike-timing-dependent plasticity</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch19.S2.html" title="19.2 Models of Hebbian learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.2 </span>Models of Hebbian learning</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch19.S2.html#SS1" title="19.2.1 A Mathematical Formulation of Hebbâs Rule â£ 19.2 Models of Hebbian learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.2.1 </span>A Mathematical Formulation of Hebbâs Rule</span></a></li>
+<li class="ltx_tocentry"><a href="Ch19.S2.html#SS2" title="19.2.2 Pair-based Models of STDP â£ 19.2 Models of Hebbian learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.2.2 </span>Pair-based Models of STDP</span></a></li>
+<li class="ltx_tocentry"><a href="Ch19.S2.html#SS3" title="19.2.3 Generalized STDP models â£ 19.2 Models of Hebbian learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.2.3 </span>Generalized STDP models</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch19.S3.html" title="19.3 Unsupervised learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.3 </span>Unsupervised learning</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch19.S3.html#SS1" title="19.3.1 Competitive learning â£ 19.3 Unsupervised learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.3.1 </span>Competitive learning</span></a></li>
+<li class="ltx_tocentry"><a href="Ch19.S3.html#SS2" title="19.3.2 Learning equations for rate models â£ 19.3 Unsupervised learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.3.2 </span>Learning equations for rate models</span></a></li>
+<li class="ltx_tocentry"><a href="Ch19.S3.html#SS3" title="19.3.3 Learning equations for STDP models (*) â£ 19.3 Unsupervised learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.3.3 </span>Learning equations for STDP models (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch19.S4.html" title="19.4 Reward-based learning â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.4 </span>Reward-based learning</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch19.S5.html" title="19.5 Summary â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">19.5 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch19.S5.html#SSx1" title="Literature â£ 19.5 Summary â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+<li class="ltx_tocentry"><a href="Ch19.S5.html#SSx2" title="Exercises â£ 19.5 Summary â£ ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Exercises</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">
+          <span class="ltx_text">20</span>
+         </span>
+        <span class="ltx_text">Outlook: Dynamics in Plastic Networks</span></span></a>
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry">
+<a href="Ch20.S1.html" title="20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.1 </span>Reservoir computing</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch20.S1.html#SS1" title="20.1.1 Rich dynamics â£ 20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.1.1 </span>Rich dynamics</span></a></li>
+<li class="ltx_tocentry"><a href="Ch20.S1.html#SS2" title="20.1.2 Network analysis (*) â£ 20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.1.2 </span>Network analysis (*)</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry">
+<a href="Ch20.S2.html" title="20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2 </span>Oscillations: good or bad?</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch20.S2.html#SS1" title="20.2.1 Synchronous Oscillations and Locking â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2.1 </span>Synchronous Oscillations and Locking</span></a></li>
+<li class="ltx_tocentry"><a href="Ch20.S2.html#SS2" title="20.2.2 Oscillations with irregular firing â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2.2 </span>Oscillations with irregular firing</span></a></li>
+<li class="ltx_tocentry"><a href="Ch20.S2.html#SS3" title="20.2.3 Phase Models â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2.3 </span>Phase Models</span></a></li>
+<li class="ltx_tocentry"><a href="Ch20.S2.html#SS4" title="20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2.4 </span>Synaptic plasticity and oscillations</span></a></li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="Ch20.S3.html" title="20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.3 </span>Helping Patients</span></a></li>
+<li class="ltx_tocentry">
+<a href="Ch20.S4.html" title="20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.4 </span>Summary</span></a>
+<ul class="ltx_toclist ltx_toc_section">
+<li class="ltx_tocentry"><a href="Ch20.S4.html#SSx1" title="Literature â£ 20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Literature</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="ltx_tocentry"><a href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Bibliography</span></a></li>
+<li class="ltx_tocentry"><a href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">Index</span></a></li>
+<li class="ltx_tocentry"><a href="errata.html" title="First Edition Errata â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title">First Edition Errata</span></a></li>
+</ul>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">I </span>Foundations of Neuronal Dynamics</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 10:27:00 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

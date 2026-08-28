@@ -1,0 +1,517 @@
+<!DOCTYPE html><html>
+<head>
+<title>5.1 Thresholds in a nonlinear integrate-and-fire model | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S3.html" title="5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="current, integrate-and-fire model, nonlinear, nonlinear IF, rheobase, threshold">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5 </span>Nonlinear Integrate-and-Fire Models</span></a><a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5 </span>Nonlinear Integrate-and-Fire Models</span></a><a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Exponential Integrate-and-Fire Model</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5.1 </span>Thresholds in a nonlinear integrate-and-fire model</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">In a general <span class="ltx_text ltx_font_italic">nonlinear</span> integrate-and-fire model
+with a single variable <math id="p1.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>,
+the membrane potential evolves according to</p>
+<table id="Ch5.E2" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E2.m1" class="ltx_Math" alttext="\tau{{\text{d}}\over{\text{d}}t}u=f(u)+R(u)\,I\,." display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>u</mi></mrow><mo>=</mo><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>R</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\tau{{\text{d}}\over{\text{d}}t}u=f(u)+R(u)\,I\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.2)</span></td>
+</tr>
+</table>
+<p class="ltx_p">As mentioned above, the dynamics is stopped if <math id="p1.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> reaches the
+threshold <math id="p1.m3" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>. In this case the firing time
+<math id="p1.m4" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> is noted and
+integration of the membrane potential equation
+restarts at time <math id="p1.m5" class="ltx_Math" alttext="t^{(f)}+\Delta^{\rm abs}" display="inline"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>+</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><annotation encoding="application/x-tex">t^{(f)}+\Delta^{\rm abs}</annotation></semantics></math> with initial
+condition <math id="p1.m6" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math>.
+A typical example of the function
+<math id="p1.m7" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math> in Eq.Â (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+is shown in Fig.Â <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>.
+If not specified otherwise, we always assume in the following a constant input resistance
+<math id="p1.m8" class="ltx_Math" alttext="R(u)=R" display="inline"><semantics><mrow><mrow><mi>R</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mi>R</mi></mrow><annotation encoding="application/x-tex">R(u)=R</annotation></semantics></math> independent of voltage.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">A comparison of Eq.Â (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+with the equation of the standard leaky integrate-and-fire
+model</p>
+<table id="Ch5.E3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E3.m1" class="ltx_Math" alttext="\tau{{\text{d}}\over{\text{d}}t}u=-(u-u_{\rm rest})+R\,I\,;" display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>u</mi></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow></mrow></mrow><mo>;</mo></mrow><annotation encoding="application/x-tex">\tau{{\text{d}}\over{\text{d}}t}u=-(u-u_{\rm rest})+R\,I\,;</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.3)</span></td>
+</tr>
+</table>
+<p class="ltx_p">which we have encountered in ChapterÂ <a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>,
+shows that the nonlinear function <math id="p2.m1" class="ltx_Math" alttext="R(u)" display="inline"><semantics><mrow><mi>R</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">R(u)</annotation></semantics></math> can be interpreted as a
+voltage-dependent input resistance while <math id="p2.m2" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math>
+replaces the leak term <math id="p2.m3" class="ltx_Math" alttext="-(u-u_{\rm rest})" display="inline"><semantics><mrow><mo>-</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">-(u-u_{\rm rest})</annotation></semantics></math>.
+Some well known examples of nonlinear integrate-and-fire models
+include the exponential integrate-and-fire model
+(Section <a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>) and
+the quadratic integrate-and-fire model
+(Section <a href="Ch5.S3.html" title="5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.3</span></a>).
+Before we turn to these specific models, we
+discuss now some general aspects of
+nonlinear integrate-and-fire models.</p>
+</div>
+<figure id="Ch5.F1" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x134.png" id="Ch5.F1.g1" class="ltx_graphics" width="293" height="229" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x135.png" id="Ch5.F1.g2" class="ltx_graphics" width="293" height="229" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 5.1: </span>Thresholds in a nonlinear integrate-and-fire model.
+The change <math id="Ch5.F1.m15" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> of the voltage is plotted as a function <math id="Ch5.F1.m16" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math> of the voltage <math id="Ch5.F1.m17" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>.
+<span class="ltx_text ltx_font_bold">A</span>
+In the absence of stimulation <math id="Ch5.F1.m18" class="ltx_Math" alttext="I_{0}=0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{0}=0</annotation></semantics></math>,
+the zero-crossings <math id="Ch5.F1.m19" class="ltx_Math" alttext="du/dt=0" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">du/dt=0</annotation></semantics></math> define the
+resting potential <math id="Ch5.F1.m20" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math> and the firing threshold
+<math id="Ch5.F1.m21" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>
+of the nonlinear integrate-and-fire model.
+A positive change in the membrane
+potential <math id="Ch5.F1.m22" class="ltx_Math" alttext="du/dt=f(u)&gt;0" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">du/dt=f(u)&gt;0</annotation></semantics></math> implies that the voltage
+increases (flow arrow to the right),
+while <math id="Ch5.F1.m23" class="ltx_Math" alttext="du/dt&lt;0" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">du/dt&lt;0</annotation></semantics></math> implies a decay of the voltage.
+The pattern of arrows indicates
+a stable fixed point at rest,
+but an unstable fixed point at <math id="Ch5.F1.m24" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>.
+Whenever the voltage reaches the
+value <math id="Ch5.F1.m25" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math> the voltage is reset
+to a lower value.
+<span class="ltx_text ltx_font_bold">B</span>.
+For a constant positive input <math id="Ch5.F1.m26" class="ltx_Math" alttext="I_{0}&gt;0" display="inline"><semantics><mrow><msub><mi>I</mi><mn>0</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I_{0}&gt;0</annotation></semantics></math>,
+the curve of <math id="Ch5.F1.m27" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> is shifted vertically upward.
+The rheobase threshold
+<math id="Ch5.F1.m28" class="ltx_Math" alttext="\vartheta_{rh}" display="inline"><semantics><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub><annotation encoding="application/x-tex">\vartheta_{rh}</annotation></semantics></math> indicates the maximal
+voltage that can be reached
+with constant current injection before
+the neuron starts repetitive firing.
+
+</figcaption>
+</figure>
+<div id="p3" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Rescaling and standard forms (*)</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">It is always possible to rescale the variables
+in Eq.Â (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+so that
+threshold and membrane time constant are equal to unity and that the resting
+potential vanishes. Furthermore, there is no need to interpret the variable
+<math id="p3.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi mathsize="normal" stretchy="false">u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> as the membrane potential. For example, starting from the
+nonlinear integrate-and-fire model Eq.Â (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>), we can introduce
+a new variable <math id="p3.m2" class="ltx_Math" alttext="\tilde{u}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">~</mo></mover><annotation encoding="application/x-tex">\tilde{u}</annotation></semantics></math> by the transformation</span>
+            </p>
+<table id="Ch5.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E4.m1" class="ltx_Math" alttext="u(t)\longrightarrow\tilde{u}(t)=\tau\,\int_{0}^{u(t)}{{\text{d}}x\over R(x)}" display="block"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â¶</mo><mrow><mover accent="true"><mi>u</mi><mo stretchy="false">~</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></msubsup><mfrac><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mi>x</mi></mrow><mrow><mi>R</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t)\longrightarrow\tilde{u}(t)=\tau\,\int_{0}^{u(t)}{{\text{d}}x\over R(x)}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">which is possible if <math id="p3.m3" class="ltx_Math" alttext="R(x)\neq 0" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">â </mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">R(x)\neq 0</annotation></semantics></math> for all <math id="p3.m4" class="ltx_Math" alttext="x" display="inline"><semantics><mi mathsize="normal" stretchy="false">x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> in the integration range. In
+terms of <math id="p3.m5" class="ltx_Math" alttext="\tilde{u}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">~</mo></mover><annotation encoding="application/x-tex">\tilde{u}</annotation></semantics></math> we have a new nonlinear integrate-and-fire model of the
+form</span>
+            </p>
+<table id="Ch5.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E5.m1" class="ltx_Math" alttext="{{\text{d}}\tilde{u}\over{\text{d}}t}=d(\tilde{u})+I(t)" display="block"><semantics><mrow><mfrac><mrow><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                        Â </mtext></mrow><mo>â¢</mo><mover accent="true"><mi>u</mi><mo stretchy="false">~</mo></mover></mrow><mrow><mrow><mtext>Â                          Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                        Â </mtext></mrow><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mrow><mi>d</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>u</mi><mo stretchy="false">~</mo></mover><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{{\text{d}}\tilde{u}\over{\text{d}}t}=d(\tilde{u})+I(t)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">with <math id="p3.m6" class="ltx_Math" alttext="d(\tilde{u})=f(u)/R(u)" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">d</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mover accent="true"><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">~</mo></mover><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mrow><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">R</mi></mrow><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">d(\tilde{u})=f(u)/R(u)</annotation></semantics></math>. In other words, a general
+integrate-and-fire model (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>) can always be reduced to the
+standard form (<a href="#Ch5.E5" title="(5.5) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.5</span></a>). By a completely analogous transformation,
+we could eliminate the voltage-dependence of the
+function <math id="p3.m7" class="ltx_Math" alttext="f" display="inline"><semantics><mi mathsize="normal" stretchy="false">f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> in Eq.Â (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>) and move all
+the dependence into a new voltage dependent <math id="p3.m8" class="ltx_Math" alttext="R(u)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">R</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(u)</annotation></semantics></math>
+<cite class="ltx_cite">(<a href="bib.html#bib86" title="Asynchronous states in a network of pulse-coupled oscillators" class="ltx_ref">4</a>)</cite>.</span>
+            </p>
+</span>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1.1 </span>Where is the firing threshold?</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">In the standard leaky integrate-and-model,
+the linear equation Eq. (<a href="#Ch5.E3" title="(5.3) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.3</span></a>)
+is combined with a numerical threshold
+<math id="SS1.p1.m1" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>.
+We may interpret
+<math id="SS1.p1.m2" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math> as the firing threshold in the sense
+of the minimal voltage necessary
+to cause a spike,
+whatever stimulus we choose. In other words,
+if the voltage is currently marginally below <math id="SS1.p1.m3" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>
+and
+no further stimulus is applied, the neuron inevitably
+returns to rest. If the voltage reaches <math id="SS1.p1.m4" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>, the neuron fires.
+For nonlinear integrate-and-fire models,
+such a clear-cut picture of a firing threshold no longer holds.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">The typical shape of a function <math id="SS1.p2.m1" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math>
+used in the nonlinear
+integrate-and-fire model defined in
+Eq. (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+is sketched in Fig.Â <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>.
+Around the resting potential,
+the function <math id="SS1.p2.m2" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> is
+linear and proportional to <math id="SS1.p2.m3" class="ltx_Math" alttext="(u-u_{\rm rest})" display="inline"><semantics><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(u-u_{\rm rest})</annotation></semantics></math>.
+But in contrast to the leaky integrate-and-fire model
+of Eq.Â (<a href="#Ch5.E3" title="(5.3) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.3</span></a>) where the voltage dependence is linear
+everywhere, the function <math id="SS1.p2.m4" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math> of the nonlinear model turns
+at some point sharply upwards.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">If the non-linear integrate-and-fire model
+is stimulated with currents of various shapes,
+we can identify, from the simulation of the model,
+the threshold for spike generation.
+We search for the maximal voltage which can be reached
+before the model fires a spike.
+Figure <a href="#Ch5.F2" title="Fig.Â 5.2 â£ 5.1.1 Where is the firing threshold? â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>
+shows that the voltage threshold
+<math id="SS1.p3.m1" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> determined with pulse-like input currents
+is different from the voltage threshold
+determined with prolonged step currents.</p>
+</div>
+<figure id="Ch5.F2" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x136.png" id="Ch5.F2.g1" class="ltx_graphics" width="589" height="193" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"><img src="x137.png" id="Ch5.F2.g2" class="ltx_graphics" width="589" height="119" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 5.2: </span>Stimulation of a nonlinear integrate-and-fire model
+with pulses and step currents. Voltage as a function of time
+(top) in response to the currents indicated at the bottom.
+The firing threshold <math id="Ch5.F2.m3" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> found with pulse
+stimuli and the
+threshold <math id="Ch5.F2.m4" class="ltx_Math" alttext="\vartheta_{rh}" display="inline"><semantics><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub><annotation encoding="application/x-tex">\vartheta_{rh}</annotation></semantics></math>
+for repetitive firing under prolonged current injection
+are indicated by the dashed horizontal lines.
+</figcaption>
+</figure>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">For an explanation, we return to
+Fig.Â <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>A
+which shows
+<math id="SS1.p4.m1" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> as a function of <math id="SS1.p4.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>.
+There are two zero-crossings
+<math id="SS1.p4.m3" class="ltx_Math" alttext="du/dt=f(u)=0" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">du/dt=f(u)=0</annotation></semantics></math> which we denote as
+<math id="SS1.p4.m4" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>
+and <math id="SS1.p4.m5" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>,
+respectively.
+The first one, <math id="SS1.p4.m6" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>,
+is a stable fixed point of the dynamics,
+whereas <math id="SS1.p4.m7" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> is an unstable one.</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">A short current pulse
+<math id="SS1.p5.m1" class="ltx_Math" alttext="I(t)=q\,\delta(t-t_{0})" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>q</mi></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)=q\,\delta(t-t_{0})</annotation></semantics></math>
+injected into Eq. (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+delivers at time <math id="SS1.p5.m2" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> a total charge <math id="SS1.p5.m3" class="ltx_Math" alttext="q" display="inline"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+and causes a voltage step
+of size <math id="SS1.p5.m4" class="ltx_Math" alttext="\Delta u=R\,q/\tau" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>q</mi></mrow><mo>/</mo><mi>Ï</mi></mrow></mrow><annotation encoding="application/x-tex">\Delta u=R\,q/\tau</annotation></semantics></math>
+(see Section <a href="Ch1.S3.html#SS2" title="1.3.2 Pulse Input â£ 1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.3.2</span></a>
+in ChapterÂ <a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>).
+The new voltage <math id="SS1.p5.m5" class="ltx_Math" alttext="u=u_{\rm rest}+\Delta u" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">u=u_{\rm rest}+\Delta u</annotation></semantics></math>
+serves as initial condition
+for the integration of the differential equation
+<span class="ltx_text ltx_font_italic">after</span> the input pulse.
+For <math id="SS1.p5.m6" class="ltx_Math" alttext="u&lt;\vartheta" display="inline"><semantics><mrow><mi>u</mi><mo>&lt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u&lt;\vartheta</annotation></semantics></math> the membrane potential
+returns to the resting potential,
+while for <math id="SS1.p5.m7" class="ltx_Math" alttext="u&gt;\vartheta" display="inline"><semantics><mrow><mi>u</mi><mo>&gt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">u&gt;\vartheta</annotation></semantics></math> the membrane
+potential increases further,
+until the increase is stopped
+at the numerical threshold
+<math id="SS1.p5.m8" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>.
+Thus the unstable fixed
+point <math id="SS1.p5.m9" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> serves
+as a voltage threshold,
+if the neuron model is stimulated
+by a short current pulse.</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">Under the application of a constant
+current, the picture is different
+(Fig.Â <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>B).
+Since we plot
+<math id="SS1.p6.m1" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> along the vertical axis,
+a constant current <math id="SS1.p6.m2" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>
+shifts the curve of <math id="SS1.p6.m3" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> shown in Fig.Â <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>A
+vertically upward to a new value <math id="SS1.p6.m4" class="ltx_Math" alttext="f(u)+R\,I_{0}" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><msub><mi>I</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">f(u)+R\,I_{0}</annotation></semantics></math>;
+see Eq. (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>).
+If the current is sufficiently large,
+both fixed points disappear
+so that <math id="SS1.p6.m5" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> is always positive.
+As a result, the voltage increases
+until it hits the numerical threshold <math id="SS1.p6.m6" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>,
+at which point it is reset and
+the same picture repeats.
+In other words, the neuron model
+has entered the regime of repetitive firing.</p>
+</div>
+<div id="SS1.p7" class="ltx_para">
+<p class="ltx_p">The critical current for initiation of repetitive firing
+corresponds to the voltage where
+the stable fixed point disappears,
+or <math id="SS1.p7.m1" class="ltx_Math" alttext="\vartheta_{rh}=I_{c}\,R" display="inline"><semantics><mrow><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>I</mi><mi>c</mi></msub></mpadded><mo>â¢</mo><mi>R</mi></mrow></mrow><annotation encoding="application/x-tex">\vartheta_{rh}=I_{c}\,R</annotation></semantics></math>.
+In the experimental literature, the critical current
+<math id="SS1.p7.m2" class="ltx_Math" alttext="I_{c}=\vartheta_{rh}/R" display="inline"><semantics><mrow><msub><mi>I</mi><mi>c</mi></msub><mo>=</mo><mrow><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub><mo>/</mo><mi>R</mi></mrow></mrow><annotation encoding="application/x-tex">I_{c}=\vartheta_{rh}/R</annotation></semantics></math> is
+called the ârheobaseâ current. 
+In the mathematical literature, it is called
+the bifurcation point.
+Note that a stationary voltage <math id="SS1.p7.m3" class="ltx_Math" alttext="u&gt;\vartheta_{rh}" display="inline"><semantics><mrow><mi>u</mi><mo>&gt;</mo><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u&gt;\vartheta_{rh}</annotation></semantics></math> is
+not possible. On the other hand,
+for pulse inputs or time-dependent currents, voltage transients
+into the regime
+<math id="SS1.p7.m4" class="ltx_Math" alttext="\vartheta_{rh}&lt;u(t)&lt;\vartheta" display="inline"><semantics><mrow><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub><mo>&lt;</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>&lt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">\vartheta_{rh}&lt;u(t)&lt;\vartheta</annotation></semantics></math>
+routinely
+occur without initiating a spike.</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1.2 </span>Detour: Analysis of One-Dimensional Differential Equations</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">For those readers who are not familiar with
+figures such as
+Fig. <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>,
+we add a few mathematical details.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">The momentary state of one-dimensional differential equations
+such as
+Eq. (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>)
+is completely described by a single variable, called <math id="SS2.p2.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> in our case.
+This variable is plotted in Fig. <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>
+along the horizontal axis.
+An increase in voltage corresponds to a movement
+to the right, a decrease to a movement to the left.
+Thus, in contrast to the phase plane analysis
+of two-dimensional neuron models, encountered in
+Section <a href="Ch4.S3.html" title="4.3 Phase plane analysis â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a> of Ch. <a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>,
+the momentary state of the system lies always
+on the horizontal axis.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">Let us suppose that the momentary value
+of the voltage is <math id="SS2.p3.m1" class="ltx_Math" alttext="u(t_{0})" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t_{0})</annotation></semantics></math>.
+The value a short time afterwards is given by
+<math id="SS2.p3.m2" class="ltx_Math" alttext="u(t_{0}+\Delta t)=u(t_{0})+\dot{u}\,\Delta t" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><mover accent="true"><mi>u</mi><mo>Ë</mo></mover></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t_{0}+\Delta t)=u(t_{0})+\dot{u}\,\Delta t</annotation></semantics></math>
+where <math id="SS2.p3.m3" class="ltx_Math" alttext="\dot{u}=du/dt" display="inline"><semantics><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>=</mo><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow><annotation encoding="application/x-tex">\dot{u}=du/dt</annotation></semantics></math> is given by
+the differential equation, Eq. (<a href="#Ch5.E2" title="(5.2) â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>).
+The difference
+<math id="SS2.p3.m4" class="ltx_Math" alttext="u(t_{0}+\Delta t)-u(t_{0})" display="inline"><semantics><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t_{0}+\Delta t)-u(t_{0})</annotation></semantics></math>
+is positive if <math id="SS2.p3.m5" class="ltx_Math" alttext="\dot{u}&gt;0" display="inline"><semantics><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{u}&gt;0</annotation></semantics></math> and indicated
+by a flow arrow to the right;
+the arrow points leftwards if <math id="SS2.p3.m6" class="ltx_Math" alttext="\dot{u}&lt;0" display="inline"><semantics><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{u}&lt;0</annotation></semantics></math>.</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">A nice aspect of a plot such
+as in Fig. <a href="#Ch5.F1" title="Fig.Â 5.1 â£ 5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.1</span></a>A
+is
+that for each <math id="SS2.p4.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>, the vertical axis of the plot indicates
+<math id="SS2.p4.m2" class="ltx_Math" alttext="\dot{u}=f(u)" display="inline"><semantics><mrow><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\dot{u}=f(u)</annotation></semantics></math>, i.e., we can directly read off the value
+of the flow without further calculation.
+If the value of the function <math id="SS2.p4.m3" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math> is above zero,
+the flow is to the right; if it is negative, the flow is to the left.</p>
+</div>
+<div id="SS2.p5" class="ltx_para">
+<p class="ltx_p">By definition, the flow <math id="SS2.p5.m1" class="ltx_Math" alttext="du/dt" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>u</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">du/dt</annotation></semantics></math> vanishes at the fixed points.
+Thus fixed points are given by the zero-crossings <math id="SS2.p5.m2" class="ltx_Math" alttext="f(u)=0" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(u)=0</annotation></semantics></math>
+of the curve.
+Moreover, the flow pattern directly
+indicates the stability of a fixed point.
+From the figure, we can read off,
+that a fixed point at <math id="SS2.p5.m3" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math> is stable (arrows pointing
+towards the fixed point), if
+the slope of the curve
+<math id="SS2.p5.m4" class="ltx_Math" alttext="df/du" display="inline"><semantics><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>f</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">df/du</annotation></semantics></math> evaluated at <math id="SS2.p5.m5" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math> is negative.</p>
+</div>
+<div id="SS2.p6" class="ltx_para">
+<p class="ltx_p">The mathematical proof goes as follows.
+Suppose
+that the system is, at time <math id="SS2.p6.m1" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>, slightly perturbed
+around the fixed point to a new value
+<math id="SS2.p6.m2" class="ltx_Math" alttext="u_{0}+x(t_{0})" display="inline"><semantics><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>+</mo><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">u_{0}+x(t_{0})</annotation></semantics></math>. We focus on the evolution
+of the perturbation <math id="SS2.p6.m3" class="ltx_Math" alttext="x(t)" display="inline"><semantics><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math>. The perturbation
+follows the differential equation
+<math id="SS2.p6.m4" class="ltx_Math" alttext="dx/dt=\dot{u}=f(u_{0}+x)" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>x</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mover accent="true"><mi>u</mi><mo>Ë</mo></mover><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>+</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">dx/dt=\dot{u}=f(u_{0}+x)</annotation></semantics></math>.
+Taylor expansion of <math id="SS2.p6.m5" class="ltx_Math" alttext="f" display="inline"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math> around <math id="SS2.p6.m6" class="ltx_Math" alttext="u_{0}" display="inline"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_{0}</annotation></semantics></math> gives
+<math id="SS2.p6.m7" class="ltx_Math" alttext="dx/dt=f(u_{0})+(df/du)_{u_{0}}\,x" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>x</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mrow><mo>(</mo><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>f</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><mo>)</mo></mrow><msub><mi>u</mi><mn>0</mn></msub></msub></mpadded><mo>â¢</mo><mi>x</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">dx/dt=f(u_{0})+(df/du)_{u_{0}}\,x</annotation></semantics></math>.
+At the fixed point, <math id="SS2.p6.m8" class="ltx_Math" alttext="f(u_{0})=0" display="inline"><semantics><mrow><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>u</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(u_{0})=0</annotation></semantics></math>.
+The solution of the differential equation therefore is
+<math id="SS2.p6.m9" class="ltx_Math" alttext="x(t)=x(t_{0})\,\exp[b\,(t-t_{0})]" display="inline"><semantics><mrow><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>x</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mrow><mpadded width="+1.7pt"><mi>b</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">x(t)=x(t_{0})\,\exp[b\,(t-t_{0})]</annotation></semantics></math>.
+If the slope
+<math id="SS2.p6.m10" class="ltx_Math" alttext="b=(df/du)_{u_{0}}" display="inline"><semantics><mrow><mi>b</mi><mo>=</mo><msub><mrow><mo>(</mo><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>f</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><mo>)</mo></mrow><msub><mi>u</mi><mn>0</mn></msub></msub></mrow><annotation encoding="application/x-tex">b=(df/du)_{u_{0}}</annotation></semantics></math> is negative,
+the amplitude of the perturbation
+<math id="SS2.p6.m11" class="ltx_Math" alttext="x(t)" display="inline"><semantics><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math> decays back to zero, indicating stability.
+Therefore, negative slope <math id="SS2.p6.m12" class="ltx_Math" alttext="(df/du)_{u_{0}}&lt;0" display="inline"><semantics><mrow><msub><mrow><mo>(</mo><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>f</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>u</mi></mrow><mo>)</mo></mrow><msub><mi>u</mi><mn>0</mn></msub></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(df/du)_{u_{0}}&lt;0</annotation></semantics></math> implies stability
+of the fixed point.</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5 </span>Nonlinear Integrate-and-Fire Models</span></a><a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Exponential Integrate-and-Fire Model</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

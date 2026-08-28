@@ -1,0 +1,630 @@
+<!DOCTYPE html><html>
+<head>
+<title>20.3 Helping Patients | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch20.S2.html" title="20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch20.S4.html" title="20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch20.S1.html" title="20.1 Reservoir computing â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch20.S2.html" title="20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch20.S4.html" title="20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+            , 
+                , 
+                , 
+                ">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">
+          <span class="ltx_text ltx_font_small">20</span>
+         </span>
+        <span class="ltx_text ltx_font_small">Outlook: Dynamics in Plastic Networks</span></span></a><a href="Ch20.S2.html" title="20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2 </span>Oscillations: good or bad?</span></a><a href="Ch20.S4.html" title="20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.4 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_font_small ltx_title_section">
+<span class="ltx_tag ltx_tag_section">20.3 </span>Helping Patients</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">We would like to close this chapter â and indeed the whole book -
+with an inspiring application of
+insights
+derived from the theory of neuronal dynamics to
+animals and, potentially, humans.
+Initial results at the current state of research are
+encouraging, so that
+mathematical considerations
+could ultimately increase the quality of life of,
+among others, Parkinsonian patients.</span>
+          </p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Parkinson is a severe brain disease.
+A prominent symptom in
+human patients
+suffering from Parkinsonâs disease is
+involuntary shaking of arms and fingers in a periodic
+movement of about 3-6 Hz,
+called resting tremor.
+Some patients also exhibit
+muscle rigidity or akinesia where they are unable
+to move.
+Tremor as well as
+</span>
+            
+            <span class="ltx_text ltx_font_small">rigidity are
+correlated with overly strong oscillatory synchronization
+in brain areas such as thalamus and basal ganglia,
+whose activity in the healthy state is
+asynchronous
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib540" title="Neuronal basis of the parkinsonian resting tremor: a hypothesis and its implications for treatment" class="ltx_ref">387</a>; <a href="bib.html#bib541" title="Neurons in the globus pallidus do not show correlated activity in the normal monkey, but phase-locked oscillations appear in the mptp model of parkinsonism" class="ltx_ref">366</a>; <a href="bib.html#bib542" title="The causal relationship between subcortical local field potential oscillations and parkinsonian resting tremor" class="ltx_ref">504</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Moreover, the oscillation
+frequency of neural activity is related to the tremor frequency.
+
+
+
+</span>
+            
+            
+            
+          </p>
+</div>
+<figure id="Ch20.F11" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x629.png" id="Ch20.F11.g1" class="ltx_graphics" width="293" height="219" alt="">
+                </td>
+<td class="ltx_td ltx_align_left">
+                  <img src="x630.png" id="Ch20.F11.g2" class="ltx_graphics" width="293" height="189" alt="">
+                  <span class="ltx_text ltx_font_small"></span>
+                </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.11: </span>Deep Brain Stimulation.
+<span class="ltx_text ltx_font_bold">A</span>. Schema showing a vertical cut through the brain
+with implanted electrode.
+The tip
+of the electrode reaches one of the subthalamic nuclei.
+The electrode is connected with a wire to the
+stimulator.
+The box diagram shows some of the major excitatory
+(solid arrows) and inhibitory (dashed arrows) connections
+from the subthalamic nucleus (STN) to thalamus.
+<span class="ltx_text ltx_font_bold">B</span>.
+Bistability of a healthy (<math id="Ch20.F11.m7" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>) and pathological
+network state (<math id="Ch20.F11.m8" class="ltx_Math" alttext="p" display="inline"><semantics><mi mathsize="normal" stretchy="false">p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>, circle), described by
+the flow (solid arrows) of an abstract
+differential equation <math id="Ch20.F11.m9" class="ltx_Math" alttext="dx/dt=f(x)" display="inline"><semantics><mrow><mrow><mrow><mrow><mi mathsize="normal" stretchy="false">d</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">x</mi></mrow><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">d</mi></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">dx/dt=f(x)</annotation></semantics></math> (solid line).
+In order to kick the network out of the
+pathological state, an appropriate
+stimulus has to be applied
+that destabilizes <math id="Ch20.F11.m10" class="ltx_Math" alttext="p" display="inline"><semantics><mi mathsize="normal" stretchy="false">p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math> and
+drives the network state toward <math id="Ch20.F11.m11" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+by changing the right-hand side of the differential
+equation to <math id="Ch20.F11.m12" class="ltx_Math" alttext="f_{\rm stim}(x)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">f</mi><mi mathsize="normal" stretchy="false">stim</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_{\rm stim}(x)</annotation></semantics></math>
+(dashed line and arrows);
+adapted from <cite class="ltx_cite">(<a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>)</cite>.
+
+</figcaption>
+</figure>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">One of the presently available
+treatments of Parkinsonian symptoms
+is âDeep Brain Stimulationâ (DBS)
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib557" title="Long-term suppression of tremor by chronic stimulation of the ventral intermediate thalamic nucleus" class="ltx_ref">47</a>; <a href="bib.html#bib558" title="Deep brain stimulation of the subthalamic nucleus for the treatment of parkinsonâs disease" class="ltx_ref">46</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+DBS
+reduces both tremor and rigidity
+of Parkinsonian patients.
+To perform DBS,
+a high-frequency stimulus
+is applied to an electrode
+implanted in the sub-thalamic
+nucleus or globus pallidus (which project
+indirectly or directly
+onto the thalamus) of the patient
+(Fig. </span>
+            <a href="#Ch20.F11" title="Fig.Â 20.11 â£ 20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.11</span></a>
+            <span class="ltx_text ltx_font_small">A).
+The treatment is reversible so that,
+when stimulation is stopped,
+patients rapidly fall back
+into tremor or rigidity.</span>
+          </p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">If we view
+the brain as a dynamical
+system, we can say that classical DBS
+shifts the state
+of the brain
+so as to reduce the symptoms
+of Parkinson during stimulation, but does not
+return the brainâs autonomous dynamics
+back to a healthy state.
+In other words, the patient relies on continuous
+treatment through DBS.
+We may visualize
+the pathological and healthy conditions
+as two different configuration in some
+abstract space of network states.
+It is reasonable to assume
+that brain dynamics in
+the healthy state
+is at a stable equilibrium point - despite
+ongoing spike firing and plasticity
+on different time scales;
+otherwise our brains would rapidly
+stop functioning.
+The fact that, after the end of DBS,
+the brain returns to the pathological
+</span>
+            
+            <span class="ltx_text ltx_font_small">state indicates that this state is also stable
+(Fig. </span>
+            <a href="#Ch20.F11" title="Fig.Â 20.11 â£ 20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.11</span></a>
+            <span class="ltx_text ltx_font_small">B).</span>
+          </p>
+</div>
+<div id="p5" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">The question arises whether,
+by suitable stimulation protocols,
+it would be possible
+to shift the pathological brain back into its
+healthy state.
+Work of the group of Peter Tass
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib559" title="A model of desynchronizing deep brain stimulation with a demand-controlled coordinated reset of neural subpopulations" class="ltx_ref">506</a>; <a href="bib.html#bib560" title="Coordinated reset has sustained aftereffects in parkinsonian monkeys" class="ltx_ref">507</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">,
+but also other groups
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib561" title="High frequency stimulation of the subthalamic nucleus eliminates pathological thalamic rhythmicity in a computational model" class="ltx_ref">449</a>; <a href="bib.html#bib562" title="Closed-loop deep brain stimulation is superior in ameliorating parkinsonism" class="ltx_ref">445</a>; <a href="bib.html#bib563" title="Chaotic desynchronization as the therapeutic mechanism of deep brain stimulation" class="ltx_ref">551</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">
+suggests that this may be possible.
+The treatment relies on the idea
+that the pathological
+state of strong oscillations
+is probably linked
+to pathologically strong
+intra-network connections
+(Fig. </span>
+            <a href="Ch20.S2.html#Ch20.F10" title="Fig.Â 20.10 â£ 20.2.4 Synaptic plasticity and oscillations â£ 20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.10</span></a>
+            <span class="ltx_text ltx_font_small">C).
+An ideal stimulation protocol
+should thus
+not only interfere with the oscillations
+but also lead to a rewiring of the network
+</span>
+            
+            <span class="ltx_text ltx_font_small">with weaker connections so
+that, even when the stimulus
+is removed, the network
+does not immediately fall back into the
+strong oscillatory mode.</span>
+          </p>
+</div>
+<figure id="Ch20.F12" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x631.png" id="Ch20.F12.g1" class="ltx_graphics" width="293" height="244" alt="">
+                </td>
+<td class="ltx_td ltx_align_left">
+                  <img src="x632.png" id="Ch20.F12.g2" class="ltx_graphics" width="292" height="228" alt="">
+                  <span class="ltx_text ltx_font_small"></span>
+                </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.12: </span>Coordinated Reset Stimulation.
+<span class="ltx_text ltx_font_bold">A</span>.
+A population of neurons
+exhibits synchronous firing activity
+with period <math id="Ch20.F12.m3" class="ltx_Math" alttext="T" display="inline"><semantics><mi mathsize="normal" stretchy="false">T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> (schematic).
+<span class="ltx_text ltx_font_bold">B</span>.
+If subgroups of neurons
+are stimulated at intervals <math id="Ch20.F12.m4" class="ltx_Math" alttext="T/4" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="normal" stretchy="false">/</mo><mn mathsize="normal" stretchy="false">4</mn></mrow><annotation encoding="application/x-tex">T/4</annotation></semantics></math>,
+the synchronous oscillation is interrupted
+(âcoordinated resetâ of oscillators).
+The stimulation can be delivered
+directly in the population or
+in one of the nuclei projecting onto it;
+schematic after
+<cite class="ltx_cite">(<a href="bib.html#bib559" title="A model of desynchronizing deep brain stimulation with a demand-controlled coordinated reset of neural subpopulations" class="ltx_ref">506</a>)</cite>.
+
+</figcaption>
+</figure>
+<div id="p6" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">How can we interfere
+with an ongoing synchronized oscillation?
+As discussed in Section </span>
+            <a href="Ch20.S2.html" title="20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.2</span></a>
+            <span class="ltx_text ltx_font_small">,
+neurons in an oscillatory state
+can be described by a phase </span>
+            <math id="p6.m1" class="ltx_Math" alttext="\phi" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+            <span class="ltx_text ltx_font_small">.
+An electric pulse delivered by an electrode
+tends to synchronize neurons in the neighborhood
+of the electrode by shifting their
+phases by an amount that depends on the current phase
+of the neuron.
+If several
+electrode fibers are used in the same network,
+</span>
+            
+            <span class="ltx_text ltx_font_small">local groups surrounding the tips of the fibers
+can be stimulated at different moments in time.
+Therefore, the phase within each group is reset by roughly
+the same amount, but the phase shift
+varies between groups.
+Consider a stimulation of four fibers given
+at a relative interval of </span>
+            <math id="p6.m2" class="ltx_Math" alttext="T/4" display="inline"><semantics><mrow><mi>T</mi><mo>/</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">T/4</annotation></semantics></math>
+            <span class="ltx_text ltx_font_small"> (Fig. </span>
+            <a href="#Ch20.F12" title="Fig.Â 20.12 â£ 20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.12</span></a>
+            <span class="ltx_text ltx_font_small">).
+With such a stimulation paradigm,
+the global network synchronization
+is perturbed
+by the âcoordinated resetâ of the four subpopulations
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib559" title="A model of desynchronizing deep brain stimulation with a demand-controlled coordinated reset of neural subpopulations" class="ltx_ref">506</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+With eight or twenty independent electrode fibers one could spread
+out the stimulation (and therefore the phases of neuronal oscillators)
+even more equally
+over one period. However, the number four is a reasonable
+compromise and bundles of four fibers
+attached together so as to form one single electrode device
+are readily available.</span>
+          </p>
+</div>
+<div id="p7" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">If a single sequence of four âcoordinated
+resetâ pulses is given to four electrode fibers, the network
+</span>
+            
+            <span class="ltx_text ltx_font_small">returns, after some transient
+into the synchronized oscillation.
+In order to make the asynchronous
+state stable,
+the network wiring needs to be changed.
+Hebbian synaptic plasticity requires
+neurons to be active.
+It is therefore important to choose
+a stimulation protocol which
+suppresses synchronous oscillations,
+but not neuronal activity </span>
+            <span class="ltx_text ltx_font_italic ltx_font_small">per se</span>
+            <span class="ltx_text ltx_font_small">.
+The âcoordinated resetâ fulfills this condition
+since it does not silence the neural oscillators
+but just shifts their phases.
+Therefore, if the
+âcoordinated resetâ stimulation
+is repeated again and again, so
+as to
+keep network activity in a
+state of asynchronous firing
+for a sufficiently long time,
+we may expect that
+synaptic plasticity causes
+a rewiring of the network connectivity.
+Once the network is rewired,
+</span>
+            
+            <span class="ltx_text ltx_font_small">the stimulus can be removed.</span>
+          </p>
+</div>
+<div id="p8" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Indeed, when monkeys
+suffering from Parkinsonian symptoms
+have received a few hours of DBS with
+the âcoordinated resetâ protocol,
+symptoms are reduced and
+remain at a reduced level
+for more than 24 hours
+(Fig. </span>
+            <a href="#Ch20.F13" title="Fig.Â 20.13 â£ 20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.13</span></a>
+            <span class="ltx_text ltx_font_small">B),
+before they slowly drift
+back into the oscillatory state
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib560" title="Coordinated reset has sustained aftereffects in parkinsonian monkeys" class="ltx_ref">507</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+The beneficial effects
+of âcoordinated resetâ
+stimulation therefore last at least 10 times longer
+than those
+of traditional DBS
+where tremor reappears rapidly.</span>
+          </p>
+</div>
+<div id="p9" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">From the perspective of dynamical systems,
+these results suggest that
+the healthy state of Parkinsonian patients
+is not globally stable.
+However, since the âruinsâ (cf.
+</span>
+            
+            <span class="ltx_text ltx_font_small">Ch. </span>
+            <a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>
+            <span class="ltx_text ltx_font_small">)
+of the fixed point corresponding to healthy
+asynchronous activity persist,
+a shift of the network
+into the neighborhood of the healthy
+state leads to a slow down of the
+dynamics so that the network remains
+for a long time in the neighborhood
+of the healthy condition
+(Fig. </span>
+            <a href="#Ch20.F13" title="Fig.Â 20.13 â£ 20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.13</span></a>
+            <span class="ltx_text ltx_font_small">C).</span>
+          </p>
+</div>
+<div id="p10" class="ltx_para">
+<p class="ltx_p">
+            <span class="ltx_text ltx_font_small">Traditional protocols of DBS have
+been found by trial and error.
+The standard protocol consists
+of continuous high-frequency stimulation (</span>
+            <math id="p10.m1" class="ltx_Math" alttext="&gt;" display="inline"><semantics><mo>&gt;</mo><annotation encoding="application/x-tex">&gt;</annotation></semantics></math>
+            <span class="ltx_text ltx_font_small">100Hz)
+at rather large amplitude
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib557" title="Long-term suppression of tremor by chronic stimulation of the ventral intermediate thalamic nucleus" class="ltx_ref">47</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Remarkably, the
+mathematical perspective provided
+by the theory of dynamical systems
+together with
+intensive computational modeling
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib559" title="A model of desynchronizing deep brain stimulation with a demand-controlled coordinated reset of neural subpopulations" class="ltx_ref">506</a>; <a href="bib.html#bib561" title="High frequency stimulation of the subthalamic nucleus eliminates pathological thalamic rhythmicity in a computational model" class="ltx_ref">449</a>; <a href="bib.html#bib563" title="Chaotic desynchronization as the therapeutic mechanism of deep brain stimulation" class="ltx_ref">551</a>; <a href="bib.html#bib555" title="STDP in oscillatory recurrent networks: theoretical conditions for desynchronization and applications to deep brain stimulation" class="ltx_ref">395</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">
+has now led to protocols
+</span>
+            
+            <span class="ltx_text ltx_font_small">that work with reduced amplitude
+and do not require continuous
+stimulation. Instead, only a few hours
+of stimulation per day promise to suffice
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib560" title="Coordinated reset has sustained aftereffects in parkinsonian monkeys" class="ltx_ref">507</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.
+Eventually,
+we may hope that these or related </span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib562" title="Closed-loop deep brain stimulation is superior in ameliorating parkinsonism" class="ltx_ref">445</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small"> protocols will
+be translated from monkeys to humans
+and increase the quality of life
+of patients suffering from
+severe forms of Parkinsonâs disease.
+Interestingly, the âcoordinated resetâ protocol
+has already found a first successful application
+in humans suffering from Tinnitus
+</span>
+            <cite class="ltx_cite">
+              <span class="ltx_text ltx_font_small">(</span>
+              <a href="bib.html#bib564" title="Counteracting tinnitus by acoustic coordinated reset neuromodulation" class="ltx_ref">505</a>
+              <span class="ltx_text ltx_font_small">)</span>
+            </cite>
+            <span class="ltx_text ltx_font_small">.</span>
+          </p>
+</div>
+<figure id="Ch20.F13" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x633.png" id="Ch20.F13.g1" class="ltx_graphics" width="292" height="256" alt="">
+                </td>
+<td class="ltx_td ltx_align_left">
+                  <img src="x634.png" id="Ch20.F13.g2" class="ltx_graphics" width="291" height="212" alt="">
+                  <span class="ltx_text ltx_font_small"></span>
+                </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering ltx_font_small"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 20.13: </span>Long-lasting plasticity effects.
+<span class="ltx_text ltx_font_bold">A</span>.
+Behavioral performance (vertical) of
+monkeys suffering from Parkinsonian symptoms
+before (âMPTPâ) and after treatment with
+coordinated reset stimulation.
+Stimulation led to an improvement of behavior
+that persisted for many days
+after the end of stimulation
+<cite class="ltx_cite">(<a href="bib.html#bib560" title="Coordinated reset has sustained aftereffects in parkinsonian monkeys" class="ltx_ref">507</a>)</cite>.
+<span class="ltx_text ltx_font_bold">B</span>. Dynamical systems interpretation:
+In contrast to Fig. <a href="#Ch20.F11" title="Fig.Â 20.11 â£ 20.3 Helping Patients â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20.11</span></a>B, the healthy state <math id="Ch20.F13.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+of MPTP monkeys is either not a
+fixed point at all (solid line) or a marginally stable one (dashed line),
+but in both cases the flow in the vicinity of the
+healthy state (gray area) is slowed down,
+so that the return to the pathological state
+takes some time.
+
+</figcaption>
+</figure>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch20.S2.html" title="20.2 Oscillations: good or bad? â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.2 </span>Oscillations: good or bad?</span></a><a href="Ch20.S4.html" title="20.4 Summary â£ ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">20.4 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

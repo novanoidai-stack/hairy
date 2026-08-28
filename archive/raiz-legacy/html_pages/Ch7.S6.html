@@ -1,0 +1,916 @@
+<!DOCTYPE html><html>
+<head>
+<title>7.6 The Problem of Neural Coding | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch7.S5.html" title="7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch7.S7.html" title="7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S1.html" title="7.1 Spike train variability â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S2.html" title="7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S3.html" title="7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S5.html" title="7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S7.html" title="7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                    , 
+                    , code, coding, correlation, correlation code, firing rate, phase code, population vector, rate code, reconstruction kernel, reverse, reverse correlation, synchrony, timing-based">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7 </span>Variability of Spike Trains and Neural Codes</span></a><a href="Ch7.S5.html" title="7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5 </span>Renewal statistics</span></a><a href="Ch7.S7.html" title="7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.7 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7.6 </span>The Problem of Neural Coding</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">We have discussed in the preceding sections measures to quantify
+neural spike train data. This includes measures
+of interval distribution, autocorrelation, noise spectrum,
+but also simple measures such as the firing rate.
+All of these measures are useful tools for an experimenter
+who plans to study a neural system. A completely different question, however,
+is whether neurons transmit information by using
+any of these quantities as a neural code.
+</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">In this section we critically review
+the notion of rate codes, and contrast rate coding
+schemes with spike codes.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.6.1 </span>Limits of rate codes</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">The successful application of rate concepts
+to neural data does not necessarily imply
+that the neuron itself uses a rate code.
+Let us look at the limitations of the spike count measure and the PSTH.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Limitations of the spike count code</span>.
+An experimenter
+as an external observer can evaluate and classify
+neuronal firing by a spike count measure â
+but is this really the code used by neurons in the brain?
+In other words, is a cortical neuron which receives
+signals from a sensory neuron
+only looking at and reacting to
+the number of spikes it receives in a time window
+of, say, 500 ms?
+We will approach this question
+from a modeling point of view later on in the book.
+Here we discuss some critical experimental evidence.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">From behavioral experiments it is known that reaction
+times are often rather short.
+A fly can react to new stimuli and change
+the direction of flight within 30-40 ms;
+see the discussion in <cite class="ltx_cite">(<a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+This is not long enough for counting
+spikes and averaging over some long time window.
+The fly has to respond after a postsynaptic neuron
+has received one or two spikes.
+Humans can recognize visual scenes in just a few
+hundred milliseconds
+<cite class="ltx_cite">(<a href="bib.html#bib153" title="Speed of processing in the human visual system" class="ltx_ref">512</a>)</cite>,
+even though recognition is believed to involve
+several processing steps.
+Again, this does not leave enough time to perform temporal averages
+on each level.
+</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">From the point of view of rate coding, spikes are just a convenient way
+to transmit the analog output variable <math id="SS1.p4.m1" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi>Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math> over long distances.
+In fact, the best coding scheme to transmit the
+value of the rate <math id="SS1.p4.m2" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi>Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math> would be by a regular
+spike train with intervals <math id="SS1.p4.m3" class="ltx_Math" alttext="1/\nu" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><mi>Î½</mi></mrow><annotation encoding="application/x-tex">1/\nu</annotation></semantics></math>.
+In this case, the rate could be reliably measured
+after only two spikes. From the point of view of rate
+coding, the irregularities
+encountered in real spike trains of neurons in the cortex
+must therefore be considered as noise.
+In order to get rid of the noise and arrive at
+a reliable estimate of the rate,
+the experimenter
+has to average over a larger number of spikes.</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">Temporal averaging can work well in cases
+where the stimulus is constant or slowly varying and does not require
+a fast reaction of the organism
+- and this is the situation encountered
+in many experimental protocols.
+Real-world input, however, is rarely stationary,
+but often changing on a fast time scale.
+For example, even when viewing a
+static image, humans perform saccades,
+rapid changes of the direction of gaze.
+The image projected onto the retinal photo receptors
+changes therefore
+every few hundred milliseconds -
+and with each new image
+the retinal photo receptors
+change the response
+(Fig. <a href="#Ch7.F16" title="Fig.Â 7.16 â£ Time-to-first-spike: Latency code â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>C).
+Since, in a changing environment,
+a postsynaptic neuron does not have
+the time to perform a temporal average
+over many (noisy) spikes,
+we consider next whether the PSTH
+could be used by a neuron to
+estimate a time-dependent firing rate.</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Limitations of the PSTH</span>.
+The obvious problem with the PSTH is
+that it needs several trials to build up.
+Therefore
+it can not be the decoding scheme
+used by neurons in the brain.
+Consider for example a frog which wants
+to catch a fly.
+It can not wait for the insect to fly
+repeatedly along exactly the same trajectory.
+The frog has to base its decision on a single
+run â each fly and each trajectory is different.</p>
+</div>
+<div id="SS1.p7" class="ltx_para">
+<p class="ltx_p">Nevertheless, the PSTH measure of
+the instantaneous firing rate can make sense if there are large
+populations of similar neurons that receive
+the same stimulus.
+Instead of recording from a population of <math id="SS1.p7.m1" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+neurons in a single run,
+it is experimentally easier to record from
+a single neuron and average over <math id="SS1.p7.m2" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> repeated runs.
+Thus, a neural code based on the PSTH relies on the
+implicit assumption that there are always populations
+of neurons with similar properties.</p>
+</div>
+<div id="SS1.p8" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Limitations of rate as a population average</span>.
+A potential difficulty with the definition
+(<a href="Ch7.S2.html#Ch7.E11" title="(7.11) â£ 7.2.3 Rate as a Population Activity (Average over Several Neurons) â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.11</span></a>) of the firing rate
+as an average over a population of neurons
+is that we have formally required a homogeneous
+population of neurons with identical connections
+which is hardly realistic. Real populations
+will always have a certain degree of heterogeneity
+both in their internal parameters and in their connectivity pattern.
+Nevertheless, rate as a population activity
+(of suitably defined pools of neurons)
+may be a useful coding principle in many areas of the brain.</p>
+</div>
+<div id="SS1.p9" class="ltx_para">
+<p class="ltx_p">For inhomogeneous populations, the definition
+(<a href="Ch7.S2.html#Ch7.E11" title="(7.11) â£ 7.2.3 Rate as a Population Activity (Average over Several Neurons) â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.11</span></a>) may be replaced by a weighted
+average over the population.
+
+In order to give an example of a weighted average in an
+inhomogeneous population,
+we suppose that we are studying a population of neurons
+which respond to a stimulus <math id="SS1.p9.m1" class="ltx_Math" alttext="{\bf x}" display="inline"><semantics><mi>ð±</mi><annotation encoding="application/x-tex">{\bf x}</annotation></semantics></math>.
+We may think of <math id="SS1.p9.m2" class="ltx_Math" alttext="{\bf x}" display="inline"><semantics><mi>ð±</mi><annotation encoding="application/x-tex">{\bf x}</annotation></semantics></math> as the location of the stimulus
+in input space.
+Neuron <math id="SS1.p9.m3" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> responds best to stimulus <math id="SS1.p9.m4" class="ltx_Math" alttext="{\bf x}_{i}" display="inline"><semantics><msub><mi>ð±</mi><mi>i</mi></msub><annotation encoding="application/x-tex">{\bf x}_{i}</annotation></semantics></math>,
+another neuron <math id="SS1.p9.m5" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> responds best to stimulus <math id="SS1.p9.m6" class="ltx_Math" alttext="{\bf x}_{j}" display="inline"><semantics><msub><mi>ð±</mi><mi>j</mi></msub><annotation encoding="application/x-tex">{\bf x}_{j}</annotation></semantics></math>.
+In other words, we may say
+that the spikes of
+a neuron <math id="SS1.p9.m7" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> ârepresentâ an input vector <math id="SS1.p9.m8" class="ltx_Math" alttext="{\bf x}_{i}" display="inline"><semantics><msub><mi>ð±</mi><mi>i</mi></msub><annotation encoding="application/x-tex">{\bf x}_{i}</annotation></semantics></math>
+and those of <math id="SS1.p9.m9" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> an input vector <math id="SS1.p9.m10" class="ltx_Math" alttext="{\bf x}_{j}" display="inline"><semantics><msub><mi>ð±</mi><mi>j</mi></msub><annotation encoding="application/x-tex">{\bf x}_{j}</annotation></semantics></math>.
+In a large population, many neurons
+will be active simultaneously when
+a new stimulus <math id="SS1.p9.m11" class="ltx_Math" alttext="{\bf x}" display="inline"><semantics><mi>ð±</mi><annotation encoding="application/x-tex">{\bf x}</annotation></semantics></math> is represented.
+The location of this stimulus
+can then be estimated from the
+weighted population average</p>
+<table id="Ch7.E52" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E52.m1" class="ltx_Math" alttext="{\bf x}^{\rm est}(t)={\int_{t}^{t+\Delta t}\sum_{j}\sum_{f}{\bf x}_{j}\,\delta%
+(t-t_{j}^{(f)})\,dt\over\int_{t}^{t+\Delta t}\sum_{j}\sum_{f}\,\delta(t-t_{j}^%
+{(f)})\,{\text{d}}t}\,." display="block"><semantics><mrow><mrow><mrow><msup><mi>ð±</mi><mi>est</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><mfrac><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mi>t</mi><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></msubsup></mstyle><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>j</mi></munder></mstyle><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder></mstyle><mrow><mpadded width="+1.7pt"><msub><mi>ð±</mi><mi>j</mi></msub></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow></mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mi>t</mi><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></msubsup><mrow><msub><mo largeop="true" symmetric="true">â</mo><mi>j</mi></msub><mrow><mpadded width="+1.7pt"><msub><mo largeop="true" symmetric="true">â</mo><mi>f</mi></msub></mpadded><mrow><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow></mrow></mfrac></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\bf x}^{\rm est}(t)={\int_{t}^{t+\Delta t}\sum_{j}\sum_{f}{\bf x}_{j}\,\delta%
+(t-t_{j}^{(f)})\,dt\over\int_{t}^{t+\Delta t}\sum_{j}\sum_{f}\,\delta(t-t_{j}^%
+{(f)})\,{\text{d}}t}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.52)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Both numerator and denominator are
+closely related to the population activity
+(<a href="Ch7.S2.html#Ch7.E11" title="(7.11) â£ 7.2.3 Rate as a Population Activity (Average over Several Neurons) â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.11</span></a>).
+The estimate (<a href="#Ch7.E52" title="(7.52) â£ 7.6.1 Limits of rate codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.52</span></a>)
+has been successfully used for an interpretation
+of neuronal activity in primate motor cortex
+<cite class="ltx_cite">(<a href="bib.html#bib154" title="Neuronal population coding of movement direction" class="ltx_ref">171</a>)</cite> and hippocampus <cite class="ltx_cite">(<a href="bib.html#bib155" title="Dynamics of the hippocampal ensemble code for space" class="ltx_ref">554</a>)</cite>.
+It is, however, not completely clear whether postsynaptic neurons
+really evaluate the fraction (<a href="#Ch7.E52" title="(7.52) â£ 7.6.1 Limits of rate codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.52</span></a>)
+â a potential problem for a neuronal coding and decoding scheme
+lies in the
+normalization by division.
+</p>
+</div>
+<figure id="Ch7.F15" class="ltx_figure"><img src="x205.png" id="Ch7.F15.g1" class="ltx_graphics ltx_centering" width="444" height="285" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.15: </span>
+Time-to-first spike. The spike train of three neurons
+are shown. The third neuron from the top
+is the first one to fire a spike after
+the stimulus onset (arrow).
+The dashed line indicates the time course of the stimulus.
+</figcaption>
+</figure>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.6.2 </span>Candidate temporal codes</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Rate coding in the sense of a population average
+is one of many candidate coding schemes that could
+be implemented and used by neurons in the brain.
+In this section, we
+introduce some potential coding
+strategies based on spike timing.</p>
+</div>
+<section id="SS2.SSSx1" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Time-to-first-spike: Latency code</h1>
+
+<div id="SS2.SSSx1.p1" class="ltx_para">
+<p class="ltx_p">Let us study a neuron which abruptly receives a new constant input
+at time <math id="SS2.SSSx1.p1.m1" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>.
+For example,
+a neuron might be driven by an external stimulus
+which is suddenly switched on at time <math id="SS2.SSSx1.p1.m2" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>.
+This seems to be somewhat artificial,
+but even in a realistic situation
+abrupt changes in the input are quite common.
+When we look at a picture,
+our gaze jumps from one point to the next.
+After each saccade, the photo receptors in the retina
+receive a new visual input.
+Information about the onset of a saccades should easily be available in the brain
+and could serve as an internal reference signal.
+We can then imagine a code
+where for each neuron the timing of the <span class="ltx_text ltx_font_italic">first</span> spike
+after the reference signal contains all information about the new stimulus.
+A neuron which fires shortly after the reference signal
+is interpreted as a strong stimulation of this neuron,
+whereas firing somewhat later
+would signal a weaker stimulation; see Fig.Â <a href="#Ch7.F15" title="Fig.Â 7.15 â£ 7.6.1 Limits of rate codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.15</span></a>.</p>
+</div>
+<figure id="Ch7.F16" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <img src="x206.png" id="Ch7.F16.g1" class="ltx_graphics" width="496" height="293" alt="">
+                    </td>
+<td class="ltx_td ltx_align_left"><img src="x207.png" id="Ch7.F16.g2" class="ltx_graphics" width="160" height="293" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.16: </span>
+Time-to-first-spike.
+<span class="ltx_text ltx_font_bold">A</span>. Touching the finger tip with a sharp object
+can be quantified by a force vector with
+total strength in normal direction (N), possibly
+superimposed with a tangential component in one
+of four possible directions (P,U,D,R).
+<span class="ltx_text ltx_font_bold">B</span>. Spike response to onset of touch force in
+the five possible direction (P,U,D,R,N).
+Different stimuli yield different spike latencies
+which are consistent across the 5 repetitions.
+Different neurons have different response patterns
+(two selected neurons are shown). The location where stimulation
+yields maximal response is shown with a filled circle. <span class="ltx_text ltx_font_bold">C</span>. (Top) Presentation of an image
+on the retina. The grid of recording electrodes is indicated by dots. (Bottom) The latency of the first spike detected at each electrode reflects the original image. Each pixel corresponds to one recorded neuron.
+A and B modified from <cite class="ltx_cite">Johansson and Birznieks (<a href="bib.html#bib156" title="First spikes in ensembles of human tactile afferents code complex spatial fingertip events" class="ltx_ref">244</a>)</cite>, C modified from <cite class="ltx_cite">Gollisch and Meister (<a href="bib.html#bib157" title="Rapid neural coding in the retina with relative spike latencies" class="ltx_ref">194</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS2.SSSx1.p2" class="ltx_para">
+<p class="ltx_p">In a pure version of this coding scheme, each neuron
+only needs to fire a single spike to transmit information.
+If it emits several spikes,
+only the first spike after the reference signal counts.
+All following spikes would be irrelevant.
+To implement a clean version of such a coding scheme, we imagine
+that each neuron is
+shut off by inhibition as soon as it has fired a spike.
+Inhibition
+ends with the onset of the next stimulus (e.g., after the next saccade).
+After the release from inhibition the neuron is ready to emit its next spike
+that now transmits information about the new stimulus.
+Since each neuron in such a scenario transmits exactly one spike
+per stimulus, it is clear that
+only the timing conveys information and not the number of spikes.</p>
+</div>
+<div id="SS2.SSSx1.p3" class="ltx_para">
+<p class="ltx_p">Experimental evidences indicate that a coding scheme
+based on the latency of the first spike
+transmit a large amount of information.
+For example touch sensors in the finger tip
+encode the strength and direction of
+the touch in the timing of the first spike
+emitted by each neuron (Fig. <a href="#Ch7.F16" title="Fig.Â 7.16 â£ Time-to-first-spike: Latency code â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>).
+Similarly, the relative latency of first spikes
+of retinal neurons encode the image projected
+on the retina (Fig. <a href="#Ch7.F16" title="Fig.Â 7.16 â£ Time-to-first-spike: Latency code â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>C).
+In a slightly different context
+coding by first spikes has been
+discussed by S. Thorpe
+<cite class="ltx_cite">(<a href="bib.html#bib153" title="Speed of processing in the human visual system" class="ltx_ref">512</a>)</cite>.
+Thorpe argues that the brain does
+not have time to evaluate more than one
+spike from each neuron per processing step.
+Therefore the first spike should contain most
+of the relevant information, which is read out by neurons further down the processing chain.
+Using information-theoretic measures
+on their experimental data,
+several groups
+have shown that most of the information
+about a new stimulus is indeed conveyed
+during the first 20 or 50 milliseconds
+after the onset of the neuronal response
+<cite class="ltx_cite">(<a href="bib.html#bib158" title="Temporal encoding of two-dimensional patterns by single units in primate inferior temporal cortex. 3.Â Information theoretic analysis." class="ltx_ref">372</a>; <a href="bib.html#bib159" title="Information encoding in short firing rate epochs by single neurons in the primate temporal visual cortex" class="ltx_ref">517</a>)</cite>.
+</p>
+</div>
+</section>
+<section id="SS2.SSSx2" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Phase</h1>
+
+<div id="SS2.SSSx2.p1" class="ltx_para">
+<p class="ltx_p">We can apply a code by
+âtime to first spikeâ
+also in the situation
+where the reference signal is not
+a single event, but a periodic signal.
+In the hippocampus, in the olfactory system,
+and also in other areas of the brain,
+oscillations of some global variable
+(for example the population activity)
+are quite common. These
+oscillations could serve as an internal
+reference signal.
+Neuronal spike trains
+could then encode information in the phase
+of a pulse with respect to the background oscillation.
+If the input does not change
+between one cycle and the next,
+then the same pattern of phases
+repeats periodically; see Fig.Â <a href="#Ch7.F17" title="Fig.Â 7.17 â£ Phase â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.17</span></a>A.</p>
+</div>
+<figure id="Ch7.F17" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">A</span>
+                    </th>
+<th class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">B</span>
+                    </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <img src="x208.png" id="Ch7.F17.g1" class="ltx_graphics" width="293" height="168" alt="">
+                    </td>
+<td class="ltx_td ltx_align_left"><img src="x209.png" id="Ch7.F17.g2" class="ltx_graphics" width="293" height="183" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.17: </span>
+Phase and Synchrony. <span class="ltx_text ltx_font_bold">A</span>. Phase coding: The neurons fire
+at different phases with respect to the background
+oscillation (dashed).
+The phase could code relevant information. <span class="ltx_text ltx_font_bold">B</span>. Coding by synchrony:The upper four neurons are nearly synchronous,
+two other neurons at the bottom are not synchronized with
+the others.
+</figcaption>
+</figure>
+<div id="SS2.SSSx2.p2" class="ltx_para">
+<p class="ltx_p">The concept of coding by phases
+has been studied by several different groups.
+There is, for example, evidence that
+the phase of a spike during an oscillation
+in the hippocampus of the rat conveys
+information on the spatial location of the animal
+which is not fully accounted for by the
+firing rate of the neuron
+<cite class="ltx_cite">(<a href="bib.html#bib160" title="Phase relationship between hippocampal place units and the hippocampal theta rhythm" class="ltx_ref">375</a>)</cite>.
+</p>
+</div>
+</section>
+<section id="SS2.SSSx3" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Correlations and Synchrony</h1>
+
+<div id="SS2.SSSx3.p1" class="ltx_para">
+<p class="ltx_p">We can also use spikes from other neurons as the reference
+signal for a spike code.
+For example, synchrony of a pair
+or of many neurons
+could signify special events and convey
+information which is not contained
+in the firing rate of the neurons; see Fig.Â <a href="#Ch7.F17" title="Fig.Â 7.17 â£ Phase â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.17</span></a>B.
+One famous idea is that synchrony could
+mean âbelonging togetherâ.
+Consider for example a complex scene
+consisting of several objects.
+It is represented in the brain by the activity
+of a large number of neurons.
+Neurons which represent the same object
+could be âlabeledâ by the fact that they
+fire synchronously
+<cite class="ltx_cite">(<a href="bib.html#bib161" title="The correlation theory of brain function." class="ltx_ref">541</a>; <a href="bib.html#bib162" title="Coherent oscillations: a mechanism of feature linking in the visual cortex?" class="ltx_ref">134</a>; <a href="bib.html#bib163" title="Stimulus-specific neuronal oscillations in orientation columns of cat visual cortex." class="ltx_ref">197</a>)</cite>.
+</p>
+</div>
+<div id="SS2.SSSx3.p2" class="ltx_para">
+<p class="ltx_p">More generally, not only synchrony but
+any precise spatio-temporal pulse pattern could be a
+meaningful event.
+For example, a spike pattern of three neurons,
+where neuron 1 fires at some arbitrary time <math id="SS2.SSSx3.p2.m1" class="ltx_Math" alttext="t_{1}" display="inline"><semantics><msub><mi>t</mi><mn>1</mn></msub><annotation encoding="application/x-tex">t_{1}</annotation></semantics></math>
+followed by neuron 2 at time <math id="SS2.SSSx3.p2.m2" class="ltx_Math" alttext="t_{1}+\delta_{12}" display="inline"><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub><mo>+</mo><msub><mi>Î´</mi><mn>12</mn></msub></mrow><annotation encoding="application/x-tex">t_{1}+\delta_{12}</annotation></semantics></math>
+and by neuron 3 at <math id="SS2.SSSx3.p2.m3" class="ltx_Math" alttext="t_{1}+\delta_{13}" display="inline"><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub><mo>+</mo><msub><mi>Î´</mi><mn>13</mn></msub></mrow><annotation encoding="application/x-tex">t_{1}+\delta_{13}</annotation></semantics></math>,
+might represent a certain stimulus condition.
+The same three neurons firing with different
+relative delays might signify a different stimulus.
+The relevance of precise spatio-temporal spike
+patterns has been studied intensively by
+Abeles
+<cite class="ltx_cite">(<a href="bib.html#bib164" title="Corticonics" class="ltx_ref">7</a>)</cite>.
+Similarly, but on a somewhat coarse time scale,
+correlations of auditory and visual neurons
+are found to be stimulus dependent and might convey
+information beyond that
+contained in the firing rate alone
+<cite class="ltx_cite">(<a href="bib.html#bib165" title="Primary cortical representation of sounds by the coordination of action-potential timing" class="ltx_ref">119</a>; <a href="bib.html#bib166" title="Attention modultaes synchronized neuronal firing in primate somatosensory cortex" class="ltx_ref">497</a>)</cite>.
+</p>
+</div>
+</section>
+<section id="SS2.SSSx4" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Stimulus Reconstruction and Reverse Correlation</h1>
+
+<div id="SS2.SSSx4.p1" class="ltx_para">
+<p class="ltx_p">Let us consider a neuron which is driven by
+a time dependent stimulus <math id="SS2.SSSx4.p1.m1" class="ltx_Math" alttext="s(t)" display="inline"><semantics><mrow><mi>s</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">s(t)</annotation></semantics></math>.
+Every time a spike occurs, we note the
+time course of the stimulus in a time window
+of about 100 milliseconds immediately before the spike.
+Averaging the results over several spikes
+yields the typical time course
+of the stimulus just before a spike <cite class="ltx_cite">(<a href="bib.html#bib167" title="Triggered correlation" class="ltx_ref">113</a>)</cite>.
+Such a procedure is called a
+âreverse correlationâ approach; see Fig.Â <a href="#Ch7.F18" title="Fig.Â 7.18 â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.18</span></a>.
+In contrast to the PSTH experiment
+sketched in SectionÂ <a href="Ch7.S2.html#SS2" title="7.2.2 Rate as a Spike Density and the Peri-Stimulus-Time Histogram â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.2.2</span></a>
+where the experimenter averages the
+neuronâs response over several trials with the same stimulus,
+reverse correlation means that
+the experimenter averages the input
+under the condition of an identical response,
+that is, a spike.
+In other words, it is a spike-triggered average;
+see, e.g., <cite class="ltx_cite">(<a href="bib.html#bib168" title="Real-time performance of a movement-sensitive neuron in the blowfly visual system: coding and information transfer in short spike sequences" class="ltx_ref">114</a>; <a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+The results of the reverse correlation,
+i.e., the typical time course of the stimulus
+which has triggered a spike,
+can be interpreted as the âmeaningâ
+of a single spike.
+Reverse correlation techniques
+have made it possible
+to measure, for example, the spatio-temporal
+characteristics of neurons in the visual cortex
+<cite class="ltx_cite">(<a href="bib.html#bib169" title="The rf-cinematogram: a cross-correlation technique for mapping several visual fields at once" class="ltx_ref">135</a>; <a href="bib.html#bib170" title="Receptive-field dynamics in the central visual pathways" class="ltx_ref">116</a>)</cite>.
+</p>
+</div>
+<figure id="Ch7.F18" class="ltx_figure"><img src="x210.png" id="Ch7.F18.g1" class="ltx_graphics ltx_centering" width="443" height="234" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.18: </span>
+Reverse correlation technique (schematic).
+The stimulus in the top trace has caused the
+spike train shown immediately below.
+The time course of the stimulus just before
+the spikes (dashed boxes) has been averaged
+to yield the typical time course (bottom).
+</figcaption>
+</figure>
+<div id="SS2.SSSx4.p2" class="ltx_para">
+<p class="ltx_p">With a somewhat more elaborate version of this
+approach, W. Bialek and his co-workers
+have been able to âreadâ the neural code
+of the H1 neuron in the fly and to
+reconstruct a time-dependent stimulus
+<cite class="ltx_cite">(<a href="bib.html#bib171" title="Reading a neural code." class="ltx_ref">57</a>; <a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+Here
+we give a simplified version of their argument.</p>
+</div>
+<div id="SS2.SSSx4.p3" class="ltx_para">
+<p class="ltx_p">Results from reverse correlation analysis suggest that
+each spike signifies the time
+course of the stimulus preceding the spike.
+If this is correct,
+a reconstruction of the complete
+time course of the stimulus <math id="SS2.SSSx4.p3.m1" class="ltx_Math" alttext="s(t)" display="inline"><semantics><mrow><mi>s</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">s(t)</annotation></semantics></math>
+from the set of firing times
+<math id="SS2.SSSx4.p3.m2" class="ltx_Math" alttext="{\mathcal{F}}=\{t^{(1)},\dots t^{(n)}\}" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â±</mi><mo>=</mo><mrow><mo>{</mo><mrow><msup><mi>t</mi><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msup><mo>,</mo><mrow><mi mathvariant="normal">â¦</mi><mo>â¢</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>n</mi><mo>)</mo></mrow></msup></mrow></mrow><mo>}</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{F}}=\{t^{(1)},\dots t^{(n)}\}</annotation></semantics></math>
+should be possible; see Fig.Â <a href="#Ch7.F19" title="Fig.Â 7.19 â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.19</span></a>. As a simple test of this hypothesis, Bialek and coworkers
+have studied a linear reconstruction.
+A spike at time <math id="SS2.SSSx4.p3.m3" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math> gives a contribution
+<math id="SS2.SSSx4.p3.m4" class="ltx_Math" alttext="\kappa(t-t^{(f)})" display="inline"><semantics><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa(t-t^{(f)})</annotation></semantics></math>
+to the estimation <math id="SS2.SSSx4.p3.m5" class="ltx_Math" alttext="s^{\rm est}(t)" display="inline"><semantics><mrow><msup><mi>s</mi><mi>est</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">s^{\rm est}(t)</annotation></semantics></math> of the time course
+of the stimulus.
+Here, <math id="SS2.SSSx4.p3.m6" class="ltx_Math" alttext="t^{(f)}\in{\mathcal{F}}" display="inline"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>â</mo><mi class="ltx_font_mathcaligraphic">â±</mi></mrow><annotation encoding="application/x-tex">t^{(f)}\in{\mathcal{F}}</annotation></semantics></math> is one of the firing times
+and <math id="SS2.SSSx4.p3.m7" class="ltx_Math" alttext="\kappa(t-t^{(f)})" display="inline"><semantics><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa(t-t^{(f)})</annotation></semantics></math> is a kernel which is nonzero
+during some time before and around <math id="SS2.SSSx4.p3.m8" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math>;
+cf. Fig.Â <a href="#Ch7.F19" title="Fig.Â 7.19 â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.19</span></a>B.
+A linear estimate of the stimulus is</p>
+<table id="Ch7.E53" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E53.m1" class="ltx_Math" alttext="s^{\rm est}(t)=\sum_{f=1}^{n}\kappa(t-t^{(f)})\,." display="block"><semantics><mrow><mrow><mrow><msup><mi>s</mi><mi>est</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>f</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><mi>Îº</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">s^{\rm est}(t)=\sum_{f=1}^{n}\kappa(t-t^{(f)})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.53)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The form of the kernel <math id="SS2.SSSx4.p3.m9" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math> was determined
+through optimization
+so that the
+average reconstruction error
+<math id="SS2.SSSx4.p3.m10" class="ltx_Math" alttext="\int{\text{d}}t[s(t)-s^{\rm est}(t)]^{2}" display="inline"><semantics><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi><mo>â¢</mo><msup><mrow><mo>[</mo><mrow><mrow><mi>s</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msup><mi>s</mi><mi>est</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow><mn>2</mn></msup></mrow></mrow><annotation encoding="application/x-tex">\int{\text{d}}t[s(t)-s^{\rm est}(t)]^{2}</annotation></semantics></math>
+was minimal.
+The quality of the reconstruction was then
+tested on additional data which was not used
+for the optimization.
+Surprisingly enough, the simple linear
+reconstruction (<a href="#Ch7.E53" title="(7.53) â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.53</span></a>)
+gave a fair estimate of the time course of the
+stimulus even though the stimulus
+varied on a time scale comparable
+to the typical interspike interval
+<cite class="ltx_cite">(<a href="bib.html#bib171" title="Reading a neural code." class="ltx_ref">57</a>; <a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+This reconstruction method
+shows nicely that information about a time dependent input
+can indeed be conveyed by spike timing.
+Chapter <a href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a> will revisit the spike train decoding in the presence of refractoriness and adaptation.</p>
+</div>
+<figure id="Ch7.F19" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">A</span>
+                    </th>
+<th class="ltx_td ltx_align_left">
+                      <span class="ltx_text ltx_font_bold">B</span>
+                    </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                      <img src="x211.png" id="Ch7.F19.g1" class="ltx_graphics" width="293" height="163" alt="">
+                    </td>
+<td class="ltx_td ltx_align_left"><img src="x212.png" id="Ch7.F19.g2" class="ltx_graphics" width="292" height="162" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.19: </span>
+Reconstruction of a stimulus (schematic).
+<span class="ltx_text ltx_font_bold">A</span>. A stimulus evokes a spike train of a neuron.
+The time course of the stimulus may be estimated from the spike train;
+redrawn after [Rieke et al., 1996].
+<span class="ltx_text ltx_font_bold">B</span>. In the framework of linear stimulus reconstruction,
+the estimation <math id="Ch7.F19.m3" class="ltx_Math" alttext="s^{\rm est}(t)" display="inline"><semantics><mrow><msup><mi>s</mi><mi>est</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">s^{\rm est}(t)</annotation></semantics></math> (dashed)
+is the sum of the contributions <math id="Ch7.F19.m4" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+(solid lines) of
+all spikes.
+</figcaption>
+</figure>
+</section>
+<section id="SS2.SSSx5" class="ltx_subsubsection">
+<h1 class="ltx_title ltx_title_subsubsection">Rate versus temporal codes (*)</h1>
+
+<div id="SS2.SSSx5.p1" class="ltx_para">
+<p class="ltx_p">The dividing line between spike codes and firing rates
+is not always as clearly drawn as it may seem at first sight.
+Some codes which were first proposed as pure examples
+of pulse codes have later been interpreted as variations
+of rate codes.
+For example the stimulus reconstruction (<a href="#Ch7.E53" title="(7.53) â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.53</span></a>) with kernels
+seems to be a clear example of a spike code.
+Nevertheless, it is also not so far from a rate
+code based on spike counts
+<cite class="ltx_cite">(<a href="bib.html#bib172" title="Decoding neuronal firing and modeling neural networks" class="ltx_ref">6</a>; <a href="bib.html#bib173" title="Temporal encoding in nervous systems: a rigorous definition" class="ltx_ref">510</a>)</cite>.
+To see this, consider a spike count measure
+with a running time window <math id="SS2.SSSx5.p1.m1" class="ltx_Math" alttext="K(.)" display="inline"><semantics><mrow><mi>K</mi><mrow><mo stretchy="false">(</mo><mo>.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">K(.)</annotation></semantics></math>.
+We can estimate the rate <math id="SS2.SSSx5.p1.m2" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi>Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math> at time <math id="SS2.SSSx5.p1.m3" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+by</p>
+<table id="Ch7.E54" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E54.m1" class="ltx_Math" alttext="\nu(t)={\int K(\tau)\,S(t-\tau)d\tau\over\int K(\tau)d\tau}\,," display="block"><semantics><mrow><mrow><mrow><mi>Î½</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><mfrac><mstyle displaystyle="true"><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mi>K</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>Ï</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>Ï</mi></mrow></mrow></mstyle><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mi>K</mi><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>Ï</mi></mrow></mrow></mfrac></mpadded></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\nu(t)={\int K(\tau)\,S(t-\tau)d\tau\over\int K(\tau)d\tau}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.54)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.SSSx5.p1.m4" class="ltx_Math" alttext="S(t)=\sum_{f=1}^{n}\delta(t-t^{(f)})" display="inline"><semantics><mrow><mrow><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â</mo><mrow><mi>f</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S(t)=\sum_{f=1}^{n}\delta(t-t^{(f)})</annotation></semantics></math>
+is the spike train under consideration.
+The integrals run from minus to plus infinity.
+For a rectangular time window
+<math id="SS2.SSSx5.p1.m5" class="ltx_Math" alttext="K(\tau)=1" display="inline"><semantics><mrow><mrow><mi>K</mi><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K(\tau)=1</annotation></semantics></math> for <math id="SS2.SSSx5.p1.m6" class="ltx_Math" alttext="-T/2&lt;\tau&lt;T/2" display="inline"><semantics><mrow><mrow><mo>-</mo><mrow><mi>T</mi><mo>/</mo><mn>2</mn></mrow></mrow><mo>&lt;</mo><mi>Ï</mi><mo>&lt;</mo><mrow><mi>T</mi><mo>/</mo><mn>2</mn></mrow></mrow><annotation encoding="application/x-tex">-T/2&lt;\tau&lt;T/2</annotation></semantics></math> and zero otherwise,
+(<a href="#Ch7.E54" title="(7.54) â£ Rate versus temporal codes (*) â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.54</span></a>) reduces exactly to our
+definition (<a href="Ch7.S2.html#Ch7.E1" title="(7.1) â£ 7.2.1 Rate as a Spike Count and Fano Factor â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.1</span></a>)
+of a rate as a spike count measure in Eq. (<a href="Ch7.S2.html#Ch7.E1" title="(7.1) â£ 7.2.1 Rate as a Spike Count and Fano Factor â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.1</span></a>).</p>
+</div>
+<div id="SS2.SSSx5.p2" class="ltx_para">
+<p class="ltx_p">The time window in (<a href="#Ch7.E54" title="(7.54) â£ Rate versus temporal codes (*) â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.54</span></a>) can be
+made rather short so that at most
+a few spikes fall into the interval <math id="SS2.SSSx5.p2.m1" class="ltx_Math" alttext="T" display="inline"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>.
+Furthermore, there is no need that the window <math id="SS2.SSSx5.p2.m2" class="ltx_Math" alttext="K(.)" display="inline"><semantics><mrow><mi>K</mi><mrow><mo stretchy="false">(</mo><mo>.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">K(.)</annotation></semantics></math>
+be symmetric and rectangular.
+We may just as well take an asymmetric time window
+with smooth borders.
+Moreover, we can perform the integration over
+the <math id="SS2.SSSx5.p2.m3" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> function which yields</p>
+<table id="Ch7.E55" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E55.m1" class="ltx_Math" alttext="\nu(t)=c\,\sum_{f=1}^{n}K(t-t^{(f)})" display="block"><semantics><mrow><mrow><mi>Î½</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>c</mi></mpadded><mo>â¢</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>f</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><mi>K</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\nu(t)=c\,\sum_{f=1}^{n}K(t-t^{(f)})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.55)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS2.SSSx5.p2.m4" class="ltx_Math" alttext="c=[\int K(s)ds]^{-1}" display="inline"><semantics><mrow><mi>c</mi><mo>=</mo><msup><mrow><mo>[</mo><mrow><mo largeop="true" symmetric="true">â«</mo><mrow><mi>K</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>]</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">c=[\int K(s)ds]^{-1}</annotation></semantics></math> is a constant.
+Except for the constant <math id="SS2.SSSx5.p2.m5" class="ltx_Math" alttext="c" display="inline"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math> (which sets the overall
+scale to units of one over time),
+the generalized rate formula
+(<a href="#Ch7.E55" title="(7.55) â£ Rate versus temporal codes (*) â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.55</span></a>) is now identical to the
+reconstruction formula (<a href="#Ch7.E53" title="(7.53) â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.53</span></a>).
+In other words, the linear
+reconstruction is just the firing rate
+measured with a cleverly optimized time window.</p>
+</div>
+<div id="SS2.SSSx5.p3" class="ltx_para">
+<p class="ltx_p">Similarly, a code based on the
+âtime-to-first-spikeâ
+is also consistent with rate coding.
+If, for example, the mean firing rate of a
+neuron is high for a given stimulus,
+then the first spike is expected to occur
+early. If the rate is low, the first spike
+is expected to occur later.
+Thus the timing of the first
+spike contains a lot of information
+about the underlying rate.</p>
+</div>
+<div id="SS2.SSSx5.p4" class="ltx_para">
+<p class="ltx_p">The discussion of whether or not to call a given
+code a rate code is still ongoing.
+What is important, in our opinion,
+is to have a coding scheme
+which allows neurons to
+quickly respond to stimulus changes.
+A naÃ¯ve
+spike count code with a long time window
+is unable to do this, but a code based on population activities
+introduced above and many of the other codes
+are. The name of such a code, whether it is
+deemed a rate code or not is of minor importance.</p>
+</div>
+<div id="SS2.SSSx5.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                  <span class="ltx_text ltx_font_bold ltx_font_small">Example: Towards a definition of rate codes</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">We have seen above in Eq.Â (<a href="#Ch7.E55" title="(7.55) â£ Rate versus temporal codes (*) â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.55</span></a>) that
+stimulus reconstruction with a linear
+kernel
+can be seen as a special instance
+of a rate code. This suggests
+a formal definition of a rate
+code via the reconstruction procedure:
+if all information contained in a spike
+train can be recovered by the linear reconstruction
+procedure of Eq.Â (<a href="#Ch7.E53" title="(7.53) â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.53</span></a>),
+then the neuron is, by definition, using
+a rate code. Spike codes would then be codes where
+a linear reconstruction is not successful.
+Theunissen and Miller have proposed
+a definition of rate coding that makes the above
+ideas more precise <cite class="ltx_cite">(<a href="bib.html#bib173" title="Temporal encoding in nervous systems: a rigorous definition" class="ltx_ref">510</a>)</cite>.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">To see how their definition works,
+we have to return to the reconstruction formulaÂ (<a href="#Ch7.E53" title="(7.53) â£ Stimulus Reconstruction and Reverse Correlation â£ 7.6.2 Candidate temporal codes â£ 7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.53</span></a>).
+It is, in fact, the first term of
+a systematic Volterra expansion
+for the estimation of the stimulus from the spikes <cite class="ltx_cite">(<a href="bib.html#bib171" title="Reading a neural code." class="ltx_ref">57</a>)</cite></span>
+                </p>
+<table id="Ch7.E56" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E56.m1" class="ltx_Math" alttext="s^{\rm est}(t)=\sum_{f}\kappa_{1}(t-t^{(f)})\,+\sum_{f,f^{\prime}}\kappa_{2}(t%
+-t^{(f)},t-t^{(f^{\prime})})\,+\dots\,." display="block"><semantics><mrow><mrow><mrow><msup><mi>s</mi><mi>est</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><msub><mi>Îº</mi><mn>1</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>+</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>f</mi><mo>,</mo><msup><mi>f</mi><mo>â²</mo></msup></mrow></munder><mrow><msub><mi>Îº</mi><mn>2</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>,</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><msup><mi>f</mi><mo>â²</mo></msup><mo>)</mo></mrow></msup></mrow></mrow><mo>)</mo></mrow></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><mi mathvariant="normal">â¦</mi></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">s^{\rm est}(t)=\sum_{f}\kappa_{1}(t-t^{(f)})\,+\sum_{f,f^{\prime}}\kappa_{2}(t%
+-t^{(f)},t-t^{(f^{\prime})})\,+\dots\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.56)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">For a specific neuron,
+inclusion of higher-order terms <math id="SS2.SSSx5.p5.m1" class="ltx_Math" alttext="\kappa_{2},\kappa_{3},\dots" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Îº</mi><mn mathsize="normal" stretchy="false">2</mn></msub><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">Îº</mi><mn mathsize="normal" stretchy="false">3</mn></msub><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â¦</mi></mrow><annotation encoding="application/x-tex">\kappa_{2},\kappa_{3},\dots</annotation></semantics></math>
+may or may not improve the quality of the estimation.
+For most neurons where the reconstruction has
+been carried through, it seems that the higher-order terms
+do not contribute a large amount of information
+<cite class="ltx_cite">(<a href="bib.html#bib136" title="Spikes - exploring the neural code" class="ltx_ref">436</a>)</cite>.
+The neurons would then be classified as rate coding.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">Let us now suppose that the reconstruction
+procedure indicates a significant contribution of the second-order
+term. Does this exclude rate coding?
+Unfortunately this is not the case. We have to exclude two
+other possibilities.
+Firstly, we might have chosen a suboptimal stimulus.
+A neuron might for example encode
+the variable <math id="SS2.SSSx5.p5.m2" class="ltx_Math" alttext="x" display="inline"><semantics><mi mathsize="normal" stretchy="false">x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> by a rate code,
+so that a nearly perfect linear reconstruction of <math id="SS2.SSSx5.p5.m3" class="ltx_Math" alttext="x" display="inline"><semantics><mi mathsize="normal" stretchy="false">x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> would be possible,</span>
+                </p>
+<table id="Ch7.E57" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E57.m1" class="ltx_Math" alttext="x(t)\approx x^{\rm est}=\sum_{f=1}^{n}\kappa_{1}(t-t^{(f)})\,;" display="block"><semantics><mrow><mrow><mrow><mi>x</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â</mo><msup><mi>x</mi><mi>est</mi></msup><mo>=</mo><mrow><munderover><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><mi>f</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><msub><mi>Îº</mi><mn>1</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>;</mo></mrow><annotation encoding="application/x-tex">x(t)\approx x^{\rm est}=\sum_{f=1}^{n}\kappa_{1}(t-t^{(f)})\,;</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.57)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">But if we chose a stimulus <math id="SS2.SSSx5.p5.m4" class="ltx_Math" alttext="s=x^{2}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">=</mo><msup><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">2</mn></msup></mrow><annotation encoding="application/x-tex">s=x^{2}</annotation></semantics></math> instead of <math id="SS2.SSSx5.p5.m5" class="ltx_Math" alttext="x" display="inline"><semantics><mi mathsize="normal" stretchy="false">x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>, then
+the reconstruction for <math id="SS2.SSSx5.p5.m6" class="ltx_Math" alttext="s^{\rm est}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">s</mi><mi mathsize="normal" stretchy="false">est</mi></msup><annotation encoding="application/x-tex">s^{\rm est}</annotation></semantics></math> would involve
+second-order terms, even though
+the neuron is really using rate code.</span>
+                </p>
+<p class="ltx_p">
+                  <span class="ltx_text ltx_font_small">Secondly, according to
+Theunissen and Miller [1995] <cite class="ltx_cite"></cite>
+a spike code should show a
+temporal structure that is more precise
+than the temporal structure of the stimulus.
+The fact that neurons show
+precise and reliable spike timing
+as such is, for them, not sufficient
+to classify the neuron as a temporal
+encoder, since the neuronal precision
+could just be the image of precise temporal input.
+For a more quantitative treatment,
+let us consider a stimulus with cut-off frequency <math id="SS2.SSSx5.p5.m7" class="ltx_Math" alttext="\omega" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math>.
+In order to exclude the possibility
+that the timing is induced by the stimulus,
+Theunissen and Miller propose
+to consider the Fourier spectrum of the higher-order
+reconstruction kernels.
+If the Fourier transform of the higher-order kernels contains
+frequencies less than <math id="SS2.SSSx5.p5.m8" class="ltx_Math" alttext="\omega" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math> only,
+then the code is a rate code.
+If higher-order kernels are significant and contain frequencies
+above <math id="SS2.SSSx5.p5.m9" class="ltx_Math" alttext="\omega" display="inline"><semantics><mi mathsize="normal" stretchy="false">Ï</mi><annotation encoding="application/x-tex">\omega</annotation></semantics></math>, then
+the information is encoded temporally.
+A positive example of a spike code (or of âtemporal encodingâ)
+according to this definition
+would be the code by correlation and synchrony
+introduced above.
+Another example would be the phase code,
+in particular if the number of spikes per cycle
+is independent of the stimulus strength.
+</span>
+                </p>
+</span>
+</div>
+</section>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch7.S5.html" title="7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.5 </span>Renewal statistics</span></a><a href="Ch7.S7.html" title="7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.7 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

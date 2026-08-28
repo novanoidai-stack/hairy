@@ -140,3 +140,9 @@ web/narracion/_wav/
 # 5 MB de pantallazos de usar y tirar. Los prototipos .html y los documentos de
 # decisiones SI se versionan, que son la referencia.
 design-demos/*.png
+
+# Artefactos de raiz movidos a archive/raiz-legacy (2026-08-28)
+/archive/raiz-legacy/untracked/
+# Salidas regenerables de scripts de verificacion
+verif-pricing.png
+temp_*.txt

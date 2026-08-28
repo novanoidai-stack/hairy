@@ -17,7 +17,9 @@ import { alEscribirEnTabla } from '@/lib/supabase';
 // profesionales, el portal publico y el agente de WhatsApp escriben sobre lo
 // mismo), y ya hay realtime alimentando la pantalla. Dejar una ventana de
 // "estos datos valen" sobre las citas es abrir la puerta a la doble reserva.
-// Las citas se refrescan por realtime -> queryClient.setQueryData.
+// Las citas se refrescan por realtime directo a la pantalla (su canal propio,
+// NO via queryClient.setQueryData: hoy no existe ese puente, y si algun dia
+// alguien quiere cachear citas habra que construirlo antes).
 //
 // Lo que si aguanta cache de verdad son las tablas de referencia: servicios,
 // horarios, configuracion del salon. Cambian de Pascuas a Ramos y se consultan

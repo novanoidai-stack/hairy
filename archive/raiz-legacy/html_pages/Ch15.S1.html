@@ -1,0 +1,309 @@
+<!DOCTYPE html><html>
+<head>
+<title>15.1 How fast are population responses? | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S4.html" title="15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="population activity, timescale">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15 </span>Fast Transients and Rate Models</span></a><a href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15 </span>Fast Transients and Rate Models</span></a><a href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2 </span>Fast transients vs. slow transients in models</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">15.1 </span>How fast are population responses?</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Simultaneous measurements from many neurons in vivo
+with spike-time resolution
+are difficult.
+Fig. <a href="#Ch15.F2" title="Fig.Â 15.2 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>
+shows two examples of simultaneous recordings
+across different layers in primary auditory cortex.
+Each of the 32 recording sites is able to pick
+up activity of several neurons (Fig. <a href="#Ch15.F2" title="Fig.Â 15.2 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>A).
+The group of recorded neurons in layer IV responds to
+a short tone stimulus
+with a delay of about 15 ms
+(Fig. <a href="#Ch15.F2" title="Fig.Â 15.2 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>B),
+the neurons in other layers follow shortly thereafter.
+Based on several such experiments,
+we may conclude that population activity in layer IV
+exhibits an initial sharp peak less than 20ms
+after stimulus onset
+<cite class="ltx_cite">(<a href="bib.html#bib365" title="Laminar structure of spontaneous and sensory-evoked population activity in auditory cortex" class="ltx_ref">453</a>)</cite>.
+Unfortunately, the number of neurons that
+are recorded simultaneously in one layer
+is limited so that an interpretation
+in terms of population activity is
+difficult; nevertheless, the data
+suggests that transients can be
+fast and reliable on the time scale of 10ms.</p>
+</div>
+<figure id="Ch15.F2" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x363.png" id="Ch15.F2.g1" class="ltx_graphics" width="293" height="210" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x364.png" id="Ch15.F2.g2" class="ltx_graphics" width="291" height="282" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.2: </span>
+Response of auditory neurons across different layers
+to short stimuli.
+<span class="ltx_text ltx_font_bold">A</span>.
+Left: Schematic drawing of an electrode with 32 sites
+overlayed on top of stained cortical tissue
+in order to show that the electrode crosses
+all cortical layers.
+Right: Spike responses of multiple neurons
+to a short click stimulus (filled arrows)
+and during spontaneous activity (open arrows).
+Horizontal scale bar: 500ms.
+<span class="ltx_text ltx_font_bold">B</span>.
+Responses to a tone sustained during
+the shaded period. Filled circles indicate
+estimated peak of response. Scale bar: 50ms.
+Neuron recordings in A and B are from
+primary auditory cortex, figures adapted
+from <cite class="ltx_cite">(<a href="bib.html#bib365" title="Laminar structure of spontaneous and sensory-evoked population activity in auditory cortex" class="ltx_ref">453</a>)</cite>.
+</figcaption>
+</figure>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">Alternatively, one can attempt to study population
+activity across many experiments with single-neuron recordings.
+Neurons in visual cortex V1 and V4
+respond reliably to the onset of
+spatial gratings (Fig. <a href="#Ch15.F3" title="Fig.Â 15.3 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>),
+as seen in the PSTH accumulated over several
+repetitions of the stimulus presentation
+<cite class="ltx_cite">(<a href="bib.html#bib366" title="On the relationship between synaptic input and spike output jitter in individual neurons" class="ltx_ref">331</a>)</cite>.
+However, different neurons have different delays.
+If the PSTHs from many neurons are aligned
+onto the moment of the sharp rise of the PSTH response,
+then the resulting population activity
+exhibits an extremely sharp and
+abrupt onset peak, followed
+by a rapid decrease <cite class="ltx_cite">(<a href="bib.html#bib366" title="On the relationship between synaptic input and spike output jitter in individual neurons" class="ltx_ref">331</a>)</cite>.
+However, if the responses of different cells
+were aligned on
+the moment of stimulus onset, then
+the population response would look slower,
+which is not surprising given that the recordings
+do not come from a single homogeneous population.</p>
+</div>
+<figure id="Ch15.F3" class="ltx_figure"><img src="x365.png" id="Ch15.F3.g1" class="ltx_graphics ltx_centering" width="443" height="342" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.3: </span>
+Transient response of neurons in visual cortex. At <math id="Ch15.F3.m2" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math>
+a high-contrast grating is flashed on a gray screen.
+Top left: A neuron in visual cortex V1 of a behaving monkey responds
+with a sharp onset after a latency of 27ms,
+as shown by the PSTH.
+Bottom left: Another neuron in V1 responds
+after a latency of 99ms.
+Right: PSTHs of 73 neurons in V1 (solid line)
+and of 183 neurons in V4 (dashed line)
+were normalized to an amplitude of 1.0
+and onsets were aligned at half the peak-value
+(horizontal and vertical solid lines)
+and finally averaged.
+The rise time of the averaged PSTH is less than 10ms.
+After the first peak, the firing rate drops off rapidly;
+adapted from <cite class="ltx_cite">(<a href="bib.html#bib366" title="On the relationship between synaptic input and spike output jitter in individual neurons" class="ltx_ref">331</a>)</cite>.
+</figcaption>
+</figure>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">In an in vitro preparation,
+the same step current input
+can be repeatedly given
+to the same neuron.
+In order to mimic additional stochastic
+spike arrivals that would be present in vivo,
+during each repetition
+a different realization
+of a noisy current can be added to the step current.
+Fig. <a href="#Ch15.F4" title="Fig.Â 15.4 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.4</span></a>
+shows the response of pyramidal neurons in cortical layer 2/3,
+to such noisy step inputs, averaged over 12 different cells.
+The population activity in Fig. <a href="#Ch15.F4" title="Fig.Â 15.4 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.4</span></a>A
+exhibits
+a rapid transient, followed by a
+strongly damped oscillation
+<cite class="ltx_cite">(<a href="bib.html#bib367" title="Ultrafast population encoding by cortical neurons" class="ltx_ref">509</a>)</cite>.
+As we will see in the following sections,
+the oscillatory component indicates
+that the noise level of the stochastic input component was
+chosen fairly low. For low noise, those neurons
+that fire together at stimulus onset, enter together into
+a state of refractoriness and fire again after a time
+corresponding to the mean interspike interval.
+We can therefore conclude
+that populations of neurons in vitro
+exhibit, in the regime of low noise,
+a sharp transient, indicating
+a very fast response to step current input.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">The theory of population activity
+(Fig. <a href="#Ch15.F4" title="Fig.Â 15.4 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.4</span></a>B)
+enables us to understand the responses
+found in the experiments, as we will
+see in the next section.</p>
+</div>
+<figure id="Ch15.F4" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <img src="x366.png" id="Ch15.F4.g1" class="ltx_graphics" width="293" height="219" alt="">
+                </th>
+<td class="ltx_td ltx_align_left">
+                  <img src="x367.png" id="Ch15.F4.g2" class="ltx_graphics" width="292" height="105" alt="">
+                </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><img src="x368.png" id="Ch15.F4.g3" class="ltx_graphics" width="293" height="67" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.4: </span>
+Response of pyramidal cells in vitro to step input.
+<span class="ltx_text ltx_font_bold">A</span>. The PSTH response of pyramidal cells
+in cortical layers 2 and 3
+averaged across 12 cells gives an estimate
+of the population activity <math id="Ch15.F4.m6" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>.
+The step current (<math id="Ch15.F4.m7" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>, bottom)
+generates an input potential <math id="Ch15.F4.m8" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math>
+which responds much slower than the population activity <math id="Ch15.F4.m9" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>.
+Right: Zoom into <math id="Ch15.F4.m10" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>.
+Vertical dashed line indicates stimulus onset.
+Adapted from <cite class="ltx_cite">(<a href="bib.html#bib367" title="Ultrafast population encoding by cortical neurons" class="ltx_ref">509</a>)</cite>.
+<span class="ltx_text ltx_font_bold">B1</span>.
+Experimental data from <cite class="ltx_cite">(<a href="bib.html#bib367" title="Ultrafast population encoding by cortical neurons" class="ltx_ref">509</a>)</cite>
+are compared with the numerical integration
+of the integral equations
+for adaptive neurons (cf. Section <a href="Ch14.S5.html" title="14.5 Adaptation in Population Equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>
+in Ch. <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>).
+The input current is shown in B2.
+</figcaption>
+</figure>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15 </span>Fast Transients and Rate Models</span></a><a href="Ch15.S2.html" title="15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.2 </span>Fast transients vs. slow transients in models</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

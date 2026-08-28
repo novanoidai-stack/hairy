@@ -1,0 +1,1070 @@
+<!DOCTYPE html><html>
+<head>
+<title>7.5 Renewal statistics | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S1.html" title="7.1 Spike train variability â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S2.html" title="7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S3.html" title="7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch7.S7.html" title="7.7 Summary â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                  , 
+                  , 
+                  , 
+                  , autocorrelation-renewal, hazard, hypothesis, input-dependent, interval distribution, point process, process, renewal, survivor function">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7 </span>Variability of Spike Trains and Neural Codes</span></a><a href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.4 </span>Autocorrelation function and noise spectrum</span></a><a href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6 </span>The Problem of Neural Coding</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7.5 </span>Renewal statistics</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Poisson processes do not
+account for neuronal refractoriness
+and cannot be used to describe realistic
+interspike interval distributions.
+In order to account for neuronal refractoriness in the stochastic
+description of spike trains, we need to switch
+from a Poisson process to a renewal process.
+Renewal process keep a memory of the last event (last firing time <math id="p1.m1" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>),
+but not of any earlier events.
+More precisely, spikes are generated in
+a renewal process,
+with
+a stochastic intensity (or âhazardâ)</p>
+<table id="Ch7.E22" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E22.m1" class="ltx_Math" alttext="\rho(t|\hat{t})=\rho_{0}(t-\hat{t})" display="block"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>Ï</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})=\rho_{0}(t-\hat{t})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.22)</span></td>
+</tr>
+</table>
+<p class="ltx_p">which depends on the time
+since the last spike.
+One of the simplest example of a renewal system is
+a Poisson process with absolute refractoriness
+which we have encountered already in
+the previous section;
+see
+Eq.Â (<a href="Ch7.S3.html#Ch7.E16" title="(7.16) â£ 7.3.1 Coefficient of variation CV â£ 7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>).</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">Renewal processes are a class of
+stochastic point processes that describe a sequence of
+events in time <cite class="ltx_cite">(<a href="bib.html#bib138" title="Renewal theory" class="ltx_ref">106</a>; <a href="bib.html#bib139" title="Probability, random variables, and stochastic processes" class="ltx_ref">386</a>)</cite>. Renewal systems in the <span class="ltx_text ltx_font_italic">narrow</span> sense (stationary renewal processes), presuppose stationary input
+and are defined by the fact that the state of the system, and hence the
+probability of generating the next event, depends only on the âageâ <math id="p2.m1" class="ltx_Math" alttext="t-\hat{t}" display="inline"><semantics><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">t-\hat{t}</annotation></semantics></math>
+of the system, i.e., the time that has passed since the last event (last
+spike). The central assumption of renewal theory is that the state does not
+depend on earlier events (i.e., earlier spikes of the same neuron).
+The aim
+of renewal theory is to predict the probability of the next event given the
+age of the system.
+In other words, renewal theory allows to calculate
+the interval distribution</p>
+<table id="Ch7.E23" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E23.m1" class="ltx_Math" alttext="P_{0}(s)=P(t^{(f)}+s|t^{(f)})" display="block"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>+</mo><mi>s</mi><mo stretchy="false">|</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)=P(t^{(f)}+s|t^{(f)})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.23)</span></td>
+</tr>
+</table>
+<p class="ltx_p">i.e., the probability density that the next event occurs at time
+<math id="p2.m2" class="ltx_Math" alttext="t^{(f)}+s" display="inline"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>+</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">t^{(f)}+s</annotation></semantics></math> given that the last event was observed at time <math id="p2.m3" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math>.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">While for a Poisson process all events occur independently,
+in a renewal process generation of events (spikes) depends
+on the previous event, so that events are <span class="ltx_text ltx_font_italic">not</span> independent.
+However, since the dependence is restricted to the most recent event,
+<span class="ltx_text ltx_font_italic">intervals between subsequent events are independent</span>.
+Therefore, an efficient way of generating a spike train
+of a renewal system is to draw interspike intervals from
+the distribution <math id="p3.m1" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>.</p>
+</div>
+<div id="p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Light bulb failure as a renewal system</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">A generic example of a renewal system is a light
+bulb. The event is the failure of the bulb and its subsequent exchange.
+Obviously, the state of the system only depends on the age of the current
+bulb, and not on that of any previous bulb that has already been exchanged.
+If the usage pattern of the bulbs is stationary (e.g., the bulb is switched on
+during 10 hours each night) then we have a stationary renewal process.
+The aim of renewal theory is to calculate the probability of the
+next failure given the age of the bulb.</span>
+            </p>
+</span>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.5.1 </span>Survivor function and hazard</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">The interval distribution <math id="SS1.p1.m1" class="ltx_Math" alttext="P(t|\hat{t})" display="inline"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(t|\hat{t})</annotation></semantics></math> as defined above is a probability
+<span class="ltx_text ltx_font_italic">density</span>. Thus, integration of <math id="SS1.p1.m2" class="ltx_Math" alttext="P(t|\hat{t})" display="inline"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(t|\hat{t})</annotation></semantics></math> over time yields a
+probability. For example, <math id="SS1.p1.m3" class="ltx_Math" alttext="\int_{\hat{t}}^{t}P(t^{\prime}|\hat{t})\,{\text{d}}t^{\prime}" display="inline"><semantics><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>P</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup></mrow><annotation encoding="application/x-tex">\int_{\hat{t}}^{t}P(t^{\prime}|\hat{t})\,{\text{d}}t^{\prime}</annotation></semantics></math> is the
+probability that a neuron which has emitted a spike at <math id="SS1.p1.m4" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> fires the next
+action potential between <math id="SS1.p1.m5" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> and <math id="SS1.p1.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>. Thus</p>
+<table id="Ch7.E24" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E24.m1" class="ltx_Math" alttext="S(t|\hat{t})=1-\int_{\hat{t}}^{t}P(t^{\prime}|\hat{t})\,{\text{d}}t^{\prime}" display="block"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mn>1</mn><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>P</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup></mrow><annotation encoding="application/x-tex">S(t|\hat{t})=1-\int_{\hat{t}}^{t}P(t^{\prime}|\hat{t})\,{\text{d}}t^{\prime}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.24)</span></td>
+</tr>
+</table>
+<p class="ltx_p">is the probability that the neuron stays quiescent between <math id="SS1.p1.m7" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> and <math id="SS1.p1.m8" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.
+<math id="SS1.p1.m9" class="ltx_Math" alttext="S(t|\hat{t})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t|\hat{t})</annotation></semantics></math> is called the <span class="ltx_text ltx_font_italic">survivor function</span>: it gives the
+probability that the neuron âsurvivesâ from <math id="SS1.p1.m10" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> to <math id="SS1.p1.m11" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> without firing.
+
+</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">The survivor function <math id="SS1.p2.m1" class="ltx_Math" alttext="S(t|\hat{t})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t|\hat{t})</annotation></semantics></math> has an initial value
+<math id="SS1.p2.m2" class="ltx_Math" alttext="S(\hat{t}|\hat{t})=1" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">S(\hat{t}|\hat{t})=1</annotation></semantics></math> and decreases to zero for <math id="SS1.p2.m3" class="ltx_Math" alttext="t\to\infty" display="inline"><semantics><mrow><mi>t</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">t\to\infty</annotation></semantics></math>. The rate of
+decay of <math id="SS1.p2.m4" class="ltx_Math" alttext="S(t|\hat{t})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t|\hat{t})</annotation></semantics></math> will be denoted by <math id="SS1.p2.m5" class="ltx_Math" alttext="\rho(t|\hat{t})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})</annotation></semantics></math> and is
+defined by</p>
+<table id="Ch7.E25" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E25.m1" class="ltx_Math" alttext="\rho(t|\hat{t})=-{\frac{{\text{d}}}{{\text{d}}t}S(t|\hat{t})\,\over\,S(t|\hat{%
+t})}={P(t|\hat{t})\over 1-\int_{\hat{t}}^{t}P(t^{\prime}|\hat{t})\,{\text{d}}t%
+^{\prime}}\,." display="block"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mo>-</mo><mfrac><mrow><mstyle displaystyle="true"><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow></mrow><mrow><mpadded lspace="1.7pt" width="+1.7pt"><mi>S</mi></mpadded><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow></mfrac><mo>=</mo><mpadded width="+1.7pt"><mfrac><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><mrow><mn>1</mn><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>P</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup></mrow></mfrac></mpadded><mo>.</mo></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})=-{\frac{{\text{d}}}{{\text{d}}t}S(t|\hat{t})\,\over\,S(t|\hat{%
+t})}={P(t|\hat{t})\over 1-\int_{\hat{t}}^{t}P(t^{\prime}|\hat{t})\,{\text{d}}t%
+^{\prime}}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.25)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In the language of renewal theory,
+<math id="SS1.p2.m6" class="ltx_Math" alttext="\rho(t|\hat{t})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})</annotation></semantics></math> is called the âage-dependent death rateâ or âhazardâ
+<cite class="ltx_cite">(<a href="bib.html#bib138" title="Renewal theory" class="ltx_ref">106</a>; <a href="bib.html#bib140" title="The statistical analysis of series of events" class="ltx_ref">105</a>)</cite>.
+</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Integration of the differential
+equation <math id="SS1.p3.m1" class="ltx_Math" alttext="dS/dt=-\rho\,S" display="inline"><semantics><mrow><mrow><mrow><mrow><mi>d</mi><mo>â¢</mo><mi>S</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><mi>t</mi></mrow><mo>=</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mi>S</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">dS/dt=-\rho\,S</annotation></semantics></math> [cf. the first identity in Eq.Â (<a href="#Ch7.E25" title="(7.25) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.25</span></a>)]
+yields the survivor function</p>
+<table id="Ch7.E26" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E26.m1" class="ltx_Math" alttext="S(t|\hat{t})=\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|\hat{t})\,{\text{d}}%
+t^{\prime}\right]\,." display="block"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo rspace="4.2pt">]</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">S(t|\hat{t})=\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|\hat{t})\,{\text{d}}%
+t^{\prime}\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.26)</span></td>
+</tr>
+</table>
+<p class="ltx_p">According to the definition of the survivor function in
+Eq.Â (<a href="#Ch7.E24" title="(7.24) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.24</span></a>), the interval distribution is given by
+
+</p>
+<table id="Ch7.E27" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E27.m1" class="ltx_Math" alttext="P(t|\hat{t})=-\frac{{\text{d}}}{{\text{d}}t}S(t|\hat{t})=\rho(t|\hat{t})\,S(t|%
+\hat{t})\,," display="block"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mo>-</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">P(t|\hat{t})=-\frac{{\text{d}}}{{\text{d}}t}S(t|\hat{t})=\rho(t|\hat{t})\,S(t|%
+\hat{t})\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.27)</span></td>
+</tr>
+</table>
+<p class="ltx_p">which has a nice intuitive interpretation: In order to emit its <span class="ltx_text ltx_font_italic">next</span>
+spike at <math id="SS1.p3.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, the neuron has to survive the interval <math id="SS1.p3.m3" class="ltx_Math" alttext="(\hat{t},t)" display="inline"><semantics><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>t</mi></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(\hat{t},t)</annotation></semantics></math> without
+firing and then fire at <math id="SS1.p3.m4" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>. The survival probability is <math id="SS1.p3.m5" class="ltx_Math" alttext="S(t|\hat{t})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t|\hat{t})</annotation></semantics></math> and
+the hazard of firing a spike at time <math id="SS1.p3.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is <math id="SS1.p3.m7" class="ltx_Math" alttext="\rho(t|\hat{t})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})</annotation></semantics></math>.
+Multiplication of the survivor function <math id="SS1.p3.m8" class="ltx_Math" alttext="S" display="inline"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math> with the momentary hazard <math id="SS1.p3.m9" class="ltx_Math" alttext="\rho" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+gives
+the two factors on the right-hand side of Eq.Â (<a href="#Ch7.E27" title="(7.27) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.27</span></a>). Inserting
+Eq.Â (<a href="#Ch7.E26" title="(7.26) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.26</span></a>) inÂ (<a href="#Ch7.E27" title="(7.27) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.27</span></a>), we obtain an explicit expression for
+the interval distribution in terms of the hazard:</p>
+<table id="Ch7.E28" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E28.m1" class="ltx_Math" alttext="P(t|\hat{t})=\rho(t|\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|%
+\hat{t})\,{\text{d}}t^{\prime}\right]\,." display="block"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>exp</mi><mrow><mo>[</mo><mo>-</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mi>t</mi></msubsup><mi>Ï</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mtext>d</mtext><msup><mi>t</mi><mo>â²</mo></msup><mo rspace="4.2pt">]</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">P(t|\hat{t})=\rho(t|\hat{t})\,\exp\left[-\int_{\hat{t}}^{t}\rho(t^{\prime}|%
+\hat{t})\,{\text{d}}t^{\prime}\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.28)</span></td>
+</tr>
+</table>
+<p class="ltx_p">On the other hand, given the interval distribution we can derive the hazard
+from Eq. (<a href="#Ch7.E25" title="(7.25) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.25</span></a>).
+Thus, each of the three quantities <math id="SS1.p3.m10" class="ltx_Math" alttext="\rho(t|\hat{t})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t|\hat{t})</annotation></semantics></math>, <math id="SS1.p3.m11" class="ltx_Math" alttext="P(t|\hat{t})" display="inline"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(t|\hat{t})</annotation></semantics></math>, and
+<math id="SS1.p3.m12" class="ltx_Math" alttext="S(t|\hat{t})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t|\hat{t})</annotation></semantics></math> is sufficient to describe the statistical properties of a
+renewal system.
+Since we focus on stationary renewal systems, the notation can
+be simplified and
+Eqs.Â (<a href="#Ch7.E24" title="(7.24) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.24</span></a>)â(<a href="#Ch7.E28" title="(7.28) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.28</span></a>)
+hold with the replacement</p>
+<table id="Ch20.S4.EGx37" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch7.E29" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch7.E29.m1" class="ltx_Math" alttext="\displaystyle P(t|\hat{t})" display="inline"><semantics><mrow><mi>P</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle P(t|\hat{t})</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch7.E29.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch7.E29.m3" class="ltx_Math" alttext="\displaystyle P_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle P_{0}(t-\hat{t})</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.29)</span></td>
+</tr>
+<tr id="Ch7.E30" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch7.E30.m1" class="ltx_Math" alttext="\displaystyle S(t|\hat{t})" display="inline"><semantics><mrow><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle S(t|\hat{t})</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch7.E30.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch7.E30.m3" class="ltx_Math" alttext="\displaystyle S_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle S_{0}(t-\hat{t})</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.30)</span></td>
+</tr>
+<tr id="Ch7.E31" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch7.E31.m1" class="ltx_Math" alttext="\displaystyle\rho(t|\hat{t})" display="inline"><semantics><mrow><mi>Ï</mi><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\rho(t|\hat{t})</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch7.E31.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch7.E31.m3" class="ltx_Math" alttext="\displaystyle\rho_{0}(t-\hat{t})\,." display="inline"><semantics><mrow><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle\rho_{0}(t-\hat{t})\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.31)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Eqs.Â (<a href="#Ch7.E24" title="(7.24) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.24</span></a>) - (<a href="#Ch7.E28" title="(7.28) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.28</span></a>)
+are standard results of
+renewal theory. The notation that we
+have chosen in Eqs.Â (<a href="#Ch7.E24" title="(7.24) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.24</span></a>) - (<a href="#Ch7.E28" title="(7.28) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.28</span></a>)
+will turn out to be useful in later chapters and
+highlights the fact that these quantities are conditional
+probabilities, probability densities, or rates.</p>
+</div>
+<figure id="Ch7.F10" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x191.png" id="Ch7.F10.g1" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x192.png" id="Ch7.F10.g2" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x193.png" id="Ch7.F10.g3" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x194.png" id="Ch7.F10.g4" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x195.png" id="Ch7.F10.g5" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x196.png" id="Ch7.F10.g6" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x197.png" id="Ch7.F10.g7" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x198.png" id="Ch7.F10.g8" class="ltx_graphics" width="200" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x199.png" id="Ch7.F10.g9" class="ltx_graphics" width="200" height="164" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.10: </span>
+Interval distribution <math id="Ch7.F10.m11" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math> (top), survivor function <math id="Ch7.F10.m12" class="ltx_Math" alttext="S_{0}(s)" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(s)</annotation></semantics></math>
+(middle) for three different hazard functions (bottom).
+<span class="ltx_text ltx_font_bold">A</span>. Hazard function corresponds to a Poisson neuron with absolute refractoriness of 5Â ms.
+<span class="ltx_text ltx_font_bold">B</span>. Hazard function defined by <math id="Ch7.F10.m13" class="ltx_Math" alttext="\rho_{0}(s)=a_{0}\,(s-\Delta^{\rm abs})\,\Theta(s-\Delta^{\rm abs})" display="inline"><semantics><mrow><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>a</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(s)=a_{0}\,(s-\Delta^{\rm abs})\,\Theta(s-\Delta^{\rm abs})</annotation></semantics></math> with <math id="Ch7.F10.m14" class="ltx_Math" alttext="a_{0}=0.01\," display="inline"><semantics><mrow><msub><mi>a</mi><mn>0</mn></msub><mo>=</mo><mpadded width="+1.7pt"><mn>0.01</mn></mpadded></mrow><annotation encoding="application/x-tex">a_{0}=0.01\,</annotation></semantics></math>ms<math id="Ch7.F10.m15" class="ltx_Math" alttext="{}^{-2}" display="inline"><semantics><msup><mi></mi><mrow><mo>-</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">{}^{-2}</annotation></semantics></math> and <math id="Ch7.F10.m16" class="ltx_Math" alttext="\Delta^{\rm abs}=2" display="inline"><semantics><mrow><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs}=2</annotation></semantics></math>âms. <span class="ltx_text ltx_font_bold">C</span>. Hazard function defined by <math id="Ch7.F10.m17" class="ltx_Math" alttext="\rho_{0}(s)=\nu\{1-\,\exp[-\lambda\,(s-\Delta^{\rm abs})]\}\,\Theta(s-\Delta^{%
+\rm abs})" display="inline"><semantics><mrow><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>Î½</mi><mo>â¢</mo><mrow><mo>{</mo><mrow><mn>1</mn><mo rspace="4.2pt">-</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>[</mo><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Î»</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><mo>}</mo></mrow><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(s)=\nu\{1-\,\exp[-\lambda\,(s-\Delta^{\rm abs})]\}\,\Theta(s-\Delta^{%
+\rm abs})</annotation></semantics></math>
+with <math id="Ch7.F10.m18" class="ltx_Math" alttext="\nu=0.1" display="inline"><semantics><mrow><mi>Î½</mi><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\nu=0.1</annotation></semantics></math>âkHz, <math id="Ch7.F10.m19" class="ltx_Math" alttext="\lambda=0.2" display="inline"><semantics><mrow><mi>Î»</mi><mo>=</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">\lambda=0.2</annotation></semantics></math>âkHz, and <math id="Ch7.F10.m20" class="ltx_Math" alttext="\Delta^{\rm abs}=2" display="inline"><semantics><mrow><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs}=2</annotation></semantics></math>âms.
+</figcaption>
+</figure>
+<div id="SS1.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: From interval distribution to hazard function</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Let us suppose that we have found under stationary experimental conditions an
+interval distribution that can be approximated as</span>
+              </p>
+<table id="Ch7.E32" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E32.m1" class="ltx_Math" alttext="P_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}0\qquad&{\rm for}\qquad&amp;s%
+\leq\Delta^{\rm abs}\\
+a_{0}\,(s-\Delta^{\rm abs})\,e^{-{a_{0}\over 2}(s-\Delta^{\rm abs})^{2}}\qquad%
+&{\rm for}\qquad&amp;s&gt;\Delta^{\rm abs}\end{array}\right." display="block"><semantics><mrow><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mpadded width="+20.0pt"><mn>0</mn></mpadded></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>â¤</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mpadded width="+1.7pt"><msub><mi>a</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mpadded width="+20.0pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mfrac><msub><mi>a</mi><mn>0</mn></msub><mn>2</mn></mfrac><mo>â¢</mo><msup><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow><mn>2</mn></msup></mrow></mrow></msup></mpadded></mrow></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>&gt;</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}0\qquad&amp;{\rm for}\qquad&amp;s%
+\leq\Delta^{\rm abs}\\
+a_{0}\,(s-\Delta^{\rm abs})\,e^{-{a_{0}\over 2}(s-\Delta^{\rm abs})^{2}}\qquad%
+&amp;{\rm for}\qquad&amp;s&gt;\Delta^{\rm abs}\end{array}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.32)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with a constant <math id="SS1.p4.m1" class="ltx_Math" alttext="a_{0}&gt;0" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">a</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">a_{0}&gt;0</annotation></semantics></math>; cf.Â Fig.Â <a href="#Ch7.F10" title="Fig.Â 7.10 â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.10</span></a>B. From
+Eq.Â (<a href="#Ch7.E25" title="(7.25) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.25</span></a>), the hazard is found to be</span>
+              </p>
+<table id="Ch7.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E33.m1" class="ltx_Math" alttext="\rho_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}0\qquad&{\rm for}\qquad&amp;s%
+\leq\Delta^{\rm abs}\\
+a_{0}\,(s-\Delta^{\rm abs})\qquad&{\rm for}\qquad&amp;s&gt;\Delta^{\rm abs}\,.\end{%
+array}\right." display="block"><semantics><mrow><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mpadded width="+20.0pt"><mn>0</mn></mpadded></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>â¤</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mpadded width="+1.7pt"><msub><mi>a</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+20.0pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mpadded></mrow></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mrow><mi>s</mi><mo>&gt;</mo><mpadded width="+1.7pt"><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mpadded></mrow><mo>.</mo></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}0\qquad&amp;{\rm for}\qquad&amp;s%
+\leq\Delta^{\rm abs}\\
+a_{0}\,(s-\Delta^{\rm abs})\qquad&amp;{\rm for}\qquad&amp;s&gt;\Delta^{\rm abs}\,.\end{%
+array}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.33)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Thus, during an interval <math id="SS1.p4.m2" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math> after each spike the
+hazard vanishes. We may interpret <math id="SS1.p4.m3" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math> as the absolute
+refractory time of the neuron. For <math id="SS1.p4.m4" class="ltx_Math" alttext="s&gt;\Delta^{\rm abs}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">&gt;</mo><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup></mrow><annotation encoding="application/x-tex">s&gt;\Delta^{\rm abs}</annotation></semantics></math> the hazard
+increases linearly, i.e., the longer the neuron waits the higher its
+probability of firing. In Chapter <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>, the hazard of Eq.
+(<a href="#Ch7.E33" title="(7.33) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.33</span></a>) can be interpreted
+as the instantaneous rate of a non-leaky integrate-and-fire neuron
+subject to noise.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.5.2 </span>Renewal theory and experiments</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Renewal theory is usually associated with stationary input conditions. The
+interval distribution <math id="SS2.p1.m1" class="ltx_Math" alttext="P_{0}" display="inline"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_{0}</annotation></semantics></math> can then be estimated experimentally from a single
+long spike train. The applicability of renewal theory relies on the
+hypothesis that a memory back to the last spike suffices to describe the spike
+statistics. In particular, there should be no correlation between one
+interval and the next. In experiments, the renewal hypothesis, can be tested
+by measuring the correlation between subsequent
+intervals. Under some experimental conditions,
+correlations are small indicating that a description of spiking as a
+stationary renewal process is a good approximation <cite class="ltx_cite">(<a href="bib.html#bib141" title="Response of neurons of the superior olivary complex of cat to acoustic stimuli of long duration" class="ltx_ref">192</a>)</cite>;
+however, under experimental conditions where neuronal adaptation is strong,
+intervals are <span class="ltx_text ltx_font_italic">not</span> independent (Fig.Â <a href="#Ch7.F11" title="Fig.Â 7.11 â£ 7.5.2 Renewal theory and experiments â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.11</span></a>).
+Given a time series of events with variable intervals <math id="SS2.p1.m2" class="ltx_Math" alttext="s_{j}" display="inline"><semantics><msub><mi>s</mi><mi>j</mi></msub><annotation encoding="application/x-tex">s_{j}</annotation></semantics></math>, a common measure of memory effects is the serial correlation coefficients</p>
+<table id="Ch7.E34" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E34.m1" class="ltx_Math" alttext="c_{k}=\frac{\langle s_{j+k}s_{j}\rangle_{j}-\langle s_{j}\rangle_{j}^{2}}{%
+\langle s_{j}^{2}\rangle-\langle s_{j}\rangle^{2}}." display="block"><semantics><mrow><mrow><msub><mi>c</mi><mi>k</mi></msub><mo>=</mo><mfrac><mrow><msub><mrow><mo>â¨</mo><mrow><msub><mi>s</mi><mrow><mi>j</mi><mo>+</mo><mi>k</mi></mrow></msub><mo>â¢</mo><msub><mi>s</mi><mi>j</mi></msub></mrow><mo>â©</mo></mrow><mi>j</mi></msub><mo>-</mo><msubsup><mrow><mo>â¨</mo><msub><mi>s</mi><mi>j</mi></msub><mo>â©</mo></mrow><mi>j</mi><mn>2</mn></msubsup></mrow><mrow><mrow><mo>â¨</mo><msubsup><mi>s</mi><mi>j</mi><mn>2</mn></msubsup><mo>â©</mo></mrow><mo>-</mo><msup><mrow><mo>â¨</mo><msub><mi>s</mi><mi>j</mi></msub><mo>â©</mo></mrow><mn>2</mn></msup></mrow></mfrac></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">c_{k}=\frac{\langle s_{j+k}s_{j}\rangle_{j}-\langle s_{j}\rangle_{j}^{2}}{%
+\langle s_{j}^{2}\rangle-\langle s_{j}\rangle^{2}}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.34)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Spike-frequency adaptation causes a negative correlation between subsequent intervals (<math id="SS2.p1.m3" class="ltx_Math" alttext="c_{1}&lt;0" display="inline"><semantics><mrow><msub><mi>c</mi><mn>1</mn></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c_{1}&lt;0</annotation></semantics></math>). Long intervals are most likely followed by short ones, and vice versa,
+so that the assumption of renewal theory does not hold <cite class="ltx_cite">(<a href="bib.html#bib142" title="How noisy adaptation in neurons shapes interspike interval histograms and correlations" class="ltx_ref">463</a>; <a href="bib.html#bib143" title="Nonrenewal statistics of electrosensory afferent spike trains: implications for the detection of weak sensory signals" class="ltx_ref">423</a>; <a href="bib.html#bib144" title="Suprathreshold stochastic firing dynamics with memory in p-type electroreceptors" class="ltx_ref">93</a>)</cite>.</p>
+</div>
+<figure id="Ch7.F11" class="ltx_figure"><img src="x200.png" id="Ch7.F11.g1" class="ltx_graphics ltx_centering" width="444" height="238" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.11: </span>
+Limitations of the renewal assumption.
+<span class="ltx_text ltx_font_bold">A</span>. The interval distribution <math id="Ch7.F11.m5" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>
+of an afferent sensory fiber in the weakly electric fish
+exhibits periodic peaks, which are associated to the background oscillation
+normalized to period <math id="Ch7.F11.m6" class="ltx_Math" alttext="T=1" display="inline"><semantics><mrow><mi>T</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">T=1</annotation></semantics></math>.
+The most likely interval is exactly one period,
+but longer intervals are possible.
+<span class="ltx_text ltx_font_bold">B</span>. Testing for renewal in a plot
+of the joint density of
+the interval <math id="Ch7.F11.m7" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> (horizontal axis)
+and the next interval <math id="Ch7.F11.m8" class="ltx_Math" alttext="i+1" display="inline"><semantics><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">i+1</annotation></semantics></math> (vertical axis).
+Size of symbol indicates probability of occurrence.
+The most likely sequence is that an interval of length 4
+is followed by an interval of length 1; vice versa,
+a short interval of length 1 is most likely followed by a long
+interval of length 4.
+Modified from <cite class="ltx_cite">(<a href="bib.html#bib143" title="Nonrenewal statistics of electrosensory afferent spike trains: implications for the detection of weak sensory signals" class="ltx_ref">423</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">The notion of stationary input conditions is a mathematical concept that
+cannot be easily translated into experiments. With intracellular recordings
+under <span class="ltx_text ltx_font_italic">in vitro</span> conditions, constant input current can be imposed and
+thus the renewal hypothesis can be tested directly. Under <span class="ltx_text ltx_font_italic">in vivo</span>
+conditions, the assumption that the input current to a neuron embedded in a
+large neural system is constant (or has stationary statistics) is
+questionable; see <cite class="ltx_cite">(<a href="bib.html#bib145" title="Neuronal spike trains and stochastic point processes I. the single spike train" class="ltx_ref">392</a>; <a href="bib.html#bib146" title="Neuronal spike trains and stochastic point processes II. simultaneous spike trains." class="ltx_ref">393</a>)</cite> for a discussion. While the
+externally controlled stimulus can be made stationary (e.g., a grating
+drifting at constant speed), the input to an individual neuron is out of
+control.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">Let us suppose that, for a given experiment, we have checked that the renewal
+hypothesis holds to a reasonable degree of accuracy. From the experimental
+interval distribution <math id="SS2.p3.m1" class="ltx_Math" alttext="P_{0}" display="inline"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_{0}</annotation></semantics></math> we can then calculate the survivor function <math id="SS2.p3.m2" class="ltx_Math" alttext="S_{0}" display="inline"><semantics><msub><mi>S</mi><mn>0</mn></msub><annotation encoding="application/x-tex">S_{0}</annotation></semantics></math>
+and the hazard <math id="SS2.p3.m3" class="ltx_Math" alttext="\rho_{0}" display="inline"><semantics><msub><mi>Ï</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\rho_{0}</annotation></semantics></math> via Eqs.Â (<a href="#Ch7.E24" title="(7.24) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.24</span></a>) and
+Â (<a href="#Ch7.E25" title="(7.25) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.25</span></a>).
+If some additional assumptions
+regarding the nature of the noise are made, the form of the hazard
+<math id="SS2.p3.m4" class="ltx_Math" alttext="\rho_{0}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(t|\hat{t})</annotation></semantics></math> can be interpreted in terms of neuronal dynamics. In
+particular, a reduced hazard immediately after a spike is a signature of
+neuronal refractoriness <cite class="ltx_cite">(<a href="bib.html#bib141" title="Response of neurons of the superior olivary complex of cat to acoustic stimuli of long duration" class="ltx_ref">192</a>; <a href="bib.html#bib147" title="Refractoriness and neural precision" class="ltx_ref">52</a>)</cite>.</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Plausible hazard function and interval distributions</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Interval distributions and hazard functions have been measured in many
+experiments. For example, in auditory neurons of the cat driven by stationary
+stimuli, the hazard function <math id="SS2.p4.m1" class="ltx_Math" alttext="\rho_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(t-\hat{t})</annotation></semantics></math> increases, after an absolute
+refractory time, to a constant level <cite class="ltx_cite">(<a href="bib.html#bib141" title="Response of neurons of the superior olivary complex of cat to acoustic stimuli of long duration" class="ltx_ref">192</a>)</cite>. We approximate the
+time course of the hazard function as</span>
+              </p>
+<table id="Ch7.E35" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E35.m1" class="ltx_Math" alttext="\rho_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}0\qquad&{\rm for}\qquad&amp;s%
+\leq\Delta^{\rm abs}\\
+\nu\,[1-e^{-\lambda\,(s-\Delta^{\rm abs})}]\qquad&{\rm for}\qquad&amp;s&gt;\Delta^{%
+\rm abs}\end{array}\right." display="block"><semantics><mrow><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mpadded width="+20.0pt"><mn>0</mn></mpadded></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>â¤</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mpadded width="+20.0pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Î»</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow></msup></mrow><mo>]</mo></mrow></mpadded></mrow></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>&gt;</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\rho_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}0\qquad&amp;{\rm for}\qquad&amp;s%
+\leq\Delta^{\rm abs}\\
+\nu\,[1-e^{-\lambda\,(s-\Delta^{\rm abs})}]\qquad&amp;{\rm for}\qquad&amp;s&gt;\Delta^{%
+\rm abs}\end{array}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.35)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">with parameters <math id="SS2.p4.m2" class="ltx_Math" alttext="\Delta^{\rm abs},\lambda" display="inline"><semantics><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">Î»</mi></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs},\lambda</annotation></semantics></math>, and <math id="SS2.p4.m3" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>;
+Fig.Â <a href="#Ch7.F10" title="Fig.Â 7.10 â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.10</span></a>C. In ChapterÂ <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a> we will see how the
+hazard (<a href="#Ch7.E35" title="(7.35) â£ 7.5.2 Renewal theory and experiments â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.35</span></a>) can be related to neuronal dynamics. Given
+the hazard function, we can calculate the survivor function and interval
+distributions. Application of Eq.Â (<a href="#Ch7.E26" title="(7.26) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.26</span></a>) yields</span>
+              </p>
+<table id="Ch7.E36" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E36.m1" class="ltx_Math" alttext="S_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}1\qquad&{\rm for}\qquad&amp;s&lt;%
+\Delta^{\rm abs}\\
+e^{-\nu\,(s-\Delta^{\rm abs})}\,e^{\rho_{0}(s)/\lambda}\qquad&{\rm for}\qquad&amp;%
+s&gt;\Delta^{\rm abs}\end{array}\right." display="block"><semantics><mrow><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mpadded width="+20.0pt"><mn>1</mn></mpadded></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>&lt;</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow></msup></mpadded><mo>â¢</mo><mpadded width="+20.0pt"><msup><mi>e</mi><mrow><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>/</mo><mi>Î»</mi></mrow></msup></mpadded></mrow></mtd><mtd columnalign="center"><mpadded width="+20.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>s</mi><mo>&gt;</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">S_{0}(s)=\left\{\begin{array}[]{*{2}{c@{\qquad}}c}1\qquad&amp;{\rm for}\qquad&amp;s&lt;%
+\Delta^{\rm abs}\\
+e^{-\nu\,(s-\Delta^{\rm abs})}\,e^{\rho_{0}(s)/\lambda}\qquad&amp;{\rm for}\qquad&amp;%
+s&gt;\Delta^{\rm abs}\end{array}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.36)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The interval distribution is given by <math id="SS2.p4.m4" class="ltx_Math" alttext="P_{0}(s)=\rho_{0}(s)\,S_{0}(s)" display="inline"><semantics><mrow><mrow><msub><mi mathsize="normal" stretchy="false">P</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">S</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)=\rho_{0}(s)\,S_{0}(s)</annotation></semantics></math>. Interval
+distribution, survivor function, and hazard are shown in
+Fig.Â <a href="#Ch7.F10" title="Fig.Â 7.10 â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.10</span></a>C.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We may compare the above hazard function and interval distribution
+with that of the
+Poisson neuron with absolute refractoriness.
+The main difference is that the hazard in
+Eq.Â (<a href="Ch7.S3.html#Ch7.E16" title="(7.16) â£ 7.3.1 Coefficient of variation CV â£ 7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>) jumps from the state of absolute refractoriness to a
+constant firing rate, whereas in Eq.Â (<a href="#Ch7.E35" title="(7.35) â£ 7.5.2 Renewal theory and experiments â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.35</span></a>) the transition
+is smooth.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.5.3 </span>Autocorrelation and noise spectrum of a renewal process (*)</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">In case of a stationary renewal process, the interval distribution <math id="SS3.p1.m1" class="ltx_Math" alttext="P_{0}" display="inline"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_{0}</annotation></semantics></math>
+contains <span class="ltx_text ltx_font_italic">all</span> the statistical information
+so that the autocorrelation function and noise spectrum can be derived.
+In this section we calculate the noise spectrum of a stationary
+renewal process. As we have seen above, the noise spectrum of a neuron is
+directly related to the autocorrelation function of its spike train. Both
+noise spectrum and autocorrelation function are experimentally accessible.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">Let <math id="SS3.p2.m1" class="ltx_Math" alttext="\nu_{i}=\langle S_{i}\rangle" display="inline"><semantics><mrow><msub><mi>Î½</mi><mi>i</mi></msub><mo>=</mo><mrow><mo>â¨</mo><msub><mi>S</mi><mi>i</mi></msub><mo>â©</mo></mrow></mrow><annotation encoding="application/x-tex">\nu_{i}=\langle S_{i}\rangle</annotation></semantics></math> denote the mean firing rate (expected number
+of spikes per unit time) of the spike train. Thus the probability of finding
+a spike in a short segment <math id="SS3.p2.m2" class="ltx_Math" alttext="[t,t+\Delta t]" display="inline"><semantics><mrow><mo>[</mo><mrow><mi>t</mi><mo>,</mo><mrow><mi>t</mi><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow></mrow></mrow><mo>]</mo></mrow><annotation encoding="application/x-tex">[t,t+\Delta t]</annotation></semantics></math> of the spike train is <math id="SS3.p2.m3" class="ltx_Math" alttext="\nu\,\Delta t" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\nu\,\Delta t</annotation></semantics></math>. For large intervals <math id="SS3.p2.m4" class="ltx_Math" alttext="s" display="inline"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>, firing at time <math id="SS3.p2.m5" class="ltx_Math" alttext="t+s" display="inline"><semantics><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">t+s</annotation></semantics></math> is independent from whether
+or not there was a spike at time <math id="SS3.p2.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>. Therefore, the expectation to find a
+spike at <math id="SS3.p2.m7" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> and another spike at <math id="SS3.p2.m8" class="ltx_Math" alttext="t+s" display="inline"><semantics><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">t+s</annotation></semantics></math> approaches for <math id="SS3.p2.m9" class="ltx_Math" alttext="s\to\infty" display="inline"><semantics><mrow><mi>s</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">s\to\infty</annotation></semantics></math> a limiting
+value <math id="SS3.p2.m10" class="ltx_Math" alttext="\lim_{s\to\infty}\langle S_{i}(t)\,S_{i}(t+s)\rangle=\lim_{s\to\infty}C_{ii}(s%
+)=\nu_{i}^{2}" display="inline"><semantics><mrow><mrow><msub><mo>lim</mo><mrow><mi>s</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow></msub><mo>â¡</mo><mrow><mo>â¨</mo><mrow><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow><mo>â©</mo></mrow></mrow><mo>=</mo><mrow><msub><mo>lim</mo><mrow><mi>s</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow></msub><mo>â¡</mo><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow></mrow><mo>=</mo><msubsup><mi>Î½</mi><mi>i</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\lim_{s\to\infty}\langle S_{i}(t)\,S_{i}(t+s)\rangle=\lim_{s\to\infty}C_{ii}(s%
+)=\nu_{i}^{2}</annotation></semantics></math>. It is convenient to subtract this
+baseline value and introduce a ânormalizedâ autocorrelation,</p>
+<table id="Ch7.E37" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E37.m1" class="ltx_Math" alttext="C^{0}_{ii}(s)=C_{ii}(s)-\nu_{i}^{2}\,," display="block"><semantics><mrow><mrow><mrow><msubsup><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow><mn>0</mn></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>-</mo><mpadded width="+1.7pt"><msubsup><mi>Î½</mi><mi>i</mi><mn>2</mn></msubsup></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">C^{0}_{ii}(s)=C_{ii}(s)-\nu_{i}^{2}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.37)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with <math id="SS3.p2.m11" class="ltx_Math" alttext="\lim_{s\to\infty}C_{ii}^{0}(s)=0" display="inline"><semantics><mrow><mrow><msub><mo>lim</mo><mrow><mi>s</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow></msub><mo>â¡</mo><mrow><msubsup><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow><mn>0</mn></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lim_{s\to\infty}C_{ii}^{0}(s)=0</annotation></semantics></math>. The Fourier transform of
+Eq.Â (<a href="#Ch7.E37" title="(7.37) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.37</span></a>) yields</p>
+<table id="Ch7.E38" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E38.m1" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)=\hat{C}_{ii}^{0}(\omega)+2\pi\nu_{i}^{2}\,\delta(\omega)\,." display="block"><semantics><mrow><mrow><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow><mn>0</mn></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mn>2</mn><mo>â¢</mo><mi>Ï</mi><mo>â¢</mo><mpadded width="+1.7pt"><msubsup><mi>Î½</mi><mi>i</mi><mn>2</mn></msubsup></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)=\hat{C}_{ii}^{0}(\omega)+2\pi\nu_{i}^{2}\,\delta(\omega)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.38)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Thus <math id="SS3.p2.m12" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)" display="inline"><semantics><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)</annotation></semantics></math> diverges at <math id="SS3.p2.m13" class="ltx_Math" alttext="\omega=0" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\omega=0</annotation></semantics></math>; the divergence is removed
+by switching to the normalized autocorrelation. In the following we will
+calculate the noise spectrum <math id="SS3.p2.m14" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)" display="inline"><semantics><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)</annotation></semantics></math> for <math id="SS3.p2.m15" class="ltx_Math" alttext="\omega\neq 0" display="inline"><semantics><mrow><mi>Ï</mi><mo>â </mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\omega\neq 0</annotation></semantics></math>.</p>
+</div>
+<figure id="Ch7.F12" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x201.png" id="Ch7.F12.g1" class="ltx_graphics" width="292" height="99" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x202.png" id="Ch7.F12.g2" class="ltx_graphics" width="292" height="230" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.12: </span>
+<span class="ltx_text ltx_font_bold">A</span>. The autocorrelation of a spike train describes the chance to find
+two spikes at a
+distance <math id="Ch7.F12.m5" class="ltx_Math" alttext="s" display="inline"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>, independent of the number of spikes that occur in between.
+<span class="ltx_text ltx_font_bold">B</span>. Fourier transform of the autocorrelation function <math id="Ch7.F12.m6" class="ltx_Math" alttext="C_{ii}" display="inline"><semantics><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">C_{ii}</annotation></semantics></math> of a
+Poisson neuron with absolute refractoriness (<math id="Ch7.F12.m7" class="ltx_Math" alttext="\Delta^{\rm ax}=5\," display="inline"><semantics><mrow><msup><mi mathvariant="normal">Î</mi><mi>ax</mi></msup><mo>=</mo><mpadded width="+1.7pt"><mn>5</mn></mpadded></mrow><annotation encoding="application/x-tex">\Delta^{\rm ax}=5\,</annotation></semantics></math>ms) and
+constant stimulation (<math id="Ch7.F12.m8" class="ltx_Math" alttext="\nu=100" display="inline"><semantics><mrow><mi>Î½</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">\nu=100</annotation></semantics></math>âHz). </figcaption>
+</figure>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">In the case of a stationary renewal process, the autocorrelation function is
+closely related to the interval distribution <math id="SS3.p3.m1" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>. This relation will now
+be derived. Let us suppose that we have found a first spike at <math id="SS3.p3.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>. To
+calculate the autocorrelation we need the probability density for
+a spike at <math id="SS3.p3.m3" class="ltx_Math" alttext="t+s" display="inline"><semantics><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">t+s</annotation></semantics></math>. Let us construct an expression for
+<math id="SS3.p3.m4" class="ltx_Math" alttext="C_{ii}(s)" display="inline"><semantics><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">C_{ii}(s)</annotation></semantics></math> for <math id="SS3.p3.m5" class="ltx_Math" alttext="s&gt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&gt;0</annotation></semantics></math>. The correlation function for positive <math id="SS3.p3.m6" class="ltx_Math" alttext="s" display="inline"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math> will be
+denoted by <math id="SS3.p3.m7" class="ltx_Math" alttext="\nu_{i}\,C_{+}(s)" display="inline"><semantics><mrow><mpadded width="+1.7pt"><msub><mi>Î½</mi><mi>i</mi></msub></mpadded><mo>â¢</mo><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\nu_{i}\,C_{+}(s)</annotation></semantics></math> or</p>
+<table id="Ch7.E39" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E39.m1" class="ltx_Math" alttext="C_{+}(s)={1\over\nu_{i}}\,C_{ii}(s)\,\Theta(s)\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mfrac><mn>1</mn><msub><mi>Î½</mi><mi>i</mi></msub></mfrac></mpadded><mo>â¢</mo><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">C_{+}(s)={1\over\nu_{i}}\,C_{ii}(s)\,\Theta(s)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.39)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The factor <math id="SS3.p3.m8" class="ltx_Math" alttext="\nu_{i}" display="inline"><semantics><msub><mi>Î½</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\nu_{i}</annotation></semantics></math> in Eq.Â (<a href="#Ch7.E39" title="(7.39) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.39</span></a>) takes care of the
+fact that we expect a first spike at <math id="SS3.p3.m9" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> with rate <math id="SS3.p3.m10" class="ltx_Math" alttext="\nu_{i}" display="inline"><semantics><msub><mi>Î½</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\nu_{i}</annotation></semantics></math>. <math id="SS3.p3.m11" class="ltx_Math" alttext="C_{+}(s)" display="inline"><semantics><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">C_{+}(s)</annotation></semantics></math> gives
+the <span class="ltx_text ltx_font_italic">conditional </span> probability density that, given a spike at <math id="SS3.p3.m12" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, we will
+find another spike at <math id="SS3.p3.m13" class="ltx_Math" alttext="t+s&gt;t" display="inline"><semantics><mrow><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><mo>&gt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t+s&gt;t</annotation></semantics></math>. The spike at <math id="SS3.p3.m14" class="ltx_Math" alttext="t+s" display="inline"><semantics><mrow><mi>t</mi><mo>+</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">t+s</annotation></semantics></math> can be the first spike
+after <math id="SS3.p3.m15" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, or the second one, or the <math id="SS3.p3.m16" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>th one; see Fig.Â <a href="#Ch7.F12" title="Fig.Â 7.12 â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.12</span></a>.
+Thus for <math id="SS3.p3.m17" class="ltx_Math" alttext="s&gt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&gt;0</annotation></semantics></math></p>
+<table id="Ch20.S4.EGx38" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch7.E40" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch7.Ex4.m1" class="ltx_Math" alttext="\displaystyle C_{+}(s)" display="inline"><semantics><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle C_{+}(s)</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch7.Ex4.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch7.Ex4.m3" class="ltx_Math" alttext="\displaystyle P_{0}(s)+\int_{0}^{\infty}P_{0}(s^{\prime})\,P_{0}(s-s^{\prime})%
+\,{\text{d}}s^{\prime}" display="inline"><semantics><mrow><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msup><mi>s</mi><mo>â²</mo></msup><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi>s</mi><mo>â²</mo></msup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><msup><mi>s</mi><mo>â²</mo></msup></mrow></mrow></mrow><annotation encoding="application/x-tex">\displaystyle P_{0}(s)+\int_{0}^{\infty}P_{0}(s^{\prime})\,P_{0}(s-s^{\prime})%
+\,{\text{d}}s^{\prime}</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="2" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.40)</span></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center"></td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch7.E40.m3" class="ltx_Math" alttext="\displaystyle+\int_{0}^{\infty}\int_{0}^{\infty}P_{0}(s^{\prime})\,P_{0}(s^{%
+\prime\prime})\,P_{0}(s-s^{\prime}-s^{\prime\prime})\,{\text{d}}s^{\prime}\,{%
+\text{d}}s^{\prime\prime}+\dots" display="inline"><semantics><mrow><mo>+</mo><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><mstyle displaystyle="true"><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup></mstyle><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msup><mi>s</mi><mo>â²</mo></msup><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msup><mi>s</mi><mi>â²â²</mi></msup><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi>s</mi><mo>â²</mo></msup><mo>-</mo><msup><mi>s</mi><mi>â²â²</mi></msup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>s</mi><mo>â²</mo></msup></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><msup><mi>s</mi><mi>â²â²</mi></msup></mrow></mrow></mrow><mo>+</mo><mi mathvariant="normal">â¦</mi></mrow><annotation encoding="application/x-tex">\displaystyle+\int_{0}^{\infty}\int_{0}^{\infty}P_{0}(s^{\prime})\,P_{0}(s^{%
+\prime\prime})\,P_{0}(s-s^{\prime}-s^{\prime\prime})\,{\text{d}}s^{\prime}\,{%
+\text{d}}s^{\prime\prime}+\dots</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">or</p>
+<table id="Ch7.E41" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E41.m1" class="ltx_Math" alttext="C_{+}(s)=P_{0}(s)+\int_{0}^{\infty}P_{0}(s^{\prime})\,C_{+}(s-s^{\prime})\,{%
+\text{d}}s^{\prime}\," display="block"><semantics><mrow><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><msup><mi>s</mi><mo>â²</mo></msup><mo>)</mo></mrow></mpadded><mo>â¢</mo><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi>s</mi><mo>â²</mo></msup></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>s</mi><mo>â²</mo></msup></mpadded></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">C_{+}(s)=P_{0}(s)+\int_{0}^{\infty}P_{0}(s^{\prime})\,C_{+}(s-s^{\prime})\,{%
+\text{d}}s^{\prime}\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.41)</span></td>
+</tr>
+</table>
+<p class="ltx_p">as can be seen by inserting Eq.Â (<a href="#Ch7.E40" title="(7.40) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.40</span></a>) on the right-hand side of
+(<a href="#Ch7.E41" title="(7.41) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.41</span></a>); see Fig. <a href="#Ch7.F13" title="Fig.Â 7.13 â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.13</span></a>.</p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<p class="ltx_p">Due to the symmetry of <math id="SS3.p4.m1" class="ltx_Math" alttext="C_{ii}" display="inline"><semantics><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">C_{ii}</annotation></semantics></math>, we have <math id="SS3.p4.m2" class="ltx_Math" alttext="C_{ii}(s)=\nu\,C_{+}(-s)" display="inline"><semantics><mrow><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">C_{ii}(s)=\nu\,C_{+}(-s)</annotation></semantics></math> for <math id="SS3.p4.m3" class="ltx_Math" alttext="s&lt;0" display="inline"><semantics><mrow><mi>s</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s&lt;0</annotation></semantics></math>.
+Finally, for <math id="SS3.p4.m4" class="ltx_Math" alttext="s=0" display="inline"><semantics><mrow><mi>s</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s=0</annotation></semantics></math>, the autocorrelation has a <math id="SS3.p4.m5" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> peak reflecting the
+trivial autocorrelation of each spike with itself. Hence,</p>
+<table id="Ch7.E42" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E42.m1" class="ltx_Math" alttext="C_{ii}(s)=\nu_{i}\left[\delta(s)+C_{+}(s)+C_{+}(-s)\right]\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>Î½</mi><mi>i</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">C_{ii}(s)=\nu_{i}\left[\delta(s)+C_{+}(s)+C_{+}(-s)\right]\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.42)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In order to solve Eq.Â (<a href="#Ch7.E41" title="(7.41) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.41</span></a>) for <math id="SS3.p4.m6" class="ltx_Math" alttext="C_{+}" display="inline"><semantics><msub><mi>C</mi><mo>+</mo></msub><annotation encoding="application/x-tex">C_{+}</annotation></semantics></math> we take the Fourier transform of
+Eq.Â (<a href="#Ch7.E41" title="(7.41) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.41</span></a>) and find</p>
+<table id="Ch7.E43" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E43.m1" class="ltx_Math" alttext="\hat{C}_{+}(\omega)={\hat{P}_{0}(\omega)\over 1-\hat{P}_{0}(\omega)}\,." display="block"><semantics><mrow><mrow><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><mfrac><mrow><msub><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mrow><mn>1</mn><mo>-</mo><mrow><msub><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow></mfrac></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{C}_{+}(\omega)={\hat{P}_{0}(\omega)\over 1-\hat{P}_{0}(\omega)}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.43)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Together with the Fourier transform of Eq.Â (<a href="#Ch7.E42" title="(7.42) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.42</span></a>), <math id="SS3.p4.m7" class="ltx_Math" alttext="\hat{C}_{ii}=\nu_{i}\,[1+2\,\text{Re}\{\hat{C}_{+}(\omega)\}]" display="inline"><semantics><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>Î½</mi><mi>i</mi></msub></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><mn>2</mn></mpadded><mo>â¢</mo><mtext>Re</mtext><mo>â¢</mo><mrow><mo>{</mo><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>}</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}=\nu_{i}\,[1+2\,\text{Re}\{\hat{C}_{+}(\omega)\}]</annotation></semantics></math>, we obtain</p>
+<table id="Ch7.E44" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E44.m1" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)=\nu_{i}\,\text{Re}\left\{{1+\hat{P}_{0}(\omega)\over 1-%
+\hat{P}_{0}(\omega)}\right\}\quad{\rm for}\quad\omega\neq 0\,." display="block"><semantics><mrow><mrow><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Î½</mi><mi>i</mi></msub></mpadded><mo>â¢</mo><mtext>Re</mtext><mo>â¢</mo><mrow><mo>{</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mrow><msub><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow><mrow><mn>1</mn><mo>-</mo><mrow><msub><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow></mfrac><mo>}</mo></mrow></mrow><mo separator="true">â</mo><mi>for</mi></mrow></mrow><mo separator="true">â</mo><mrow><mi>Ï</mi><mo>â </mo><mn>0â.</mn></mrow></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)=\nu_{i}\,\text{Re}\left\{{1+\hat{P}_{0}(\omega)\over 1-%
+\hat{P}_{0}(\omega)}\right\}\quad{\rm for}\quad\omega\neq 0\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.44)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For <math id="SS3.p4.m8" class="ltx_Math" alttext="\omega=0" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\omega=0</annotation></semantics></math>, the Fourier integral over the right-hand side of
+Eq.Â (<a href="#Ch7.E40" title="(7.40) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.40</span></a>) diverges, since <math id="SS3.p4.m9" class="ltx_Math" alttext="\int_{0}^{\infty}P_{0}(s){\text{d}}s=1" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\int_{0}^{\infty}P_{0}(s){\text{d}}s=1</annotation></semantics></math>. If we
+add the diverging term from Eq.Â (<a href="#Ch7.E38" title="(7.38) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.38</span></a>), we arrive at</p>
+<table id="Ch7.E45" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E45.m1" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)=\nu_{i}\,\text{Re}\left\{{1+\hat{P}_{0}(\omega)\over 1-%
+\hat{P}_{0}(\omega)}\right\}+2\pi\,\nu_{i}^{2}\delta(\omega)." display="block"><semantics><mrow><mrow><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>Î½</mi><mi>i</mi></msub></mpadded><mo>â¢</mo><mtext>Re</mtext><mo>â¢</mo><mrow><mo>{</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mrow><msub><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow><mrow><mn>1</mn><mo>-</mo><mrow><msub><mover accent="true"><mi>P</mi><mo stretchy="false">^</mo></mover><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow></mfrac><mo>}</mo></mrow></mrow><mo>+</mo><mrow><mn>2</mn><mo>â¢</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><msubsup><mi>Î½</mi><mi>i</mi><mn>2</mn></msubsup><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)=\nu_{i}\,\text{Re}\left\{{1+\hat{P}_{0}(\omega)\over 1-%
+\hat{P}_{0}(\omega)}\right\}+2\pi\,\nu_{i}^{2}\delta(\omega).</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.45)</span></td>
+</tr>
+</table>
+<p class="ltx_p">This is a standard result of stationary renewal theory <cite class="ltx_cite">(<a href="bib.html#bib140" title="The statistical analysis of series of events" class="ltx_ref">105</a>)</cite> which has
+been repeatedly applied to neuronal spike trains <cite class="ltx_cite">(<a href="bib.html#bib148" title="The spectral shaping of neural discharges by refractory effects" class="ltx_ref">137</a>; <a href="bib.html#bib149" title="Power spectrum analysis of MT neurons in the behaving monkey" class="ltx_ref">36</a>)</cite>.
+</p>
+</div>
+<figure id="Ch7.F13" class="ltx_figure"><img src="x203.png" id="Ch7.F13.g1" class="ltx_graphics ltx_centering" width="590" height="190" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.13: </span> The autocorrelation is a sum of interspike interval distributions convolved with itself (graphical representation of Eq. (<a href="#Ch7.E40" title="(7.40) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.40</span></a>)). The interspike interval distribtion (<math id="Ch7.F13.m4" class="ltx_Math" alttext="P_{0}(s)" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(s)</annotation></semantics></math>, thick line) is added sequentially to self-convolutions such as <math id="Ch7.F13.m5" class="ltx_Math" alttext="\int_{0}^{\infty}P_{0}(s^{\prime})P_{0}(s-s^{\prime})ds^{\prime}" display="inline"><semantics><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><msup><mi>s</mi><mo>â²</mo></msup><mo>)</mo></mrow><mo>â¢</mo><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi>s</mi><mo>â²</mo></msup></mrow><mo>)</mo></mrow><mo>â¢</mo><mi>d</mi><mo>â¢</mo><msup><mi>s</mi><mo>â²</mo></msup></mrow></mrow><annotation encoding="application/x-tex">\int_{0}^{\infty}P_{0}(s^{\prime})P_{0}(s-s^{\prime})ds^{\prime}</annotation></semantics></math> (dashed lines). The partial sums (full lines) gradually converge to the autocorrelation function (<math id="Ch7.F13.m6" class="ltx_Math" alttext="C_{+}(s)" display="inline"><semantics><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">C_{+}(s)</annotation></semantics></math>, dotted line).</figcaption>
+</figure>
+<div id="SS3.p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Stationary Poisson process</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In SectionÂ <a href="Ch7.S2.html#SS1" title="7.2.1 Rate as a Spike Count and Fano Factor â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.2.1</span></a>
+and SectionÂ <span class="ltx_ref ltx_ref_self"><span class="ltx_text ltx_ref_tag">7.5</span></span>
+we have already discussed the Poisson neuron
+from the perspective of mean firing rate
+and renewal theory, respectively.
+The autocorrelation of a Poisson process is</span>
+              </p>
+<table id="Ch7.E46" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E46.m1" class="ltx_Math" alttext="C_{ii}(s)=\nu\,\delta(s)+\nu^{2}." display="block"><semantics><mrow><mrow><mrow><msub><mi>C</mi><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>+</mo><msup><mi>Î½</mi><mn>2</mn></msup></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">C_{ii}(s)=\nu\,\delta(s)+\nu^{2}.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.46)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We want to show that Eq.Â (<a href="#Ch7.E46" title="(7.46) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.46</span></a>) follows from
+Eq.Â (<a href="#Ch7.E40" title="(7.40) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.40</span></a>).</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Since the interval distribution of a Poisson process is exponential [cf.
+Eq.Â (<a href="Ch7.S3.html#Ch7.E16" title="(7.16) â£ 7.3.1 Coefficient of variation CV â£ 7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>) with <math id="SS3.p5.m1" class="ltx_Math" alttext="\Delta^{\rm abs}=0" display="inline"><semantics><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs}=0</annotation></semantics></math>],
+we can evaluate the integrals on the right-hand
+side of Eq.Â (<a href="#Ch7.E40" title="(7.40) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.40</span></a>) in a straightforward manner. The result is</span>
+              </p>
+<table id="Ch7.E47" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E47.m1" class="ltx_Math" alttext="C_{+}(s)=\nu\,e^{-\nu\,s}\big[1+\nu\,s+{1\over 2}(\nu\,s)^{2}+\dots\big]=\nu\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>C</mi><mo>+</mo></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi>s</mi></mrow></mrow></msup><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi>s</mi></mrow><mo>+</mo><mrow><mfrac><mn>1</mn><mn>2</mn></mfrac><mo>â¢</mo><msup><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mi>s</mi></mrow><mo>)</mo></mrow><mn>2</mn></msup></mrow><mo>+</mo><mi mathvariant="normal">â¦</mi></mrow><mo>]</mo></mrow></mrow><mo>=</mo><mpadded width="+1.7pt"><mi>Î½</mi></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">C_{+}(s)=\nu\,e^{-\nu\,s}\big[1+\nu\,s+{1\over 2}(\nu\,s)^{2}+\dots\big]=\nu\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.47)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Hence, with Eq.Â (<a href="#Ch7.E42" title="(7.42) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.42</span></a>), we obtain the autocorrelation
+functionÂ (<a href="#Ch7.E46" title="(7.46) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.46</span></a>) of a homogeneous Poisson process. The Fourier
+transform of Eq.Â (<a href="#Ch7.E46" title="(7.46) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.46</span></a>) yields a flat spectrum with a <math id="SS3.p5.m2" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+peak at zero:</span>
+              </p>
+<table id="Ch7.E48" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E48.m1" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)=\nu+2\pi\,\nu^{2}\,\delta(\omega)\,." display="block"><semantics><mrow><mrow><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>Î½</mi><mo>+</mo><mrow><mn>2</mn><mo>â¢</mo><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>Î½</mi><mn>2</mn></msup></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)=\nu+2\pi\,\nu^{2}\,\delta(\omega)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.48)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The result could have also been obtained by evaluating Eq.Â (<a href="#Ch7.E45" title="(7.45) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.45</span></a>).</span>
+              </p>
+</span>
+</div>
+<div id="SS3.p6" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Poisson process with absolute refractoriness</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We return to the Poisson process with absolute refractoriness defined in
+Eq.Â (<a href="Ch7.S3.html#Ch7.E16" title="(7.16) â£ 7.3.1 Coefficient of variation CV â£ 7.3 Interval distribution and coefficient of variation â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.16</span></a>). Apart from an absolute refractory time <math id="SS3.p6.m1" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math>, the neuron fires with rate <math id="SS3.p6.m2" class="ltx_Math" alttext="r" display="inline"><semantics><mi mathsize="normal" stretchy="false">r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>. For <math id="SS3.p6.m3" class="ltx_Math" alttext="\omega\neq 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">â </mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\omega\neq 0</annotation></semantics></math>,
+Eq.Â (<a href="#Ch7.E45" title="(7.45) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.45</span></a>) yields the noise spectrum</span>
+              </p>
+<table id="Ch7.E49" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E49.m1" class="ltx_Math" alttext="\hat{C}_{ii}(\omega)=\nu\,\left\{1+2\,{\nu^{2}\over\omega^{2}}\,[1-\cos(\omega%
+\,\Delta^{\rm abs})]+2{\nu\over\omega}\,\sin(\omega\,\Delta^{\rm abs})\right\}%
+^{-1}\,," display="block"><semantics><mrow><mrow><mrow><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mrow><mi>i</mi><mo>â¢</mo><mi>i</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>Î½</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mrow><mo>{</mo><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><mn>2</mn></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><msup><mi>Î½</mi><mn>2</mn></msup><msup><mi>Ï</mi><mn>2</mn></msup></mfrac></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><mrow><mi>cos</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow><mo>+</mo><mrow><mn>2</mn><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mi>Î½</mi><mi>Ï</mi></mfrac></mpadded><mo>â¢</mo><mrow><mi>sin</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mpadded width="+1.7pt"><mi>Ï</mi></mpadded><mo>â¢</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>}</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\hat{C}_{ii}(\omega)=\nu\,\left\{1+2\,{\nu^{2}\over\omega^{2}}\,[1-\cos(\omega%
+\,\Delta^{\rm abs})]+2{\nu\over\omega}\,\sin(\omega\,\Delta^{\rm abs})\right\}%
+^{-1}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.49)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">cf.Â Fig.Â (<a href="#Ch7.F12" title="Fig.Â 7.12 â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.12</span></a>)B. In contrast to the stationary Poisson
+process Eq.Â (<a href="#Ch7.E46" title="(7.46) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.46</span></a>), the noise spectrum of a neuron with absolute
+refractoriness <math id="SS3.p6.m4" class="ltx_Math" alttext="\Delta^{\rm abs}&gt;0" display="inline"><semantics><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs}&gt;0</annotation></semantics></math> is no longer flat. In particular, for
+<math id="SS3.p6.m5" class="ltx_Math" alttext="\omega\to 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">â</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\omega\to 0</annotation></semantics></math>, the noise spectrum is <span class="ltx_text ltx_font_italic">decreased</span> by a factor
+<math id="SS3.p6.m6" class="ltx_Math" alttext="[1+2(\nu\,\Delta^{\rm abs})+(\nu\,\Delta^{\rm abs})^{2}]^{-1}" display="inline"><semantics><msup><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">+</mo><mrow><mn mathsize="normal" stretchy="false">2</mn><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">Î½</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">+</mo><msup><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">Î½</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mn mathsize="normal" stretchy="false">2</mn></msup></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup><annotation encoding="application/x-tex">[1+2(\nu\,\Delta^{\rm abs})+(\nu\,\Delta^{\rm abs})^{2}]^{-1}</annotation></semantics></math>.
+Eq.Â (<a href="#Ch7.E49" title="(7.49) â£ 7.5.3 Autocorrelation and noise spectrum of a renewal process (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.49</span></a>) and generalizations thereof have been used
+to fit the power spectrum of, e.g., auditory neurons <cite class="ltx_cite">(<a href="bib.html#bib148" title="The spectral shaping of neural discharges by refractory effects" class="ltx_ref">137</a>)</cite> and MT
+neurons <cite class="ltx_cite">(<a href="bib.html#bib149" title="Power spectrum analysis of MT neurons in the behaving monkey" class="ltx_ref">36</a>)</cite>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Can we understand the decrease in the noise spectrum for <math id="SS3.p6.m7" class="ltx_Math" alttext="\omega\to 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">â</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\omega\to 0</annotation></semantics></math>? The
+mean interval of a Poisson neuron with absolute refractoriness is <math id="SS3.p6.m8" class="ltx_Math" alttext="\langle s\rangle=\Delta^{\rm abs}+r^{-1}" display="inline"><semantics><mrow><mrow><mo mathsize="normal" stretchy="false">â¨</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">â©</mo></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><mo mathsize="normal" stretchy="false">+</mo><msup><mi mathsize="normal" stretchy="false">r</mi><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">\langle s\rangle=\Delta^{\rm abs}+r^{-1}</annotation></semantics></math>. Hence the mean firing rate is</span>
+              </p>
+<table id="Ch7.E50" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E50.m1" class="ltx_Math" alttext="\nu={r\over 1+\Delta^{\rm abs}\,r}\,." display="block"><semantics><mrow><mrow><mi>Î½</mi><mo>=</mo><mpadded width="+1.7pt"><mfrac><mi>r</mi><mrow><mn>1</mn><mo>+</mo><mrow><mpadded width="+1.7pt"><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup></mpadded><mo>â¢</mo><mi>r</mi></mrow></mrow></mfrac></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\nu={r\over 1+\Delta^{\rm abs}\,r}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.50)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">For <math id="SS3.p6.m9" class="ltx_Math" alttext="\Delta^{\rm abs}=0" display="inline"><semantics><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs}=0</annotation></semantics></math> we retrieve the stationary Poisson process
+Eq.Â (<a href="Ch7.S2.html#Ch7.E3" title="(7.3) â£ 7.2.1 Rate as a Spike Count and Fano Factor â£ 7.2 Mean Firing Rate â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.3</span></a>) with <math id="SS3.p6.m10" class="ltx_Math" alttext="\nu=r" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î½</mi><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><annotation encoding="application/x-tex">\nu=r</annotation></semantics></math>. For finite
+<math id="SS3.p6.m11" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math> the firing is more regular than that of a Poisson process
+with the same mean rate <math id="SS3.p6.m12" class="ltx_Math" alttext="\nu" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î½</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>. We note that for finite <math id="SS3.p6.m13" class="ltx_Math" alttext="\Delta^{\rm abs}&gt;0" display="inline"><semantics><mrow><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><mo mathsize="normal" stretchy="false">&gt;</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\Delta^{\rm abs}&gt;0</annotation></semantics></math>,
+the mean firing rate remains bounded even if <math id="SS3.p6.m14" class="ltx_Math" alttext="r\to\infty" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="normal" stretchy="false">â</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></mrow><annotation encoding="application/x-tex">r\to\infty</annotation></semantics></math>. The neuron fires
+then regularly with period <math id="SS3.p6.m15" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math>. Because the spike train of a
+neuron with refractoriness is more regular than that of a Poisson neuron with
+the same mean rate, the spike count over a long interval, and hence the
+spectrum for <math id="SS3.p6.m16" class="ltx_Math" alttext="\omega\to 0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Ï</mi><mo mathsize="normal" stretchy="false">â</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">\omega\to 0</annotation></semantics></math>, is less noisy. This means that Poisson neurons
+with absolute refractoriness can transmit slow signals more reliably than a
+simple Poisson process.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS4" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.5.4 </span>Input dependent renewal theory (*)</h1>
+
+<div id="SS4.p1" class="ltx_para">
+<p class="ltx_p">It is possible to use the renewal concept in a broader sense and define a renewal
+process as a system where the state at time <math id="SS4.p1.m1" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> (and hence the probability of
+generating an event at <math id="SS4.p1.m2" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>), depends both on the time that has passed since
+the last event (i.e., the firing time <math id="SS4.p1.m3" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>) <span class="ltx_text ltx_font_italic">and</span> the input
+<math id="SS4.p1.m4" class="ltx_Math" alttext="I(t^{\prime})" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t^{\prime})</annotation></semantics></math>, <math id="SS4.p1.m5" class="ltx_Math" alttext="\hat{t}&lt;t^{\prime}&lt;t" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>&lt;</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>&lt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\hat{t}&lt;t^{\prime}&lt;t</annotation></semantics></math>, that the system received since the last event.
+Input-dependent renewal systems are also called modulated renewal processes
+<cite class="ltx_cite">(<a href="bib.html#bib150" title="The power ratio and the interval map: spiking models and extracellular recordings" class="ltx_ref">425</a>)</cite>, non-stationary renewal systems <cite class="ltx_cite">(<a href="bib.html#bib117" title="Time structure of the activity in neural network models" class="ltx_ref">182</a>; <a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>)</cite>,
+or inhomogeneous Markov interval processes <cite class="ltx_cite">(<a href="bib.html#bib152" title="A spike-train probability model" class="ltx_ref">251</a>)</cite>. The aim of a theory
+of input-dependent renewal systems is to predict the probability density</p>
+<table id="Ch7.E51" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch7.E51.m1" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="block"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(7.51)</span></td>
+</tr>
+</table>
+<p class="ltx_p">of the next
+event to occur at time <math id="SS4.p1.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+given the timing <math id="SS4.p1.m7" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> of the last event <span class="ltx_text ltx_font_italic">and</span> the input
+<math id="SS4.p1.m8" class="ltx_Math" alttext="I(t^{\prime})" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t^{\prime})</annotation></semantics></math> for <math id="SS4.p1.m9" class="ltx_Math" alttext="\hat{t}&lt;t^{\prime}&lt;t" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>&lt;</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>&lt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\hat{t}&lt;t^{\prime}&lt;t</annotation></semantics></math>;
+see Fig.Â <a href="#Ch7.F14" title="Fig.Â 7.14 â£ 7.5.4 Input dependent renewal theory (*) â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.14</span></a>.
+The relation between hazard, survivor function,
+and interval distribution for the input-dependent case
+is the same as the one given in Equations
+(<a href="#Ch7.E25" title="(7.25) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.25</span></a>) â
+(<a href="#Ch7.E28" title="(7.28) â£ 7.5.1 Survivor function and hazard â£ 7.5 Renewal statistics â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7.28</span></a>).
+The generalization to a time-dependent renewal theory will be useful
+later on in Chapter
+<a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>.</p>
+</div>
+<div id="SS4.p2" class="ltx_para">
+<p class="ltx_p">The lower index <math id="SS4.p2.m1" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> of <math id="SS4.p2.m2" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> is intended to remind the reader that the
+probability density <math id="SS4.p2.m3" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> depends on the time course of the input
+<math id="SS4.p2.m4" class="ltx_Math" alttext="I(t^{\prime})" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><msup><mi>t</mi><mo>â²</mo></msup><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t^{\prime})</annotation></semantics></math> for <math id="SS4.p2.m5" class="ltx_Math" alttext="t^{\prime}&lt;t" display="inline"><semantics><mrow><msup><mi>t</mi><mo>â²</mo></msup><mo>&lt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t^{\prime}&lt;t</annotation></semantics></math>. Since <math id="SS4.p2.m6" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> is conditioned on the spike at
+<math id="SS4.p2.m7" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>, it can be called a spike-triggered spike
+density. We interpret <math id="SS4.p2.m8" class="ltx_Math" alttext="P_{I}(t\,|\,\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mpadded width="+1.7pt"><mi>t</mi></mpadded><mo rspace="4.2pt" stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t\,|\,\hat{t})</annotation></semantics></math> as the distribution of interspike intervals in the presence of an
+input current <math id="SS4.p2.m9" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> or as the <span class="ltx_text ltx_font_italic">input-dependent interval distribution</span>.
+
+For stationary input,
+<math id="SS4.p2.m10" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> reduces to <math id="SS4.p2.m11" class="ltx_Math" alttext="P_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t-\hat{t})</annotation></semantics></math>.</p>
+</div>
+<figure id="Ch7.F14" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left" colspan="2"><img src="x204.png" id="Ch7.F14.g1" class="ltx_graphics" width="590" height="108" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 7.14: </span>
+Input-dependent interval distribution. <span class="ltx_text ltx_font_bold">A</span>. A neuron, stimulated by the current <math id="Ch7.F14.m5" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> has emitted a first spike at <math id="Ch7.F14.m6" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">B</span>. The interval distribution <math id="Ch7.F14.m7" class="ltx_Math" alttext="P_{I}(t|\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})</annotation></semantics></math> gives the probability density that the next spike occurs after an interval <math id="Ch7.F14.m8" class="ltx_Math" alttext="t-\hat{t}" display="inline"><semantics><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><annotation encoding="application/x-tex">t-\hat{t}</annotation></semantics></math>.
+</figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch7.S4.html" title="7.4 Autocorrelation function and noise spectrum â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.4 </span>Autocorrelation function and noise spectrum</span></a><a href="Ch7.S6.html" title="7.6 The Problem of Neural Coding â£ ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7.6 </span>The Problem of Neural Coding</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

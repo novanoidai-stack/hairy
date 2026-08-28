@@ -1,0 +1,469 @@
+<!DOCTYPE html><html>
+<head>
+<title>16.1 Perceptual Decision Making | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch16.S2.html" title="16.2 Competition through common inhibition â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch16.S2.html" title="16.2 Competition through common inhibition â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch16.S3.html" title="16.3 Dynamics of decision making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch16.S4.html" title="16.4 Alternative Decision Models â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch16.S5.html" title="16.5 Human Decisions, Determinism, and Free Will â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch16.S6.html" title="16.6 Summary â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="MT neuron, decision making, of MT neurons, perceptual, receptive field">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16 </span>Competing Populations and Decision Making</span></a><a href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16 </span>Competing Populations and Decision Making</span></a><a href="Ch16.S2.html" title="16.2 Competition through common inhibition â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.2 </span>Competition through common inhibition</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">16.1 </span>Perceptual Decision Making</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Many perceptual phenomena can be formulated
+as a problem of decision making.
+In a typical experiment of visual psychophysics,
+a subject observes a short flash
+of three vertical black bars on a gray background (Fig. <a href="Ch16.html#F1" title="Fig.Â 16.1 â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.1</span></a>B).
+Is the middle bar shifted to the left or to the right
+compared to a symmetric arrangement of the three bars where it
+is exactly in the center?
+If the shift is very small, or if
+the bars are presented with low contrast on a noisy screen,
+the question is difficult to answer.
+The subject who
+holds a button in each hand, indicates his decision
+(left or right) by pressing the corresponding button.
+In other words, he reports
+his perception as a decision.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">In the following, we focus
+on an experimental paradigm with
+visual random dot motion stimuli used for the study of
+perceptual decision making in monkeys
+<cite class="ltx_cite">(<a href="bib.html#bib381" title="Cortical microstimulation influences perceptual judgements of motion directions" class="ltx_ref">454</a>; <a href="bib.html#bib382" title="Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task" class="ltx_ref">443</a>; <a href="bib.html#bib378" title="The neural basis of decision making." class="ltx_ref">191</a>)</cite>.
+The
+stimulus consists of
+a random pattern of moving dots,
+where most, but not necessarily all, of the dots
+move coherently in the same direction;
+cf. Fig. <a href="#Ch16.F2" title="Fig.Â 16.2 â£ 16.1.1 Perception of motion â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.2</span></a>.
+Typically, two different directions of motion
+are used, e.g., upward or downward.
+The monkey has been trained to indicate
+the perceived motion direction
+by saccadic eye movements
+to one of two targets
+cf. Fig. <a href="#Ch16.F2" title="Fig.Â 16.2 â£ 16.1.1 Perception of motion â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.2</span></a>B.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">Note that, in contrast to the examples
+given at the beginning of this chapter,
+problems of perceptual decision making
+typically have no direct monetary value
+or risk associated with it.
+Normally we do not care whether
+a bar is shifted to the left or to the right,
+or whether dots move upward or downward.
+Nevertheless, a correct perceptual decision
+might be life-saving if a
+moving stripe pattern in the bush
+is correctly recognized as an approaching
+tiger as opposed
+to a movement of the leaves in the wind.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">16.1.1 </span>Perception of motion</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">Neurons in the middle temporal visual area (MT, also called V5)
+are activated by large-scale motion stimuli.
+The receptive field of an MT neuron, i.e., the region of visual
+space it is sensitive to motion stimuli, is
+considerably larger than that of a neuron in primary visual cortex;
+cf. Chapter <a href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>.
+
+
+Different neurons in MT respond to different directions
+of motion, but just as in other parts of visual
+cortex, area MT has a columnar structure
+so that clusters of neighboring neurons share
+receptive fields with
+a similar preferred direction of motion
+<cite class="ltx_cite">(<a href="bib.html#bib383" title="Columnar organization of directionally selective cells in visual area mt of the macaque" class="ltx_ref">14</a>)</cite>.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">At the beginning of
+a typical recording session
+with an extracellular electrode in MT
+<cite class="ltx_cite">(<a href="bib.html#bib381" title="Cortical microstimulation influences perceptual judgements of motion directions" class="ltx_ref">454</a>)</cite>,
+the
+location
+of the receptive field and the preferred
+direction of motion of a single neuron or cluster
+of neighboring neurons is determined
+by varying the movement angle
+and the location of the random dot stimulus.
+Once the receptive properties of the local MT neurons
+have been determined,
+only
+two different classes
+of stimuli are used, i.e.,
+dots moving coherently in the
+preferred direction of the recorded
+neuron, and dots moving coherently in the opposite direction.
+</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">After each presentation of a random dot motion pattern,
+two targets are switched on,
+one at a location in
+direction of stimulus motion,
+the other one on the opposite side.
+The monkey is trained
+to indicate the movement direction
+of the stimulus by
+a saccadic eye movement to the corresponding target.
+After training, the perceptual decision
+between a dot movement in the cellâs preferred direction (P)
+or the null direction (N)
+is reliably performed by the monkey,
+if a noise-free stimulus is used
+where all dots move in the same direction.
+However, the task becomes more
+difficult, if only a small fraction
+of dots move coherently in
+one of the two directions while
+the rest of the dots moves in a random direction.
+The behavioral performance
+can be assessed with the psychometric function
+which represents the percentage of
+saccades to the target P as
+a function of coherence, where coherence indicates the fraction
+of coherently moving dots
+(Fig. <a href="#Ch16.F2" title="Fig.Â 16.2 â£ 16.1.1 Perception of motion â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.2</span></a>B).</p>
+</div>
+<figure id="Ch16.F2" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x515.png" id="Ch16.F2.g1" class="ltx_graphics" width="292" height="265" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x516.png" id="Ch16.F2.g2" class="ltx_graphics" width="292" height="262" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 16.2: </span>
+Random dot stimuli and perception of motion.
+<span class="ltx_text ltx_font_bold">A</span>. Top: A pattern of random dots moving
+in direction <math id="Ch16.F2.m3" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi>Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math> is presented on the screen.
+Different motion directions are tested.
+Bottom: The firing rate response of a neuron in area MT depends on
+the direction of motion <math id="Ch16.F2.m4" class="ltx_Math" alttext="\beta" display="inline"><semantics><mi>Î²</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math> of the random dot stimulus.
+The preferred direction
+is marked âPâ, the null-direction âNâ (schematic figure).
+<span class="ltx_text ltx_font_bold">B</span>.
+Top: In the first phase of each trial, the monkey fixates on the star while
+a moving random dot stimulus is presented inside the receptive field
+(dashed circle) of a neuron.
+After visual stimulation is switched off, the monkey indicates by
+eye movements to one of the two targets
+(filled black circles, marked P and N)
+whether the perceived motion is in the direction âPâ or âNâ.
+Bottom: The percentage of âPâ reports (vertical axis) is plotted as a function
+of the coherence (horizontal axis) of the stimulus (solid line).
+If, during presentation of a random dot motion pattern,
+the MT column of neurons with preferred
+direction âPâ
+is electrically stimulated, the percentage
+of times the monkey reports a perception of âPâ is increased (dashed line).
+Coherence of 1 indicates
+that all points move in the P direction, while coherence
+of 0.66 indicates that
+one third of the points move in a random direction.
+Coherence of -1 indicates coherent motion in the âNâ direction;
+schematically redrawn after <cite class="ltx_cite">(<a href="bib.html#bib381" title="Cortical microstimulation influences perceptual judgements of motion directions" class="ltx_ref">454</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">An electrode in MT cannot only be used to
+record neural activity,
+but also to stimulate a cluster
+of neurons in the neighborhood of the electrode.
+Since neighboring neurons have similar preferred
+directions of motion, current injection into the electrode
+can bias the perception
+of the monkey
+in favor of the neuronsâ preferred
+direction, even if the random dot pattern
+has no or only a small amount of coherence
+(Fig. <a href="#Ch16.F2" title="Fig.Â 16.2 â£ 16.1.1 Perception of motion â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.2</span></a>B).
+This indicates that
+the perceptual decision of the monkey
+relies on the motion information
+represented in the activity of MT neurons
+<cite class="ltx_cite">(<a href="bib.html#bib381" title="Cortical microstimulation influences perceptual judgements of motion directions" class="ltx_ref">454</a>)</cite>.
+</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">While the monkeyâs perceptual decision
+is influenced by the manipulation
+of MT neurons, this result does not
+imply that the decision itself is made
+in MT. It is likely to be made
+at a later stage, in an area
+that uses the information of MT neurons.</p>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">16.1.2 </span>Where is the decision taken?</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">The short answer is: we do not know.
+However,
+an interesting observation has been
+made in the Lateral Intra-parietal Area (LIP)
+during experiments of perceptual
+decision making with moving random dot stimuli
+<cite class="ltx_cite">(<a href="bib.html#bib382" title="Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task" class="ltx_ref">443</a>)</cite>.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">Before discussing the experiment, we need
+to present a few facts about the properties of LIP neurons.
+Area LIP is located in the visual processing
+stream between primary visual cortex and the
+Frontal Eye Field region involved in control
+of saccadic eye movements.
+Neurons in area LIP
+respond during the <span class="ltx_text ltx_font_italic">preparation</span>
+of saccadic eye movements.
+Different neurons in LIP have different receptive
+field. The location of the receptive
+field corresponds to a potential target
+region of eye movements.
+In other words, a LIP neuron
+responds just <span class="ltx_text ltx_font_italic">before</span> a saccadic eye movement
+into its receptive field occurs.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">As in the previous subsection, monkeys
+in the experiment of Roitman and Shadlen
+are trained to indicate the direction
+of a moving dot pattern by saccadic
+eye movements to one of two
+visual targets.
+The first target is located
+in the receptive field of a LIP neuron.
+Therefore, the recorded neuron is expected
+to respond whenever the monkey prepares
+a movement to the first target.
+The second target is located in the opposite
+direction.
+The task is designed such that
+a random dot stimulus moving
+in direction of the first target
+indicates that the monkey should make
+an eye movement toward it;
+the correct response to a stimulus moving in the opposite direction
+is a saccade to the second target
+(Fig. <a href="#Ch16.F3" title="Fig.Â 16.3 â£ 16.1.2 Where is the decision taken? â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.3</span></a>A).
+The difficulty of the task can be varied
+by changing the fraction of coherently moving dots.
+The behavioral reaction time of the monkey
+was measured as a function of stimulus coherence.
+At the same time, the activity of
+neurons in LIP was recorded.</p>
+</div>
+<figure id="Ch16.F3" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x517.png" id="Ch16.F3.g1" class="ltx_graphics" width="293" height="236" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x518.png" id="Ch16.F3.g2" class="ltx_graphics" width="293" height="219" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 16.3: </span>
+<span class="ltx_text ltx_font_bold">A</span>.
+Neurons in Lateral Intra-Parietal area (LIP)
+have receptive fields (RF)
+that represent potential targets of a saccade.
+An LIP neuron responds strongly
+just before the saccade, if the saccadic movement
+is <span class="ltx_text ltx_font_italic">into</span> its RF (left, dashed line surrounds region of interest),
+and is suppressed if the movement
+is in the opposite direction, away from its RF (right).
+Monkeys observed random dot motion stimuli and had been trained to report
+the direction of the stimulus by saccadic
+eye movements either âintoâ or âawayâ from the RF of the recorded neuron.
+For histograms and spike raster,
+trials were aligned to saccade onset (sac, vertical line).
+Filled triangles indicate onset of motion stimulus.
+Responses were faster for stimuli with larger coherence (top row, coherence =51.2<math id="Ch16.F3.m5" class="ltx_Math" alttext="\%" display="inline"><semantics><mi mathvariant="normal">%</mi><annotation encoding="application/x-tex">\%</annotation></semantics></math>)
+than small coherence (bottom row, coherence = 6.4<math id="Ch16.F3.m6" class="ltx_Math" alttext="\%" display="inline"><semantics><mi mathvariant="normal">%</mi><annotation encoding="application/x-tex">\%</annotation></semantics></math>),
+and stronger for movements into the RF (left column) than away from the RF
+(right column).
+<span class="ltx_text ltx_font_bold">B</span>. Firing rate response of LIP neurons (averaged over 54 neurons)
+aligned to stimulus onset
+(left part of graph) or saccade onset (right part of graph).
+The stronger the coherence (thick solid line: coherence =51.2<math id="Ch16.F3.m7" class="ltx_Math" alttext="\%" display="inline"><semantics><mi mathvariant="normal">%</mi><annotation encoding="application/x-tex">\%</annotation></semantics></math>,
+other solid lines: 12.8 and 3.2<math id="Ch16.F3.m8" class="ltx_Math" alttext="\%" display="inline"><semantics><mi mathvariant="normal">%</mi><annotation encoding="application/x-tex">\%</annotation></semantics></math>)
+of a random dot motion stimulus initiating a saccade âintoâ the RF,
+the faster the rise of the initial response of LIP neurons (left).
+However, whatever the coherence,
+the LIP neurons always reach the same firing rate,
+at the moment when a saccade into the RF starts (right).
+The neurons are suppressed, if the monkey chooses the opposite
+saccadic target (âaway RFâ,
+dashed lines, left and right).
+Adapted from <cite class="ltx_cite">(<a href="bib.html#bib382" title="Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task" class="ltx_ref">443</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">Roitman and Shadlen found that, during the presentation
+of the moving dot stimulus, the activity of LIP
+neurons increased. The rate of increase
+after stimulus onset was higher
+for stimuli with a large fraction of coherent points
+than for stimuli with little or no coherence.
+Importantly, when the responses were averaged
+and aligned to the onset of the <span class="ltx_text ltx_font_italic">saccade</span>,
+LIP neurons always reached the same
+level of activity just before
+a saccade <span class="ltx_text ltx_font_italic">into</span> their receptive
+field (Fig. <a href="#Ch16.F3" title="Fig.Â 16.3 â£ 16.1.2 Where is the decision taken? â£ 16.1 Perceptual Decision Making â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16.3</span></a>B).</p>
+</div>
+<div id="SS2.p5" class="ltx_para">
+<p class="ltx_p">These findings are consistent with the idea
+that the decision to perform a saccade
+occurs at the moment
+when LIP neurons reach a threshold value.
+For stimuli with a high degree
+of coherence, the activity increases
+more rapidly, the threshold is reached
+earlier, and reaction times are shorter
+than for stimuli with low degree of coherence.
+Therefore, the paper of Roitman and Shadlen suggests
+that âa threshold level of LIP activity
+appears to mark the completion of the decision processâ
+<cite class="ltx_cite">(<a href="bib.html#bib382" title="Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task" class="ltx_ref">443</a>)</cite>.</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16 </span>Competing Populations and Decision Making</span></a><a href="Ch16.S2.html" title="16.2 Competition through common inhibition â£ ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">16.2 </span>Competition through common inhibition</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html><html>
+<head>
+<title>17.1 Associations and memory | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch17.S3.html" title="17.3 Memory networks with spiking neurons â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch17.S4.html" title="17.4 Summary â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch16.html" title="ChapterÂ 16 Competing Populations and Decision Making â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch18.html" title="ChapterÂ 18 Cortical Field Models for Perception â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch19.html" title="ChapterÂ 19 Synaptic Plasticity and Learning â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch20.html" title="ChapterÂ 20 Outlook: Dynamics in Plastic Networks â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="Stroop effect, assembly, associative, memory, neuron, priming, working memory">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17 </span>Memory and Attractor Dynamics</span></a><a href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17 </span>Memory and Attractor Dynamics</span></a><a href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2 </span>Hopfield Model</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">17.1 </span>Associations and memory</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">A well-known demonstration of the strong associations,
+which are deeply embedded in the human brain
+is given by the following task.
+The aim is to respond as quickly as possible
+to three questions.
+Think of the first answer that comes to mind!
+Are you ready? Here are the questions:
+(i) Can you give me an example of a color? â
+(ii) Can you give me an example of a tool? â
+(iii) Can you give me an example of a fruit? â
+For each of these, what was the very first example that came to your mind?
+Chances are high that your examples are âredâ for color
+and âhammerâ for tool. In fact,
+most humans have particularly strong
+associations from tool to hammer and from color to red.
+Regarding fruit, the cultural background plays a more important
+role (apple, orange, banana), but since the text at the beginning
+of this chapter mentioned bananas, you probably had a slightly stronger bias toward banana
+at the moment when you answered the above questions
+than what you would have had under normal circumstances.
+This bias through an earlier word or context
+is a highly significant effect,
+called âprimingâ in psychophysics.
+
+</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">Not surprisingly, the word âredâ is associated with
+seeing the color red and vice versa.
+If you read a list of words that contains
+names of colors, you are normally fast in doing
+so and do not experience any particular difficulty.
+Similarly, you can easily name the color
+of objects.
+However, people find it
+difficult to name the ink color
+in lists of words that contain
+entries such as <span class="ltx_text ltx_font_italic">red, green, blue</span>,
+but are written in colored fonts that are inconsistent
+with the word (e.g. the word <span class="ltx_text ltx_font_italic">red</span> is written
+in green font, whereas the word <span class="ltx_text ltx_font_italic">green</span> is written
+in blue font).
+In this case responses in the color-naming task
+are slower compared
+to naming the color of geometric objects
+.
+The measurable difference in reaction time
+in naming the color of (inconsistent) words compared to
+the color of objects
+is called the Stroop effect <cite class="ltx_cite">(<a href="bib.html#bib406" title="Studies of interference in serial verbal reactions" class="ltx_ref">500</a>; <a href="bib.html#bib407" title="Half a century of research on the stroop effect: an integrative review." class="ltx_ref">320</a>)</cite>.
+The association of the color âredâ with the word <span class="ltx_text ltx_font_italic">red</span>
+makes it difficult to name the ink color (e.g., green)
+in which the word <span class="ltx_text ltx_font_italic">red</span> is written.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">In this chapter we mainly focus
+on association in the sense of
+completing partial information.
+Take a look at Fig.
+<a href="#Ch17.F1" title="Fig.Â 17.1 â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.1</span></a>A.
+Nearly all words are incomplete,
+but your brain is able to cope
+with this situation,
+just as you are able to follow
+a phone conversation over a noisy line,
+recognize a noisy image of a handwritten character
+or associate
+the picture of an orange
+with its taste
+so as retrieve your concept of an orange
+as a tasty fruit.</p>
+</div>
+<figure id="Ch17.F1" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x533.png" id="Ch17.F1.g1" class="ltx_graphics" width="292" height="143" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x534.png" id="Ch17.F1.g2" class="ltx_graphics" width="291" height="140" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 17.1: </span>
+Memory recall cued by partial information.
+<span class="ltx_text ltx_font_bold">A</span>.
+Read it!.
+<span class="ltx_text ltx_font_bold">B</span>.
+Schematic view of the recall process.
+Your brain has memorized a list of words.
+Based on partial information and the context,
+your brain is able to complete the missing
+characters.
+</figcaption>
+</figure>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">17.1.1 </span>Recall, recognition, and partial information</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">If half
+of an orange is hidden behind a coffee mug,
+you can still recognize it as an orange
+based on the partial information you have.
+Recognition works because you have seen oranges before and
+have memorized the concept âorangeâ,
+including a prototypical image of this fruit.
+More generally, when you see a noisy image
+of a known object (e.g., the letter âTâ)
+your brain is able to retrieve
+from memory the prototype version of the object
+(e.g., an idealized âTâ).
+Thus recognizing an object in a noisy environment
+involves the process of
+âmemory recallâ.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">A highly simplified schematic view
+of memory recall based on partial information
+is shown in Fig. <a href="#Ch17.F1" title="Fig.Â 17.1 â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.1</span></a>B.
+The input (e.g., an incomplete word) is compared
+to a list of all possible words.
+The most likely entry (i.e.
+the one which is most similar to the input) in the list
+is given as the output of memory recall.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">Similarly, noisy images of objects are recognized
+if the brain finds, among the memorized items,
+one which is highly similar (Fig. <a href="#Ch17.F2" title="Fig.Â 17.2 â£ 17.1.1 Recall, recognition, and partial information â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.2</span></a>).
+Let us call the âpureâ noise-free memory
+item a prototype
+<math id="SS1.p3.m1" class="ltx_Math" alttext="p^{\mu}" display="inline"><semantics><msup><mi>p</mi><mi>Î¼</mi></msup><annotation encoding="application/x-tex">p^{\mu}</annotation></semantics></math>, where the index <math id="SS1.p3.m2" class="ltx_Math" alttext="1\leq\mu\leq M" display="inline"><semantics><mrow><mn>1</mn><mo>â¤</mo><mi>Î¼</mi><mo>â¤</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">1\leq\mu\leq M</annotation></semantics></math> labels
+all different memory items.
+The prototype can be visualized as a point
+in some high-dimensional space.
+A noisy input cue <math id="SS1.p3.m3" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> corresponds to another
+point in the same space.
+Suppose that we have a similarity measure
+which enables us to calculate the distance
+<math id="SS1.p3.m4" class="ltx_Math" alttext="|x-p^{\mu}|" display="inline"><semantics><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><msup><mi>p</mi><mi>Î¼</mi></msup></mrow><mo fence="true">|</mo></mrow><annotation encoding="application/x-tex">|x-p^{\mu}|</annotation></semantics></math> between the input cue and each
+of the prototypes.
+A simple method of memory recall
+is a search algorithm that goes through
+the list of all available prototypes to
+find the nearest one. More formally,
+the output of the recall process is
+the prototype <math id="SS1.p3.m5" class="ltx_Math" alttext="p^{\alpha}" display="inline"><semantics><msup><mi>p</mi><mi>Î±</mi></msup><annotation encoding="application/x-tex">p^{\alpha}</annotation></semantics></math>
+with</p>
+<table id="Ch17.E1" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch17.E1.m1" class="ltx_Math" alttext="|x-p^{\alpha}|\leq|x-p^{\mu}|\quad{\rm for~{}all~{}}\mu\," display="block"><semantics><mrow><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><msup><mi>p</mi><mi>Î±</mi></msup></mrow><mo fence="true">|</mo></mrow><mo>â¤</mo><mrow><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><msup><mi>p</mi><mi>Î¼</mi></msup></mrow><mo fence="true">|</mo></mrow><mo separator="true">â</mo><mrow><mpadded width="+3.3pt"><mi>for</mi></mpadded><mo>â¢</mo><mpadded width="+3.3pt"><mi>all</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¼</mi></mpadded></mrow></mrow></mrow><annotation encoding="application/x-tex">|x-p^{\alpha}|\leq|x-p^{\mu}|\quad{\rm for~{}all~{}}\mu\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(17.1)</span></td>
+</tr>
+</table>
+<p class="ltx_p">which gives rise to a simple geometric picture (Fig. <a href="#Ch17.F2" title="Fig.Â 17.2 â£ 17.1.1 Recall, recognition, and partial information â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.2</span></a>B).</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">The aim of this chapter is to
+replace the explicit algorithmic search
+for the nearest prototype by
+the dynamics of interacting neurons.
+Instead of an <span class="ltx_text ltx_font_italic">explicit</span> algorithm working through
+a list of stored prototypes, the mere cross-talk
+of neurons embedded in a large network
+will find the prototype that corresponds
+best to the noisy cue â
+in a highly distributed and automatic fashion,
+reminiscent of what we believe is happening
+in the brain (Fig. <a href="#Ch17.F2" title="Fig.Â 17.2 â£ 17.1.1 Recall, recognition, and partial information â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.2</span></a>A).
+Brain-style computation implements an <span class="ltx_text ltx_font_italic">implicit</span> algorithm,
+as we will see in Sections <a href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.2</span></a>
+and <a href="Ch17.S3.html" title="17.3 Memory networks with spiking neurons â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.3</span></a>.</p>
+</div>
+<figure id="Ch17.F2" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x535.png" id="Ch17.F2.g1" class="ltx_graphics" width="291" height="167" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x536.png" id="Ch17.F2.g2" class="ltx_graphics" width="292" height="174" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 17.2: </span>
+Recall and recognition as search for nearest prototype.
+<span class="ltx_text ltx_font_bold">A</span>.
+A letter âTâ in a noisy image (left)
+serves as a cue in order to recall
+a noise-free prototype letter âTâ from
+the memory embedded in a neural network.
+<span class="ltx_text ltx_font_bold">B</span>.
+Recognition of the input <math id="Ch17.F2.m6" class="ltx_Math" alttext="x" display="inline"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+(black star, representing a noisy âTâ)
+can be interpreted as an algorithm that searches
+for the nearest prototype <math id="Ch17.F2.m7" class="ltx_Math" alttext="p^{\alpha}" display="inline"><semantics><msup><mi>p</mi><mi>Î±</mi></msup><annotation encoding="application/x-tex">p^{\alpha}</annotation></semantics></math>
+such that <math id="Ch17.F2.m8" class="ltx_Math" alttext="|x-p^{\alpha}|\leq|x-p^{\mu}|" display="inline"><semantics><mrow><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><msup><mi>p</mi><mi>Î±</mi></msup></mrow><mo fence="true">|</mo></mrow><mo>â¤</mo><mrow><mo fence="true">|</mo><mrow><mi>x</mi><mo>-</mo><msup><mi>p</mi><mi>Î¼</mi></msup></mrow><mo fence="true">|</mo></mrow></mrow><annotation encoding="application/x-tex">|x-p^{\alpha}|\leq|x-p^{\mu}|</annotation></semantics></math>
+for all <math id="Ch17.F2.m9" class="ltx_Math" alttext="\mu" display="inline"><semantics><mi>Î¼</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>, and <math id="Ch17.F2.m10" class="ltx_Math" alttext="p^{\mu}" display="inline"><semantics><msup><mi>p</mi><mi>Î¼</mi></msup><annotation encoding="application/x-tex">p^{\mu}</annotation></semantics></math> denotes all possible prototypes
+(gray circles).
+The dashed lines are the sets of points
+with equal distance to two different prototypes.
+</figcaption>
+</figure>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">17.1.2 </span>Neuronal assemblies</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Neural assemblies play a central role
+in the implicit algorithm for memory retrieval
+that we will discuss in Section <a href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.2</span></a>.
+Neuronal assemblies <cite class="ltx_cite">(<a href="bib.html#bib298" title="The Organization of Behavior" class="ltx_ref">210</a>)</cite> are sub-networks of strongly
+connected neurons that, together, represent
+an abstract concept.
+For example, your mental concept of a âbananaâ
+containing the mental image of its form, color, taste and texture
+could be represented by one assembly
+of strongly connected neurons, while another one
+might represent
+your concept of Paris with
+mental pictures of the Eiffel tower and the Louvre
+and yet another one
+your concept of Sydney with its famous opera house.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">The assembly as a subgroup of strongly connected neurons
+has been an influential theoretical notion, introduced by <cite class="ltx_cite">Hebb (<a href="bib.html#bib298" title="The Organization of Behavior" class="ltx_ref">210</a>)</cite>.
+Do such assemblies exist?
+The short answer is: We donât know.
+Neurons belonging to an assembly do not have
+to be neighbors but can be widely distributed
+across one, or even several, brain areas.
+Experimentally, it is therefore difficult to check for the presence
+of an assembly as a <span class="ltx_text ltx_font_italic">group</span> of neurons.
+However,
+Quiroga et al. <cite class="ltx_cite">(<a href="bib.html#bib408" title="Invariant visual representation by single neurons in the human brain" class="ltx_ref">411</a>)</cite>
+found individual neurons in human patients
+that code for abstract mental concepts
+such as the Sydney opera house.
+These patients suffer from severe treatment-resistant
+epilepsy which makes a surgical intervention
+necessary. In order to precisely locate the focus
+of the epilepsy in relation to important brain areas
+(such as those for speech or motor control), electrophysiological
+recordings are made while the patient performs various tasks.
+In contrast to neurons in visual cortex which respond in the presence
+of an appropriate visual stimulus,
+single neurons in the medial temporal lobe of human
+cortex (in particular, in the hippocampus)
+do not respond to a specific stimulus, but
+to a much broader set of stimuli that
+are linked to the same mental concept.
+For example, the written word âSydneyâ
+and a picture of the opera house in Sydney
+both cause a response of the same neuron (Fig. <a href="#Ch17.F3" title="Fig.Â 17.3 â£ 17.1.2 Neuronal assemblies â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.3</span></a>),
+which we can therefore interpret as one of the neurons belonging
+to the assembly of neurons encoding the mental concept âSydneyâ.</p>
+</div>
+<figure id="Ch17.F3" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x537.png" id="Ch17.F3.g1" class="ltx_graphics" width="201" height="199" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x538.png" id="Ch17.F3.g2" class="ltx_graphics" width="401" height="200" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 17.3: </span>
+Assemblies and responses to abstract concepts.
+<span class="ltx_text ltx_font_bold">A</span>. Schematic diagram of a network of 10 neurons
+containing two assemblies, defined as strongly
+connected subgroups (thick solid and dashed lines,
+respectively). Note that neuron 9 participates
+in both assemblies. Assemblies could represent
+abstract mental concepts.
+<span class="ltx_text ltx_font_bold">B</span>. Response of a single unit in human hippocampus
+<cite class="ltx_cite">(<a href="bib.html#bib408" title="Invariant visual representation by single neurons in the human brain" class="ltx_ref">411</a>)</cite>.
+The same neuron responds strongly to an image of
+the Sydney opera house and the words âSydney operaâ,
+but much more weakly to images of other landmarks
+such as the Pisa tower.
+Vertical lines indicate the one-second period
+of stimulation with
+images of opera, word, or Pisa tower,
+respectively.
+The photographic images used in the real
+experiment are replaced here by sketches;
+adapted from <cite class="ltx_cite">(<a href="bib.html#bib408" title="Invariant visual representation by single neurons in the human brain" class="ltx_ref">411</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">Three aspects are worth emphasizing.
+First, it is unlikely that the neuron responding to the Sydney
+opera house is the only one to do so. Therefore, we should
+not think of a <span class="ltx_text ltx_font_italic">single</span> neuron as representing a concept
+or memory item, but rather a group of neurons.
+The idea that a single neuron represents one concept
+is sometimes called the âgrandmother cellâ code:
+if the cell coding for grandmother were to die in our brain, our
+memory of grandmother
+would disappear as well.
+At the current stage of research, neural codes
+based on groups of cells are a more likely code than a
+grandmother cell code.</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">Second, the same neuron
+participates in several assemblies.
+In the recording sessions of Quiroga et al.
+where a large collection of pictures of famous individuals
+and landmarks were used, each unit showed strong responses
+to about 3 percent of the stimuli <cite class="ltx_cite">(<a href="bib.html#bib408" title="Invariant visual representation by single neurons in the human brain" class="ltx_ref">411</a>)</cite>.</p>
+</div>
+<div id="SS2.p5" class="ltx_para">
+<p class="ltx_p">Third, some, but not all, of the neurons
+showed prolonged responses that persisted after the
+end of stimulus presentation. This could
+potentially indicate that a memory item
+is retrieved and kept in the brain
+even after the stimulus has disappeared.
+All three aspects play a role
+for the memory model discussed
+in Section <a href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.2</span></a>.</p>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">17.1.3 </span>Working memory and delayed matching-to-sample tasks</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">In contrast to long-term memory,
+items in working memory
+do not have to be kept for a lifetime.
+For example, humans use their working memory
+when they write down a phone number that they just received
+or search in the supermarket for items on their shopping list.
+Neural activity during working memory tasks has
+been recorded in monkeys, in particular
+in prefrontal and inferotemporal cortex <cite class="ltx_cite">(<a href="bib.html#bib409" title="Neuronal correlate of visual associative long-term memory in the primate temporal cortex." class="ltx_ref">349</a>; <a href="bib.html#bib410" title="Neuronal firing in the inferotemporal cortex of the moneky in a visual memory task" class="ltx_ref">164</a>; <a href="bib.html#bib411" title="AN integrative theory of prefrontal cortex function" class="ltx_ref">342</a>)</cite>.
+In a delayed matching-to-sample task,
+a monkey has to indicate
+whether a second stimulus is, or is not,
+identical to a first stimulus received
+one or several seconds earlier.</p>
+</div>
+<figure id="Ch17.F4" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x539.png" id="Ch17.F4.g1" class="ltx_graphics" width="291" height="226" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x540.png" id="Ch17.F4.g2" class="ltx_graphics" width="292" height="248" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 17.4: </span>
+Delayed matching-to-sample task.
+<span class="ltx_text ltx_font_bold">A</span>. PSTH of a neuron in
+anterior ventral temporal cortex in
+a visual working memory task.
+The monkey has to indicate
+whether a first stimulus
+(sample, presented for 0.2s
+at time marked by arrow)
+is identical to a second one
+which can be either a matching
+(arrow) or an unfamiliar stimulus;
+adapted from <cite class="ltx_cite">(<a href="bib.html#bib409" title="Neuronal correlate of visual associative long-term memory in the primate temporal cortex." class="ltx_ref">349</a>)</cite>.
+<span class="ltx_text ltx_font_bold">B</span>.
+PSTH
+of a single neuron in prefrontal cortex
+in response to
+two different images,
+one object (dashed line) and one different
+noise pattern (solid line).
+Sample stimuli
+were presented for 650Â ms.
+After a delay period of 1s,
+a matching stimulus was presented.
+âRâ marks a period when responses tend to recover
+after a transient dip. Vertical axis: firing
+rate measured with respect to baseline activity;
+adapted from <cite class="ltx_cite">(<a href="bib.html#bib412" title="Timecourse of object-related neural activity in the primate prefrontal cortex during a short-term memory task" class="ltx_ref">412</a>)</cite>.
+</figcaption>
+</figure>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">In order to correctly perform the task,
+the monkey has to remember
+the sample stimulus during
+the delay period where no stimulation is given.
+Some neurons in prefrontal cortex
+show sustained activity during
+the delay period
+(Fig. <a href="#Ch17.F4" title="Fig.Â 17.4 â£ 17.1.3 Working memory and delayed matching-to-sample tasks â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.4</span></a>A).
+This has been
+interpreted
+as a neural signature of working memory.
+During the delay period, the time course
+of neural activity
+varies widely
+between different objects
+for one neuron (Fig. <a href="#Ch17.F4" title="Fig.Â 17.4 â£ 17.1.3 Working memory and delayed matching-to-sample tasks â£ 17.1 Associations and memory â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17.4</span></a>B).
+and across a population of neurons
+<cite class="ltx_cite">(<a href="bib.html#bib412" title="Timecourse of object-related neural activity in the primate prefrontal cortex during a short-term memory task" class="ltx_ref">412</a>)</cite> which
+indicates that simple models
+such as the ones discussed in this chapter
+do not explain all aspects of working memory.</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch17.html" title="ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17 </span>Memory and Attractor Dynamics</span></a><a href="Ch17.S2.html" title="17.2 Hopfield Model â£ ChapterÂ 17 Memory and Attractor Dynamics â£ PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">17.2 </span>Hopfield Model</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hairy · Mecha Final — estados elegidos + encadenados continuos + reposos reales</title>
+<style>
+  :root{
+    --bg:#f6f1ea; --card:#ffffff; --panel:#fffdfb;
+    --fire:#f4501e; --fire-hi:#c0260a;
+    --fire-grad:linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%);
+    --txt:#1c1814; --txt2:#5c5249; --txt3:#736658; --txt4:#b3a89d;
+    --border:rgba(40,30,24,.08); --border-hi:rgba(40,30,24,.14);
+    --amber:#e08a00; --ok:#0f9d6b; --ok2:#22c55e; --red:#e23b34; --violet:#8a5cf6; --teal:#0d9488;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--txt);padding:28px 22px 100px}
+  h1{font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
+  h2{font-size:15px;margin:36px 0 4px;letter-spacing:-.01em}
+  h3{font-size:12.5px;margin:18px 0 8px;color:var(--txt2)}
+  .sub{color:var(--txt3);font-size:13.5px;margin-bottom:14px;max-width:860px;line-height:1.55}
+  .sub b{color:var(--fire)}
+  .sec{max-width:1100px;margin:0 auto}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .slot small.hint{display:block;font-size:10.5px;color:var(--txt4);margin:0 0 8px 2px;font-style:italic}
+
+  /* ============ CARD BASE ============ */
+  .kcard{position:relative;border-radius:12px;background:var(--card);border:1px solid var(--border-hi);
+    padding:12px 14px 12px 16px;overflow:hidden;cursor:pointer;
+    transition:transform .18s var(--ease),box-shadow .18s ease}
+  .kcard:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(28,24,20,.12)}
+  .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .name{font-size:13px;font-weight:700}
+  .svc{font-size:11px;color:var(--txt3);margin-top:1px}
+  .time{font-size:10.5px;color:var(--txt3);font-variant-numeric:tabular-nums;text-align:right}
+  .time b{display:block;color:var(--txt);font-size:11.5px}
+  .meta{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center}
+  .badge{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:6px}
+  .b-amber{background:rgba(224,138,0,.14);color:var(--amber)}
+  .b-green{background:rgba(15,157,107,.12);color:var(--ok)}
+  .b-green2{background:rgba(34,197,94,.12);color:var(--ok2)}
+  .b-red{background:rgba(226,59,52,.10);color:var(--red)}
+  .b-violet{background:rgba(138,92,246,.12);color:var(--violet)}
+  .b-gray{background:rgba(115,102,88,.10);color:var(--txt3)}
+  .b-fire{background:rgba(244,80,30,.10);color:var(--fire-hi)}
+  .kcard.c-cut{border-top:3px solid var(--fire)} .kcard.c-color{border-top:3px solid var(--violet)}
+
+  /* ===== elegidas ===== */
+  /* pendiente B: reloj de arena */
+  .hgrid{position:absolute;top:8px;right:8px;width:24px;height:24px;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;gap:3px}
+  .hgrid i{width:4px;height:4px;border-radius:50%;background:var(--amber);animation:fall 1.5s ease-in infinite}
+  .hgrid i:nth-child(2){animation-delay:.2s}.hgrid i:nth-child(3){animation-delay:.4s}
+  @keyframes fall{0%{transform:translateY(-4px);opacity:0}30%{opacity:1}100%{transform:translateY(6px);opacity:0}}
+  /* confirmada A: brillo lento */
+  .sheen::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 35%,rgba(19,195,138,.12) 47%,rgba(255,255,255,.5) 50%,rgba(19,195,138,.12) 53%,transparent 65%);
+    background-size:250% 100%;animation:shn 5s linear infinite}
+  @keyframes shn{from{background-position:200% 0}to{background-position:-60% 0}}
+  /* en curso A: flujo rápido + progreso */
+  .cu::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,207,74,.25) 44%,rgba(255,255,255,.5) 50%,rgba(255,207,74,.25) 56%,transparent 70%);
+    background-size:220% 100%;animation:shn 1.8s linear infinite}
+  .progress{height:4px;border-radius:4px;background:rgba(40,30,24,.08);margin-top:10px;overflow:hidden}
+  .progress i{display:block;height:100%;width:var(--p,50%);border-radius:4px;background:var(--fire-grad)}
+  /* completada B: doble check */
+  .dchk{position:absolute;top:7px;right:7px;font-size:14px;font-weight:800;color:var(--ok2)}
+  .dchk span{display:inline-block;opacity:0;animation:popin .4s var(--ease) forwards}
+  .dchk span:nth-child(1){animation-delay:.15s}
+  .dchk span:nth-child(2){animation-delay:.5s;color:var(--ok)}
+  @keyframes popin{from{transform:scale(0) rotate(-30deg);opacity:0}to{transform:none;opacity:1}}
+  /* sin cobrar B: borde cargándose */
+  .scb::before{content:'';position:absolute;inset:0;border-radius:12px;padding:2px;pointer-events:none;
+    background:conic-gradient(from var(--a,0deg),transparent 0 62%,#e08a00 78%,#ffc24a 88%,transparent);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;animation:spin-a 3s linear infinite}
+  @property --a{syntax:'<angle>';initial-value:0deg;inherits:false}
+  @keyframes spin-a{to{--a:360deg}}
+  /* cobrada B: candado */
+  .lock{position:absolute;top:7px;right:7px;width:24px;height:24px}
+  .lock .shackle{fill:none;stroke:var(--ok);stroke-width:2.4;stroke-dasharray:24;stroke-dashoffset:24;
+    animation:draw .6s var(--ease) .4s forwards}
+  .lock .body{fill:var(--ok);transform:scale(0);transform-origin:center;animation:popin .35s var(--ease) .15s forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  /* cancelada A */
+  .cxa{filter:saturate(.25);opacity:.62}
+  .cxa::after{content:'';position:absolute;left:-5%;right:-5%;top:50%;height:2px;background:var(--red);
+    transform:scaleX(0);transform-origin:left;animation:strike .6s var(--ease) .3s forwards}
+  @keyframes strike{to{transform:scaleX(1)}}
+  /* no presentada C: viñeta */
+  .nsc::before{content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;
+    animation:vign 2.8s ease-in-out infinite}
+  @keyframes vign{0%,100%{box-shadow:inset 0 0 0 1.5px rgba(226,59,52,.25)}50%{box-shadow:inset 0 0 22px rgba(226,59,52,.22)}}
+  /* vencida A: sacudida */
+  .vea{animation:alarm 2.6s ease-in-out infinite;border-color:rgba(226,59,52,.4)}
+  @keyframes alarm{0%,86%,100%{transform:translateX(0)}88%{transform:translateX(-2.5px)}
+    90%{transform:translateX(2.5px)}92%{transform:translateX(-1.5px)}94%{transform:translateX(1px)}}
+  /* reserva A: hormigas */
+  .rta{border:1.5px dashed rgba(124,58,237,.55);background:rgba(124,58,237,.03);animation:ants 1.2s steps(6) infinite}
+  @keyframes ants{50%{border-color:rgba(124,58,237,.2)}}
+
+  /* ================================================================
+     ENCADENADAS — el siguiente empieza justo cuando acaba el anterior
+     ============================================================ */
+  .mini{position:relative;border:1px solid var(--border-hi);border-radius:14px;background:var(--card);
+    overflow:hidden;margin-top:8px}
+  .mini .mh{display:grid;grid-template-columns:52px 1fr 1fr;background:var(--panel);
+    border-bottom:1px solid var(--border-hi);font-size:12px;font-weight:700}
+  .mini .mh div{padding:9px 8px;text-align:center}
+  .mini .mh .hr{border-left:1px solid var(--border)}
+  .mini .cols{position:relative;display:grid;grid-template-columns:52px 1fr 1fr;height:440px}
+  .mini .hrs{position:relative;border-right:1px solid var(--border)}
+  .mini .hrs span{position:absolute;right:6px;font-size:10px;color:var(--txt4);font-weight:600}
+  .mini .pcol{position:relative;border-left:1px solid var(--border)}
+  .mini .hlns{position:absolute;inset:0;pointer-events:none}
+  .mini .hlns i{display:block;height:88px;border-top:1px solid var(--border)}
+
+  /* segmento de cadena */
+  .seg{position:absolute;left:6px;right:6px;padding:7px 9px 7px 13px;font-size:11px;font-weight:700;color:#fff;
+    cursor:pointer;overflow:hidden;z-index:2}
+  .seg small{display:block;font-weight:500;font-size:9.5px;opacity:.85;margin-top:1px}
+  .seg .posm{position:absolute;top:4px;right:5px;font-size:9px;font-weight:800;background:rgba(255,255,255,.25);
+    border-radius:4px;padding:1px 5px}
+  .ga{background:linear-gradient(135deg,#8a5cf6,#b388ff)}
+  .gb{background:linear-gradient(135deg,#0d9488,#2dd4bf)}
+
+  /* ---- DISEÑO 1 · CÁPSULA CONTINUA (la serpiente) ----
+     toda la cadena es UNA cápsula; sin huecos; una luz la recorre completa */
+  .d1 .chain{position:absolute;left:6px;right:6px;border-radius:14px;overflow:hidden;z-index:2;cursor:pointer}
+  .d1 .chain .seg{position:relative;left:0;right:0;border-radius:0}
+  .d1 .chain .seg + .seg{border-top:1.5px solid rgba(255,255,255,.35)}
+  .d1 .chain::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,transparent 20%,rgba(255,255,255,.32) 50%,transparent 80%);
+    background-size:100% 300%;animation:chainlight 3.4s linear infinite}
+  @keyframes chainlight{from{background-position:0 -300%}to{background-position:0 300%}}
+  /* marca de inicio / fin */
+  .d1 .cap-start{position:absolute;left:0;right:0;top:0;height:4px;background:#fff;border-radius:4px}
+  .d1 .cap-end{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.5);border-radius:4px}
+
+  /* ---- DISEÑO 2 · RIEL + ESLABONES ----
+     riel continuo a la izquierda con viajero; eslabones pegados;
+     el cruce entre profesionales muestra flecha → al final y ← al inicio */
+  .d2 .rail{position:absolute;left:6px;width:4px;border-radius:4px;z-index:3;
+    background:linear-gradient(180deg,rgba(138,92,246,.15),#8a5cf6 50%,rgba(138,92,246,.15));
+    background-size:100% 300%;animation:chainlight 2.8s linear infinite}
+  .d2 .rail.rb{background:linear-gradient(180deg,rgba(13,148,136,.15),#0d9488 50%,rgba(13,148,136,.15));
+    background-size:100% 300%}
+  .d2 .rail .trav{position:absolute;left:50%;width:10px;height:10px;border-radius:50%;transform:translateX(-50%);
+    background:#fff;box-shadow:0 0 10px 2px rgba(255,255,255,.9);animation:travy 2.2s var(--ease) infinite}
+  @keyframes travy{0%{top:-6px;opacity:0}12%{opacity:1}88%{opacity:1}100%{top:calc(100% - 4px);opacity:0}}
+  .d2 .seg{border-radius:9px}
+  .d2 .seg + .seg{margin-top:2px}
+  /* seam: engrane pequeño en la costura */
+  .d2 .seam{position:absolute;left:8px;width:18px;height:18px;border-radius:50%;z-index:4;
+    background:var(--card);border:2px solid #8a5cf6;color:#8a5cf6;font-size:9px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;transform:translateY(-50%);
+    box-shadow:0 1px 4px rgba(28,24,20,.2)}
+  .d2 .seam.sb{border-color:#0d9488;color:#0d9488}
+  .d2 .seam{animation:gear 4s linear infinite}
+  @keyframes gear{to{transform:translateY(-50%) rotate(360deg)}}
+  /* cruce a otro profesional */
+  .d2 .go{position:absolute;right:8px;bottom:4px;font-size:11px;color:#fff;animation:nudge 1.4s ease-in-out infinite;z-index:4}
+  .d2 .back{position:absolute;left:26px;top:4px;font-size:11px;color:#fff;animation:nudge 1.4s ease-in-out infinite;z-index:4}
+  @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+  .d2 .go{animation-name:nudge}
+  .d2 .back{animation-name:nudgel}
+  @keyframes nudgel{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px)}}
+
+  /* ---- DISEÑO 3 · ONDA CONTINUA ----
+     un solo degradado repartido por los eslabones (gradiente "viaja");
+     costuras con chevrons » que pulsan en cadena (efecto dominó) */
+  .d3 .seg{border-radius:9px;background:linear-gradient(135deg,#6d3fd6,#b388ff)}
+  .d3 .seg:nth-child(1){background:linear-gradient(135deg,#5b2bb8,#9d6bff)}
+  .d3 .chev{position:absolute;right:-2px;top:50%;transform:translateY(-50%);z-index:5;
+    width:14px;height:22px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800;
+    text-shadow:0 0 6px rgba(109,63,214,.9);animation:domino 2.1s ease-in-out infinite}
+  @keyframes domino{0%,100%{opacity:.35;transform:translateY(-50%) scale(.85)}50%{opacity:1;transform:translateY(-50%) scale(1.15)}}
+
+  /* ================================================================
+     REPOSOS — tramo DENTRO de la cita: activo → reposo → activo
+     ============================================================ */
+  .rp-card{position:relative;border-radius:12px;background:var(--card);border:1px solid var(--border-hi);
+    padding:12px 14px;overflow:hidden;cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s ease}
+  .rp-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(28,24,20,.12)}
+  .rp-card .top{position:relative;z-index:2}
+
+  /* A · TIMELINE DE TRAMOS: barra segmentada activo/reposo/activo */
+  .tl{display:flex;height:26px;border-radius:8px;overflow:hidden;margin-top:11px;position:relative;
+    border:1px solid var(--border)}
+  .tl .act{flex:var(--w,3);background:linear-gradient(135deg,rgba(244,80,30,.16),rgba(255,122,46,.10));
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--fire-hi)}
+  .tl .rst{flex:var(--w,2);position:relative;background:repeating-linear-gradient(-45deg,rgba(115,102,88,.10) 0 7px,rgba(115,102,88,.04) 7px 14px);
+    display:flex;align-items:center;justify-content:center;gap:4px;color:var(--txt3);
+    animation:rstbreathe 3.6s ease-in-out infinite}
+  @keyframes rstbreathe{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+  .tl .rst .cup{font-size:12px;animation:steamb 3.6s ease-in-out infinite}
+  @keyframes steamb{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+  .tl .rst small{font-size:8.5px;font-weight:800;letter-spacing:.04em}
+  .tl .act::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,207,74,.25),transparent);
+    background-size:200% 100%;animation:shn 2.8s linear infinite}
+  .tl .lbl{position:absolute;top:calc(100% + 3px);font-size:8.5px;color:var(--txt4);font-weight:600}
+
+  /* B · RELIETE CENTRAL: el reposo como "cinturón" que cruza la card */
+  .belt{position:absolute;left:0;right:0;top:44%;height:26px;z-index:1;cursor:default;
+    background:linear-gradient(90deg,transparent,rgba(115,102,88,.10) 12%,rgba(115,102,88,.10) 88%,transparent);
+    border-top:1.5px dashed rgba(115,102,88,.4);border-bottom:1.5px dashed rgba(115,102,88,.4);
+    display:flex;align-items:center;justify-content:center;gap:6px}
+  .belt .cup{width:20px;height:20px;border-radius:50%;background:#736658;color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;animation:steamb 3.4s ease-in-out infinite}
+  .belt .btxt{font-size:9px;font-weight:800;color:var(--txt3);letter-spacing:.05em}
+  .belt::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+    background-size:200% 100%;animation:shn 4s linear infinite}
+  /* card con belt necesita más padding vertical */
+  .belt-card{padding:16px 14px 20px}
+
+  /* C · FASES DE LUNA: progreso del reposo como luna que se llena */
+  .moonph{display:flex;align-items:center;gap:10px;margin-top:11px}
+  .moonph .ph{width:30px;height:30px;border-radius:50%;flex:none;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#a3937f,#736658)}
+  .moonph .ph i{position:absolute;inset:0;border-radius:50%;background:var(--fire-grad);
+    clip-path:inset(0 0 0 var(--fill,50%));animation:fillmoon var(--dur,20s) linear infinite}
+  @keyframes fillmoon{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 0 100%)}}
+  .moonph .mtxt{font-size:10px;color:var(--txt3);line-height:1.45;font-weight:600}
+  .moonph .mtxt b{color:var(--txt)}
+  /* vapor decorativo */
+  .steam3{position:absolute;right:12px;top:8px;display:flex;gap:3px}
+  .steam3 i{width:3px;height:10px;border-radius:3px;background:rgba(115,102,88,.3);
+    animation:steamup 2.4s ease-in-out infinite}
+  .steam3 i:nth-child(2){animation-delay:.4s;height:13px}
+  .steam3 i:nth-child(3){animation-delay:.8s}
+  @keyframes steamup{0%{transform:translateY(2px);opacity:0}40%{opacity:.8}100%{transform:translateY(-6px);opacity:0}}
+
+  /* reposo visto en la columna del profesional: franja "libre" punteada */
+  .freestrip{position:absolute;left:6px;right:6px;border-radius:8px;z-index:1;
+    border:1.5px dashed rgba(15,157,107,.45);background:rgba(15,157,107,.04);
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--ok);
+    animation:ants 2.4s steps(6) infinite}
+</style>
+</head>
+<body>
+  <h1>🔥 Mecha — Estados elegidos + encadenados continuos + reposos reales</h1>
+  <p class="sub">Tus elecciones: <b>Pendiente B</b> (reloj de arena) · <b>Confirmada A</b> (brillo) · <b>En curso A</b> (flujo+progreso) · <b>Completada B</b> (doble ✓) · <b>Sin cobrar B</b> (borde cargando) · <b>Cobrada B</b> (candado) · <b>Cancelada A</b> (tachada) · <b>No presentada C</b> (viñeta) · <b>Vencida A</b> (sacudida) · <b>Reserva A</b> (hormigas). Abajo: <b>3 diseños de encadenadas</b> (bloques pegados: cuando acaba uno empieza el otro) y <b>3 de reposos</b> (tramo activo→reposo→activo dentro de la cita, con el profesional libre).</p>
+
+  <div class="sec">
+    <h2>✅ Estados elegidos</h2>
+    <div class="row">
+      <div class="slot"><small class="hint">⏳ Pendiente B · granos de arena</small>
+        <div class="kcard c-cut"><div class="hgrid"><i></i><i></i><i></i></div><div class="top"><div><div class="name">María González</div><div class="svc">Corte + barba</div></div><div class="time"><b>10:30</b>75 min</div></div><div class="meta"><span class="badge b-amber">⏳ Pendiente</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">✓ Confirmada A · brillo lento</small>
+        <div class="kcard c-color sheen"><div class="top"><div><div class="name">Jorge Ramírez</div><div class="svc">Color raíces</div></div><div class="time"><b>12:00</b>60 min</div></div><div class="meta"><span class="badge b-green">✓ Confirmada</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">▶ En curso A · flujo + progreso</small>
+        <div class="kcard c-color cu"><div class="top"><div><div class="name">Laura Pérez</div><div class="svc">Mechas balayage</div></div><div class="time"><b>9:12</b>quedan 32'</div></div><div class="progress"><i style="--p:64%"></i></div></div>
+      </div>
+      <div class="slot"><small class="hint">✓ Completada B · doble check</small>
+        <div class="kcard c-cut"><span class="dchk"><span>✓</span><span>✓</span></span><div class="top"><div><div class="name">Carlos T.</div><div class="svc">Fade + barba</div></div><div class="time"><b>12:00</b>75 min</div></div><div class="meta"><span class="badge b-green2">Completada</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">💳 Sin cobrar B · borde cargando</small>
+        <div class="kcard c-cut scb"><div class="top"><div><div class="name">Diego A.</div><div class="svc">Corte clásico</div></div><div class="time"><b>11:30</b>$350</div></div><div class="meta"><span class="badge b-amber">⚠ Sin cobrar</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">🧾 Cobrada B · candado</small>
+        <div class="kcard c-cut"><svg class="lock" viewBox="0 0 24 24"><path class="body" d="M6 11h12v9H6z"/><path class="shackle" d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><div class="top"><div><div class="name">Elena Vázquez</div><div class="svc">Peinado de gala</div></div><div class="time"><b>14:00</b>$450</div></div><div class="meta"><span class="badge b-green">✓ Cobrada</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">✕ Cancelada A · tachada</small>
+        <div class="kcard c-cut cxa"><div class="top"><div><div class="name">Ada Q.</div><div class="svc">Ritual capilar</div></div><div class="time"><b>15:00</b>60 min</div></div><div class="meta"><span class="badge b-gray">Cancelada</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">🚫 No presentada C · viñeta</small>
+        <div class="kcard c-cut nsc"><div class="top"><div><div class="name">Pedro M.</div><div class="svc">Corte clásico</div></div><div class="time"><b>10:00</b>60 min</div></div><div class="meta"><span class="badge b-red">No presentada</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">⚠ Vencida A · sacudida</small>
+        <div class="kcard c-cut vea"><div class="top"><div><div class="name">Nuria C.</div><div class="svc">Tratamiento (hora pasada)</div></div><div class="time"><b>16:00</b>sin marcar</div></div><div class="meta"><span class="badge b-red">⚠ Resolver</span></div></div>
+      </div>
+      <div class="slot"><small class="hint">🔒 Reserva A · hormigas</small>
+        <div class="kcard rta"><div class="top"><div><div class="name">Hueco reservado</div><div class="svc">Oferta enviada · expira 17:40</div></div><div class="time"><b>17:00</b>45 min</div></div><div class="meta"><span class="badge b-violet">Reserva</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ENCADENADAS ==================== -->
+  <div class="sec">
+    <h2>🔗 Encadenadas — 3 diseños (continuas: el siguiente empieza al acabar el anterior)</h2>
+    <p class="sub">Semántica correcta: <b>sin huecos</b> entre eslabones. Grupo A (violeta) cruza profesionales: prueba con Ana → color con Marta → lavado con Ana. Grupo B (teal) es local de Marta. El <b>primero</b> y el <b>último</b> de cada grupo se marcan distinto siempre.</p>
+
+    <h3>1 · Cápsula continua — toda la cadena es un solo organismo con una luz recorriéndola</h3>
+    <div class="mini d1">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:20px">9:30</span><span style="top:196px">11:30</span><span style="top:372px">13:30</span></div>
+        <div class="pcol" id="d1a">
+          <div class="chain ga" style="top:20px;height:110px">
+            <div class="cap-start"></div>
+            <div class="seg">Sofía L. · prueba de color<small>9:30 · 60 min · con Ana</small><span class="posm">1/3 ▶</span></div>
+            <div class="seg" style="height:44px;background:rgba(109,63,214,.35);padding-top:4px">Sofía L. continúa con Marta<small>10:30 · cambia de profesional →</small></div>
+            <div class="cap-end" style="top:auto"></div>
+          </div>
+          <div class="chain ga" style="top:196px;height:56px">
+            <div class="seg">Sofía L. · lavado + peinado<small>11:30 · 30 min · vuelve Ana</small><span class="posm">3/3 ■</span></div>
+            <div class="cap-end"></div>
+          </div>
+        </div>
+        <div class="pcol" id="d1b">
+          <div class="chain ga" style="top:108px;height:84px">
+            <div class="seg">Sofía L. · aplicación de tinte<small>10:30 · 45 min · con Marta ←</small><span class="posm">2/3</span></div>
+            <div class="cap-end" style="background:transparent"></div>
+          </div>
+          <div class="chain gb" style="top:240px;height:112px">
+            <div class="cap-start"></div>
+            <div class="seg">Elena V. · prueba<small>12:30 · 60 min</small><span class="posm">1/2 ▶</span></div>
+            <div class="seg">Elena V. · montaje<small>13:30 · arranca justo al acabar</small><span class="posm">2/2 ■</span></div>
+            <div class="cap-end"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>2 · Riel + eslabones — riel luminoso continuo, engrane en cada costura, flechas al cruzar</h3>
+    <div class="mini d2">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:20px">9:30</span><span style="top:196px">11:30</span><span style="top:372px">13:30</span></div>
+        <div class="pcol" id="d2a"></div>
+        <div class="pcol" id="d2b"></div>
+      </div>
+    </div>
+
+    <h3>3 · Onda continua — un degradado repartido entre eslabones, chevrons » en dominó</h3>
+    <div class="mini d3">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:20px">9:30</span><span style="top:196px">11:30</span><span style="top:372px">13:30</span></div>
+        <div class="pcol" id="d3a"></div>
+        <div class="pcol" id="d3b"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== REPOSOS ==================== -->
+  <div class="sec">
+    <h2>☕ Reposos — el tramo dentro de la cita: activo → reposo → activo</h2>
+    <p class="sub">El reposo no es un bloque suelto: la clienta <b>sigue en el salón</b> con el tratamiento actuando mientras el profesional queda libre. Antes y después hay tiempo activo. 3 formas de verlo — y en la mini-agenda final, la franja verde "profesional libre" que aparece en la columna del profesional durante el reposo.</p>
+    <div class="row">
+      <div class="slot"><small class="hint">A · Timeline de tramos: activo ▮▮ · reposo ░ · activo ▮▮</small>
+        <div class="rp-card">
+          <div class="top"><div><div class="name">Sofía L. · Color completo</div><div class="svc">🔥 Ana · 9:12 → 12:00</div></div><div class="time"><b>▶ activo</b>168 min</div></div>
+          <div class="tl">
+            <div class="act" style="--w:4"><span class="lbl" style="left:8px">9:12 activo</span>▮▮</div>
+            <div class="rst" style="--w:3"><span class="cup">☕</span><small>REPOSO 40'</small><span class="lbl" style="left:50%;transform:translateX(-50%)">tinte actuando</span></div>
+            <div class="act" style="--w:3"><span class="lbl" style="right:8px">activo 12:00</span>▮</div>
+          </div>
+          <div class="meta" style="margin-top:22px"><span class="badge b-violet">🎨 Color</span><span class="badge b-green">Ana libre 10:00–10:40</span></div>
+        </div>
+      </div>
+      <div class="slot"><small class="hint">B · Cinturón central: el reposo cruza la card como banda</small>
+        <div class="rp-card belt-card">
+          <div class="top"><div><div class="name">Sofía L. · Color completo</div><div class="svc">🔥 Ana · 9:12 → 12:00 · 168 min</div></div><div class="time"><b>9:12</b>3 tramos</div></div>
+          <div class="belt"><span class="cup">☕</span><span class="btxt">REPOSO · 10:00–10:40 · tinte actuando</span></div>
+          <div class="meta" style="margin-top:34px"><span class="badge b-violet">🎨 Color</span><span class="badge b-green">profesional libre en reposo</span></div>
+        </div>
+      </div>
+      <div class="slot"><small class="hint">C · Luna que se llena: el reposo avanza y el activo vuelve</small>
+        <div class="rp-card">
+          <span class="steam3"><i></i><i></i><i></i></span>
+          <div class="top"><div><div class="name">Sofía L. · Color completo</div><div class="svc">🔥 Ana · 9:12 → 12:00</div></div><div class="time"><b>restando</b>32'</div></div>
+          <div class="moonph">
+            <div class="ph"><i style="--dur:16s"></i></div>
+            <div class="mtxt"><b>Reposo en curso</b> · el tinte actúa<br>activo antes 9:12–10:00 · activo después 10:40–12:00<br><span style="color:var(--ok);font-weight:700">Ana libre durante el reposo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>En la agenda: cita con reposo + franja "profesional libre"</h3>
+    <div class="mini" id="repoMini">
+      <div class="mh"><div></div><div>🔥 Ana</div><div class="hr">💫 Marta</div></div>
+      <div class="cols">
+        <div class="hrs"><span style="top:8px">9:00</span><span style="top:184px">11:00</span><span style="top:360px">13:00</span></div>
+        <div class="pcol" id="rmA"></div>
+        <div class="pcol" id="rmB"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const Y=t=>Math.max(0,(t-9)*88); /* hora → px (88px/h en minis) */
+
+/* ================= D2 · riel + eslabones ================= */
+(function(){
+  const A=document.getElementById('d2a'),B=document.getElementById('d2b');
+  /* grupo A violeta: 9:30-10:30 Ana → 10:30-11:15 Marta → 11:30-12:00 Ana */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="rail" style="top:${Y(9.5)}px;height:${Y(10.5)-Y(9.5)}px"><i class="trav"></i></div>
+    <div class="seg ga" style="top:${Y(9.5)}px;height:${Y(10.5)-Y(9.5)-2}px">Sofía L. · prueba de color<small>9:30 · 60 min</small><span class="posm">1/3 ▶</span><span class="go">➜ Marta</span></div>`);
+  B.insertAdjacentHTML('beforeend',`
+    <div class="rail rb" style="top:${Y(10.5)}px;height:${Y(11.25)-Y(10.5)}px;background:linear-gradient(180deg,rgba(138,92,246,.15),#8a5cf6 50%,rgba(138,92,246,.15));background-size:100% 300%;animation:chainlight 2.8s linear infinite"><i class="trav"></i></div>
+    <div class="seg ga" style="top:${Y(10.5)}px;height:${Y(11.25)-Y(10.5)-2}px;background:linear-gradient(135deg,#8a5cf6,#b388ff)"><span class="back">⬅ Ana</span>Sofía L. · aplicación de tinte<small>10:30 · 45 min</small><span class="posm">2/3</span></div>`);
+  A.insertAdjacentHTML('beforeend',`
+    <div class="rail" style="top:${Y(11.5)}px;height:${Y(12)-Y(11.5)}px"><i class="trav"></i></div>
+    <div class="seg ga" style="top:${Y(11.5)}px;height:${Y(12)-Y(11.5)-2}px">Sofía L. · lavado + peinado<small>11:30 · 30 min</small><span class="posm">3/3 ■</span></div>
+    <span class="seam" style="top:${Y(11.5)}px">⚙</span>`);
+  /* grupo B teal local de Marta: 12:30-13:30 */
+  B.insertAdjacentHTML('beforeend',`
+    <div class="rail rb" style="top:${Y(12.5)}px;height:${Y(13.5)-Y(12.5)}px"><i class="trav"></i></div>
+    <div class="seg gb" style="top:${Y(12.5)}px;height:42px">Elena V. · prueba<small>12:30 · 60 min</small><span class="posm">1/2 ▶</span></div>
+    <div class="seg gb" style="top:${Y(13.17)}px;height:42px">Elena V. · montaje<small>13:10 · en cuanto acaba</small><span class="posm">2/2 ■</span></div>
+    <span class="seam sb" style="top:${Y(13.17)}px">⚙</span>`);
+})();
+
+/* ================= D3 · onda continua ================= */
+(function(){
+  const A=document.getElementById('d3a'),B=document.getElementById('d3b');
+  A.insertAdjacentHTML('beforeend',`
+    <div class="seg" style="top:${Y(9.5)}px;height:${Y(10.5)-Y(9.5)-2}px">Sofía L. · prueba de color<small>9:30 · 60 min</small><span class="posm">1/3 ▶</span><span class="chev">»</span></div>`);
+  B.insertAdjacentHTML('beforeend',`
+    <div class="seg" style="top:${Y(10.5)}px;height:${Y(11.25)-Y(10.5)-2}px;background:linear-gradient(135deg,#7a48e0,#c09bff)">Sofía L. · aplicación de tinte<small>10:30 · 45 min</small><span class="posm">2/3</span><span class="chev" style="animation-delay:.7s">»</span></div>`);
+  A.insertAdjacentHTML('beforeend',`
+    <div class="seg" style="top:${Y(11.5)}px;height:${Y(12)-Y(11.5)-2}px;background:linear-gradient(135deg,#8a5cf6,#d5b8ff)">Sofía L. · lavado + peinado<small>11:30 · 30 min</small><span class="posm">3/3 ■</span></div>`);
+  B.insertAdjacentHTML('beforeend',`
+    <div class="seg" style="top:${Y(12.5)}px;height:42px;background:linear-gradient(135deg,#0d9488,#2dd4bf)">Elena V. · prueba<small>12:30 · 60 min</small><span class="posm">1/2 ▶</span><span class="chev" style="color:#0d9488;text-shadow:0 0 6px rgba(13,148,136,.9)">»</span></div>
+    <div class="seg" style="top:${Y(13.17)}px;height:42px;background:linear-gradient(135deg,#14b8a6,#7de8da)">Elena V. · montaje<small>13:10 · arranca al acabar</small><span class="posm">2/2 ■</span></div>`);
+})();
+
+/* ================= mini de reposo ================= */
+(function(){
+  const A=document.getElementById('rmA'),B=document.getElementById('rmB');
+  /* Cita de Sofía en la columna de Ana con reposo en medio (9:12-12:00) */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="seg" style="top:${Y(9.2)}px;height:${Y(12)-Y(9.2)}px;border-radius:12px;background:linear-gradient(180deg,#6d3fd6 0%,#8a5cf6 35%,#a3937f 35%,#a3937f 55%,#8a5cf6 55%,#b388ff 100%);display:flex;flex-direction:column;justify-content:space-between">
+      <div style="padding:6px 8px 0 12px">Sofía L. · Color completo<span class="posm" style="top:5px;right:6px;position:absolute;font-size:9px;font-weight:800;background:rgba(255,255,255,.25);border-radius:4px;padding:1px 5px">▶ activo</span><small style="display:block;font-size:9.5px;opacity:.85">9:12–10:00 · con Ana</small></div>
+      <div style="text-align:center;font-size:9.5px;font-weight:800;color:#fffdfb;opacity:.9">☕ REPOSO 10:00–10:40<small style="display:block;font-weight:600;font-size:8.5px;opacity:.8">tinte actuando · Ana libre</small></div>
+      <div style="padding:0 8px 6px 12px"><small style="display:block;font-size:9.5px;opacity:.85">10:40–12:00 · activo con Ana</small></div>
+    </div>`);
+  /* franja profesional libre en la columna de Ana durante el reposo */
+  A.insertAdjacentHTML('beforeend',`
+    <div class="freestrip" style="top:${Y(10)}px;height:${Y(10.66)-Y(10)}px;left:auto;right:6px;width:52px;z-index:3">✦ libre</div>`);
+  /* cita de Marta simultánea */
+  B.insertAdjacentHTML('beforeend',`
+    <div class="seg" style="top:${Y(9.5)}px;height:${Y(11)-Y(9.5)}px;border-radius:10px;background:linear-gradient(135deg,#0f9d6b,#13c38a)">Inés R. · Peinado<small>9:30–11:00</small></div>
+    <div class="seg" style="top:${Y(11.5)}px;height:${Y(12.5)-Y(11.5)}px;border-radius:10px;background:var(--fire-grad)">Rosa M. · Corte<small>11:30–12:30</small></div>`);
+})();
+</script>
+</body>
+</html>

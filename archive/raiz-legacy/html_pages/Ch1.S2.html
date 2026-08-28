@@ -1,0 +1,263 @@
+<!DOCTYPE html><html>
+<head>
+<title>1.2 Elements of Neuronal Dynamics | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S4.html" title="1.4 Limitations of the Leaky Integrate-and-Fire Model â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S5.html" title="1.5 What Can We Expect from Integrate-And-Fire Models? â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch1.S6.html" title="1.6 Summary â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch2.html" title="ChapterÂ 2 Ion Channels and the Hodgkin-Huxley Model â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch3.html" title="ChapterÂ 3 Dendrites and Synapses â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="afterpotential, membrane potential, postsynaptic potential, resting potential, synapse, threshold">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch1.html" title="ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1 </span>Introduction</span></a><a href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1 </span>Elements of Neuronal Systems</span></a><a href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3 </span>Integrate-And-Fire Models</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1.2 </span>Elements of Neuronal Dynamics</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">The effect of a spike on the postsynaptic neuron can be recorded with an
+intracellular electrode which measures the potential difference <math id="p1.m1" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math> between
+the interior of the cell and its surroundings. This potential difference is
+called the membrane potential. Without any input, the neuron is at rest
+corresponding to a constant membrane potential <math id="p1.m2" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>. After the
+arrival of a spike, the potential changes and finally decays back to the
+resting potential, cf. Fig.Â <a href="#Ch1.F5" title="Fig.Â 1.5 â£ 1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>A. If the change is positive, the
+synapse is said to be excitatory. If the change is negative, the synapse is
+inhibitory.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">At rest, the cell membrane has already a strongly negative polarization of about
+â65Â mV. An input at an excitatory synapse reduces the negative polarization of
+the membrane and is therefore called depolarizing. An input that increases
+the negative polarization of the membrane even further is called
+hyperpolarizing.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.2.1 </span>Postsynaptic Potentials</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">Let us formalize the above observation. We study the time course <math id="SS1.p1.m1" class="ltx_Math" alttext="u_{i}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{i}(t)</annotation></semantics></math> of
+the membrane potential of neuron <math id="SS1.p1.m2" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>. Before the input spike has arrived,
+we have <math id="SS1.p1.m3" class="ltx_Math" alttext="u_{i}(t)=u_{\rm rest}" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{i}(t)=u_{\rm rest}</annotation></semantics></math>. At <math id="SS1.p1.m4" class="ltx_Math" alttext="t=0" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t=0</annotation></semantics></math> the presynaptic neuron <math id="SS1.p1.m5" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> fires
+its spike. For <math id="SS1.p1.m6" class="ltx_Math" alttext="t&gt;0" display="inline"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t&gt;0</annotation></semantics></math>, we see at the electrode a response of neuron <math id="SS1.p1.m7" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math></p>
+<table id="Ch1.E1" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E1.m1" class="ltx_Math" alttext="u_{i}(t)-u_{\rm rest}=:\epsilon_{ij}(t)\,." display="block"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub><mo>=</mo><mo>:</mo><msub><mi>Ïµ</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u_{i}(t)-u_{\rm rest}=:\epsilon_{ij}(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.1)</span></td>
+</tr>
+</table>
+<p class="ltx_p">The right-hand side of Eq.Â (<a href="#Ch1.E1" title="(1.1) â£ 1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.1</span></a>) defines the postsynaptic potential
+(PSP). If the voltage difference <math id="SS1.p1.m8" class="ltx_Math" alttext="u_{i}(t)-u_{\rm rest}" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{i}(t)-u_{\rm rest}</annotation></semantics></math> is positive
+(negative) we have an excitatory (inhibitory) postsynaptic potential or short
+EPSP (IPSP). In Fig.Â <a href="#Ch1.F5" title="Fig.Â 1.5 â£ 1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>A we have sketched the EPSP caused by the
+arrival of a spike from neuron <math id="SS1.p1.m9" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> at an excitatory synapse of neuron <math id="SS1.p1.m10" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.
+</p>
+</div>
+<figure id="Ch1.F5" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<td class="ltx_td"></td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left"></th>
+<td class="ltx_td ltx_align_left">
+                    <img src="x6.png" id="Ch1.F5.g1" class="ltx_graphics" width="292" height="132" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x7.png" id="Ch1.F5.g2" class="ltx_graphics" width="293" height="218" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+<td class="ltx_td"></td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left"></th>
+<td class="ltx_td ltx_align_left">
+                    <img src="x8.png" id="Ch1.F5.g3" class="ltx_graphics" width="292" height="132" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x9.png" id="Ch1.F5.g4" class="ltx_graphics" width="293" height="258" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">C</span>
+                  </th>
+<td class="ltx_td"></td>
+<td class="ltx_td"></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left"></td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x10.png" id="Ch1.F5.g5" class="ltx_graphics" width="292" height="132" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x11.png" id="Ch1.F5.g6" class="ltx_graphics" width="293" height="268" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 1.5: </span>
+A postsynaptic neuron <math id="Ch1.F5.m11" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> receives input from two presynaptic neurons
+<math id="Ch1.F5.m12" class="ltx_Math" alttext="j=1,2" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></mrow><annotation encoding="application/x-tex">j=1,2</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">A</span>. Each presynaptic spike evokes an excitatory postsynaptic
+potential (EPSP) that can be measured with an electrode as a potential
+difference <math id="Ch1.F5.m13" class="ltx_Math" alttext="u_{i}(t)-u_{\rm rest}" display="inline"><semantics><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{i}(t)-u_{\rm rest}</annotation></semantics></math>. The time course of the EPSP caused by
+the spike of neuron <math id="Ch1.F5.m14" class="ltx_Math" alttext="j=1" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">j=1</annotation></semantics></math> is <math id="Ch1.F5.m15" class="ltx_Math" alttext="\epsilon_{i1}(t-t_{1}^{(f)})" display="inline"><semantics><mrow><msub><mi>Ïµ</mi><mrow><mi>i</mi><mo>â¢</mo><mn>1</mn></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mn>1</mn><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\epsilon_{i1}(t-t_{1}^{(f)})</annotation></semantics></math>. <span class="ltx_text ltx_font_bold">B</span>. An
+input spike from a second presynaptic neuron <math id="Ch1.F5.m16" class="ltx_Math" alttext="j=2" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">j=2</annotation></semantics></math> that arrives shortly
+after the spike from neuron <math id="Ch1.F5.m17" class="ltx_Math" alttext="j=1" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">j=1</annotation></semantics></math>, causes a second postsynaptic potential
+that adds to the first one. <span class="ltx_text ltx_font_bold">C</span>. If <math id="Ch1.F5.m18" class="ltx_Math" alttext="u_{i}(t)" display="inline"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{i}(t)</annotation></semantics></math> reaches the threshold
+<math id="Ch1.F5.m19" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>, an action potential is triggered. As a consequence, the
+membrane potential starts a large positive pulse-like excursion (arrow). On the
+voltage scale of the graph, the peak of the pulse is out of bounds. After
+the pulse the voltage returns to a value below the resting potential <math id="Ch1.F5.m20" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>. </figcaption>
+</figure>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">1.2.2 </span>Firing Threshold and Action Potential</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">Consider two presynaptic neurons <math id="SS2.p1.m1" class="ltx_Math" alttext="j=1,2" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></mrow><annotation encoding="application/x-tex">j=1,2</annotation></semantics></math>, which both send spikes to the
+postsynaptic neuron <math id="SS2.p1.m2" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>. Neuron <math id="SS2.p1.m3" class="ltx_Math" alttext="j=1" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">j=1</annotation></semantics></math> fires spikes at <math id="SS2.p1.m4" class="ltx_Math" alttext="t_{1}^{(1)},t_{1}^{(2)},\dots" display="inline"><semantics><mrow><msubsup><mi>t</mi><mn>1</mn><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>t</mi><mn>1</mn><mrow><mo>(</mo><mn>2</mn><mo>)</mo></mrow></msubsup><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow><annotation encoding="application/x-tex">t_{1}^{(1)},t_{1}^{(2)},\dots</annotation></semantics></math>, similarly neuron <math id="SS2.p1.m5" class="ltx_Math" alttext="j=2" display="inline"><semantics><mrow><mi>j</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">j=2</annotation></semantics></math> fires at <math id="SS2.p1.m6" class="ltx_Math" alttext="t_{2}^{(1)},t_{2}^{(2)},\dots" display="inline"><semantics><mrow><msubsup><mi>t</mi><mn>2</mn><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>t</mi><mn>2</mn><mrow><mo>(</mo><mn>2</mn><mo>)</mo></mrow></msubsup><mo>,</mo><mi mathvariant="normal">â¦</mi></mrow><annotation encoding="application/x-tex">t_{2}^{(1)},t_{2}^{(2)},\dots</annotation></semantics></math>â. Each
+spike evokes a postsynaptic potential <math id="SS2.p1.m7" class="ltx_Math" alttext="\epsilon_{i1}" display="inline"><semantics><msub><mi>Ïµ</mi><mrow><mi>i</mi><mo>â¢</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\epsilon_{i1}</annotation></semantics></math> or <math id="SS2.p1.m8" class="ltx_Math" alttext="\epsilon_{i2}" display="inline"><semantics><msub><mi>Ïµ</mi><mrow><mi>i</mi><mo>â¢</mo><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\epsilon_{i2}</annotation></semantics></math>,
+respectively. As long as there are only few input spikes, the total change of
+the potential is approximately the sum of the individual PSPs,</p>
+<table id="Ch1.E2" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch1.E2.m1" class="ltx_Math" alttext="u_{i}(t)=\sum_{j}\sum_{f}\epsilon_{ij}(t-t_{j}^{(f)})+u_{\rm rest}\,," display="block"><semantics><mrow><mrow><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>j</mi></munder><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>f</mi></munder><mrow><msub><mi>Ïµ</mi><mrow><mi>i</mi><mo>â¢</mo><mi>j</mi></mrow></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msubsup><mi>t</mi><mi>j</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msubsup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>+</mo><mpadded width="+1.7pt"><msub><mi>u</mi><mi>rest</mi></msub></mpadded></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">u_{i}(t)=\sum_{j}\sum_{f}\epsilon_{ij}(t-t_{j}^{(f)})+u_{\rm rest}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(1.2)</span></td>
+</tr>
+</table>
+<p class="ltx_p">i.e., the membrane potential responds linearly to input spikes; see
+Fig.Â <a href="#Ch1.F5" title="Fig.Â 1.5 â£ 1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>B.</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">On the other hand, linearity breaks down if too many input spikes arrive
+during a short interval. As soon as the membrane potential reaches a critical
+value <math id="SS2.p2.m1" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>, its trajectory shows a behavior that is quite different
+from a simple summation of PSPs: The membrane potential exhibits a pulse-like
+excursion with an amplitude of about 100Â mV. This short voltage pulse will propagate along the axon of neuron <math id="SS2.p2.m2" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> to the
+synapses with other neurons. After the pulse the membrane potential does not
+directly return to the resting potential, but passes, for many neuron types,
+through a phase of
+hyperpolarization below the resting value. This hyperpolarization is called
+âspike-afterpotentialâ.
+
+</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">Single EPSPs have amplitudes in the range of one millivolt. The critical
+value for spike initiation is about 20 to 30 mV above the resting potential.
+In most neurons, four spikes â as shown schematically in Fig.Â <a href="#Ch1.F5" title="Fig.Â 1.5 â£ 1.2.1 Postsynaptic Potentials â£ 1.2 Elements of Neuronal Dynamics â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1.5</span></a>C
+â are thus not sufficient to trigger an action potential. Instead, about 20-50
+presynaptic spikes have to arrive within a short time window to trigger a
+postsynaptic action potential.</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch1.S1.html" title="1.1 Elements of Neuronal Systems â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.1 </span>Elements of Neuronal Systems</span></a><a href="Ch1.S3.html" title="1.3 Integrate-And-Fire Models â£ ChapterÂ 1 Introduction: Neurons and Mathematics â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1.3 </span>Integrate-And-Fire Models</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

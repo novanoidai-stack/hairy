@@ -1,0 +1,200 @@
+<!DOCTYPE html><html>
+<head>
+<title>ChapterÂ 5 Nonlinear Integrate-and-Fire Models | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S3.html" title="5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a><a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a><a href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1 </span>Thresholds in a nonlinear integrate-and-fire model</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_chapter ltx_authors_1line">
+<h1 class="ltx_title ltx_title_chapter">
+<span class="ltx_tag ltx_tag_chapter">ChapterÂ 5 </span>Nonlinear Integrate-and-Fire Models</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Detailed conductance-based neuron models can reproduce electrophysiological
+measurements to a high degree of accuracy, but because of their intrinsic
+complexity these models are difficult to analyze. For this reason, simple
+phenomenological spiking neuron models are highly popular for studies of
+neural coding, memory, and network dynamics. In this chapter we discuss
+formal threshold models of neuronal firing, also
+called integrate-and-fire models.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">The shape of the action potential of a given neuron is
+rather stereotyped with very little change between
+one spike and the next.
+Thus, the shape of the action potential
+which travels along the axon to a postsynaptic neuron
+cannot be used to transmit
+information; rather, from the point of view of the receiving
+neuron,
+action potentials are âeventsâ which are fully characterized by the
+arrival time of the spike at the synapse. Note that
+spikes from different neuron types can have different shapes and the duration and shape of the spike does influence neurotransmitter release; but the spikes
+that arrive at a given synapse all come from the same presynaptic neuron and â if we neglect effects of fatigue of ionic channels in the axon â
+we can assume that its time course is always the same.
+Therefore we make no effort to model the exact shape of
+an action potential. Rather, spikes are treated as events characterized
+by their firing time - and the task consists in finding
+a model so as to reliably predict spike timings.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">In generalized integrated-and-fire models, spikes are generated whenever the
+membrane potential <math id="p3.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> crosses some threshold <math id="p3.m2" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math> from below. The
+moment of threshold crossing defines the firing time <math id="p3.m3" class="ltx_Math" alttext="t^{(f)}" display="inline"><semantics><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><annotation encoding="application/x-tex">t^{(f)}</annotation></semantics></math>,
+</p>
+<table id="E1" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="E1.m1" class="ltx_Math" alttext="t^{(f)}:\quad u(t^{(f)})=\theta_{\rm reset}\quad\text{and}\quad\left.{{\text{d%
+}}u(t)\over{\text{d}}t}\right|_{t=t^{(f)}}&gt;0\,." display="block"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo>:</mo><mo mathvariant="italic" separator="true">â</mo><mi>u</mi><mrow><mo stretchy="false">(</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>Î¸</mi><mi>reset</mi></msub><mo mathvariant="italic" separator="true">â</mo><mtext>and</mtext><mo mathvariant="italic" separator="true">ââ</mo><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><msub><mo>|</mo><mrow><mi>t</mi><mo>=</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow></msub><mo>&gt;</mo><mn>0â.</mn></mrow><annotation encoding="application/x-tex">t^{(f)}:\quad u(t^{(f)})=\theta_{\rm reset}\quad\text{and}\quad\left.{{\text{d%
+}}u(t)\over{\text{d}}t}\right|_{t=t^{(f)}}&gt;0\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.1)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In contrast to the
+two-dimensional neuron models, encountered in ChapterÂ <a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>,
+we donât have a relaxation variable that enables
+us to describe the return of the membrane potential to rest.
+In the integrate-and-fire models, discussed
+in this and the following chapters, the downswing
+of the action potential is replaced by an algorithmic reset of the
+membrane potential to a new value <math id="p3.m4" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math> each time
+the threshold <math id="p3.m5" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math> is reached.
+The
+duration of an action potential is sometimes, but not always, replaced by a dead-time
+<math id="p3.m6" class="ltx_Math" alttext="\Delta^{\rm abs}" display="inline"><semantics><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><annotation encoding="application/x-tex">\Delta^{\rm abs}</annotation></semantics></math>
+after each spike, before the voltage dynamics restarts
+with <math id="p3.m7" class="ltx_Math" alttext="u=u_{r}" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">u=u_{r}</annotation></semantics></math> as initial condition.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">In this chapter, we focus
+on integrate-and-fire models with a single variable
+<math id="p4.m1" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> which describes the time course of the membrane potential.
+In ChapterÂ <a href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>, we extend the models
+developed in this chapter so as to include
+adaptation of neuronal firing during extended
+strong stimulation.
+In ChaptersÂ <a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a> â <a href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a>
+we consider questions of coding, noise,
+and reliability of spike-time prediction â
+using the generalized integrate-and-fire model
+which we introduce now.</p>
+</div>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1 </span>Thresholds in a nonlinear integrate-and-fire model</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Exponential Integrate-and-Fire Model</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch5.S3.html" title="5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3 </span>Quadratic Integrate and Fire</span></a></li>
+</ul>
+
+<ul class="ltx_toclist ltx_toc_chapter">
+<li class="ltx_tocentry"><a href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.4 </span>Summary</span></a></li>
+</ul>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">II </span>Generalized Integrate-and-Fire Neurons</span></a><a href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1 </span>Thresholds in a nonlinear integrate-and-fire model</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

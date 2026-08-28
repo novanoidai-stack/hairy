@@ -1,0 +1,382 @@
+<!DOCTYPE html><html>
+<head>
+<title>5.3 Quadratic Integrate and Fire | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S1.html" title="5.1 Thresholds in a nonlinear integrate-and-fire model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="integrate-and-fire model, quadratic, quadratic IF">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5 </span>Nonlinear Integrate-and-Fire Models</span></a><a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Exponential Integrate-and-Fire Model</span></a><a href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.4 </span>Summary</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5.3 </span>Quadratic Integrate and Fire</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">A specific instance of a nonlinear
+integrate-and-fire model is the <span class="ltx_text ltx_font_italic">quadratic</span>
+model
+<cite class="ltx_cite">(<a href="bib.html#bib92" title="Intrinsic dynamics in neuronal networks. I. Theory" class="ltx_ref">291</a>; <a href="bib.html#bib93" title="Existence and stability of persistent states in large neuronal networks" class="ltx_ref">206</a>)</cite>,</p>
+<table id="Ch5.E16" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E16.m1" class="ltx_Math" alttext="\tau{{\text{d}}\over{\text{d}}t}u=a_{0}\,(u-u_{\rm rest})\,(u-u_{c})+RI\,," display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mi>u</mi></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><msub><mi>a</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>u</mi><mo>-</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi>R</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\tau{{\text{d}}\over{\text{d}}t}u=a_{0}\,(u-u_{\rm rest})\,(u-u_{c})+RI\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.16)</span></td>
+</tr>
+</table>
+<p class="ltx_p">with parameters <math id="p1.m1" class="ltx_Math" alttext="a_{0}&gt;0" display="inline"><semantics><mrow><msub><mi>a</mi><mn>0</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">a_{0}&gt;0</annotation></semantics></math> and <math id="p1.m2" class="ltx_Math" alttext="u_{c}&gt;u_{\rm rest}" display="inline"><semantics><mrow><msub><mi>u</mi><mi>c</mi></msub><mo>&gt;</mo><msub><mi>u</mi><mi>rest</mi></msub></mrow><annotation encoding="application/x-tex">u_{c}&gt;u_{\rm rest}</annotation></semantics></math>; cf.Â Fig.Â <a href="#Ch5.F8" title="Fig.Â 5.8 â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.8</span></a>A.
+For <math id="p1.m3" class="ltx_Math" alttext="I=0" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">I=0</annotation></semantics></math> and initial condition <math id="p1.m4" class="ltx_Math" alttext="u&lt;u_{c}" display="inline"><semantics><mrow><mi>u</mi><mo>&lt;</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">u&lt;u_{c}</annotation></semantics></math>, the voltage decays to the
+resting potential <math id="p1.m5" class="ltx_Math" alttext="u_{\rm rest}" display="inline"><semantics><msub><mi>u</mi><mi>rest</mi></msub><annotation encoding="application/x-tex">u_{\rm rest}</annotation></semantics></math>. For <math id="p1.m6" class="ltx_Math" alttext="u&gt;u_{c}" display="inline"><semantics><mrow><mi>u</mi><mo>&gt;</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">u&gt;u_{c}</annotation></semantics></math> it increases so that an action
+potential is triggered. The parameter <math id="p1.m7" class="ltx_Math" alttext="u_{c}" display="inline"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_{c}</annotation></semantics></math> can therefore be interpreted as
+the critical voltage for spike initiation by a short current pulse. We will
+see in the next subsection that the
+quadratic integrate-and-fire model is closely related to the so-called
+<math id="p1.m8" class="ltx_Math" alttext="\Theta" display="inline"><semantics><mi mathvariant="normal">Î</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math>-neuron, a canonical type-I neuron model <cite class="ltx_cite">(<a href="bib.html#bib82" title="Type i membranes, phase resetting curves, and synchrony" class="ltx_ref">141</a>; <a href="bib.html#bib92" title="Intrinsic dynamics in neuronal networks. I. Theory" class="ltx_ref">291</a>)</cite>.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">For numerical implementations of the model,
+the integration of Eq. (<a href="#Ch5.E16" title="(5.16) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.16</span></a>) is stopped
+if the voltage reaches a numerical threshold <math id="p2.m1" class="ltx_Math" alttext="\theta_{\rm reset}" display="inline"><semantics><msub><mi>Î¸</mi><mi>reset</mi></msub><annotation encoding="application/x-tex">\theta_{\rm reset}</annotation></semantics></math>
+and restarted with a reset value <math id="p2.m2" class="ltx_Math" alttext="u_{r}" display="inline"><semantics><msub><mi>u</mi><mi>r</mi></msub><annotation encoding="application/x-tex">u_{r}</annotation></semantics></math>
+as new initial condition (Fig.Â <a href="#Ch5.F9" title="Fig.Â 5.9 â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.9</span></a>B).
+For a mathematical analysis of the model, however,Â the standard assumption is
+<math id="p2.m3" class="ltx_Math" alttext="\theta_{\rm reset}\to\infty" display="inline"><semantics><mrow><msub><mi>Î¸</mi><mi>reset</mi></msub><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">\theta_{\rm reset}\to\infty</annotation></semantics></math> and <math id="p2.m4" class="ltx_Math" alttext="u_{r}\to-\infty" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>â</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow><annotation encoding="application/x-tex">u_{r}\to-\infty</annotation></semantics></math>.</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">We have seen in the previous section
+that experimental data suggests an exponential,
+rather than quadratic nonlinearity.
+However, close to the
+threshold for repetitive firing,
+the exponential integrate-and-fire model and the quadratic
+integrate-and-fire model become very similar
+(Fig.Â <a href="#Ch5.F8" title="Fig.Â 5.8 â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.8</span></a>B).
+Therefore the question arises, whether
+the choice between the two models is a matter
+of personal preferences only.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">For a mathematical analysis, the quadratic integrate-and-fire model
+is sometimes more handy than the exponential one.
+However, the fit to experimental data is much better
+with the exponential than with the quadratic integrate-and-fire model.
+For a prediction of spike times and voltage of real neurons
+(cf. Fig. <a href="Ch5.S2.html#Ch5.F5" title="Fig.Â 5.5 â£ 5.2.1 Extracting the Nonlinearity from Data â£ 5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.5</span></a>), it is therefore advisable to work
+with the exponential rather than the quadratic integrate-and-fire model.
+Loosely speaking, the quadratic model is too nonlinear in the subthreshold
+regime and the upswing of a spike is not rapid enough once the voltage
+is above threshold.
+The approximation of the exponential integrate-and-fire model
+by a quadratic one only holds if the mean driving current
+is close to the rheobase current.</p>
+</div>
+<div id="p5" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+              <span class="ltx_text ltx_font_bold ltx_font_small">Example: Approximating the exponential integrate-and-fire</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">Let us suppose that an exponential
+integrate-and-fire model
+is driven by a depolarizing current
+that shifts its effective equilibrium potential <math id="p5.m1" class="ltx_Math" alttext="u_{r}^{\rm eff}" display="inline"><semantics><msubsup><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">r</mi><mi mathsize="normal" stretchy="false">eff</mi></msubsup><annotation encoding="application/x-tex">u_{r}^{\rm eff}</annotation></semantics></math>
+close to the rheobase firing threshold <math id="p5.m2" class="ltx_Math" alttext="\vartheta_{rh}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mrow><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi></mrow></msub><annotation encoding="application/x-tex">\vartheta_{rh}</annotation></semantics></math>.
+The stable fixed points at <math id="p5.m3" class="ltx_Math" alttext="u=u_{r}^{\rm eff}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><msubsup><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">r</mi><mi mathsize="normal" stretchy="false">eff</mi></msubsup></mrow><annotation encoding="application/x-tex">u=u_{r}^{\rm eff}</annotation></semantics></math>
+and the unstable fixed
+point at <math id="p5.m4" class="ltx_Math" alttext="u=\vartheta^{\rm eff}" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">=</mo><msup><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">eff</mi></msup></mrow><annotation encoding="application/x-tex">u=\vartheta^{\rm eff}</annotation></semantics></math> corresponding
+to the effective firing threshold for pulse injection
+lie now symmetrically around
+<math id="p5.m5" class="ltx_Math" alttext="\vartheta_{rh}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">Ï</mi><mrow><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi></mrow></msub><annotation encoding="application/x-tex">\vartheta_{rh}</annotation></semantics></math> (Fig. <a href="#Ch5.F8" title="Fig.Â 5.8 â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.8</span></a>B).
+In this region, the shape of the function <math id="p5.m6" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">f</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math>
+is well approximated by
+a quadratic function (dashed line).
+In other words, in this regime
+the exponential and quadratic
+integrate-and-fire neuron become identical.
+</span>
+            </p>
+<p class="ltx_p">
+              <span class="ltx_text ltx_font_small">If the constant input current is increased
+further, the stable and unstable fixed point
+move closer together and finally merge
+and disappear at the bifurcation point,
+corresponding to a critical current <math id="p5.m7" class="ltx_Math" alttext="I_{c}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">c</mi></msub><annotation encoding="application/x-tex">I_{c}</annotation></semantics></math>.
+More generally, any typeÂ I neuron model
+close to the bifurcation point can be
+approximated by a quadratic integrate-and-fire model -
+and this is why it is sometimes called
+the âcanonicalâ typeÂ I integrate-and-fire model
+<cite class="ltx_cite">(<a href="bib.html#bib82" title="Type i membranes, phase resetting curves, and synchrony" class="ltx_ref">141</a>; <a href="bib.html#bib94" title="Parabolic bursting in an excitable system coupled with a slow oscillation" class="ltx_ref">140</a>)</cite>.</span>
+            </p>
+</span>
+</div>
+<figure id="Ch5.F8" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x146.png" id="Ch5.F8.g1" class="ltx_graphics" width="293" height="235" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x147.png" id="Ch5.F8.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 5.8: </span>Quadratic Integrate-and-Fire Model.
+<span class="ltx_text ltx_font_bold">A</span>. The quadratic integrate-and-fire model (dashed line),
+compared to an exponential integrate-and-fire model (solid line).
+<span class="ltx_text ltx_font_bold">B</span>. The quadratic integrate-and-fire model
+can be seen as an approximation of
+an exponential integrate-and-fire model (or any other typeÂ I model)
+depolarized to a state close to repetitive firing.
+In A and B, the value <math id="Ch5.F8.m5" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math> and curvature
+<math id="Ch5.F8.m6" class="ltx_Math" alttext="d^{2}f/du^{2}" display="inline"><semantics><mrow><mrow><mrow><msup><mi>d</mi><mn>2</mn></msup><mo>â¢</mo><mi>f</mi></mrow><mo>/</mo><mi>d</mi></mrow><mo>â¢</mo><msup><mi>u</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">d^{2}f/du^{2}</annotation></semantics></math>
+are matched at <math id="Ch5.F8.m7" class="ltx_Math" alttext="u=\vartheta_{rh}" display="inline"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u=\vartheta_{rh}</annotation></semantics></math>.
+Note that the rise in the quadratic model is slower
+in the super-threshold regime <math id="Ch5.F8.m8" class="ltx_Math" alttext="u&gt;\vartheta_{rh}" display="inline"><semantics><mrow><mi>u</mi><mo>&gt;</mo><msub><mi>Ï</mi><mrow><mi>r</mi><mo>â¢</mo><mi>h</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u&gt;\vartheta_{rh}</annotation></semantics></math>.
+
+</figcaption>
+</figure>
+<figure id="Ch5.F9" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">A</span>
+                </th>
+<th class="ltx_td ltx_align_left">
+                  <span class="ltx_text ltx_font_bold">B</span>
+                </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                  <img src="x148.png" id="Ch5.F9.g1" class="ltx_graphics" width="293" height="235" alt="">
+                </td>
+<td class="ltx_td ltx_align_left"><img src="x149.png" id="Ch5.F9.g2" class="ltx_graphics" width="293" height="235" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 5.9: </span>Repetitive firing in Nonlinear integrate-and-fire.
+<span class="ltx_text ltx_font_bold">A</span> Exponential Integrate-and-Fire Model and
+<span class="ltx_text ltx_font_bold">B</span> Quadratic Integrate-and-Fire Model receiving a constant current sufficient to elicit repetitive firing.
+Note the comparitively slow upswing of the action potential
+in the quadratic integrate-and-fire model.
+Numerical simulation with parameters of equivalent models as illustrated in Fig. <a href="#Ch5.F8" title="Fig.Â 5.8 â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.8</span></a>.
+
+</figcaption>
+</figure>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3.1 </span>Canonical Type I model (*)</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">In this section, we show that there is a one-to-one relation between the quadratic integrate-and-fire
+model (<a href="#Ch5.E16" title="(5.16) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.16</span></a>) and the canonical typeÂ I phase model,</p>
+<table id="Ch5.E17" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E17.m1" class="ltx_Math" alttext="{{\text{d}}\phi\over{\text{d}}t}=[1-\cos\phi]\,+\Delta I\,[1+\cos\phi]\,;" display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>Ï</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><mrow><mi>cos</mi><mo>â¡</mo><mi>Ï</mi></mrow></mrow><mo>]</mo></mrow></mpadded><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mrow><mi>cos</mi><mo>â¡</mo><mi>Ï</mi></mrow></mrow><mo>]</mo></mrow></mpadded></mrow></mrow></mrow><mo>;</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}\phi\over{\text{d}}t}=[1-\cos\phi]\,+\Delta I\,[1+\cos\phi]\,;</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.17)</span></td>
+</tr>
+</table>
+<p class="ltx_p">defined in Chapter <a href="Ch4.html" title="ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>; cf.Â SectionÂ <a href="Ch4.S4.html#SS1" title="4.4.1 TypeÂ I Models and Saddle-Node-onto-Limit-Cycle Bifurcation â£ 4.4 Type I and Type II neuron models â£ ChapterÂ 4 Dimensionality Reduction and Phase Plane Analysis â£ PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.4.1</span></a>
+<cite class="ltx_cite">(<a href="bib.html#bib82" title="Type i membranes, phase resetting curves, and synchrony" class="ltx_ref">141</a>; <a href="bib.html#bib94" title="Parabolic bursting in an excitable system coupled with a slow oscillation" class="ltx_ref">140</a>)</cite>.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">Let us denote by <math id="SS1.p2.m1" class="ltx_Math" alttext="I_{\theta}" display="inline"><semantics><msub><mi>I</mi><mi>Î¸</mi></msub><annotation encoding="application/x-tex">I_{\theta}</annotation></semantics></math> the minimal current necessary for repetitive
+firing of the quadratic integrate-and-fire neuron. With a suitable shift of
+the voltage scale and constant current <math id="SS1.p2.m2" class="ltx_Math" alttext="I=I_{\theta}+\Delta I" display="inline"><semantics><mrow><mi>I</mi><mo>=</mo><mrow><msub><mi>I</mi><mi>Î¸</mi></msub><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">I=I_{\theta}+\Delta I</annotation></semantics></math> the
+equation of the quadratic neuron model can then be cast into the form</p>
+<table id="Ch5.E18" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E18.m1" class="ltx_Math" alttext="{{\text{d}}u\over{\text{d}}t}=u^{2}+\Delta I\,." display="block"><semantics><mrow><mrow><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>=</mo><mrow><msup><mi>u</mi><mn>2</mn></msup><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{{\text{d}}u\over{\text{d}}t}=u^{2}+\Delta I\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.18)</span></td>
+</tr>
+</table>
+<p class="ltx_p">For <math id="SS1.p2.m3" class="ltx_Math" alttext="\Delta I&gt;0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta I&gt;0</annotation></semantics></math> the voltage increases until it reaches the firing
+threshold <math id="SS1.p2.m4" class="ltx_Math" alttext="\vartheta\gg 1" display="inline"><semantics><mrow><mi>Ï</mi><mo>â«</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\vartheta\gg 1</annotation></semantics></math> where it is reset to a value <math id="SS1.p2.m5" class="ltx_Math" alttext="u_{r}\ll-1" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>âª</mo><mrow><mo>-</mo><mn>1</mn></mrow></mrow><annotation encoding="application/x-tex">u_{r}\ll-1</annotation></semantics></math>. Note
+that the firing times are insensitive to the actual values of firing threshold
+and reset value because the solution of Eq.Â (<a href="#Ch5.E18" title="(5.18) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.18</span></a>) grows faster than
+exponentially and diverges for finite time (hyperbolic growth). The
+difference in the firing times for a finite threshold of, say, <math id="SS1.p2.m6" class="ltx_Math" alttext="\vartheta=10" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">\vartheta=10</annotation></semantics></math> and <math id="SS1.p2.m7" class="ltx_Math" alttext="\vartheta=10\,000" display="inline"><semantics><mrow><mi>Ï</mi><mo>=</mo><mn>10â000</mn></mrow><annotation encoding="application/x-tex">\vartheta=10\,000</annotation></semantics></math> is thus negligible.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">We want to show that the differential equation (<a href="#Ch5.E18" title="(5.18) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.18</span></a>) can be
+transformed into the canonical phase model (<a href="#Ch5.E17" title="(5.17) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.17</span></a>) by the
+transformation</p>
+<table id="Ch5.E19" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch5.E19.m1" class="ltx_Math" alttext="u(t)={\rm tan}\left({\phi(t)\over 2}\right)\,." display="block"><semantics><mrow><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>tan</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mfrac><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mn>2</mn></mfrac><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">u(t)={\rm tan}\left({\phi(t)\over 2}\right)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.19)</span></td>
+</tr>
+</table>
+<p class="ltx_p">To do so, we take the derivative of (<a href="#Ch5.E19" title="(5.19) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.19</span></a>) and use the
+differential equation (<a href="#Ch5.E17" title="(5.17) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.17</span></a>) of the generic phase model. With
+help of the trigonometric relations <math id="SS1.p3.m1" class="ltx_Math" alttext="{\text{d}}\tan x/{\text{d}}x=1/\cos^{2}(x)" display="inline"><semantics><mrow><mrow><mtext>d</mtext><mo>â¢</mo><mrow><mi>tan</mi><mo>â¡</mo><mrow><mrow><mi>x</mi><mo>/</mo><mtext>d</mtext></mrow><mo>â¢</mo><mi>x</mi></mrow></mrow></mrow><mo>=</mo><mrow><mn>1</mn><mo>/</mo><mrow><msup><mi>cos</mi><mn>2</mn></msup><mo>â¡</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">{\text{d}}\tan x/{\text{d}}x=1/\cos^{2}(x)</annotation></semantics></math> and <math id="SS1.p3.m2" class="ltx_Math" alttext="1+\cos x=2\cos^{2}(x/2)" display="inline"><semantics><mrow><mrow><mn>1</mn><mo>+</mo><mrow><mi>cos</mi><mo>â¡</mo><mi>x</mi></mrow></mrow><mo>=</mo><mrow><mn>2</mn><mo>â¢</mo><mrow><msup><mi>cos</mi><mn>2</mn></msup><mo>â¡</mo><mrow><mo>(</mo><mrow><mi>x</mi><mo>/</mo><mn>2</mn></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">1+\cos x=2\cos^{2}(x/2)</annotation></semantics></math> we find</p>
+<table id="Ch20.S4.EGx20" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch5.E20" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch5.Ex1.m1" class="ltx_Math" alttext="\displaystyle{{\text{d}}u\over{\text{d}}t}" display="inline"><semantics><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle><annotation encoding="application/x-tex">\displaystyle{{\text{d}}u\over{\text{d}}t}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch5.Ex1.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch5.Ex1.m3" class="ltx_Math" alttext="\displaystyle{1\over\cos^{2}(\phi/2)}\,{1\over 2}\,{{\text{d}}\phi\over{\text{%
+d}}t}" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><mrow><msup><mi>cos</mi><mn>2</mn></msup><mo>â¡</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>/</mo><mn>2</mn></mrow><mo>)</mo></mrow></mrow></mfrac></mstyle></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><mstyle displaystyle="true"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle></mpadded><mo>â¢</mo><mstyle displaystyle="true"><mfrac><mrow><mtext>d</mtext><mo>â¢</mo><mi>Ï</mi></mrow><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\displaystyle{1\over\cos^{2}(\phi/2)}\,{1\over 2}\,{{\text{d}}\phi\over{\text{%
+d}}t}</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="2" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(5.20)</span></td>
+</tr>
+<tr class="ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch5.E20.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch5.E20.m3" class="ltx_Math" alttext="\displaystyle{\rm tan}^{2}(\phi/2)+\Delta I=u^{2}+\Delta I\,." display="inline"><semantics><mrow><mrow><mrow><mrow><msup><mi>tan</mi><mn>2</mn></msup><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>/</mo><mn>2</mn></mrow><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow></mrow><mo>=</mo><mrow><msup><mi>u</mi><mn>2</mn></msup><mo>+</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle{\rm tan}^{2}(\phi/2)+\Delta I=u^{2}+\Delta I\,.</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">Thus Eq.Â (<a href="#Ch5.E19" title="(5.19) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.19</span></a>) with <math id="SS1.p3.m3" class="ltx_Math" alttext="\phi(t)" display="inline"><semantics><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi(t)</annotation></semantics></math> given by (<a href="#Ch5.E17" title="(5.17) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.17</span></a>)
+is a solution to the differential equation of the quadratic integrate-and-fire
+neuron. The quadratic integrate-and-fire neuron is therefore (in the limit
+<math id="SS1.p3.m4" class="ltx_Math" alttext="\vartheta\to\infty" display="inline"><semantics><mrow><mi>Ï</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">\vartheta\to\infty</annotation></semantics></math> and <math id="SS1.p3.m5" class="ltx_Math" alttext="u_{r}\to-\infty" display="inline"><semantics><mrow><msub><mi>u</mi><mi>r</mi></msub><mo>â</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow></mrow><annotation encoding="application/x-tex">u_{r}\to-\infty</annotation></semantics></math>) equivalent to the generic typeÂ I
+neuron (<a href="#Ch5.E17" title="(5.17) â£ 5.3.1 Canonical Type I model (*) â£ 5.3 Quadratic Integrate and Fire â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.17</span></a>).</p>
+</div>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch5.S2.html" title="5.2 Exponential Integrate-and-Fire Model â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Exponential Integrate-and-Fire Model</span></a><a href="Ch5.S4.html" title="5.4 Summary â£ ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.4 </span>Summary</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html><html>
+<head>
+<title>10.2 Statistical Formulation of Encoding Models | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S4.html" title="10.4 Closed-loop stimulus design â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch10.S5.html" title="10.5 Summary â£ ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch6.html" title="ChapterÂ 6 Adaptation and Firing Patterns â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch8.html" title="ChapterÂ 8 Noisy Input Models: Barrage of Spike Arrivals â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch11.html" title="ChapterÂ 11 Encoding and Decoding with Stochastic Neuron models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="
+                  , 
+                  , Bayesian, Bayesian parameter estimation, Bayesian regularization, parameter estimation, regularization">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch10.html" title="ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10 </span>Estimating Models</span></a><a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1 </span>Parameter optimization in linear and nonlinear models</span></a><a href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3 </span>Evaluating Goodness-of-fit</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">10.2 </span>Statistical Formulation of Encoding Models</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Let us denote the observed spike train data by <math id="p1.m1" class="ltx_Math" alttext="D" display="inline"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>.
+In general, <math id="p1.m2" class="ltx_Math" alttext="D" display="inline"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math> could represent measurements from a population
+of neurons. To keep the arguments simple, we focus
+for the moment on a single neuron,
+but at the end of the section we will extend the approach
+to a population of interacting neurons.
+If the time bins are chosen smaller than the absolute
+refractory period,
+the discretized spike train is described by
+a sequence of
+scalar variables <math id="p1.m3" class="ltx_Math" alttext="n_{t}" display="inline"><semantics><msub><mi>n</mi><mi>t</mi></msub><annotation encoding="application/x-tex">n_{t}</annotation></semantics></math>
+in an interval <math id="p1.m4" class="ltx_Math" alttext="0&lt;t\leq T" display="inline"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>t</mi><mo>â¤</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">0&lt;t\leq T</annotation></semantics></math></p>
+<table id="Ch10.E15" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E15.m1" class="ltx_Math" alttext="D=\{n_{1},n_{2},\dots,n_{T}\}\,," display="block"><semantics><mrow><mrow><mi>D</mi><mo>=</mo><mrow><mo>{</mo><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>n</mi><mn>2</mn></msub><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><msub><mi>n</mi><mi>T</mi></msub></mrow><mo>}</mo></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">D=\{n_{1},n_{2},\dots,n_{T}\}\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.15)</span></td>
+</tr>
+</table>
+<p class="ltx_p">cf. Fig. <a href="Ch9.S2.html#Ch9.F6" title="Fig.Â 9.6 â£ 9.2 Likelihood of a spike train â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.6</span></a> in Chapter <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>.
+If time bins are large, spike counts can take values larger than one.</p>
+</div>
+<div id="p2" class="ltx_para">
+<p class="ltx_p">A neural âencoding modelâ is a model that assigns a conditional
+probability, <math id="p2.m1" class="ltx_Math" alttext="p(D|\mbox{\boldmath\(x\)})" display="inline"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(D|\mbox{\boldmath\(x\)})</annotation></semantics></math>, to any possible neural response <math id="p2.m2" class="ltx_Math" alttext="D" display="inline"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+given a stimulus <span class="ltx_text ltx_markedasmath"><math id="p2.m3.m1" class="ltx_Math" alttext="x" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">x</annotation></semantics></math></span>.
+The vector <math id="p2.m4" class="ltx_Math" alttext="\mbox{\boldmath\(x\)}_{t}" display="inline"><semantics><msub><mi>ð</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(x\)}_{t}</annotation></semantics></math> can include the momentary stimulus presented at time <math id="p2.m5" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+or more generally the concatenated spatiotemporal stimulus history up
+to time <math id="p2.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>. Examples have been given in Section
+<a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.1</span></a>.
+</p>
+</div>
+<div id="p3" class="ltx_para">
+<p class="ltx_p">As emphasized in the introduction to this chapter, it is not feasible to directly
+measure this probability <math id="p3.m1" class="ltx_Math" alttext="p(D|\mbox{\boldmath\(x\)})" display="inline"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(D|\mbox{\boldmath\(x\)})</annotation></semantics></math> for all stimulus-response pairs
+<math id="p3.m2" class="ltx_Math" alttext="(\mbox{\boldmath\(x\)},D)" display="inline"><semantics><mrow><mo>(</mo><mrow><mi>ð</mi><mo>,</mo><mi>D</mi></mrow><mo>)</mo></mrow><annotation encoding="application/x-tex">(\mbox{\boldmath\(x\)},D)</annotation></semantics></math>, simply because there are infinitely many potential stimuli.
+We therefore hypothesize some encoding model,</p>
+<table id="Ch10.E16" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E16.m1" class="ltx_Math" alttext="p(D|\mbox{\boldmath\(x\)},\theta)\,." display="block"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>ð</mi><mo>,</mo><mi>Î¸</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">p(D|\mbox{\boldmath\(x\)},\theta)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.16)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Here <math id="p3.m3" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math> is a short-hand notation
+for the set of all model parameters.
+In the examples of the previous section,
+the model parameters
+are <math id="p3.m4" class="ltx_Math" alttext="\theta=\{\mbox{\boldmath\(k\)},b\}" display="inline"><semantics><mrow><mi>Î¸</mi><mo>=</mo><mrow><mo>{</mo><mrow><mi>ð</mi><mo>,</mo><mi>b</mi></mrow><mo>}</mo></mrow></mrow><annotation encoding="application/x-tex">\theta=\{\mbox{\boldmath\(k\)},b\}</annotation></semantics></math>.</p>
+</div>
+<div id="p4" class="ltx_para">
+<p class="ltx_p">Our aim is to estimate the model parameters <math id="p4.m1" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+so that the model âfitsâ the observed
+data <math id="p4.m2" class="ltx_Math" alttext="D" display="inline"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>. Once <math id="p4.m3" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math> is in hand we may compute the desired response
+probabilities as</p>
+<table id="Ch10.E17" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E17.m1" class="ltx_Math" alttext="p(D|\mbox{\boldmath\(x\)})\approx p(D|\mbox{\boldmath\(x\)},\theta)\,," display="block"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>â</mo><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>ð</mi><mo>,</mo><mi>Î¸</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">p(D|\mbox{\boldmath\(x\)})\approx p(D|\mbox{\boldmath\(x\)},\theta)\,,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.17)</span></td>
+</tr>
+</table>
+<p class="ltx_p">that is,
+knowing <math id="p4.m4" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math> allows us to interpolate between the
+observed (noisy) stimulus-response pairs, in order to predict the
+response probabilities for novel stimuli <span class="ltx_text ltx_markedasmath"><math id="p4.m5.m1" class="ltx_Math" alttext="x" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">x</annotation></semantics></math></span> for which we have not
+yet observed any responses.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">10.2.1 </span>Parameter estimation</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">How do we find a good estimate for the parameters <math id="SS1.p1.m1" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>Î¸</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+for a chosen model class?
+The general recipe is as
+follows. The first step is to introduce a model that makes sense
+biophysically, and incorporates our prior knowledge in a tractable
+manner. Next we write down the likelihood of the observed data given
+the model parameters, along with a prior distribution that encodes our
+prior beliefs about the model parameters. Finally, we compute the
+posterior distribution of the model parameters given the observed
+data, using Bayesâ rule, which states that</p>
+<table id="Ch10.E18" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E18.m1" class="ltx_Math" alttext="p(\theta|D)\propto p(D|\theta)p(\theta);" display="block"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>Î¸</mi><mo stretchy="false">|</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><mo>â</mo><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>Î¸</mi><mo stretchy="false">)</mo></mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>Î¸</mi><mo stretchy="false">)</mo></mrow><mo>;</mo></mrow><annotation encoding="application/x-tex">p(\theta|D)\propto p(D|\theta)p(\theta);</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.18)</span></td>
+</tr>
+</table>
+<p class="ltx_p">the left-hand side is the desired posterior distribution, while the
+right-hand side is just the product of the likelihood and the prior.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">In the current setting, we need to write down the likelihood <math id="SS1.p2.m1" class="ltx_Math" alttext="p(D|X,\mbox{\boldmath\(k\)})" display="inline"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(D|X,\mbox{\boldmath\(k\)})</annotation></semantics></math> of the observed spike data <math id="SS1.p2.m2" class="ltx_Math" alttext="D" display="inline"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math> given the model parameter
+<span class="ltx_text ltx_markedasmath"><math id="SS1.p2.m3.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> and the observed set of stimuli summarized
+in the matrix <math id="SS1.p2.m4" class="ltx_Math" alttext="X" display="inline"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>, and then we may employ standard
+likelihood optimization methods to obtain the maximum likelihood (ML)
+or maximum a posteriori (MAP) solutions for <span class="ltx_text ltx_markedasmath"><math id="SS1.p2.m5.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>,
+defined by</p>
+<table id="Ch20.S4.EGx58" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch10.E19" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch10.E19.m1" class="ltx_Math" alttext="\displaystyle{\rm ML:~{}}\hat{\mbox{\boldmath\(k\)}}_{\rm ML}" display="inline"><semantics><mrow><mi>ML</mi><mo rspace="5.8pt">:</mo><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mi>ML</mi></msub></mrow><annotation encoding="application/x-tex">\displaystyle{\rm ML:~{}}\hat{\mbox{\boldmath\(k\)}}_{\rm ML}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch10.E19.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch10.E19.m3" class="ltx_Math" alttext="\displaystyle{\rm argmax}_{\mbox{\boldmath\(k\)}}\{p(D|X,\mbox{\boldmath\(k\)})\}" display="inline"><semantics><mrow><msub><mi>argmax</mi><mi>ð</mi></msub><mrow><mo stretchy="false">{</mo><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">}</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle{\rm argmax}_{\mbox{\boldmath\(k\)}}\{p(D|X,\mbox{\boldmath\(k\)})\}</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.19)</span></td>
+</tr>
+<tr id="Ch10.E20" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch10.E20.m1" class="ltx_Math" alttext="\displaystyle{\rm MAP:~{}}\hat{\mbox{\boldmath\(k\)}}_{\rm MAP}" display="inline"><semantics><mrow><mi>MAP</mi><mo rspace="5.8pt">:</mo><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mi>MAP</mi></msub></mrow><annotation encoding="application/x-tex">\displaystyle{\rm MAP:~{}}\hat{\mbox{\boldmath\(k\)}}_{\rm MAP}</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch10.E20.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch10.E20.m3" class="ltx_Math" alttext="\displaystyle{\rm argmax}_{\mbox{\boldmath\(k\)}}\{p(D|X,\mbox{\boldmath\(k\)}%
+)\,p(\mbox{\boldmath\(k\)})\}" display="inline"><semantics><mrow><msub><mi>argmax</mi><mi>ð</mi></msub><mrow><mo stretchy="false">{</mo><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">}</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle{\rm argmax}_{\mbox{\boldmath\(k\)}}\{p(D|X,\mbox{\boldmath\(k\)}%
+)\,p(\mbox{\boldmath\(k\)})\}</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.20)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where the maximization runs over all possible parameter choices.</p>
+</div>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">We assume that spike counts per bin follow a conditional Poisson distribution, given <math id="SS1.p3.m1" class="ltx_Math" alttext="\rho(t)" display="inline"><semantics><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t)</annotation></semantics></math>:</p>
+<table id="Ch10.E21" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E21.m1" class="ltx_Math" alttext="n_{t}\sim Poiss[\rho(t){\text{d}}t]\,;" display="block"><semantics><mrow><mrow><msub><mi>n</mi><mi>t</mi></msub><mo>â¼</mo><mrow><mi>P</mi><mo>â¢</mo><mi>o</mi><mo>â¢</mo><mi>i</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>]</mo></mrow></mpadded></mrow></mrow><mo>;</mo></mrow><annotation encoding="application/x-tex">n_{t}\sim Poiss[\rho(t){\text{d}}t]\,;</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.21)</span></td>
+</tr>
+</table>
+<p class="ltx_p">cf. text and exercises of Chapter <a href="Ch7.html" title="ChapterÂ 7 Variability of Spike Trains and Neural Codes â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>.
+For example, with the rate parameter of the Poisson
+distribution given by
+a GLM or SRM model
+<math id="SS1.p3.m2" class="ltx_Math" alttext="\rho(t)=f(\mbox{\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t})" display="inline"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>ð</mi><mo>â</mo><msub><mi>ð</mi><mi>t</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho(t)=f(\mbox{\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t})</annotation></semantics></math>, we have</p>
+<table id="Ch10.E22" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E22.m1" class="ltx_Math" alttext="p(D|X,\mbox{\boldmath\(k\)})=\,\prod_{t}\left\{{[f(\mbox{\boldmath\(k\)}\cdot%
+\mbox{\boldmath\(x\)}_{t}){\text{d}}t]^{n_{t}}\over(n_{t})!}\exp[-f(\mbox{%
+\boldmath\(x\)}_{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t]\right\}\," display="block"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo rspace="4.2pt">=</mo><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder><mrow><mo>{</mo><mfrac><msup><mrow><mo>[</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>ð</mi><mo>â</mo><msub><mi>ð</mi><mi>t</mi></msub></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>]</mo></mrow><msub><mi>n</mi><mi>t</mi></msub></msup><mrow><mrow><mo>(</mo><msub><mi>n</mi><mi>t</mi></msub><mo>)</mo></mrow><mi mathvariant="normal">!</mi></mrow></mfrac><mi>exp</mi><mrow><mo stretchy="false">[</mo><mo>-</mo><mi>f</mi><mrow><mo stretchy="false">(</mo><msub><mi>ð</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mi>t</mi><mo stretchy="false">]</mo></mrow><mo rspace="4.2pt">}</mo></mrow></mrow><annotation encoding="application/x-tex">p(D|X,\mbox{\boldmath\(k\)})=\,\prod_{t}\left\{{[f(\mbox{\boldmath\(k\)}\cdot%
+\mbox{\boldmath\(x\)}_{t}){\text{d}}t]^{n_{t}}\over(n_{t})!}\exp[-f(\mbox{%
+\boldmath\(x\)}_{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t]\right\}\,</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.22)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Here <math id="SS1.p3.m3" class="ltx_Math" alttext="\Pi_{t}" display="inline"><semantics><msub><mi mathvariant="normal">Î </mi><mi>t</mi></msub><annotation encoding="application/x-tex">\Pi_{t}</annotation></semantics></math> denotes the product over all time steps.
+We recall that, by definition, <math id="SS1.p3.m4" class="ltx_Math" alttext="n_{t}!=1" display="inline"><semantics><mrow><mrow><msub><mi>n</mi><mi>t</mi></msub><mi mathvariant="normal">!</mi></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_{t}!=1</annotation></semantics></math> for <math id="SS1.p3.m5" class="ltx_Math" alttext="n_{t}=0" display="inline"><semantics><mrow><msub><mi>n</mi><mi>t</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">n_{t}=0</annotation></semantics></math>.</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">Our aim is to optimize the parameter <span class="ltx_text ltx_markedasmath"><math id="SS1.p4.m1.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>.
+For a given observed spike train,
+the spike count numbers <math id="SS1.p4.m2" class="ltx_Math" alttext="n_{t}" display="inline"><semantics><msub><mi>n</mi><mi>t</mi></msub><annotation encoding="application/x-tex">n_{t}</annotation></semantics></math> are fixed.
+In this case, <math id="SS1.p4.m3" class="ltx_Math" alttext="({\text{d}}t)^{n_{t}}/(n_{t})!" display="inline"><semantics><mrow><msup><mrow><mo>(</mo><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow><msub><mi>n</mi><mi>t</mi></msub></msup><mo>/</mo><mrow><mrow><mo>(</mo><msub><mi>n</mi><mi>t</mi></msub><mo>)</mo></mrow><mi mathvariant="normal">!</mi></mrow></mrow><annotation encoding="application/x-tex">({\text{d}}t)^{n_{t}}/(n_{t})!</annotation></semantics></math>
+is a constant which is irrelevant
+for the parameter optimization.
+If we work with a fixed time step <math id="SS1.p4.m4" class="ltx_Math" alttext="{\text{d}}t" display="inline"><semantics><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">{\text{d}}t</annotation></semantics></math>
+and drop all units, we can
+therefore reshuffle the terms and
+consider the logarithm of the above likelihood</p>
+<table id="Ch10.E23" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E23.m1" class="ltx_Math" alttext="{\rm log}p(D|X,\mbox{\boldmath\(k\)})=c_{0}+\sum_{t}\left\{{n_{t}}{\rm log}[f(%
+\mbox{\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t})]-f(\mbox{\boldmath\(x\)}_%
+{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right\}\,." display="block"><semantics><mrow><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>c</mi><mn>0</mn></msub><mo>+</mo><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder><mrow><mo>{</mo><msub><mi>n</mi><mi>t</mi></msub><mi>log</mi><mrow><mo stretchy="false">[</mo><mi>f</mi><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo>â</mo><msub><mi>ð</mi><mi>t</mi></msub><mo stretchy="false">)</mo></mrow><mo stretchy="false">]</mo></mrow><mo>-</mo><mi>f</mi><mrow><mo stretchy="false">(</mo><msub><mi>ð</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mi>t</mi><mo rspace="4.2pt">}</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">{\rm log}p(D|X,\mbox{\boldmath\(k\)})=c_{0}+\sum_{t}\left\{{n_{t}}{\rm log}[f(%
+\mbox{\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t})]-f(\mbox{\boldmath\(x\)}_%
+{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right\}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.23)</span></td>
+</tr>
+</table>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">If we choose the time step <math id="SS1.p5.m1" class="ltx_Math" alttext="{\text{d}}t" display="inline"><semantics><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">{\text{d}}t</annotation></semantics></math> shorter than
+the half-width of an action potential,
+say 1Â ms,
+the spike count variable <math id="SS1.p5.m2" class="ltx_Math" alttext="n_{t}" display="inline"><semantics><msub><mi>n</mi><mi>t</mi></msub><annotation encoding="application/x-tex">n_{t}</annotation></semantics></math> can only
+take the values zero or one.
+For small <math id="SS1.p5.m3" class="ltx_Math" alttext="{\text{d}}t" display="inline"><semantics><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">{\text{d}}t</annotation></semantics></math>, the likelihood of Eq. (<a href="#Ch10.E22" title="(10.22) â£ 10.2.1 Parameter estimation â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.22</span></a>) is
+then identical to that of the SRM
+with escape noise, defined in Chapter <a href="Ch9.html" title="ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>;
+cf. Eqs. (<a href="Ch9.S2.html#Ch9.E10" title="(9.10) â£ 9.2 Likelihood of a spike train â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.10</span></a>)
+and (<a href="Ch9.S2.html#Ch9.E15" title="(9.15) â£ 9.2 Likelihood of a spike train â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.15</span></a>) - (<a href="Ch9.S2.html#Ch9.E17" title="(9.17) â£ 9.2 Likelihood of a spike train â£ ChapterÂ 9 Noisy Output: Escape Rate and Soft Threshold â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9.17</span></a>).</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">We donât have an analytical expression for the maximum of
+the
+likelihood
+defined in Eq. (<a href="#Ch10.E22" title="(10.22) â£ 10.2.1 Parameter estimation â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.22</span></a>),
+but nonetheless we can numerically optimize
+this function quite easily if we are willing to make two assumptions
+about the nonlinear function <math id="SS1.p6.m1" class="ltx_Math" alttext="f(.)" display="inline"><semantics><mrow><mi>f</mi><mrow><mo stretchy="false">(</mo><mo>.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(.)</annotation></semantics></math>.
+More precisely,
+if we assume that</p>
+</div>
+<div id="SS1.p7" class="ltx_para">
+<p class="ltx_p">(i)
+<math id="SS1.p7.m1" class="ltx_Math" alttext="f(u)" display="inline"><semantics><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">f(u)</annotation></semantics></math> is a convex (upward-curving) function of its scalar argument
+<math id="SS1.p7.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>, and</p>
+</div>
+<div id="SS1.p8" class="ltx_para">
+<p class="ltx_p">(ii) <math id="SS1.p8.m1" class="ltx_Math" alttext="\log f(u)" display="inline"><semantics><mrow><mrow><mi>log</mi><mo>â¡</mo><mi>f</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\log f(u)</annotation></semantics></math> is concave (downward-curving) in <math id="SS1.p8.m2" class="ltx_Math" alttext="u" display="inline"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>,</p>
+</div>
+<div id="SS1.p9" class="ltx_para">
+<p class="ltx_p">then the
+loglikelihood above is guaranteed to be a concave function of the
+parameter <span class="ltx_text ltx_markedasmath"><math id="SS1.p9.m1.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>, since in this case the loglikelihood is just a sum of
+concave functions of <span class="ltx_text ltx_markedasmath"><math id="SS1.p9.m2.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> <cite class="ltx_cite">(<a href="bib.html#bib218" title="Maximum likelihood estimation of cascade point-process neural encoding models" class="ltx_ref">383</a>)</cite>.</p>
+</div>
+<div id="SS1.p10" class="ltx_para">
+<p class="ltx_p">This implies that the
+likelihood has no non-global maximum (also called local maximum).
+Therefore the maximum
+likelihood parameter <math id="SS1.p10.m1" class="ltx_Math" alttext="\hat{\mbox{\boldmath\(k\)}}_{\rm ML}" display="inline"><semantics><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mi>ML</mi></msub><annotation encoding="application/x-tex">\hat{\mbox{\boldmath\(k\)}}_{\rm ML}</annotation></semantics></math> may be found by numerical ascent
+techniques;
+cf. Fig. <a href="Ch10.S1.html#Ch10.F2" title="Fig.Â 10.2 â£ 10.1.1 Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.2</span></a>.
+Functions <math id="SS1.p10.m2" class="ltx_Math" alttext="f(.)" display="inline"><semantics><mrow><mi>f</mi><mrow><mo stretchy="false">(</mo><mo>.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(.)</annotation></semantics></math> satisfying these two constraints are
+easy to think of: for example, the standard linear rectifier and the
+exponential function both work.
+</p>
+</div>
+<div id="SS1.p11" class="ltx_para">
+<p class="ltx_p">Fitting model parameters proceeds
+as follows: we form the (augmented) matrix <math id="SS1.p11.m1" class="ltx_Math" alttext="X" display="inline"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+where each row is now</p>
+<table id="Ch10.E24" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E24.m1" class="ltx_Math" alttext="\mbox{\boldmath\(x\)}_{t}=(1,I_{t-1}{\text{d}}t,I_{t-2}{\text{d}}t,\dots,I_{t-%
+K}{\text{d}}t,n_{t-1},n_{t-2},\dots n_{t-J})\,." display="block"><semantics><mrow><mrow><msub><mi>ð</mi><mi>t</mi></msub><mo>=</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>,</mo><mrow><msub><mi>I</mi><mrow><mi>t</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>I</mi><mrow><mi>t</mi><mo>-</mo><mn>2</mn></mrow></msub><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><mrow><msub><mi>I</mi><mrow><mi>t</mi><mo>-</mo><mi>K</mi></mrow></msub><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>,</mo><msub><mi>n</mi><mrow><mi>t</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mi>n</mi><mrow><mi>t</mi><mo>-</mo><mn>2</mn></mrow></msub><mo>,</mo><mrow><mi mathvariant="normal">â¦</mi><mo>â¢</mo><msub><mi>n</mi><mrow><mi>t</mi><mo>-</mo><mi>J</mi></mrow></msub></mrow></mrow><mo>)</mo></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(x\)}_{t}=(1,I_{t-1}{\text{d}}t,I_{t-2}{\text{d}}t,\dots,I_{t-%
+K}{\text{d}}t,n_{t-1},n_{t-2},\dots n_{t-J})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.24)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Similarly, the parameter vector is in analogy
+to Eq. (<a href="Ch10.S1.html#Ch10.E10" title="(10.10) â£ 10.1.2 Generalized Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.10</span></a>)</p>
+<table id="Ch10.E25" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E25.m1" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}=(b,\kappa({\text{d}}t),\kappa(2{\text{d}}t)\dots,\kappa(%
+K{\text{d}}t),\eta({\text{d}}t),\eta(2{\text{d}}t),\dots,\eta(J{\text{d}}t));" display="block"><semantics><mrow><mrow><mi>ð</mi><mo>=</mo><mrow><mo>(</mo><mrow><mi>b</mi><mo>,</mo><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>2</mn><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mi mathvariant="normal">â¦</mi></mrow><mo>,</mo><mrow><mi>Îº</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>K</mi><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>2</mn><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mi mathvariant="normal">â¦</mi><mo>,</mo><mrow><mi>Î·</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>J</mi><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow><mo>;</mo></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}=(b,\kappa({\text{d}}t),\kappa(2{\text{d}}t)\dots,\kappa(%
+K{\text{d}}t),\eta({\text{d}}t),\eta(2{\text{d}}t),\dots,\eta(J{\text{d}}t));</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.25)</span></td>
+</tr>
+</table>
+<p class="ltx_p">here <math id="SS1.p11.m2" class="ltx_Math" alttext="b=u_{\rm rest}-\vartheta" display="inline"><semantics><mrow><mi>b</mi><mo>=</mo><mrow><msub><mi>u</mi><mi>rest</mi></msub><mo>-</mo><mi>Ï</mi></mrow></mrow><annotation encoding="application/x-tex">b=u_{\rm rest}-\vartheta</annotation></semantics></math> is a constant offset term
+which we want to optimize.</p>
+</div>
+<div id="SS1.p12" class="ltx_para">
+<p class="ltx_p">We
+then
+calculate the log-likelihood</p>
+<table id="Ch10.E26" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E26.m1" class="ltx_Math" alttext="\log p(D|X,\mbox{\boldmath\(k\)})=\sum_{t}\left(n_{t}\log f(X_{t}\cdot\mbox{%
+\boldmath\(k\)})-f(X_{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right)" display="block"><semantics><mrow><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder><mrow><mo>(</mo><msub><mi>n</mi><mi>t</mi></msub><mi>log</mi><mi>f</mi><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>-</mo><mi>f</mi><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\log p(D|X,\mbox{\boldmath\(k\)})=\sum_{t}\left(n_{t}\log f(X_{t}\cdot\mbox{%
+\boldmath\(k\)})-f(X_{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.26)</span></td>
+</tr>
+</table>
+<p class="ltx_p">and
+compute the ML or maximum <em class="ltx_emph">a posteriori</em> (MAP) solution for the
+model parameters <span class="ltx_text ltx_markedasmath"><math id="SS1.p12.m1.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>
+by a concave
+optimization algorithm. Note that, while we still assume that the
+conditional spike count <math id="SS1.p12.m2" class="ltx_Math" alttext="n_{t}" display="inline"><semantics><msub><mi>n</mi><mi>t</mi></msub><annotation encoding="application/x-tex">n_{t}</annotation></semantics></math> within a given short time bin is drawn from a
+one-dimensional <math id="SS1.p12.m3" class="ltx_Math" alttext="Poiss(\rho(t){\text{d}}t)" display="inline"><semantics><mrow><mi>P</mi><mo>â¢</mo><mi>o</mi><mo>â¢</mo><mi>i</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">Poiss(\rho(t){\text{d}}t)</annotation></semantics></math> distribution given <math id="SS1.p12.m4" class="ltx_Math" alttext="\rho(t)" display="inline"><semantics><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t)</annotation></semantics></math>, the resulting
+model displays strong history effects (since <math id="SS1.p12.m5" class="ltx_Math" alttext="\rho(t)" display="inline"><semantics><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(t)</annotation></semantics></math> depends on the past spike trains) and therefore the output of the
+model, considered as a vector of counts <math id="SS1.p12.m6" class="ltx_Math" alttext="D=\{n_{t}\}" display="inline"><semantics><mrow><mi>D</mi><mo>=</mo><mrow><mo>{</mo><msub><mi>n</mi><mi>t</mi></msub><mo>}</mo></mrow></mrow><annotation encoding="application/x-tex">D=\{n_{t}\}</annotation></semantics></math>, is no longer a
+Poisson process, unless <math id="SS1.p12.m7" class="ltx_Math" alttext="\mbox{\boldmath\(\eta\)}=0" display="inline"><semantics><mrow><mi>ð¼</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(\eta\)}=0</annotation></semantics></math>.
+Importantly, because of the refractory effects
+incorporated by a strong negative <math id="SS1.p12.m8" class="ltx_Math" alttext="\eta" display="inline"><semantics><mi>Î·</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math> at small times,
+the spike count variable <math id="SS1.p12.m9" class="ltx_Math" alttext="n_{t}" display="inline"><semantics><msub><mi>n</mi><mi>t</mi></msub><annotation encoding="application/x-tex">n_{t}</annotation></semantics></math> cannot take a value
+larger than <math id="SS1.p12.m10" class="ltx_Math" alttext="1" display="inline"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math> if <math id="SS1.p12.m11" class="ltx_Math" alttext="{\text{d}}t" display="inline"><semantics><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">{\text{d}}t</annotation></semantics></math> is in the range of one or a few milliseconds.
+Therefore, we can expect that interspike intervals are
+correctly reproduced in the model;
+see Fig.Â <a href="#Ch10.F5" title="Fig.Â 10.5 â£ 10.2.4 Extensions (*) â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.5</span></a> for an
+example application.</p>
+</div>
+<div id="SS1.p13" class="ltx_para">
+<p class="ltx_p">Finally, we may expand the definition of <math id="SS1.p13.m1" class="ltx_Math" alttext="X" display="inline"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math> to include observations
+of other spike trains, and therefore develop GLMs not just of
+single spike trains, but network models of how populations of neurons
+encode information jointly <cite class="ltx_cite">(<a href="bib.html#bib219" title="Maximum likelihood identification of neural point process systems" class="ltx_ref">95</a>; <a href="bib.html#bib220" title="Superlinear population encoding of dynamic hand trajectory in primary motor cortex" class="ltx_ref">379</a>; <a href="bib.html#bib202" title="A point process framework for relating neural spiking activity to spiking history, neural ensemble, and extrinsic covariate effects" class="ltx_ref">521</a>; <a href="bib.html#bib19" title="Spatio-temporal correlations and visual signalling in a complete neuronal population" class="ltx_ref">399</a>)</cite>.
+The resulting model is summarized as follows:
+Spike counts are conditionally Poisson distributed given <math id="SS1.p13.m2" class="ltx_Math" alttext="\rho_{i}(t)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho_{i}(t)</annotation></semantics></math>
+<math id="SS1.p13.m3" class="ltx_Math" alttext="n_{i,t}\sim Poiss(\rho_{i}(t){\text{d}}t)" display="inline"><semantics><mrow><msub><mi>n</mi><mrow><mi>i</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>â¼</mo><mrow><mi>P</mi><mo>â¢</mo><mi>o</mi><mo>â¢</mo><mi>i</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mi>s</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">n_{i,t}\sim Poiss(\rho_{i}(t){\text{d}}t)</annotation></semantics></math>
+with a firing rate</p>
+<table id="Ch10.E27" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E27.m1" class="ltx_Math" alttext="\rho_{i}(t)=f\bigg(\mbox{\boldmath\(k\)}_{i}\cdot\mbox{\boldmath\(x\)}_{t}+%
+\sum_{i^{\prime}\neq i,j}\epsilon_{i^{\prime},j}n_{i^{\prime},t-j}\bigg)\,." display="block"><semantics><mrow><mrow><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mrow><msub><mi>ð</mi><mi>i</mi></msub><mo>â</mo><msub><mi>ð</mi><mi>t</mi></msub></mrow><mo>+</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mrow><msup><mi>i</mi><mo>â²</mo></msup><mo>â </mo><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></mrow></munder><mrow><msub><mi>Ïµ</mi><mrow><msup><mi>i</mi><mo>â²</mo></msup><mo>,</mo><mi>j</mi></mrow></msub><mo>â¢</mo><msub><mi>n</mi><mrow><msup><mi>i</mi><mo>â²</mo></msup><mo>,</mo><mrow><mi>t</mi><mo>-</mo><mi>j</mi></mrow></mrow></msub></mrow></mrow></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\rho_{i}(t)=f\bigg(\mbox{\boldmath\(k\)}_{i}\cdot\mbox{\boldmath\(x\)}_{t}+%
+\sum_{i^{\prime}\neq i,j}\epsilon_{i^{\prime},j}n_{i^{\prime},t-j}\bigg)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.27)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Here, <math id="SS1.p13.m4" class="ltx_Math" alttext="\rho_{i}(t)" display="inline"><semantics><mrow><msub><mi>Ï</mi><mi>i</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho_{i}(t)</annotation></semantics></math> denotes the instantaneous firing rate
+of the <math id="SS1.p13.m5" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>-th cell at time <math id="SS1.p13.m6" class="ltx_Math" alttext="t" display="inline"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> and
+<math id="SS1.p13.m7" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}_{i}" display="inline"><semantics><msub><mi>ð</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}_{i}</annotation></semantics></math> is the cellâs linear receptive
+field including spike-history effects;
+cf. Eq. (<a href="#Ch10.E25" title="(10.25) â£ 10.2.1 Parameter estimation â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.25</span></a>).
+The net effect of a spike of neuron
+<math id="SS1.p13.m8" class="ltx_Math" alttext="i^{\prime}" display="inline"><semantics><msup><mi>i</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">i^{\prime}</annotation></semantics></math> onto the membrane potential of neuron <math id="SS1.p13.m9" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+is summarized by <math id="SS1.p13.m10" class="ltx_Math" alttext="\epsilon_{i^{\prime},j}" display="inline"><semantics><msub><mi>Ïµ</mi><mrow><msup><mi>i</mi><mo>â²</mo></msup><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\epsilon_{i^{\prime},j}</annotation></semantics></math>;
+these terms are summed over all past spike activity
+<math id="SS1.p13.m11" class="ltx_Math" alttext="n_{i^{\prime},t-j}" display="inline"><semantics><msub><mi>n</mi><mrow><msup><mi>i</mi><mo>â²</mo></msup><mo>,</mo><mrow><mi>t</mi><mo>-</mo><mi>j</mi></mrow></mrow></msub><annotation encoding="application/x-tex">n_{i^{\prime},t-j}</annotation></semantics></math> in the population of cells from which we are recording
+simultaneously.
+In the special case that we record from all neurons in the population,
+<math id="SS1.p13.m12" class="ltx_Math" alttext="\epsilon_{i^{\prime},j}" display="inline"><semantics><msub><mi>Ïµ</mi><mrow><msup><mi>i</mi><mo>â²</mo></msup><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\epsilon_{i^{\prime},j}</annotation></semantics></math> can be interpreted as
+the excitatory or inhibitory postsynaptic potential
+caused by a spike of neuron <math id="SS1.p13.m13" class="ltx_Math" alttext="i^{\prime}" display="inline"><semantics><msup><mi>i</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">i^{\prime}</annotation></semantics></math> a time <math id="SS1.p13.m14" class="ltx_Math" alttext="j\,{\text{d}}t" display="inline"><semantics><mrow><mpadded width="+1.7pt"><mi>j</mi></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">j\,{\text{d}}t</annotation></semantics></math> earlier.</p>
+</div>
+<div id="SS1.p14" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Linear regression and voltage estimation</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">It may be helpful
+to draw an analogy to linear regression here.
+We want to show that the standard procedure
+of least-square minimization can be linked
+to statistical parameter estimation
+under the assumption of Gaussian noise.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We consider the linear voltage model of Eq. (<a href="Ch10.S1.html#Ch10.E1" title="(10.1) â£ 10.1.1 Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.1</span></a>).
+We are interested in the temporal filter properties
+of the neuron when it is driven by a time-dependent input
+<math id="SS1.p14.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>.
+Let us set <math id="SS1.p14.m2" class="ltx_Math" alttext="\mbox{\boldmath\(x\)}_{t}=(I_{t},I_{t-1},\dots,I_{t-K})\,{\text{d}}t" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">ð</mi><mi mathsize="normal" stretchy="false">t</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msub><mi mathsize="normal" stretchy="false">I</mi><mi mathsize="normal" stretchy="false">t</mi></msub><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msub><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â¦</mi><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">K</mi></mrow></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(x\)}_{t}=(I_{t},I_{t-1},\dots,I_{t-K})\,{\text{d}}t</annotation></semantics></math>
+and <math id="SS1.p14.m3" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}=(\kappa({\text{d}}t),\dots,\kappa(K\,{\text{d}}t))" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">ð</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â¦</mi><mo mathsize="small" stretchy="false">,</mo><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">K</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}=(\kappa({\text{d}}t),\dots,\kappa(K\,{\text{d}}t))</annotation></semantics></math>.
+If we assume that the discrete-time voltage
+measurements have a Gaussian distribution around the mean
+predicted by the model of Eq. (<a href="Ch10.S1.html#Ch10.E4" title="(10.4) â£ 10.1.1 Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.4</span></a>),
+then we need to
+maximize the likelihood</span>
+              </p>
+<table id="Ch10.E28" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E28.m1" class="ltx_Math" alttext="\log p(D|X,\mbox{\boldmath\(k\)})=c_{1}-c_{2}\sum_{t}\left(u_{t}-(\mbox{%
+\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t})\right)^{2},\vspace{-4mm}" display="block"><semantics><mrow><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><msub><mi>c</mi><mn>1</mn></msub><mo>-</mo><msub><mi>c</mi><mn>2</mn></msub><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder><msup><mrow><mo>(</mo><msub><mi>u</mi><mi>t</mi></msub><mo>-</mo><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo>â</mo><msub><mi>ð</mi><mi>t</mi></msub><mo stretchy="false">)</mo></mrow><mo>)</mo></mrow><mn>2</mn></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">\log p(D|X,\mbox{\boldmath\(k\)})=c_{1}-c_{2}\sum_{t}\left(u_{t}-(\mbox{%
+\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t})\right)^{2},\vspace{-4mm}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.28)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS1.p14.m4" class="ltx_Math" alttext="X=(x_{1},x_{2},...,x_{T})" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">X</mi><mo mathsize="normal" stretchy="false">=</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msub><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">x</mi><mn mathsize="normal" stretchy="false">2</mn></msub><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">â¦</mi><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">x</mi><mi mathsize="normal" stretchy="false">T</mi></msub></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">X=(x_{1},x_{2},...,x_{T})</annotation></semantics></math> is the matrix of observed stimuli,
+<math id="SS1.p14.m5" class="ltx_Math" alttext="c_{1},c_{2}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">c</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">c</mi><mn mathsize="normal" stretchy="false">2</mn></msub></mrow><annotation encoding="application/x-tex">c_{1},c_{2}</annotation></semantics></math> are constants that do not depend on the parameter
+<span class="ltx_text ltx_markedasmath"><math id="SS1.p14.m6.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi mathsize="normal" stretchy="false">ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>,
+and the sum in <math id="SS1.p14.m7" class="ltx_Math" alttext="t" display="inline"><semantics><mi mathsize="normal" stretchy="false">t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is over all
+observed time bins.
+Maximization yields
+<math id="SS1.p14.m8" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}_{opt}=(X^{T}X)^{-1}\left(\sum_{t}u_{t}\mbox{\boldmath\(x%
+\)}_{t}/{\text{d}}t\right)\," display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">ð</mi><mrow><mi mathsize="normal" stretchy="false">o</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">p</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><msup><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msup><mi mathsize="normal" stretchy="false">X</mi><mi mathsize="normal" stretchy="false">T</mi></msup><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">X</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mrow><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msub><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â</mo><mi mathsize="normal" stretchy="false">t</mi></msub><mrow><mrow><mrow><msub><mi mathsize="normal" stretchy="false">u</mi><mi mathsize="normal" stretchy="false">t</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">ð</mi><mi mathsize="normal" stretchy="false">t</mi></msub></mrow><mo mathsize="normal" stretchy="false">/</mo><mtext mathsize="small" stretchy="false">d</mtext></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mpadded></mrow></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}_{opt}=(X^{T}X)^{-1}\left(\sum_{t}u_{t}\mbox{\boldmath\(x%
+\)}_{t}/{\text{d}}t\right)\,</annotation></semantics></math>
+which determines the time course
+of the filter <math id="SS1.p14.m9" class="ltx_Math" alttext="\kappa(s)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa(s)</annotation></semantics></math>
+that characterizes the passive membrane properties.
+The result is identical to
+Eq. (<a href="Ch10.S1.html#Ch10.E8" title="(10.8) â£ 10.1.1 Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.8</span></a>):</span>
+              </p>
+<table id="Ch10.E29" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E29.m1" class="ltx_Math" alttext="\hat{\mbox{\boldmath\(k\)}}_{opt}=\hat{\mbox{\boldmath\(k\)}}_{\rm LS}\,." display="block"><semantics><mrow><mrow><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mrow><mi>o</mi><mo>â¢</mo><mi>p</mi><mo>â¢</mo><mi>t</mi></mrow></msub><mo>=</mo><mpadded width="+1.7pt"><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mi>LS</mi></msub></mpadded></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{\mbox{\boldmath\(k\)}}_{opt}=\hat{\mbox{\boldmath\(k\)}}_{\rm LS}\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.29)</span></td>
+</tr>
+</table>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">10.2.2 </span>Regularization: maximum penalized likelihood</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">In the linear regression case it is well-known that estimates of the
+components of the parameter vector <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m1.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>
+can be quite noisy when the dimension of
+<span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m2.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> is large.
+The noisiness
+of the estimate <math id="SS2.p1.m3" class="ltx_Math" alttext="\hat{\mbox{\boldmath\(k\)}}_{ML}" display="inline"><semantics><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mrow><mi>M</mi><mo>â¢</mo><mi>L</mi></mrow></msub><annotation encoding="application/x-tex">\hat{\mbox{\boldmath\(k\)}}_{ML}</annotation></semantics></math> is roughly proportional to the
+dimensionality of <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m4.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> (the number of parameters in <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m5.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> that we
+need to estimate from data) divided by the total number of observed
+samples <cite class="ltx_cite">(<a href="bib.html#bib221" title="Convergence properties of three spike-triggered analysis techniques" class="ltx_ref">382</a>)</cite>. The same âoverfittingâ phenomenon (estimator
+variability increasing with number of parameters) occurs in the GLM
+context. A variety of methods have been introduced to âregularizeâ
+the estimated <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m6.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>, to incorporate prior knowledge about the shape
+and/or magnitude of the true <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m7.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> to reduce the noise in <math id="SS2.p1.m8" class="ltx_Math" alttext="\hat{\mbox{\boldmath\(k\)}}_{ML}" display="inline"><semantics><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mrow><mi>M</mi><mo>â¢</mo><mi>L</mi></mrow></msub><annotation encoding="application/x-tex">\hat{\mbox{\boldmath\(k\)}}_{ML}</annotation></semantics></math>.
+One basic idea is to restrict <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m9.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> to lie within a lower-dimensional
+subspace; we then employ the same fitting procedure to estimate the
+coefficients of <span class="ltx_text ltx_markedasmath"><math id="SS2.p1.m10.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> within this lower-dimensional basis (model
+selection procedures may be employed to choose the dimensionality of
+this subspace <cite class="ltx_cite">(<a href="bib.html#bib202" title="A point process framework for relating neural spiking activity to spiking history, neural ensemble, and extrinsic covariate effects" class="ltx_ref">521</a>)</cite>).</p>
+</div>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">A slightly less restrictive approach is to maximize the posterior</p>
+<table id="Ch10.E30" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E30.m1" class="ltx_Math" alttext="p(\mbox{\boldmath\(k\)}|X,D)\propto p(D|X,\mbox{\boldmath\(k\)})p(\mbox{%
+\boldmath\(k\)})" display="block"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><mo>â</mo><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(\mbox{\boldmath\(k\)}|X,D)\propto p(D|X,\mbox{\boldmath\(k\)})p(\mbox{%
+\boldmath\(k\)})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.30)</span></td>
+</tr>
+</table>
+<p class="ltx_p">(with <span class="ltx_text ltx_markedasmath"><math id="SS2.p2.m1.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> allowed to take
+values in the full original basis), instead of the likelihood
+<math id="SS2.p2.m2" class="ltx_Math" alttext="p(D|X,\mbox{\boldmath\(k\)})" display="inline"><semantics><mrow><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(D|X,\mbox{\boldmath\(k\)})</annotation></semantics></math>; here <math id="SS2.p2.m3" class="ltx_Math" alttext="p(\mbox{\boldmath\(k\)})" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(\mbox{\boldmath\(k\)})</annotation></semantics></math> encodes our <em class="ltx_emph">a priori</em> beliefs about
+the true underlying <span class="ltx_text ltx_markedasmath"><math id="SS2.p2.m4.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">It is easy to incorporate this maxima <em class="ltx_emph">a
+posteriori</em> idea in the GLM context <cite class="ltx_cite">(<a href="bib.html#bib218" title="Maximum likelihood estimation of cascade point-process neural encoding models" class="ltx_ref">383</a>)</cite>: we
+simply maximize</p>
+<table id="Ch20.S4.EGx59" class="ltx_equationgroup ltx_eqn_eqnarray">
+
+<tr id="Ch10.E31" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right">
+                        <math id="Ch10.E31.m1" class="ltx_Math" alttext="\displaystyle\log p(\mbox{\boldmath\(k\)}|X,D)" display="inline"><semantics><mrow><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle\log p(\mbox{\boldmath\(k\)}|X,D)</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch10.E31.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch10.E31.m3" class="ltx_Math" alttext="\displaystyle c+\log p(\mbox{\boldmath\(k\)})+\log p(D|X,\mbox{\boldmath\(k\)})" display="inline"><semantics><mrow><mi>c</mi><mo>+</mo><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>+</mo><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle c+\log p(\mbox{\boldmath\(k\)})+\log p(D|X,\mbox{\boldmath\(k\)})</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.31)</span></td>
+</tr>
+<tr id="Ch10.E32" class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right"></td>
+<td class="ltx_td ltx_align_center">
+                        <math id="Ch10.E32.m2" class="ltx_Math" alttext="\displaystyle=" display="inline"><semantics><mo>=</mo><annotation encoding="application/x-tex">\displaystyle=</annotation></semantics></math>
+                      </td>
+<td class="ltx_td ltx_align_left">
+                        <math id="Ch10.E32.m3" class="ltx_Math" alttext="\displaystyle c+\log p(\mbox{\boldmath\(k\)})+\sum_{t}\left(n_{t}\log f(\mbox{%
+\boldmath\(x\)}_{t}\cdot\mbox{\boldmath\(k\)})-f(\mbox{\boldmath\(x\)}_{t}%
+\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right)." display="inline"><semantics><mrow><mrow><mi>c</mi><mo>+</mo><mrow><mrow><mi>log</mi><mo>â¡</mo><mi>p</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><mstyle displaystyle="true"><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder></mstyle><mrow><mo>(</mo><mrow><mrow><msub><mi>n</mi><mi>t</mi></msub><mo>â¢</mo><mrow><mi>log</mi><mo>â¡</mo><mi>f</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>ð</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi></mrow><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><msub><mi>ð</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\displaystyle c+\log p(\mbox{\boldmath\(k\)})+\sum_{t}\left(n_{t}\log f(\mbox{%
+\boldmath\(x\)}_{t}\cdot\mbox{\boldmath\(k\)})-f(\mbox{\boldmath\(x\)}_{t}%
+\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right).</annotation></semantics></math>
+                      </td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.32)</span></td>
+</tr>
+</table>
+<p class="ltx_p">Whenever <math id="SS2.p3.m1" class="ltx_Math" alttext="\log p(\mbox{\boldmath\(k\)})" display="inline"><semantics><mrow><mrow><mi>log</mi><mo>â¡</mo><mi>p</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\log p(\mbox{\boldmath\(k\)})</annotation></semantics></math> is a concave function of <span class="ltx_text ltx_markedasmath"><math id="SS2.p3.m2.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>,
+this âpenalizedâ likelihood
+(where <math id="SS2.p3.m3" class="ltx_Math" alttext="\log p(\mbox{\boldmath\(k\)})" display="inline"><semantics><mrow><mrow><mi>log</mi><mo>â¡</mo><mi>p</mi></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\log p(\mbox{\boldmath\(k\)})</annotation></semantics></math> acts to penalize improbable values of <span class="ltx_text ltx_markedasmath"><math id="SS2.p3.m4.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>) is a
+concave function of <span class="ltx_text ltx_markedasmath"><math id="SS2.p3.m5.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span>, and ascent-based maximization may proceed
+(with no local maximum) as before;
+cf. Fig. <a href="#Ch10.F4" title="Fig.Â 10.4 â£ 10.2.2 Regularization: maximum penalized likelihood â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.4</span></a>.</p>
+</div>
+<figure id="Ch10.F4" class="ltx_figure"><img src="x256.png" id="Ch10.F4.g1" class="ltx_graphics ltx_centering" width="442" height="268" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 10.4: </span>Regularization.
+Because of the concavity, there is only a single
+global maximum of the log-likelihood which
+defines the optimal parameter choice <math id="Ch10.F4.m3" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}_{\rm ML}" display="inline"><semantics><msub><mi>ð</mi><mi>ML</mi></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}_{\rm ML}</annotation></semantics></math>.
+Right: Example of regularization by a prior (dashed line) that favors
+a smaller value for <math id="Ch10.F4.m4" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}_{\rm MAP}" display="inline"><semantics><msub><mi>ð</mi><mi>MAP</mi></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}_{\rm MAP}</annotation></semantics></math>.</figcaption>
+</figure>
+<div id="SS2.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Linear regression and Gaussian prior</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In the linear regression case, the
+computationally-simplest prior is a zero-mean Gaussian, <math id="SS2.p4.m1" class="ltx_Math" alttext="\log p(\mbox{\boldmath\(k\)})=c-\mbox{\boldmath\(k\)}^{T}A\mbox{\boldmath\(k\)%
+}/2" display="inline"><semantics><mrow><mrow><mrow><mi mathsize="normal" stretchy="false">log</mi><mo mathsize="small" stretchy="false">â¡</mo><mi mathsize="normal" stretchy="false">p</mi></mrow><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">ð</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">c</mi><mo mathsize="normal" stretchy="false">-</mo><mrow><mrow><msup><mi mathsize="normal" stretchy="false">ð</mi><mi mathsize="normal" stretchy="false">T</mi></msup><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">ð</mi></mrow><mo mathsize="normal" stretchy="false">/</mo><mn mathsize="normal" stretchy="false">2</mn></mrow></mrow></mrow><annotation encoding="application/x-tex">\log p(\mbox{\boldmath\(k\)})=c-\mbox{\boldmath\(k\)}^{T}A\mbox{\boldmath\(k\)%
+}/2</annotation></semantics></math>, where <math id="SS2.p4.m2" class="ltx_Math" alttext="A" display="inline"><semantics><mi mathsize="normal" stretchy="false">A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math> is a positive definite matrix (the
+inverse covariance matrix).
+The Gaussian prior can be combined with
+the Gaussian noise model of Eq. (<a href="#Ch10.E28" title="(10.28) â£ 10.2.1 Parameter estimation â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.28</span></a>).
+Maximizing the corresponding posterior
+analytically
+<cite class="ltx_cite">(<a href="bib.html#bib222" title="Evidence optimization techniques for estimating stimulus-response functions" class="ltx_ref">452</a>; <a href="bib.html#bib223" title="The receptive-field organization of simple cells in primary visual cortex of ferrets under natural scene stimulation" class="ltx_ref">485</a>)</cite>
+leads then directly to the regularized least-square estimator</span>
+              </p>
+<table id="Ch10.E33" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E33.m1" class="ltx_Math" alttext="\hat{\mbox{\boldmath\(k\)}}_{\rm RLS}=(X^{T}X+A)^{-1}\left(\sum_{t}u_{t}\mbox{%
+\boldmath\(x\)}_{t}/{\text{d}}t\right)\,." display="block"><semantics><mrow><mrow><msub><mover accent="true"><mi>ð</mi><mo stretchy="false">^</mo></mover><mi>RLS</mi></msub><mo>=</mo><mrow><msup><mrow><mo>(</mo><mrow><mrow><msup><mi>X</mi><mi>T</mi></msup><mo>â¢</mo><mi>X</mi></mrow><mo>+</mo><mi>A</mi></mrow><mo>)</mo></mrow><mrow><mo>-</mo><mn>1</mn></mrow></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder><mrow><mrow><mrow><msub><mi>u</mi><mi>t</mi></msub><mo>â¢</mo><msub><mi>ð</mi><mi>t</mi></msub></mrow><mo>/</mo><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                              Â </mtext></mrow></mrow><mo>â¢</mo><mi>t</mi></mrow></mrow><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\hat{\mbox{\boldmath\(k\)}}_{\rm RLS}=(X^{T}X+A)^{-1}\left(\sum_{t}u_{t}\mbox{%
+\boldmath\(x\)}_{t}/{\text{d}}t\right)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.33)</span></td>
+</tr>
+</table>
+</span>
+</div>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">10.2.3 </span>Fitting Generalized Integrate-and-Fire models to Data</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">Suppose an experimentalist
+has injected a time-dependent current <math id="SS3.p1.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>
+into a neuron and has recorded with a second
+electrode the voltage <math id="SS3.p1.m2" class="ltx_Math" alttext="u^{\rm exp}(t)" display="inline"><semantics><mrow><msup><mi>u</mi><mi>exp</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u^{\rm exp}(t)</annotation></semantics></math> of the same
+neuron.
+The voltage trajectory contains
+spikes <math id="SS3.p1.m3" class="ltx_Math" alttext="S(t)=\sum_{f}\delta(t-t^{(f)})" display="inline"><semantics><mrow><mrow><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mo largeop="true" symmetric="true">â</mo><mi>f</mi></msub><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>f</mi><mo>)</mo></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">S(t)=\sum_{f}\delta(t-t^{(f)})</annotation></semantics></math>
+with firing times <math id="SS3.p1.m4" class="ltx_Math" alttext="t^{(1)},t^{(2)},...t^{(N)}" display="inline"><semantics><mrow><msup><mi>t</mi><mrow><mo>(</mo><mn>1</mn><mo>)</mo></mrow></msup><mo>,</mo><msup><mi>t</mi><mrow><mo>(</mo><mn>2</mn><mo>)</mo></mrow></msup><mo>,</mo><mrow><mi mathvariant="normal">â¦</mi><mo>â¢</mo><msup><mi>t</mi><mrow><mo>(</mo><mi>N</mi><mo>)</mo></mrow></msup></mrow></mrow><annotation encoding="application/x-tex">t^{(1)},t^{(2)},...t^{(N)}</annotation></semantics></math>.
+The natural approach would be to write down the joint likelihood of observing both the spike times and the subthreshold membrane potential <cite class="ltx_cite">(<a href="bib.html#bib224" title="Comparing integrate-and-fire-like models estimated using intracellular and extracellular data." class="ltx_ref">381</a>)</cite>. A simpler approach would be to maximize the likelihood of observing the spike separately from the likelihood of observing the membrane potential.</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">Given the input <math id="SS3.p2.m1" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math>
+and the spike train <math id="SS3.p2.m2" class="ltx_Math" alttext="S(t)" display="inline"><semantics><mrow><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S(t)</annotation></semantics></math>,
+the voltage of a SRM
+is given by
+Eq.
+(<a href="Ch10.S1.html#Ch10.E9" title="(10.9) â£ 10.1.2 Generalized Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.9</span></a>)
+and we can adjust the parameters of
+the filter <math id="SS3.p2.m3" class="ltx_Math" alttext="\kappa" display="inline"><semantics><mi>Îº</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math> and <math id="SS3.p2.m4" class="ltx_Math" alttext="\eta" display="inline"><semantics><mi>Î·</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+so as to minimize the squared error
+Eq. (<a href="Ch10.S1.html#Ch10.E5" title="(10.5) â£ 10.1.1 Linear Models â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.5</span></a>).
+We now fix the parameters for the membrane potential and maximize the likelihood of observing the spike times given our model voltage trajectory <math id="SS3.p2.m5" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math>.
+We insert <math id="SS3.p2.m6" class="ltx_Math" alttext="u(t)" display="inline"><semantics><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math>
+into the escape rate function
+<math id="SS3.p2.m7" class="ltx_Math" alttext="\rho(t)=f(u(t)-\vartheta(t))" display="inline"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho(t)=f(u(t)-\vartheta(t))</annotation></semantics></math>
+which contains
+the parameters of the threshold</p>
+<table id="Ch10.E34" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E34.m1" class="ltx_Math" alttext="\vartheta(t)=\vartheta_{0}+\int_{0}^{\infty}\theta_{1}(s)S(t-s){\text{d}}s\,." display="block"><semantics><mrow><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>Ï</mi><mn>0</mn></msub><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><msub><mi>Î¸</mi><mn>1</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow><mo>â¢</mo><mi>S</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\vartheta(t)=\vartheta_{0}+\int_{0}^{\infty}\theta_{1}(s)S(t-s){\text{d}}s\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.34)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We then
+calculate the log-likelihood</p>
+<table id="Ch10.E35" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E35.m1" class="ltx_Math" alttext="\log p(D|X,\mbox{\boldmath\(k\)})=c+\sum_{t}\left(n_{t}\log f(X_{t}\cdot\mbox{%
+\boldmath\(k\)})-f(X_{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right)" display="block"><semantics><mrow><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>=</mo><mi>c</mi><mo>+</mo><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>t</mi></munder><mrow><mo>(</mo><msub><mi>n</mi><mi>t</mi></msub><mi>log</mi><mi>f</mi><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mo>-</mo><mi>f</mi><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>t</mi></msub><mo>â</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow><mtext>d</mtext><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\log p(D|X,\mbox{\boldmath\(k\)})=c+\sum_{t}\left(n_{t}\log f(X_{t}\cdot\mbox{%
+\boldmath\(k\)})-f(X_{t}\cdot\mbox{\boldmath\(k\)}){\text{d}}t\right)</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.35)</span></td>
+</tr>
+</table>
+<p class="ltx_p">and
+compute the ML or maximum <em class="ltx_emph">a posteriori</em> (MAP) solution for the
+model parameters <span class="ltx_text ltx_markedasmath"><math id="SS3.p2.m8.m1" class="ltx_Math" alttext="k" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">k</annotation></semantics></math></span> (which are the parameters of the threshold -
+the subthreshold voltage parameters are already fixed)
+by an
+optimization algorithm for concave functions.</p>
+</div>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">Fig.Â <a href="#Ch10.F5" title="Fig.Â 10.5 â£ 10.2.4 Extensions (*) â£ 10.2 Statistical Formulation of Encoding Models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.5</span></a> shows an
+example application.
+Both voltage in the subthreshold regime
+and spike times are nicely reproduced.
+Therefore, we can expect that interspike intervals are
+correctly reproduced as well.
+In order to quantify the performance of neuron models,
+we need the develop criteria of
+âgoodness of fitâ for
+subthreshold membrane potential,
+spike timings, and possibly higher-order spike train statistics.
+This is the topic of section <a href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.3</span></a>; we will return to similar applications in the next chapter.</p>
+</div>
+</section>
+<section id="SS4" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">10.2.4 </span>Extensions (*)</h1>
+
+<div id="SS4.p1" class="ltx_para">
+<p class="ltx_p">The GLM encoding framework described here can
+be extended in a number of important directions. We briefly describe
+two such directions here.</p>
+</div>
+<div id="SS4.p2" class="ltx_para">
+<p class="ltx_p">First, as we have described the GLM above,
+it may appear that the model is restricted to including only linear
+dependencies on the stimulus <math id="SS4.p2.m1" class="ltx_Math" alttext="\mbox{\boldmath\(x\)}_{t}" display="inline"><semantics><msub><mi>ð</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mbox{\boldmath\(x\)}_{t}</annotation></semantics></math>, through the <math id="SS4.p2.m2" class="ltx_Math" alttext="\mbox{\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t}" display="inline"><semantics><mrow><mi>ð</mi><mo>â</mo><msub><mi>ð</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\mbox{\boldmath\(k\)}\cdot\mbox{\boldmath\(x\)}_{t}</annotation></semantics></math>
+term. However, if we modify our input matrix <math id="SS4.p2.m3" class="ltx_Math" alttext="X" display="inline"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math> once again, to
+include nonlinear transformations <math id="SS4.p2.m4" class="ltx_Math" alttext="\mathcal{F}_{j}(\mbox{\boldmath\(x\)})" display="inline"><semantics><mrow><msub><mi class="ltx_font_mathcaligraphic">â±</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F}_{j}(\mbox{\boldmath\(x\)})</annotation></semantics></math> of the
+stimulus <span class="ltx_text ltx_markedasmath"><math id="SS4.p2.m5.m1" class="ltx_Math" alttext="x" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">x</annotation></semantics></math></span>, we may fit nonlinear models of the
+form</p>
+<table id="Ch10.E36" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch10.E36.m1" class="ltx_Math" alttext="\rho(t)=f(\sum_{j}a_{j}\mathcal{F}_{j}(\mbox{\boldmath\(x\)}))" display="block"><semantics><mrow><mrow><mi>Ï</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><munder><mo largeop="true" movablelimits="false" symmetric="true">â</mo><mi>j</mi></munder><mrow><msub><mi>a</mi><mi>j</mi></msub><mo>â¢</mo><msub><mi class="ltx_font_mathcaligraphic">â±</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\rho(t)=f(\sum_{j}a_{j}\mathcal{F}_{j}(\mbox{\boldmath\(x\)}))</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(10.36)</span></td>
+</tr>
+</table>
+<p class="ltx_p">efficiently by
+maximizing the loglikelihood <math id="SS4.p2.m6" class="ltx_Math" alttext="\log p(D|X,\mbox{\boldmath\(a\)})" display="inline"><semantics><mrow><mi>log</mi><mi>p</mi><mrow><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">|</mo><mi>X</mi><mo>,</mo><mi>ð</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\log p(D|X,\mbox{\boldmath\(a\)})</annotation></semantics></math> with respect to
+the weight parameter <span class="ltx_text ltx_markedasmath"><math id="SS4.p2.m7.m1" class="ltx_Math" alttext="a" display="inline"><semantics><mi>ð</mi><annotation encoding="application/x-tex">a</annotation></semantics></math></span> <cite class="ltx_cite">(<a href="bib.html#bib225" title="COMPLETE functional characterization of sensory neurons by system identification" class="ltx_ref">560</a>; <a href="bib.html#bib226" title="Inferring input nonlinearities in neural encoding models" class="ltx_ref">12</a>)</cite>. Mathematically, the
+nonlinearities <math id="SS4.p2.m8" class="ltx_Math" alttext="\mathcal{F}_{j}(\mbox{\boldmath\(x\)})" display="inline"><semantics><mrow><msub><mi class="ltx_font_mathcaligraphic">â±</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F}_{j}(\mbox{\boldmath\(x\)})</annotation></semantics></math> may take essentially arbitrary
+form; physiologically speaking, it is clearly wise to choose
+<math id="SS4.p2.m9" class="ltx_Math" alttext="\mathcal{F}_{j}(\mbox{\boldmath\(x\)})" display="inline"><semantics><mrow><msub><mi class="ltx_font_mathcaligraphic">â±</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F}_{j}(\mbox{\boldmath\(x\)})</annotation></semantics></math> to reflect known facts about the anatomy and
+physiology of the system (e.g., <math id="SS4.p2.m10" class="ltx_Math" alttext="\mathcal{F}_{j}(\mbox{\boldmath\(x\)})" display="inline"><semantics><mrow><msub><mi class="ltx_font_mathcaligraphic">â±</mi><mi>j</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>ð</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F}_{j}(\mbox{\boldmath\(x\)})</annotation></semantics></math> might model
+inputs from a presynaptic layer whose responses are
+better-characterized than are those of the neuron of interest
+<cite class="ltx_cite">(<a href="bib.html#bib227" title="How MT cells analyze the motion of visual patterns" class="ltx_ref">450</a>)</cite>).</p>
+</div>
+<div id="SS4.p3" class="ltx_para">
+<p class="ltx_p">Second, in many cases it is reasonable to include terms in <math id="SS4.p3.m1" class="ltx_Math" alttext="X" display="inline"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math> that we
+may not be able to observe or calculate directly (e.g., intracellular
+noise, or the dynamical state of the network); fitting the model
+parameters in this case requires that we properly account for these
+âlatent,â unobserved variables in our likelihood. While inference
+in the presence of these hidden parameters is beyond the scope of this
+chapter, it is worth noting that this type of model may be fit
+tractably using generalizations of the methods described here, at the
+cost of increased computational complexity, but the benefit of
+enhanced model flexibility and realism <cite class="ltx_cite">(<a href="bib.html#bib228" title="Estimating a state-space model from point process observations" class="ltx_ref">484</a>; <a href="bib.html#bib229" title="Gaussian-process factor analysis for low-dimensional single-trial analysis of neural population activity" class="ltx_ref">563</a>; <a href="bib.html#bib230" title="Modeling the impact of common noise inputs on the network activity of retinal ganglion cells" class="ltx_ref">536</a>)</cite>.</p>
+</div>
+<div id="SS4.p4" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Estimating spike triggered currents and dynamic threshold</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In Fig. <a href="Ch10.S1.html#Ch10.F1" title="Fig.Â 10.1 â£ 10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10.1</span></a>A,
+we have suggested to estimate the filter <math id="SS4.p4.m1" class="ltx_Math" alttext="\kappa(s)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa(s)</annotation></semantics></math>
+by extracting its values <math id="SS4.p4.m2" class="ltx_Math" alttext="k_{j}=\kappa(j{\text{d}}t)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">k</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">j</mi><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">k_{j}=\kappa(j{\text{d}}t)</annotation></semantics></math>
+at discrete equally spaced time steps:
+The integral <math id="SS4.p4.m3" class="ltx_Math" alttext="\int_{0}^{\infty}\kappa(s)\,I(t-s){\text{d}}s=\sum_{j=1}^{K}k_{l}I_{t-j}{\text%
+{d}}t" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msubsup><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">s</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">s</mi></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â</mo><mrow><mi mathsize="normal" stretchy="false">j</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><mi mathsize="normal" stretchy="false">K</mi></msubsup><mrow><msub><mi mathsize="normal" stretchy="false">k</mi><mi mathsize="normal" stretchy="false">l</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">I</mi><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">j</mi></mrow></msub><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">\int_{0}^{\infty}\kappa(s)\,I(t-s){\text{d}}s=\sum_{j=1}^{K}k_{l}I_{t-j}{\text%
+{d}}t</annotation></semantics></math> is linear in the <math id="SS4.p4.m4" class="ltx_Math" alttext="K" display="inline"><semantics><mi mathsize="normal" stretchy="false">K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> parameters.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">However, the observables remain <span class="ltx_text ltx_font_italic">linear in the parameters</span> (<math id="SS4.p4.m5" class="ltx_Math" alttext="k_{j}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">k</mi><mi mathsize="normal" stretchy="false">j</mi></msub><annotation encoding="application/x-tex">k_{j}</annotation></semantics></math>)
+if we set <math id="SS4.p4.m6" class="ltx_Math" alttext="\kappa(s)=\sum_{j=1}^{4}k_{j}\exp(-s/\tau_{j})" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â</mo><mrow><mi mathsize="normal" stretchy="false">j</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><mn mathsize="normal" stretchy="false">4</mn></msubsup><mrow><msub><mi mathsize="normal" stretchy="false">k</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mi mathsize="normal" stretchy="false">exp</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mrow><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">j</mi></msub></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\kappa(s)=\sum_{j=1}^{4}k_{j}\exp(-s/\tau_{j})</annotation></semantics></math>
+with fixed time constants, e.g., <math id="SS4.p4.m7" class="ltx_Math" alttext="\tau_{j}=10^{j}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="normal" stretchy="false">=</mo><msup><mn mathsize="normal" stretchy="false">10</mn><mi mathsize="normal" stretchy="false">j</mi></msup></mrow><annotation encoding="application/x-tex">\tau_{j}=10^{j}</annotation></semantics></math>ms.
+Again, the integral
+<math id="SS4.p4.m8" class="ltx_Math" alttext="\int_{0}^{\infty}\kappa(s)\,I(t-s){\text{d}}s=\sum_{j=1}^{4}k_{j}\int_{0}^{%
+\infty}\exp(-s/\tau_{j})I(t-s){\text{d}}s" display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msubsup><mrow><mi mathsize="normal" stretchy="false">Îº</mi><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">s</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">s</mi></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â</mo><mrow><mi mathsize="normal" stretchy="false">j</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">1</mn></mrow><mn mathsize="normal" stretchy="false">4</mn></msubsup><mrow><msub><mi mathsize="normal" stretchy="false">k</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msubsup><mrow><mrow><mi mathsize="normal" stretchy="false">exp</mi><mo mathsize="small" stretchy="false">â¡</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mo mathsize="normal" stretchy="false">-</mo><mrow><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">/</mo><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">j</mi></msub></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">I</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">s</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">s</mi></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\int_{0}^{\infty}\kappa(s)\,I(t-s){\text{d}}s=\sum_{j=1}^{4}k_{j}\int_{0}^{%
+\infty}\exp(-s/\tau_{j})I(t-s){\text{d}}s</annotation></semantics></math>
+is linear in the parameters.
+The exponentials play the role of âbasis functionsâ <math id="SS4.p4.m9" class="ltx_Math" alttext="F_{j}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">F</mi><mi mathsize="normal" stretchy="false">j</mi></msub><annotation encoding="application/x-tex">F_{j}</annotation></semantics></math>.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">Similarly, the threshold filter <math id="SS4.p4.m10" class="ltx_Math" alttext="\vartheta_{1}(s)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mn mathsize="normal" stretchy="false">1</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\vartheta_{1}(s)</annotation></semantics></math>
+or the spike-afterpotential <math id="SS4.p4.m11" class="ltx_Math" alttext="\eta(s)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">Î·</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\eta(s)</annotation></semantics></math>
+can be expressed with basis functions. A common
+choice is to take rectangular basis functions
+<math id="SS4.p4.m12" class="ltx_Math" alttext="F_{j}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">F</mi><mi mathsize="normal" stretchy="false">j</mi></msub><annotation encoding="application/x-tex">F_{j}</annotation></semantics></math> which take a value of unity on a finite interval
+<math id="SS4.p4.m13" class="ltx_Math" alttext="[t_{j},t_{j+1}]" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><msub><mi mathsize="normal" stretchy="false">t</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="small" stretchy="false">,</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mrow><mi mathsize="normal" stretchy="false">j</mi><mo mathsize="normal" stretchy="false">+</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msub></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[t_{j},t_{j+1}]</annotation></semantics></math>. Exponential spacing
+<math id="SS4.p4.m14" class="ltx_Math" alttext="t_{j}=2^{j-1}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">t</mi><mi mathsize="normal" stretchy="false">j</mi></msub><mo mathsize="normal" stretchy="false">=</mo><msup><mn mathsize="normal" stretchy="false">2</mn><mrow><mi mathsize="normal" stretchy="false">j</mi><mo mathsize="normal" stretchy="false">-</mo><mn mathsize="normal" stretchy="false">1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">t_{j}=2^{j-1}</annotation></semantics></math>ms of time points allows us
+to cover a large time span with a small number of parameters.
+Regular spacing leads back to the naive discretization scheme.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch10.F5" class="ltx_figure"><img src="x257.png" id="Ch10.F5.g1" class="ltx_graphics ltx_centering" width="590" height="394" alt="">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 10.5: </span> Comparing models with intracellular recordings.<span class="ltx_text ltx_font_bold">A</span>. A noisy time-dependent current is used to stimulate the neurons experimentally (dashed line corresponds to zero current). <span class="ltx_text ltx_font_bold">B</span>. Recording from the neuron (thin black line) shows membrane potential fluctuations and action potentials. Simulating a SRM (thick black line)
+with the same current and using parameters previously optimized on a different data set
+shows similar membrane potential fluctuations (inset) and action potentials. Some of the spikes are missed, some are added, but most coincide with the recorded ones. <span class="ltx_text ltx_font_bold">C</span>. Multiple repeated stimulations with the same current shows the intrinsic variability of neural responses (first 9 rows are recorded action potentials indicated by a thick black ticks). The variability is matched by the model (last 9 rows are model action potentials). Data and models from <cite class="ltx_cite">Mensi<span class="ltx_text ltx_bib_etal"> et al.</span> (<a href="bib.html#bib100" title="Parameter extraction and classification of three neuron types reveals two different adaptation mechanisms" class="ltx_ref">338</a>)</cite>.
+</figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch10.S1.html" title="10.1 Parameter optimization in linear and nonlinear models â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.1 </span>Parameter optimization in linear and nonlinear models</span></a><a href="Ch10.S3.html" title="10.3 Evaluating Goodness-of-fit â£ ChapterÂ 10 Estimating Parameters of Probabilistic  Neuron Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">10.3 </span>Evaluating Goodness-of-fit</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>

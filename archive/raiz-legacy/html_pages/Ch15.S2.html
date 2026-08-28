@@ -1,0 +1,1115 @@
+<!DOCTYPE html><html>
+<head>
+<title>15.2 Fast transients vs. slow transients in models | Neuronal Dynamics online book</title>
+<!--Generated on Mon Sep  8 19:44:32 2014 by LaTeXML (version v0.8.0) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on .-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+<link rel="up" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="up up up" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="start" href="." title="Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="prev" href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="next" href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="section" href="Ch15.S4.html" title="15.4 Summary â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch12.html" title="ChapterÂ 12 Neuronal Populations â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="chapter" href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt1.html" title="PartÂ I Foundations of Neuronal Dynamics â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt2.html" title="PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt3.html" title="PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="part" href="Pt4.html" title="PartÂ IV Dynamics of Cognition â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="bibliography" href="bib.html" title="Bibliography â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<link rel="index" href="idx.html" title="Index â£ Neuronal Dynamics â From Single Neurons to Networks and Models of Cognition">
+<meta name="keywords" lang="en-us" content="diffusive noise, escape noise, frequency dependent, gain, noise, slow">
+<meta name="description" content="Freely available online version of the computational neuroscience book &quot;Neuronal Dynamics&quot; written by Wulfram Gerstner, Werner M. Kistler, Richard Naud and Liam Paninski. Visit us for teaching materials, online lectures and more.">
+<meta name="robots" content="index,follow">
+<meta name="copyright" content="Copyright Â© Cambridge University Press 2014">
+<meta name="author" content="Wulfram Gerstner">
+<meta name="language" content="english">
+<meta name="revisit-after" content="10">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../css/bootstrap.css" media="screen">
+<link rel="stylesheet" href="../css/bootswatch.min.css">
+<link rel="stylesheet" href="../css/stickyfooter.css">
+<link rel="stylesheet" href="../css/LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="../css/ltx-book.css" type="text/css">
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script><script src="../js/bootstrap.min.js"></script><script src="../js/bootswatch.js"></script><link rel="icon" type="image/png" href="../img/icon.png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-393083-13', 'auto');  
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script></head>
+<body>
+<div class="container">
+<div class="ltx_page_main">
+<header class="ltx_page_header">
+<div>
+<a href="Ch15.html" title="ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="up"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15 </span>Fast Transients and Rate Models</span></a><a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.1 </span>How fast are population responses?</span></a><a href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3 </span>Rate models</span></a>
+</div></header><div class="navbar navbar-default navbar-fixed-top"><div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-main">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><strong>Neuronal Dynamics</strong></a>
+        </div>
+
+<div class="navbar-collapse collapse" id="navbar-main"><ul class="nav navbar-nav">
+<li><a href="../book.html">About</a></li>
+<li class="active"><a href="index.html">Online book</a></li>
+<li><a href="/exercises.html">Python Exercises</a></li>
+
+<li><a href="https://lcn.epfl.ch/~gerstner/NeuronalDynamics-MOOCall.html">Video Lectures</a></li>
+<li><a href="../lectures.html">Teaching Material</a></li>
+</ul></div>
+</div></div>
+<div class="ltx_page_content">
+<section class="ltx_section ltx_authors_1line">
+<h1 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">15.2 </span>Fast transients vs. slow transients in models</h1>
+<div class="ltx_date ltx_role_creation"></div>
+
+<div id="p1" class="ltx_para">
+<p class="ltx_p">Populations of model neurons can exhibit fast abrupt
+responses or slow responses
+to a step current input.
+In order to predict whether the response is
+fast or slow, knowledge of the
+type and magnitude of noise turns out to be more
+critical than the details of the neuron model.</p>
+</div>
+<section id="SS1" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">15.2.1 </span>Fast transients for low noise or âslowâ noise</h1>
+
+<div id="SS1.p1" class="ltx_para">
+<p class="ltx_p">A homogeneous population of independent leaky integrate-and-fire neurons
+with a low level of noise exhibits
+a sharp transient after the onset of a step current
+as shown in Fig. <a href="#Ch15.F5" title="Fig.Â 15.5 â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.5</span></a>A.
+The onset transiently synchronizes a subgroup of neurons.
+Since all the neurons are of the same type
+and have the same parameters, the synchronized
+subgroup fires again some time later,
+such that the population activity oscillates with
+a period corresponding to the
+inter-spike interval of single neurons.</p>
+</div>
+<div id="SS1.p2" class="ltx_para">
+<p class="ltx_p">The oscillation is suppressed and neurons desynchronize,
+if the population is heterogeneous or,
+for a homogeneous population, if neurons
+have slow noise in the parameters
+(Fig. <a href="#Ch15.F5" title="Fig.Â 15.5 â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.5</span></a>B).
+The abrupt onset, however, remains so
+that the transient after a switch in the input
+is extremely fast.</p>
+</div>
+<figure id="Ch15.F5" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x369.png" id="Ch15.F5.g1" class="ltx_graphics" width="293" height="164" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x370.png" id="Ch15.F5.g2" class="ltx_graphics" width="293" height="155" alt="">
+                  </td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x371.png" id="Ch15.F5.g3" class="ltx_graphics" width="293" height="160" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left">
+                    <img src="x371.png" id="Ch15.F5.g4" class="ltx_graphics" width="293" height="160" alt="">
+                  </td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.5: </span>
+The response is rapid for low noise or slow noise.
+Response of the population activity (top)
+to the step current <math id="Ch15.F5.m9" class="ltx_Math" alttext="I(t)" display="inline"><semantics><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">I(t)</annotation></semantics></math> (bottom) and the input potential
+<math id="Ch15.F5.m10" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math> caused by the step at <math id="Ch15.F5.m11" class="ltx_Math" alttext="t=100" display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">t=100</annotation></semantics></math>ms.
+<span class="ltx_text ltx_font_bold">A</span>.
+Leaky integrate-and-fire-neurons at a very low noise level;
+Solid line: simulation of a population of 1000 neurons without coupling, all receiving the same step-input. Dashed line:
+numerical integration of the
+integral equation (<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>) of time-dependent renewal theory
+in the low-noise limit; see Ch. <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>.
+<span class="ltx_text ltx_font_bold">B</span>.
+Slow noise.
+Transients for SRM<math id="Ch15.F5.m12" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons with noisy reset
+in response to the same step current.
+The results of a simulation of 1000 SRM<math id="Ch15.F5.m13" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>-neurons
+(solid line) are compared with a numerical integration (dashed line)
+of the integral equation; cf. Eq.Â (<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>).
+The instantaneous response is typical for âslowâ noise models.
+<span class="ltx_text ltx_font_bold">Bottom</span>: step
+current input <math id="Ch15.F5.m14" class="ltx_Math" alttext="I" display="inline"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> (solid line) and input potential <math id="Ch15.F5.m15" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math> (dashed
+line).
+Note that the population responds instantaneously to the input
+switch at <math id="Ch15.F5.m16" class="ltx_Math" alttext="t_{0}=100\," display="inline"><semantics><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>=</mo><mpadded width="+1.7pt"><mn>100</mn></mpadded></mrow><annotation encoding="application/x-tex">t_{0}=100\,</annotation></semantics></math>ms even though the membrane potential responds only
+slowly;
+taken from <cite class="ltx_cite">Gerstner (<a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>)</cite>
+</figcaption>
+</figure>
+<div id="SS1.p3" class="ltx_para">
+<p class="ltx_p">We can conclude that <span class="ltx_text ltx_font_italic">fast transients</span> occur
+in a population of leaky integrate-and-fire neurons</p>
+</div>
+<div id="SS1.p4" class="ltx_para">
+<p class="ltx_p">(i) at a low noise level and strong step-current stimulation; and
+</p>
+</div>
+<div id="SS1.p5" class="ltx_para">
+<p class="ltx_p">(ii) at a high level of âslowâ noise, e.g.,
+slow variations in the parameters of the neurons
+or heterogeneity across the group of neurons.</p>
+</div>
+<div id="SS1.p6" class="ltx_para">
+<p class="ltx_p">In the first case, the onset triggers oscillations, while
+in the second case the oscillations are suppressed.
+The rapid
+transients in spiking models
+without noise or with slow noise have been
+reported by several researchers
+<cite class="ltx_cite">(<a href="bib.html#bib300" title="Dynamics of encoding in a population of neurons" class="ltx_ref">264</a>; <a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>; <a href="bib.html#bib368" title="Effects of synaptic noise and filtering on the frequency response of spiking neurons" class="ltx_ref">77</a>; <a href="bib.html#bib369" title="Role of synaptic filtering on the firing response of simple model neurons" class="ltx_ref">351</a>)</cite>.</p>
+</div>
+<div id="SS1.p7" class="ltx_para">
+<p class="ltx_p">Note that the time course of the response in the simulations with slow noise
+in Fig. <a href="#Ch15.F5" title="Fig.Â 15.5 â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.5</span></a>B is reminiscent of the neuronal responses
+measured in visual cortex; cf. Fig. <a href="Ch15.S1.html#Ch15.F3" title="Fig.Â 15.3 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>.
+In particular, we find in the simulations that
+the rapid onset is followed by a decay of the activity
+immediately thereafter.
+This indicates that the decay of the activity
+is due to the reset or, more generally,
+to refractoriness after firing, and not
+due to adaptation or input from inhibitory neurons.</p>
+</div>
+<div id="SS1.p8" class="ltx_para">
+<p class="ltx_p">Whereas the low-noise result is independent of the specific noise model,
+the results for high noise depend on the characteristics of the noise.
+We analyze in the Sections
+<a href="#SS2" title="15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2.2</span></a>
+and <a href="#SS3" title="15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2.3</span></a>
+the response to step currents for two different noise models.
+We start
+with escape noise and turn thereafter
+to diffusive noise. Before we do so, let us discuss
+a concrete example of slow noise.</p>
+</div>
+<div id="SS1.p9" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Fast transients with noise in parameters</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We consider a population of
+SRM<math id="SS1.p9.m1" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons
+with noise in the duration of the absolute
+refractoriness.
+The membrane potential is
+<math id="SS1.p9.m2" class="ltx_Math" alttext="u(t)=\eta_{r}(t-\hat{t})+h(t)" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Î·</mi><mi mathsize="normal" stretchy="false">r</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">+</mo><mrow><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">u(t)=\eta_{r}(t-\hat{t})+h(t)</annotation></semantics></math>
+where <math id="SS1.p9.m3" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math> is the input potential
+and</span>
+              </p>
+<table id="Ch15.Ex1" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.Ex1.m1" class="ltx_Math" alttext="\eta_{r}(s)=\left\{\begin{array}[]{*{3}{c@{\quad}}c}-c\quad&amp;\quad&{\rm for}%
+\quad&amp;0&lt;s\leq\Delta^{\rm abs}+r\\
+\eta_{0}(s-\Delta^{\rm abs}-r)\quad&amp;\quad&{\rm for}\quad&amp;s&gt;\Delta^{\rm abs}+r%
+\,.\end{array}\right." display="block"><semantics><mrow><mrow><msub><mi>Î·</mi><mi>r</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mrow><mo>-</mo><mpadded width="+10.0pt"><mi>c</mi></mpadded></mrow></mtd><mtd><mi></mi></mtd><mtd columnalign="center"><mpadded width="+10.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mn>0</mn><mo>&lt;</mo><mi>s</mi><mo>â¤</mo><mrow><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><mo>+</mo><mi>r</mi></mrow></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><msub><mi>Î·</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+10.0pt"><mrow><mo>(</mo><mrow><mi>s</mi><mo>-</mo><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><mo>-</mo><mi>r</mi></mrow><mo>)</mo></mrow></mpadded></mrow></mtd><mtd><mi></mi></mtd><mtd columnalign="center"><mpadded width="+10.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mrow><mi>s</mi><mo>&gt;</mo><mrow><msup><mi mathvariant="normal">Î</mi><mi>abs</mi></msup><mo>+</mo><mpadded width="+1.7pt"><mi>r</mi></mpadded></mrow></mrow><mo>.</mo></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\eta_{r}(s)=\left\{\begin{array}[]{*{3}{c@{\quad}}c}-c\quad&amp;\quad&amp;{\rm for}%
+\quad&amp;0&lt;s\leq\Delta^{\rm abs}+r\\
+\eta_{0}(s-\Delta^{\rm abs}-r)\quad&amp;\quad&amp;{\rm for}\quad&amp;s&gt;\Delta^{\rm abs}+r%
+\,.\end{array}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">After each spike the reset variable <math id="SS1.p9.m4" class="ltx_Math" alttext="r" display="inline"><semantics><mi mathsize="normal" stretchy="false">r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> is chosen
+independently
+from a
+Gaussian distribution <math id="SS1.p9.m5" class="ltx_Math" alttext="{\mathcal{G}}_{\sigma}(r)" display="inline"><semantics><mrow><msub><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">ð¢</mi><mi mathsize="normal" stretchy="false">Ï</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{G}}_{\sigma}(r)</annotation></semantics></math>
+with variance <math id="SS1.p9.m6" class="ltx_Math" alttext="\sigma_{r}\ll\Delta^{\rm abs}" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">Ï</mi><mi mathsize="normal" stretchy="false">r</mi></msub><mo mathsize="normal" stretchy="false">âª</mo><msup><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mi mathsize="normal" stretchy="false">abs</mi></msup></mrow><annotation encoding="application/x-tex">\sigma_{r}\ll\Delta^{\rm abs}</annotation></semantics></math>.
+This is an example of a âslowâ noise model,
+because a new value of the stochastic variable <math id="SS1.p9.m7" class="ltx_Math" alttext="r" display="inline"><semantics><mi mathsize="normal" stretchy="false">r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> is chosen
+only once per inter-spike interval.
+The approach of the neuron to the threshold
+is noise-free.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">A neuron which was reset at time <math id="SS1.p9.m8" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> with a value
+<math id="SS1.p9.m9" class="ltx_Math" alttext="r" display="inline"><semantics><mi mathsize="normal" stretchy="false">r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math> fires again after an interval <math id="SS1.p9.m10" class="ltx_Math" alttext="T(\hat{t},r)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">T(\hat{t},r)</annotation></semantics></math>
+which is defined by the next threshold
+crossing <math id="SS1.p9.m11" class="ltx_Math" alttext="u(t)=\vartheta" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow><annotation encoding="application/x-tex">u(t)=\vartheta</annotation></semantics></math>.
+The
+interval distribution of the noisy reset model is</span>
+              </p>
+<table id="Ch15.E4" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E4.m1" class="ltx_Math" alttext="P_{I}(t|\hat{t})=\int_{-\infty}^{\infty}{\text{d}}r\,\delta[t-\hat{t}-T(\hat{t%
+},r)]\,{\mathcal{G}}_{\sigma}(r)\,." display="block"><semantics><mrow><msub><mi>P</mi><mi>I</mi></msub><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">|</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo stretchy="false">)</mo></mrow><mo>=</mo><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mtext>Â                      Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                    Â </mtext></mrow><mpadded width="+1.7pt"><mi>r</mi></mpadded><mi>Î´</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>-</mo><mi>T</mi><mrow><mo stretchy="false">(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><mo rspace="4.2pt" stretchy="false">]</mo></mrow><msub><mi class="ltx_font_mathcaligraphic">ð¢</mi><mi>Ï</mi></msub><mrow><mo stretchy="false">(</mo><mi>r</mi><mo rspace="4.2pt" stretchy="false">)</mo></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">P_{I}(t|\hat{t})=\int_{-\infty}^{\infty}{\text{d}}r\,\delta[t-\hat{t}-T(\hat{t%
+},r)]\,{\mathcal{G}}_{\sigma}(r)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.4)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">The population equation (<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>)
+from Chapter <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a> is thus</span>
+              </p>
+<table id="Ch15.E5" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E5.m1" class="ltx_Math" alttext="A(t)=\int_{-\infty}^{t}{\text{d}}\hat{t}\int_{-\infty}^{\infty}{\text{d}}r\,%
+\delta[t-\hat{t}-T(\hat{t},r)]\,{\mathcal{G}}_{\sigma}(r)\,A(\hat{t})\,." display="block"><semantics><mrow><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><mrow><mtext>Â                            Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                          Â </mtext></mrow><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mrow><mtext>Â                                Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                              Â </mtext></mrow><mo>â¢</mo><mpadded width="+1.7pt"><mi>r</mi></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>-</mo><mrow><mi>T</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>,</mo><mi>r</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msub><mi class="ltx_font_mathcaligraphic">ð¢</mi><mi>Ï</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">A(t)=\int_{-\infty}^{t}{\text{d}}\hat{t}\int_{-\infty}^{\infty}{\text{d}}r\,%
+\delta[t-\hat{t}-T(\hat{t},r)]\,{\mathcal{G}}_{\sigma}(r)\,A(\hat{t})\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.5)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">A neuron that has been reset at time <math id="SS1.p9.m12" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> with value <math id="SS1.p9.m13" class="ltx_Math" alttext="r" display="inline"><semantics><mi mathsize="normal" stretchy="false">r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+behaves identical to a noise-free neuron that has fired its last spike
+at <math id="SS1.p9.m14" class="ltx_Math" alttext="\hat{t}+r" display="inline"><semantics><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">+</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><annotation encoding="application/x-tex">\hat{t}+r</annotation></semantics></math>.
+In particular we have the relation
+<math id="SS1.p9.m15" class="ltx_Math" alttext="T(\hat{t},r)=r+T_{0}(\hat{t}+r)" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mrow><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="normal" stretchy="false">+</mo><mrow><msub><mi mathsize="normal" stretchy="false">T</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">+</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">T(\hat{t},r)=r+T_{0}(\hat{t}+r)</annotation></semantics></math> where <math id="SS1.p9.m16" class="ltx_Math" alttext="T_{0}(t^{\prime})" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">T</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><msup><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">T_{0}(t^{\prime})</annotation></semantics></math> is the next
+interspike interval of a noiseless neuron (<math id="SS1.p9.m17" class="ltx_Math" alttext="r=0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">r=0</annotation></semantics></math>)
+that has fired its last spike at <math id="SS1.p9.m18" class="ltx_Math" alttext="t^{\prime}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><annotation encoding="application/x-tex">t^{\prime}</annotation></semantics></math>.
+The
+integration over <math id="SS1.p9.m19" class="ltx_Math" alttext="\hat{t}" display="inline"><semantics><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><annotation encoding="application/x-tex">\hat{t}</annotation></semantics></math> in Eq.Â (<a href="#Ch15.E5" title="(15.5) â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.5</span></a>) can
+therefore be done and yields</span>
+              </p>
+<table id="Ch15.E6" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E6.m1" class="ltx_Math" alttext="A(t)=\left[1+{h^{\prime}\over\eta^{\prime}}\right]\,\int_{-\infty}^{\infty}{%
+\text{d}}r\,{\mathcal{G}}_{\sigma}(r)\,A[t-T_{b}(t)-r]" display="block"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mn>1</mn><mo>+</mo><mfrac><msup><mi>h</mi><mo>â²</mo></msup><msup><mi>Î·</mi><mo>â²</mo></msup></mfrac></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi mathvariant="normal">â</mi></msubsup><mrow><mrow><mtext>Â                              Â </mtext><mtext mathsize="small" stretchy="false">d</mtext><mtext>Â                            Â </mtext></mrow><mo>â¢</mo><mpadded width="+1.7pt"><mi>r</mi></mpadded><mo>â¢</mo><msub><mi class="ltx_font_mathcaligraphic">ð¢</mi><mi>Ï</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>t</mi><mo>-</mo><mrow><msub><mi>T</mi><mi>b</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>-</mo><mi>r</mi></mrow><mo>]</mo></mrow></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=\left[1+{h^{\prime}\over\eta^{\prime}}\right]\,\int_{-\infty}^{\infty}{%
+\text{d}}r\,{\mathcal{G}}_{\sigma}(r)\,A[t-T_{b}(t)-r]</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.6)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">where <math id="SS1.p9.m20" class="ltx_Math" alttext="T_{b}(t)" display="inline"><semantics><mrow><msub><mi mathsize="normal" stretchy="false">T</mi><mi mathsize="normal" stretchy="false">b</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">T_{b}(t)</annotation></semantics></math> is the backward interval,
+i.e. the distance to the previous spike for
+a noiseless neuron (<math id="SS1.p9.m21" class="ltx_Math" alttext="r=0" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">r</mi><mo mathsize="normal" stretchy="false">=</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><annotation encoding="application/x-tex">r=0</annotation></semantics></math>) that fires at time <math id="SS1.p9.m22" class="ltx_Math" alttext="t" display="inline"><semantics><mi mathsize="normal" stretchy="false">t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.
+The factor <math id="SS1.p9.m23" class="ltx_Math" alttext="[1+(h^{\prime}/\eta^{\prime})]" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">+</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><msup><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><mo mathsize="normal" stretchy="false">/</mo><msup><mi mathsize="normal" stretchy="false">Î·</mi><mo mathsize="normal" stretchy="false">â²</mo></msup></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[1+(h^{\prime}/\eta^{\prime})]</annotation></semantics></math> arises due
+to the integration over the <math id="SS1.p9.m24" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi mathsize="normal" stretchy="false">Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>-function.
+We use the short-hand <math id="SS1.p9.m25" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math> for the derivative
+<math id="SS1.p9.m26" class="ltx_Math" alttext="{\text{d}}h(t)/{\text{d}}t" display="inline"><semantics><mrow><mrow><mrow><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mtext mathsize="small" stretchy="false">d</mtext></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><annotation encoding="application/x-tex">{\text{d}}h(t)/{\text{d}}t</annotation></semantics></math> and <math id="SS1.p9.m27" class="ltx_Math" alttext="\eta^{\prime}" display="inline"><semantics><msup><mi mathsize="normal" stretchy="false">Î·</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><annotation encoding="application/x-tex">\eta^{\prime}</annotation></semantics></math> for <math id="SS1.p9.m28" class="ltx_Math" alttext="{\text{d}}\eta_{0}(T(\hat{t},0))/{\text{d}}t" display="inline"><semantics><mrow><mrow><mrow><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><msub><mi mathsize="normal" stretchy="false">Î·</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">,</mo><mn mathsize="normal" stretchy="false">0</mn></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">/</mo><mtext mathsize="small" stretchy="false">d</mtext></mrow><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">t</mi></mrow><annotation encoding="application/x-tex">{\text{d}}\eta_{0}(T(\hat{t},0))/{\text{d}}t</annotation></semantics></math>.
+We remind the reader that the interval <math id="SS1.p9.m29" class="ltx_Math" alttext="T(\hat{t},r)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">T(\hat{t},r)</annotation></semantics></math>
+is defined by the threshold condition <math id="SS1.p9.m30" class="ltx_Math" alttext="u(t)=\vartheta" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">u</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow><annotation encoding="application/x-tex">u(t)=\vartheta</annotation></semantics></math>
+which gives, more explicitly,
+<math id="SS1.p9.m31" class="ltx_Math" alttext="\eta_{r}(T(\hat{t},r))+h(\hat{t}+T(\hat{t},r))=\vartheta" display="inline"><semantics><mrow><mrow><mrow><msub><mi mathsize="normal" stretchy="false">Î·</mi><mi mathsize="normal" stretchy="false">r</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><mo mathsize="normal" stretchy="false">+</mo><mrow><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="normal" stretchy="false">+</mo><mrow><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mover accent="true"><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">^</mo></mover><mo mathsize="small" stretchy="false">,</mo><mi mathsize="normal" stretchy="false">r</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="normal" stretchy="false">=</mo><mi mathsize="normal" stretchy="false">Ï</mi></mrow><annotation encoding="application/x-tex">\eta_{r}(T(\hat{t},r))+h(\hat{t}+T(\hat{t},r))=\vartheta</annotation></semantics></math>
+(see Exercises).</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">We can interpret Eq. (<a href="#Ch15.E6" title="(15.6) â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.6</span></a>) as follows.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">(i) The activity at time <math id="SS1.p9.m32" class="ltx_Math" alttext="t" display="inline"><semantics><mi mathsize="normal" stretchy="false">t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+is proportional to the activity <math id="SS1.p9.m33" class="ltx_Math" alttext="A(t-T_{b}(t))" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mrow><msub><mi mathsize="normal" stretchy="false">T</mi><mi mathsize="normal" stretchy="false">b</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t-T_{b}(t))</annotation></semantics></math>
+one interspike interval earlier;</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">(ii) compared to <math id="SS1.p9.m34" class="ltx_Math" alttext="A(t-T_{b}(t))" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mrow><msub><mi mathsize="normal" stretchy="false">T</mi><mi mathsize="normal" stretchy="false">b</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t-T_{b}(t))</annotation></semantics></math>, the activity is smoother,
+because interspike intervals
+vary across different neurons in the population
+which gives rise to an integration over the Gaussian <math id="SS1.p9.m35" class="ltx_Math" alttext="{\mathcal{G}}_{\sigma}" display="inline"><semantics><msub><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">ð¢</mi><mi mathsize="normal" stretchy="false">Ï</mi></msub><annotation encoding="application/x-tex">{\mathcal{G}}_{\sigma}</annotation></semantics></math>;</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">(iii) most importantly,
+compared to the activity <math id="SS1.p9.m36" class="ltx_Math" alttext="A(t-T_{b}(t))" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mrow><msub><mi mathsize="normal" stretchy="false">T</mi><mi mathsize="normal" stretchy="false">b</mi></msub><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t-T_{b}(t))</annotation></semantics></math> one interspike interval
+earlier, the activity at time <math id="SS1.p9.m37" class="ltx_Math" alttext="t" display="inline"><semantics><mi mathsize="normal" stretchy="false">t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> is increased
+by a factor
+<math id="SS1.p9.m38" class="ltx_Math" alttext="[1+{h^{\prime}\over\eta^{\prime}}]" display="inline"><semantics><mrow><mo mathsize="small" stretchy="false">[</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">+</mo><mfrac><msup><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><msup><mi mathsize="normal" stretchy="false">Î·</mi><mo mathsize="normal" stretchy="false">â²</mo></msup></mfrac></mrow><mo mathsize="small" stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[1+{h^{\prime}\over\eta^{\prime}}]</annotation></semantics></math>.
+This factor is proportional to the <span class="ltx_text ltx_font_italic">derivative</span>
+of the input potential as opposed to the potential itself.
+As we can see from Eq. (<a href="Ch15.html#E3" title="(15.3) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>),
+the derivative of <math id="SS1.p9.m39" class="ltx_Math" alttext="h" display="inline"><semantics><mi mathsize="normal" stretchy="false">h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+is discontinuous at the moment
+when the step current switches.
+Therefore, the response
+of the population activity <math id="SS1.p9.m40" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">A</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+to a step current
+is instantaneous and
+exhibits an abrupt change,
+as confirmed by the simulation
+of Fig. <a href="#Ch15.F5" title="Fig.Â 15.5 â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.5</span></a>B.
+We emphasize that the mathematical arguments
+that lead to Eq. (<a href="#Ch15.E6" title="(15.6) â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.6</span></a>)
+do neither require an assumption of small
+input steps nor a linearization of the
+population dynamics, but are applicable to
+arbitrary time-dependent and strong inputs.</span>
+              </p>
+</span>
+</div>
+</section>
+<section id="SS2" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">15.2.2 </span>Populations of neurons with escape noise</h1>
+
+<div id="SS2.p1" class="ltx_para">
+<p class="ltx_p">For neurons with escape noise, the level
+of noise determines whether transients
+are sharp and fast or smooth and slow.
+For low noise the response
+to a step current is fast
+(Fig. <a href="#Ch15.F6" title="Fig.Â 15.6 â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.6</span></a>A)
+whereas for a high noise level
+the response is slow
+and follows the
+time course of the input
+potential <math id="SS2.p1.m1" class="ltx_Math" alttext="h(t)" display="inline"><semantics><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t)</annotation></semantics></math>
+(Fig. <a href="#Ch15.F6" title="Fig.Â 15.6 â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.6</span></a>B).
+Analogous results hold for
+a large class of generalized integrate-and-fire models
+with escape noise,
+including SRMs and leaky integrate-and-fire models
+<cite class="ltx_cite">(<a href="bib.html#bib151" title="Population dynamics of spiking neurons: fast transients, asynchronous states and locking" class="ltx_ref">183</a>)</cite>.</p>
+</div>
+<figure id="Ch15.F6" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x372.png" id="Ch15.F6.g1" class="ltx_graphics" width="293" height="213" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x373.png" id="Ch15.F6.g2" class="ltx_graphics" width="293" height="213" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.6: </span>
+<span class="ltx_text ltx_font_italic">Escape noise</span>.
+Response of a network of 1000 SRM<math id="Ch15.F6.m3" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons
+with exponential escape noise
+to step current input.
+The input is switched at <math id="Ch15.F6.m4" class="ltx_Math" alttext="t=100\," display="inline"><semantics><mrow><mi>t</mi><mo>=</mo><mpadded width="+1.7pt"><mn>100</mn></mpadded></mrow><annotation encoding="application/x-tex">t=100\,</annotation></semantics></math>ms.
+Simulations (fluctuating solid line) are compared to the numerical
+integration of the
+integral equation (<a href="Ch14.S1.html#Ch14.E5" title="(14.5) â£ 14.1.2 Integral equations
+for non-adaptive neurons â£ 14.1 Population activity equations â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.5</span></a>)
+of Chapter <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>
+(thick dashed line).
+<span class="ltx_text ltx_font_bold">A</span>. For low noise the transition is comparatively sharp.
+<span class="ltx_text ltx_font_bold">B</span>. For high noise the response to
+the change in the input is smooth and slow.
+</figcaption>
+</figure>
+<div id="SS2.p2" class="ltx_para">
+<p class="ltx_p">In order to analyze the response to step current inputs,
+we
+assume that the step-amplitude <math id="SS2.p2.m1" class="ltx_Math" alttext="\Delta I" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">\Delta I</annotation></semantics></math> of the input
+is small so
+that the population activity <math id="SS2.p2.m2" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math> after the step
+can be considered as a small perturbation
+of the asynchronous firing state with activity <math id="SS2.p2.m3" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>
+before the step. With these assumption, we can
+use the linearized population activity equations
+(<a href="Ch14.S3.html#Ch14.E43" title="(14.43) â£ 14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.43</span></a>)
+that were derived in Section <a href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.3</span></a>
+of Chapter <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>.
+For the sake of convenience we copy the equation here</p>
+<table id="Ch15.E7" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E7.m1" class="ltx_Math" alttext="\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}+A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{\infty}{\mathcal{L}}(x)\,%
+\Delta h(t-x)\,{\text{d}}x\,." display="block"><semantics><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mo>-</mo><mi mathvariant="normal">â</mi></mrow><mi>t</mi></msubsup><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow></mrow><mo>+</mo><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi mathvariant="normal">â</mi></msubsup><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>x</mi></mpadded></mrow></mrow></mrow></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\Delta A(t)=\int_{-\infty}^{t}P_{0}(t-\hat{t})\,\Delta A(\hat{t})\,{\text{d}}%
+\hat{t}+A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{\infty}{\mathcal{L}}(x)\,%
+\Delta h(t-x)\,{\text{d}}x\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.7)</span></td>
+</tr>
+</table>
+<p class="ltx_p">We recall that
+<math id="SS2.p2.m4" class="ltx_Math" alttext="P_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t-\hat{t})</annotation></semantics></math> is the interval distribution for constant input <math id="SS2.p2.m5" class="ltx_Math" alttext="I_{0}" display="inline"><semantics><msub><mi>I</mi><mn>0</mn></msub><annotation encoding="application/x-tex">I_{0}</annotation></semantics></math>
+before the step;
+<math id="SS2.p2.m6" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> is a real-valued function that plays the role of an integral kernel;
+and</p>
+<table id="Ch15.E8" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E8.m1" class="ltx_Math" alttext="\Delta h(t)=\int_{0}^{t-t_{0}}{R\over\tau_{m}}e^{-{s\over\tau_{m}}}\,\Delta I%
+\,{\text{d}}s=R\,\Delta I\,\left[1-\exp\left(-{t-t_{0}\over\tau_{m}}\right)%
+\right]\quad\text{for }t&gt;t_{0}" display="block"><semantics><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow></msubsup><mrow><mfrac><mi>R</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mfrac><mi>s</mi><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow></msup></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>s</mi></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>I</mi></mpadded><mo>â¢</mo><mrow><mo>[</mo><mrow><mn>1</mn><mo>-</mo><mrow><mi>exp</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mo>-</mo><mfrac><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><msub><mi>Ï</mi><mi>m</mi></msub></mfrac></mrow><mo>)</mo></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><mo separator="true">â</mo><mrow><mrow><mtext>forÂ </mtext><mo>â¢</mo><mi>t</mi></mrow><mo>&gt;</mo><msub><mi>t</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t)=\int_{0}^{t-t_{0}}{R\over\tau_{m}}e^{-{s\over\tau_{m}}}\,\Delta I%
+\,{\text{d}}s=R\,\Delta I\,\left[1-\exp\left(-{t-t_{0}\over\tau_{m}}\right)%
+\right]\quad\text{for }t&gt;t_{0}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.8)</span></td>
+</tr>
+</table>
+<p class="ltx_p">is the input potential generated by
+step input of amplitude <math id="SS2.p2.m7" class="ltx_Math" alttext="\Delta I" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">\Delta I</annotation></semantics></math>, switched on at time <math id="SS2.p2.m8" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>.</p>
+</div>
+<div id="SS2.p3" class="ltx_para">
+<p class="ltx_p">The first term on the right-hand side of Eq.Â (<a href="#Ch15.E7" title="(15.7) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>)
+describes
+that perturbations <math id="SS2.p3.m1" class="ltx_Math" alttext="\Delta A(\hat{t})" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta A(\hat{t})</annotation></semantics></math> in the past (<math id="SS2.p3.m2" class="ltx_Math" alttext="\hat{t}&lt;t" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>&lt;</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\hat{t}&lt;t</annotation></semantics></math>) have
+an after-effect about one inter-spike interval later.
+Thus, if the switch in the input at time <math id="SS2.p3.m3" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>
+has caused a momentary increase of the population activity <math id="SS2.p3.m4" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>,
+then the first peak in <math id="SS2.p3.m5" class="ltx_Math" alttext="A" display="inline"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math> around <math id="SS2.p3.m6" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>
+can generate a second, slightly broader, peak one interspike-interval later
+â exactly as seen in the experimental data of Fig. <a href="Ch15.S1.html#Ch15.F4" title="Fig.Â 15.4 â£ 15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.4</span></a>A.
+If the second peak is again prominent, it can cause a further peak one period later, so that the population activity passes through a phase of transient oscillations;
+cf. Fig. <a href="#Ch15.F6" title="Fig.Â 15.6 â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.6</span></a>A.
+The oscillation decays, however, rapidly if the noise level is
+high, because
+a high noise level corresponds to a broad interspike interval distribution
+<math id="SS2.p3.m7" class="ltx_Math" alttext="P_{0}(t-\hat{t})" display="inline"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover></mrow><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">P_{0}(t-\hat{t})</annotation></semantics></math> so that successive peaks are âsmeared outâ.
+Thus, the first term
+on the right-hand side of Eq.Â (<a href="#Ch15.E7" title="(15.7) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>)
+explains the potential âringingâ of the population activity
+after a momentary synchronization of neurons around time <math id="SS2.p3.m8" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>;
+it does not, however, predict whether the transient
+at time <math id="SS2.p3.m9" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> is sharp or not.</p>
+</div>
+<div id="SS2.p4" class="ltx_para">
+<p class="ltx_p">It is the second term
+on the right-hand side of Eq.Â (<a href="#Ch15.E7" title="(15.7) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>)
+which predicts
+the
+immediate response to a change in the input potential
+<math id="SS2.p4.m1" class="ltx_Math" alttext="\Delta h" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">\Delta h</annotation></semantics></math>.
+In the following, we are mainly interested in the <span class="ltx_text ltx_font_italic">initial</span> phase of the transient, i.e. <math id="SS2.p4.m2" class="ltx_Math" alttext="0&lt;t-t_{0}\ll T" display="inline"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>âª</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">0&lt;t-t_{0}\ll T</annotation></semantics></math> where <math id="SS2.p4.m3" class="ltx_Math" alttext="T=1/A_{0}" display="inline"><semantics><mrow><mi>T</mi><mo>=</mo><mrow><mn>1</mn><mo>/</mo><msub><mi>A</mi><mn>0</mn></msub></mrow></mrow><annotation encoding="application/x-tex">T=1/A_{0}</annotation></semantics></math> is
+the mean inter-spike interval. During the initial phase of the transient, the
+first term on the right-hand side of Eq.Â (<a href="#Ch15.E7" title="(15.7) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>) does not
+contribute, since <math id="SS2.p4.m4" class="ltx_Math" alttext="\Delta A(\hat{t})=0" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta A(\hat{t})=0</annotation></semantics></math> for <math id="SS2.p4.m5" class="ltx_Math" alttext="\hat{t}&lt;t_{0}" display="inline"><semantics><mrow><mover accent="true"><mi>t</mi><mo stretchy="false">^</mo></mover><mo>&lt;</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\hat{t}&lt;t_{0}</annotation></semantics></math>. Therefore,
+Eq.Â (<a href="#Ch15.E7" title="(15.7) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>) reduces to</p>
+<table id="Ch15.E9" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E9.m1" class="ltx_Math" alttext="\Delta A(t)=A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{t-t_{0}}{\mathcal{L}}%
+(s)\,\Delta h(t-s)\,{\text{d}}s\,,\quad\text{for }t-t_{0}\ll T\,." display="block"><semantics><mrow><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><msub><mi>A</mi><mn>0</mn></msub></mpadded><mo>â¢</mo><mfrac><mtext>d</mtext><mrow><mtext>d</mtext><mo>â¢</mo><mi>t</mi></mrow></mfrac><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow></msubsup><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><mi>s</mi></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mpadded width="+1.7pt"><mi>s</mi></mpadded></mrow></mrow></mrow></mrow><mo separator="true">,â</mo><mrow><mrow><mrow><mtext>forÂ </mtext><mo>â¢</mo><mi>t</mi></mrow><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>âª</mo><mpadded width="+1.7pt"><mi>T</mi></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\Delta A(t)=A_{0}\,{{\text{d}}\over{\text{d}}t}\int_{0}^{t-t_{0}}{\mathcal{L}}%
+(s)\,\Delta h(t-s)\,{\text{d}}s\,,\quad\text{for }t-t_{0}\ll T\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.9)</span></td>
+</tr>
+</table>
+<p class="ltx_p">In the upper bound of the integral we have exploited
+that <math id="SS2.p4.m6" class="ltx_Math" alttext="\Delta h" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">\Delta h</annotation></semantics></math> =0 for <math id="SS2.p4.m7" class="ltx_Math" alttext="t&lt;t_{0}" display="inline"><semantics><mrow><mi>t</mi><mo>&lt;</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">t&lt;t_{0}</annotation></semantics></math>.</p>
+</div>
+<div id="SS2.p5" class="ltx_para">
+<p class="ltx_p">If we want
+to understand the response of the population to an input current
+<math id="SS2.p5.m1" class="ltx_Math" alttext="\Delta I(t)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta I(t)</annotation></semantics></math>, we need to know the characteristics of the kernel <math id="SS2.p5.m2" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math>.
+The explicit form of the filter <math id="SS2.p5.m3" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> has been derived
+in Section <a href="Ch14.S3.html" title="14.3 Linear response to time-dependent input â£ ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14.3</span></a> of Chapter <a href="Ch14.html" title="ChapterÂ 14 Quasi-Renewal Theory and the Integral-equation Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>.
+Here we summarize the main results that are necessary
+to understand the transient response of the population activity
+to a step current input.</p>
+</div>
+<div id="SS2.p6" class="ltx_para">
+<ul id="Ch15.I1" class="ltx_itemize">
+<li id="Ch15.I1.ix1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_itemize">(i)</span> 
+<div id="Ch15.I1.ix1.p1" class="ltx_para">
+<p class="ltx_p">In the low-noise limit, the kernel <math id="Ch15.I1.ix1.p1.m1" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> can be
+approximated by a Dirac <math id="Ch15.I1.ix1.p1.m2" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+function. The dynamics of the population activity <math id="Ch15.I1.ix1.p1.m3" class="ltx_Math" alttext="\Delta A" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\Delta A</annotation></semantics></math> has therefore
+a term proportional to the <span class="ltx_text ltx_font_italic">derivative</span> of the input potential; cf.
+Eq.Â (<a href="#Ch15.E9" title="(15.9) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.9</span></a>).
+This result implies a fast
+response <math id="Ch15.I1.ix1.p1.m4" class="ltx_Math" alttext="\Delta A" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\Delta A</annotation></semantics></math> to any change in the input.
+In particular, for step-current input, the response
+in the low-noise limit is discontinuous at the moment of the step.</p>
+</div>
+</li>
+<li id="Ch15.I1.ix2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_itemize">(ii)</span> 
+<div id="Ch15.I1.ix2.p1" class="ltx_para">
+<p class="ltx_p">For a large amount of escape noise, the
+kernel <math id="Ch15.I1.ix2.p1.m1" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> is broad. This
+implies
+that the dynamics of the population activity is
+proportional to the <span class="ltx_text ltx_font_italic">input potential</span> <math id="Ch15.I1.ix2.p1.m2" class="ltx_Math" alttext="h" display="inline"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+rather than to its derivative.
+Therefore the response to
+a step input is slow and consistent with that of a rate model,
+<math id="Ch15.I1.ix2.p1.m3" class="ltx_Math" alttext="A(t)=F(h(t))" display="inline"><semantics><mrow><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mi>F</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">A(t)=F(h(t))</annotation></semantics></math>.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="SS2.p7" class="ltx_para">
+<p class="ltx_p">A summary of the mathematical results for the filter <math id="SS2.p7.m1" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math>
+is given in Tab.Â <a href="#Ch15.T1" title="TableÂ 15.1 â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.1</span></a>.
+The formulas for leaky integrate-and-fire
+models differ slightly from
+those for SRM<math id="SS2.p7.m2" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math>, because
+of the different treatment of the reset.</p>
+</div>
+<div id="SS2.p8" class="ltx_para">
+<span class="ltx_inline-block" style="border:1px solid #000000;padding-top:12pt;padding-bottom:12pt;">
+<p class="ltx_p ltx_align_center">
+                <span class="ltx_text ltx_font_bold ltx_font_small">Example: Slow response for large escape noise</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In order to understand how the
+slow response to a step at time <math id="SS2.p8.m1" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> arises, we focus
+on the right-hand side of
+Eq.Â (<a href="#Ch15.E9" title="(15.9) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.9</span></a>)
+and approximate the kernel <math id="SS2.p8.m2" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">â</mi><mo mathsize="small" stretchy="false">â¢</mo><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math> by a small constant <math id="SS2.p8.m3" class="ltx_Math" alttext="c" display="inline"><semantics><mi mathsize="normal" stretchy="false">c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+over the interval <math id="SS2.p8.m4" class="ltx_Math" alttext="0&lt;x&lt;1/c" display="inline"><semantics><mrow><mn mathsize="normal" stretchy="false">0</mn><mo mathsize="normal" stretchy="false">&lt;</mo><mi mathsize="normal" stretchy="false">x</mi><mo mathsize="normal" stretchy="false">&lt;</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">c</mi></mrow></mrow><annotation encoding="application/x-tex">0&lt;x&lt;1/c</annotation></semantics></math>.
+For <math id="SS2.p8.m5" class="ltx_Math" alttext="t-t_{0}&lt;1/c" display="inline"><semantics><mrow><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub></mrow><mo mathsize="normal" stretchy="false">&lt;</mo><mrow><mn mathsize="normal" stretchy="false">1</mn><mo mathsize="normal" stretchy="false">/</mo><mi mathsize="normal" stretchy="false">c</mi></mrow></mrow><annotation encoding="application/x-tex">t-t_{0}&lt;1/c</annotation></semantics></math>
+(and as before <math id="SS2.p8.m6" class="ltx_Math" alttext="t-t_{0}\ll T)" display="inline"><semantics><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mo mathsize="normal" stretchy="false">âª</mo><mi mathsize="normal" stretchy="false">T</mi><mo mathsize="normal" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">t-t_{0}\ll T)</annotation></semantics></math>,
+the integral simplifies then to
+<math id="SS2.p8.m7" class="ltx_Math" alttext="\int_{0}^{\infty}{\mathcal{L}}(s)\,\Delta h(t-s)\,{\text{d}}s\approx c\,\int_{%
+t_{0}}^{t}\Delta h(t^{\prime})\,{\text{d}}t^{\prime}\," display="inline"><semantics><mrow><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><mn mathsize="normal" stretchy="false">0</mn><mi mathsize="normal" mathvariant="normal" stretchy="false">â</mi></msubsup><mrow><mi class="ltx_font_mathcaligraphic" mathsize="normal" stretchy="false">â</mi><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="normal" stretchy="false">(</mo><mi mathsize="normal" stretchy="false">s</mi><mo mathsize="normal" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">(</mo><mrow><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">-</mo><mi mathsize="normal" stretchy="false">s</mi></mrow><mo mathsize="small" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">s</mi></mrow></mrow><mo mathsize="normal" stretchy="false">â</mo><mrow><mpadded width="+1.7pt"><mi mathsize="normal" stretchy="false">c</mi></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mrow><msubsup><mo largeop="true" mathsize="normal" stretchy="false" symmetric="true">â«</mo><msub><mi mathsize="normal" stretchy="false">t</mi><mn mathsize="normal" stretchy="false">0</mn></msub><mi mathsize="normal" stretchy="false">t</mi></msubsup><mrow><mi mathsize="normal" mathvariant="normal" stretchy="false">Î</mi><mo mathsize="small" stretchy="false">â¢</mo><mi mathsize="normal" stretchy="false">h</mi><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><mrow><mo mathsize="small" stretchy="false">(</mo><msup><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">â²</mo></msup><mo mathsize="small" stretchy="false">)</mo></mrow></mpadded><mo mathsize="small" stretchy="false">â¢</mo><mtext mathsize="small" stretchy="false">d</mtext><mo mathsize="small" stretchy="false">â¢</mo><mpadded width="+1.7pt"><msup><mi mathsize="normal" stretchy="false">t</mi><mo mathsize="normal" stretchy="false">â²</mo></msup></mpadded></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">\int_{0}^{\infty}{\mathcal{L}}(s)\,\Delta h(t-s)\,{\text{d}}s\approx c\,\int_{%
+t_{0}}^{t}\Delta h(t^{\prime})\,{\text{d}}t^{\prime}\,</annotation></semantics></math>;
+i.e., a simple integral over the input potential.</span>
+              </p>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">In front of the integral
+on the right-hand side of
+Eq.Â (<a href="#Ch15.E9" title="(15.9) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.9</span></a>)
+we see the temporal derivate.
+The derivate undoes the integration
+so that</span>
+              </p>
+<table id="Ch15.E10" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E10.m1" class="ltx_Math" alttext="\Delta A(t)\propto\Delta h(t)\,." display="block"><semantics><mrow><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>â</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mpadded></mrow></mrow><mo>.</mo></mrow><annotation encoding="application/x-tex">\Delta A(t)\propto\Delta h(t)\,.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.10)</span></td>
+</tr>
+</table>
+<p class="ltx_p">
+                <span class="ltx_text ltx_font_small">This implies that the response to a
+change in the input is
+as slow as the input potential
+and controlled by the membrane time constant.</span>
+              </p>
+</span>
+</div>
+<figure id="Ch15.T1" class="ltx_table">
+<table id="Ch15.Ex2" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.Ex2.m1" class="ltx_Math" alttext="\begin{array}[]{lrcl}\hline\hline{\rm\bf Definition}&{\mathcal{L}}^{\rm SRM}(x%
+)&amp;=&amp;-\int_{x}^{\infty}d\xi\,{\partial S(\xi|0)\over\partial\Delta h(\xi-x)}\\
+&{\mathcal{L}}^{\rm IF}(x)&amp;=&{\mathcal{L}}^{\rm SRM}(x)+\int_{0}^{x}d\xi\,e^{-%
+\xi/\tau}\,{\partial S(x|0)\over\partial\Delta h(\xi)}\\
+\hline{\rm\bf no~{}noise}&{\mathcal{L}}_{0}^{\rm SRM}(x)&amp;=&amp;\delta(x)/\eta^{%
+\prime}\\
+&{\mathcal{L}}_{0}^{\rm IF}(x)&amp;=&amp;\left[\delta(x)-\delta(x-T_{0})\,e^{-T_{0}/%
+\tau}\right]/u^{\prime}\\
+\hline{\rm\bf escape~{}noise}&{\mathcal{L}}^{\rm SRM}(x)&amp;=&amp;\int_{x}^{\infty}d%
+\xi\,f^{\prime}[u(\xi-x)]\,S_{0}(\xi)\\
+&{\mathcal{L}}^{\rm IF}(x)&amp;=&{\mathcal{L}}^{\rm SRM}(x)-S_{0}(x)\,\int_{0}^{x}%
+d\xi\,e^{-\xi/\tau}\,f^{\prime}[u(\xi)]\\
+\hline{\rm\bf reset~{}noise}&{\mathcal{L}}^{\rm SRM}(x)&amp;=&amp;\delta(x)/\eta^{%
+\prime}\\
+&{\mathcal{L}}^{\rm IF}(x)&amp;=&amp;\left[\delta(x)-{\mathcal{G}}_{{\sigma}}(x-T_{0})%
+\,e^{-T_{0}/\tau}\right]/u^{\prime}\\
+\hline\hline\end{array}" display="block"><semantics><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd class="ltx_border_tt" columnalign="left"><mi>ðððð¢ð§ð¢ð­ð¢ð¨ð§</mi></mtd><mtd class="ltx_border_tt" columnalign="right"><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_tt" columnalign="center"><mo>=</mo></mtd><mtd class="ltx_border_tt" columnalign="left"><mrow><mo>-</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mi>x</mi><mi mathvariant="normal">â</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><mfrac><mrow><mo>â</mo><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>Î¾</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Î¾</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow></mtd></mtr><mtr><mtd></mtd><mtd columnalign="right"><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>IF</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd columnalign="center"><mo>=</mo></mtd><mtd columnalign="left"><mrow><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>+</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi>x</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>Î¾</mi><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><mfrac><mrow><mo>â</mo><mi>S</mi><mrow><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">|</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></mrow><mrow><mrow><mo>â</mo><mo>â¡</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi></mrow></mrow><mo>â¢</mo><mrow><mo>(</mo><mi>Î¾</mi><mo>)</mo></mrow></mrow></mfrac></mrow></mrow></mrow></mtd></mtr><mtr><mtd class="ltx_border_t" columnalign="left"><mrow><mpadded width="+3.3pt"><mi>ð§ð¨</mi></mpadded><mo>â¢</mo><mi>ð§ð¨ð¢ð¬ð</mi></mrow></mtd><mtd class="ltx_border_t" columnalign="right"><mrow><msubsup><mi class="ltx_font_mathcaligraphic">â</mi><mn>0</mn><mi>SRM</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_t" columnalign="center"><mo>=</mo></mtd><mtd class="ltx_border_t" columnalign="left"><mrow><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>/</mo><msup><mi>Î·</mi><mo>â²</mo></msup></mrow></mtd></mtr><mtr><mtd></mtd><mtd columnalign="right"><mrow><msubsup><mi class="ltx_font_mathcaligraphic">â</mi><mn>0</mn><mi>IF</mi></msubsup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd columnalign="center"><mo>=</mo></mtd><mtd columnalign="left"><mrow><mrow><mo>[</mo><mrow><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><mi>Î´</mi><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>x</mi><mo>-</mo><msub><mi>T</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><msub><mi>T</mi><mn>0</mn></msub><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mrow></mrow><mo>]</mo></mrow><mo>/</mo><msup><mi>u</mi><mo>â²</mo></msup></mrow></mtd></mtr><mtr><mtd class="ltx_border_t" columnalign="left"><mrow><mpadded width="+3.3pt"><mi>ðð¬ððð©ð</mi></mpadded><mo>â¢</mo><mi>ð§ð¨ð¢ð¬ð</mi></mrow></mtd><mtd class="ltx_border_t" columnalign="right"><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_t" columnalign="center"><mo>=</mo></mtd><mtd class="ltx_border_t" columnalign="left"><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mi>x</mi><mi mathvariant="normal">â</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>[</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>Î¾</mi><mo>-</mo><mi>x</mi></mrow><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mpadded><mo>â¢</mo><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Î¾</mi><mo>)</mo></mrow></mrow></mrow></mtd></mtr><mtr><mtd></mtd><mtd columnalign="right"><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>IF</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd columnalign="center"><mo>=</mo></mtd><mtd columnalign="left"><mrow><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mpadded><mo>â¢</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mn>0</mn><mi>x</mi></msubsup><mrow><mi>d</mi><mo>â¢</mo><mpadded width="+1.7pt"><mi>Î¾</mi></mpadded><mo>â¢</mo><mpadded width="+1.7pt"><msup><mi>e</mi><mrow><mo>-</mo><mrow><mi>Î¾</mi><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mpadded><mo>â¢</mo><msup><mi>f</mi><mo>â²</mo></msup><mo>â¢</mo><mrow><mo>[</mo><mrow><mi>u</mi><mo>â¢</mo><mrow><mo>(</mo><mi>Î¾</mi><mo>)</mo></mrow></mrow><mo>]</mo></mrow></mrow></mrow></mrow></mrow></mtd></mtr><mtr><mtd class="ltx_border_t" columnalign="left"><mrow><mpadded width="+3.3pt"><mi>ð«ðð¬ðð­</mi></mpadded><mo>â¢</mo><mi>ð§ð¨ð¢ð¬ð</mi></mrow></mtd><mtd class="ltx_border_t" columnalign="right"><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>SRM</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_t" columnalign="center"><mo>=</mo></mtd><mtd class="ltx_border_t" columnalign="left"><mrow><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>/</mo><msup><mi>Î·</mi><mo>â²</mo></msup></mrow></mtd></mtr><mtr><mtd class="ltx_border_bb"></mtd><mtd class="ltx_border_bb" columnalign="right"><mrow><msup><mi class="ltx_font_mathcaligraphic">â</mi><mi>IF</mi></msup><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_bb" columnalign="center"><mo>=</mo></mtd><mtd class="ltx_border_bb" columnalign="left"><mrow><mrow><mo>[</mo><mrow><mrow><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><mo>-</mo><mrow><msub><mi class="ltx_font_mathcaligraphic">ð¢</mi><mi>Ï</mi></msub><mo>â¢</mo><mpadded width="+1.7pt"><mrow><mo>(</mo><mrow><mi>x</mi><mo>-</mo><msub><mi>T</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mpadded><mo>â¢</mo><msup><mi>e</mi><mrow><mo>-</mo><mrow><msub><mi>T</mi><mn>0</mn></msub><mo>/</mo><mi>Ï</mi></mrow></mrow></msup></mrow></mrow><mo>]</mo></mrow><mo>/</mo><msup><mi>u</mi><mo>â²</mo></msup></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}[]{lrcl}\hline\hline{\rm\bf Definition}&amp;{\mathcal{L}}^{\rm SRM}(x%
+)&amp;=&amp;-\int_{x}^{\infty}d\xi\,{\partial S(\xi|0)\over\partial\Delta h(\xi-x)}\\
+&amp;{\mathcal{L}}^{\rm IF}(x)&amp;=&amp;{\mathcal{L}}^{\rm SRM}(x)+\int_{0}^{x}d\xi\,e^{-%
+\xi/\tau}\,{\partial S(x|0)\over\partial\Delta h(\xi)}\\
+\hline{\rm\bf no~{}noise}&amp;{\mathcal{L}}_{0}^{\rm SRM}(x)&amp;=&amp;\delta(x)/\eta^{%
+\prime}\\
+&amp;{\mathcal{L}}_{0}^{\rm IF}(x)&amp;=&amp;\left[\delta(x)-\delta(x-T_{0})\,e^{-T_{0}/%
+\tau}\right]/u^{\prime}\\
+\hline{\rm\bf escape~{}noise}&amp;{\mathcal{L}}^{\rm SRM}(x)&amp;=&amp;\int_{x}^{\infty}d%
+\xi\,f^{\prime}[u(\xi-x)]\,S_{0}(\xi)\\
+&amp;{\mathcal{L}}^{\rm IF}(x)&amp;=&amp;{\mathcal{L}}^{\rm SRM}(x)-S_{0}(x)\,\int_{0}^{x}%
+d\xi\,e^{-\xi/\tau}\,f^{\prime}[u(\xi)]\\
+\hline{\rm\bf reset~{}noise}&amp;{\mathcal{L}}^{\rm SRM}(x)&amp;=&amp;\delta(x)/\eta^{%
+\prime}\\
+&amp;{\mathcal{L}}^{\rm IF}(x)&amp;=&amp;\left[\delta(x)-{\mathcal{G}}_{{\sigma}}(x-T_{0})%
+\,e^{-T_{0}/\tau}\right]/u^{\prime}\\
+\hline\hline\end{array}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">TableÂ 15.1: </span>The kernel <math id="Ch15.T1.m6" class="ltx_Math" alttext="{\mathcal{L}}(x)" display="inline"><semantics><mrow><mi class="ltx_font_mathcaligraphic">â</mi><mo>â¢</mo><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">{\mathcal{L}}(x)</annotation></semantics></math>
+that appears in Eq.
+(<a href="#Ch15.E7" title="(15.7) â£ 15.2.2 Populations of neurons with escape noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>)
+is given each time for integrate-and-fire neurons
+and SRM<math id="Ch15.T1.m7" class="ltx_Math" alttext="{}_{0}" display="inline"><semantics><msub><mi></mi><mn>0</mn></msub><annotation encoding="application/x-tex">{}_{0}</annotation></semantics></math> neurons (upper index IF and SRM, respectively).
+Top row: The general
+case (âDefinitionâ).
+Second row: Deterministic neuron model without noise.
+Third row:
+Neuron model with escape noise.
+Bottom: Neuron model with slow noise in
+the form of âreset noiseâ, where the
+value of the reset has a small jitter.
+<math id="Ch15.T1.m8" class="ltx_Math" alttext="S_{0}(s)" display="inline"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">S_{0}(s)</annotation></semantics></math> is the survivor function
+in the asynchronous state and <math id="Ch15.T1.m9" class="ltx_Math" alttext="{\mathcal{G}}_{\sigma}" display="inline"><semantics><msub><mi class="ltx_font_mathcaligraphic">ð¢</mi><mi>Ï</mi></msub><annotation encoding="application/x-tex">{\mathcal{G}}_{\sigma}</annotation></semantics></math> a normalized Gaussian with
+width <math id="Ch15.T1.m10" class="ltx_Math" alttext="\sigma" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>. Primes denote derivatives with respect to the
+argument. </figcaption>
+</figure>
+</section>
+<section id="SS3" class="ltx_subsection">
+<h1 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">15.2.3 </span>Populations of neurons with diffusive noise</h1>
+
+<div id="SS3.p1" class="ltx_para">
+<p class="ltx_p">Simulation results for
+a population of integrate-and-fire neurons with diffusive noise
+are similar to those reported for escape noise.
+For a small to medium amount of diffusive
+noise, the transient is fairly sharp
+and followed by a damped oscillation
+(Fig. <a href="#Ch15.F7" title="Fig.Â 15.7 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>A).
+For a large amount of noise, the oscillation is suppressed
+and the response of the population activity <math id="SS3.p1.m1" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+is slower
+(Fig. <a href="#Ch15.F7" title="Fig.Â 15.7 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.7</span></a>B).</p>
+</div>
+<div id="SS3.p2" class="ltx_para">
+<p class="ltx_p">In the discussion of escape noise in the preceding section,
+we have seen that the response to a step input
+is fast, if the population activity
+reflects the <span class="ltx_text ltx_font_italic">derivative</span> <math id="SS3.p2.m1" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math> of the input potential.
+To understand when and how
+the derivative <math id="SS3.p2.m2" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math> can play a role with diffusive noise,
+it is convenient to consider for a moment
+not a step-current input but a current <span class="ltx_text ltx_font_italic">pulse</span>.
+According to Eq. (<a href="Ch15.html#E3" title="(15.3) â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.3</span></a>),
+a current pulse <math id="SS3.p2.m3" class="ltx_Math" alttext="I(t)=q\,\delta(t-t_{0})" display="inline"><semantics><mrow><mrow><mi>I</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mpadded width="+1.7pt"><mi>q</mi></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">I(t)=q\,\delta(t-t_{0})</annotation></semantics></math>
+which deposits at time <math id="SS3.p2.m4" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> a charge <math id="SS3.p2.m5" class="ltx_Math" alttext="q" display="inline"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>,
+causes a discontinuous jump of the input
+potential</p>
+<table id="Ch15.E11" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E11.m1" class="ltx_Math" alttext="\Delta h(t)=\left\{\begin{array}[]{*{3}{c@{\quad}}c}0\quad&amp;\quad&{\rm for}%
+\quad&amp;t\leq t_{0}\\
+R\,q/\tau_{m}\quad&amp;\quad&{\rm for}\quad&amp;t&gt;t_{0}\,.\end{array}\right." display="block"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>h</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd columnalign="center"><mpadded width="+10.0pt"><mn>0</mn></mpadded></mtd><mtd><mi></mi></mtd><mtd columnalign="center"><mpadded width="+10.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mi>t</mi><mo>â¤</mo><msub><mi>t</mi><mn>0</mn></msub></mrow></mtd></mtr><mtr><mtd columnalign="center"><mrow><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>q</mi></mrow><mo>/</mo><mpadded width="+10.0pt"><msub><mi>Ï</mi><mi>m</mi></msub></mpadded></mrow></mtd><mtd><mi></mi></mtd><mtd columnalign="center"><mpadded width="+10.0pt"><mi>for</mi></mpadded></mtd><mtd columnalign="center"><mrow><mrow><mi>t</mi><mo>&gt;</mo><mpadded width="+1.7pt"><msub><mi>t</mi><mn>0</mn></msub></mpadded></mrow><mo>.</mo></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\Delta h(t)=\left\{\begin{array}[]{*{3}{c@{\quad}}c}0\quad&amp;\quad&amp;{\rm for}%
+\quad&amp;t\leq t_{0}\\
+R\,q/\tau_{m}\quad&amp;\quad&amp;{\rm for}\quad&amp;t&gt;t_{0}\,.\end{array}\right.</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.11)</span></td>
+</tr>
+</table>
+</div>
+<figure id="Ch15.F7" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x374.png" id="Ch15.F7.g1" class="ltx_graphics" width="293" height="213" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x375.png" id="Ch15.F7.g2" class="ltx_graphics" width="293" height="213" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.7: </span>
+<span class="ltx_text ltx_font_italic">Diffusive Noise.</span>
+Response of a network of 1000 integrate-and-fire neurons
+with diffusive noise to step current input.
+Simulations (fluctuating solid line)
+are compared to a numerical integration
+of the density equations (thick dashed line).
+<span class="ltx_text ltx_font_bold">A</span>. For low noise and a big (super-threshold)
+current step the response is rapid.
+<span class="ltx_text ltx_font_bold">B</span>. For high noise and a small current step the response is
+slower and does not exhibit oscillations.
+</figcaption>
+</figure>
+<div id="SS3.p3" class="ltx_para">
+<p class="ltx_p">The central idea of the following arguments
+is shown schematically in
+Fig. <a href="#Ch15.F8" title="Fig.Â 15.8 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.8</span></a>.
+According to Eq. (<a href="#Ch15.E11" title="(15.11) â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.11</span></a>),
+all membrane potential
+trajectories jump at time <math id="SS3.p3.m1" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math> by the amount <math id="SS3.p3.m2" class="ltx_Math" alttext="\Delta u=R\,q/\tau_{m}" display="inline"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><mo>=</mo><mrow><mrow><mpadded width="+1.7pt"><mi>R</mi></mpadded><mo>â¢</mo><mi>q</mi></mrow><mo>/</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mrow><annotation encoding="application/x-tex">\Delta u=R\,q/\tau_{m}</annotation></semantics></math>.
+The distribution of membrane potentials
+across the different neurons in the population, just
+before <math id="SS3.p3.m3" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>, is described by <math id="SS3.p3.m4" class="ltx_Math" alttext="p(u)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u)</annotation></semantics></math>.
+The step increase in the membrane potential
+kicks all neurons <math id="SS3.p3.m5" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> with membrane potential <math id="SS3.p3.m6" class="ltx_Math" alttext="u_{i}" display="inline"><semantics><msub><mi>u</mi><mi>i</mi></msub><annotation encoding="application/x-tex">u_{i}</annotation></semantics></math>
+in the range <math id="SS3.p3.m7" class="ltx_Math" alttext="\vartheta-\Delta u&lt;u_{i}&lt;\vartheta" display="inline"><semantics><mrow><mrow><mi>Ï</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow></mrow><mo>&lt;</mo><msub><mi>u</mi><mi>i</mi></msub><mo>&lt;</mo><mi>Ï</mi></mrow><annotation encoding="application/x-tex">\vartheta-\Delta u&lt;u_{i}&lt;\vartheta</annotation></semantics></math>
+instantaneously across the threshold which generates
+an activity pulse</p>
+<table id="Ch15.E12" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.E12.m1" class="ltx_Math" alttext="\Delta A(t_{0})\propto{N_{F}(t_{0})\over N}\,\delta(t-t_{0})" display="block"><semantics><mrow><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>â</mo><mrow><mpadded width="+1.7pt"><mfrac><mrow><msub><mi>N</mi><mi>F</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mi>N</mi></mfrac></mpadded><mo>â¢</mo><mi>Î´</mi><mo>â¢</mo><mrow><mo>(</mo><mrow><mi>t</mi><mo>-</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\Delta A(t_{0})\propto{N_{F}(t_{0})\over N}\,\delta(t-t_{0})</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation">(15.12)</span></td>
+</tr>
+</table>
+<p class="ltx_p">where <math id="SS3.p3.m8" class="ltx_Math" alttext="N_{F}(t_{0})/N=\int_{\vartheta-\Delta u}^{\vartheta}p(u){\text{d}}u" display="inline"><semantics><mrow><mrow><mrow><msub><mi>N</mi><mi>F</mi></msub><mo>â¢</mo><mrow><mo>(</mo><msub><mi>t</mi><mn>0</mn></msub><mo>)</mo></mrow></mrow><mo>/</mo><mi>N</mi></mrow><mo>=</mo><mrow><msubsup><mo largeop="true" symmetric="true">â«</mo><mrow><mi>Ï</mi><mo>-</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow></mrow><mi>Ï</mi></msubsup><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow><mo>â¢</mo><mtext>d</mtext><mo>â¢</mo><mi>u</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">N_{F}(t_{0})/N=\int_{\vartheta-\Delta u}^{\vartheta}p(u){\text{d}}u</annotation></semantics></math>
+is the fraction of neurons that fire because of the input current pulse.
+The Dirac-<math id="SS3.p3.m9" class="ltx_Math" alttext="\delta" display="inline"><semantics><mi>Î´</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math> pulse in the activity indicates
+that <math id="SS3.p3.m10" class="ltx_Math" alttext="\Delta A(t)" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta A(t)</annotation></semantics></math> is proportional to the <span class="ltx_text ltx_font_italic">derivative</span>
+<math id="SS3.p3.m11" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math> of the input potential of Eq. (<a href="#Ch15.E11" title="(15.11) â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.11</span></a>).
+A population response proportional to <math id="SS3.p3.m12" class="ltx_Math" alttext="h^{\prime}" display="inline"><semantics><msup><mi>h</mi><mo>â²</mo></msup><annotation encoding="application/x-tex">h^{\prime}</annotation></semantics></math>
+is the signature of an immediate response
+to step currents.</p>
+</div>
+<div id="SS3.p4" class="ltx_para">
+<p class="ltx_p">The above argument assumes that the jump size is finite.
+The linearization
+of the membrane potential density equations
+(cf. Chapter <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>) corresponds to
+the limit where the jump size goes to zero.
+Two different situation may occur, which are visualized in
+Figs. <a href="#Ch15.F8" title="Fig.Â 15.8 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.8</span></a>A and B,
+respectively.
+Let us start with the situation depicted in
+Fig. <a href="#Ch15.F8" title="Fig.Â 15.8 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.8</span></a>B.
+As the jump size
+<math id="SS3.p4.m1" class="ltx_Math" alttext="\Delta u" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math> goes to zero, the fraction of neurons
+that fire (i.e. the shaded area under the curve
+of <math id="SS3.p4.m2" class="ltx_Math" alttext="p(u)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u)</annotation></semantics></math>) remains proportional to <math id="SS3.p4.m3" class="ltx_Math" alttext="\Delta u" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>.
+Therefore, even in the limit of <math id="SS3.p4.m4" class="ltx_Math" alttext="\Delta u" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math> to zero
+the linearized population equations predict
+a rapid response component.
+The fast response component is proportional
+<math id="SS3.p4.m5" class="ltx_Math" alttext="p(\vartheta)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(\vartheta)</annotation></semantics></math>, i.e.,
+to the density of the membrane potential at threshold.
+For colored noise, the density at threshold is finite.
+Therefore, for colored noise,
+the response is fast (Fig. <a href="Ch15.S3.html#Ch15.F9" title="Fig.Â 15.9 â£ 15.3.1 Rate models have slow transients â£ 15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.9</span></a>), even
+after linearization of the
+equations of the population dynamics
+<cite class="ltx_cite">(<a href="bib.html#bib368" title="Effects of synaptic noise and filtering on the frequency response of spiking neurons" class="ltx_ref">77</a>; <a href="bib.html#bib326" title="Dynamics of the firing probability of noisy integrate-and-fire neurons" class="ltx_ref">154</a>)</cite>.</p>
+</div>
+<div id="SS3.p5" class="ltx_para">
+<p class="ltx_p">For diffusive noise with white-noise characteristics, however,
+the
+membrane potential density vanishes at the threshold.
+The
+area under the curve therefore has the shape of a triangle
+(Fig. <a href="#Ch15.F8" title="Fig.Â 15.8 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.8</span></a>A)
+and is proportional to
+<math id="SS3.p5.m1" class="ltx_Math" alttext="(\Delta u)^{2}" display="inline"><semantics><msup><mrow><mo>(</mo><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><mo>)</mo></mrow><mn>2</mn></msup><annotation encoding="application/x-tex">(\Delta u)^{2}</annotation></semantics></math>. In the limit of <math id="SS3.p5.m2" class="ltx_Math" alttext="\Delta u" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math> to zero,
+a linearization of the equation thus
+predicts that the response looses its
+instantaneous component
+<cite class="ltx_cite">(<a href="bib.html#bib306" title="Fast global oscillations in networks of integrate-and-fire neurons with low firing rates" class="ltx_ref">78</a>; <a href="bib.html#bib343" title="Transmission of noise coded versus additive signals through a neuronal ensemble" class="ltx_ref">298</a>; <a href="bib.html#bib342" title="Firing-rate response of linear and nonlinear integrate-and-fire neurons to modulated current-based and conductance-based synaptic drive" class="ltx_ref">434</a>)</cite>.</p>
+</div>
+<figure id="Ch15.F8" class="ltx_figure">
+<table class="ltx_tabular ltx_centering ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">A</span>
+                  </th>
+<th class="ltx_td ltx_align_left">
+                    <span class="ltx_text ltx_font_bold">B</span>
+                  </th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">
+                    <img src="x376.png" id="Ch15.F8.g1" class="ltx_graphics" width="293" height="220" alt="">
+                  </td>
+<td class="ltx_td ltx_align_left"><img src="x377.png" id="Ch15.F8.g2" class="ltx_graphics" width="293" height="220" alt=""></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text ltx_font_bold">Fig.</span>Â 15.8: </span>
+Transients in a population of neurons with diffusive noise.
+<span class="ltx_text ltx_font_bold">A</span>. Rapid response to strong stimuli.
+Top:
+A population of neurons (left) is characterized
+by its distribution of membrane potentials (middle).
+Four representative trajectories are shown
+(right).
+In the stationary state of asynchronous
+firing, the population activity <math id="Ch15.F8.m11" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>
+fluctuates about a constant value <math id="Ch15.F8.m12" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>.
+Bottom: If all neurons receive a common
+current pulse at time <math id="Ch15.F8.m13" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>,
+the membrane potential jumps by a small
+amount <math id="Ch15.F8.m14" class="ltx_Math" alttext="\Delta u" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>.
+Therefore, all neurons
+with a membrane potential just
+below threshold (dashed area below <math id="Ch15.F8.m15" class="ltx_Math" alttext="p(u)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u)</annotation></semantics></math>) fire synchronously
+at time <math id="Ch15.F8.m16" class="ltx_Math" alttext="t_{0}" display="inline"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_{0}</annotation></semantics></math>,
+which gives rise to an instantaneous
+peak in <math id="Ch15.F8.m17" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math>.
+With white diffusive noise, the density
+<math id="Ch15.F8.m18" class="ltx_Math" alttext="p(u)" display="inline"><semantics><mrow><mi>p</mi><mo>â¢</mo><mrow><mo>(</mo><mi>u</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">p(u)</annotation></semantics></math> vanishes at the threshold <math id="Ch15.F8.m19" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math>.
+Therefore, the amplitude of the peak
+vanishes quadratically as the charge deposited by the current
+pulse decreases.
+<span class="ltx_text ltx_font_bold">B</span>.
+Rapid response to strong and weak stimuli.
+Same as in A, except that
+the noise is slow, either slow noise
+in the parameters or colored diffusive noise.
+In this case, the
+area under the curve and therefore the amplitude
+of the peak in <math id="Ch15.F8.m20" class="ltx_Math" alttext="A(t)" display="inline"><semantics><mrow><mi>A</mi><mo>â¢</mo><mrow><mo>(</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">A(t)</annotation></semantics></math> vanishes linearly with the
+charge delivered by
+the current pulse. This gives rise
+to a rapid linear response.
+Schematic figure.
+</figcaption>
+</figure>
+<div id="SS3.p6" class="ltx_para">
+<p class="ltx_p">The linearization of the membrane potential
+density equations leads to the
+linear response filter <math id="SS3.p6.m1" class="ltx_Math" alttext="G(s)" display="inline"><semantics><mrow><mi>G</mi><mo>â¢</mo><mrow><mo>(</mo><mi>s</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">G(s)</annotation></semantics></math>.
+The Fourier transform of <math id="SS3.p6.m2" class="ltx_Math" alttext="G" display="inline"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+is the frequency-dependent gain
+<math id="SS3.p6.m3" class="ltx_Math" alttext="\hat{G}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{G}(\omega)</annotation></semantics></math>; cf.
+Chapter <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>.
+
+After linearization of the population activity
+equations, the question of fast or slow response
+to a step input is equivalent
+to the question of the high-frequency
+behavior of <math id="SS3.p6.m4" class="ltx_Math" alttext="\hat{G}(\omega)" display="inline"><semantics><mrow><mover accent="true"><mi>G</mi><mo stretchy="false">^</mo></mover><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{G}(\omega)</annotation></semantics></math>.
+Tab.Â <a href="#Ch15.T2" title="TableÂ 15.2 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.2</span></a>
+summarizes the main
+results from the literature.
+A cut-off frequency proportional to
+<math id="SS3.p6.m5" class="ltx_Math" alttext="1/\tau_{m}" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">1/\tau_{m}</annotation></semantics></math> implies that
+the dynamics of the population activity
+is âslowâ and
+roughly follows the
+input potential.
+Exponential integrate-and-fire neurons,
+which we have identified in Chapter
+<a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> as a good model of
+cortical neurons, are always slow
+in this sense.
+If there is no cut-off, the population
+activity can respond rapidly.
+With this definition,
+leaky integrate-and-fire neurons
+respond rapidly to a change in the input
+variance <math id="SS3.p6.m6" class="ltx_Math" alttext="\sigma^{2}" display="inline"><semantics><msup><mi>Ï</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^{2}</annotation></semantics></math>
+of the diffusive noise <cite class="ltx_cite">(<a href="bib.html#bib343" title="Transmission of noise coded versus additive signals through a neuronal ensemble" class="ltx_ref">298</a>; <a href="bib.html#bib344" title="Dynamics of population rate codes in ensembles of neocortical neurons" class="ltx_ref">477</a>; <a href="bib.html#bib342" title="Firing-rate response of linear and nonlinear integrate-and-fire neurons to modulated current-based and conductance-based synaptic drive" class="ltx_ref">434</a>)</cite>.
+A cut-off proportional to <math id="SS3.p6.m7" class="ltx_Math" alttext="1/\sqrt{\tau_{m}}" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><msqrt><msub><mi>Ï</mi><mi>m</mi></msub></msqrt></mrow><annotation encoding="application/x-tex">1/\sqrt{\tau_{m}}</annotation></semantics></math>
+means that the response of a population
+of leaky integrate-and-fire neurons to a step
+is slightly faster than that of the membrane potential
+but must still be considered as âfairly slowâ
+<cite class="ltx_cite">(<a href="bib.html#bib306" title="Fast global oscillations in networks of integrate-and-fire neurons with low firing rates" class="ltx_ref">78</a>)</cite>.</p>
+</div>
+<div id="SS3.p7" class="ltx_para">
+<p class="ltx_p">We close with a conundrum:
+Why is the linear response of the leaky
+integrate-and-fire model fairly slow for all noise levels,
+yet the noise-free response that we have
+seen in Fig. <a href="#Ch15.F5" title="Fig.Â 15.5 â£ 15.2.1 Fast transients for low noise or âslowâ noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.5</span></a>A
+is fast?
+We emphasize that the linearization
+of the noise-free population equations
+does indeed predict a fast response, because,
+if there is no noise, the
+membrane potential density at the threshold is finite.
+However, already for a very small amount of
+white diffusive noise, the formal membrane
+potential density at the threshold vanishes,
+so that the linearized population equations
+predict a slow response. This is, however,
+to a certain degree an artifact of the diffusion
+approximation.
+For a small amount of diffusive noise, the layer
+below <math id="SS3.p7.m1" class="ltx_Math" alttext="\vartheta" display="inline"><semantics><mi>Ï</mi><annotation encoding="application/x-tex">\vartheta</annotation></semantics></math> over which
+the membrane potential density
+drops from its maximum
+to zero becomes very thin.
+For any finite spike arrival rate
+and finite EPSP size in the background input
+or finite signal amplitude <math id="SS3.p7.m2" class="ltx_Math" alttext="\Delta I" display="inline"><semantics><mrow><mi mathvariant="normal">Î</mi><mo>â¢</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">\Delta I</annotation></semantics></math>,
+the immediate response is strong and fast - as seen from
+the general arguments in
+Fig. <a href="#Ch15.F8" title="Fig.Â 15.8 â£ 15.2.3 Populations of neurons with diffusive noise â£ 15.2 Fast transients vs. slow transients in models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15.8</span></a>.</p>
+</div>
+<figure id="Ch15.T2" class="ltx_table">
+<table id="Ch15.Ex3" class="ltx_equation">
+
+<tr class="ltx_equation ltx_align_baseline">
+<td class="ltx_eqn_center_padleft"></td>
+<td class="ltx_align_center"><math id="Ch15.Ex3.m1" class="ltx_Math" alttext="\begin{array}[]{llll}\hline\hline&amp;G_{I}(\omega)&amp;G_{\sigma}(\omega)&amp;G_{g}(%
+\omega)\par
+\\
+\hline LIF&amp;A_{0}{R\over\sigma}{1\over\sqrt{\omega\tau_{m}}}&amp;A_{0}{1\over\sigma%
+^{2}}\left(1+{\vartheta-h_{0}\over\sigma\sqrt{\omega\tau_{m}}}\right)&amp;A_{0}{1%
+\over g_{0}}\,{\vartheta-h_{0}\over\sigma\sqrt{\omega\tau_{m}}}\\
+\hline EIF&amp;A_{0}{R\over\Delta_{T}}{1\over{\omega\tau_{m}}}&amp;A_{0}{1\over(\Delta%
+_{T})^{2}}{1\over{\omega\tau_{m}}}\par
+&amp;A_{0}{1\over g_{0}}{1\over{\omega\tau_%
+{m}}}\log(\omega\tau_{m})\\
+\hline\hline\end{array}" display="block"><semantics><mtable align="center" columnspacing="0.4em" rowspacing="0.2ex"><mtr><mtd class="ltx_border_tt"><mi></mi></mtd><mtd class="ltx_border_tt" columnalign="left"><mrow><msub><mi>G</mi><mi>I</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_tt" columnalign="left"><mrow><msub><mi>G</mi><mi>Ï</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_tt" columnalign="left"><mrow><msub><mi>G</mi><mi>g</mi></msub><mo>â¢</mo><mrow><mo>(</mo><mi>Ï</mi><mo>)</mo></mrow></mrow></mtd></mtr><mtr><mtd class="ltx_border_t" columnalign="left"><mrow><mi>L</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mi>F</mi></mrow></mtd><mtd class="ltx_border_t" columnalign="left"><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>â¢</mo><mfrac><mi>R</mi><mi>Ï</mi></mfrac><mo>â¢</mo><mfrac><mn>1</mn><msqrt><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></msqrt></mfrac></mrow></mtd><mtd class="ltx_border_t" columnalign="left"><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>â¢</mo><mfrac><mn>1</mn><msup><mi>Ï</mi><mn>2</mn></msup></mfrac><mo>â¢</mo><mrow><mo>(</mo><mrow><mn>1</mn><mo>+</mo><mfrac><mrow><mi>Ï</mi><mo>-</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mrow><mi>Ï</mi><mo>â¢</mo><msqrt><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></msqrt></mrow></mfrac></mrow><mo>)</mo></mrow></mrow></mtd><mtd class="ltx_border_t" columnalign="left"><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>â¢</mo><mpadded width="+1.7pt"><mfrac><mn>1</mn><msub><mi>g</mi><mn>0</mn></msub></mfrac></mpadded><mo>â¢</mo><mfrac><mrow><mi>Ï</mi><mo>-</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mrow><mi>Ï</mi><mo>â¢</mo><msqrt><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></msqrt></mrow></mfrac></mrow></mtd></mtr><mtr><mtd class="ltx_border_bb ltx_border_t" columnalign="left"><mrow><mi>E</mi><mo>â¢</mo><mi>I</mi><mo>â¢</mo><mi>F</mi></mrow></mtd><mtd class="ltx_border_bb ltx_border_t" columnalign="left"><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>â¢</mo><mfrac><mi>R</mi><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub></mfrac><mo>â¢</mo><mfrac><mn>1</mn><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mfrac></mrow></mtd><mtd class="ltx_border_bb ltx_border_t" columnalign="left"><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>â¢</mo><mfrac><mn>1</mn><msup><mrow><mo>(</mo><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub><mo>)</mo></mrow><mn>2</mn></msup></mfrac><mo>â¢</mo><mfrac><mn>1</mn><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mfrac></mrow></mtd><mtd class="ltx_border_bb ltx_border_t" columnalign="left"><mrow><msub><mi>A</mi><mn>0</mn></msub><mo>â¢</mo><mfrac><mn>1</mn><msub><mi>g</mi><mn>0</mn></msub></mfrac><mo>â¢</mo><mfrac><mn>1</mn><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></mfrac><mo>â¢</mo><mrow><mi>log</mi><mo>â¡</mo><mrow><mo>(</mo><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}[]{llll}\hline\hline&amp;G_{I}(\omega)&amp;G_{\sigma}(\omega)&amp;G_{g}(%
+\omega)\par
+\\
+\hline LIF&amp;A_{0}{R\over\sigma}{1\over\sqrt{\omega\tau_{m}}}&amp;A_{0}{1\over\sigma%
+^{2}}\left(1+{\vartheta-h_{0}\over\sigma\sqrt{\omega\tau_{m}}}\right)&amp;A_{0}{1%
+\over g_{0}}\,{\vartheta-h_{0}\over\sigma\sqrt{\omega\tau_{m}}}\\
+\hline EIF&amp;A_{0}{R\over\Delta_{T}}{1\over{\omega\tau_{m}}}&amp;A_{0}{1\over(\Delta%
+_{T})^{2}}{1\over{\omega\tau_{m}}}\par
+&amp;A_{0}{1\over g_{0}}{1\over{\omega\tau_%
+{m}}}\log(\omega\tau_{m})\\
+\hline\hline\end{array}</annotation></semantics></math></td>
+<td class="ltx_eqn_center_padright"></td>
+</tr>
+</table>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">TableÂ 15.2: </span>High-frequency response in the presence of diffusive noise.
+The frequency dependent gain
+of leaky integrate-and-fire neurons
+(LIF) and exponential integrate-and-fire neurons (EIF)
+in response to a periodic modulation of the
+input current <math id="Ch15.T2.m15" class="ltx_Math" alttext="G_{I}" display="inline"><semantics><msub><mi>G</mi><mi>I</mi></msub><annotation encoding="application/x-tex">G_{I}</annotation></semantics></math>, of the noise variance <math id="Ch15.T2.m16" class="ltx_Math" alttext="G_{\sigma}" display="inline"><semantics><msub><mi>G</mi><mi>Ï</mi></msub><annotation encoding="application/x-tex">G_{\sigma}</annotation></semantics></math>,
+or of the input conductance <math id="Ch15.T2.m17" class="ltx_Math" alttext="G_{g}" display="inline"><semantics><msub><mi>G</mi><mi>g</mi></msub><annotation encoding="application/x-tex">G_{g}</annotation></semantics></math>.
+The neurons are subject to diffusive noise
+and described by the Fokker-Planck equation; cf. Ch. <a href="Ch13.html" title="ChapterÂ 13 Continuity Equation and the Fokker-Planck Approach â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>.
+The response <math id="Ch15.T2.m18" class="ltx_Math" alttext="G_{\sigma}" display="inline"><semantics><msub><mi>G</mi><mi>Ï</mi></msub><annotation encoding="application/x-tex">G_{\sigma}</annotation></semantics></math> of the LIF to
+modulations in the noise level is rapid, since it approaches
+a finite value for <math id="Ch15.T2.m19" class="ltx_Math" alttext="\omega\to\infty" display="inline"><semantics><mrow><mi>Ï</mi><mo>â</mo><mi mathvariant="normal">â</mi></mrow><annotation encoding="application/x-tex">\omega\to\infty</annotation></semantics></math>.
+The response <math id="Ch15.T2.m20" class="ltx_Math" alttext="G_{I}" display="inline"><semantics><msub><mi>G</mi><mi>I</mi></msub><annotation encoding="application/x-tex">G_{I}</annotation></semantics></math> or <math id="Ch15.T2.m21" class="ltx_Math" alttext="G_{g}" display="inline"><semantics><msub><mi>G</mi><mi>g</mi></msub><annotation encoding="application/x-tex">G_{g}</annotation></semantics></math> of the LIF to changes in input current
+or input conductance is fairly slow, since it decays at high
+frequencies with <math id="Ch15.T2.m22" class="ltx_Math" alttext="1/\sqrt{\omega\tau_{m}}" display="inline"><semantics><mrow><mn>1</mn><mo>/</mo><msqrt><mrow><mi>Ï</mi><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">1/\sqrt{\omega\tau_{m}}</annotation></semantics></math>.
+The response of the EIF is always slow
+(decay with <math id="Ch15.T2.m23" class="ltx_Math" alttext="1/\omega\tau_{m}" display="inline"><semantics><mrow><mrow><mn>1</mn><mo>/</mo><mi>Ï</mi></mrow><mo>â¢</mo><msub><mi>Ï</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">1/\omega\tau_{m}</annotation></semantics></math>) whatever
+the type of input.
+Parameters denote the input resistance <math id="Ch15.T2.m24" class="ltx_Math" alttext="R" display="inline"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>,
+membrane time constant <math id="Ch15.T2.m25" class="ltx_Math" alttext="\tau_{m}" display="inline"><semantics><msub><mi>Ï</mi><mi>m</mi></msub><annotation encoding="application/x-tex">\tau_{m}</annotation></semantics></math>,
+noise level <math id="Ch15.T2.m26" class="ltx_Math" alttext="\sigma_{0}" display="inline"><semantics><msub><mi>Ï</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\sigma_{0}</annotation></semantics></math>, population activity in
+the stationary state <math id="Ch15.T2.m27" class="ltx_Math" alttext="A_{0}" display="inline"><semantics><msub><mi>A</mi><mn>0</mn></msub><annotation encoding="application/x-tex">A_{0}</annotation></semantics></math>, and slope factor <math id="Ch15.T2.m28" class="ltx_Math" alttext="\Delta_{T}" display="inline"><semantics><msub><mi mathvariant="normal">Î</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\Delta_{T}</annotation></semantics></math> of the exponential
+integrate-and-fire model (cf. Chapter <a href="Ch5.html" title="ChapterÂ 5 Nonlinear Integrate-and-Fire Models â£ PartÂ II Generalized Integrate-and-Fire Neurons â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>).
+The table (adapted from <cite class="ltx_cite">Richardson (<a href="bib.html#bib342" title="Firing-rate response of linear and nonlinear integrate-and-fire neurons to modulated current-based and conductance-based synaptic drive" class="ltx_ref">434</a>)</cite>)
+summarizes mathematical results
+of <cite class="ltx_cite">(<a href="bib.html#bib306" title="Fast global oscillations in networks of integrate-and-fire neurons with low firing rates" class="ltx_ref">78</a>; <a href="bib.html#bib343" title="Transmission of noise coded versus additive signals through a neuronal ensemble" class="ltx_ref">298</a>; <a href="bib.html#bib370" title="Dynamics of the instantaneous firing rate in response to changes in input statistics" class="ltx_ref">155</a>; <a href="bib.html#bib342" title="Firing-rate response of linear and nonlinear integrate-and-fire neurons to modulated current-based and conductance-based synaptic drive" class="ltx_ref">434</a>)</cite>.
+</figcaption>
+</figure>
+</section>
+</section>
+</div>
+<footer class="ltx_page_footer">
+<div>
+<a href="Ch15.S1.html" title="15.1 How fast are population responses? â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="prev"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.1 </span>How fast are population responses?</span></a><a href="Ch15.S3.html" title="15.3 Rate models â£ ChapterÂ 15 Fast Transients and Rate Models â£ PartÂ III Networks of Neurons and Population Activity â£ Neuronal Dynamics â From Single Neurons to Networks
+and Models of Cognition" class="ltx_ref" rel="next"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">15.3 </span>Rate models</span></a>
+</div>
+<div class="ltx_page_logo">Generated  on Mon Sep  8 19:44:32 2014 by <a href="http://dlmf.nist.gov/LaTeXML/">LaTeXML <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="[LOGO]"></a>
+</div></footer>
+</div>
+</div>
+<div class="footer" style="margin-bottom:0px;padding-top: 15px;"><div class="container small"><p class="muted"><strong>Â© Cambridge University Press</strong>. This book is in copyright. No reproduction of any part of it may take place without the written permission of Cambridge University Press.</p></div></div>
+</body>
+</html>
