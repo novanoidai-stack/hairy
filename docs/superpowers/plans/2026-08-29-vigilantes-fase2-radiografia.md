@@ -37,10 +37,12 @@
 | 9 | Tecnologías (deps obsoletas/vulnerables, audit) | Medio | Bajo | **P2** |
 | 10 | Presupuesto de peso del bundle JS | Medio | Bajo | **P2** |
 | 11 | **Atribución: QUÉ push rompió/ensució QUÉ (antes vs después)** | Muy alto | Medio | **P0** |
+| 12 | **Radar de GitHub: revisor IA + CodeQL + Renovate** (instalar, no construir) | Alto | Muy bajo | **P0** |
 
-Orden de ejecución recomendado: 1→2→3→**11** (una misma sesión: la 11 es la que
-convierte las mediciones de 1–3 en "este commit lo hizo"), luego 4+7 (ambas son
-invariantes de texto/BD), luego 6, y el resto.
+Orden de ejecución recomendado: **12 primero (son instalaciones de minutos, no
+proyectos)**, luego 1→2→3→**11** (una misma sesión: la 11 es la que convierte las
+mediciones de 1–3 en "este commit lo hizo"), luego 4+7 (ambas son invariantes de
+texto/BD), luego 6, y el resto.
 
 ---
 
@@ -144,6 +146,87 @@ No es "vigilar al vigilante": eso ya lo hace la fase 1 (ancla perdida = fallo).
 Esto es **memoria comparativa**: convertir las corridas sueltas en una serie
 temporal por commit, para que la pregunta "¿desde cuándo pasa esto?" tenga respuesta
 de un clic en lugar de una tarde de arqueología git.
+
+---
+
+## 12. Radar de GitHub — instalar, no construir — P0
+
+**Qué es esto:** herramientas que ya existen en GitHub y se activan en minutos. No
+son vigilantes nuestros: los mantenemos con las reglas del repo y ellos revisan solos.
+Los tres son complementarios entre sí Y con los vigilantes: el revisor IA lee el
+diff, CodeQL mira patrones de seguridad internos, Renovate las dependencias; los
+vigilantes propios siguen siendo los únicos que entienden de invariantes Mecha
+(precios en 3 sitios, multi-tenant, la regla del parámetro).
+
+### 12a. Revisor de código con IA en cada PR
+
+- **Qué hace:** en cada PR, lee el diff y comenta (bugs, riesgos, incoherencias con
+  el resto del fichero). Con instrucciones de repo (ver abajo) también puede
+  comprobar las normas de CLAUDE.md.
+- **Opciones** (elegir UNA; todas con plan gratis o barato):
+  - **GitHub Copilot Code Review** — botón en Settings → Copilot → Code review; si
+    ya hay suscripción Copilot, no cuesta nada extra. La opción por defecto.
+  - **CodeRabbit** (`coderabbit.ai`) — el más hablador; plan público gratis, gratis
+    total en repos open source; comenta con resumen + acciones sugeridas.
+  - **Claude Code GitHub Action** (`claude-code-action` de Anthropic) — comenta con
+    `@claude` en el PR; requiere API key de Anthropic.
+- **Instrucciones de repo:** crear `.github/copilot-instructions.md` (o el
+  equivalente de la herramienta elegida) con lo que el revisor TIENE que mirar en
+  Este repo, en este orden:
+  1. ¿Lleva `negocio_id` toda consulta y toda política? (multi-tenant)
+  2. ¿Alguna clave en el código? (regla 1 y 9 de CLAUDE.md — prohibido)
+  3. ¿Este cambio toca algo que vive en varios sitios (precios, referidos,
+     tipos de solicitud)? Si sí, ¿están TODOS?
+  4. ¿Handlers de clic con async sin await/catch? (familia 2b)
+  5. ¿RPC nueva `security definer`? Entonces tiene que llevar guard dentro.
+- **Nivel:** SIEMPRE aviso, nunca bloquea. La IA no tumba una CI; los vigilantes
+  deterministas sí. Si un comentario humano decide, se marca el PR.
+
+### 12b. CodeQL (análisis de seguridad de GitHub)
+
+- **Qué hace:** análisis estático de seguridad real (inyecciones, XSS, rutas
+  peligrosas) sobre TypeScript/JavaScript. Gratis en repos públicos.
+- **Instalación:** Settings → Code security → Code scanning → **Default setup**,
+  lenguajes JavaScript/TypeScript. GitHub crea el workflow solo.
+- **Nivel:** los hallazgos altos en PR **bloquean** (así viene de serie y es lo
+  correcto); los demás van a la pestaña Security del repo.
+- Nota: el repo fue público con una service_role filtrada — el historial es lo que
+  es, pero el código NUEVO no tiene excusa: esto lo revisa en cada PR gratis.
+
+### 12c. Renovate (dependencias al día, en PRs)
+
+- **Qué hace:** abre PRs automáticas cuando hay versiones nuevas (incluye major,
+  con release notes), las agrupa, y las PRs de Renovate pasan la CI normal — o sea
+  que los vigilantes y el smoke prueban cada actualización ANTES de mergear.
+- Preferir **Renovate** sobre Dependabot: agrupa mejor (una PR "minor Updates" por
+  semana en vez de 15 sueltas) y tiene `renovate.json` versionable.
+- **Instalación:** Marketplace de GitHub → **Renovate** (app de Mend) → autorizar
+  el repo. Luego commit de `.github/renovate.json`:
+  ```json
+  {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended", "schedule:weekly"],
+    "rangeStrategy": "bump",
+    "packageRules": [
+      { "description": "Expo/React Native van de la mano: agruparlas",
+        "matchPackagePatterns": ["expo", "react-native"],
+        "groupName": "expo" },
+      { "description": "Supabase: probar siempre junto (cliente + edges)",
+        "matchPackagePatterns": ["supabase", "@supabase"],
+        "groupName": "supabase" }
+    ]
+  }
+  ```
+- **Nivel:** aviso. Una PR de Renovate se mergea solo si la CI (vigilantes + smoke
+  incluidos) va verde — que es exactamente para lo que hemos construido todo esto.
+
+### 12d. Extras del mismo estilo (evaluar después de las tres de arriba)
+
+- **Zizmor** — audita los propios workflows de GitHub (inyección en `${{ }}`,
+  permisos demasiado anchos). Barato y meta: vigila a los vigilantes de CI.
+- **Overlap de la familia 9:** `npm audit` + `npm outdated` en CI (familia 9) y
+  Renovate (12c) se complementan: audit caza vulnerabilidades AYER, Renovate
+  evita que la deuda llegue a existir.
 
 ---
 
@@ -377,7 +460,9 @@ legal queda viejo. Nadie lo mira nunca.
 
 ## Definición de "hecho" para esta fase
 
-1. `npm run vigilar` cubre las familias 1b, 2b, 6, 7a, 8(estático), 9(estático).
+1. Radar de GitHub montado (12): revisor IA con instrucciones de repo, CodeQL en
+   default setup, Renovate con `renovate.json` agrupando expo y supabase.
+2. `npm run vigilar` cubre las familias 1b, 2b, 6, 7a, 8(estático), 9(estático).
 2. El smoke mide (1a, 2a, 5b, 5c) y publica sus métricas por pantalla.
 3. Cada push lleva su delta "antes vs después" (11a) y el panel pinta la serie
    temporal por commit (11c); el bisect (11b) se dispara a mano y encuentra el
