@@ -10,39 +10,19 @@ import { WeekView, MonthView, ClienteHistorialModal } from "./views/VistasSemana
 import { DayListView } from "./views/VistaDiaLista.web";
 import { DayTimelineMemo } from "./views/timeline/Timeline.web";
 import { Icon } from "./ui/Icon.web";
-import { StatCard, ProfRow, ViewTab } from "./ui/atomosAgenda.web";
-import { createPortal } from "react-dom";
+import { StatCard, ProfRow } from "./ui/atomosAgenda.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
-import { resolverSenalStaff } from "@/lib/senalStaff";
-import {
-  validarHorarioLaboral,
-  slotsQueCaben,
-  cabeEnAlgunaFranja,
-  franjasTexto,
-} from "@/lib/horarios";
 import { getUserProfile } from "@/lib/auth";
-import { TimeDrumPicker } from "@/components/ui/Pickers";
 import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
-import { traerAlFoco } from "@/lib/demoScroll";
 import { useCalendarRefresh } from "@/lib/calendarContext";
-import { syncAlergiasACliente } from "@/lib/syncAlergias";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
-import { BLOQUEO_COLORS, BLOQUEO_LABELS } from "@/lib/agendaBloqueUi";
 import { useResponsive } from "@/lib/hooks/useResponsive";
 import { useCitasRealtime } from "@/lib/hooks/useCitasRealtime";
-import { avisoDeRecurso, type Recurso } from "@/lib/recursos";
 import { mensajeDeError } from "@/lib/errores";
-import { ejecutarAccion, type AccionPropuesta } from "@/lib/chispaOps";
 import {
-  proponerRetrasoPorCita,
-  calcularCascada,
-  construirUpdatesRetraso,
   calcularEstrategiasRetraso,
-  duracionRealAprendida,
   type EstrategiaRetraso,
-  type CitaTiempos,
-  type CitaHistorial,
 } from "@/lib/retrasos";
 import {
   PILA_VACIA,
@@ -60,20 +40,9 @@ import {
   analizarAgendaDia,
   ordenarPorPrioridad,
   prepararCitas,
-  tramosDelProfesional,
   type ProblemaAgenda,
   type HorarioProfesional,
 } from "@/lib/organizarAgenda";
-import ListaEsperaPropuestaModal, {
-  type CandidataListaEspera,
-  type CitaOrigen,
-} from "./ListaEsperaPropuestaModal.web";
-import {
-  RiesgoNoShowIndicator,
-  type RiesgoNoShow,
-} from "@/components/clientes/RiesgoNoShowIndicator.web";
-import { PhoneInput } from "@/components/ui/PhoneInput";
-import { CobroSheet } from "@/components/pos/CobroSheet";
 import { useOnboardingStatus } from "@/lib/hooks/useOnboardingStatus";
 import { OnboardingCard } from "@/components/onboarding/OnboardingCard.web";
 import OnboardingPanel from "@/components/onboarding/OnboardingPanel.web";
@@ -89,23 +58,16 @@ import { usePaginaManualVista } from "@/lib/hooks/usePaginaManualVista";
 import { manualAgenda } from "@/lib/manuals/agenda";
 import { AvisoPrimeraVisita } from "@/components/manuals/AvisoPrimeraVisita.web";
 import { ManualPanel } from "@/components/manuals/ManualPanel.web";
-import { useChispaVoz } from "@/lib/hooks/useChispaVoz.web";
-import { FichaColorModal } from "@/app/(tabs)/clientes.web";
-import { obtenerNivelCliente } from "@/lib/fidelizacion";
 import { AvisosBell } from "@/components/avisos/AvisosBell.web";
 import { ListaEsperaDropdown } from "./ListaEsperaDropdown.web";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 
 import {
   NEGOCIO_ID_FALLBACK,
-  INTERVALO_MINUTOS,
-  CITA_CARD_DETAILS_MIN_HEIGHT,
   CITA_STATUS,
   sigueViva,
   LOCALE,
   OCUPACION_MAX_PER_MES,
-  TAG_RESENO_SALON,
-  TAG_RESENO_MECHA,
 } from "@/lib/constants";
 import {
   cuentaComoConfirmada,
@@ -120,26 +82,7 @@ import { useAgendaStore } from "./store/useAgendaStore";
 import type { Cita, Profesional } from "./tipos";
 import { DetalleCitaModal } from "./modals/DetalleCitaModal.web";
 import NewCitaModal from "./modals/NewCitaModal.web";
-import {
-  Avatar,
-  DropdownItem,
-  FormulaInput,
-  IconCalendar,
-  IconCheck,
-  IconChevronDown,
-  IconClock,
-  IconClose,
-  IconSearch,
-  IconTrash,
-  Label,
-  Pill,
-  SearchDropdown,
-  SequenceBar,
-  SummaryCell,
-  TimeSlider,
-  norm,
-  fmtHHMM,
-} from "./ui/atomos.web";
+import { norm, fmtHHMM } from "./ui/atomos.web";
 import { cacheado } from "@/lib/datos/cacheado";
 import {
   clavesConfig,
@@ -147,14 +90,10 @@ import {
   listarBloqueos,
   listarCategorias,
   listarCierres,
-  listarDuracionesProfesional,
   listarHorariosProfesional,
   listarNegocioHorarios,
-  listarOverridesServicio,
-  listarRecursos,
 } from "@/lib/datos/configuracionSalon";
 import { eslabonesParaOperar } from "@/lib/agenda/cadena";
-import { ESTADO_CITA_UI } from "@/lib/citasEstadoUi";
 
 const ANIMATIONS = `
   input::placeholder, textarea::placeholder {
