@@ -35,8 +35,9 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
   **Dominio canónico: `https://www.mechaa.es`** (apex redirige a www; `hairy-two.vercel.app`
   hace 308 al canónico desde el 2 jul). Las allowlists CORS de las edge functions y el
   Site URL de Supabase Auth deben incluir mechaa.es — no volver a hornear hairy-two.
-- **Migraciones:** archivos en `migrations/` + aplicadas en remoto (las últimas vía MCP de
-  Supabase; el historial remoto manda). Edge functions en `supabase/functions/`.
+- **Migraciones:** archivos en `supabase/migrations/` (las históricas se movieron a
+  `archive/migraciones-legacy/`) + aplicadas en remoto (el historial remoto manda).
+  Edge functions en `supabase/functions/`.
 
 ## Decisiones de diseño VIGENTES (no romper)
 
@@ -60,7 +61,9 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    Anónimo; todo pasa por RPCs `security definer` (`portal_info`, `disponibilidad_publica`,
    `crear_cita_publica`, `crear_resena_publica`, `resenas_publicas`) con **anti-abuso en
    servidor** (límites por teléfono/IP/negocio). NO abrir SELECT directo a `anon`.
-   Las rutas `r` y `resena` están exentas de los guards de auth en `app/_layout.tsx`.
+   Las rutas `r`, `resena`, `cita`, `pago`, `pagar`, `presupuesto` y `contacto` están
+  exentas de los guards de auth en `app/_layout.tsx` (la lista exacta la vigila
+  `scripts/vigilantes/rutas-publicas.mjs`: tocarla sin actualizar el vigilante para la CI).
 3. **Fotos de clientas:** bucket `cliente-fotos` PRIVADO, políticas por carpeta de negocio,
    render con `createSignedUrls` (no `getPublicUrl`).
 4. **Seguridad:** tras CUALQUIER migración, pasar los advisors de Supabase (security).
@@ -94,7 +97,7 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    consulta (InitPlan). Y los ayudantes de RLS van `STABLE`, **nunca `VOLATILE`**: `is_staff()`
    volátil provocó por sí sola 24 M de seq scans sobre `staff` y 456 M de tuplas leídas en
    `citas`. Se comprueba en el plan (`One-Time Filter` + `InitPlan`) y con el advisor de
-   rendimiento (aviso `auth_rls_initplan`). Migraciones: `migrations/rendimiento-rls-initplan.sql`
+   rendimiento (aviso `auth_rls_initplan`). Migraciones: `archive/migraciones-legacy/rendimiento-rls-initplan.sql`
    (idempotente, se puede repasar tras añadir políticas) y `rendimiento-funciones-estables-e-indices.sql`.
 7. **Caché de `/app` (17 ago 2026):** los estáticos del export de Expo llevan hash en el nombre,
    así que `/app/_expo/*` y `/app/assets/*` van `immutable` en `vercel.json`; solo `index.html`
@@ -122,7 +125,7 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      la signed URL del bucket privado — es una credencial de acceso con TTL (decisión 3).
    - **Coste**: `shared/chispa-auditoria.ts` registra cada llamada en `chispa_auditoria` con el
      precio real de `modelos.ts`. Tope de gasto por usuario/hora en `cupo_ia_disponible`
-     (`migrations/cupo-ia-por-usuario.sql`); si esa migración no está aplicada el límite
+     (`archive/migraciones-legacy/cupo-ia-por-usuario.sql`); si esa migración no está aplicada el límite
      **no se aplica** y se avisa a gritos en los logs.
    - Tests: `deno task test:ia`.
 
@@ -196,6 +199,37 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    - Trampa de Windows: **nunca `echo "X=y" >> .env`** en PowerShell. Escribe UTF-16 y deja el
      fichero ilegible para el CLI de Supabase. A mano, con el editor.
 
+10. **VIGILANTES: lo que se rompe en silencio ya tiene quien lo mire (28 ago 2026).**
+    Detalle y runbook: `docs/superpowers/plans/2026-08-28-vigilantes-de-regresion.md`.
+    - **Tres capas.** (1) `scripts/vigilantes/*.mjs`: invariantes estáticos, sin red, en
+      cada PR (`npm run vigilar`). (2) `public.vigilancia_bd()`: lo que solo se puede
+      comprobar dentro de Postgres (la regla del parámetro, RLS sin InitPlan, ayudantes
+      volátiles). (3) `tests/smoke/`: una pantalla, un test — carga, consola, red y
+      botones. Las tres publican en la pestaña **Salud** del panel de staff.
+    - **Dos niveles.** `bloqueante` tumba la CI (un usuario real vería algo falso o roto);
+      `aviso` solo informa. La deuda heredada nace en `aviso` con línea base congelada
+      (`scripts/vigilantes/knip-baseline.json`): así el trinquete solo gira hacia abajo y
+      nadie acaba quitando el linter porque la CI lleva un mes en rojo.
+    - **Un ancla perdida FALLA.** Si un regex deja de casar, el vigilante se ha quedado
+      ciego y eso es un hallazgo bloqueante, no un verde. Es el único modo de que esta
+      herramienta no se pudra sola. Si molesta, se arregla el ancla, nunca la comprobación.
+    - **Salud ≠ Errores.** `errores_cliente` es "se rompió en casa de un cliente real, ya
+      pasó, hay alguien esperando". `vigilancia_*` es "lo cazamos antes". Mezclarlas
+      entierra el crash de un salón que paga bajo 66 exports muertos. Por eso son dos
+      tablas y dos pestañas.
+    - **Los invariantes repartidos son la fábrica de regresiones**, no el código: precios
+      en 3 sitios, referidos en 4, tipos de solicitud en 2. Al añadir uno nuevo, añade su
+      vigilante en el mismo commit o la próxima deriva será silenciosa otra vez.
+    - **GitHub Actions NUNCA ve una clave de Supabase.** El recolector
+      (`registrar-vigilancia`) autoriza con `VIGILANCIA_TOKEN`, un token propio que solo
+      sirve para escribir en `vigilancia_*`. Va con `verify_jwt = false` y por eso
+      comprueba por su cuenta (regla 9).
+    - **El canario mudo no es verde.** Si lleva más de 26 h sin correr,
+      `staff_vigilancia_resumen` lo marca y el panel lo dice: un panel en verde porque
+      nadie está mirando es peor que uno en rojo.
+    - Correr: `npm run vigilar` · `npm run vigilar:bd` · `npm run vigilar:test` ·
+      `npx playwright test tests/smoke --project=publico`.
+
 ## Convenciones de código
 
 - Código en inglés, comentarios en español (sin emojis en código/UI).
@@ -253,7 +287,7 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   tú, **−4 %** por los que traen ellos y **−2 %** por el tercer nivel, **tope 30 %**. Al llegar al
   tope, cada salón de pago que sigue entrando da **1 mes gratis** en vez de más porcentaje. Quien
   entra con tu enlace: **−15 %** de bienvenida + migración y configuración sin coste.
-  Fuente única: `migrations/referidos-tope-30-y-meses-gratis.sql`. Vive en CUATRO sitios que hay
+  Fuente única: `archive/migraciones-legacy/referidos-tope-30-y-meses-gratis.sql`. Vive en CUATRO sitios que hay
   que cambiar a la vez: esa migración, la sección `#hermano` de `web/index.html` (con su FAQ en los
   datos estructurados), el modal "Recomendar" de `web/demo.html` y `TabReferidos` en
   `app/(tabs)/configuracion.web.tsx`. Ojo con dos trampas ya pisadas: el motor contaba solo
@@ -264,7 +298,7 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   dice si un salón paga; el plan no (un salón en prueba también tiene plan `estudio`). Normalmente
   la escribe **solo** el webhook de Stripe (`aplicar_suscripcion_stripe`, service_role). Para quien
   paga por transferencia, en efectivo o con un acuerdo aparte está `staff_set_cobro_manual`
-  (`migrations/staff-marcar-cobro-fuera-de-stripe.sql`), en el panel de staff → Cuentas → "Cobro".
+  (`archive/migraciones-legacy/staff-marcar-cobro-fuera-de-stripe.sql`), en el panel de staff → Cuentas → "Cobro".
   Reglas: **Stripe manda** (si hay `stripe_subscription_id` la RPC se niega, o el siguiente evento
   lo revertiría), se marca en la fila del `owner`, no se marca un plan `free`, es reversible
   (guarda el estado previo) y deja rastro en `eventos_negocio`. **No es para regalar acceso**: una
