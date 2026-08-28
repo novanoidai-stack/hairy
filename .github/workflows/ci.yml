@@ -33,6 +33,13 @@ jobs:
       - name: Typecheck (tsc --noEmit)
         run: npm run typecheck
 
+      # Solo los errores tumban la CI. Los avisos (imports sin usar, isNaN
+      # global, parseInt sin radix...) se ven en el log pero no bloquean: hay
+      # ~340 heredados y convertirlos en un muro rojo el primer dia es la forma
+      # segura de que alguien acabe quitando el linter.
+      - name: Lint (Biome, solo errores)
+        run: npx biome lint --diagnostic-level=error
+
       - name: Tests unitarios (Deno, lib/)
         run: npm test
 

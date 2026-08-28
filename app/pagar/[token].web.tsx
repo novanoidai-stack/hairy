@@ -175,7 +175,11 @@ export default function PagoTotalWeb() {
                 <input className="pg-inp" placeholder="Email (opcional)" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5, color: T.textSec, cursor: 'pointer' }}>
                   <input type="checkbox" checked={acepto} onChange={(e) => setAcepto(e.target.checked)} style={{ marginTop: 2 }} />
-                  <span>Acepto la <a href="/privacidad.html" target="_blank" style={{ color: T.primary }}>política de datos</a> para gestionar mi cita y recibo.</span>
+                  {/* rel="noopener noreferrer": sin el, la pestaña que se abre
+                      recibe `window.opener` y puede redirigir esta a una copia
+                      falsa (reverse tabnabbing). Aqui importa mas que en otros
+                      sitios: esta es la pagina donde la clienta paga. */}
+                  <span>Acepto la <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" style={{ color: T.primary }}>política de datos</a> para gestionar mi cita y recibo.</span>
                 </label>
               </div>
             )}

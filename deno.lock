@@ -171,6 +171,7 @@
     "packageJson": {
       "dependencies": [
         "npm:@babel/core@^7.24.0",
+        "npm:@biomejs/biome@2.5.11",
         "npm:@expo-google-fonts/inter@~0.4.2",
         "npm:@expo/vector-icons@^15.0.3",
         "npm:@playwright/test@^1.61.1",
