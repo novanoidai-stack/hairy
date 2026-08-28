@@ -14,6 +14,7 @@ import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
 // resuelve: usa imports con extension) y NO de utils/appointment.ts.
 import { fasesDe, chocaActivaActiva } from '../../../lib/retrasos.ts';
 import { CITA_STATUS_BLOQUEAN_SOLAPE } from '../../../lib/constants.ts';
+import { cuerpoAgendaAsistente, validarCuerpo } from '../shared/esquemas.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -881,14 +882,19 @@ Deno.serve(async (req) => {
 
     // --- Body ---
     const body = await req.json().catch(() => ({}));
-    const mensajes = Array.isArray(body?.mensajes) ? body.mensajes : [];
-    // Ruteo del rework KISS: 'lectura' (modelo barato) | 'accion' (Haiku) |
-    // 'auto' (chat: clasifica lectura/accion mas abajo). 'superficie' acota que
-    // tools de ESCRITURA se ofrecen (chat, presupuestos, clientes, agenda...).
-    const tareaRaw = String((body as { tarea?: unknown })?.tarea ?? 'auto');
-    const tarea: 'lectura' | 'accion' | 'auto' =
-      tareaRaw === 'lectura' || tareaRaw === 'accion' ? tareaRaw : 'auto';
-    const superficie = String((body as { superficie?: unknown })?.superficie ?? 'chat');
+
+    // Validacion en la puerta (shared/esquemas.ts). Antes esto era
+    // `Array.isArray(body?.mensajes)` y nada mas: cada mensaje podia ser
+    // cualquier cosa y se le pasaba al LLM, que se cobra igual aunque la
+    // peticion no tuviera sentido. Ahora lo malformado se corta aqui con un 400
+    // que dice QUE falta, sin gastar un token.
+    //
+    // 'tarea' y 'superficie' llevan `.catch(...)` en el esquema, o sea que un
+    // valor raro cae al de por defecto igual que antes: esto NO endurece el
+    // contrato de esos dos campos, solo lo declara.
+    const validado = validarCuerpo(cuerpoAgendaAsistente, body);
+    if (!validado.ok) return json({ error: validado.error }, 400);
+    const { mensajes, tarea, superficie } = validado.valor;
 
     // --- Ejecutar agente ---
     const resultado = await runAgente(negocioId, role, user.id, realScope, effort, mensajes, userClient, tarea, superficie);

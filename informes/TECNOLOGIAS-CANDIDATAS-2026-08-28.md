@@ -62,13 +62,19 @@ Genera la `queryKey` **automáticamente** a partir de la propia consulta de Supa
 el trabajo manual que hice en `lib/datos/queryClient.ts`: mantener a mano las claves de cada
 consulta no escala, y una clave mal puesta es un fallo de aislamiento entre salones.
 
-- **Cuándo meterla:** al migrar la tercera o cuarta pantalla, no antes. Hoy tenemos 4 ficheros
-  usando la capa nueva contra 61 con Supabase directo; cambiar de motor con tan poco migrado es
-  gratis, y con mucho migrado es caro.
 - **Aviso comprobado:** `skipToken` de TanStack Query **no funciona** con ella (da error de tipos).
 - **Choque con lo nuestro:** su generación automática de claves no encaja con nuestra convención
   «la clave empieza por el nombre exacto de la tabla», que es la que habilita la invalidación
   automática al escribir. Hay que elegir un mecanismo u otro, no los dos.
+
+**Por qué NO se ha metido en esta sesión, con el número delante:** hoy mantenemos **13 claves de
+consulta a mano**. Ese es todo el trabajo que la librería ahorraría. A cambio habría que renunciar
+a la invalidación automática por tabla, que sí está funcionando y cubre además las ~61 pantallas
+sin migrar. Cambiar algo que funciona por algo que ahorra trece líneas no es una mejora.
+
+El cálculo se invierte cuando haya del orden de 50+ claves, es decir, cuando estén migradas la
+mitad de las pantallas. Entonces sí, y de golpe, no a medias: tener las dos convenciones a la vez
+es peor que cualquiera de las dos.
 
 Existe además un adaptador oficial **`supabase/tanstack-db`** que sincroniza consultas, mutaciones
 y Realtime sin invalidación manual. Más ambicioso; mirarlo cuando la capa de datos esté asentada.
@@ -124,13 +130,22 @@ Hoy: Deno para lógica pura (466 pruebas, rápido) y Playwright para E2E (lento,
 medio: probar un componente sin levantar un navegador. Es lo que permitiría probar de verdad los
 modales ya extraídos.
 
-### 2.6 `@tanstack/react-virtual` — 🟠 solo si un salón grande lo pide
+### 2.6 `@tanstack/react-virtual` — 🔴 DESCARTADA CON DATOS
 
-La agenda pinta todas las tarjetas del día. En la demo son 9 y va sobrada. Con 6 profesionales y
-jornada llena podrían ser 60-80, y ahí empezaría a notarse.
+Consultado contra producción, 90 días de salones reales (176 días con citas):
 
-**No lo metería aún:** no tengo ni una medición que diga que duele, y tocar el render de la rejilla
-es justo lo que más riesgo tiene. Primero medir con un salón real grande.
+| | Citas en un día |
+|---|---|
+| Día más cargado de todos | **29** |
+| Percentil 95 | 17 |
+| Media | 8,1 |
+
+La virtualización existe para listas de **cientos o miles** de filas. Con 29 tarjetas en el peor
+día registrado, no puede aportar nada medible, y a cambio metería una capa de cálculo de ventana
+justo en el componente donde vive la física del arrastre y el posicionamiento absoluto de las
+fases. Riesgo real a cambio de cero ganancia.
+
+Se revisa si algún salón llega a superar las ~200 citas/día. Hoy no existe.
 
 ---
 
@@ -145,13 +160,28 @@ es justo lo que más riesgo tiene. Primero medir con un salón real grande.
 
 ---
 
-## 4. Orden que propongo
+## 4. Estado final de esta sesión
 
-1. **Biome + `eslint-plugin-react-hooks`** — barato, inmediato, y el repo hoy no tiene *nada*.
-2. **Zod en las entradas de edge functions** — cierra el agujero de "la IA confía en el JSON".
-3. **Vitest** cuando se extraiga el tercer modal, para probarlos sin navegador.
-4. **`supabase-cache-helpers`** al migrar la tercera o cuarta pantalla.
-5. Virtualización **solo** si un salón real la pide con datos.
+| Candidata | Decisión | Por qué |
+|---|---|---|
+| TanStack Query | ✅ implementada | 14 → 3-4 peticiones al volver a la agenda |
+| Zustand | ✅ implementada | estado visual fuera del monolito |
+| Biome | ✅ implementada | el repo no tenía linter; 1 error real arreglado |
+| Vitest + Testing Library | ✅ implementada | 6 pruebas de componente en **1,7 s** |
+| Zod | ✅ implementada | valida lo que entra a la IA; cerró una inyección de prompt |
+| Knip | ✅ funcionando | tras destapar los 613 MB; señal útil solo en dependencias |
+| `@tanstack/react-virtual` | ❌ descartada | el día más cargado tiene **29 citas** |
+| `supabase-cache-helpers` | ⏸ aplazada | ahorraría **13 claves**; costaría la invalidación automática |
+| React Compiler | ⏸ aplazada | la memoización ya está hecha a mano y medida |
+| Sentry / APM | ⏸ aplazada | ya hay telemetría propia funcionando |
+
+### Lo siguiente, por orden
+
+1. **`eslint-plugin-react-hooks`** — el único hueco que Biome no cubre, y en un repo con 207
+   `useState` es el que más valdría.
+2. **Zod en el resto de edge functions** — el patrón ya está montado en `shared/esquemas.ts`.
+3. **Más pruebas de Vitest** conforme se extraigan piezas del monolito.
+4. **`supabase-cache-helpers`** cuando haya ~50 claves.
 
 ---
 

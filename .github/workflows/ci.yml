@@ -46,6 +46,12 @@ jobs:
       - name: Tests gateway IA (Deno)
         run: deno task test:ia
 
+      - name: Tests de componente (Vitest)
+        run: npx vitest run
+
+      - name: Validacion de entradas de edge functions (Zod)
+        run: deno task test:esquemas
+
       - name: Verificar catálogo de modelos IA
         run: npm run verificar:modelos
 

@@ -8,6 +8,7 @@
   "tasks": {
     "test": "deno test --allow-read --allow-env --sloppy-imports --no-check lib/",
     "test:ia": "deno test --no-config --allow-net supabase/functions/shared/openrouterClient.test.ts",
+    "test:esquemas": "deno test --no-config --allow-net --allow-read supabase/functions/shared/esquemas.test.ts",
     "verificar:modelos": "node scripts/verificar-modelos.mjs",
     "check:edges": "deno check --no-config supabase/functions/vigilar-agenda/index.ts supabase/functions/agenda-optimizador/index.ts supabase/functions/agenda-asistente/index.ts"
   },

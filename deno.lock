@@ -178,11 +178,14 @@
         "npm:@react-native-async-storage/async-storage@2.2.0",
         "npm:@supabase/supabase-js@^2.108.2",
         "npm:@tanstack/react-query@^5.102.8",
+        "npm:@testing-library/jest-dom@^7.0.1",
+        "npm:@testing-library/react@^16.3.3",
         "npm:@types/qrcode-generator@^1.0.6",
         "npm:@types/react-dom@19.1",
         "npm:@types/react@19.1",
         "npm:@vercel/analytics@^2.0.1",
         "npm:@vercel/speed-insights@2",
+        "npm:@vitest/coverage-v8@^4.1.11",
         "npm:date-fns@^3.6.0",
         "npm:expo-constants@~56.0.20",
         "npm:expo-font@~56.0.7",
@@ -193,6 +196,7 @@
         "npm:expo-status-bar@~56.0.4",
         "npm:expo-system-ui@~56.0.5",
         "npm:expo@~56.0.15",
+        "npm:jsdom@^29.1.1",
         "npm:jspdf@^4.2.1",
         "npm:jszip@^3.10.1",
         "npm:libphonenumber-js@^1.13.7",
@@ -209,6 +213,8 @@
         "npm:react-native@0.85.3",
         "npm:react@19.2.3",
         "npm:typescript@~5.8.3",
+        "npm:vitest@^4.1.11",
+        "npm:zod@^4.4.3",
         "npm:zustand@^5.0.15"
       ]
     }
