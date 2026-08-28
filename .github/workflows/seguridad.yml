@@ -1,0 +1,61 @@
+name: Seguridad
+
+# Radar de GitHub (familia 12 del plan de vigilantes fase 2), la mitad que sí
+# puede correr en un repo privado de cuenta personal: CodeQL exige GitHub
+# Advanced Security (solo organizaciones), así que la seguridad estática va
+# con Semgrep (reglas OSS) y zizmor (audita los propios workflows: inyección
+# en ${{ }}, permisos demasiado anchos — vigila a los vigilantes de CI).
+# Niveles como siempre: solo lo grave bloquea; el resto informa.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: seguridad-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: Semgrep (seguridad del código)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: Instalar semgrep
+        run: uv tool install semgrep
+
+      # Solo los hallazgos de severidad ERROR tumban la CI (el equivalente de
+      # "los altos de CodeQL bloquean"). Los warnings se ven en el log.
+      - name: Semgrep — bloqueantes (severity ERROR)
+        run: semgrep scan --config p/typescript --config p/owasp-top-ten --severity ERROR --error
+
+      - name: Semgrep — informe completo (no bloquea)
+        if: always()
+        run: semgrep scan --config p/typescript --config p/owasp-top-ten || true
+
+  zizmor:
+    name: Zizmor (auditoría de workflows)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: Instalar zizmor
+        run: uv tool install zizmor
+
+      # medium en adelante bloquea (templates de inyección, secretos en
+      # workflows); lo cosmético queda en el log.
+      - name: Auditar los workflows
+        run: zizmor --fail-severity medium .
