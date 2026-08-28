@@ -9,6 +9,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebScrollbarStyles } from '@/components/WebScrollbarStyles';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { MotionStyles } from '@/lib/motion';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { crearQueryClient } from '@/lib/datos/queryClient';
 import { ThemeProvider } from '@/lib/themeContext';
 import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
@@ -29,6 +31,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import './globals.css';
+
+// Una sola cache para toda la app, creada al cargar el modulo y no dentro del
+// render: si se creara en el cuerpo de RootLayout, cada re-render fabricaria un
+// cliente nuevo y la cache se perderia entera en cada vuelta, que es justo lo
+// contrario de lo que se busca.
+const queryClient = crearQueryClient();
 
 // Inject default text color + PWA bits.
 // Las fuentes NO se piden aqui: la hoja de Google Fonts (Inter + Bricolage +
@@ -424,6 +432,7 @@ export default function RootLayout() {
 
   return (
     <GlobalErrorBoundary>
+    <QueryClientProvider client={queryClient}>
     <PrivacyConsentProvider>
     <CalendarProvider>
     <ThemeProvider>
@@ -447,6 +456,7 @@ export default function RootLayout() {
     </ThemeProvider>
     </CalendarProvider>
     </PrivacyConsentProvider>
+    </QueryClientProvider>
     </GlobalErrorBoundary>
   );
 }

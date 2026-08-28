@@ -125,6 +125,22 @@ function claveDeLectura(url: string, init?: RequestInit): string {
   return url + '\n' + CABECERAS_QUE_CUENTAN.map((k) => `${k}=${h.get(k) ?? ''}`).join('&');
 }
 
+// Aviso de "se ha escrito en esta tabla".
+//
+// La cache de datos (lib/datos/) se cuelga de aqui para invalidar sola lo que
+// guarde de esa tabla. Sin esto habria que acordarse de invalidar en CADA sitio
+// que escribe -- `negocio_config`, por ejemplo, tiene cuatro `upsert` repartidos
+// por la app -- y el dia que alguien anada el quinto, la pantalla ensenaria
+// datos viejos despues de guardar. Al vivir en el fetch, cubre TAMBIEN las
+// escrituras de las pantallas que todavia no se han migrado.
+type OyenteEscritura = (tabla: string) => void;
+const oyentesEscritura = new Set<OyenteEscritura>();
+
+export function alEscribirEnTabla(oyente: OyenteEscritura): () => void {
+  oyentesEscritura.add(oyente);
+  return () => { oyentesEscritura.delete(oyente); };
+}
+
 function fetchSinRepetir(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const metodo = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
   const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
@@ -134,6 +150,10 @@ function fetchSinRepetir(input: RequestInfo | URL, init?: RequestInit): Promise<
     // Escritura (o RPC): lo guardado de esa tabla ya no vale.
     if (tabla) {
       for (const [k, v] of lecturasEnVuelo) if (v.tabla === tabla) lecturasEnVuelo.delete(k);
+      // Un oyente roto no puede tumbar la escritura que lo provoco.
+      for (const oyente of oyentesEscritura) {
+        try { oyente(tabla); } catch { /* la escritura manda */ }
+      }
     }
     return fetch(input as RequestInfo, init);
   }

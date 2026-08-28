@@ -176,6 +176,7 @@
         "npm:@playwright/test@^1.61.1",
         "npm:@react-native-async-storage/async-storage@2.2.0",
         "npm:@supabase/supabase-js@^2.108.2",
+        "npm:@tanstack/react-query@^5.102.8",
         "npm:@types/qrcode-generator@^1.0.6",
         "npm:@types/react-dom@19.1",
         "npm:@types/react@19.1",
@@ -206,7 +207,8 @@
         "npm:react-native-worklets@0.8.3",
         "npm:react-native@0.85.3",
         "npm:react@19.2.3",
-        "npm:typescript@~5.8.3"
+        "npm:typescript@~5.8.3",
+        "npm:zustand@^5.0.15"
       ]
     }
   }

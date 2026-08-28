@@ -4,6 +4,11 @@ import { createPortal } from 'react-dom';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import { claves, FRESCURA } from '@/lib/datos/queryClient';
+import { cacheado } from '@/lib/datos/cacheado';
+import { listarClientes } from '@/lib/datos/clientes';
+import { listarServicios, listarProfesionales } from '@/lib/datos/catalogo';
 import { getUserProfile, can } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -289,6 +294,8 @@ function ClientesWeb() {
   const paginaManual = usePaginaManualVista('clientes');
   const params = useLocalSearchParams<{ clienteId?: string; filtro?: string }>();
   const router = useRouter();
+  // Cache compartida de datos del servidor (ver lib/datos/queryClient.ts).
+  const qc = useQueryClient();
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [citas, setCitas] = useState<Cita[]>([]);
@@ -451,24 +458,33 @@ function ClientesWeb() {
     setNegocioId(profile.negocio_id);
     setPuedeExportar(can(profile, 'datos.exportar'));
 
-    const [resClts, resCits, resSrv, resProf, resFichas, resCfg, resFuga, resRiesgo, resRecompra, resNiveles] = await Promise.all([
-      supabase
-        .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, nivel_fidelizacion_override, consiente_ia, consiente_ia_origen, consiente_ia_fecha')
-        .eq('negocio_id', profile.negocio_id)
-        .order('nombre'),
+    // Clientes, servicios y profesionales pasan por la cache (TanStack Query).
+    //
+    // Se usa `fetchQuery` y no `useQuery` a proposito: devuelve lo cacheado si
+    // sigue fresco y consulta si no, con la misma forma de dato y en el mismo
+    // sitio donde ya estaba la consulta. Asi la pantalla no hay que
+    // reestructurarla (son 4.755 lineas y el enriquecido de mas abajo necesita
+    // estos datos de forma sincrona). Migrar a `useQuery` de verdad es trabajo
+    // de la Fase 5, cuando la pantalla se parta.
+    //
+    // La ganancia esta en que servicios y profesionales los piden TAMBIEN la
+    // agenda y media app: al volver de una pantalla a otra ya no se vuelven a
+    // descargar. El `.catch` mantiene el comportamiento de antes (si algo falla
+    // se reporta y se sigue con lista vacia, en vez de tumbar la pantalla).
+    const desdeCache = <T,>(clave: readonly unknown[], fn: () => Promise<T>, frescura: number) =>
+      cacheado<T>(qc, clave, fn, frescura).then(({ data, error }) => {
+        if (error) reportarError(error, { origen: 'app', tipo: 'operativo' });
+        return data;
+      });
+
+    const [clientesData, resCits, serviciosData, profesionalesData, resFichas, resCfg, resFuga, resRiesgo, resRecompra, resNiveles] = await Promise.all([
+      desdeCache(claves.clientes(profile.negocio_id), () => listarClientes(profile.negocio_id!), FRESCURA.listado),
       supabase
         .from('citas')
         .select('id, cliente_id, inicio, fin, estado, servicio_id, profesional_id, notas, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas')
         .eq('negocio_id', profile.negocio_id),
-      supabase
-        .from('servicios')
-        .select('id, nombre, precio')
-        .eq('negocio_id', profile.negocio_id),
-      supabase
-        .from('profesionales')
-        .select('id, nombre, color')
-        .eq('negocio_id', profile.negocio_id),
+      desdeCache(claves.servicios(profile.negocio_id), () => listarServicios(profile.negocio_id!), FRESCURA.referencia),
+      desdeCache(claves.profesionales(profile.negocio_id), () => listarProfesionales(profile.negocio_id!), FRESCURA.referencia),
       supabase
         .from('fichas_tecnicas_color')
         .select('*')
@@ -490,16 +506,14 @@ function ClientesWeb() {
         .order('orden'),
     ]);
 
-    if (resClts.error) reportarError(resClts.error, { origen: 'app', tipo: 'operativo' });
+    // Los tres que van por cache ya reportan su error dentro de `cacheado`.
     if (resCits.error) reportarError(resCits.error, { origen: 'app', tipo: 'operativo' });
-    if (resSrv.error) reportarError(resSrv.error, { origen: 'app', tipo: 'operativo' });
-    if (resProf.error) reportarError(resProf.error, { origen: 'app', tipo: 'operativo' });
     if (resFichas.error) reportarError(resFichas.error, { origen: 'app', tipo: 'operativo' });
 
-    const clts = resClts.data;
+    const clts = clientesData;
     const citsData = resCits.data;
-    const srvData = resSrv.data;
-    const profData = resProf.data;
+    const srvData = serviciosData;
+    const profData = profesionalesData;
     const fichasData = resFichas.data;
     const cfgRow = resCfg.data;
     const fugaData = resFuga.data;
