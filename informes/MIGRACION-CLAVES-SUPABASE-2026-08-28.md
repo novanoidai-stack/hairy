@@ -363,6 +363,33 @@ que la tabla no está expuesta en el esquema público, y eso solo se contesta
 Y esto solo dice si la clave **vive**, no si alguien **la usa**. Para lo segundo,
 los logs de Supabase (source `edge_logs`) unas horas después de desplegar.
 
+### Estado medido tras desplegar (28 ago 2026, 20:00)
+
+Todo desplegado: cliente en producción (Vercel, `www.mechaa.es`) y las **22 edge
+functions** con `clavePublicable()`.
+
+Tráfico real de los 35 min posteriores, por clave (`edge_logs`):
+
+| clave | peticiones | quién |
+|---|---|---|
+| **nueva** (publishable / secret) | **666** | navegadores + edge functions |
+| **`anon` heredada** | **0** | — ya nadie |
+| `service_role` heredada | 37 | **n8n, y solo n8n** |
+
+La `anon` heredada **ha dejado de usarse por completo** (antes del despliegue:
+26 542 peticiones). El bundle de producción de `/app` contiene solo
+`sb_publishable_...` y cero JWT heredados — lo que además demuestra que la
+variable `EXPO_PUBLIC_SUPABASE_ANON_KEY` de Vercel **no** tenía la clave vieja
+(si la tuviera, aparecerían las dos cadenas en el bundle).
+
+Verificado además: login real por `/acceso.html` contra producción, suite
+pública 39/39 contra producción, las 22 funciones responden con su propia lógica
+(no con errores de arranque ni de clave), 0 errores en `function_logs`, 0 avisos
+de `clavePublicable` (o sea, `SUPABASE_PUBLISHABLE_KEYS` existe y se usa), y los
+`verify_jwt` intactos.
+
+**Queda un solo consumidor de clave heredada: n8n.**
+
 ### Paso 6 — Desactivar la heredada *(panel)* — LO ÚNICO QUE QUEDA
 En esa misma pantalla. **Es reversible**: si te dejaste un cliente, la reactivas.
 Hasta aquí, la filtración sigue abierta.
