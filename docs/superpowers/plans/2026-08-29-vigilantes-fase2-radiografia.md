@@ -36,9 +36,11 @@
 | 8 | Links/SEO/JSON-LD de la landing y el marketplace | Medio | Bajo | **P2** |
 | 9 | Tecnologías (deps obsoletas/vulnerables, audit) | Medio | Bajo | **P2** |
 | 10 | Presupuesto de peso del bundle JS | Medio | Bajo | **P2** |
+| 11 | **Atribución: QUÉ push rompió/ensució QUÉ (antes vs después)** | Muy alto | Medio | **P0** |
 
-Orden de ejecución recomendado: 1→2→3 (una misma sesión, comparten infraestructura
-de medición), luego 4+7 (ambas son invariantes de texto/BD), luego 6, y el resto.
+Orden de ejecución recomendado: 1→2→3→**11** (una misma sesión: la 11 es la que
+convierte las mediciones de 1–3 en "este commit lo hizo"), luego 4+7 (ambas son
+invariantes de texto/BD), luego 6, y el resto.
 
 ---
 
@@ -82,6 +84,66 @@ El canario ya corre cada hora; mismo spec, mismas métricas, contra mechaa.es.
 Detecta "Vercel sirve algo distinto", CDN frío, Supabase lento (p95 de las
 peticiones REST). Sin código nuevo: la 1a ya lo trae si se miden también los
 timings de `response`.
+
+---
+
+## 11. Atribución: qué push rompió qué (antes vs después) — P0
+
+**Qué duele hoy:** cuando algo degenera (una pantalla tarda más, salen 40 peticiones
+nuevas, sube el código muerto), la pregunta que importa no es "está mal" sino
+**"¿desde qué commit?"** Sin atribución, la salida es siempre "refactorizar todo";
+con atribución, es "revertir/ajustar 50 líneas de un commit concreto".
+
+**La base ya existe:** `vigilancia_ejecuciones` guarda `commit_sha`, `rama` y los
+contadores de cada corrida, y el canario corre cada hora. Solo falta el comparador.
+
+### 11a. El comparador (una RPC, un paso de CI)
+
+`staff_vigilancia_comparar(p_sha, p_sha_base)` (o su gemelo en el runner local):
+
+- Dos corridas → un delta legible: métricas por pantalla (tiempos, peticiones,
+  long tasks, hallazgos nuevos/resueltos), peso del bundle, contadores de código
+  muerto, nº de RPC del mapa de arquitectura.
+- La CI lo llama solito al final: compara contra **la última corrida `ok` del padre
+  del merge** (`git merge-base`, no "la última corrida a secas" — si la rama estaba
+  rota, comparar contra la última verde, si no, el delta culpa al commit equivocado).
+- Salida: comentario en el PR con "±" por métrica (igual que los checks de tamaño
+  de bundle de Vercel) **y** hallazgo `aviso` si alguna métrica degenera por encima
+  de su umbral — con los DOS shas en el título: `rendimiento: caja +2,1 s y +38
+  peticiones (abc1234 → def5678)`.
+- Regla de herpes cero: si la métrica **mejora**, no se emite hallazgo; se actualiza
+  la línea base. El trinquete solo gira hacia abajo.
+
+### 11b. Bisect automático (para cuando ya se sabe que algo degeneró)
+
+Workflow `radiografia-bisect.yml`, disparado a mano desde el panel/Actions con
+"métrica" y "rango de commits":
+
+1. GitHub tiene **`gh api ... /actions` y `git bisect run`** de serie: el workflow
+   hace checkout binario entre dos shas, corre SOLO la pieza que importa (p. ej. el
+   smoke de una pantalla con mediciones, ~40 s por punto) y `git bisect run` devuelve
+   el primer commit malo.
+2. Publica el resultado como hallazgo `atribucion/bisect-<metrica>` con el sha
+   culpable, su autor y su diff enlazado.
+3. Coste: ~8 corridas × 40 s para un mes de commits. Nada.
+
+### 11c. Foto de "antes" obligatoria en cada push
+
+Para que 11a compare de verdad, la CI mide en CADA push a master (ya lo hace) y el
+canario cada hora en producción (ya lo hace). Lo único que se añade:
+
+- Un paso en la CI que, antes de publicar, **recupere la corrida del padre** y
+  adjunte el delta al informe (`informe.delta = { base_sha, diferencias }`).
+- El panel pinta la línea temporal por commit: eje X = tiempo, eje Y = métrica,
+  punto por push. Una degeneración se ve como un escalón, y el escalón tiene un
+  sha clavado encima.
+
+### 11d. Qué NO es esto
+
+No es "vigilar al vigilante": eso ya lo hace la fase 1 (ancla perdida = fallo).
+Esto es **memoria comparativa**: convertir las corridas sueltas en una serie
+temporal por commit, para que la pregunta "¿desde cuándo pasa esto?" tenga respuesta
+de un clic en lugar de una tarde de arqueología git.
 
 ---
 
@@ -317,8 +379,11 @@ legal queda viejo. Nadie lo mira nunca.
 
 1. `npm run vigilar` cubre las familias 1b, 2b, 6, 7a, 8(estático), 9(estático).
 2. El smoke mide (1a, 2a, 5b, 5c) y publica sus métricas por pantalla.
-3. `vigilancia_bd_*` cubre 3a y 4a; el panel las llama con sesión de staff.
-4. Visual diff (5a) con flujo de aprobación consciente.
-5. El panel Salud pinta los nuevos ámbitos y las tendencias.
-6. Cada vigilante estrenado con: línea base medida, un falso positivo descartado a
+3. Cada push lleva su delta "antes vs después" (11a) y el panel pinta la serie
+   temporal por commit (11c); el bisect (11b) se dispara a mano y encuentra el
+   primer commit malo de una métrica.
+4. `vigilancia_bd_*` cubre 3a y 4a; el panel las llama con sesión de staff.
+5. Visual diff (5a) con flujo de aprobación consciente.
+6. El panel Salud pinta los nuevos ámbitos y las tendencias.
+7. Cada vigilante estrenado con: línea base medida, un falso positivo descartado a
    conciencia, y su decisión resumida en CLAUDE.md (extensión de la decisión 10).
