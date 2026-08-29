@@ -19,7 +19,24 @@ on:
   # Si algun dia hace falta exactitud, la salida limpia es que la app publique su
   # commit y el smoke compruebe que coincide antes de medir; con `workflow_run`
   # a secas no se puede saber.
-  workflow_run:
+  #
+  # ZIZMOR: se silencia `dangerous-triggers` (severidad high) A CONCIENCIA, y
+  # este comentario es la justificacion -- mismo trato que el `// nosemgrep` del
+  # 3DES de Redsys: se explica por que, no se apaga la regla.
+  #
+  # El ataque que hace peligroso a `workflow_run` es este: un PR de un fork
+  # dispara el primer workflow, y el segundo corre con los permisos y los
+  # secretos del repo base y HACE CHECKOUT DEL CODIGO DEL PR, que se ejecuta con
+  # esos privilegios. Aqui no se da ninguna de las dos condiciones:
+  #
+  #   - `permissions: contents: read`, sin escritura.
+  #   - El checkout NO lleva `ref:`, asi que trae el codigo de la rama por
+  #     defecto, nunca el del PR. Lo que se ejecuta es el de master.
+  #   - Ademas esta filtrado a `branches: [master]`.
+  #
+  # Si algun dia alguien anade un `ref:` a ese checkout, esta exencion deja de
+  # valer y hay que quitarla: seria justo el agujero que la regla describe.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: ['CI']
     types: [completed]
     branches: [master]

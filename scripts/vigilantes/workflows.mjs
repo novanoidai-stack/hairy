@@ -22,6 +22,15 @@
 // EN LA CI, o sea despues de subir: acciones fijadas por SHA y checkouts sin
 // credenciales persistidas. Enterarse en local es gratis; enterarse en CI cuesta
 // un push y un rojo.
+//
+// ESTO NO SUSTITUYE A ZIZMOR, que sabe de cosas que aqui no se miran (triggers
+// peligrosos, inyeccion por plantilla, secretos en el workflow). Si tocas un
+// workflow, la comprobacion completa en local son diez segundos:
+//
+//     uv tool run zizmor --min-severity medium .
+//
+// Vale la pena: la primera version del disparo del canario paso este vigilante
+// y la tumbo zizmor en CI por `dangerous-triggers`.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
