@@ -58,3 +58,11 @@ verify_jwt = false
 # el es ensuciar la pestaña Salud del panel. Ver el propio index.ts.
 [functions.registrar-vigilancia]
 verify_jwt = false
+
+# Dispara public.vigilancia_bd() (la capa 2 del diseño de vigilantes: lo que solo
+# se puede comprobar dentro de Postgres) desde un workflow programado. Mismo
+# motivo que la de arriba: quien llama es GitHub Actions, que no tiene JWT, y
+# autorizar con la clave de servicio obligaria a guardarla en los secrets del
+# repositorio. Autoriza por su cuenta con VIGILANCIA_TOKEN.
+[functions.ejecutar-vigilancia-bd]
+verify_jwt = false

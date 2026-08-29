@@ -1,0 +1,72 @@
+name: Vigilancia de base de datos
+
+# La capa 2 del diseño de vigilantes: lo que solo se puede comprobar DENTRO de
+# Postgres (la regla del parámetro, RLS sin InitPlan, ayudantes volátiles, RPC
+# definer abiertas a `anon`, crons apuntando a un tenant vacío).
+#
+# Existía desde el 28 ago 2026 y no la ejecutaba nadie: `vigilancia_bd()` solo
+# corría si alguien la llamaba a mano o abría la pestaña Salud. Eso importa
+# porque la auditoría del 29 ago encontró cuatro cosas críticas y la CI no vio
+# ninguna — las cuatro viven donde la CI no mira, porque las políticas y los
+# grants no se crean por pull request sino por migración aplicada en remoto.
+#
+# Cada 6 h en vez de cada hora a propósito: `vigilancia_bd()` tarda ~1 s y lo que
+# vigila cambia con los despliegues, no con los minutos. Y también en cada push a
+# master, que es justo cuando puede haber entrado una migración.
+#
+# GitHub Actions NO ve ninguna clave de Supabase (regla 4): solo lleva
+# VIGILANCIA_TOKEN, cuyo peor uso posible es ensuciar el panel. La clave de
+# servicio se queda dentro de la edge function.
+
+on:
+  schedule:
+    - cron: '43 */6 * * *'
+  push:
+    branches: [master]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/functions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: vigilancia-bd
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  vigilar:
+    name: vigilancia_bd() contra producción
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      # Un secreto que falta no puede hacer que esto pase en verde: el panel se
+      # vería sano por ausencia de datos, que es peor que verlo en rojo. Es el
+      # mismo principio que el "canario mudo no es verde".
+      - name: Comprobar que hay con qué llamar
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          if [ -z "$VIGILANCIA_URL" ] || [ -z "$VIGILANCIA_TOKEN" ]; then
+            echo "::error::Faltan los secrets VIGILANCIA_URL / VIGILANCIA_TOKEN: los vigilantes de base de datos NO se han ejecutado."
+            exit 1
+          fi
+
+      # Sale con 1 si vigilancia_bd() devuelve algún hallazgo bloqueante, y
+      # también si la función no responde o no está desplegada todavía: un
+      # vigilante que no puede mirar tiene que decirlo en voz alta.
+      - name: Ejecutar los vigilantes de base de datos
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: node scripts/vigilantes/pedir-bd.mjs

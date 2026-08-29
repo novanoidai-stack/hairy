@@ -1,0 +1,17 @@
+{
+  "_comentario": "Migraciones del repo cuya VERSION no aparece en supabase_migrations.schema_migrations pero cuyo EFECTO SI esta en produccion (comprobado a mano, la prueba esta en cada entrada). Pasa cuando algo se aplica por el editor SQL del dashboard, que no registra la version. Sin esta lista la guardia naceria denunciando dos migraciones perfectamente aplicadas, y una guardia que grita en falso el primer dia acaba apagada.",
+  "_como_se_quita_una_de_aqui": "Comprobando que su version ya aparece en schema_migrations (por ejemplo tras un `supabase db push` que la registre). Entonces se borra la entrada: la guardia deja de tener que ignorarla.",
+  "_como_se_anade_una": "SOLO tras verificar en produccion que el efecto esta. No vale 'seguro que se aplico': hay que mirar. Escribe QUE miraste en `prueba`.",
+  "aplicadas_fuera_del_historial": [
+    {
+      "version": "20260828120000",
+      "fichero": "20260828120000_claves_pg_net_cabecera_apikey.sql",
+      "prueba": "5 de los 15 jobs de cron.job mandan la clave en la cabecera `apikey` (29 ago 2026). Era justo lo que introducia esta migracion: una secret key no es un JWT y no vale en Authorization: Bearer."
+    },
+    {
+      "version": "20260828180000",
+      "fichero": "20260828180000_chispa_tts_keepwarm_publishable.sql",
+      "prueba": "public.chispa_tts_keepwarm contiene `sb_publishable_` y ninguna JWT heredada (29 ago 2026)."
+    }
+  ]
+}

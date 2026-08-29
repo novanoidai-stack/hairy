@@ -107,10 +107,10 @@ ocurrió**.
 | ✅ | Vigilante de claves (código y bundle) | decisión 9 / nota 2 | **hecho, pero ciego en CI** — §2 |
 | **A** | **Botones que fallan en silencio** | radiografía 2 | **esta sesión** |
 | **B** | Arreglar la ceguera del vigilante de claves + caché de Playwright | §2 y nota final | **esta sesión** |
-| C | `vigilancia_bd()` programado cada 6 h | nota 1 | siguiente |
-| D | Cuellos de botella de BD (`pg_stat_statements`) | radiografía 3 | siguiente |
+| ✅ C | `vigilancia_bd()` programado cada 6 h | nota 1 | **hecho** — §8 |
+| ✅ D | Cuellos de botella de BD (`pg_stat_statements`) | radiografía 3 | **hecho** — §8, umbrales medidos |
+| ✅ F | Guardia de migraciones | nota 4 | **hecho** — §8, encontró 2 al estrenarse |
 | E | Atribución: qué push rompió qué | radiografía 11 | siguiente |
-| F | Guardia de migraciones | nota 4 | luego |
 | G | Barrido del **historial** de git | nota 2 reformulada | luego |
 | H | Coherencia de datos + legalidad | radiografía 4, 7 | luego |
 | I | Bugs visuales, arquitectura, SEO, dependencias | radiografía 5, 6, 8, 9 | luego |
@@ -353,3 +353,122 @@ una decisión de producto detrás (reescribir el historial rompe forks).
    navegador.
 5. Las decisiones nuevas quedan en CLAUDE.md, decisión 10, para que la siguiente
    sesión no vuelva a razonarlas.
+
+
+---
+
+## 8. Lo hecho en la segunda tanda (29 ago 2026): C, D y F
+
+Con acceso de lectura a producción se pudieron cerrar tres puntos más, y —lo que
+importa— **calibrarlos contra números reales en vez de contra intuiciones**.
+
+### 8.1 El estado real de la base, por fin mirado
+
+`vigilancia_bd()` llevaba desde el 28 ago sin que la ejecutara nadie. Al correrla:
+**0 bloqueantes, 1 aviso** — `pg_net` pierde el 26 % de las llamadas (8 de 31 en
+6 h se quedan con `status_code` nulo). Los crons llaman a las edge functions con
+`net.http_post`, que no espera respuesta, así que `pg_cron` marca la ejecución
+como `succeeded` igual. Nadie lo estaba mirando porque nadie estaba mirando nada.
+
+### 8.2 C — la capa 2 ya corre sola
+
+- `supabase/functions/ejecutar-vigilancia-bd/` dispara `vigilancia_bd()`, publica
+  en la pestaña Salud y devuelve el veredicto.
+- `.github/workflows/vigilancia-bd.yml`: cada 6 h, en cada push a `master` que
+  toque `supabase/`, y a mano. Falla si hay bloqueantes **y también si no puede
+  mirar** (secrets ausentes, función sin desplegar): un vigilante que no corre
+  tiene que decirlo, no pasar en verde.
+- **Actions sigue sin ver una clave de Supabase** (regla 4): solo viaja
+  `VIGILANCIA_TOKEN`; la clave de servicio se queda dentro de la edge.
+- La puerta del token se extrajo a `shared/tokenVigilancia.ts`, con tests. Estaba
+  escrita una vez y se iba a escribir la segunda — un chequeo de autorización
+  copiado y pegado es el invariante repartido de manual.
+- Origen propio `bd` en vez de reutilizar `ci`: si estas corridas se mezclaran
+  con las de los PR, nadie podría contestar *"¿cuándo se vigiló la base por
+  última vez?"*, que es el mismo agujero que la detección de canario mudo tapa.
+
+### 8.3 D — los cuellos de botella, medidos
+
+`vigilancia_bd_rendimiento()` (migración `20260829120000`). Umbrales calibrados
+contra los 196 min de tiempo acumulado de BD, no inventados:
+
+| Regla | Umbral | Hallazgos hoy |
+|---|---|---|
+| Se come la base | > 10 % del tiempo total | 1 |
+| Lenta por llamada | media > 200 ms y > 100 llamadas | 3 |
+| Se lee entera | `seq_tup_read` > 50 M y > 500 filas | 2 |
+| Locks esperando | > 0 | 0 |
+
+**Lo que encontró de verdad:**
+
+- **`notificaciones_pendientes` se lleva el 15,4 % de todo el tiempo de la base**
+  (52 594 llamadas, 34 ms de media, pico de 3,6 s). Es el cron-pull de n8n cada
+  2 min, y es con diferencia el mayor consumidor. Como CLAUDE.md explica, no es
+  una cola: **calcula en vivo** desde las banderas de `citas`. Ese cálculo es lo
+  que cuesta.
+- **`clientes_en_riesgo_fuga`: 122 311 llamadas.** Y `hallazgos_del_negocio`,
+  122 828. Dos RPC llamadas ~122 k veces cada una — huelen a "se llama en cada
+  carga de pantalla".
+- **`SELECT name FROM pg_timezone_names`: 500 ms de media, 1 206 veces, 603 s.**
+  Es una trampa clásica de Postgres (lee la base de zonas horaria entera).
+- **`citas` lleva 476 M de filas leídas en recorridos secuenciales**, 2 363 por
+  recorrido sobre una tabla de 2 001 filas: se lee entera cada vez.
+
+**Dos decisiones de diseño que no son obvias**, y que están escritas en la
+migración para que nadie las deshaga sin querer:
+
+1. **Se mide en proporción, no en totales.** `total_exec_time` es acumulado desde
+   el último reset y solo puede crecer: un umbral tipo "más de 300 s" acabaría
+   saltando siempre aunque no empeore nada. **Un vigilante montado sobre un
+   contador acumulado se pudre solo.**
+2. **Para los seq scans lo que importa es `seq_tup_read`, no `seq_scan`.** La
+   tabla `servicios` lleva **4 051 129** recorridos secuenciales… y tiene **181
+   filas**: para una tabla así Postgres prefiere el scan y hace bien, no falta
+   ningún índice. Contar scans denunciaría la tabla equivocada y dejaría pasar
+   `citas`, que es la que de verdad no escalará.
+
+### 8.4 F — la guardia de migraciones, y el falso positivo que la salvó
+
+Compara los ficheros de `supabase/migrations/` con el historial remoto. Al
+estrenarla dio **dos migraciones "sin aplicar"**… y las dos estaban aplicadas:
+
+- `20260828120000_claves_pg_net_cabecera_apikey` → **5 de los 15 crons ya mandan
+  la clave en la cabecera `apikey`**, que era justo lo que introducía.
+- `20260828180000_chispa_tts_keepwarm_publishable` → **`chispa_tts_keepwarm` ya
+  lleva `sb_publishable_`** y ninguna JWT heredada.
+
+Se habían aplicado por el editor SQL del dashboard, **que no registra la
+versión**. La lección: *"la versión no consta"* **no** es *"no se aplicó"*. Van
+congeladas en `scripts/vigilantes/migraciones-conocidas.json` **con la prueba de
+cada una** — no "seguro que se aplicó", sino qué se miró para saberlo. Sin esa
+lista la guardia habría nacido gritando en falso, y una guardia que grita en
+falso el primer día acaba apagada.
+
+Dos detalles más: la comparación va por RPC (`migraciones_sin_aplicar`) y no
+consultando la tabla, porque **PostgREST no expone el esquema
+`supabase_migrations`** (`anon` no tiene ni `USAGE`) y un `.schema(...)` habría
+fallado en producción; y los ficheros **sin prefijo de versión** (hay dos) se
+denuncian como **punto ciego** en vez de saltárselos callando.
+
+### 8.5 Los `sbp_` tampoco son "solo para mirar"
+
+El vigilante de claves buscaba `eyJ` y `sb_secret_`. Un **token personal de
+Supabase** (`sbp_...`) le pasaba por delante sin verlo — y no abre una base de
+datos, abre la **cuenta**: el Management API de toda la organización, todos los
+proyectos, sus claves y el botón de borrarlos. Es más grave que una
+`service_role`, no menos. Ahora lo caza, con su test, y el mensaje recuerda lo
+que la gente olvida: **quitarlo del código no lo desactiva; hay que revocarlo**.
+
+### 8.6 Los dos pasos que quedan, y son manuales
+
+Nada de lo de arriba funciona hasta que alguien haga **una** cosa en producción:
+
+1. Aplicar `supabase/migrations/20260829120000_vigilancia_bd_rendimiento.sql`
+   (crea `vigilancia_bd_rendimiento()` y `migraciones_sin_aplicar()`, y añade el
+   origen `bd`).
+2. Desplegar la función: `npx supabase functions deploy ejecutar-vigilancia-bd`.
+
+Hasta entonces el workflow programado se pondrá **rojo con un mensaje que dice
+exactamente eso** — a propósito: es una tarea pendiente visible, no un fallo
+misterioso. Su SQL está ensayado en seco contra producción (§8.3 y §8.4 son sus
+resultados reales), pero **no se ha aplicado nada**: la base no se ha tocado.

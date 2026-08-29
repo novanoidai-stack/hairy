@@ -8,6 +8,8 @@ const JWT = 'eyJhbGciOiJIUzI1NiIsInR5' + 'cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.firm
 // Cuerpo de 31 caracteres, como una secret key de verdad (la real mide 41 en total).
 const SECRETA = 'sb_' + 'secret_' + 'DeMentiraPeroConLargoRealista01';
 const PUBLICABLE = 'sb_' + 'publishable_' + '7cHF-908rCrGKTaFoYZ4Wg__Znc3kLR';
+// Un token personal (Management API). Cuerpo de 40 hex, como los de verdad.
+const PERSONAL = 'sb' + 'p_' + '0123456789abcdef0123456789abcdef01234567';
 
 const claves = (hs) => hs.map((h) => h.clave.split(':')[0]).sort();
 
@@ -34,6 +36,15 @@ test('la publishable es publica por diseno: no es un hallazgo', () => {
 // El umbral de longitud es deliberado y este test lo documenta: una fixture
 // corta de un test no puede tumbar la CI. Si algun dia Supabase acorta las
 // secret keys de verdad, este test es el que hay que revisar.
+test('caza un token personal de cuenta (sbp_...), que abre toda la organizacion', () => {
+  const hs = revisarTexto('scripts/lo-que-sea.mjs', `const t = '${PERSONAL}';`);
+  assert.ok(
+    claves(hs).includes('claves/token-personal-en-codigo'),
+    'un sbp_ pasaba antes por delante del vigilante sin que lo viera: no es una clave de ' +
+    'proyecto, es de CUENTA, y abre el Management API de toda la organizacion',
+  );
+});
+
 test('un valor de mentira corto (sb_secret_nueva) no dispara', () => {
   assert.deepEqual(revisarTexto('supabase/functions/x/x.test.ts', 'const k = "sb_secret_nueva";'), []);
 });

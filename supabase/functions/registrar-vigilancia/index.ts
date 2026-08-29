@@ -19,6 +19,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { claveServicio } from '../shared/claveServicio.ts';
+import { autorizarVigilancia } from '../shared/tokenVigilancia.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -33,35 +34,15 @@ function json(cuerpo: unknown, status = 200): Response {
   });
 }
 
-// Un token no se compara con ===: eso filtra su contenido midiendo cuanto tarda
-// en decir que no.
-function igualesEnTiempoConstante(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diferencia = 0;
-  for (let i = 0; i < a.length; i++) diferencia |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diferencia === 0;
-}
-
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'metodo_no_permitido' }, 405);
 
-  const esperado = Deno.env.get('VIGILANCIA_TOKEN');
-  if (!esperado) {
-    // Fallo ruidoso. Sin token configurado NO se acepta nada: un valor por
-    // defecto silencioso es exactamente como se cuelan estos agujeros (regla 9).
-    console.error('[registrar-vigilancia] falta VIGILANCIA_TOKEN en el entorno');
-    return json({ error: 'sin_configurar', porque: 'falta VIGILANCIA_TOKEN' }, 500);
-  }
-
-  const recibido = req.headers.get('x-vigilancia-token') ?? '';
-  if (!igualesEnTiempoConstante(recibido, esperado)) {
-    console.warn(
-      '[registrar-vigilancia] rechazada. x-vigilancia-token:',
-      recibido ? `len=${recibido.length}` : 'AUSENTE',
-    );
-    return json({ error: 'no_autorizado', porque: 'x-vigilancia-token no coincide' }, 401);
-  }
+  // La puerta vive en shared/tokenVigilancia.ts: la comparten esta funcion y
+  // ejecutar-vigilancia-bd, y un chequeo de autorizacion copiado en dos sitios
+  // es el invariante repartido que acaba divergiendo sin que nadie lo note.
+  const permiso = autorizarVigilancia(req, 'registrar-vigilancia');
+  if (!permiso.ok) return json(permiso.cuerpo, permiso.status);
 
   let informe: Record<string, unknown>;
   try {

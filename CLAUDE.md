@@ -391,6 +391,54 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
     - **El canario cachea el navegador** (`actions/cache` sobre
       `~/.cache/ms-playwright`, clave con la versión de Playwright): reinstalaba
       Chromium entero 24 veces al día.
+    - **La capa 2 ya corre sola (29 ago 2026, puntos C, D y F del plan maestro).**
+      `vigilancia_bd()` existía desde el 28 ago y **no la ejecutaba nadie**: solo
+      corría si alguien la llamaba a mano. Al correrla por primera vez: 0
+      bloqueantes y 1 aviso — **`pg_net` pierde el 26 % de las llamadas** (los
+      crons usan `net.http_post`, que no espera respuesta, así que `pg_cron`
+      marca `succeeded` igual).
+      - `supabase/functions/ejecutar-vigilancia-bd/` + workflow
+        `vigilancia-bd.yml` (cada 6 h, en cada push a `master` que toque
+        `supabase/`, y a mano). **Actions sigue sin ver una clave de Supabase**
+        (regla 4): solo viaja `VIGILANCIA_TOKEN`. Falla si hay bloqueantes **y
+        también si no puede mirar** — secrets ausentes o función sin desplegar.
+      - La puerta del token vive en `shared/tokenVigilancia.ts`, compartida con
+        `registrar-vigilancia`: estaba escrita una vez y se iba a escribir la
+        segunda, y un chequeo de autorización copiado es el invariante repartido
+        de manual.
+      - **Origen propio `bd`**, no `ci`: mezcladas con las corridas de los PR,
+        nadie podría contestar "¿cuándo se vigiló la base por última vez?".
+      - **Un vigilante montado sobre un contador acumulado se pudre solo.**
+        `vigilancia_bd_rendimiento()` mide en **proporción** del tiempo del
+        periodo, no en totales: `total_exec_time` solo crece, así que un umbral
+        tipo "más de 300 s" acabaría saltando siempre sin que empeore nada.
+      - **Para los seq scans importa `seq_tup_read`, no `seq_scan`.** `servicios`
+        lleva 4 051 129 recorridos secuenciales y tiene **181 filas**: ahí el
+        scan es lo correcto y no falta ningún índice. La que importa es `citas`,
+        con **476 M de filas leídas**, 2 363 por recorrido sobre 2 001 filas.
+      - Lo que destapó al estrenarse: **`notificaciones_pendientes` se lleva el
+        15,4 % de todo el tiempo de la base** (52 594 llamadas; es el cron-pull
+        de n8n cada 2 min y **calcula en vivo**, no es una cola);
+        `clientes_en_riesgo_fuga` y `hallazgos_del_negocio` se llaman ~122 000
+        veces cada una; y `SELECT name FROM pg_timezone_names` tarda **500 ms de
+        media** (trampa clásica de Postgres).
+      - **Guardia de migraciones: "la versión no consta" NO es "no se aplicó".**
+        Se estrenó denunciando dos migraciones… que estaban aplicadas por el
+        editor SQL del dashboard, que no registra la versión (comprobado: 5 crons
+        ya mandan la cabecera `apikey`, y `chispa_tts_keepwarm` ya lleva la
+        publishable). Van congeladas en
+        `scripts/vigilantes/migraciones-conocidas.json` **con la prueba de cada
+        una**. Va por RPC (`migraciones_sin_aplicar`) y no consultando la tabla,
+        porque **PostgREST no expone el esquema `supabase_migrations`**.
+      - **Los `sbp_` tampoco son "solo para mirar".** El vigilante de claves
+        buscaba `eyJ` y `sb_secret_`; un **token personal** de Supabase le pasaba
+        por delante. No abre una base de datos, abre la **cuenta**: el Management
+        API de toda la organización. Es más grave que una `service_role`. Y
+        quitarlo del código **no lo desactiva**: hay que revocarlo en
+        supabase.com/dashboard/account/tokens.
+      - **Pendiente manual:** aplicar la migración `20260829120000` y desplegar
+        `ejecutar-vigilancia-bd`. Hasta entonces el workflow sale rojo diciendo
+        exactamente eso, a propósito.
 
 ## Convenciones de código
 

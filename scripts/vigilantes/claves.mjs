@@ -44,6 +44,17 @@ const JWT_HEREDADA = 'eyJhbGciOiJIUzI1NiIsInR5' + 'cCI6IkpXVCJ9';
 // deja pasar ninguna: solo deja de ladrar a las fixtures.
 const SECRETA = /sb_secret_[A-Za-z0-9_-]{20,}/;
 
+// Un token PERSONAL de Supabase (Management API). Es el que se pega en un chat
+// sin pensarlo porque "es solo para mirar", y no es solo para mirar: no abre una
+// base de datos, abre la CUENTA -- todos los proyectos de la organizacion, sus
+// claves, sus secretos y el boton de borrarlos. Es mas peligroso que la
+// service_role, y hasta hoy este vigilante no lo miraba: buscaba `eyJ` y
+// `sb_secret_`, y un `sbp_...` le habria pasado por delante sin verlo.
+//
+// Se exige cuerpo largo por lo mismo que la secreta: que una fixture llamada
+// `sbp_de_mentira` no ladre.
+const PERSONAL = /sb[pu]_[A-Za-z0-9]{32,}/;
+
 const PUERTA = 'supabase/functions/shared/claveServicio.ts';
 
 // Solo codigo y configuracion. La prosa (.md) puede citar la clave muerta para
@@ -163,6 +174,27 @@ export function revisarTexto(rel, texto) {
           'el Vault, y quien la lee falla ruidosamente si falta. Decision 9 de CLAUDE.md.',
         fichero: rel,
         linea: lineaDelLiteral(texto, secreta[0]),
+      }),
+    );
+  }
+
+  const personal = PERSONAL.exec(texto);
+  if (personal) {
+    hallazgos.push(
+      hallazgo({
+        clave: `claves/token-personal-en-codigo:${rel}`,
+        nivel: 'bloqueante',
+        ambito: 'seguridad',
+        titulo: `${rel} lleva un token personal de Supabase (sbp_...) incrustado`,
+        detalle:
+          'No es una clave de un proyecto: es un token de CUENTA. Con el se entra al ' +
+          'Management API de toda la organizacion -- todos los proyectos, sus claves, sus ' +
+          'secretos y el boton de borrarlos. Es mas grave que una service_role, no menos. ' +
+          'Va en el entorno de quien lo usa, nunca en un fichero, y si ha llegado a existir ' +
+          'en el repo hay que REVOCARLO en supabase.com/dashboard/account/tokens: quitarlo ' +
+          'del codigo no lo desactiva. Decision 9 de CLAUDE.md.',
+        fichero: rel,
+        linea: lineaDelLiteral(texto, personal[0]),
       }),
     );
   }
@@ -302,7 +334,7 @@ async function ejecutar() {
     } catch {
       continue;
     }
-    if (!texto.includes(JWT_HEREDADA) && !SECRETA.test(texto)) continue;
+    if (!texto.includes(JWT_HEREDADA) && !SECRETA.test(texto) && !PERSONAL.test(texto)) continue;
     hallazgos.push(
       hallazgo({
         clave: `claves/bundle:${rel}`,
