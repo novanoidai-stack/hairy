@@ -115,6 +115,18 @@ supabase.auth.onAuthStateChange(() => { invalidateAuthCache(); });
 // Pertenece la cuenta autenticada al equipo Mecha? (RPC is_staff, security definer)
 export async function isStaff(): Promise<boolean> {
   try {
+    // Se descarta el `error` A PROPOSITO. Sin permiso o sin red, `data` es null,
+    // `null === true` es false y esto responde "no eres staff": fallar CERRADO
+    // es lo correcto en un chequeo de permisos. Mirar el error aqui solo daria
+    // ocasion de tratarlo como "no se sabe" y abrir por defecto.
+    //
+    // Lleva el motivo escrito porque el vigilante de errores tragados
+    // (scripts/vigilantes/errores-tragados.mjs) marca las llamadas a supabase-js
+    // que ignoran su error, y con razon: las promesas de supabase-js no rechazan,
+    // resuelven con { data, error }, asi que no mirarlo es la unica forma de
+    // tragarselo. La exencion es el comentario, no una lista de ficheros:
+    // escribir por que es un acto consciente que se ve en el diff y se puede
+    // discutir en la revision.
     const { data } = await supabase.rpc('is_staff');
     return data === true;
   } catch {

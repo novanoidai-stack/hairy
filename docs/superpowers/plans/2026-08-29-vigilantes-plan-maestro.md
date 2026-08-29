@@ -192,6 +192,15 @@ anterior · sin marca = viene de la fase 2 y sigue pendiente.
 | `planes.mjs` **[HECHO]** | Lo que incluye cada plan vs. lo que se promete | bloqueante |
 | `horarios-convenio.mjs` **[HECHO]** | El 0 = lunes confundido con el 0 = domingo | bloqueante |
 
+**Alcance real de `errores-tragados`, para no darlo por más ancho de lo que es.**
+Barre `app/` y `components/`, no `lib/`. Se probó añadiendo `lib/` y da **cero**
+hallazgos nuevos: sus reglas están ancladas a *handlers* de UI (`onPress`,
+`onClick`) y en `lib/` no hay ninguno. O sea que no es un olvido, pero tampoco
+es "cubre todo el código": un error tragado dentro de una función de `lib/` a la
+que llama un botón se ve solo si el barrido llega hasta ella (un nivel), que es
+lo documentado. Si algún día se quiere cubrir de verdad, hace falta una regla que
+no dependa del handler, no añadir la carpeta.
+
 **Lo que enseñó estrenarlos (29 ago 2026).** Los cinco de arriba se escribieron
 de una tanda y **tres cazaron algo real el primer día**, que es el argumento a
 favor de seguir por aquí:
@@ -482,9 +491,22 @@ organización. Es más grave que una `service_role`, no menos.
 
 ### A continuación
 
-6. **C1** (gitleaks sobre el **historial**, §4.2) y **C3** (verificación
-   post-deploy): el árbol actual ya lo cubre `claves.mjs`; lo que nadie mira es
-   el historial de git.
+6. **C1** (gitleaks sobre el **historial**, §4.2): el árbol actual ya lo cubre
+   `claves.mjs` —y mejor que un `gitleaks` genérico, porque entiende que la
+   publishable no es un hallazgo—; lo que nadie mira es el **historial de git**,
+   donde sigue la `service_role` filtrada, en un repo que **ha vuelto a ser
+   público**. La clave está desactivada, así que el daño está contenido: lo que
+   queda es un **inventario** para decidir con datos, porque reescribir el
+   historial rompe todos los forks y checkouts. Es una tarea puntual con una
+   decisión de producto detrás, **no un workflow recurrente**.
+
+   **C3 (verificación post-deploy) queda HECHA** por otro camino, más barato que
+   el que proponía la nota: `canario.yml` ya sabía medir producción y ya tenía
+   `workflow_dispatch`, así que solo hacía falta **dispararlo** —`workflow_run`
+   tras una CI en verde en `master`— en vez de montar un segundo smoke con su
+   propia línea base. Con una limitación que va escrita en el propio workflow:
+   cuando la CI termina, Vercel puede seguir desplegando, así que esa corrida
+   puede medir el deploy anterior. Lo adelanta, no lo sustituye.
 7. **Actuar sobre lo que ya midió `vigilancia_bd_rendimiento`.** Medir está
    hecho; arreglar, no. Por orden de tamaño: `notificaciones_pendientes` se
    lleva el **15,4 %** de todo el tiempo de la base (52 665 llamadas — es el

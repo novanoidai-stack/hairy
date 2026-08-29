@@ -7,6 +7,22 @@ name: Canario
 on:
   schedule:
     - cron: '17 * * * *'
+  # Tras un merge a master, sin esperar hasta una hora a la siguiente ventana.
+  # Es el momento en que mas probable es que algo se haya roto en produccion, y
+  # era justo cuando mas se tardaba en enterarse.
+  #
+  # LIMITACION QUE HAY QUE CONOCER, porque si no este disparo miente: cuando la
+  # CI termina, Vercel puede seguir desplegando. Esta corrida puede estar
+  # midiendo el deploy ANTERIOR. Por eso espera un rato antes de empezar y por
+  # eso NO sustituye al canario horario: lo adelanta.
+  #
+  # Si algun dia hace falta exactitud, la salida limpia es que la app publique su
+  # commit y el smoke compruebe que coincide antes de medir; con `workflow_run`
+  # a secas no se puede saber.
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -20,8 +36,19 @@ jobs:
   humo:
     name: Humo contra www.mechaa.es
     runs-on: ubuntu-latest
+    # Si viene de la CI, solo cuando la CI paso. Medir produccion despues de una
+    # CI en rojo no dice nada nuevo: ya se sabe que algo esta mal.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      # Ver la LIMITACION de arriba: al acabar la CI, Vercel puede seguir
+      # desplegando. Este margen no lo garantiza, solo lo hace probable.
+      - name: Dar tiempo al despliegue de Vercel
+        if: github.event_name == 'workflow_run'
+        run: sleep 120
         with:
           persist-credentials: false
 
