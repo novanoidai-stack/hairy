@@ -115,6 +115,10 @@ supabase.auth.onAuthStateChange(() => { invalidateAuthCache(); });
 // Pertenece la cuenta autenticada al equipo Mecha? (RPC is_staff, security definer)
 export async function isStaff(): Promise<boolean> {
   try {
+    // error-ignorado: si la RPC falla (sin permiso, sin red), data llega null y
+    // `null === true` responde "no eres staff". Fallar CERRADO es lo correcto en
+    // un chequeo de permisos: mirar el error aqui solo podria servir para
+    // abrirlo, que es justo lo que no queremos.
     const { data } = await supabase.rpc('is_staff');
     return data === true;
   } catch {

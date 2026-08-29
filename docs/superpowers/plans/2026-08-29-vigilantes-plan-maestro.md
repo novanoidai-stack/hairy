@@ -1,0 +1,355 @@
+# Plan maestro de vigilantes — la lista única (29 ago 2026)
+
+> **Qué es esto.** Había dos backlogs vivos a la vez: la *radiografía de fase 2*
+> (`2026-08-29-vigilantes-fase2-radiografia.md`, 12 familias de vigilantes
+> propios) y una nota suelta de *workflows de GitHub pendientes* (6 workflows).
+> Se solapaban, se contradecían en tres puntos y ninguno de los dos sabía lo que
+> el otro ya había hecho. Esto los funde en una sola lista, con el estado
+> **verificado contra el repo**, no recordado.
+>
+> **Cómo se leyó cada afirmación.** Todo lo que aquí se da por hecho o por
+> pendiente se comprobó ejecutando algo: `git log`, el contenido de
+> `.github/workflows/`, `deno.json`, o midiendo el código con el compilador de
+> TypeScript. Donde el informe original se equivocaba, se dice y se explica por
+> qué — no se borra: saber que una conclusión era falsa vale tanto como la
+> conclusión.
+>
+> Reglas heredadas que gobiernan todo lo de aquí (fase 1, decisión 10 de
+> CLAUDE.md): un ancla perdida FALLA · dos niveles (`bloqueante` tumba la CI,
+> `aviso` informa) · la deuda heredada nace con línea base congelada y el
+> trinquete solo gira hacia abajo · GitHub Actions jamás ve una clave de
+> Supabase · no se estrena un vigilante sin línea base medida y sin haber
+> descartado un falso positivo a conciencia.
+
+---
+
+## 1. Veredicto sobre la nota de "workflows pendientes"
+
+Sus seis puntos, evaluados uno a uno. **Dos ya estaban hechos, uno hay que
+rechazarlo, y tres siguen siendo buenos** — uno de ellos por una razón distinta
+de la que decía.
+
+| # | Lo que proponía | Veredicto | Por qué |
+|---|---|---|---|
+| 1 | Ejecutar `vigilancia_bd()` programado | **VÁLIDO — el de más valor** | Confirmado: `bd.mjs` no está en `ESTATICOS` de `index.mjs` y ningún workflow lo llama. La capa 2 del diseño solo corre si alguien la invoca a mano. |
+| 2 | Barrido de secretos (`gitleaks`) | **VÁLIDO, pero no por lo que decía** | Decía que "la norma está escrita y no la hace cumplir nada". **Falso desde `c7b3d58f`**: el vigilante `claves` corre en cada PR y cubre el árbol actual. Lo que NO cubre —y ahí sí hace falta— es el **historial de git**. |
+| 3 | Verificación posterior al despliegue | **VÁLIDO, y descubre algo peor** | El `grep` del bundle ya lo hace `claves.mjs`… pero en CI **nunca se ejecuta de verdad**. Ver §2, es el hallazgo más incómodo de esta revisión. |
+| 4 | Guardia de migraciones | **VÁLIDO** | Nada compara `supabase/migrations/` con el historial remoto. "El historial remoto manda" es la norma y no la vigila nadie. |
+| 5 | Presupuesto de bundle | **YA HECHO** | `scripts/vigilantes/peso-bundle.mjs` + `peso-baseline.json` (8,20 MB / entry 1,05 MB), corriendo en el job `e2e` de `ci.yml`. Es la familia 1b, cerrada. |
+| 6 | Dependabot agrupado y semanal | **RECHAZADO tal cual** | Es verdad que no hay `.github/dependabot.yml`. Pero **Renovate sí está** (`.github/renovate.json`, agrupando expo y supabase) y hace exactamente eso. Montar los dos = dos PRs por cada actualización. Ver §4 para lo que sí queda. |
+
+Sus dos apuntes finales, ambos **verificados y válidos**:
+
+- `deno task check:edges` cubre **3 edge functions de 43** (`vigilar-agenda`,
+  `agenda-optimizador`, `agenda-asistente`). Ampliarlo es barato.
+- El canario **reinstala Chromium entero cada hora**, 24 veces al día: no hay
+  ni un `actions/cache` en los tres workflows.
+
+---
+
+## 2. El hallazgo de esta revisión: el vigilante de claves está ciego en CI
+
+Merece sección propia porque contradice la regla número uno del proyecto
+—*un vigilante ciego es peor que no tenerlo*— y llevaba así desde que se montó.
+
+`claves.mjs` tiene cuatro comprobaciones. La cuarta, la que más duele si falta,
+mira el **bundle construido** en `web/app/`: Metro incrusta los `EXPO_PUBLIC_*`
+como literal y cachea esa transformación por fichero, así que el código fuente
+puede estar limpio y el bundle salir con la clave vieja. Ya pasó una vez.
+
+El problema está en cómo se reparten los jobs de `ci.yml`:
+
+- El job **`check`** ejecuta `node scripts/vigilantes/index.mjs` — pero **no
+  compila la web**.
+- El job **`e2e`** ejecuta `npm run build:web` — pero **no ejecuta los
+  vigilantes**.
+
+Y el recorrido del bundle empieza así:
+
+```js
+function* ficherosDelBundle(rel, restantes = { n: 4000 }) {
+  const abs = path.join(RAIZ, rel);
+  if (!existsSync(abs)) return;   // <- en CI siempre entra por aquí
+```
+
+`web/app/` está en `.gitignore`, así que en el checkout limpio del job `check`
+no existe: el generador devuelve cero ficheros, el bucle no itera y la
+comprobación **pasa en verde sin haber mirado nada**. No hay error, no hay
+aviso, no hay rastro en el log. Es el modo exacto de pudrirse que la regla del
+ancla perdida existe para impedir, y se coló porque el ancla que faltaba no era
+un regex sino un **directorio**.
+
+**Arreglo (dos partes, ninguna opcional):**
+
+1. Que el chequeo del bundle **distinga "no aplica" de "no he mirado"**: si la
+   variable de entorno dice que este job debía tener bundle (o si existe
+   `web/app` pero vacío), la ausencia es un **hallazgo bloqueante**, no un
+   silencio. En local sin compilar, sigue siendo un no-aplica legítimo.
+2. Ejecutar el vigilante de claves **también en el job `e2e`, después de
+   `build:web`**, que es el único sitio de la CI donde el bundle existe.
+
+**La lección, que es más general que este fallo:** cuando un vigilante depende
+de un artefacto que puede no estar, tiene que decir *"no he podido mirar"* en
+voz alta. `existsSync(...) return` es la forma más silenciosa de mentir.
+
+---
+
+## 3. Orden de ejecución acordado
+
+Une las familias de la radiografía con los workflows que sobreviven. El criterio
+es el mismo de la fase 1: **primero lo que habría cazado un fallo real que ya
+ocurrió**.
+
+| Orden | Trabajo | De dónde sale | Estado |
+|---|---|---|---|
+| ✅ | Radar de GitHub (Semgrep, zizmor, CodeQL, Renovate, CodeRabbit) | radiografía 12 | **hecho** |
+| ✅ | Rendimiento de pantallas + peso del bundle | radiografía 1, 1b, 1c / nota 5 | **hecho** |
+| ✅ | Vigilante de claves (código y bundle) | decisión 9 / nota 2 | **hecho, pero ciego en CI** — §2 |
+| **A** | **Botones que fallan en silencio** | radiografía 2 | **esta sesión** |
+| **B** | Arreglar la ceguera del vigilante de claves + caché de Playwright | §2 y nota final | **esta sesión** |
+| C | `vigilancia_bd()` programado cada 6 h | nota 1 | siguiente |
+| D | Cuellos de botella de BD (`pg_stat_statements`) | radiografía 3 | siguiente |
+| E | Atribución: qué push rompió qué | radiografía 11 | siguiente |
+| F | Guardia de migraciones | nota 4 | luego |
+| G | Barrido del **historial** de git | nota 2 reformulada | luego |
+| H | Coherencia de datos + legalidad | radiografía 4, 7 | luego |
+| I | Bugs visuales, arquitectura, SEO, dependencias | radiografía 5, 6, 8, 9 | luego |
+
+---
+
+## 4. Lo que cambia respecto a los dos backlogs originales
+
+### 4.1 Renovate se queda solo; Dependabot solo como alertas
+
+Renovate ya agrupa expo y supabase y sus PRs pasan la CI completa. Añadir
+`dependabot.yml` para *version updates* duplicaría cada PR. Lo que **sí** falta y
+Renovate no da es el **aviso de vulnerabilidad** de GitHub: eso son las
+*Dependabot alerts*, que no son un fichero del repo sino un interruptor en
+Settings → Code security. Es un paso manual de treinta segundos, no un workflow.
+
+### 4.2 El barrido de secretos se reformula: el árbol ya está cubierto, el historial no
+
+El vigilante `claves` cubre el árbol actual en cada PR, y lo hace mejor que
+`gitleaks` genérico porque entiende las reglas de esta casa (la publishable no es
+un hallazgo; `sb_secret_nueva` de una fixture tampoco). Lo que ninguna
+herramienta del repo mira es el **historial**, y ahí sigue la `service_role`
+filtrada, en un repositorio que **ha vuelto a ser público**.
+
+Eso cambia la naturaleza del trabajo: no es un vigilante de regresión (nadie va a
+"volver a meter" un commit de 2026 en el pasado), es una **limpieza puntual** con
+decisión de producto detrás — reescribir el historial rompe todos los forks y
+checkouts. La clave ya está desactivada, así que el daño está contenido; lo que
+queda es que un barrido del historial documente qué hay exactamente, para poder
+decidir con datos. **Es una tarea, no un workflow recurrente.**
+
+### 4.3 La verificación posterior al despliegue se apoya en el canario, no en un workflow nuevo
+
+La nota pedía un workflow que, al mergear a `master`, esperase al deploy de
+Vercel y lanzase el smoke sin aguardar hasta una hora al canario. La mitad cara
+de eso (esperar al deploy) ya la resuelve otra pieza: el canario existe y sabe
+medir producción. Lo que falta es **poder dispararlo**, y `canario.yml` ya tiene
+`workflow_dispatch`. Así que el trabajo real es un `workflow_run` que lo invoque
+tras un push a master — no un segundo smoke paralelo con su propia línea base.
+
+### 4.4 Ampliar `check:edges` de 3 a 43 no es "barato" sin más
+
+La nota lo daba por trivial y a la vez advertía —con razón— de que hacerlo sin
+red da ~29 errores falsos, porque los genéricos del build de npm de
+`supabase-js` no son los de `esm.sh`. La conclusión correcta es que **el trabajo
+es de CI, no de local**: ampliar la lista y dejar que la ejecute el runner, que
+sí tiene red. Y hacerlo por tandas, no las 40 de golpe: cada edge que entra puede
+sacar errores de tipos reales que hay que arreglar, y eso es una sesión de
+trabajo por tanda, no un cambio de una línea en `deno.json`.
+
+---
+
+## 5. Familia A — botones que fallan en silencio (lo de esta sesión)
+
+Lo que la radiografía pedía en su §2 era esto:
+
+> El smoke pulsa el botón y comprueba que "no explote". Pero un botón cuyo
+> handler hace `await algo()` sin catch y se traga el error, o que pinta un toast
+> rojo que nadie lee en CI, hoy pasa en verde.
+
+Al medirlo apareció que **el diseño original apuntaba al patrón equivocado**, y
+esa corrección es el corazón de la familia.
+
+### 5.1 La corrección: en este repo, tragarse un error casi nunca es un `await` sin `catch`
+
+La radiografía proponía buscar `onClick={() => { algoAsync() }}` sin `await` ni
+`catch`, y avisaba de que la variante con `await` "da muchos falsos positivos".
+Ambas cosas son ciertas, pero se quedan cortas, porque **las promesas de
+`supabase-js` no rechazan**: resuelven con `{ data, error }`. Un `try/catch`
+alrededor de una consulta a Supabase no captura *nada* cuando la consulta falla
+por RLS, por una restricción o por un 4xx. El error viaja dentro del valor
+devuelto, y la única forma de tragárselo es **no mirarlo**.
+
+Medido con el compilador de TypeScript sobre las 315 fuentes de `app/`,
+`components/` y `lib/`:
+
+| Patrón | Casos | Qué le pasa a un salón real |
+|---|---:|---|
+| `error` descartado en el destructuring, en una **escritura** (`insert`/`update`/`delete`/`upsert`/`rpc`) | **7** | Cree que ha guardado y no ha guardado |
+| `error` descartado en el destructuring, en una **lectura** (`select`) | 123 | Ve una pantalla vacía o un total a 0 € y lo cree |
+| `error` descartado en `auth`/`storage`/`functions` | 17 | La foto no sube, la sesión no cambia, sin aviso |
+| `error` capturado y **nunca leído** en su ámbito | **0** | — (ver 5.3) |
+| `catch` vacío **sin motivo escrito** | 11 | Se traga lo que sea |
+| `catch` que solo hace `console.*` | 15 | La consola de CI lo ve; la peluquera no |
+| `.catch(() => {})` **sin motivo escrito** | 12 | Igual, en promesas sueltas |
+| Handler que llama a una función `async` local sin `await`/`catch` | 13 | El clic no hace nada y no lo dice |
+
+**El `await` sin `catch` no está en la tabla**, porque en este repo casi nunca es
+el fallo. Los 147 casos de arriba sí lo son, y ninguno lo habría encontrado el
+detector que proponía el plan.
+
+### 5.2 El falso positivo que obligó a cambiar el diseño
+
+De los 7 de escritura, dos son ejemplos perfectos y **opuestos**:
+
+**Positivo de libro** — `components/agenda/modals/NewCitaModal.web.tsx:1343`.
+Inserta una serie entera de citas periódicas y descarta el error. Si la inserción
+falla, `serieInsertadas` es `null`, los dos `if (serieInsertadas)` siguientes se
+saltan en silencio… y tres líneas después:
+
+```js
+const creadas = 1 + filasSerie.length;
+alert(`Serie creada: ${creadas} de ${repetirVeces} citas.`);
+```
+
+La pantalla **afirma que ha creado 8 citas cuando no ha creado ninguna**. No es
+que falle en silencio: es que miente. En el vocabulario de este proyecto, "un
+usuario real ve algo falso" es la definición de `bloqueante`.
+
+**Falso positivo deliberado** — `lib/auth.ts:118`:
+
+```js
+const { data } = await supabase.rpc('is_staff');
+return data === true;
+```
+
+Aquí descartar el error es **lo correcto**: si la RPC falla, `data` es `null`,
+`null === true` es `false`, y la función responde "no eres staff". Falla cerrado,
+que es exactamente lo que debe hacer un chequeo de permisos. Denunciarlo sería
+empujar hacia un cambio peor.
+
+Distinguir ambos por AST no se puede: los dos son `const { data } = await`. Lo
+que los distingue es que **uno tiene una razón y el otro un olvido**.
+
+### 5.3 La regla que sale de ahí: tragarse un error es legítimo si está escrito por qué
+
+El detector exime cualquier caso que lleve **un comentario explicando el motivo**
+—en la línea, en la de arriba o dentro del bloque—. No es una concesión: es la
+regla que el propio repo ya practica sin haberla escrito. De los 76 `catch`
+vacíos, **65 ya llevan su motivo**:
+
+```js
+catch { /* la lista es secundaria */ }
+catch { /* las fotos son opcionales en el PDF */ }
+catch { /* localStorage no disponible */ }
+```
+
+Y los 11 que no lo llevan son, uno por uno, los sospechosos. La proporción 6:1 no
+es casualidad: es que la casa ya sabe distinguir, solo que nadie lo estaba
+contando. El vigilante no inventa una norma, **hace cumplir la que ya había**.
+
+Que un comentario baste para eximir puede sonar débil, y no lo es: escribir el
+motivo es un acto consciente que queda en el diff y que alguien puede discutir en
+la revisión. Es la misma filosofía que `// nosemgrep` con su explicación al lado
+(precedente del 3DES de Redsys), o que `--aprobar` para bajar una línea base.
+
+El caso de `is_staff` se cierra, entonces, escribiendo lo que ya era verdad:
+
+```js
+// Sin permiso o sin red, data es null y esto responde "no eres staff":
+// fallar cerrado es lo correcto en un chequeo de permisos.
+const { data } = await supabase.rpc('is_staff');
+```
+
+### 5.4 El detector con línea base a cero: el que más vale mañana
+
+`error` **capturado y nunca leído** da **0** hoy. Es decir: cuando este código
+recoge el error, siempre lo mira. Ese detector no encuentra deuda — encuentra la
+primera regresión que se cometa, desde el día uno, sin ruido de fondo. Los
+vigilantes que nacen en cero son los más valiosos que hay: el trinquete empieza
+apretado.
+
+### 5.5 Reparto entre las dos piezas
+
+- **2b, estático** (`scripts/vigilantes/errores-tragados.mjs`): las ocho clases
+  de arriba, línea base congelada **por fichero y por clase** —así mover deuda de
+  un fichero a otro no la esconde— y nivel `aviso`, salvo que un fichero suba de
+  golpe. Corre en cada PR, sin red, en menos de un segundo.
+- **2a, dinámico** (`tests/smoke/silencios.ts`): lo que solo se ve ejecutando.
+  Hoy el smoke escucha `pageerror`, que **no caza las promesas rechazadas**;
+  se añade `unhandledrejection`. Y se detectan los **toasts de error visibles**
+  tras pulsar cada botón: si aparece uno que no estaba, se apunta con la etiqueta
+  del botón, para saber *cuál* degeneró y no solo *que* algo degeneró.
+
+Lo que **no** hace ninguna de las dos: decir si el botón hace lo correcto. Eso
+son los specs dedicados. Esto es la red de abajo.
+
+---
+
+## 6. Lo que queda pendiente, con su porqué (para no volver a razonarlo)
+
+### C. `vigilancia_bd()` programado — el de más valor de todo lo pendiente
+
+La auditoría del 29 ago encontró cuatro cosas críticas —29 RPC definer abiertas a
+`anon`, `profiles` legible entre salones, un trigger que tumbaba el guardado de
+horarios, un cron mirando un tenant vacío— y **la CI no vio ninguna**, porque las
+cuatro viven donde no mira: dentro de Postgres y en la configuración de
+producción. `vigilancia_bd()` las detecta hoy (comprobaciones 2, 7, 8, 9, 10 y
+11) y no la ejecuta nadie automáticamente.
+
+Workflow cada 6 h que la invoque, publique en Salud y **falle si hay algún
+`bloqueante`**. La autorización va con `VIGILANCIA_TOKEN` como el recolector
+—regla 4: Actions nunca ve una clave de Supabase—, lo que implica **una RPC
+puente que el token pueda llamar**, no la clave de servicio en un secret.
+
+### D. Cuellos de botella de BD
+
+`pg_stat_statements`: top por `total_exec_time`, seq scans que crecen, esperas en
+lock. Dato de partida ya medido: **la agenda hace ~65–70 peticiones a Supabase
+por carga** — primer sospechoso de N+1. El precedente de que esto importa es real:
+`is_staff()` volátil provocó 24 M de seq scans sobre `staff`.
+
+### E. Atribución (qué push rompió qué)
+
+La base ya existe: `vigilancia_ejecuciones` guarda `commit_sha` y `rama`. Falta
+el comparador y que compare contra **la última corrida verde del padre del
+merge** (`git merge-base`), no contra "la última a secas" — si la rama venía
+rota, el delta culpa al commit equivocado.
+
+### F. Guardia de migraciones
+
+Comparar `supabase/migrations/` con el historial remoto y avisar de ficheros sin
+aplicar, salvo los marcados explícitamente como *aplicar después de desplegar*.
+
+### G. Barrido del historial de git
+
+Puntual, no recurrente. Ver §4.2: es un inventario para decidir con datos, con
+una decisión de producto detrás (reescribir el historial rompe forks).
+
+### Mejoras baratas que no son familias
+
+- **Caché de Chromium en el canario** (`actions/cache` sobre
+  `~/.cache/ms-playwright`): se paga sola en un día. Va en esta sesión.
+- **Disparar el canario tras un deploy a master** con `workflow_run` — §4.3.
+- **Ampliar `check:edges` por tandas** — §4.4.
+- **Activar las alertas de Dependabot** (interruptor, no fichero) — §4.1.
+
+---
+
+## 7. Definición de "hecho" para esta sesión
+
+1. `npm run vigilar` incluye `errores-tragados`, con línea base congelada y
+   medida, y con un falso positivo (`is_staff`) descartado a conciencia y
+   documentado.
+2. El vigilante tiene tests propios en `vigilar:test`, y uno de ellos comprueba
+   que **el ancla perdida falla** — sin eso, el vigilante puede quedarse ciego.
+3. El smoke escucha `unhandledrejection` y los toasts de error, y publica en la
+   pestaña Salud con la etiqueta del botón culpable.
+4. El vigilante de claves deja de estar ciego en CI (§2) y el canario cachea el
+   navegador.
+5. Las decisiones nuevas quedan en CLAUDE.md, decisión 10, para que la siguiente
+   sesión no vuelva a razonarlas.

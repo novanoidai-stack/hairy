@@ -140,6 +140,24 @@ jobs:
       - name: Vigilante de peso del bundle
         run: node scripts/vigilantes/peso-bundle.mjs
 
+      # ESTE PASO NO ES UN DUPLICADO DEL DE ARRIBA, Y NO SE PUEDE QUITAR.
+      #
+      # El job `check` corre los vigilantes pero NO compila; este job compila
+      # pero no los corría. Resultado: la cuarta comprobación del vigilante de
+      # claves —la que mira el BUNDLE, no el código— llevaba meses saliendo en
+      # verde sin abrir un solo fichero, porque web/app está gitignorado y en el
+      # job `check` sencillamente no existe. Es la trampa de la caché de Metro
+      # (decisión 9): el código fuente limpio y el bundle con la clave vieja.
+      #
+      # VIGILAR_BUNDLE=1 le dice al vigilante "acabas de compilar, si no hay
+      # bundle es que algo va mal" — y entonces la ausencia es un bloqueante en
+      # vez de un silencio. El propio vigilante exige que esta línea exista, así
+      # que borrar este paso pone la CI en rojo en vez de apagar la comprobación.
+      - name: Vigilante de claves contra el bundle compilado
+        env:
+          VIGILAR_BUNDLE: '1'
+        run: node scripts/vigilantes/index.mjs --solo claves
+
       # Ojo: estos specs leen de la Supabase REAL (tenant público de la demo).
       # Es lectura pura, pero implica que una caída de Supabase pone la CI en
       # rojo sin que nadie haya roto nada. Si eso llega a molestar, la salida es
@@ -177,6 +195,20 @@ jobs:
         run: |
           node scripts/vigilantes/rendimiento.mjs rendimiento.jsonl vigilancia-rendimiento.json ci
           node scripts/vigilantes/enviar.mjs vigilancia-rendimiento.json
+
+      # Familia 2a: lo que el smoke ha oído fallar en silencio — promesas
+      # rechazadas que `pageerror` no ve, y avisos de error que salen al pulsar
+      # un botón (con la etiqueta del botón, que es lo que lo hace accionable).
+      # Bloquea solo si el sensor se ha quedado SORDO: si las frases que busca
+      # ya no están en lib/errores.ts, este vigilante daría verde para siempre.
+      - name: Vigilante de botones que fallan en silencio
+        if: always() && steps.smoke.conclusion != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/silencios.mjs silencios.jsonl vigilancia-silencios.json ci
+          node scripts/vigilantes/enviar.mjs vigilancia-silencios.json
 
       - name: E2E autenticados (solo si hay secrets)
         if: ${{ env.E2E_EMAIL != '' }}

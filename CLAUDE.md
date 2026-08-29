@@ -310,6 +310,87 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       - Peso del bundle: `scripts/vigilantes/peso-bundle.mjs` tras `build:web`
         avisa si sube >5% sobre `scripts/vigilantes/peso-baseline.json`
         (8,20 MB / entry 1,05 MB congelados el 29 ago).
+    - **Botones que fallan en silencio (29 ago 2026, familia 2 de la fase 2).**
+      Plan maestro que funde los dos backlogs que había vivos:
+      `docs/superpowers/plans/2026-08-29-vigilantes-plan-maestro.md`.
+      - **En este repo tragarse un error casi nunca es un `await` sin `catch`.**
+        Las promesas de `supabase-js` **no rechazan**: resuelven con
+        `{ data, error }`. Un `try/catch` alrededor de una consulta no captura
+        NADA cuando falla por RLS o por una restricción — el error viaja dentro
+        del valor y la única forma de tragárselo es no mirarlo. Medido: **147
+        sitios descartan el `error` en el propio destructuring**, y ninguno lo
+        habría encontrado el detector que proponía el plan original.
+      - `scripts/vigilantes/errores-tragados.mjs` (parser de `typescript`, ya era
+        dependencia — nada de `ts-morph`) cubre ocho clases sobre `app/`,
+        `components/`, `lib/` **y las 43 edge functions**: error descartado en
+        escritura / lectura / auth-storage, error recogido y nunca leído,
+        `catch` mudo, `catch` que solo hace `console.*`, `.catch(()=>{})` mudo,
+        handler que llama a una función `async` sin esperarla, y edge que
+        responde **200 desde un `catch`**. Línea base **por fichero y por clase**
+        (198 sitios): un total global dejaría pasar "limpio dos aquí, meto dos
+        allá". `npm run vigilar:errores` para verlos, `:aprobar` para congelar.
+      - **Tragarse un error es legítimo si está escrito por qué, y hay dos
+        formas de escribirlo.** Dentro de un bloque vacío basta el comentario
+        (`catch { /* la lista es secundaria */ }`): ahí no puede referirse a otra
+        cosa, y **65 de los 76 `catch` vacíos ya estaban así** — la norma ya se
+        practicaba, solo que nadie la contaba. Donde no hay bloque hace falta la
+        marca explícita **`// error-ignorado: <motivo>`**. La primera versión
+        eximía cualquier comentario cercano y eximía 35 lecturas por frases como
+        `// Arqueo del dia: lo cobrado HOY`, que describen **qué hace la
+        consulta**, no por qué se ignora su error: en un repo que comenta cada
+        línea, esa regla apaga el vigilante sola. `grep -rn "error-ignorado:"` da
+        la lista de lo que este producto se traga a propósito.
+      - **El falso positivo que obligó a ese diseño:** `isStaff()` hace
+        `const { data } = await supabase.rpc('is_staff'); return data === true`.
+        Descartar el error ahí es lo CORRECTO — si falla, `data` es `null` y
+        responde "no eres staff": falla cerrado, que es lo que debe hacer un
+        chequeo de permisos. Por AST es idéntico al positivo de libro
+        (`NewCitaModal` inserta una serie de citas, descarta el error y tres
+        líneas después hace `alert('Serie creada: 8 de 8')` — **no falla
+        callando: miente**). Lo único que los distingue es que uno tiene razón y
+        el otro un olvido.
+      - **Un ancla NO puede ser "distinto de cero".** El detector de edges se
+        quedó ciego dos veces: primero buscaba `new Response` cuando las edges
+        responden con un helper `json(cuerpo, status)` (0 de 111 `catch`, y
+        parecía disciplina); luego, ya arreglado, el ancla preguntaba `> 0` y al
+        renombrar el helper pasó de 57 respuestas a 6 — **89 % ciego, en verde**.
+        Hoy son **suelos** (`SUELOS` en el vigilante) con holgura sobre lo real.
+        La ceguera de verdad casi nunca es total: es parcial y silenciosa.
+      - **2a, en el smoke** (`tests/smoke/silencios.ts`): `pageerror` **no ve las
+        promesas rechazadas** — hace falta `unhandledrejection` por
+        `addInitScript`; y los `alert()` los descartaba Playwright sin dejar
+        rastro. El aviso de error se detecta **por el texto**, no por selector:
+        este design system no tiene ni `.toast` ni `[role="alert"]`, así que un
+        selector inventado nacería ciego. El vocabulario sale de `lib/errores.ts`
+        y `scripts/vigilantes/silencios.mjs` **bloquea si alguna frase ya no está
+        allí** (el sensor se habría quedado sordo dando verde). Cada hallazgo
+        lleva **la etiqueta del botón**: "algo falla en caja" no se arregla.
+        En el canario un rechazo sin capturar es **bloqueante** — allí se lo come
+        un salón de verdad, no la demo.
+      - **Trampa verificada: `page.setContent()` hace `document.open()`, que
+        BORRA los listeners de eventos.** Las propiedades de `window` sobreviven
+        (se lee el array, vacío) pero el `addEventListener` del `addInitScript`
+        no. El smoke real no se ve afectado (cada pantalla es una navegación),
+        pero una prueba del sensor montada con `setContent` da un falso negativo.
+        Por eso `tests/smoke/silencios.sensor.spec.ts` navega a una URL servida
+        con `page.route()`: un sensor que nunca se ha visto disparar no está
+        verificado.
+    - **El vigilante de claves llevaba meses ciego en la CI (arreglado 29 ago
+      2026).** Su cuarta comprobación —la del BUNDLE, la que caza la trampa de la
+      caché de Metro— salía en verde **sin abrir un solo fichero**: `web/app`
+      está gitignorado, el job `check` corre los vigilantes pero no compila, y el
+      recorrido hacía `if (!existsSync(abs)) return;`. Sin error, sin aviso, sin
+      rastro. El ancla que faltaba no era un regex sino **un directorio**.
+      Ahora el job `e2e` lo ejecuta tras `build:web` con `VIGILAR_BUNDLE=1`, y
+      con esa variable la ausencia de bundle es **bloqueante** en vez de
+      silencio; el propio vigilante **exige que ese paso siga en `ci.yml`**, así
+      que borrarlo pone la CI en rojo en lugar de apagar la comprobación.
+      **La lección general:** cuando un vigilante depende de un artefacto que
+      puede no estar, tiene que decir *"no he podido mirar"* en voz alta.
+      `existsSync(...) return` es la forma más silenciosa de mentir.
+    - **El canario cachea el navegador** (`actions/cache` sobre
+      `~/.cache/ms-playwright`, clave con la versión de Playwright): reinstalaba
+      Chromium entero 24 veces al día.
 
 ## Convenciones de código
 

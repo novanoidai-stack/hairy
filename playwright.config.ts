@@ -22,6 +22,11 @@ const SPECS_PUBLICOS = [
   // botones). Es publico: corre sobre la demo compartida y contra produccion
   // en el canario horario (.github/workflows/canario.yml).
   '**/smoke/pantallas.spec.ts',
+  // Y la prueba de que los SENSORES del smoke siguen oyendo. Es autocontenida
+  // (no toca Supabase ni la demo) y corre aqui a proposito: si se enganchara al
+  // proyecto autenticado, no se ejecutaria en los repos sin secrets, que es
+  // justo donde nadie se enteraria de que el sensor se quedo mudo.
+  '**/smoke/silencios.sensor.spec.ts',
 ];
 
 export default defineConfig({

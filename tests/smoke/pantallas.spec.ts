@@ -6,6 +6,13 @@ import {
   leerMedidasDelDocumento,
   observarLongTasks,
 } from './mediciones';
+import {
+  apuntarSilencios,
+  erroresVisibles,
+  leerRechazos,
+  observarDialogos,
+  observarRechazos,
+} from './silencios';
 
 // SMOKE DE PANTALLAS — el vigilante que responde "¿que boton dejo de funcionar?".
 //
@@ -111,11 +118,16 @@ async function manosearBotones(
   donde: Page | FrameLocator,
   page: Page,
   nombrePantalla: string,
-): Promise<void> {
+): Promise<{ boton: string; texto: string }[]> {
   const botones = donde.locator('button:visible, [role="button"]:visible');
   const total = Math.min(await botones.count(), 25);
   const urlInicial = page.url();
   const rutaInicial = new URL(urlInicial).pathname;
+
+  // Familia 2a: que avisos de error hay ANTES de tocar nada. Solo cuentan los
+  // que aparezcan despues -- uno que ya estaba no lo ha sacado este clic.
+  const yaHabia = new Set(await erroresVisibles(donde));
+  const sacados: { boton: string; texto: string }[] = [];
 
   for (let i = 0; i < total; i++) {
     const b: Locator = botones.nth(i);
@@ -150,6 +162,16 @@ async function manosearBotones(
       continue;
     }
 
+    // Familia 2a: si este clic ha sacado un aviso de error que no estaba, se
+    // apunta CON LA ETIQUETA DEL BOTON. Sin el nombre del boton el hallazgo es
+    // inutil: "algo falla en caja" no se puede arreglar; "el boton Cobrar dice
+    // que no tienes permisos" si.
+    for (const texto of await erroresVisibles(donde)) {
+      if (yaHabia.has(texto)) continue;
+      yaHabia.add(texto);
+      sacados.push({ boton: etiqueta || '(sin etiqueta)', texto });
+    }
+
     // Lo unico que de verdad importa: la pantalla no se ha quedado en blanco.
     const cuerpo = await donde.locator('body').innerText().catch(() => '');
     expect(
@@ -166,6 +188,8 @@ async function manosearBotones(
     new URL(page.url()).pathname,
     `algo saco de la pantalla ${nombrePantalla}`,
   ).toBe(rutaInicial);
+
+  return sacados;
 }
 
 for (const p of PANTALLAS) {
@@ -176,6 +200,10 @@ for (const p of PANTALLAS) {
 
     // Mediciones de rendimiento (familia 1a): los oidos van antes de navegar.
     observarLongTasks(page);
+    // Sensores de silencio (familia 2a): `unhandledrejection` no lo ve
+    // `pageerror`, y los alert() los descarta Playwright sin dejar rastro.
+    observarRechazos(page);
+    const dialogos = observarDialogos(page);
     const peticiones = contarPeticionesSupabase(page);
     const t0 = Date.now();
 
@@ -195,7 +223,7 @@ for (const p of PANTALLAS) {
     expect(alCargar.red, `peticiones fallidas al cargar ${p.nombre}`).toEqual([]);
 
     // 4. Los botones responden.
-    await manosearBotones(donde, page, p.nombre);
+    const erroresDeBoton = await manosearBotones(donde, page, p.nombre);
 
     // 5. Y despues de todo el manoseo, sigue sin haber errores EN ESTA PANTALLA.
     // Los de las paginas de destino de los CTAs de marketing no cuentan: ver
@@ -221,6 +249,22 @@ for (const p of PANTALLAS) {
       });
     } catch {
       // Pantalla rota ya bloquea arriba; medir no puede tumbar dos veces.
+    }
+
+    // 7. Y lo que ha fallado en silencio (familia 2a). NO tumba el test: un
+    // aviso de error puede ser un flujo legitimo -- validar un formulario vacio
+    // al pulsar "Guardar" saca "Falta rellenar el nombre" y esta bien. Lo que
+    // importa es que quede APUNTADO con el boton que lo saco, para que
+    // `scripts/vigilantes/silencios.mjs` vea cual degenera.
+    try {
+      apuntarSilencios({
+        pantalla: p.nombre,
+        rechazos: await leerRechazos(page, p.tipo === 'publica'),
+        errores_ui: erroresDeBoton,
+        dialogos: dialogos.textos,
+      });
+    } catch {
+      // Pantalla rota ya bloquea arriba; apuntar no puede tumbar dos veces.
     }
   });
 }

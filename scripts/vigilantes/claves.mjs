@@ -25,6 +25,7 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import process from 'node:process';
 import { leer, hallazgo, exigir, AnclaPerdida, RAIZ } from './nucleo.mjs';
 
 // Cabecera de un JWT HS256 en base64url: `{"alg":"HS256","typ":"JWT"}`. Es como
@@ -229,6 +230,16 @@ async function ejecutar() {
     ancla: 'fallback a la clave publishable',
   });
 
+  // La cuarta comprobacion (el bundle) solo puede mirar si alguien ha compilado
+  // antes. En la CI eso pasa UNICAMENTE en el job `e2e`, despues de build:web,
+  // asi que ese paso es parte del vigilante tanto como el codigo de aqui: si
+  // desaparece del workflow, esta comprobacion deja de correr en toda la CI y
+  // nadie se entera. Por eso se exige aqui.
+  exigir(leer('.github/workflows/ci.yml'), /VIGILAR_BUNDLE:\s*'1'/, {
+    fichero: '.github/workflows/ci.yml',
+    ancla: 'paso que revisa el bundle compilado (VIGILAR_BUNDLE)',
+  });
+
   // --- El codigo versionado, fichero a fichero -----------------------------
   for (const rel of ficherosVersionados()) {
     let texto;
@@ -245,7 +256,46 @@ async function ejecutar() {
   // --- El BUNDLE, no solo el codigo ----------------------------------------
   // Metro cachea por fichero la sustitucion de los EXPO_PUBLIC_*: el codigo
   // puede estar limpio y el bundle salir con la clave vieja. Ya paso.
-  for (const rel of ficherosDelBundle(BUNDLE)) {
+  //
+  // ESTA COMPROBACION SE PASO MESES SIN MIRAR NADA, EN VERDE. `web/app` esta
+  // gitignorado: en el job `check` de la CI, que es el que corre los vigilantes,
+  // no existe. El recorrido hacia `if (!existsSync(abs)) return;`, devolvia cero
+  // ficheros, el bucle no iteraba y salia verde -- sin error, sin aviso, sin
+  // rastro en el log. Un vigilante ciego dando el visto bueno, que es
+  // exactamente lo que la regla del ancla perdida existe para impedir; se colo
+  // porque el ancla que faltaba no era un regex sino un DIRECTORIO.
+  //
+  // Ahora distingue las tres situaciones en vez de callarse en las tres:
+  //   - hay bundle          -> se revisa (lo de siempre)
+  //   - no hay y no tocaba  -> silencio legitimo (un `npm run vigilar` en local
+  //                            sin haber compilado; es lo normal)
+  //   - no hay y SI tocaba  -> BLOQUEANTE. Quien pone VIGILAR_BUNDLE=1 esta
+  //                            afirmando que acaba de compilar; si no hay nada
+  //                            que mirar, el build fallo o el paso esta mal
+  //                            puesto, y en ambos casos la clave del bundle se
+  //                            queda sin vigilar.
+  const debiaHaberBundle = process.env.VIGILAR_BUNDLE === '1';
+  const delBundle = [...ficherosDelBundle(BUNDLE)];
+  if (debiaHaberBundle && delBundle.length === 0) {
+    hallazgos.push(
+      hallazgo({
+        clave: 'claves/bundle-sin-revisar',
+        nivel: 'bloqueante',
+        ambito: 'seguridad',
+        titulo: 'Se pidio revisar el bundle y no hay bundle que revisar',
+        detalle:
+          `VIGILAR_BUNDLE=1 dice que este paso corre despues de build:web, pero ${BUNDLE} esta vacio ` +
+          'o no existe. O el build ha fallado, o el paso esta puesto en el job equivocado. En cualquiera ' +
+          'de los dos casos la comprobacion que caza la trampa de la cache de Metro NO se ha hecho, y ' +
+          'esa es la que ya dejo salir un bundle con la clave vieja teniendo el codigo limpio.',
+        fichero: BUNDLE,
+      }),
+    );
+  }
+  if (!debiaHaberBundle && delBundle.length === 0) {
+    console.log('[claves] sin bundle compilado en web/app: la comprobacion del bundle NO se ha hecho.');
+  }
+  for (const rel of delBundle) {
     let texto;
     try {
       texto = readFileSync(path.join(RAIZ, rel), 'utf8');

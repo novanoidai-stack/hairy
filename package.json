@@ -28,6 +28,8 @@
     "vigilar": "node scripts/vigilantes/index.mjs",
     "vigilar:rapido": "node scripts/vigilantes/index.mjs --rapido",
     "vigilar:bd": "node scripts/vigilantes/index.mjs --bd",
+    "vigilar:errores": "node scripts/vigilantes/errores-tragados.mjs --listar",
+    "vigilar:errores:aprobar": "node scripts/vigilantes/errores-tragados.mjs --aprobar",
     "vigilar:test": "node --test \"scripts/vigilantes/*.test.mjs\""
   },
   "dependencies": {
