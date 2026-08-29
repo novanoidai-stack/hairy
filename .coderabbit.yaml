@@ -1,6 +1,6 @@
 # Configuración de CodeRabbit (revisor IA de PRs, familia 12a).
-# Sustituye a Copilot Code Review: este repo es privado de cuenta personal
-# sin suscripción Copilot, y CodeRabbit tiene plan gratuito.
+# Sin suscripción Copilot en la cuenta: CodeRabbit (plan público, repo público
+# desde el 29 ago 2026). Sus comentarios son SIEMPRE aviso, nunca bloquean.
 # Las instrucciones de revisión viven en .github/copilot-instructions.md
 # (formato común; CodeRabbit también lo lee).
 

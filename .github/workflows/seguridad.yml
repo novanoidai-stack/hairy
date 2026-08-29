@@ -1,11 +1,11 @@
 name: Seguridad
 
-# Radar de GitHub (familia 12 del plan de vigilantes fase 2), la mitad que sí
-# puede correr en un repo privado de cuenta personal: CodeQL exige GitHub
-# Advanced Security (solo organizaciones), así que la seguridad estática va
-# con Semgrep (reglas OSS) y zizmor (audita los propios workflows: inyección
-# en ${{ }}, permisos demasiado anchos — vigila a los vigilantes de CI).
-# Niveles como siempre: solo lo grave bloquea; el resto informa.
+# Radar de GitHub (familia 12 del plan de vigilantes fase 2). CodeQL quedó
+# activado en default setup cuando el repo volvió a ser público (29 ago 2026);
+# Semgrep (reglas OSS) y zizmor (audita los propios workflows: inyección en
+# ${{ }}, permisos demasiado anchos — vigila a los vigilantes de CI) cubren lo
+# que CodeQL no mira y refuerzan lo que sí. Niveles como siempre: solo lo
+# grave bloquea; el resto informa.
 
 on:
   push:

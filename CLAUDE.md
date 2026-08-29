@@ -233,8 +233,10 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       instalado y no construido; los vigilantes propios siguen siendo los únicos que
       entienden de invariantes Mecha. Detalle:
       `docs/superpowers/plans/2026-08-29-vigilantes-fase2-radiografia.md` §12.
-      - **Semgrep + zizmor** (workflow `seguridad.yml`) sustituyen a CodeQL, que
-        exige GHAS. Semgrep: solo severity ERROR bloquea; los falsos positivos se
+      - **Semgrep + zizmor** (workflow `seguridad.yml`) nacieron sustituyendo a
+        CodeQL (entonces imposible: repo privado de cuenta personal, exige
+        GHAS); desde que el repo volvió a público conviven con CodeQL default
+        setup. Semgrep: solo severity ERROR bloquea; los falsos positivos se
         ignoran con `// nosemgrep` INLINE en la línea del hallazgo y comentario de
         por qué (precedente: el 3DES-CBC de Redsys es node-forge, no crypto de Node).
         zizmor: `--min-severity medium`, y las acciones van fijadas por SHA (con
