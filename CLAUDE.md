@@ -229,6 +229,23 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       nadie está mirando es peor que uno en rojo.
     - Correr: `npm run vigilar` · `npm run vigilar:bd` · `npm run vigilar:test` ·
       `npx playwright test tests/smoke --project=publico`.
+    - **Radar de GitHub (29 ago 2026, familia 12 de la fase 2).** Lo que ya existía,
+      instalado y no construido; los vigilantes propios siguen siendo los únicos que
+      entienden de invariantes Mecha. Detalle:
+      `docs/superpowers/plans/2026-08-29-vigilantes-fase2-radiografia.md` §12.
+      - **Semgrep + zizmor** (workflow `seguridad.yml`) sustituyen a CodeQL, que
+        exige GHAS. Semgrep: solo severity ERROR bloquea; los falsos positivos se
+        ignoran con `// nosemgrep` INLINE en la línea del hallazgo y comentario de
+        por qué (precedente: el 3DES-CBC de Redsys es node-forge, no crypto de Node).
+        zizmor: `--min-severity medium`, y las acciones van fijadas por SHA (con
+        `# vX` al lado) — una acción nueva sin fijar vuelve a ponerlo en rojo.
+      - **CodeQL default setup** activado (el repo volvió a ser público el 29 ago).
+      - **Renovate** (`.github/renovate.json`) agrupa expo y supabase; sus PRs pasan
+        la CI completa antes de mergearse. **CodeRabbit** (`.coderabbit.yaml`) es el
+        revisor IA; sus comentarios son SIEMPRE aviso, nunca bloquean — la IA no
+        tumba una CI. Sus instrucciones: `.github/copilot-instructions.md`.
+      - **Node 22 en CI/Canario** (no 20): `node --test` no expande globs en 20 y
+        `vigilar:test` nació muerto en CI sin que nadie lo viera hasta el 29 ago.
 
 ## Convenciones de código
 
