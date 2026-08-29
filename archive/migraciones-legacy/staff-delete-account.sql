@@ -60,6 +60,9 @@ begin
   -- Soltar referencias de auditoria / usuario que bloquearian el borrado por FK
   update public.inventario set modificado_por = null where modificado_por = target_user_id;
   update public.movimientos_inventario set creado_por = null where creado_por = target_user_id;
+  update public.citas set creado_por = null where creado_por = target_user_id;
+  update public.citas set modificado_por = null where modificado_por = target_user_id;
+  update public.planes_ia set generado_por = null where generado_por = target_user_id;
 
   -- Eliminar perfil y cuenta auth
   delete from public.profiles where id = target_user_id;

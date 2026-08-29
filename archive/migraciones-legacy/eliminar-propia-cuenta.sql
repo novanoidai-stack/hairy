@@ -32,6 +32,14 @@ begin
     end loop;
   end if;
 
+  -- Desvincular profesional y soltar referencias de auditoria / creador / modificador
+  update public.profesionales set profile_id = null where profile_id = v_user_id;
+  update public.inventario set modificado_por = null where modificado_por = v_user_id;
+  update public.movimientos_inventario set creado_por = null where creado_por = v_user_id;
+  update public.citas set creado_por = null where creado_por = v_user_id;
+  update public.citas set modificado_por = null where modificado_por = v_user_id;
+  update public.planes_ia set generado_por = null where generado_por = v_user_id;
+
   -- Eliminar de auth.users. Esto cascada a public.profiles y cualquier dato atado directamente por auth
   delete from auth.users where id = v_user_id;
   return true;
