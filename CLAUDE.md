@@ -246,6 +246,21 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
         tumba una CI. Sus instrucciones: `.github/copilot-instructions.md`.
       - **Node 22 en CI/Canario** (no 20): `node --test` no expande globs en 20 y
         `vigilar:test` nació muerto en CI sin que nadie lo viera hasta el 29 ago.
+    - **Rendimiento medido, no opinado (29 ago 2026, familia 1 de la fase 2).**
+      El smoke ya MIDE además de comprobar: `ms_carga`, long tasks (>50 ms),
+      fps de scroll y **peticiones a Supabase por pantalla** (el detector de N+1).
+      - Dos líneas base **por origen** (`tests/smoke/rendimiento-baseline.json`
+        la CI local, `...baseline.canario.json` producción): producción carga
+        ~5× más rápido que el espejo de CI y comparar una contra la base de la
+        otra es puro ruido. El canario mide como un usuario de verdad cada hora.
+      - Solo degeneración extrema (carga >3× base y >15 s) es `bloqueante`;
+        todo lo demás avisa. Bajar la base es `--aprobar` (`--origen canario`
+        para la suya): un acto consciente cuyo diff se ve en el repo.
+      - El fps del runner de CI (headless, sin GPU) no es fiable: solo avisa
+        si es injugable (<30). El aviso de fps que importa es el del canario.
+      - Peso del bundle: `scripts/vigilantes/peso-bundle.mjs` tras `build:web`
+        avisa si sube >5% sobre `scripts/vigilantes/peso-baseline.json`
+        (8,20 MB / entry 1,05 MB congelados el 29 ago).
 
 ## Convenciones de código
 

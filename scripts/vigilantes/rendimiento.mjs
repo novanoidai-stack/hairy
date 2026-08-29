@@ -151,7 +151,10 @@ for (const [pantalla, m] of Object.entries(medidas)) {
     });
   }
 
-  if (m.fps_medio != null && b.fps_medio != null && m.fps_medio < b.fps_medio * 0.75 && m.fps_medio < 40) {
+  // El fps del runner de CI (headless, sin GPU) baila 37-110 entre corridas
+  // sin tocar nada: solo avisa si es injugable (<30) Y ha caido fuerte. El
+  // aviso de fps util es el del canario, que mide como un usuario de verdad.
+  if (m.fps_medio != null && b.fps_medio != null && m.fps_medio < b.fps_medio * 0.6 && m.fps_medio < 30) {
     vig.ok = false;
     hallazgos.push({
       clave: `rendimiento/fps-${pantalla}`,
