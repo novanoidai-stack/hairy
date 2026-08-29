@@ -180,5 +180,6 @@ if (salida && !salida.startsWith('--')) {
 }
 
 const bloq = hallazgos.filter((h) => h.nivel === 'bloqueante').length;
+for (const h of hallazgos) console.log(`[rendimiento] ${h.nivel.toUpperCase()} ${h.titulo}`);
 console.log(`[rendimiento] ${vigilantes.length} pantallas medidas, ${bloq} bloqueantes, ${hallazgos.length - bloq} avisos.`);
 process.exit(bloq > 0 ? 1 : 0);
