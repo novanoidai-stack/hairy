@@ -1,0 +1,121 @@
+{
+  "agenda": {
+    "ms_carga": 4703,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 81,
+    "fps_medio": 42,
+    "peticiones": 70
+  },
+  "mi-jornada": {
+    "ms_carga": 2482,
+    "long_tasks_n": 2,
+    "long_tasks_ms": 148,
+    "fps_medio": 58,
+    "peticiones": 7
+  },
+  "lista-espera": {
+    "ms_carga": 1836,
+    "long_tasks_n": 3,
+    "long_tasks_ms": 200,
+    "fps_medio": 49,
+    "peticiones": 14
+  },
+  "citas": {
+    "ms_carga": 1420,
+    "long_tasks_n": 2,
+    "long_tasks_ms": 216,
+    "fps_medio": 57,
+    "peticiones": 9
+  },
+  "clientes": {
+    "ms_carga": 3142,
+    "long_tasks_n": 3,
+    "long_tasks_ms": 198,
+    "fps_medio": 58,
+    "peticiones": 22
+  },
+  "bandeja": {
+    "ms_carga": 1776,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 82,
+    "fps_medio": 48,
+    "peticiones": 1
+  },
+  "campanas": {
+    "ms_carga": 1761,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 85,
+    "fps_medio": 97,
+    "peticiones": 6
+  },
+  "caja": {
+    "ms_carga": 3306,
+    "long_tasks_n": 2,
+    "long_tasks_ms": 130,
+    "fps_medio": 90,
+    "peticiones": 19
+  },
+  "presupuestos": {
+    "ms_carga": 1795,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 82,
+    "fps_medio": 43,
+    "peticiones": 18
+  },
+  "equipo": {
+    "ms_carga": 2352,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 82,
+    "fps_medio": 106,
+    "peticiones": 19
+  },
+  "inventario": {
+    "ms_carga": 1739,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 79,
+    "fps_medio": 51,
+    "peticiones": 15
+  },
+  "resenas": {
+    "ms_carga": 1718,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 86,
+    "fps_medio": 45,
+    "peticiones": 10
+  },
+  "informes": {
+    "ms_carga": 1300,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 93,
+    "fps_medio": 103,
+    "peticiones": 18
+  },
+  "ayuda": {
+    "ms_carga": 1326,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 82,
+    "fps_medio": 46,
+    "peticiones": 13
+  },
+  "configuracion": {
+    "ms_carga": 1760,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 81,
+    "fps_medio": 44,
+    "peticiones": 8
+  },
+  "portal-reserva": {
+    "ms_carga": 2781,
+    "long_tasks_n": 0,
+    "long_tasks_ms": 0,
+    "fps_medio": 61,
+    "peticiones": 21
+  },
+  "portal-resena": {
+    "ms_carga": 3781,
+    "long_tasks_n": 1,
+    "long_tasks_ms": 71,
+    "fps_medio": 79,
+    "peticiones": 22
+  }
+}
