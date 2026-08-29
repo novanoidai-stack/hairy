@@ -1,5 +1,26 @@
 # Vigilantes fase 2 — La radiografía completa del software
 
+> **ESTADO (29 ago 2026, noche):** familias **12** (radar de GitHub) y **1**
+> (rendimiento de pantallas) **HECHAS Y EN VERDE**. Siguiente: **2** (botones
+> que fallan en silencio, barata) → **3** (cuellos de botella BD) → **11**
+> (atribución, misma sesión que 1–3). Detalle de lo hecho en CLAUDE.md (decisión
+> 10 extendida) y `memory/2026-08-29.md`.
+>
+> Notas de la ejecución que cambian cosas de abajo:
+> - **12b CodeQL NO está: el repo era privado de cuenta personal** (exige GHAS).
+> Lo sustituyen Semgrep+zizmor (`seguridad.yml`); CodeQL default setup quedó
+> activado cuando el repo volvió a público, convive con Semgrep. CodeRabbit
+> sustituye a Copilot (sin suscripción). Ver decisiones en CLAUDE.md.
+> - **1a/1c ya están**: el smoke mide (mediciones.ts) y el canario compara
+> contra `rendimiento-baseline.canario.json`. **Línea base POR ORIGEN**: la CI
+> local y producción no son comparables (prod carga 5× más rápido).
+> - **Dato para la familia 3:** `agenda` hace ~65–70 peticiones a Supabase por
+> carga (primer sospechoso de N+1, medido por el vigilante nuevo).
+> - **PENDIENTE HUMANO:** desactivar las claves legacy JWT de Supabase (la
+> service_role filtrada sigue viva en el historial del repo, otra vez público).
+> Precauciones antes del Disable en `memory/2026-08-29.md`.
+
+
 > **Qué es esto:** backlog de diseño para la siguiente hornada de vigilantes. No está
 > ejecutado: es el inventario de TODO lo que se acordó el 29 ago 2026 tras el estreno
 > (canario verde, 17/17 pantallas, 2 regresiones cazadas el primer día). Cada sección
