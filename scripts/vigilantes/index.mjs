@@ -24,6 +24,8 @@ import erroresTragados from './errores-tragados.mjs';
 import panelAmbitos from './panel-ambitos.mjs';
 import edgesAutorizadas from './edges-autorizadas.mjs';
 import migraciones from './migraciones.mjs';
+import husos from './husos.mjs';
+import planes from './planes.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 
 const ESTATICOS = [
@@ -36,6 +38,8 @@ const ESTATICOS = [
   panelAmbitos,
   edgesAutorizadas,
   migraciones,
+  husos,
+  planes,
   codigoMuerto,
 ];
 

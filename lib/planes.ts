@@ -6,11 +6,16 @@
 //
 // Reestructura del 7 ago 2026: la IA (WhatsApp y voz) dejo de ser exclusiva de
 // "Estudio" y paso a ser un ADDON opcional, ortogonal al plan de software
-// (campo profiles.ia_nivel). El resto de funciones que antes vivian solo en
-// Estudio (senales, campanas, lista de espera, VeriFactu) no son IA: bajaron
-// al software de pago, disponible igual en Esencial y Estudio. La distincion
-// esencial/estudio ya no gatea nada por si sola -- se conserva el campo por
-// compatibilidad con cuentas existentes, pero ambos dan el mismo software.
+// (campo profiles.ia_nivel). VeriFactu bajo a Esencial.
+//
+// Lo que NO cambio, y conviene no volver a confundir: Esencial y Estudio siguen
+// dando software distinto. Esencial trae la base (agenda, fichas, portal,
+// recordatorios, caja, informes, equipo, VeriFactu) y Estudio anade presupuestos,
+// inventario, resenas, senales, campanas y lista de espera, que es exactamente lo
+// que venden las tarjetas de #precios. Durante un tiempo varios comentarios y
+// textos dijeron "los dos dan el mismo software" -- incluido el que se le
+// enseñaba dentro de la app a un salon que ya pagaba Esencial-- y el codigo de
+// aqui abajo nunca fue eso. Manda esta lista, y la vigila scripts/vigilantes/planes.mjs.
 //
 // Lo que se anuncia en la seccion #precios de web/index.html y en el prompt de
 // supabase/functions/chispa-landing DEBE cuadrar con este archivo. Si se
@@ -43,8 +48,7 @@ export const PLAN_LABEL: Record<Plan, string> = {
 // suma aqui. Mismo aviso que arriba: si cambia, cambia tambien en la seccion
 // #precios de web/index.html y en el prompt de chispa-landing.
 //
-// Esencial y Estudio dan el mismo software (ver SOFTWARE_COMPLETO): la diferencia
-// de precio no gatea funciones, es solo el tier que el salon elige contratar.
+// La diferencia de precio SI gatea funciones: ver PLAN_FUNCIONES mas abajo.
 // El addon de IA (ia_nivel) es ortogonal y se cobra aparte de cualquiera de los
 // dos: whatsapp 19, voz 29, completa 39 (ver IA_NIVEL_LABEL / la seccion #precios).
 export const PLAN_PRECIO_EUR: Record<Plan, number> = {

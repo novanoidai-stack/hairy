@@ -8,9 +8,9 @@
 // (plan_del_negocio) y el equipo lo hereda, asi que una suscripcion sellada en la
 // fila de un admin dejaria al salon entero sin plan.
 //
-// Se venden DOS cosas ortogonales: el software (Esencial 39 / Estudio 59, mismas
-// funciones) y el addon de IA "Recepcionistas" (19/29/39). Van como dos lineas de
-// la misma suscripcion. El addon se puede cambiar despues sin pasar por Stripe.
+// Se venden DOS cosas ortogonales: el software (Esencial 39 / Estudio 59) y el
+// addon de IA "Recepcionistas" (19/29/39). Van como dos lineas de la misma
+// suscripcion. El addon se puede cambiar despues sin pasar por Stripe.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
@@ -18,9 +18,9 @@ import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { Section, FieldRow, Badge, Btn, StatBox, Segmented } from '@/components/ui/SettingsAtoms';
 import {
-  PLAN_LABEL, PLAN_PRECIO_EUR, PLANES_CONTRATABLES,
+  PLAN_LABEL, PLAN_PRECIO_EUR, PLANES_CONTRATABLES, PLAN_FUNCIONES, FUNCION_LABEL,
   IA_NIVEL_LABEL, IA_PRECIO_EUR, IA_CONTRATABLES,
-  planDe, iaNivelDe, type Plan, type IaNivel,
+  planDe, iaNivelDe, esFuncionDeIA, type Plan, type IaNivel,
 } from '@/lib/planes';
 
 const T = DESIGN_TOKENS;
@@ -33,12 +33,24 @@ interface EstadoCuenta {
   periodo_fin: string | null;
 }
 
-// Esencial y Estudio dan el MISMO software desde la reestructura del 7 ago 2026:
-// la diferencia de precio no gatea nada. La lista canonica de que entra vive en
-// SOFTWARE_COMPLETO (lib/planes.ts); esto es el resumen que se enseña.
-const RESUMEN_SOFTWARE =
-  'Agenda, fichas de cliente, portal de reserva, recordatorios, caja, informes, equipo, '
-  + 'señales, campañas, lista de espera y VeriFactu. Profesionales ilimitados.';
+// El resumen de cada plan se COMPONE de lo que ese plan gatea de verdad
+// (PLAN_FUNCIONES), no de un texto a mano.
+//
+// Estuvo escrito a mano y decia que los dos planes traian lo mismo -- incluidas
+// señales, campañas y lista de espera-- mientras el codigo se las negaba a
+// Esencial. O sea: a un salon que ya pagaba se le enseñaba, dentro de la app,
+// una promesa que el software incumplia. Componerlo de la fuente unica es lo
+// unico que garantiza que no vuelva a pasar.
+function resumenDe(plan: Plan): string {
+  const nombres = [...PLAN_FUNCIONES[plan]]
+    .filter((f) => !esFuncionDeIA(f))
+    .map((f) => FUNCION_LABEL[f].replace(/^(la|el|los|las) /, ''));
+  if (nombres.length === 0) return 'Solo para mirar la demo. No habilita el software.';
+  const ultima = nombres[nombres.length - 1];
+  const texto =
+    nombres.length === 1 ? ultima : `${nombres.slice(0, -1).join(', ')} y ${ultima}`;
+  return `${texto.charAt(0).toUpperCase()}${texto.slice(1)}. Profesionales ilimitados.`;
+}
 
 const RESUMEN_IA: Record<IaNivel, string> = {
   ninguna: 'Sin asistente de IA. Puedes activarlo cuando quieras.',
@@ -389,7 +401,7 @@ export function SeccionSuscripcion({ userId, role }: { userId: string; role: str
                     <span style={{ fontSize: 12, color: T.textTertiary, fontWeight: 600 }}>/mes + IVA</span>
                   </span>
                   <span style={{ display: 'block', fontSize: 12.5, color: T.textSec, lineHeight: 1.5, flex: 1 }}>
-                    {RESUMEN_SOFTWARE}
+                    {resumenDe(plan)}
                   </span>
                 </button>
               );

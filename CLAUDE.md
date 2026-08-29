@@ -371,7 +371,10 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   - **Página de autogestión del cliente `/app/cita/[id]`** (ver/cambiar/cancelar). Rutas `cita` y `pago`
     exentas de los guards de auth en `app/_layout.tsx` (como `r`/`resena`).
 - **Precios PÚBLICOS (reestructura del 7 ago 2026):** Esencial **39 €/mes**, Estudio **59 €/mes**
-  (+IVA) — mismo software completo en los dos, la diferencia de precio no gatea nada. Aparte y
+  (+IVA). **Ojo: el precio SÍ gatea funciones** — Esencial trae la base (agenda, fichas, portal,
+  recordatorios, caja, informes, equipo, VeriFactu) y Estudio añade presupuestos, inventario,
+  reseñas, señales, campañas y lista de espera. Esta línea dijo lo contrario hasta el 29 ago 2026 y
+  el código nunca fue eso: lo vigila ahora `scripts/vigilantes/planes.mjs`. Aparte y
   opcional sobre cualquiera de los dos: addon **Recepcionistas** (IA), por WhatsApp +19 €/mes, por
   voz +29 €/mes, o completo (WhatsApp+voz) +39 €/mes. 1 mes gratis sin tarjeta, sin permanencia, 0%
   comisiones, profesionales ilimitados. Viven en TRES sitios que hay que cambiar a la vez: la sección
@@ -402,8 +405,14 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   ∈ `free | esencial | estudio` (`full` = valor histórico, se lee como `estudio`; ninguna cuenta
   antigua pierde nada). **Fuente única de qué incluye cada plan: `lib/planes.ts`** — debe cuadrar
   con la sección de precios.
-  - Esencial y Estudio dan el mismo software (agenda, fichas, portal, recordatorios, caja, informes,
-    equipo, presupuestos, inventario, reseñas, señales, campañas, lista de espera, VeriFactu).
+  - **Esencial (8):** agenda, fichas, portal, recordatorios, caja, informes, equipo, VeriFactu.
+    **Estudio (14):** todo lo anterior **+** presupuestos, inventario, reseñas, señales, campañas y
+    lista de espera. Es lo que venden las tarjetas visibles de `#precios`.
+  - Trampa que costó encontrarla: durante semanas cuatro sitios dijeron "los dos dan el mismo
+    software" (esta línea, dos comentarios de `lib/planes.ts` y el JSON-LD de la landing) mientras
+    `PLAN_FUNCIONES` gateaba seis funciones. Lo peor no era el SEO: `SeccionSuscripcion.web.tsx`
+    le enseñaba a un salón que YA pagaba Esencial que su plan incluía señales, campañas y lista de
+    espera. Hoy ese resumen se **compone** de `PLAN_FUNCIONES` en vez de escribirse a mano.
   - La IA (Chispa por WhatsApp y el agente de voz) ya NO depende del plan: es el addon
     `profiles.ia_nivel` (`ninguna | whatsapp | voz | completa`), ortogonal a Esencial/Estudio.
   - Se aplica en: menú lateral (esconde lo que no entra), pantallas (`withPlanGate`/`ia_nivel`) y
