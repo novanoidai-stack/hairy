@@ -647,6 +647,22 @@
 
     <div id="saludSemaforo" style="margin-bottom:18px"></div>
 
+    <!-- ATRIBUCION: lo unico del panel que contesta "desde cuando". El resto
+         dice QUE esta mal; esto dice QUE CAMBIO y entre que dos commits, que
+         es lo que convierte un aviso en una linea de codigo concreta. -->
+    <div class="ad-card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+        <b>¿Qué ha cambiado?</b>
+        <select class="ad-sel" id="fOrigenDelta" style="max-width:220px">
+          <option value="ci">CI (cada cambio)</option>
+          <option value="canario">Canario (producción)</option>
+          <option value="bd">Base de datos (cada 6 h)</option>
+        </select>
+        <span class="ad-muted" style="font-size:12px">Contra la corrida anterior del mismo origen</span>
+      </div>
+      <div id="saludDelta"></div>
+    </div>
+
     <div class="ad-tools">
       <select class="ad-sel" id="fEstadoSal">
         <option value="">Todos los estados</option>
@@ -2875,8 +2891,61 @@
     }).catch(function () { el.innerHTML = ''; });
   }
 
+  // QUE HA CAMBIADO desde la corrida anterior del mismo origen.
+  //
+  // Todo lo demas del panel dice QUE esta mal. Esto dice DESDE CUANDO, que es
+  // lo unico que convierte un aviso en una linea de codigo concreta. Lo
+  // resuelto se enseña a proposito: es la unica forma de ver que un arreglo
+  // funciono, y de bajar una linea base con fundamento en vez de a ojo.
+  //
+  // No se mezclan origenes: `ci` mide un espejo local, `canario` produccion y
+  // `bd` la base. Un hallazgo que sale en canario y no en ci puede ser
+  // perfectamente normal, y cruzarlos inventaria regresiones.
+  function loadSaludDelta() {
+    var el = $('saludDelta');
+    if (!el || !api.client) return;
+    var origen = $('fOrigenDelta') ? $('fOrigenDelta').value : 'ci';
+    el.innerHTML = '<div class="ad-loading">Comparando con la corrida anterior...</div>';
+
+    api.client.rpc('staff_vigilancia_delta', { p_origen: origen, p_limite: 100 })
+      .then(function (res) {
+        if (res.error) { el.innerHTML = '<div class="ad-muted">No se pudo comparar: ' + esc(res.error.message || '') + '</div>'; return; }
+        var filas = res.data || [];
+        if (!filas.length) { el.innerHTML = '<div class="ad-muted">Sin corridas de "' + esc(origen) + '" todavia.</div>'; return; }
+
+        var nuevos = filas.filter(function (f) { return f.estado === 'nuevo'; });
+        var resueltos = filas.filter(function (f) { return f.estado === 'resuelto'; });
+        var persisten = filas.filter(function (f) { return f.estado === 'persiste'; });
+        var sha = function (s) { return s ? String(s).slice(0, 8) : '—'; };
+
+        var linea = function (f, color) {
+          return '<div style="padding:6px 0;border-bottom:1px solid var(--ad-line,rgba(255,255,255,.06))">' +
+            '<span class="plan free" style="color:' + color + '">' + esc(AMBITO_SAL_LABEL[f.ambito] || f.ambito || 'otros') + '</span> ' +
+            '<b>' + esc(f.titulo || f.clave) + '</b>' +
+            (f.fichero ? ' <span class="ad-muted">' + esc(f.fichero) + (f.linea ? ':' + f.linea : '') + '</span>' : '') +
+            '</div>';
+        };
+
+        el.innerHTML =
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">' +
+            '<div class="ad-stat" style="max-width:150px"><div class="n" style="color:#f87171">' + nuevos.length + '</div><div class="l">Nuevos</div></div>' +
+            '<div class="ad-stat" style="max-width:150px"><div class="n" style="color:#4ade80">' + resueltos.length + '</div><div class="l">Resueltos</div></div>' +
+            '<div class="ad-stat" style="max-width:150px"><div class="n">' + persisten.length + '</div><div class="l">Siguen igual</div></div>' +
+          '</div>' +
+          '<div class="ad-muted" style="margin-bottom:10px">' +
+            'Comparando <code>' + sha(filas[0].commit_actual) + '</code> con <code>' + sha(filas[0].commit_previo) + '</code>' +
+            (filas[0].rama ? ' en <b>' + esc(filas[0].rama) + '</b>' : '') +
+          '</div>' +
+          (nuevos.length ? '<div style="margin-bottom:12px"><b style="color:#f87171">Aparecen en ' + sha(filas[0].commit_actual) + '</b>' + nuevos.map(function (f) { return linea(f, '#f87171'); }).join('') + '</div>' : '') +
+          (resueltos.length ? '<div><b style="color:#4ade80">Ya no salen</b>' + resueltos.map(function (f) { return linea(f, '#4ade80'); }).join('') + '</div>' : '') +
+          (!nuevos.length && !resueltos.length ? '<div class="ad-muted">Nada ha cambiado respecto a la corrida anterior.</div>' : '');
+      })
+      .catch(function (e) { el.innerHTML = '<div class="ad-muted">No se pudo comparar.</div>'; });
+  }
+
   function loadSalud() {
     loadSaludSemaforo();
+    loadSaludDelta();
     var listEl = $('listSal');
     if (!listEl) return;
     listEl.innerHTML = '<div class="ad-loading">Cargando vigilancia...</div>';
@@ -3147,6 +3216,8 @@
   var feSal = $('fEstadoSal'); if (feSal) feSal.addEventListener('change', loadSalud);
   var faSal = $('fAmbitoSal'); if (faSal) faSal.addEventListener('change', loadSalud);
   var fnSal = $('fNivelSal'); if (fnSal) fnSal.addEventListener('change', loadSalud);
+  // Solo recarga el delta: cambiar de origen no tiene por que releer la lista.
+  var foDel = $('fOrigenDelta'); if (foDel) foDel.addEventListener('change', loadSaludDelta);
 
   // ---------- SOPORTE. Mensajes que un salon manda "a traves de Mecha". ----------
   var ESTADO_SUP_LABEL = { nuevo: 'Nuevo', leido: 'Leído', resuelto: 'Resuelto' };
