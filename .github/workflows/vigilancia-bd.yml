@@ -44,7 +44,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # persist-credentials: false lo exige zizmor (regla artipacked) y lo llevan
+      # todos los demas checkouts del repo: sin el, el GITHUB_TOKEN se queda en
+      # .git/config y cualquier paso posterior --o cualquier accion de terceros--
+      # puede leerlo. Este workflow no empuja nada, asi que no lo necesita.
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5

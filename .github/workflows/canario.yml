@@ -43,14 +43,14 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       # Ver la LIMITACION de arriba: al acabar la CI, Vercel puede seguir
       # desplegando. Este margen no lo garantiza, solo lo hace probable.
       - name: Dar tiempo al despliegue de Vercel
         if: github.event_name == 'workflow_run'
         run: sleep 120
-        with:
-          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
