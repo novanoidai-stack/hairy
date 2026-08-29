@@ -58,3 +58,11 @@ verify_jwt = false
 # el es ensuciar la pestaña Salud del panel. Ver el propio index.ts.
 [functions.registrar-vigilancia]
 verify_jwt = false
+
+# La dispara el workflow vigilancia-bd.yml cada 6 h. Ejecuta vigilancia_bd() y
+# vigilancia_bd_rendimiento() con la clave de servicio, que se queda DENTRO de
+# la funcion: Actions solo manda VIGILANCIA_TOKEN (regla 4 -- Actions jamas ve
+# una clave de Supabase). Misma puerta que la de arriba, ya compartida en
+# shared/tokenVigilancia.ts.
+[functions.ejecutar-vigilancia-bd]
+verify_jwt = false

@@ -352,6 +352,44 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       - **Lo que enseñó la tanda:** los cinco tuvieron un falso positivo antes de valer, y
         cada falso positivo enseñó algo del diseño real que el plan no sabía. Estrenar un
         vigilante sin mirar uno a uno sus primeros hallazgos es como no tenerlo.
+    - **LA CAPA 2 YA CORRE SOLA (29 ago 2026).** Era el agujero número uno del plan
+      maestro: `vigilancia_bd()` existía desde el 28 ago y **no la ejecutaba nadie**.
+      - Edge **`ejecutar-vigilancia-bd`** (`verify_jwt = false`) + workflow
+        **`vigilancia-bd.yml`**: cada 6 h, en cada push a `master` que toque `supabase/`,
+        y a mano. **Actions sigue sin ver una clave de Supabase** (regla 4): solo viaja
+        `VIGILANCIA_TOKEN` y la de servicio se queda dentro de la función.
+      - La puerta del token vive en **`shared/tokenVigilancia.ts`**, compartida por las dos
+        funciones que llama Actions. Estaba escrita a mano en una y se iba a copiar en la
+        otra: un chequeo de autorización duplicado es el invariante repartido de manual.
+      - `npm run vigilar:bd` son ya **tres**: `bd` (invariantes), `bd-rendimiento`
+        (`pg_stat_statements`) y `bd-migraciones` (la guardia). Comparten `bd-comun.mjs`.
+      - **La guardia de migraciones trae un falso positivo de serie, y hay que conocerlo:**
+        el editor SQL del dashboard aplica el SQL pero **registra la versión con SU PROPIO
+        timestamp**. Una migración aplicada por ahí sale como "sin aplicar" para siempre.
+        *"La versión no consta" NO es "no se aplicó"* — pero tampoco es "seguro que sí": las
+        conocidas van en `scripts/vigilantes/migraciones-conocidas.json` **con la prueba de
+        cada una**, y el vigilante avisa si esa exención se queda obsoleta.
+      - **Deriva encontrada al hacerlo:** `vigilancia_bd_rendimiento()` y
+        `migraciones_sin_aplicar()` estaban **aplicadas en producción y su SQL no estaba en
+        el repo**. Reconstruidas leyendo `pg_get_functiondef()` de producción, no de memoria.
+    - **EL VIGILANTE DE CLAVES ESTABA CIEGO EN CI (arreglado el 29 ago 2026).** Su
+      comprobación más importante —la del bundle, que es la que caza la caché de Metro—
+      **no se ejecutó nunca**: el job `check` corre los vigilantes pero no compila la web,
+      y el job `e2e` compilaba pero no los corría. `web/app/` está gitignorado, el
+      recorrido empezaba con `if (!existsSync) return` y salía **verde sin mirar nada**.
+      - Se coló porque **el ancla que faltaba no era un regex sino un DIRECTORIO**.
+      - Regla general que sale de ahí: **si un vigilante depende de un artefacto que puede
+        no estar, tiene que decir "no he podido mirar" en voz alta.** `existsSync(...)
+        return` es la forma más silenciosa de mentir.
+      - Arreglo: `VIGILAR_BUNDLE=1` hace bloqueante la ausencia (sin la variable sigue
+        siendo un no-aplica legítimo, que es lo correcto en local), y el vigilante corre
+        **también en el job `e2e` tras `build:web`**.
+      - Además caza ya los **tokens personales `sbp_...`**, que le pasaban por delante: no
+        abren una base de datos, abren la **cuenta** (Management API de toda la
+        organización). Quitarlo del código NO lo desactiva — hay que **revocarlo**.
+    - **Caché del navegador de Playwright** en CI y canario: el canario reinstalaba
+      Chromium entero **24 veces al día**. La clave va por `package-lock.json`; con acierto
+      solo se instalan las librerías del sistema, que no viven en `~/.cache`.
 
 ## Convenciones de código
 

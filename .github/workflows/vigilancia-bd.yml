@@ -1,0 +1,61 @@
+# La capa 2 del diseño de vigilantes, corriendo sola.
+#
+# POR QUE ESTE WORKFLOW ES EL DE MAS VALOR DE TODO EL PLAN
+# La auditoría del 29 ago 2026 encontró cuatro problemas críticos --29 RPC
+# definer abiertas a `anon`, `profiles` legible entre salones, un trigger que
+# tumbaba el guardado de horarios, y un cron mirando un tenant vacío-- y la CI
+# no vio ninguno, porque los cuatro viven donde no mira: DENTRO de Postgres y en
+# la configuración de producción. `vigilancia_bd()` los detecta hoy... y hasta
+# ahora solo corría si alguien la llamaba a mano.
+#
+# GITHUB ACTIONS NO VE NINGUNA CLAVE DE SUPABASE (regla 4 del diseño). Aquí solo
+# viaja VIGILANCIA_TOKEN, cuyo peor uso posible es ensuciar la pestaña Salud. La
+# clave de servicio se queda dentro de la edge function, que la lee del Vault.
+
+name: Vigilancia de la base de datos
+
+on:
+  schedule:
+    # Cada 6 h. No hace falta más: lo que mira son grants, políticas y planes de
+    # consulta, que cambian por migración aplicada, no por minuto.
+    - cron: '17 */6 * * *'
+  push:
+    branches: [master]
+    # Un push que toca supabase/ es justo cuando puede haber cambiado algo de lo
+    # que esto vigila, así que no se espera a la siguiente ventana.
+    paths:
+      - 'supabase/**'
+      - 'scripts/vigilantes/pedir-bd.mjs'
+      - 'scripts/vigilantes/migraciones-conocidas.json'
+      - '.github/workflows/vigilancia-bd.yml'
+  workflow_dispatch:
+
+# Solo lectura: este workflow no escribe en el repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: vigilancia-bd
+  cancel-in-progress: false
+
+jobs:
+  vigilar:
+    name: vigilancia_bd() cada 6 h
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      # Sin dependencias a propósito: pedir-bd.mjs usa solo el fetch nativo y
+      # node:fs. Un `npm ci` aquí serían 40 s por nada.
+      - name: Disparar la vigilancia de base de datos
+        env:
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_BD_URL: ${{ secrets.VIGILANCIA_BD_URL }}
+        run: node scripts/vigilantes/pedir-bd.mjs

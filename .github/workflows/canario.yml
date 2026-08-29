@@ -34,8 +34,26 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      # Este workflow corre CADA HORA: sin caché eran 24 descargas de Chromium
+      # al día, ~130 MB cada una, para instalar exactamente el mismo binario.
+      # La clave va por package-lock.json, que es lo que cambia cuando cambia la
+      # versión de Playwright (el binario y la librería tienen que casar).
+      - name: Caché del navegador de Playwright
+        id: cache-playwright
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # Con caché sigue haciendo falta instalar las librerías del SISTEMA: esas
+      # viven en /usr/lib, no en ~/.cache, y no se cachean con el navegador.
       - name: Instalar navegador de Playwright
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Instalar solo las dependencias del sistema (navegador ya cacheado)
+        if: steps.cache-playwright.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       # Contra produccion NO hace falta build:web ni servidor local: la app ya
       # esta desplegada. El webServer de playwright.config.ts se desactiva con

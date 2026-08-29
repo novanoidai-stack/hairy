@@ -428,30 +428,83 @@ El criterio es **daño evitado por hora de trabajo**, no elegancia.
    escribir y verificar enteros sin tocar producción — y porque tres de ellos
    cazaron un fallo real el mismo día. Quedan `solicitudes`, `legal`,
    `web-publico`, `mapa` y `textos-ui`.
-3. **M1 — que `vigilancia_bd()` corra sola cada 6 h.** Sigue siendo la pieza de
-   mayor retorno del documento entero. **Es lo siguiente.**
-4. **P1 — el vigilante de mensajería.** Hay un fallo activo ahora mismo que nadie
-   está mirando. (El arreglo de n8n es de Alexandro; el vigilante es nuestro y
-   evita el próximo.)
+3. ~~**M1 — que `vigilancia_bd()` corra sola cada 6 h.**~~ **HECHO** (29 ago 2026).
+   Edge `ejecutar-vigilancia-bd` + `.github/workflows/vigilancia-bd.yml` (cada
+   6 h, cada push a `master` que toque `supabase/`, y a mano). Actions sigue sin
+   ver una clave de Supabase: solo viaja `VIGILANCIA_TOKEN` y la de servicio se
+   queda dentro de la función. La puerta del token se extrajo a
+   `shared/tokenVigilancia.ts` porque ya la necesitaban dos funciones, y un
+   chequeo de autorización copiado y pegado es el invariante repartido de manual.
+   Origen propio `bd` (no `ci`): mezcladas, nadie podría contestar *cuándo se
+   vigiló la base por última vez*.
+4. ~~**Capa 2 ampliada: rendimiento y guardia de migraciones.**~~ **HECHO.**
+   `vigilancia_bd_rendimiento()` y `migraciones_sin_aplicar()` corrían ya en
+   producción **sin que su SQL estuviera en el repo** — deriva del mismo tipo
+   que la guardia vigila, pero al revés. Reconstruidas leyendo
+   `pg_get_functiondef()` de producción, no de memoria.
+5. **P1 — el vigilante de mensajería.** Hay un fallo activo ahora mismo que nadie
+   está mirando. **Es lo siguiente.** (El arreglo de n8n es de Alexandro; el
+   vigilante es nuestro y evita el próximo.)
+
+### El agujero que encontró esta revisión: el vigilante de claves estaba ciego en CI
+
+Merece quedar escrito porque contradice la regla número uno —*un vigilante ciego
+es peor que no tenerlo*— y llevaba así desde que se montó.
+
+`claves.mjs` mira el **bundle construido** en `web/app/`, que es la comprobación
+que más duele si falta: Metro incrusta los `EXPO_PUBLIC_*` como literal y cachea
+esa transformación por fichero, así que el código puede estar limpio y el bundle
+salir con la clave vieja. Ya pasó una vez.
+
+Pero `web/app/` está gitignorado, y los jobs estaban repartidos así:
+
+- `check` ejecuta los vigilantes — y **no compila la web**.
+- `e2e` ejecuta `build:web` — y **no ejecutaba los vigilantes**.
+
+El recorrido empezaba con `if (!existsSync(abs)) return;`, así que en el checkout
+limpio de `check` devolvía cero ficheros, el bucle no iteraba y la comprobación
+**pasaba en verde sin haber mirado nada**. Sin error, sin aviso, sin rastro.
+
+Se coló porque **el ancla que faltaba no era un regex sino un DIRECTORIO**. De
+ahí la lección, más general que este fallo: *cuando un vigilante depende de un
+artefacto que puede no estar, tiene que decir «no he podido mirar» en voz alta.*
+`existsSync(...) return` es la forma más silenciosa de mentir.
+
+Arreglado en dos mitades, ninguna opcional: `VIGILAR_BUNDLE=1` convierte la
+ausencia en hallazgo **bloqueante** (sin la variable sigue siendo un no-aplica
+legítimo, que es lo correcto en local), y el vigilante de claves se ejecuta
+**también en el job `e2e`, después de `build:web`**, que es el único sitio de la
+CI donde el bundle existe.
+
+De paso: los tokens personales (`sbp_...`) le pasaban por delante sin verlos. No
+abren una base de datos, abren la **cuenta** — el Management API de toda la
+organización. Es más grave que una `service_role`, no menos.
 
 ### A continuación
 
-5. **C1** (gitleaks) y **C3** (verificación post-deploy): dos workflows cortos que
-   hacen cumplir normas ya escritas.
-6. **Familia 3** (`vigilancia_bd_rendimiento`, M2) — con el dato que ya tenemos:
-   `agenda` hace **65–70 peticiones a Supabase por carga**, primer sospechoso de
-   N+1 y el mejor sitio por donde empezar a mirar.
-7. **Familia 11a/11c** (C7) — la atribución, que convierte las mediciones de 1–3
+6. **C1** (gitleaks sobre el **historial**, §4.2) y **C3** (verificación
+   post-deploy): el árbol actual ya lo cubre `claves.mjs`; lo que nadie mira es
+   el historial de git.
+7. **Actuar sobre lo que ya midió `vigilancia_bd_rendimiento`.** Medir está
+   hecho; arreglar, no. Por orden de tamaño: `notificaciones_pendientes` se
+   lleva el **15,4 %** de todo el tiempo de la base (52 665 llamadas — es el
+   cron-pull de n8n cada 2 min, y NO es una cola: calcula en vivo);
+   `pg_timezone_names` tarda **500 ms** de media y se llama 1 211 veces; y
+   `citas` lleva **476 M** de filas leídas en recorridos secuenciales, 2 364 por
+   recorrido sobre 2 001 filas. Lo último no duele hoy y crece al cuadrado.
+8. **Familia 11a/11c** (C7) — la atribución, que convierte las mediciones de 1–3
    en "este commit lo hizo".
-8. **M4 (fiscal) y M5 (multi-tenant)** — las dos con consecuencia legal.
+9. **M4 (fiscal) y M5 (multi-tenant)** — las dos con consecuencia legal.
 
 ### Después
 
-9. **P2, P3** (dinero), **M6** (crons), **M7** (IA), **M8** (almacenamiento).
-10. **§3.1 que quedan**: `solicitudes`, `legal`, `web-publico`, `mapa`, `textos-ui`.
-11. **Familias 4 y 7** (coherencia y legalidad), **5b/5c** (layout y responsive),
-    **6** (cartógrafo), **8** (web pública), **C4/C5/C6**.
-12. **P4, P5** y, al final, **5a** (capturas, solo de la web estática) y **11b**
+10. **P2, P3** (dinero), **M6** (crons), **M7** (IA), **M8** (almacenamiento).
+11. **§3.1 que quedan**: `solicitudes`, `legal`, `web-publico`, `mapa`, `textos-ui`.
+12. **Familias 4 y 7** (coherencia y legalidad), **5b/5c** (layout y responsive),
+    **6** (cartógrafo), **8** (web pública), **C4/C6** (presupuesto de bundle
+    comentado en el PR; la caché de Playwright y la primera tanda de `check:edges`
+    ya están hechas).
+13. **P4, P5** y, al final, **5a** (capturas, solo de la web estática) y **11b**
     (bisect).
 
 ---

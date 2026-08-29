@@ -125,8 +125,23 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      # Misma caché que el canario (§ actions/cache): en la CI ahorra menos que
+      # allí --no corre cada hora-- pero es la misma clave y el mismo binario,
+      # así que el primero que pase lo deja caliente para el otro.
+      - name: Caché del navegador de Playwright
+        id: cache-playwright
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Instalar navegador de Playwright
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Instalar solo las dependencias del sistema (navegador ya cacheado)
+        if: steps.cache-playwright.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       # scripts/serve-web.mjs (el webServer de playwright.config.ts) sirve
       # web/, y la SPA vive en web/app, que está en .gitignore: sin este build
@@ -139,6 +154,21 @@ jobs:
       # Bajar la línea base es --aprobar, un acto consciente cuyo diff se ve.
       - name: Vigilante de peso del bundle
         run: node scripts/vigilantes/peso-bundle.mjs
+
+      # ESTE ES EL ÚNICO SITIO DE LA CI DONDE EL BUNDLE EXISTE, y por eso el
+      # vigilante de claves se corre aquí ADEMÁS de en el job `check`.
+      #
+      # Hasta el 29 ago 2026 su comprobación más importante --la que mira si
+      # Metro incrustó una clave vieja en el bundle-- no se ejecutaba nunca:
+      # `check` corre los vigilantes pero no compila, y `e2e` compilaba pero no
+      # los corría. La comprobación se saltaba en silencio y el paso salía verde.
+      #
+      # VIGILAR_BUNDLE=1 convierte "no hay bundle" en un hallazgo bloqueante en
+      # vez de un silencio: si este paso se mueve antes del build, la CI lo dice.
+      - name: Puerta de claves contra el bundle construido
+        env:
+          VIGILAR_BUNDLE: '1'
+        run: node scripts/vigilantes/index.mjs --solo claves
 
       # Ojo: estos specs leen de la Supabase REAL (tenant público de la demo).
       # Es lectura pura, pero implica que una caída de Supabase pone la CI en

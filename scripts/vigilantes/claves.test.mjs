@@ -82,3 +82,39 @@ test('fuera de supabase/functions no se exige la puerta (el cliente es otra cosa
   const codigo = 'export const supabase = createClient(url, anonKey);';
   assert.deepEqual(revisarTexto('lib/supabase.ts', codigo), []);
 });
+
+// --- Tokens personales de la CUENTA (sbp_) ----------------------------------
+
+test('caza un token personal de Supabase, que abre la cuenta entera', () => {
+  // Se colaba por delante: solo se buscaba `eyJ` y `sb_secret_`. Un sbp_ no
+  // abre una base de datos, abre el Management API de toda la organizacion.
+  const codigo = `const TOKEN = 'sbp' + '_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4';`;
+  assert.deepEqual(claves(revisarTexto('scripts/algo.mjs', codigo.replace(/' \+ '/g, ''))), [
+    'claves/personal-en-codigo',
+  ]);
+});
+
+test('el mensaje del token personal recuerda que hay que REVOCARLO', () => {
+  const codigo = `sbp` + `_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4`;
+  const [h] = revisarTexto('scripts/algo.mjs', codigo);
+  assert.match(h.detalle, /REVOCARLO/);
+});
+
+test('una cadena corta parecida a un sbp_ no cuenta', () => {
+  assert.deepEqual(revisarTexto('scripts/x.mjs', 'sbp' + '_corto'), []);
+});
+
+// --- La ceguera del bundle (§2 del plan maestro) -----------------------------
+
+test('sin VIGILAR_BUNDLE y sin bundle, es un no-aplica legitimo', async () => {
+  // En local, quien no ha compilado no tiene por que ver un fallo.
+  const { comprobarBundle } = await import('./claves.mjs');
+  assert.equal(typeof comprobarBundle, 'function');
+});
+
+test('el vigilante exporta comprobarBundle para poder probarla aparte', async () => {
+  // Estaba enterrada dentro de ejecutar(), y por eso nadie se dio cuenta de que
+  // en CI no miraba nada: no habia forma de invocarla sola.
+  const m = await import('./claves.mjs');
+  assert.ok(Object.hasOwn(m, 'comprobarBundle'));
+});

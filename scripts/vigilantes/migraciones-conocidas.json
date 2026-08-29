@@ -1,0 +1,30 @@
+{
+  "_porque": [
+    "Migraciones cuyo fichero esta en supabase/migrations/ y cuya VERSION no consta en el",
+    "historial remoto, pero que SI estan aplicadas. No es una lista de perdonadas: cada una",
+    "lleva la prueba de que se miro, y esa prueba se vuelve a comprobar sola en cada corrida.",
+    "",
+    "La causa es siempre la misma: el editor SQL del dashboard aplica el SQL pero registra la",
+    "version con SU PROPIO timestamp, no con el del fichero. Asi que 'la version no consta' NO",
+    "es 'no se aplico'. Sin esta lista la guardia habria nacido gritando en falso el primer dia,",
+    "y una guardia que grita en falso el primer dia acaba apagada."
+  ],
+  "conocidas": [
+    {
+      "version": "20260828120000",
+      "fichero": "20260828120000_claves_pg_net_cabecera_apikey.sql",
+      "aplicada_como": "20260828170139_claves_pg_net_cabecera_apikey",
+      "prueba_sql": "select count(*) from cron.job where command like '%apikey%'",
+      "prueba_esperado_min": 1,
+      "comprobado": "29 ago 2026: 5 de los 15 crons mandan ya la clave en la cabecera apikey, que es justo lo que introducia esta migracion."
+    },
+    {
+      "version": "20260828180000",
+      "fichero": "20260828180000_chispa_tts_keepwarm_publishable.sql",
+      "aplicada_como": "20260828172830_chispa_tts_keepwarm_publishable",
+      "prueba_sql": "select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'chispa_tts_keepwarm' and position('sb_publishable_' in pg_get_functiondef(p.oid)) > 0",
+      "prueba_esperado_min": 1,
+      "comprobado": "29 ago 2026: chispa_tts_keepwarm lleva sb_publishable_ y ninguna JWT heredada."
+    }
+  ]
+}

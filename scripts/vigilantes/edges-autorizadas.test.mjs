@@ -70,12 +70,13 @@ test('hoy ninguna edge con verify_jwt = false esta abierta', async () => {
   assert.deepEqual(hallazgos, [], 'hallazgos:\n' + JSON.stringify(hallazgos, null, 2));
 });
 
-test('las seis de la BD siguen en el toml', async () => {
+test('las siete que autorizan por su cuenta siguen en el toml', async () => {
   const { readFileSync } = await import('node:fs');
   const toml = readFileSync('supabase/config.toml', 'utf8');
   assert.deepEqual(funcionesSinVerificacion(toml).sort(), [
     'agenda-optimizador',
     'avisar-fin-prueba',
+    'ejecutar-vigilancia-bd',
     'enviar-informe-periodico',
     'registrar-vigilancia',
     'sincronizar-descuento-referidos',
@@ -86,4 +87,18 @@ test('las seis de la BD siguen en el toml', async () => {
 test('el vigilante se declara con nombre y ambito', () => {
   assert.equal(vigilante.nombre, 'edges-autorizadas');
   assert.equal(vigilante.ambito, 'seguridad');
+});
+
+test('regresion: delegar el 401 en un ayudante compartido sigue siendo autorizar', () => {
+  // Al sacar la puerta del token a shared/tokenVigilancia.ts, el literal 401 se
+  // fue con ella y ejecutar-vigilancia-bd --que autoriza perfectamente-- salio
+  // marcada como abierta. Exigirle el codigo de estado a quien LLAMA a la puerta
+  // es pedirle que repita lo que la puerta ya hace.
+  const codigo = `import { autorizarVigilancia } from '../shared/tokenVigilancia.ts';
+Deno.serve(async (req) => {
+  const permiso = autorizarVigilancia(req, 'x');
+  if (!permiso.ok) return json(permiso.cuerpo, permiso.status);
+});`;
+  assert.equal(seConsumeElResultado(codigo, 'autorizarVigilancia'), true);
+  assert.doesNotMatch(codigo, /401/, 'el 401 vive en el ayudante, no aqui');
 });

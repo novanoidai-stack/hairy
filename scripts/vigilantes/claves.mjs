@@ -43,7 +43,22 @@ const JWT_HEREDADA = 'eyJhbGciOiJIUzI1NiIsInR5' + 'cCI6IkpXVCJ9';
 // deja pasar ninguna: solo deja de ladrar a las fixtures.
 const SECRETA = /sb_secret_[A-Za-z0-9_-]{20,}/;
 
+// Un TOKEN PERSONAL de Supabase. No abre una base de datos: abre la CUENTA --
+// el Management API de toda la organizacion, todos los proyectos, sus claves y
+// el boton de borrarlos. Es MAS grave que una service_role, no menos, y se
+// colaba entero por delante de este vigilante porque solo se buscaba `eyJ` y
+// `sb_secret_`.
+//
+// Partido en dos por el mismo motivo que la JWT: para no denunciarse solo.
+const PERSONAL = new RegExp('sbp' + '_[A-Za-z0-9]{20,}');
+
 const PUERTA = 'supabase/functions/shared/claveServicio.ts';
+
+// Si esto vale '1', quien corre el vigilante afirma que el bundle TIENE que
+// estar compilado. Sin esa afirmacion no se puede distinguir "aqui no aplica"
+// (local, sin compilar) de "debia mirar y no he mirado" (CI). Ver el comentario
+// largo de comprobarBundle().
+const EXIGE_BUNDLE = process.env.VIGILAR_BUNDLE === '1';
 
 // Solo codigo y configuracion. La prosa (.md) puede citar la clave muerta para
 // explicar la historia -- de hecho CLAUDE.md y el informe de la migracion lo
@@ -166,6 +181,26 @@ export function revisarTexto(rel, texto) {
     );
   }
 
+  const personal = PERSONAL.exec(texto);
+  if (personal) {
+    hallazgos.push(
+      hallazgo({
+        clave: `claves/personal-en-codigo:${rel}`,
+        nivel: 'bloqueante',
+        ambito: 'seguridad',
+        titulo: `${rel} lleva un token personal de Supabase (sbp_...) incrustado`,
+        detalle:
+          'Un token personal no abre una base de datos: abre la CUENTA. Con el se entra al ' +
+          'Management API de toda la organizacion -- todos los proyectos, sus claves, y el ' +
+          'boton de borrarlos. Es mas grave que una service_role, no menos.\n\n' +
+          'Y OJO: quitarlo del codigo NO lo desactiva. Hay que REVOCARLO en ' +
+          'supabase.com -> cuenta -> Access Tokens, y luego crear otro si hace falta.',
+        fichero: rel,
+        linea: lineaDelLiteral(texto, personal[0]),
+      }),
+    );
+  }
+
   // De aqui abajo, solo edge functions.
   if (!rel.startsWith('supabase/functions/') || EXENTOS_ENV.has(rel)) return hallazgos;
 
@@ -242,17 +277,69 @@ async function ejecutar() {
     hallazgos.push(...revisarTexto(rel, texto));
   }
 
-  // --- El BUNDLE, no solo el codigo ----------------------------------------
-  // Metro cachea por fichero la sustitucion de los EXPO_PUBLIC_*: el codigo
-  // puede estar limpio y el bundle salir con la clave vieja. Ya paso.
-  for (const rel of ficherosDelBundle(BUNDLE)) {
+  hallazgos.push(...comprobarBundle());
+  return hallazgos;
+}
+
+/**
+ * El BUNDLE, no solo el codigo. Metro cachea por fichero la sustitucion de los
+ * EXPO_PUBLIC_*, asi que el codigo fuente puede estar limpio y el bundle salir
+ * con la clave vieja. Ya paso una vez.
+ *
+ * POR QUE ESTO LLEVA UNA VARIABLE DE ENTORNO
+ * `web/app/` esta gitignorado y solo existe despues de `npm run build:web`.
+ * Hasta el 29 ago 2026 esta comprobacion empezaba con un `if (!existsSync)
+ * return`, y en la CI eso significaba que NUNCA MIRABA NADA: el job `check`
+ * corre los vigilantes pero no compila la web, y el job `e2e` compila la web
+ * pero no corria los vigilantes. Cero ficheros recorridos, cero hallazgos,
+ * verde. Sin error, sin aviso, sin rastro en el log.
+ *
+ * Es exactamente el modo de pudrirse que la regla del ancla perdida existe para
+ * impedir, y se colo porque el ancla que faltaba no era un regex sino un
+ * DIRECTORIO. De ahi la leccion general: cuando un vigilante depende de un
+ * artefacto que puede no estar, tiene que decir "no he podido mirar" en voz
+ * alta. `existsSync(...) return` es la forma mas silenciosa de mentir.
+ *
+ * Con VIGILAR_BUNDLE=1, quien lo invoca AFIRMA que el bundle deberia estar ahi,
+ * y entonces la ausencia es un hallazgo. Sin la variable (local, sin compilar)
+ * sigue siendo un no-aplica legitimo.
+ */
+export function comprobarBundle() {
+  const hallazgos = [];
+  const abs = path.join(RAIZ, BUNDLE);
+  const ficheros = [...ficherosDelBundle(BUNDLE)];
+
+  if (ficheros.length === 0) {
+    if (!EXIGE_BUNDLE) return hallazgos; // no aplica: nadie ha compilado
+    hallazgos.push(
+      hallazgo({
+        clave: 'claves/bundle-sin-mirar',
+        nivel: 'bloqueante',
+        ambito: 'seguridad',
+        titulo: 'Se pidio mirar el bundle y no hay bundle que mirar',
+        detalle:
+          `VIGILAR_BUNDLE=1 dice que ${BUNDLE}/ deberia estar compilado, y ` +
+          (existsSync(abs)
+            ? 'esta vacio (o no tiene ni un .js/.html/.json).'
+            : 'no existe.') +
+          '\n\nEsto NO es un no-aplica: es que la comprobacion mas importante de este ' +
+          'vigilante -- la que mira si Metro ha incrustado una clave vieja en el bundle -- ' +
+          'no se ha ejecutado. Un verde aqui seria mentira.\n\n' +
+          'O se corre `npm run build:web` antes, o se quita VIGILAR_BUNDLE de ese paso.',
+        fichero: BUNDLE,
+      }),
+    );
+    return hallazgos;
+  }
+
+  for (const rel of ficheros) {
     let texto;
     try {
       texto = readFileSync(path.join(RAIZ, rel), 'utf8');
     } catch {
       continue;
     }
-    if (!texto.includes(JWT_HEREDADA) && !SECRETA.test(texto)) continue;
+    if (!texto.includes(JWT_HEREDADA) && !SECRETA.test(texto) && !PERSONAL.test(texto)) continue;
     hallazgos.push(
       hallazgo({
         clave: `claves/bundle:${rel}`,

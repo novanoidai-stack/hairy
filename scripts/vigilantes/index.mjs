@@ -102,7 +102,13 @@ async function main() {
 
   // Los de red no van en la CI: necesitan credencial y las RPC no se crean por
   // pull request, sino por migracion aplicada en remoto. Con --bd se anaden.
-  const conRed = flag('--bd') ? [(await import('./bd.mjs')).default] : [];
+  const conRed = flag('--bd')
+    ? [
+        (await import('./bd.mjs')).default,
+        (await import('./bd-rendimiento.mjs')).default,
+        (await import('./bd-migraciones.mjs')).default,
+      ]
+    : [];
 
   const aCorrer = [...ESTATICOS, ...conRed]
     .filter((v) => !soloUno || v.nombre === soloUno)
@@ -148,6 +154,15 @@ async function main() {
       ambito: v.ambito,
       ms,
       ok: !reventado && hallazgos.length === 0,
+      // Se apunta AQUI quien encontro que, mientras se sabe con certeza.
+      // Antes la linea de resumen lo deducia con `h.ambito === v.ambito`, y eso
+      // dejo de valer en cuanto dos vigilantes compartieron ambito: `cache-app`
+      // salia "AVISA" por los hallazgos de `bd-rendimiento` (los dos son de
+      // ambito `rendimiento`) sin haber encontrado nada suyo. Un resumen que
+      // acusa al vigilante equivocado es exactamente la clase de mentira
+      // pequena que estas herramientas existen para evitar.
+      bloqueantes: hallazgos.filter((h) => h.nivel === 'bloqueante').length,
+      avisos: hallazgos.filter((h) => h.nivel !== 'bloqueante').length,
     });
     todos.push(...hallazgos);
   }
@@ -155,9 +170,8 @@ async function main() {
   // --- Informe por pantalla ---
   console.log('');
   for (const v of porVigilante) {
-    const suyos = todos.filter((h) => h.clave.startsWith(v.nombre + '/') || h.ambito === v.ambito);
-    const bloq = suyos.filter((h) => h.nivel === 'bloqueante').length;
-    const avi = suyos.length - bloq;
+    const bloq = v.bloqueantes;
+    const avi = v.avisos;
     const icono = bloq
       ? `${C.rojo}FALLA${C.fin}`
       : avi

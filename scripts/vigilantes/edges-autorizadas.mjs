@@ -33,7 +33,13 @@ const CONFIG = 'supabase/config.toml';
 // `if (body?.ojo === true && peticionDeServicio(req))` -- perfectamente valido--
 // y una lista de formas permitidas (`!x(`, `if (x(`, `= x(`) no lo cubria. Una
 // lista asi solo acierta hasta que alguien escribe la cuarta forma.
-const GUARDAS = ['peticionDeServicio'];
+// `autorizarVigilancia` es la OTRA puerta legitima, y es de primera clase, no
+// una excepcion: la usan las dos funciones que llama GitHub Actions
+// (registrar-vigilancia y ejecutar-vigilancia-bd), que no pueden autorizar con
+// la clave de servicio porque eso obligaria a guardarla en los secrets de
+// Actions -- justo lo que prohibe la regla 4. Vive en shared/tokenVigilancia.ts
+// y compara VIGILANCIA_TOKEN en tiempo constante.
+const GUARDAS = ['peticionDeServicio', 'autorizarVigilancia'];
 
 // Autorizar en nombre de QUIEN llama tambien es autorizar: las funciones de dos
 // modos (una rama para el trigger de la BD, otra para una persona con sesion)
@@ -69,8 +75,16 @@ const AUTORIZAN_A_SU_MANERA = {
   },
 };
 
-// Un 401 en el fichero no prueba que autorice, pero su AUSENCIA si prueba que
-// no rechaza a nadie.
+// Un 401 en el fichero no prueba que autorice, pero su ausencia sugiere que no
+// rechaza a nadie. OJO: solo se le exige a quien autoriza por SESION, no a quien
+// usa una de las puertas conocidas.
+//
+// Al extraer la puerta del token a shared/tokenVigilancia.ts, el 401 se fue con
+// ella y `ejecutar-vigilancia-bd` --que autoriza perfectamente-- salio marcada
+// como abierta al mundo. Exigirle el literal al que LLAMA a la puerta es pedirle
+// que repita lo que la puerta ya hace: quien delega en un ayudante compartido no
+// tiene por que nombrar el codigo de estado. Y `seConsumeElResultado` ya cubre
+// el caso de verdad peligroso (llamar a la guarda y tirar el resultado).
 const RECHAZA = /401/;
 
 export function funcionesSinVerificacion(toml) {
@@ -147,9 +161,12 @@ async function ejecutar() {
       continue;
     }
 
-    const autorizaPorClave = GUARDAS.some((g) => seConsumeElResultado(codigo, g));
-    const autorizaPorSesion = GUARD_USUARIO.test(codigo);
-    if ((autorizaPorClave || autorizaPorSesion) && RECHAZA.test(codigo)) continue;
+    // Puerta conocida (clave de servicio o token de vigilancia): basta con que
+    // su resultado se consuma. El rechazo lo hace la propia puerta.
+    if (GUARDAS.some((g) => seConsumeElResultado(codigo, g))) continue;
+    // Por sesion no hay ayudante compartido que garantice el rechazo, asi que
+    // ahi si se exige ver el 401.
+    if (GUARD_USUARIO.test(codigo) && RECHAZA.test(codigo)) continue;
 
     const soloImporta = /peticionDeServicio/.test(codigo);
     hallazgos.push(
