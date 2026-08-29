@@ -310,6 +310,19 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       - Peso del bundle: `scripts/vigilantes/peso-bundle.mjs` tras `build:web`
         avisa si sube >5% sobre `scripts/vigilantes/peso-baseline.json`
         (8,20 MB / entry 1,05 MB congelados el 29 ago).
+    - **Errores tragados y fallos silenciosos (29 ago 2026, familia 2 de la fase 2).**
+      - **2b estático (`scripts/vigilantes/errores-tragados.mjs`):** analiza AST de TypeScript
+        en `app/` y `components/`. Detecta fuego-y-olvido en funciones que pueden rechazar,
+        `await` sin try/catch/catch encadenado en handlers, y llamadas a `supabase-js` cuyo
+        `error` se ignora (las promesas de Supabase no rechazan, resuelven con `{ data, error }`).
+        Línea base congelada en `scripts/vigilantes/errores-tragados-baseline.json`.
+        Tests: `node --test scripts/vigilantes/errores-tragados.test.mjs` (18 tests).
+      - **2a navegador (`tests/smoke/silencios.ts` + `scripts/vigilantes/silencios.mjs`):**
+        tres oídos en el smoke para capturar lo que el botón hizo sin decirlo: promesas rotas
+        (`unhandledrejection` en todos los documentos e iframes), diálogos nativos (`alert()`
+        descartados automáticamente) y mensajes de error de sistema según catálogo anclado a
+        `lib/errores.ts`. Línea base congelada en `tests/smoke/silencios-baseline.json`.
+        Prueba de vida: `npx playwright test tests/smoke/silencios.spec.ts` (5 tests).
 
 ## Convenciones de código
 

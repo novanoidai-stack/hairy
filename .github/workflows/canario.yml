@@ -73,12 +73,28 @@ jobs:
           node scripts/vigilantes/rendimiento.mjs rendimiento.jsonl vigilancia-rendimiento-canario.json canario
           node scripts/vigilantes/enviar.mjs vigilancia-rendimiento-canario.json
 
+      # Familia 2a contra PRODUCCION. Aquí importa más que en la CI: los datos
+      # son reales, así que un alert() o un error de permiso al pulsar significa
+      # que le pasa a alguien de verdad. Hasta que se congele su línea base
+      # propia (--aprobar --origen canario sobre el artefacto de abajo), mide
+      # sin comparar.
+      - name: Vigilante de fallos silenciosos (contra produccion)
+        if: always() && steps.smoke.outcome != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/silencios.mjs silencios.jsonl vigilancia-silencios-canario.json canario
+          node scripts/vigilantes/enviar.mjs vigilancia-silencios-canario.json
+
       - name: Guardar las medidas de rendimiento
         if: always() && steps.smoke.outcome != 'skipped'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: rendimiento-canario
-          path: rendimiento.jsonl
+          path: |
+            rendimiento.jsonl
+            silencios.jsonl
           retention-days: 8
 
       - name: Guardar el informe si algo falla

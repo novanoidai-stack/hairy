@@ -1,0 +1,87 @@
+{
+  "agenda": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "mi-jornada": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "lista-espera": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "citas": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "clientes": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "bandeja": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "campanas": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "caja": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "presupuestos": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "equipo": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "inventario": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "resenas": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "informes": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "ayuda": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "configuracion": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "portal-reserva": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  },
+  "portal-resena": {
+    "promesa-rota": 0,
+    "dialogo": 0,
+    "error-en-pantalla": 0
+  }
+}

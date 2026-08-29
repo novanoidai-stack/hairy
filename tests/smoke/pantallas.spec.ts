@@ -6,6 +6,16 @@ import {
   leerMedidasDelDocumento,
   observarLongTasks,
 } from './mediciones';
+import {
+  apuntarSilencios,
+  comprobarAnclas,
+  erroresEnTexto,
+  leerPromesasRotas,
+  observarPromesasRotas,
+  vigilarDialogos,
+  type Dialogos,
+  type Incidente,
+} from './silencios';
 
 // SMOKE DE PANTALLAS — el vigilante que responde "¿que boton dejo de funcionar?".
 //
@@ -111,11 +121,19 @@ async function manosearBotones(
   donde: Page | FrameLocator,
   page: Page,
   nombrePantalla: string,
+  sensores: { dialogos: Dialogos; incidentes: Incidente[] },
 ): Promise<void> {
   const botones = donde.locator('button:visible, [role="button"]:visible');
   const total = Math.min(await botones.count(), 25);
   const urlInicial = page.url();
   const rutaInicial = new URL(urlInicial).pathname;
+
+  // Estado ANTES de tocar nada: lo que ya estaba no lo ha roto ningun boton.
+  let promesasPrevias = (await leerPromesasRotas(page)).length;
+  let dialogosPrevios = sensores.dialogos.vistos().length;
+  let erroresPrevios = new Set(
+    erroresEnTexto(await donde.locator('body').innerText().catch(() => '')).map((e) => e.aguja),
+  );
 
   for (let i = 0; i < total; i++) {
     const b: Locator = botones.nth(i);
@@ -157,6 +175,40 @@ async function manosearBotones(
       `la pantalla ${nombrePantalla} se quedo en blanco tras pulsar "${etiqueta}"`,
     ).toBeGreaterThan(20);
 
+    // Familia 2a: el boton no ha roto la pantalla, pero ¿ha fallado en silencio?
+    // Nada de esto tumba el test -- se apunta y `scripts/vigilantes/silencios.mjs`
+    // lo convierte en avisos. Un boton que da error puede ser flujo legitimo
+    // (validar un formulario vacio al pulsarlo a ciegas); lo que interesa es la
+    // ETIQUETA, para ver cual empieza a fallar y desde cuando.
+    const promesas = await leerPromesasRotas(page);
+    for (const motivo of promesas.slice(promesasPrevias)) {
+      sensores.incidentes.push({ tipo: 'promesa-rota', boton: etiqueta, detalle: motivo });
+    }
+    promesasPrevias = promesas.length;
+
+    const dialogos = sensores.dialogos.vistos();
+    for (const d of dialogos.slice(dialogosPrevios)) {
+      // Un `confirm` es una pregunta, no un fallo: solo cuentan los avisos.
+      if (d.tipo !== 'alert') continue;
+      sensores.incidentes.push({
+        tipo: 'dialogo',
+        boton: etiqueta,
+        detalle: `alert(): ${d.mensaje}`,
+      });
+    }
+    dialogosPrevios = dialogos.length;
+
+    const ahora = erroresEnTexto(cuerpo || '');
+    for (const e of ahora) {
+      if (erroresPrevios.has(e.aguja)) continue;
+      sensores.incidentes.push({
+        tipo: 'error-en-pantalla',
+        boton: etiqueta,
+        detalle: `${e.que} — "${e.aguja}"`,
+      });
+    }
+    erroresPrevios = new Set(ahora.map((e) => e.aguja));
+
     // Si abrio un modal, cerrarlo para que el siguiente clic no lo herede.
     await page.keyboard.press('Escape').catch(() => {});
     await page.waitForTimeout(100);
@@ -168,6 +220,14 @@ async function manosearBotones(
   ).toBe(rutaInicial);
 }
 
+// El catalogo de frases de error (silencios.ts) tiene que seguir casando con
+// lib/errores.ts. Si no, el detector de fallos silenciosos busca algo que ya
+// nadie escribe y pasaria en verde sin haber mirado. Es un test aparte para que
+// se lea como lo que es: el ancla del sensor, no una pantalla rota.
+test('el catalogo de errores sigue casando con lib/errores.ts', () => {
+  comprobarAnclas();
+});
+
 for (const p of PANTALLAS) {
   test(`humo: ${p.nombre}`, async ({ page }) => {
     test.setTimeout(p.lenta ? 150_000 : 110_000);
@@ -177,6 +237,11 @@ for (const p of PANTALLAS) {
     // Mediciones de rendimiento (familia 1a): los oidos van antes de navegar.
     observarLongTasks(page);
     const peticiones = contarPeticionesSupabase(page);
+
+    // Sensores de fallo silencioso (familia 2a): tambien antes de navegar.
+    await observarPromesasRotas(page);
+    const sensores = { dialogos: vigilarDialogos(page), incidentes: [] as Incidente[] };
+
     const t0 = Date.now();
 
     const donde = await abrir(page, p);
@@ -195,7 +260,12 @@ for (const p of PANTALLAS) {
     expect(alCargar.red, `peticiones fallidas al cargar ${p.nombre}`).toEqual([]);
 
     // 4. Los botones responden.
-    await manosearBotones(donde, page, p.nombre);
+    await manosearBotones(donde, page, p.nombre, sensores);
+
+    // 4bis. Y lo que hicieron sin decirlo (familia 2a). Se apunta SIEMPRE,
+    // tambien con la lista vacia: si solo escribieran las pantallas con
+    // incidentes, el panel no distinguiria "limpia" de "no se ha mirado".
+    apuntarSilencios({ pantalla: p.nombre, incidentes: sensores.incidentes });
 
     // 5. Y despues de todo el manoseo, sigue sin haber errores EN ESTA PANTALLA.
     // Los de las paginas de destino de los CTAs de marketing no cuentan: ver

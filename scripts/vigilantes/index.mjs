@@ -20,9 +20,18 @@ import referidos from './referidos.mjs';
 import rutasPublicas from './rutas-publicas.mjs';
 import cacheApp from './cache-app.mjs';
 import claves from './claves.mjs';
+import erroresTragados from './errores-tragados.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 
-const ESTATICOS = [precios, referidos, rutasPublicas, cacheApp, claves, codigoMuerto];
+const ESTATICOS = [
+  precios,
+  referidos,
+  rutasPublicas,
+  cacheApp,
+  claves,
+  erroresTragados,
+  codigoMuerto,
+];
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);

@@ -22,6 +22,10 @@ const SPECS_PUBLICOS = [
   // botones). Es publico: corre sobre la demo compartida y contra produccion
   // en el canario horario (.github/workflows/canario.yml).
   '**/smoke/pantallas.spec.ts',
+  // Prueba de vida de los sensores de fallo silencioso (familia 2a). Corre con
+  // el smoke porque comparte servidor y porque si estos fallan, los ceros del
+  // smoke dejan de significar "limpio" y pasan a significar "ciego".
+  '**/smoke/silencios.spec.ts',
 ];
 
 export default defineConfig({

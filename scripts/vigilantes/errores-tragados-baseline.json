@@ -1,0 +1,85 @@
+{
+  "app/(tabs)/bandeja.web.tsx": {
+    "supabase-sin-comprobar": 2
+  },
+  "app/(tabs)/caja.web.tsx": {
+    "handler-async-sin-catch": 1
+  },
+  "app/(tabs)/clientes.tsx": {
+    "fuego-y-olvido": 1
+  },
+  "app/(tabs)/clientes.web.tsx": {
+    "fuego-y-olvido": 3,
+    "handler-async-sin-catch": 8,
+    "supabase-sin-comprobar": 6
+  },
+  "app/(tabs)/configuracion.web.tsx": {
+    "fuego-y-olvido": 2,
+    "handler-async-sin-catch": 1,
+    "supabase-sin-comprobar": 8
+  },
+  "app/(tabs)/equipo.tsx": {
+    "supabase-sin-comprobar": 1
+  },
+  "app/(tabs)/equipo.web.tsx": {
+    "fuego-y-olvido": 4,
+    "handler-async-sin-catch": 1,
+    "supabase-sin-comprobar": 3
+  },
+  "app/(tabs)/lista-espera.web.tsx": {
+    "fuego-y-olvido": 1,
+    "supabase-sin-comprobar": 4
+  },
+  "app/(tabs)/mi-jornada.web.tsx": {
+    "handler-async-sin-catch": 1
+  },
+  "app/(tabs)/resenas.web.tsx": {
+    "supabase-sin-comprobar": 2
+  },
+  "app/screens/agenda-detalle.tsx": {
+    "supabase-sin-comprobar": 1
+  },
+  "app/screens/configuracion.tsx": {
+    "supabase-sin-comprobar": 1
+  },
+  "components/acceso/GuardaSuscripcion.tsx": {
+    "supabase-sin-comprobar": 1
+  },
+  "components/acceso/PuertaIdentidad.tsx": {
+    "fuego-y-olvido": 2
+  },
+  "components/acceso/PuertaIdentidad.web.tsx": {
+    "fuego-y-olvido": 3
+  },
+  "components/agenda/AgendaCalendar.web.tsx": {
+    "fuego-y-olvido": 1,
+    "handler-async-sin-catch": 1,
+    "supabase-sin-comprobar": 3
+  },
+  "components/agenda/OrganizarAgendaPanel.web.tsx": {
+    "fuego-y-olvido": 6,
+    "handler-async-sin-catch": 1
+  },
+  "components/agenda/modals/DetalleCitaModal.web.tsx": {
+    "fuego-y-olvido": 2,
+    "supabase-sin-comprobar": 4
+  },
+  "components/agenda/modals/NewCitaModal.web.tsx": {
+    "supabase-sin-comprobar": 1
+  },
+  "components/agenda/views/timeline/Timeline.web.tsx": {
+    "handler-async-sin-catch": 3
+  },
+  "components/config/ModalImportarTarifasIA.tsx": {
+    "fuego-y-olvido": 1
+  },
+  "components/config/TabPresupuestoConceptos.tsx": {
+    "supabase-sin-comprobar": 2
+  },
+  "components/config/TabRecompensas.web.tsx": {
+    "supabase-sin-comprobar": 1
+  },
+  "components/jornada/RegistroJornada.web.tsx": {
+    "handler-async-sin-catch": 1
+  }
+}

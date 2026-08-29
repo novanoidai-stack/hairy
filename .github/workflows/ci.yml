@@ -178,6 +178,20 @@ jobs:
           node scripts/vigilantes/rendimiento.mjs rendimiento.jsonl vigilancia-rendimiento.json ci
           node scripts/vigilantes/enviar.mjs vigilancia-rendimiento.json
 
+      # Familia 2a: botones que fallan en SILENCIO. El smoke ya comprueba que la
+      # pantalla no se rompe; estos sensores recogen lo que el botón hizo sin
+      # decirlo — promesas rechazadas que no recoge nadie, alert() que la CI
+      # descarta sola, y mensajes de error que aparecen tras el clic. Línea base
+      # congelada en tests/smoke/silencios-baseline.json: solo avisa si SUBE.
+      - name: Vigilante de fallos silenciosos
+        if: always() && steps.smoke.conclusion != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/silencios.mjs silencios.jsonl vigilancia-silencios.json ci
+          node scripts/vigilantes/enviar.mjs vigilancia-silencios.json
+
       - name: E2E autenticados (solo si hay secrets)
         if: ${{ env.E2E_EMAIL != '' }}
         run: npx playwright test --project=chromium
