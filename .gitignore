@@ -162,3 +162,4 @@ ui-references/
 # Informes de los vigilantes (los escribe la CI y el canario, no se versionan).
 vigilancia*.json
 smoke.json
+rendimiento.jsonl

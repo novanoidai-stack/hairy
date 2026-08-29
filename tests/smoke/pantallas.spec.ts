@@ -1,5 +1,11 @@
 import { test, expect, type Page, type FrameLocator, type Locator } from '@playwright/test';
 import { PANTALLAS, RUIDO_CONSOLA, RUIDO_RED, type Pantalla } from './pantallas';
+import {
+  apuntar,
+  contarPeticionesSupabase,
+  leerMedidasDelDocumento,
+  observarLongTasks,
+} from './mediciones';
 
 // SMOKE DE PANTALLAS — el vigilante que responde "¿que boton dejo de funcionar?".
 //
@@ -167,6 +173,12 @@ for (const p of PANTALLAS) {
     test.setTimeout(p.lenta ? 150_000 : 110_000);
 
     const v = vigilar(page);
+
+    // Mediciones de rendimiento (familia 1a): los oidos van antes de navegar.
+    observarLongTasks(page);
+    const peticiones = contarPeticionesSupabase(page);
+    const t0 = Date.now();
+
     const donde = await abrir(page, p);
     const urlPantalla = page.url();
 
@@ -175,6 +187,7 @@ for (const p of PANTALLAS) {
       donde.locator('body'),
       `la pantalla ${p.nombre} (${p.ruta}) no ha pintado su contenido`,
     ).toContainText(p.ancla, { timeout: 45_000 });
+    const msCarga = Date.now() - t0;
 
     // 2 y 3. Nada roto durante la carga.
     const alCargar = deLaPantalla(v, urlPantalla);
@@ -191,5 +204,23 @@ for (const p of PANTALLAS) {
       deLaPantalla(v, urlPantalla).consola,
       `errores de consola al pulsar botones en ${p.nombre}`,
     ).toEqual([]);
+
+    // 6. Y una vez comprobado que vive, MEDIRLA: el scroll muestrea rAF (fps
+    // real) y recoge las long tasks acumuladas. Se apunta al JSONL de la
+    // corrida; `scripts/vigilantes/rendimiento.mjs` compara contra la linea
+    // base. Un fallo AQUI nunca tumba la pantalla: es un hallazgo aparte.
+    try {
+      const doc = await leerMedidasDelDocumento(page, p);
+      apuntar({
+        pantalla: p.nombre,
+        ms_carga: msCarga,
+        long_tasks_n: doc.long_tasks_n,
+        long_tasks_ms: doc.long_tasks_ms,
+        fps_medio: doc.fps_medio,
+        peticiones: peticiones.total(),
+      });
+    } catch {
+      // Pantalla rota ya bloquea arriba; medir no puede tumbar dos veces.
+    }
   });
 }

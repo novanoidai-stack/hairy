@@ -133,6 +133,12 @@ jobs:
       - name: Compilar la app web
         run: npm run build:web
 
+      # Familia 1b: presupuesto de peso del bundle. Nace congelado en
+      # scripts/vigilantes/peso-baseline.json; avisa (no bloquea) si sube >5%.
+      # Bajar la línea base es --aprobar, un acto consciente cuyo diff se ve.
+      - name: Vigilante de peso del bundle
+        run: node scripts/vigilantes/peso-bundle.mjs
+
       # Ojo: estos specs leen de la Supabase REAL (tenant público de la demo).
       # Es lectura pura, pero implica que una caída de Supabase pone la CI en
       # rojo sin que nadie haya roto nada. Si eso llega a molestar, la salida es
@@ -156,6 +162,20 @@ jobs:
         run: |
           node scripts/vigilantes/smoke-a-hallazgos.mjs smoke.json vigilancia-smoke.json ci
           node scripts/vigilantes/enviar.mjs vigilancia-smoke.json
+
+      # Familia 1a: el smoke también MIDE (carga, long tasks, fps de scroll,
+      # peticiones a Supabase). Se compara contra la línea base congelada en
+      # tests/smoke/rendimiento-baseline.json; solo degeneración extrema
+      # (pantalla >15 s) bloquea, el resto son avisos. El trinquete solo gira
+      # hacia abajo: --aprobar es el único modo de mover la base.
+      - name: Vigilante de rendimiento de pantallas
+        if: always() && steps.smoke.conclusion != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/rendimiento.mjs rendimiento.jsonl vigilancia-rendimiento.json ci
+          node scripts/vigilantes/enviar.mjs vigilancia-rendimiento.json
 
       - name: E2E autenticados (solo si hay secrets)
         if: ${{ env.E2E_EMAIL != '' }}
