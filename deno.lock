@@ -214,6 +214,7 @@
         "npm:react@19.2.3",
         "npm:typescript@~5.8.3",
         "npm:vitest@^4.1.11",
+        "npm:yaml@^2.9.0",
         "npm:zod@^4.4.3",
         "npm:zustand@^5.0.15"
       ]

@@ -90,7 +90,7 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      y `pin_gestor`/`pin_barberia`, que son credenciales. Igual estaban `n8n_webhook_config`
      (con `webhook_url`: leerlo dispara los automatismos de un salón, escribirlo los desvía)
      y `contratos` (con `firma_token`), las dos con `for all to authenticated using (true)`.
-     Migración `20260829100000_rls_profiles_y_multitenant.sql`. Lo vigila la comprobación 10
+     Migración `20260829092248_rls_profiles_y_multitenant.sql`. Lo vigila la comprobación 10
      de `vigilancia_bd()`: tabla con `negocio_id` + política permisiva que no menciona nada
      que ate al llamante. **Al escribir una política, lee el lado izquierdo en voz alta:
      si el sujeto es la fila y no quien llama, está mal.**

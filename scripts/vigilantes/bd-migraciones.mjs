@@ -58,8 +58,34 @@ async function ejecutar() {
 
   for (const f of ficheros) {
     const m = VERSION.exec(f);
-    if (m) conVersion.set(m[1], f);
-    else sinVersion.push(f);
+    if (!m) {
+      sinVersion.push(f);
+      continue;
+    }
+    // DOS FICHEROS CON LA MISMA VERSION es un fallo callado de los buenos: el
+    // historial se indexa por version, asi que solo uno de los dos puede constar
+    // aplicado, y este mapa se quedaria con el ultimo -- el otro desapareceria
+    // del radar sin decir nada. Paso al mergear la rama de la auditoria, que
+    // traia un 20260829120000_avisos_... y ya habia un 20260829120000_vigilancia_...
+    if (conVersion.has(m[1])) {
+      hallazgos.push(
+        hallazgo({
+          clave: `migraciones/version-repetida-${m[1]}`,
+          nivel: 'bloqueante',
+          ambito: 'base-de-datos',
+          titulo: `Dos migraciones comparten la version ${m[1]}`,
+          detalle:
+            `${conVersion.get(m[1])} y ${f}. El historial remoto se indexa por version, asi ` +
+            'que solo una de las dos puede constar aplicada y la otra queda fuera del radar ' +
+            'en silencio. El CLI tampoco sabria cual aplicar primero.\n\nRenombrar una de las ' +
+            'dos a la version con la que consta aplicada de verdad (mirar ' +
+            'schema_migrations por nombre, no por version).',
+          fichero: path.posix.join(DIR, f),
+        }),
+      );
+      continue;
+    }
+    conVersion.set(m[1], f);
   }
 
   // PUNTO CIEGO, no un silencio: de estos no se puede saber si estan aplicados,
