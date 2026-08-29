@@ -247,3 +247,98 @@ Deno.test('motor: evaluarTodas NO evalua citas de otros dias fuera del rango (fi
   assert(todas.some((p) => p.citaId === 'A'), 'la cita de HOY debe evaluarse');
   assert(!todas.some((p) => p.citaId === 'B'), 'la cita de otro dia NO debe evaluarse');
 });
+
+// ── Regresiones de ago-2026 (auditoria del organizador) ──────────────────────
+
+Deno.test('motor: NUNCA propone una hora que ya ha pasado', () => {
+  // Solo el generador A acotaba por `ahoraMs`. El snap a reposo (B), el cambio
+  // de trabajador (C) y el cambio de dia hacia atras (D) no, asi que a las 17:00
+  // el motor ofrecia mover una cita de las 18:00 al reposo de las 10:30 -- seis
+  // horas al pasado -- y ademas como propuesta RECOMENDADA y aplicable de un clic.
+  const conReposo: CitaOrganizar = {
+    id: 'X', profesional_id: 'P1', estado: 'confirmada',
+    inicio: iso(10, 0), fin: iso(12, 0),
+    fin_activa: iso(10, 30), fin_espera: iso(11, 30),
+    cliente: 'Cli-X', telefono: '600000000', servicio: 'Srv-X',
+  };
+  const c = cita('A', 'P1', 18, 0, 30);
+  const opts = optsBase({
+    ahoraMs: ms(17, 0),
+    horariosProfesional: [horarioProf('P1', 9, 20), horarioProf('P2', 9, 20)],
+  });
+  const res = proponerMovimientosCita(c, [c, conReposo], opts);
+  for (const cand of res.candidatos) {
+    assert(
+      cand.fases.ini >= opts.ahoraMs,
+      `propone las ${new Date(cand.fases.ini).toTimeString().slice(0, 5)}, anterior a "ahora"`,
+    );
+  }
+});
+
+Deno.test('motor: las horas propuestas caen en el slot de 15 min', () => {
+  // `ahoraMs` es Date.now() con sus segundos. Como era el limite inferior del
+  // barrido en crudo, los candidatos heredaban el desfase: a las 17:03:47 el
+  // panel ofrecia "adelantar a las 17:03:47" y eso se escribia en citas.inicio.
+  const c = cita('A', 'P1', 19, 0, 30);
+  const opts = optsBase({
+    ahoraMs: ms(17, 3) + 47_000,
+    horariosProfesional: [horarioProf('P1', 9, 21)],
+  });
+  const res = proponerMovimientosCita(c, [c], opts);
+  assert(res.candidatos.length > 0, 'deberia haber candidatos');
+  for (const cand of res.candidatos) {
+    const d = new Date(cand.fases.ini);
+    assertEquals(d.getSeconds(), 0, `segundos != 0 en ${d.toTimeString().slice(0, 8)}`);
+    assertEquals(d.getMinutes() % 15, 0, `no cae en slot de 15 min: ${d.toTimeString().slice(0, 8)}`);
+  }
+});
+
+Deno.test('motor: un bloqueo a primera hora no borra el turno entero del destino', () => {
+  // buscarHueco devolvia el primer hueco libre de CITAS aunque cayera dentro de
+  // un bloqueo, y addCandidato lo descartaba despues. Como solo se pide un slot
+  // por tramo, un bloqueo de 45 min a primera hora hacia que ese profesional
+  // desapareciera como destino durante TODO el turno.
+  const c = cita('A', 'P1', 16, 0, 30); // P1 trabaja 9-14: la cita esta fuera de jornada
+  const opts = optsBase({
+    ahoraMs: ms(8, 0),
+    horariosProfesional: [horarioProf('P1', 9, 14), horarioProf('P2', 9, 20)],
+    bloqueos: [{ profesional_id: 'P2', inicio: iso(9, 0), fin: iso(9, 45) }],
+  });
+  const res = proponerMovimientosCita(c, [c], opts);
+  const aP2 = res.candidatos.filter((x) => x.profesionalId === 'P2');
+  assert(aP2.length > 0, 'P2 esta libre de 9:45 a 20:00: tiene que seguir siendo destino');
+  for (const cand of aP2) {
+    assert(
+      cand.fases.ini >= ms(9, 45),
+      `propone las ${new Date(cand.fases.ini).toTimeString().slice(0, 5)}, dentro del bloqueo`,
+    );
+  }
+});
+
+Deno.test('motor: recortar el buffer no cambia ni una propuesta', () => {
+  // evaluarTodas solo mira las citas que pueden chocar con un candidato
+  // ([desde - ventanaDias, hasta + ventanaDias]). Este test fija que ese recorte
+  // es puro rendimiento: con o sin las citas lejanas del buffer (-60/+120 dias
+  // que trae la rejilla), el resultado tiene que ser identico.
+  const cercanas = [cita('A', 'P1', 17, 0, 30), cita('B', 'P2', 11, 0, 30)];
+  const lejos: CitaOrganizar[] = [-45, -20, 30, 90].map((d, i) => {
+    const ini = new Date(`${D}T11:00:00`);
+    ini.setDate(ini.getDate() + d);
+    return {
+      id: `L${i}`, profesional_id: 'P1', estado: 'confirmada',
+      inicio: ini.toISOString(), fin: new Date(+ini + 30 * 60000).toISOString(),
+      cliente: 'lejos', telefono: '600000000', servicio: 'srv',
+    };
+  });
+  const opts = optsBase({
+    desdeMs: ms(0, 0), hastaMs: ms(23, 59),
+    horariosProfesional: [horarioProf('P1', 9, 20), horarioProf('P2', 9, 20)],
+  });
+  const soloCerca = evaluarTodas(cercanas, opts);
+  const conBuffer = evaluarTodas([...cercanas, ...lejos], opts);
+  assertEquals(
+    JSON.stringify(conBuffer),
+    JSON.stringify(soloCerca),
+    'el buffer lejano no puede alterar las propuestas',
+  );
+});
