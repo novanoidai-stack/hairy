@@ -22,8 +22,9 @@ import cacheApp from './cache-app.mjs';
 import claves from './claves.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 import erroresTragados from './errores-tragados.mjs';
+import panelSalud from './panel-salud.mjs';
 
-const ESTATICOS = [precios, referidos, rutasPublicas, cacheApp, claves, erroresTragados, codigoMuerto];
+const ESTATICOS = [precios, referidos, rutasPublicas, cacheApp, claves, erroresTragados, panelSalud, codigoMuerto];
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);

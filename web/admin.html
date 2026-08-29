@@ -670,6 +670,8 @@
         <option value="codigo-muerto">Código muerto</option>
         <option value="landing">Landing</option>
         <option value="base-de-datos">Base de datos</option>
+        <option value="errores-tragados">Errores tragados</option>
+        <option value="silencios">Botones en silencio</option>
       </select>
       <select class="ad-sel" id="fDiasSal">
         <option value="1">Últimas 24 h</option>
@@ -2800,7 +2802,12 @@
   var AMBITO_SAL_LABEL = {
     seguridad: 'Seguridad', precios: 'Precios', referidos: 'Referidos',
     rendimiento: 'Rendimiento', pantallas: 'Pantallas', 'codigo-muerto': 'Código muerto',
-    landing: 'Landing', 'base-de-datos': 'Base de datos', otros: 'Otros'
+    landing: 'Landing', 'base-de-datos': 'Base de datos',
+    // Familia 2 de la fase 2. Si se añade un ámbito nuevo hay que tocarlo aquí Y
+    // en el <select> de arriba: si no, el hallazgo llega pero no se puede filtrar
+    // y sale con el identificador crudo por etiqueta.
+    'errores-tragados': 'Errores tragados', silencios: 'Botones en silencio',
+    otros: 'Otros'
   };
 
   function haceCuanto(iso) {

@@ -105,8 +105,9 @@ ocurrió**.
 | ✅ | Radar de GitHub (Semgrep, zizmor, CodeQL, Renovate, CodeRabbit) | radiografía 12 | **hecho** |
 | ✅ | Rendimiento de pantallas + peso del bundle | radiografía 1, 1b, 1c / nota 5 | **hecho** |
 | ✅ | Vigilante de claves (código y bundle) | decisión 9 / nota 2 | **hecho, pero ciego en CI** — §2 |
-| **A** | **Botones que fallan en silencio** | radiografía 2 | **esta sesión** |
-| **B** | Arreglar la ceguera del vigilante de claves + caché de Playwright | §2 y nota final | **esta sesión** |
+| ✅ A | Botones que fallan en silencio | radiografía 2 | **hecho** — §5 |
+| ✅ B | Ceguera del vigilante de claves + caché de Playwright | §2 y nota final | **hecho** |
+| ✅ | Ámbitos nuevos en el panel, con vigilante propio | radiografía 10 | **hecho** — §8.9 |
 | ✅ C | `vigilancia_bd()` programado cada 6 h | nota 1 | **hecho** — §8 |
 | ✅ D | Cuellos de botella de BD (`pg_stat_statements`) | radiografía 3 | **hecho** — §8, umbrales medidos |
 | ✅ F | Guardia de migraciones | nota 4 | **hecho** — §8, encontró 2 al estrenarse |
@@ -529,3 +530,25 @@ el diseño de la decisión 2), y las demás guardan a través de ayudantes que e
 lista no nombra — `jornada_contexto()` en las de fichaje y `_campana_gestor()` en
 las de campañas (comprobado en su código). Si esa consulta se vuelve a usar como
 termómetro, hay que añadir esos dos nombres o volverá a asustar sin motivo.
+
+
+### 8.9 Los ámbitos del panel, y su vigilante
+
+Al estrenar las familias 2a y 2b apareció un hueco creado por ellas mismas: el
+panel de staff **no conocía los ámbitos nuevos**. Los hallazgos llegaban a la base
+igual, pero no se podían filtrar y se pintaban con el identificador en crudo por
+etiqueta.
+
+Es la forma de deriva que más cuesta ver, porque **no rompe nada**: el hallazgo
+no desaparece, solo se vuelve incómodo de encontrar. Nadie nota que falta algo;
+solo que el panel es un poco peor cada vez.
+
+Un ámbito vive en tres sitios —el vigilante que lo emite, el `<select>` del filtro
+y el mapa `AMBITO_SAL_LABEL`, los dos últimos en `web/admin.html`—, así que es un
+invariante repartido de manual. Añadidos los dos que faltaban **y** su vigilante
+en el mismo commit (`scripts/vigilantes/panel-salud.mjs`), que es la norma de la
+decisión 10: *al añadir un invariante repartido, añade su vigilante en el mismo
+commit o la próxima deriva será silenciosa otra vez*.
+
+Nivel **bloqueante**, sin línea base: hoy cuadra, el arreglo son dos líneas, y el
+coste de dejarlo pasar es que la familia siguiente nazca medio invisible.
