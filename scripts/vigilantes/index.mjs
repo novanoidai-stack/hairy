@@ -30,6 +30,38 @@ const valor = (n) => {
   return i >= 0 ? args[i + 1] : null;
 };
 
+// NUNCA `process.exit()` en este runner. Matar el proceso a mano justo despues
+// de una peticion de red hace que libuv asserte en Windows
+// (`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c,
+// line 76`) y el proceso muere con codigo 127 AUNQUE el informe haya salido en
+// verde: cualquier hook, pre-push o CI que mire el codigo de salida lo lee como
+// fallo. Solo pasa con `--bd`, que es el unico vigilante que abre sockets.
+//
+// Medido el 29 ago 2026 (Node 24.14, Windows 11): la ventana peligrosa dura unos
+// 50 ms desde que resuelve el fetch de bd.mjs -- esperar 1 ms revienta, esperar
+// 50 ya no. Es trabajo de fondo de la propia plataforma, no un handle nuestro:
+// cerrar y hasta destruir el dispatcher de undici NO lo evita (probado, sigue
+// reventando). Lo unico que lo evita es no matar el proceso.
+//
+// Dejarlo salir solo tampoco cuelga: el socket de undici ya no aparece en
+// `getActiveResourcesInfo()` en el tick siguiente al fetch. `vigia` es la red de
+// seguridad por si algun dia si queda algo enganchado -- en vez de un cuelgue
+// mudo, dice QUE lo retiene y sale con el mismo codigo.
+function salir(codigo) {
+  process.exitCode = codigo;
+  const vigia = setTimeout(() => {
+    const handles = [...new Set(process.getActiveResourcesInfo())].join(', ');
+    console.error(
+      `\nEl proceso deberia haber terminado ya y algo mantiene vivo el bucle de ` +
+        `eventos: ${handles}. Se sale igual con ${codigo}.`,
+    );
+    process.exit(codigo);
+  }, 5000);
+  // unref: no mantiene vivo el proceso por si mismo, solo salta si ya habia algo
+  // mas manteniendolo. Si todo esta limpio, el proceso sale antes de que corra.
+  vigia.unref();
+}
+
 const C = process.stdout.isTTY
   ? {
       rojo: '\x1b[31m',
@@ -57,7 +89,7 @@ async function main() {
   if (!aCorrer.length) {
     console.error(`No hay ningun vigilante llamado "${soloUno}".`);
     console.error('Disponibles: ' + [...ESTATICOS, ...conRed].map((v) => v.nombre).join(', '));
-    process.exit(2);
+    return salir(2);
   }
 
   const t0 = Date.now();
@@ -156,10 +188,10 @@ async function main() {
     console.log(`${C.gris}Informe escrito en ${destinoJson}${C.fin}\n`);
   }
 
-  process.exit(bloqueantes.length ? 1 : 0);
+  salir(bloqueantes.length ? 1 : 0);
 }
 
 main().catch((e) => {
   console.error('El runner de vigilantes ha reventado:', e);
-  process.exit(2);
+  salir(2);
 });
