@@ -323,6 +323,35 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
         descartados automáticamente) y mensajes de error de sistema según catálogo anclado a
         `lib/errores.ts`. Línea base congelada en `tests/smoke/silencios-baseline.json`.
         Prueba de vida: `npx playwright test tests/smoke/silencios.spec.ts` (5 tests).
+    - **Cinco vigilantes más de capa 1 (29 ago 2026).** `npm run vigilar` son ya 13.
+      Los cinco nuevos llevan al PR cosas que hasta ahora solo se cazaban leyendo la
+      BD en producción — o no se cazaban.
+      - `edges-autorizadas.mjs`: toda edge con `verify_jwt = false` autoriza por su
+        cuenta. **No busca una FORMA de llamar a `peticionDeServicio` sino que su
+        resultado se CONSUMA**; una lista de formas permitidas solo acierta hasta que
+        alguien escribe la cuarta (`agenda-optimizador` la usa dentro de un `&&`).
+        Acepta también autorizar por sesión (`getUser` + 401), que es como cierran su
+        segunda rama las funciones de dos modos.
+      - `migraciones.mjs`: tabla sin RLS, política de escritura `using (true)`, la regla
+        del parámetro, `grant … to anon` sin motivo escrito y cualquier `exec_sql`.
+        **Reconoce las TRES pruebas de tenencia válidas y hay que conocer las tres o
+        miente:** atarse al llamante, estar revocada de `anon`/`authenticated` (así se
+        cerraron 17 el 28 ago) y el portal público, que no puede usar `auth.uid()`
+        porque no hay sesión y en su lugar deriva el negocio del slug y exige un
+        secreto por registro. Deuda heredada congelada en `HEREDADO`.
+      - `husos.mjs`: ninguna edge usa horarios de salón sin pasarlos por
+        `horariosAlRelojDelRuntime`. Marca **solo `setHours(`** y por cierre transitivo:
+        con `getDay`/`getDate`/`getMonth` salían 22 libs de 40 y eso no lo lee nadie.
+      - `planes.mjs`: lo que incluye cada plan vs. lo que se promete. **Cazó que cuatro
+        textos decían "el mismo software" mientras el código gateaba seis funciones** —
+        ver la trampa anotada en la sección de PLANES.
+      - `horarios-convenio.mjs`: nadie copia `dia_semana` entre las dos tablas de horario
+        sin `% 7`. **Cazó que el seed de la demo corría un día la disponibilidad de
+        `/r/demo`.**
+      - `panel-ambitos.mjs`: el panel de Salud conoce todos los ámbitos que se emiten.
+      - **Lo que enseñó la tanda:** los cinco tuvieron un falso positivo antes de valer, y
+        cada falso positivo enseñó algo del diseño real que el plan no sabía. Estrenar un
+        vigilante sin mirar uno a uno sus primeros hallazgos es como no tenerlo.
 
 ## Convenciones de código
 

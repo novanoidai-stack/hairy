@@ -186,45 +186,46 @@ anterior · sin marca = viene de la fase 2 y sigue pendiente.
 | `peso-bundle.mjs` **[HECHO]** | El bundle engorda >5 % | aviso |
 | `errores-tragados.mjs` **[HECHO]** | Botón que traga el error (§1.2b) | aviso, base congelada |
 | `panel-ambitos.mjs` **[HECHO]** | Un ámbito nuevo que el panel de Salud no conoce | aviso |
+| `edges-autorizadas.mjs` **[HECHO]** | Edge con `verify_jwt = false` y sin puerta propia | bloqueante |
+| `migraciones.mjs` **[HECHO]** | Higiene del SQL nuevo (RLS, regla del parámetro, anon) | bloqueante, base congelada |
+| `husos.mjs` **[HECHO]** | Horarios de salón en un runtime en UTC | bloqueante |
+| `planes.mjs` **[HECHO]** | Lo que incluye cada plan vs. lo que se promete | bloqueante |
+| `horarios-convenio.mjs` **[HECHO]** | El 0 = lunes confundido con el 0 = domingo | bloqueante |
 
-**Nuevos de este plan:**
+**Lo que enseñó estrenarlos (29 ago 2026).** Los cinco de arriba se escribieron
+de una tanda y **tres cazaron algo real el primer día**, que es el argumento a
+favor de seguir por aquí:
 
-- **`planes.mjs`** [NUEVO] — `lib/planes.ts` es la fuente única de qué incluye
-  cada plan, y hoy solo se vigilan los *precios*. Cruzar el **contenido** con la
-  sección de precios de la landing, con el `SYSTEM_PROMPT` de `chispa-landing` y
-  con los `withPlanGate` de las pantallas: una feature listada en la landing que
-  ninguna pantalla gatea, o al revés, es venta falsa o feature regalada.
-  Incluye `ia_nivel`: la IA ya no depende del plan y es fácil que alguien lo
-  vuelva a acoplar. **bloqueante.**
+- `planes.mjs` destapó que cuatro textos decían "Esencial y Estudio dan el mismo
+  software" mientras `PLAN_FUNCIONES` gateaba seis funciones — incluido el
+  resumen que la app le enseñaba **dentro** a un salón que ya pagaba Esencial.
+- `horarios-convenio.mjs` destapó que el seed de la demo copiaba `dia_semana`
+  entre las dos tablas sin convertir: la disponibilidad de `/r/demo`, el
+  escaparate, iba corrida un día.
+- `migraciones.mjs`, validado contra las 263 migraciones del archivo, reconoce
+  las **tres** pruebas de tenencia válidas. Sin la tercera (el portal, que deriva
+  el negocio del slug y exige un secreto) marcaba toda la familia `cita_publica`,
+  que es correcta a propósito.
+
+Y una regla de método que conviene no olvidar: **cada uno de los cinco tuvo al
+menos un falso positivo antes de valer**, y en los tres casos el falso positivo
+enseñó algo del diseño real que el plan no sabía (el `&&` de `agenda-optimizador`,
+la defensa por revocación, el `lib/` propio de una edge que se llama igual que uno
+de la raíz). Estrenar un vigilante sin mirar uno a uno sus primeros hallazgos es
+como no tenerlo.
+
+**Nuevos de este plan, aún pendientes:**
+
 - **`solicitudes.mjs`** [NUEVO] — el `tipo` de solicitud vive en el CHECK de la
   tabla **y** en `crear_solicitud_publica`. Añadir uno y olvidar el otro rompe el
   contacto comercial en silencio: el formulario da error y nadie se entera de que
-  ha dejado de entrar trabajo. **bloqueante.**
-- **`husos.mjs`** [NUEVO] — las edge functions corren en **UTC** y `setHours()` de
-  las libs de agenda corre los horarios del salón 1–2 h en el servidor. Ya mordió
-  una vez. Estático: ningún `setHours(`/`getHours(`/`new Date()` desnudo en
-  `supabase/functions/**` ni en las libs de agenda sin pasar por el shim de zona
-  horaria. **bloqueante** (un horario movido una hora es una cita perdida).
-- **`horarios-convenio.mjs`** [NUEVO] — las dos tablas de horario cuentan los días
-  al revés (`negocio_horarios`: 0 = LUNES) y los scripts de siembra escriben la
-  equivocada. Vigilar que cada escritura declare su convenio. **bloqueante.**
-- **`migraciones.mjs`** [NUEVO, informe #4] — dos trabajos en uno:
-  1. **Higiene estática del SQL nuevo** (esto sí se puede hacer en el PR, y es
-     donde más barato sale): una migración que crea una tabla sin
-     `enable row level security`; una política de escritura `USING (true)`; una
-     función `security definer` con parámetro de negocio y sin
-     `exige_mi_negocio`; un `grant execute … to anon` sin comentario que lo
-     justifique; cualquier cosa con pinta de `exec_sql`. **bloqueante.**
-     Esto es la regla del parámetro **movida al PR**: hoy solo se caza después de
-     aplicarla, y así fue como se colaron doce.
-  2. **Deriva con el remoto**: ficheros en `supabase/migrations/` que el historial
-     remoto no tiene, salvo los marcados explícitamente como *aplicar después de
-     desplegar*. **aviso** (el historial remoto manda, pero un fichero olvidado a
-     las dos semanas no lo recuerda nadie).
-- **`edges-autorizadas.mjs`** [NUEVO] — regla 9: toda función con
-  `verify_jwt = false` en `supabase/config.toml` **tiene que** llamar a
-  `peticionDeServicio(req)`. Si no, está abierta al mundo. Es una comprobación de
-  10 líneas contra un agujero de seguridad de los gordos. **bloqueante.**
+  ha dejado de entrar trabajo. **bloqueante.** (La capa 2 ya lo mira con la BD
+  delante; falta la mitad estática, que lo caza en el PR.)
+- **`migraciones.mjs` — la segunda mitad**, aún pendiente:
+  **Deriva con el remoto**: ficheros en `supabase/migrations/` que el historial
+  remoto no tiene, salvo los marcados explícitamente como *aplicar después de
+  desplegar*. **aviso** (el historial remoto manda, pero un fichero olvidado a
+  las dos semanas no lo recuerda nadie). Necesita red, así que va con la capa 2.
 - **`legal.mjs`** (familia 7a) — enlace a privacidad desde el pie y desde todo
   formulario; banner de consentimiento si se carga GA o Vercel Insights; fecha
   visible en los textos legales. **aviso**, salvo el consentimiento: **bloqueante**.
@@ -421,31 +422,36 @@ El criterio es **daño evitado por hora de trabajo**, no elegancia.
    regresión inyectada. De propina salió `panel-ambitos.mjs`: el ámbito nuevo
    `errores-tragados` no lo conocía el panel de Salud, que es la misma clase de
    deriva silenciosa que estas herramientas existen para cazar (regla 9).
-2. **M1 — que `vigilancia_bd()` corra sola cada 6 h.** Es la pieza de mayor
-   retorno del documento entero y son un par de horas.
-3. **P1 — el vigilante de mensajería.** Hay un fallo activo ahora mismo que nadie
+2. ~~**§3.1 nuevos** de la capa 1.~~ **HECHOS los cinco** (29 ago 2026):
+   `edges-autorizadas`, `migraciones`, `husos`, `planes` y `horarios-convenio`.
+   Se adelantaron a M1 porque no necesitan red ni credenciales — se pueden
+   escribir y verificar enteros sin tocar producción — y porque tres de ellos
+   cazaron un fallo real el mismo día. Quedan `solicitudes`, `legal`,
+   `web-publico`, `mapa` y `textos-ui`.
+3. **M1 — que `vigilancia_bd()` corra sola cada 6 h.** Sigue siendo la pieza de
+   mayor retorno del documento entero. **Es lo siguiente.**
+4. **P1 — el vigilante de mensajería.** Hay un fallo activo ahora mismo que nadie
    está mirando. (El arreglo de n8n es de Alexandro; el vigilante es nuestro y
    evita el próximo.)
 
 ### A continuación
 
-4. **C1** (gitleaks) y **C3** (verificación post-deploy): dos workflows cortos que
+5. **C1** (gitleaks) y **C3** (verificación post-deploy): dos workflows cortos que
    hacen cumplir normas ya escritas.
-5. **Familia 3** (`vigilancia_bd_rendimiento`, M2) — con el dato que ya tenemos:
+6. **Familia 3** (`vigilancia_bd_rendimiento`, M2) — con el dato que ya tenemos:
    `agenda` hace **65–70 peticiones a Supabase por carga**, primer sospechoso de
    N+1 y el mejor sitio por donde empezar a mirar.
-6. **Familia 11a/11c** (C7) — la atribución, que convierte las mediciones de 1–3
+7. **Familia 11a/11c** (C7) — la atribución, que convierte las mediciones de 1–3
    en "este commit lo hizo".
-7. **M4 (fiscal) y M5 (multi-tenant)** — las dos con consecuencia legal.
+8. **M4 (fiscal) y M5 (multi-tenant)** — las dos con consecuencia legal.
 
 ### Después
 
-8. **P2, P3** (dinero), **M6** (crons), **M7** (IA), **M8** (almacenamiento).
-9. **§3.1 nuevos**: `planes`, `solicitudes`, `husos`, `horarios-convenio`,
-   `migraciones`, `edges-autorizadas`.
-10. **Familias 4 y 7** (coherencia y legalidad), **5b/5c** (layout y responsive),
+9. **P2, P3** (dinero), **M6** (crons), **M7** (IA), **M8** (almacenamiento).
+10. **§3.1 que quedan**: `solicitudes`, `legal`, `web-publico`, `mapa`, `textos-ui`.
+11. **Familias 4 y 7** (coherencia y legalidad), **5b/5c** (layout y responsive),
     **6** (cartógrafo), **8** (web pública), **C4/C5/C6**.
-11. **P4, P5** y, al final, **5a** (capturas, solo de la web estática) y **11b**
+12. **P4, P5** y, al final, **5a** (capturas, solo de la web estática) y **11b**
     (bisect).
 
 ---
