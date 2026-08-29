@@ -28,6 +28,24 @@ import { hayCredencial, llamarRpc, sinCredencial } from './bd-comun.mjs';
 const DIR = 'supabase/migrations';
 const CONOCIDAS = 'scripts/vigilantes/migraciones-conocidas.json';
 
+// Desde donde tiene sentido exigir que TODA migracion aplicada tenga fichero.
+// Antes de esta fecha las historicas viven en archive/migraciones-legacy/ y
+// pedirles fichero aqui seria ruido permanente.
+const DESDE = '20260828120000';
+
+// Aplicadas sin fichero que NO son un problema: son la misma migracion aplicada
+// dos veces (el mismo SQL, otro timestamp) o el eco de un `apply_migration` que
+// ya tiene su fichero con otra version. Cada una con el fichero que la cubre.
+const CUBIERTAS_POR = {
+  '20260828170139': '20260828120000_claves_pg_net_cabecera_apikey.sql',
+  '20260828172830': '20260828180000_chispa_tts_keepwarm_publishable.sql',
+  '20260828201038': '20260828210000_cerrar_secretos_pasarela_a_anon.sql',
+  '20260828201517': '20260828211000_cerrar_rpc_que_se_fian_del_parametro.sql',
+  '20260828202046': '20260828212000_vigilancia_bd.sql',
+  '20260828202443': '20260828213000_vigilancia_registro.sql',
+  '20260829154953': '20260829120000_vigilancia_bd_rendimiento.sql',
+};
+
 // El CLI de Supabase nombra <14 digitos>_<nombre>.sql.
 const VERSION = /^(\d{14})_(.+)\.sql$/;
 
@@ -148,6 +166,39 @@ async function ejecutar() {
         fichero: path.posix.join(DIR, fichero ?? ''),
       }),
     );
+  }
+
+  // --- EL OTRO SENTIDO: aplicado en produccion y sin fichero en el repo ------
+  //
+  // Esta mitad faltaba, y es la que mas duele. La primera deriva (fichero sin
+  // aplicar) se nota cuando algo no funciona; esta NO SE NOTA NUNCA: el codigo
+  // corre en produccion, todo va bien, y el .sql del repo es una version vieja
+  // de la misma funcion. Al mirar por aqui aparecieron SIETE de golpe, todas
+  // refinamientos de vigilancia_bd() -- es decir, el fichero versionado no era
+  // la funcion que estaba corriendo.
+  const aplicadas = await llamarRpc('migraciones_aplicadas_desde', { p_desde: DESDE });
+  if (Array.isArray(aplicadas)) {
+    for (const { version, name } of aplicadas) {
+      if (conVersion.has(version) || CUBIERTAS_POR[version]) continue;
+      hallazgos.push(
+        hallazgo({
+          clave: `migraciones/aplicada-sin-fichero-${version}`,
+          nivel: 'aviso',
+          ambito: 'base-de-datos',
+          titulo: `${version}_${name} corre en produccion y no esta en el repo`,
+          detalle:
+            'Esta aplicada en la base y no hay fichero que la describa, asi que nadie puede ' +
+            'revisarla, reproducirla en un entorno nuevo, ni saber que hace sin abrir el ' +
+            'dashboard.\n\nY si toca una funcion que SI tiene fichero (pasa con las de ' +
+            'vigilancia_bd), el .sql del repo es una version vieja de lo que corre de verdad: ' +
+            'el repo miente sin que nada falle.\n\nSe arregla como se hizo con ' +
+            'vigilancia_bd_rendimiento: reconstruir el .sql LEYENDO pg_get_functiondef() de ' +
+            `produccion --no de memoria-- y guardarlo como ${version}_${name}.sql. Si es un ` +
+            'duplicado de otra que ya tiene fichero, declararlo en CUBIERTAS_POR con cual.',
+          fichero: DIR,
+        }),
+      );
+    }
   }
 
   // Que la lista de conocidas no se pudra: una exencion que ya no hace falta es

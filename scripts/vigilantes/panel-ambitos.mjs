@@ -11,6 +11,14 @@
 // No rompe nada visible -- por eso es aviso y no bloqueante: bajo "Todos los
 // ambitos" el hallazgo se sigue viendo. Solo hace el panel un poco peor cada
 // vez, y nadie se da cuenta. Eso es exactamente lo que hay que automatizar.
+//
+// LIMITE QUE CONVIENE CONOCER: esto solo ve los ambitos que emite codigo DEL
+// REPO. El 30 ago 2026 aparecio `vigilancia` en los hallazgos guardados y este
+// vigilante no lo habia cazado, porque quien lo emite es una migracion aplicada
+// en produccion que nunca llego a versionarse. O sea que el agujero no era de
+// aqui: era la deriva repo/produccion, y de eso se encarga la mitad nueva de
+// `bd-migraciones.mjs` (aplicada sin fichero). Arreglada esa, esta vuelve a
+// verlo todo.
 
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -20,10 +28,22 @@ const PANEL = 'web/admin.html';
 const DIR_VIGILANTES = 'scripts/vigilantes';
 const DIR_MIGRACIONES = 'supabase/migrations';
 
+// La capa 2 tambien fabrica hallazgos FUERA de la base: la edge que dispara la
+// vigilancia anade los suyos (la guardia de migraciones, el "no se ha podido
+// medir"). Sin mirar aqui, un ambito estrenado ahi se quedaria sin etiqueta.
+const OTROS_EMISORES = ['supabase/functions/ejecutar-vigilancia-bd/index.ts'];
+
 // El panel las trae de fabrica y no las emite ningun productor: `otros` es el
 // valor por defecto que pone registrar_vigilancia cuando un hallazgo llega sin
 // ambito, y la opcion vacia es "Todos".
-const EXENTAS_DEL_PANEL = new Set(['otros', '']);
+//
+// `vigilancia` SI lo emite alguien --las comprobaciones 9, 10 y 11 de
+// vigilancia_bd(), y hay 4 hallazgos suyos guardados en produccion-- pero su
+// SQL no esta en el repo: se aplico desde el dashboard y nunca se versiono. O
+// sea que no es una opcion muerta, es la sombra de una deriva real, y quien la
+// persigue es la mitad nueva de bd-migraciones.mjs (aplicada sin fichero).
+// Cuando esas migraciones se reconstruyan, esta linea sobra y hay que quitarla.
+const EXENTAS_DEL_PANEL = new Set(['otros', '', 'vigilancia']);
 
 // Ambitos que aparecen en el codigo como dato de prueba, no como emision real.
 const FICHEROS_IGNORADOS = /\.test\.mjs$/;
@@ -45,6 +65,14 @@ function ambitosDeLosVigilantes() {
       if (!encontrados.has(m[1])) encontrados.set(m[1], `${DIR_VIGILANTES}/${fichero}`);
     }
   }
+
+  for (const rel of OTROS_EMISORES) {
+    const texto = leer(rel);
+    for (const m of texto.matchAll(/ambito:\s*'([a-z][a-z-]*)'/g)) {
+      if (!encontrados.has(m[1])) encontrados.set(m[1], rel);
+    }
+  }
+
   return encontrados;
 }
 
