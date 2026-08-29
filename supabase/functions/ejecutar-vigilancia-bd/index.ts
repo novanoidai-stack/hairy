@@ -75,15 +75,47 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: 'respuesta_invalida' }, 500);
   }
 
-  const hallazgos = (data as Hallazgo[]).map((h) => ({
+  const comoHallazgo = (h: Hallazgo, ambitoPorDefecto: string) => ({
     clave: h.clave,
     nivel: h.nivel,
-    ambito: h.ambito ?? 'base-de-datos',
+    ambito: h.ambito ?? ambitoPorDefecto,
     titulo: h.titulo,
     detalle: h.detalle ?? '',
     fichero: 'base de datos',
     linea: null as number | null,
-  }));
+  });
+
+  const hallazgos = (data as Hallazgo[]).map((h) => comoHallazgo(h, 'base-de-datos'));
+
+  // --- Cuellos de botella -----------------------------------------------
+  //
+  // Va en la MISMA corrida a proposito. Medir estaba hecho desde el 29 ago,
+  // pero solo corria cuando alguien lanzaba `npm run vigilar:bd` a mano -- que
+  // es exactamente el agujero que este workflow venia a tapar, un nivel mas
+  // abajo. Una medida que depende de que alguien se acuerde no es una medida.
+  //
+  // Todo lo que devuelve es `aviso` salvo los locks: son datos para priorizar,
+  // no fallos. Si tumbaran la CI, alguien acabaria quitando el paso.
+  const { data: rend, error: eRend } = await supabase.rpc('vigilancia_bd_rendimiento');
+  if (eRend) {
+    // No poder medir NO es "todo bien": se dice en voz alta (regla del ancla).
+    console.error(`[${QUIEN}] vigilancia_bd_rendimiento() ha fallado:`, eRend.message);
+    hallazgos.push({
+      clave: 'bd/rendimiento-sin-medir',
+      nivel: 'aviso',
+      ambito: 'rendimiento',
+      titulo: 'No se han podido medir los cuellos de botella de la base',
+      detalle:
+        `vigilancia_bd_rendimiento() ha devuelto: ${eRend.message}. Si dice que no existe, ` +
+        'falta aplicar 20260829120000_vigilancia_bd_rendimiento.sql. Si se queja de ' +
+        'pg_stat_statements, recordar que vive en el esquema `extensions`, no en `public`, ' +
+        'y esta funcion fija search_path a public: hay que nombrarla con esquema.',
+      fichero: 'base de datos',
+      linea: null,
+    });
+  } else if (Array.isArray(rend)) {
+    hallazgos.push(...(rend as Hallazgo[]).map((h) => comoHallazgo(h, 'rendimiento')));
+  }
 
   // --- Guardia de migraciones ----------------------------------------------
   //
@@ -170,8 +202,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
     rama: cuerpo.rama ?? null,
     ejecutado_en: new Date().toISOString(),
     duracion_ms: duracion,
+    // Se declaran los tres por separado para que el panel pueda decir cual de
+    // ellos encontro que, en vez de atribuirlo todo a "base-de-datos".
     vigilantes: [
-      { nombre: 'base-de-datos', ambito: 'base-de-datos', ms: duracion, ok: hallazgos.length === 0 },
+      {
+        nombre: 'base-de-datos',
+        ambito: 'base-de-datos',
+        ms: duracion,
+        ok: !hallazgos.some((h) => h.ambito === 'base-de-datos'),
+      },
+      {
+        nombre: 'bd-rendimiento',
+        ambito: 'rendimiento',
+        ms: null,
+        ok: !hallazgos.some((h) => h.ambito === 'rendimiento'),
+      },
     ],
     hallazgos,
   };
