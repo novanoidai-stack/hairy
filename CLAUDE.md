@@ -80,6 +80,20 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      eslabones en su cadena de huellas VeriFactu. Migraciones `seguridad-multitenant-*.sql`.
      El guard deja pasar el `uid` nulo A PROPÓSITO: como esas funciones no están concedidas a
      `anon`, un uid nulo solo puede ser una llamada interna del portal público o service_role.
+   - **La misma regla, pero en las POLÍTICAS RLS (29 ago 2026).** Una política puede nombrar
+     una columna de la fila destino creyendo que habla del llamante. Las cuatro de `profiles`
+     decían `role = 'admin'` — que significa "puedes tocar cualquier fila **cuyo** rol sea
+     admin", lo contrario de "puedes tocar filas **si tú eres** admin" — y la de SELECT era
+     `using (true)`. Comprobado con `set local role authenticated` y un uid real: **un usuario
+     veía los 11 perfiles de los 9 salones, y podía MODIFICAR y BORRAR la fila del admin de
+     otro salón.** `profiles` guarda email, teléfono, NIF, `signup_ip`, `stripe_customer_id`
+     y `pin_gestor`/`pin_barberia`, que son credenciales. Igual estaban `n8n_webhook_config`
+     (con `webhook_url`: leerlo dispara los automatismos de un salón, escribirlo los desvía)
+     y `contratos` (con `firma_token`), las dos con `for all to authenticated using (true)`.
+     Migración `20260829100000_rls_profiles_y_multitenant.sql`. Lo vigila la comprobación 10
+     de `vigilancia_bd()`: tabla con `negocio_id` + política permisiva que no menciona nada
+     que ate al llamante. **Al escribir una política, lee el lado izquierdo en voz alta:
+     si el sujeto es la fila y no quien llama, está mal.**
    - **Los advisors NO se limpian, se auditan.** La inmensa mayoría son
      `*_security_definer_function_executable`: es la arquitectura (el cliente no toca tablas,
      llama a RPCs definer que comprueban permiso dentro). "Arreglarlos" es apagar la API.
@@ -111,6 +125,15 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    así que `/app/_expo/*` y `/app/assets/*` van `immutable` en `vercel.json`; solo `index.html`
    y el resto de `/app` van `no-store`. Estuvo TODO en `no-store` y eso obligaba a re-descargar
    el bundle de ~7 MB en cada carga, login y apertura de demo. No volver a poner `no-store` a `/app/(.*)`.
+
+7bis. **Una pantalla que sondea son consultas x pestañas x usuarios (29 ago 2026).**
+   `useAvisos` (la campana) lanzaba ~14 consultas en TRES viajes encadenados cada 45 s, por
+   pestaña y por usuario: 1.120 consultas/hora por pestaña. Con CUATRO salones ya era lo que
+   más base de datos consumía del producto (en 151 días: `negocio_config` 167.315 llamadas,
+   `conversaciones` 151.260, `clientes` 146.464, `citas` 144.825 — todas de ahí). Ahora es
+   **una** RPC, `avisos_del_negocio()`, que devuelve los mismos datos crudos; el cálculo
+   (cumpleaños, ineficiencias, orden) sigue en el cliente. Si añades una fuente a la campana,
+   va DENTRO de esa RPC, no como una consulta más al lado.
 
 8. **Capa de IA: una sola puerta (20 ago 2026).** Toda llamada a un LLM pasa por
    `supabase/functions/shared/openrouterClient.ts`. **Ninguna edge function vuelve a hacer
