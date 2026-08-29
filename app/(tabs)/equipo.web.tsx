@@ -2640,6 +2640,17 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
     setLoading(true);
 
     const rangos = getRangosBloqueo();
+    // Una recurrencia puede no caer en NINGUN dia del rango (lunes, del martes al
+    // jueves; o una fecha de fin anterior a la de inicio). Antes se leia
+    // rangos[0].inicio a ciegas y la pantalla petaba con "Cannot read properties
+    // of undefined": el usuario perdia el formulario entero sin saber por que.
+    if (rangos.length === 0) {
+      setLoading(false);
+      setErrorCreacion(
+        'La repeticion elegida no cae en ningun dia del rango. Revisa las fechas o los dias de la semana.',
+      );
+      return;
+    }
     const minInicio = rangos.reduce((a, b) => a < b.inicio ? a : b.inicio, rangos[0].inicio);
     const maxFin = rangos.reduce((a, b) => a > b.fin ? a : b.fin, rangos[0].fin);
 

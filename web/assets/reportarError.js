@@ -10,6 +10,29 @@
 
   var yaEnviados = {};
 
+  // Un navegador conducido por un robot no es una visita.
+  //
+  // El canario corre el smoke contra www.mechaa.es cada hora, y uno de sus
+  // tests provoca A PROPOSITO una promesa rota en esta misma pagina para
+  // comprobar que el sensor de fallos silenciosos oye. El cazador de abajo la
+  // recogia y la escribia en errores_cliente como si fuera de un visitante:
+  // 11 apuntes de "fallo de prueba del vigilante" en un solo dia, en la tabla
+  // que existe para lo contrario -- "se rompio en casa de alguien de verdad,
+  // hay quien espera" (decision 10 de CLAUDE.md).
+  //
+  // navigator.webdriver lo pone el propio navegador cuando lo maneja
+  // WebDriver/CDP; comprobado en las dos compilaciones de Chromium que usa
+  // Playwright. La bandera explicita cubre cualquier otro automatismo.
+  // Gemelo de esNavegadorAutomatizado() en lib/reportarError.ts.
+  function esNavegadorAutomatizado() {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.webdriver) return true;
+      return typeof window !== 'undefined' && window.__MECHA_SIN_TELEMETRIA__ === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function rutaActual() {
     try {
       return (window.location.pathname + window.location.search).slice(0, 200);
@@ -47,6 +70,7 @@
 
   function reportarError(error, opts) {
     try {
+      if (esNavegadorAutomatizado()) return;
       opts = opts || {};
       var mensaje = '';
       var pila = opts.pila || '';

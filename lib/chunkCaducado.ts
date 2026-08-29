@@ -12,10 +12,22 @@ import { Platform } from 'react-native';
 // Aqui se detecta ese caso concreto (no cualquier error) y se recarga una vez.
 
 // Lo que dicen los navegadores cuando un import() no llega o no evalua.
+//
+// La lista NO se escribe de memoria: cada frase tiene que haberse visto de
+// verdad. Las tres primeras salieron del manual; `loading module` salio de
+// errores_cliente: una misma persona se comio la pantalla rota TRES veces --en
+// configuracion, equipo y mi-jornada, tras dos despliegues distintos-- que es
+// justo el caso que este rescate existe para evitar, porque no reconocia como
+// suyo el mensaje que estaba viendo:
+//   "Loading module https://www.mechaa.es/app/_expo/static/js/web/
+//    mi-jornada-4ca253ca.js failed.\n(error: https://...)"
+// Si aparece una cuarta redaccion, aqui es donde se anota, con su fecha.
 const SENALES = [
   'failed to fetch dynamically imported module',
   'error loading dynamically imported module',
   'importing a module script failed',
+  // Firefox 154 en Windows, visto en produccion el 25 y el 28 ago 2026.
+  'loading module',
   'loading chunk',
   'loading css chunk',
   'unable to preload css',

@@ -151,21 +151,33 @@ for (const [pantalla, m] of Object.entries(medidas)) {
     });
   }
 
-  // El fps del runner de CI (headless, sin GPU) baila 37-110 entre corridas
-  // sin tocar nada: solo avisa si es injugable (<30) Y ha caido fuerte. El
-  // aviso de fps util es el del canario, que mide como un usuario de verdad.
-  if (m.fps_medio != null && b.fps_medio != null && m.fps_medio < b.fps_medio * 0.6 && m.fps_medio < 30) {
-    vig.ok = false;
-    hallazgos.push({
-      clave: `rendimiento/fps-${pantalla}`,
-      nivel: 'aviso',
-      ambito: 'rendimiento',
-      titulo: `El scroll de ${pantalla} ha bajado a ${m.fps_medio} fps (antes ${b.fps_medio})`,
-      detalle,
-      fichero: 'tests/smoke/mediciones.ts',
-      linea: null,
-    });
-  }
+  // FPS: SE MIDE Y SE GUARDA, PERO NO AVISA. Ni en la CI ni en el canario.
+  //
+  // Aqui ponia que "el aviso de fps util es el del canario, que mide como un
+  // usuario de verdad". Para la red y el backend es cierto; para el fps no,
+  // y esa media verdad costo cuatro tardes de avisos falsos. El canario corre
+  // en `runs-on: ubuntu-latest`, el MISMO runner headless y sin GPU que la CI
+  // (.github/workflows/canario.yml). Lo unico que cambia entre los dos es la
+  // URL que miran. El fps sale de restar marcas de requestAnimationFrame, que
+  // sin pantalla ni vsync las marca un compositor por software: por eso la
+  // linea base de equipo son 106 fps, un numero que ninguna pantalla real
+  // puede dar, y por eso baila.
+  //
+  // Lo que se vio en el panel el 29 ago 2026, en cuatro corridas del canario:
+  //   11:14  (ninguna)      15:44  equipo, clientes
+  //   21:50  configuracion, inventario, equipo, clientes
+  //   23:38  inventario, equipo, clientes, informes, bandeja
+  // Seis pantallas distintas, nunca el mismo grupo dos veces, y con la carga
+  // MEJORANDO en las mismas corridas (configuracion 1760 -> 1324 ms). Una
+  // regresion de verdad no elige pantalla nueva cada hora: eso es ruido.
+  //
+  // Un vigilante que grita en falso cada hora no es una red de seguridad, es
+  // el motivo por el que se deja de mirar el panel -- y debajo de ese ruido
+  // estaba el crash de un salon de verdad. Asi que el numero se sigue
+  // guardando en rendimiento.jsonl (no cuesta nada, y el dia que esto corra en
+  // un dispositivo con pantalla volvera a significar algo), pero no emite
+  // hallazgo. Lo que SI se vigila de esa misma medicion son ms_carga,
+  // long_tasks y peticiones: CPU y red, que un runner mide bien.
 }
 
 // Vigilante ciego: pantalla con linea base que hoy no ha dejado medida.

@@ -352,8 +352,19 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       - Solo degeneración extrema (carga >3× base y >15 s) es `bloqueante`;
         todo lo demás avisa. Bajar la base es `--aprobar` (`--origen canario`
         para la suya): un acto consciente cuyo diff se ve en el repo.
-      - El fps del runner de CI (headless, sin GPU) no es fiable: solo avisa
-        si es injugable (<30). El aviso de fps que importa es el del canario.
+      - **El fps se mide y se guarda, pero YA NO AVISA (29 ago 2026).** Se creia
+        que "el del canario si vale, que mide como un usuario de verdad". Para la
+        red y el backend es cierto; para el fps no: el canario corre en el MISMO
+        `ubuntu-latest` headless y sin GPU que la CI, y lo unico que cambia entre
+        los dos es la URL. Sin pantalla ni vsync, el fps de `requestAnimationFrame`
+        lo marca un compositor por software -- por eso la linea base de equipo son
+        **106 fps**, que ninguna pantalla real puede dar. En cuatro corridas del
+        canario del 29 ago delato **seis pantallas distintas, nunca el mismo grupo
+        dos veces**, y con la carga MEJORANDO a la vez. Eso no es una regresion,
+        es ruido; y un vigilante que grita en falso cada hora es justo el motivo
+        por el que se deja de mirar el panel. De esa misma medicion si se vigilan
+        `ms_carga`, `long_tasks` y `peticiones`: CPU y red, que un runner mide
+        bien.
       - Peso del bundle: `scripts/vigilantes/peso-bundle.mjs` tras `build:web`
         avisa si sube >5% sobre `scripts/vigilantes/peso-baseline.json`
         (8,20 MB / entry 1,05 MB congelados el 29 ago).

@@ -21,7 +21,6 @@ const generateCode = (): string => {
 interface ClienteOption {
   id: string;
   nombre: string;
-  apellidos?: string | null;
   telefono?: string | null;
 }
 
@@ -45,7 +44,7 @@ export function VentaTarjetaRegaloModal({ onClose, onSuccess }: VentaTarjetaRega
 
         const { data, error: fetchErr } = await supabase
           .from('clientes')
-          .select('id, nombre, apellidos, telefono')
+          .select('id, nombre, telefono')
           .eq('negocio_id', profile.negocio_id)
           .order('nombre');
         if (fetchErr) reportarError(fetchErr, { origen: 'app', tipo: 'operativo' });
@@ -108,7 +107,7 @@ export function VentaTarjetaRegaloModal({ onClose, onSuccess }: VentaTarjetaRega
                 <option value="">-- Sin asignar / Venta rápida --</option>
                 {clientes.map(c => (
                   <option key={c.id} value={c.id}>
-                    {c.nombre} {c.apellidos ?? ''} {c.telefono ? `(${c.telefono})` : ''}
+                    {c.nombre} {c.telefono ? `(${c.telefono})` : ''}
                   </option>
                 ))}
               </select>

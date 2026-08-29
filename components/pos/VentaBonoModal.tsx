@@ -31,7 +31,7 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
         if (!profile?.negocio_id) return;
 
         const [resCli, resSer] = await Promise.all([
-          supabase.from('clientes').select('id, nombre, apellidos, telefono').eq('negocio_id', profile.negocio_id).order('nombre'),
+          supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', profile.negocio_id).order('nombre'),
           supabase.from('servicios').select('id, nombre, precio').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre'),
         ]);
 
@@ -107,7 +107,7 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
               <select value={clienteId} onChange={e => setClienteId(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 14 }}>
                 <option value="">-- Seleccionar cliente --</option>
                 {clientes.map(c => (
-                  <option key={c.id} value={c.id}>{c.nombre} {c.apellidos} {c.telefono ? `(${c.telefono})` : ''}</option>
+                  <option key={c.id} value={c.id}>{c.nombre} {c.telefono ? `(${c.telefono})` : ''}</option>
                 ))}
               </select>
             </div>

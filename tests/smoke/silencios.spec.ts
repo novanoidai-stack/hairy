@@ -80,6 +80,30 @@ test.describe('sensores de fallo silencioso', () => {
     expect(erroresEnTexto('Agenda del dia. Nueva cita.')).toEqual([]);
   });
 
+  // El silenciador de telemetria de reportarError.js / lib/reportarError.ts se
+  // apoya en esta bandera. Si Playwright dejara de marcarla, el silenciador se
+  // quedaria ciego SIN DECIR NADA y este mismo fichero volveria a escribir
+  // "fallo de prueba del vigilante" en errores_cliente cada hora, encima de los
+  // errores de salones de verdad. Que se entere aqui y no en la tabla de
+  // errores dentro de tres semanas: es la regla del ancla perdida.
+  test('el navegador del smoke sigue anunciandose como automatizado', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    expect(
+      await page.evaluate(() => navigator.webdriver),
+      'navigator.webdriver ya no es true: el silenciador de telemetria esta ciego y ' +
+        'el canario ha vuelto a ensuciar errores_cliente. Ver esNavegadorAutomatizado().',
+    ).toBe(true);
+
+    // Y el silenciador tiene que estar cargado en la pagina, no solo ser cierto
+    // en teoria: si reportarError.js dejara de incluirse, tampoco habria nadie
+    // reportando y esto seria un verde por ausencia.
+    expect(
+      await page.evaluate(() => typeof (window as { reportarError?: unknown }).reportarError),
+      'la landing ya no carga reportarError.js: nadie esta recogiendo los errores de los visitantes',
+    ).toBe('function');
+  });
+
   test('el catalogo sigue anclado a lib/errores.ts', () => {
     expect(ERRORES_DE_SISTEMA.length).toBeGreaterThan(3);
     comprobarAnclas();

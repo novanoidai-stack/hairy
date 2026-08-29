@@ -13,11 +13,40 @@
 //     de pila, y el servidor ademas los recorta.
 //   - En la demo no manda nada: alli los errores son de escaparate, no de un
 //     salon de verdad.
+//   - Y desde un navegador AUTOMATIZADO tampoco: ver esNavegadorAutomatizado().
 
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { rescatarSiChunkCaducado } from './chunkCaducado';
 
 const yaEnviados = new Set<string>();
+
+/**
+ * Un navegador conducido por un robot no es un salon.
+ *
+ * El canario corre el mismo smoke contra www.mechaa.es cada hora, y uno de sus
+ * tests provoca A PROPOSITO una promesa rota para comprobar que el sensor de
+ * fallos silenciosos oye. Sin esto, ese error de mentira entraba en
+ * errores_cliente como si a alguien se le hubiera roto la pantalla: 11 apuntes
+ * en un solo dia. Y esa tabla existe justo para lo contrario -- "se rompio en
+ * casa de un cliente real, hay alguien esperando" (decision 10 de CLAUDE.md).
+ * Un fallo de verdad enterrado bajo el ruido del propio vigilante es el peor
+ * final posible para las dos herramientas.
+ *
+ * Se mira `navigator.webdriver` (lo pone el propio navegador cuando lo maneja
+ * WebDriver/CDP, que es lo que hace Playwright) y ademas una bandera explicita
+ * para cualquier otro automatismo. Si Playwright dejara de marcarlo, esto se
+ * quedaria ciego en silencio; por eso el smoke lo COMPRUEBA en voz alta
+ * (tests/smoke/silencios.spec.ts) y falla si deja de ser cierto.
+ */
+export function esNavegadorAutomatizado(): boolean {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.webdriver) return true;
+    return typeof window !== 'undefined' &&
+      (window as { __MECHA_SIN_TELEMETRIA__?: boolean }).__MECHA_SIN_TELEMETRIA__ === true;
+  } catch {
+    return false;
+  }
+}
 
 export type OrigenError = 'app' | 'portal' | 'landing' | 'marketplace' | 'edge_function';
 export type TipoError = 'excepcion' | 'operativo' | 'ia' | 'creditos' | 'red';
@@ -59,6 +88,7 @@ export function reportarError(
 ): void {
   try {
     if (IS_DEMO_MODE) return;
+    if (esNavegadorAutomatizado()) return;
     const err = error as { message?: string; stack?: string } | null;
     const mensaje = String(err?.message ?? error ?? '').trim();
     if (!mensaje) return;
@@ -92,6 +122,8 @@ export function reportarError(
 
 export async function notificarErrorSoporte(error: unknown, pila?: string) {
   if (IS_DEMO_MODE) return;
+  // Esta manda un CORREO a contacto@mechaa.es: con mas motivo que la anterior.
+  if (esNavegadorAutomatizado()) return;
   const err = error as { message?: string; stack?: string } | null;
   const mensaje = String(err?.message ?? error ?? '').trim();
   if (!mensaje) return;
