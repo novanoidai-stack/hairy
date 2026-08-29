@@ -307,9 +307,16 @@ where cl.negocio_id = 'demo_salon_001' and cl.id = t.cliente_id;
 -- Estaba VACIO, y de ahi sale la disponibilidad del portal publico: /r/demo
 -- contestaba "no hay hueco libre en las proximas 3 semanas" a todo el mundo.
 -- No se noto hasta que el recorrido guiado paso a enseñar el portal.
+--
+-- OJO AL CONVENIO, que las dos tablas cuentan los dias AL REVES:
+--   negocio_horarios.dia_semana     -> 0 = LUNES  ... 6 = domingo
+--   horarios_profesional.dia_semana -> 0 = DOMINGO ... 6 = sabado (extract(dow))
+-- Todos los lectores de horarios_profesional comparan contra
+-- `extract(dow from ...)`, asi que hay que convertir: (dia + 1) % 7. Copiarlo
+-- tal cual corria la disponibilidad de cada profesional un dia entero.
 -- ---------------------------------------------------------------------------
 insert into horarios_profesional (profesional_id, dia_semana, hora_inicio, hora_fin, turno)
-select p.id, nh.dia_semana, t.ini::time, t.fin::time, t.turno
+select p.id, ((nh.dia_semana + 1) % 7)::smallint, t.ini::time, t.fin::time, t.turno
 from profesionales p
 join negocio_horarios nh on nh.negocio_id = p.negocio_id and nh.abierto
 join lateral (values
@@ -319,7 +326,9 @@ join lateral (values
 where p.negocio_id = 'demo_salon_001' and p.activo
   and not exists (
     select 1 from horarios_profesional h
-    where h.profesional_id = p.id and h.dia_semana = nh.dia_semana and h.turno = t.turno);
+    where h.profesional_id = p.id
+      and h.dia_semana = ((nh.dia_semana + 1) % 7)::smallint
+      and h.turno = t.turno);
 
 -- Guardas antifraude, de vuelta.
 alter table cobros enable trigger cobros_prevent_delete_trigger;

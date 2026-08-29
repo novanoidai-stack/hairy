@@ -26,6 +26,7 @@ import edgesAutorizadas from './edges-autorizadas.mjs';
 import migraciones from './migraciones.mjs';
 import husos from './husos.mjs';
 import planes from './planes.mjs';
+import horariosConvenio from './horarios-convenio.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 
 const ESTATICOS = [
@@ -40,6 +41,7 @@ const ESTATICOS = [
   migraciones,
   husos,
   planes,
+  horariosConvenio,
   codigoMuerto,
 ];
 
