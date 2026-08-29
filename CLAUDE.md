@@ -129,10 +129,12 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      **no se aplica** y se avisa a gritos en los logs.
    - Tests: `deno task test:ia`.
 
-9. **CLAVES DE SUPABASE: nunca en el código, y las heredadas están muertas (28 ago 2026).**
-   Se encontraron cinco ficheros versionados con la `service_role` en claro **en un repo que
-   entonces era público**, y seguía viva. Detalle y runbook:
-   `informes/MIGRACION-CLAVES-SUPABASE-2026-08-28.md`.
+9. **CLAVES DE SUPABASE: nunca en el código, y las heredadas están muertas de verdad
+   (desactivadas el 29 ago 2026).** Se encontraron cinco ficheros versionados con la
+   `service_role` en claro **en un repo que entonces era público**, y seguía viva. Detalle y
+   runbook: `informes/MIGRACION-CLAVES-SUPABASE-2026-08-28.md`.
+   **"Muertas" ya no es una intención: el gateway devuelve 401 con ellas.** Si algo falla con
+   un 401 inexplicable, la primera hipótesis es que ese componente todavía las usa.
    - **Regla dura: ninguna clave se escribe en un fichero del repo. Ninguna.** Ni en `.ts`,
      ni en `.mjs`, ni en SQL, ni en un comentario, ni "temporalmente". Van en `.env`
      (gitignored, ver `.env.example`) o en el Vault. Y quien las lee **falla ruidosamente
@@ -185,17 +187,62 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
      heredada; vacío = clave nueva (no son JWT y no tienen carga). Es la única forma fiable
      de contestar "¿puedo apagarlas ya?" — el `curl` a `/rest/v1/` NO sirve, devuelve 401
      con cualquier clave, viva o muerta.
-     **Dos pasos manuales que quedan (del usuario, no del agente):**
-     1. Poner la publishable en `EXPO_PUBLIC_SUPABASE_ANON_KEY` de **Vercel** y redesplegar.
-        `.env` no se despliega; la variable de Vercel gana al fallback del código.
-     2. **Cambiar la credencial de Supabase en n8n.** Medido en `edge_logs`: los workflows
-        (`axios/1.13.5`) llaman a `notificaciones_pendientes`, `expirar_citas_sin_senal` y
-        `marcar_notificacion_enviada` con la **`service_role` heredada**. Si se apagan las
-        heredadas antes de cambiar esto, se paran los WhatsApp de confirmación, recordatorio
-        y reseña de TODOS los salones, y los huecos de señal impagada dejan de liberarse.
-     3. Desactivar las heredadas en Settings → API Keys. Hasta entonces la `anon` filtrada
-        sigue viva. Es reversible.
-   - Tests: `deno task test:claves`.
+   - **APAGADAS. Fecha exacta: 29 ago 2026. Último 200 a las 11:16:20 UTC, primer 401 a las
+     11:18:17 UTC.** Estado de los tres pasos manuales que quedaban:
+     1. ✅ Publishable en `EXPO_PUBLIC_SUPABASE_ANON_KEY` de Vercel y redesplegado.
+        Verificado en el bundle de producción, no en el código: 0 apariciones de la JWT
+        heredada en `__common-*.js` y `entry-*.js`.
+     2. ⚠️→✅ **Se hizo TARDE: la credencial de n8n se cambió después del apagón.**
+        27 minutos de caída (11:18–11:45). Ver abajo lo que enseñó.
+     3. ✅ Desactivadas en Settings → API Keys. `get_publishable_keys` da la `anon`
+        con `disabled: true`.
+     **Qué sobrevivió, comprobado en vivo el mismo día:** landing, portal público y app
+     entera (login, RLS, agenda con datos), las 41 edge functions, el Vault (ya tenía
+     `sb_secret_...`) y los 15 crons de `pg_cron`/`pg_net`. Desde el 28 ago a las 17:50 UTC
+     ningún navegador había vuelto a usar la `anon` heredada: el cliente estaba migrado.
+
+   > ### La caída de n8n del 29 ago 2026 (27 min) — lo que enseñó
+   >
+   > **Qué pasó.** Se desactivaron las heredadas antes de cambiar la credencial de n8n.
+   > Sus tres workflows (`notificaciones_pendientes`, `expirar_citas_sin_senal`,
+   > `marcar_notificacion_enviada`) devolvieron **401 cada 2 minutos de 11:18 a 11:40**:
+   > ningún WhatsApp de ningún salón y los huecos de señal impagada sin liberar. Resuelto
+   > a las 11:45 cambiando la credencial por la secret key del Vault (`service_role_key`).
+   >
+   > **Cómo se identifica en `edge_logs`:** `user_agent = axios/1.13.5` es n8n.
+   > `rol_clave` (`request.sb.jwt.apikey.payload.role`) con valor = clave HEREDADA;
+   > **vacío = clave nueva** (no son JWT, no tienen carga). Ese campo pasando de
+   > `service_role` a vacío es la prueba de que el cambio entró.
+   >
+   > **Trampa que sigue viva:** una secret key **no es un JWT**. En un nodo *HTTP Request*
+   > con `Authorization: Bearer` no cuela — va en la cabecera **`apikey`**. Con el nodo
+   > Supabase nativo da igual: manda las dos.
+   >
+   > **No hubo backlog que recuperar, y no lo habrá la próxima.**
+   > `notificaciones_pendientes` NO es una tabla de cola: calcula en vivo desde las
+   > banderas de `citas` (`confirmacion_enviada`, `recordatorio_enviado`, `resena_enviada`,
+   > `senal_enviada`). Al volver el servicio sale solo todo lo pendiente — se vieron 15
+   > `marcar_notificacion_enviada` seguidas al restablecerse. Lo único que se pierde de
+   > verdad es lo que se salga de su ventana durante la caída (el recordatorio de una cita
+   > que ya pasó). Para medir el daño real de una caída, no busques una tabla:
+   > `select count(*) from jsonb_array_elements(public.notificaciones_pendientes(500));`
+   >
+   > **La lección de orden:** antes de apagar una credencial, cambiarla PRIMERO en todo lo
+   > que no despliegas tú (n8n, crons externos, integraciones). El código del repo estaba
+   > listo desde el 28 ago; lo que falló fue lo que vive fuera de él.
+
+   - **Vigilante `claves` (29 ago 2026).** `npm run vigilar` ahora falla si aparece una
+     clave heredada o una `sb_secret_...` en cualquier fichero versionado, si una edge
+     function lee `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_ANON_KEY` a pelo, si crea un
+     cliente sin pasar por `claveServicio()`/`clavePublicable()`, o si el bundle de
+     `web/app/` lleva una clave vieja (la trampa de la caché de Metro). Barre por
+     `git ls-files --cached --others`: lo gitignorado no está publicado, y así tarda
+     0,2 s en vez de 45. La publishable NO es un hallazgo (es pública por diseño) y las
+     fixtures cortas tipo `sb_secret_nueva` tampoco.
+   - **En scripts de Node la variable es `SUPABASE_SECRET_KEY`**, no la heredada. Los que
+     tiraban solo de `SUPABASE_SERVICE_ROLE_KEY` (importadores, diagnósticos, seed, worker
+     de VeriFactu) ya prefieren la nueva y caen a la vieja solo por compatibilidad.
+   - Tests: `deno task test:claves` (edge) · `npm run vigilar:test` (vigilante).
    - Trampa de Windows: **nunca `echo "X=y" >> .env`** en PowerShell. Escribe UTF-16 y deja el
      fichero ilegible para el CLI de Supabase. A mano, con el editor.
 

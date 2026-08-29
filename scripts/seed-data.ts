@@ -3,11 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 // ⚠️ Seguridad: la service_role key de este script estaba hardcodeada en el
 // historial del repo y ha sido retirada. HAY QUE ROTARLA en Supabase
 // (Settings > API) porque la version antigua sigue comprometida en el historial git.
+// Se prefiere la secret key nueva (`sb_secret_...`): la heredada
+// SUPABASE_SERVICE_ROLE_KEY esta DESACTIVADA desde el 29 ago 2026 y devuelve 401.
 const supabaseUrl = process.env.SUPABASE_URL ?? '';
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+const serviceRoleKey =
+  process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 if (!supabaseUrl || !serviceRoleKey) {
   console.error(
-    'Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el entorno.',
+    'Faltan SUPABASE_URL y SUPABASE_SECRET_KEY en el entorno.',
   );
   process.exit(1);
 }

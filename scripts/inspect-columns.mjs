@@ -8,10 +8,15 @@ const supabaseUrl = envConfig.EXPO_PUBLIC_SUPABASE_URL;
 // La service_role se salta TODAS las RLS: es la llave maestra del proyecto, no
 // una credencial mas. Nunca se escribe en el codigo -- vive en .env, que esta
 // en .gitignore. Ver .env.example.
+// Se prefiere la secret key nueva (`sb_secret_...`): la heredada
+// SUPABASE_SERVICE_ROLE_KEY esta DESACTIVADA desde el 29 ago 2026 y devuelve 401.
 const supabaseServiceKey =
-  envConfig.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  envConfig.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SECRET_KEY ||
+  envConfig.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseServiceKey) {
-  console.error('Falta SUPABASE_SERVICE_ROLE_KEY. Ponla en .env (ver .env.example).');
+  console.error('Falta SUPABASE_SECRET_KEY. Ponla en .env (ver .env.example).');
   process.exit(1);
 }
 

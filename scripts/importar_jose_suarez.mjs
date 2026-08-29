@@ -11,9 +11,13 @@ import XLSX from 'xlsx';
 process.loadEnvFile?.();
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://vtrggiogjrhqtwbhbgia.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Se prefiere la secret key nueva (`sb_secret_...`): la heredada
+// SUPABASE_SERVICE_ROLE_KEY esta DESACTIVADA desde el 29 ago 2026 y devuelve 401.
+// Se sigue leyendo por si alguien tiene un .env antiguo, pero ya no sirve.
+const supabaseServiceKey =
+  process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseServiceKey) {
-  console.error("Falta SUPABASE_SERVICE_ROLE_KEY. Ponla en .env (ver .env.example).");
+  console.error("Falta SUPABASE_SECRET_KEY. Ponla en .env (ver .env.example).");
   process.exit(1);
 }
 

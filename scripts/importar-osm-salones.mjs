@@ -12,7 +12,7 @@
  * ajenos no puede ensenar nota ni tarifa aunque alguien quiera.
  *
  * Uso:
- *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/importar-osm-salones.mjs "A Coruña" "Alcoi"
+ *   SUPABASE_SECRET_KEY=... node scripts/importar-osm-salones.mjs "A Coruña" "Alcoi"
  *   node scripts/importar-osm-salones.mjs --dry "Valencia"     (no escribe nada)
  *
  * Es idempotente: la clave (fuente, fuente_id) hace upsert, y no toca ni
@@ -34,9 +34,11 @@ if (!ciudades.length) {
   process.exit(1);
 }
 
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Se prefiere la secret key nueva (`sb_secret_...`): la heredada
+// SUPABASE_SERVICE_ROLE_KEY esta DESACTIVADA desde el 29 ago 2026 y devuelve 401.
+const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!dry && !serviceKey) {
-  console.error('Falta SUPABASE_SERVICE_ROLE_KEY en el entorno (la de Hairy, proyecto vtrggiogjrhqtwbhbgia).');
+  console.error('Falta SUPABASE_SECRET_KEY en el entorno (la de Hairy, proyecto vtrggiogjrhqtwbhbgia).');
   process.exit(1);
 }
 

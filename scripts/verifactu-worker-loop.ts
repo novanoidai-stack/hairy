@@ -9,7 +9,26 @@ import { VerifactuClient } from './verifactu-worker';
 import { generarXmlAlta } from '../lib/fiscal/xmlAlta';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-service-key';
+
+// Se prefiere la secret key nueva (`sb_secret_...`): la heredada
+// SUPABASE_SERVICE_ROLE_KEY esta DESACTIVADA desde el 29 ago 2026 y devuelve 401.
+const supabaseKey =
+  process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-service-key';
+
+// El valor de mentira solo vale contra el stack local. Apuntando a un proyecto
+// de verdad, seguir adelante con el solo consigue un 401 opaco a mitad del
+// bucle, con facturas ya marcadas -- que es exactamente la clase de fallo
+// silencioso que la decision 9 de CLAUDE.md prohibe: quien lee una clave falla
+// ruidosamente si falta, nunca tira de un valor por defecto.
+const esLocal = /^https?:\/\/(localhost|127\.0\.0\.1)/.test(supabaseUrl);
+if (!esLocal && supabaseKey === 'fake-service-key') {
+  console.error(
+    `Falta SUPABASE_SECRET_KEY y ${supabaseUrl} no es el stack local. ` +
+      'Ponla en .env (ver .env.example) antes de transmitir a la AEAT.',
+  );
+  process.exit(1);
+}
+
 const certPath = process.env.VERIFACTU_CERT_PATH || './cert.pem';
 const keyPath = process.env.VERIFACTU_KEY_PATH || './key.pem';
 
