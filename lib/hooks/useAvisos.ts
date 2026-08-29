@@ -1,9 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
-import { CITA_STATUS } from '@/lib/constants';
-import { contarSinLeer } from '@/lib/bandeja';
-import { cargarHallazgos, marcarHallazgo, type Hallazgo, type EstadoHallazgo } from '@/lib/hallazgos';
+import { marcarHallazgo, type Hallazgo, type EstadoHallazgo } from '@/lib/hallazgos';
 import {
   categoriaDeHallazgo, ordenarAvisos,
   type AvisoItem, type AvisoUrgencia,
@@ -200,90 +198,44 @@ async function cargar(): Promise<void> {
       const negocioId = profile?.negocio_id;
       if (!negocioId) { fijar({ loading: false }); return; }
 
+      // `ahora` y `hoy0` siguen siendo del NAVEGADOR a proposito: la ventana de
+      // 48 h y el corte del dia los decide ahora la RPC (con la zona del salon),
+      // pero los cumpleanos y el analisis de ineficiencias se calculan aqui y
+      // tienen que usar el mismo reloj que ve la persona en pantalla.
       const ahora = new Date();
-      const en48h = new Date(ahora.getTime() + 48 * 3600000);
-      const esGestor = profile?.role === 'owner' || profile?.role === 'admin';
-
       const hoy0 = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-      const manana0 = new Date(hoy0.getTime() + 86400000);
 
-      const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes, citasHoyRes, profsRes, cobrosPendRes] = await Promise.all([
-        // Equivalente SQL del predicado canonico esSinConfirmar48h (lib/citasMetrics):
-        // si se toca aqui, tocar tambien alli (banner de agenda y pagina Citas lo usan).
-        supabase
-          .from('citas')
-          .select('id, inicio, cliente_id')
-          .eq('negocio_id', negocioId)
-          .eq('estado', CITA_STATUS.CONFIRMADA)
-          .eq('confirmada_cliente', false)
-          .eq('oculta_en_calendario', false)
-          .gt('inicio', ahora.toISOString())
-          .lte('inicio', en48h.toISOString())
-          .order('inicio', { ascending: true }),
-        supabase.from('clientes').select('id, nombre, fecha_nacimiento').eq('negocio_id', negocioId).not('fecha_nacimiento', 'is', null),
-        contarSinLeer(negocioId).catch(() => 0),
-        esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001'
-          ? supabase.rpc('clientes_en_riesgo_fuga')
-          : Promise.resolve({ data: [], error: null } as any),
-        // Hallazgos del escaneo proactivo (S13). El RPC deriva el negocio del auth.uid();
-        // en demo devuelve [] (el motor no persiste el tenant compartido).
-        IS_DEMO_MODE || negocioId === 'demo_salon_001' ? Promise.resolve([]) : cargarHallazgos().catch(() => []),
-        // Citas de hoy para detectar ineficiencias de agenda
-        supabase
-          .from('citas')
-          .select('id, inicio, fin, fin_activa, fin_espera, profesional_id, cliente_id, estado, grupo_id, servicio_id')
-          .eq('negocio_id', negocioId)
-          .eq('oculta_en_calendario', false)
-          .in('estado', [CITA_STATUS.PENDIENTE, CITA_STATUS.CONFIRMADA])
-          .gte('inicio', hoy0.toISOString())
-          .lt('inicio', manana0.toISOString()),
-        // Profesionales para analizar la agenda
-        supabase.from('profesionales').select('id, nombre, categoria').eq('negocio_id', negocioId).eq('activo', true),
-        // Citas pasadas o completadas pendientes de cobro (olvidadas / sin marcar)
-        supabase
-          .from('citas')
-          .select('id, inicio, cliente_id, clientes(nombre), servicio_id, servicios(nombre, precio)')
-          .eq('negocio_id', negocioId)
-          .eq('cobrada', false)
-          .eq('oculta_en_calendario', false)
-          .in('estado', [CITA_STATUS.CONFIRMADA, CITA_STATUS.COMPLETADA, CITA_STATUS.FINALIZADA])
-          .lte('inicio', ahora.toISOString())
-          .order('inicio', { ascending: false })
-          .limit(15),
-      ]);
+      // UNA sola llamada. Antes esto eran ~14 consultas en TRES viajes de red
+      // encadenados (Promise.all de 8, luego los nombres de cliente, luego
+      // Promise.all de 5), cada 45 s, por pestana abierta y por usuario: 1.120
+      // consultas por hora y pestana. Con cuatro salones ya era, de largo, lo que
+      // mas base de datos consumia del producto (negocio_config 167.315 llamadas
+      // en 151 dias, conversaciones 151.260, clientes 146.464...).
+      //
+      // El calculo NO se ha movido al servidor: la RPC devuelve los mismos datos
+      // crudos y todo lo de abajo (cumpleanos, ineficiencias, construirItems)
+      // sigue igual. Lo unico que cambia es el transporte.
+      const { data: avisos, error: errAvisos } = await supabase.rpc('avisos_del_negocio');
+      if (errAvisos || !avisos?.ok) { fijar({ loading: false }); return; }
 
-      const citas = citasRes.data ?? [];
-      const citasHoy = citasHoyRes.data ?? [];
-
-      // Los nombres de cliente de AMBAS listas (sin confirmar + las de hoy) se
-      // piden en UNA consulta. Antes eran dos seguidas, y ademas en serie
-      // despues del Promise.all: dos viajes de red extra por vuelta.
-      const idsNombres = Array.from(new Set(
-        [...citas, ...citasHoy].map((c: any) => c.cliente_id).filter(Boolean),
-      ));
-      const nombreMap = new Map<string, string>();
-      if (idsNombres.length > 0) {
-        const { data: cls } = await supabase.from('clientes').select('id, nombre').in('id', idsNombres);
-        (cls ?? []).forEach((c: any) => nombreMap.set(c.id, c.nombre));
-      }
+      const citas = (avisos.sin_confirmar ?? []) as any[];
+      const citasHoy = (avisos.citas_hoy ?? []) as any[];
+      const nombreMap = new Map<string, string>(
+        Object.entries((avisos.nombres_clientes ?? {}) as Record<string, string>),
+      );
 
       const sinConfirmar = citas.map((c: any) => ({
         id: c.id, inicio: c.inicio, clienteNombre: nombreMap.get(c.cliente_id) || 'Cliente',
       }));
 
-      // Cobros pendientes (citas pasadas o completadas no cobradas)
-      const cobrosPendientes = (cobrosPendRes.data ?? []).map((c: any) => ({
-        id: c.id,
-        inicio: c.inicio,
-        clienteNombre: c.clientes?.nombre || 'Cliente',
-        servicioNombre: c.servicios?.nombre || 'Servicio',
-        precio: c.servicios?.precio ?? 0,
-      }));
+      // Cobros pendientes: la RPC ya los devuelve con el nombre resuelto y con
+      // la forma exacta que pinta la UI, asi que aqui no queda nada que mapear.
+      const cobrosPendientes = (avisos.cobros_pendientes ?? []) as Datos['cobrosPendientes'];
 
       // Cumpleanos en los proximos 7 dias (misma logica que la agenda)
       const hoy0Ms = hoy0.getTime();
       const cumples: AvisoCumple[] = [];
-      (clientesRes.data ?? []).forEach((cl: any) => {
+      ((avisos.clientes_cumple ?? []) as any[]).forEach((cl: any) => {
         const fn = new Date(cl.fecha_nacimiento);
         if (isNaN(fn.getTime())) return;
         let next = new Date(ahora.getFullYear(), fn.getMonth(), fn.getDate());
@@ -296,7 +248,7 @@ async function cargar(): Promise<void> {
       });
 
       // --- Analizar ineficiencias de hoy ---
-      const profesionales = profsRes.data ?? [];
+      const profesionales = (avisos.profesionales ?? []) as any[];
       const citasOrganizar = citasHoy.map((c: any) => ({
         ...c,
         cliente: nombreMap.get(c.cliente_id) || 'El cliente',
@@ -304,37 +256,15 @@ async function cargar(): Promise<void> {
         servicio: 'Servicio',
       }));
 
-      const [{ data: bloqueosData }, { data: horariosData }, { data: cfgData }, { data: horariosProfData }, { data: cierresData }] = await Promise.all([
-        supabase
-          .from('bloqueos_profesional')
-          .select('profesional_id, inicio, fin')
-          .eq('negocio_id', negocioId),
-        supabase
-          .from('negocio_horarios')
-          .select('dia_semana, abierto, apertura, cierre')
-          .eq('negocio_id', negocioId),
-        supabase
-          .from('negocio_config')
-          .select('config')
-          .eq('negocio_id', negocioId)
-          .maybeSingle(),
-        // Jornadas reales por profesional y cierres del salon: sin esto el
-        // respaldo cliente no puede ver fuera_jornada y marca huecos en horas
-        // que la persona no trabaja (p. ej. la pausa de comida entre turnos).
-        // Columnas minimas: este hook es el mayor lastre de la app.
-        // `horarios_profesional` NO tiene negocio_id (solo profesional_id): la
-        // consulta anterior con .eq('negocio_id', ...) devolvia un 400 silencioso
-        // y los avisos trabajaban sin jornadas reales. Lo encontro el smoke de
-        // pantallas el 28 ago 2026 (mismo fallo que 17a1103f1 arreglo en la agenda).
-        supabase
-          .from('horarios_profesional')
-          .select('profesional_id, dia_semana, hora_inicio, hora_fin, turno')
-          .in('profesional_id', profesionales.map((p: any) => p.id)),
-        supabase
-          .from('cierres_negocio')
-          .select('fecha')
-          .eq('negocio_id', negocioId),
-      ]);
+      // El contexto de agenda (bloqueos, horarios del salon, jornadas reales,
+      // cierres y config) venia de un segundo Promise.all de cinco consultas,
+      // encadenado DESPUES del primero. Ahora llega en la misma respuesta.
+      const bloqueosData = (avisos.bloqueos ?? []) as any[];
+      const horariosData = (avisos.horarios ?? []) as any[];
+      const horariosProfData = (avisos.horarios_profesional ?? []) as any[];
+      const cierresData = (avisos.cierres ?? []) as any[];
+      const cfgData = { config: avisos.config ?? {} };
+
       const cfgAgenda = ((cfgData as any)?.config ?? {}) as any;
 
       const ineficiencias = analizarAgendaDia(citasOrganizar, profesionales, {
@@ -353,9 +283,9 @@ async function cargar(): Promise<void> {
         sinConfirmar,
         cobrosPendientes,
         cumples: cumples.sort((a, b) => a.diff - b.diff).slice(0, 8),
-        mensajesSinLeer: mensajes || 0,
-        clientesFuga: fugaRes?.error ? 0 : (fugaRes?.data ?? []).length,
-        hallazgos: ((hallazgosRes as Hallazgo[]) ?? []).filter((h) => !HALLAZGOS_YA_NATIVOS.has(h.tipo)),
+        mensajesSinLeer: Number(avisos.mensajes_sin_leer) || 0,
+        clientesFuga: Number(avisos.clientes_fuga) || 0,
+        hallazgos: (((avisos.hallazgos ?? []) as Hallazgo[])).filter((h) => !HALLAZGOS_YA_NATIVOS.has(h.tipo)),
         ineficiencias,
         loading: false,
       });
