@@ -35,6 +35,14 @@
 --
 -- Nivel: `aviso` en todo salvo los locks esperando, que no son deuda sino algo
 -- que esta pasando AHORA MISMO.
+--
+-- TRAMPA YA PISADA: pg_stat_statements NO esta en `public`, esta en el esquema
+-- `extensions` (Supabase pone ahi las extensiones). Como esta funcion fija
+-- `search_path to 'public'` -- y debe fijarlo, es SECURITY DEFINER --, hay que
+-- nombrarla con esquema: `extensions.pg_stat_statements`. Sin eso la funcion se
+-- crea sin protestar y revienta en la PRIMERA llamada con
+-- `relation "pg_stat_statements" does not exist`. Pasa desapercibido al probarla
+-- suelta, porque una sesion normal SI tiene `extensions` en su search_path.
 
 -- 1) El origen propio para las corridas programadas.
 --
@@ -77,7 +85,7 @@ begin
     return;
   end if;
 
-  select sum(s.total_exec_time) into v_total_ms from pg_stat_statements s;
+  select sum(s.total_exec_time) into v_total_ms from extensions.pg_stat_statements s;
   if coalesce(v_total_ms, 0) = 0 then
     return;  -- estadisticas recien reseteadas: no hay nada que juzgar todavia
   end if;
@@ -96,7 +104,7 @@ begin
     'Se mide en proporcion del periodo a proposito: los totales absolutos solo crecen y ' ||
     'cualquier umbral sobre ellos acabaria saltando siempre. Consulta: ' ||
     left(regexp_replace(s.query, '\s+', ' ', 'g'), 160)
-  from pg_stat_statements s
+  from extensions.pg_stat_statements s
   left join lateral (
     select coalesce(
       substring(s.query from '"public"\."([a-z_]+)"\s*\('),
@@ -118,7 +126,7 @@ begin
     'Con ' || s.calls || ' llamadas y un pico de ' || round(s.max_exec_time::numeric, 0) ||
     ' ms. Cada persona que abre esa pantalla espera eso. Consulta: ' ||
     left(regexp_replace(s.query, '\s+', ' ', 'g'), 160)
-  from pg_stat_statements s
+  from extensions.pg_stat_statements s
   left join lateral (
     select coalesce(
       substring(s.query from '"public"\."([a-z_]+)"\s*\('),

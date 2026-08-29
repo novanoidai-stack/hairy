@@ -436,9 +436,25 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
         API de toda la organización. Es más grave que una `service_role`. Y
         quitarlo del código **no lo desactiva**: hay que revocarlo en
         supabase.com/dashboard/account/tokens.
-      - **Pendiente manual:** aplicar la migración `20260829120000` y desplegar
-        `ejecutar-vigilancia-bd`. Hasta entonces el workflow sale rojo diciendo
-        exactamente eso, a propósito.
+      - **APLICADO el 29 ago 2026**: migración `20260829120000` en producción (y
+        su versión registrada en `schema_migrations`, para que la guardia no se
+        denuncie a sí misma), edge `ejecutar-vigilancia-bd` desplegada y ACTIVE
+        con `verify_jwt=false`, y advisors pasados — las dos funciones nuevas
+        solo salen bajo el aviso arquitectónico de `authenticated`, no bajo el de
+        `anon`. Falta ejercitar el workflow, que solo se puede disparar desde
+        `master`: se probará solo al mergear.
+      - **Trampa al aplicar, ya pisada: `pg_stat_statements` vive en el esquema
+        `extensions`, no en `public`.** La función es `SECURITY DEFINER` con
+        `search_path` fijado a `public`, así que se creó sin protestar y reventó
+        en la PRIMERA llamada con `relation "pg_stat_statements" does not exist`.
+        Probando la consulta suelta no se ve, porque una sesión normal sí tiene
+        `extensions` en su `search_path`. Hay que nombrarla con esquema.
+      - **La consulta canónica de la decisión 4 ya no da 0: da 49, y ninguna es un
+        agujero.** La mayoría son las RPC públicas del portal (guardan por
+        `p_slug`, decisión 2) y el resto guardan con ayudantes que esa lista no
+        nombra: `jornada_contexto()` en las de fichaje y `_campana_gestor()` en
+        las de campañas (comprobado en su código). Si se vuelve a usar como
+        termómetro, añadir esos dos nombres o volverá a asustar sin motivo.
 
 ## Convenciones de código
 

@@ -459,16 +459,73 @@ proyectos, sus claves y el botón de borrarlos. Es más grave que una
 `service_role`, no menos. Ahora lo caza, con su test, y el mensaje recuerda lo
 que la gente olvida: **quitarlo del código no lo desactiva; hay que revocarlo**.
 
-### 8.6 Los dos pasos que quedan, y son manuales
+### 8.6 APLICADO en producción (29 ago 2026)
 
-Nada de lo de arriba funciona hasta que alguien haga **una** cosa en producción:
+Ya no son pasos pendientes: se hicieron y se comprobaron.
 
-1. Aplicar `supabase/migrations/20260829120000_vigilancia_bd_rendimiento.sql`
-   (crea `vigilancia_bd_rendimiento()` y `migraciones_sin_aplicar()`, y añade el
-   origen `bd`).
-2. Desplegar la función: `npx supabase functions deploy ejecutar-vigilancia-bd`.
+| Qué | Estado | Comprobación |
+|---|---|---|
+| Migración `20260829120000` | **aplicada** | `vigilancia_bd_rendimiento()` y `migraciones_sin_aplicar()` existen; el CHECK de `origen` ya incluye `'bd'` |
+| Versión en el historial | **registrada** | `20260829120000` consta en `schema_migrations`, así que la guardia no se denuncia a sí misma |
+| `vigilancia_bd_rendimiento()` | **corriendo** | devuelve los 6 avisos de §8.3 |
+| `migraciones_sin_aplicar()` | **corriendo** | devuelve lista vacía: todo el repo está aplicado |
+| Edge `ejecutar-vigilancia-bd` | **desplegada y ACTIVE**, `verify_jwt=false` | versión 1 |
+| Advisors de seguridad | **pasados** (regla 4) | las dos funciones nuevas solo aparecen bajo `authenticated_security_definer_function_executable`, que es la arquitectura documentada; **no** aparecen en la lista de `anon` |
 
-Hasta entonces el workflow programado se pondrá **rojo con un mensaje que dice
-exactamente eso** — a propósito: es una tarea pendiente visible, no un fallo
-misterioso. Su SQL está ensayado en seco contra producción (§8.3 y §8.4 son sus
-resultados reales), pero **no se ha aplicado nada**: la base no se ha tocado.
+**Un fallo real cazado al aplicar, que merece quedar escrito:** la primera
+versión de `vigilancia_bd_rendimiento()` se creó sin protestar y **reventó en la
+primera llamada** con `relation "pg_stat_statements" does not exist`. La causa es
+que `pg_stat_statements` vive en el esquema `extensions`, no en `public`, y la
+función fija `search_path to 'public'` — como debe, siendo `SECURITY DEFINER`.
+Pasa desapercibido si se prueba la consulta suelta, porque una sesión normal sí
+tiene `extensions` en su `search_path`. Arreglado nombrándola con esquema
+(`extensions.pg_stat_statements`), en el repo y en producción.
+
+### 8.7 Lo que NO se puede hacer desde este entorno
+
+No es que falte por decidir: es que **el contenedor no tiene salida a la red**.
+El proxy responde 403 a `api.supabase.com`, a `*.supabase.co` y hasta a
+`www.mechaa.es`. Todo lo de arriba se hizo por el conector de Supabase, que corre
+fuera del contenedor.
+
+Queda pendiente de comprobar **desde fuera**:
+
+1. **Llamar a la edge function por HTTP.** Sus tres piezas están verificadas por
+   separado (`vigilancia_bd()`, `migraciones_sin_aplicar()`, el CHECK del origen),
+   pero la llamada entera —token, cliente admin, guardado— no se ha ejercitado.
+   Se comprueba sola en la primera corrida del workflow.
+2. **Ejecutar el workflow.** `vigilancia-bd.yml` solo existe en la rama de
+   trabajo, y GitHub únicamente ofrece "Run workflow" para los que están en la
+   rama por defecto. **Se probará al mergear a `master`** (y además se dispara
+   solo en cada push a master que toque `supabase/`).
+3. **Confirmar que `VIGILANCIA_TOKEN` está en el entorno de las edge functions.**
+   Casi seguro que sí —`registrar-vigilancia` funciona hoy y los secretos de
+   funciones son de proyecto, no de función— pero no se ha visto. Si faltara, la
+   función responde `500 sin_configurar` y el workflow lo dice con esas palabras.
+4. **`VIGILANCIA_URL` tiene que apuntar a `.../registrar-vigilancia`.**
+   `pedir-bd.mjs` deriva la URL hermana sustituyendo ese trozo del final. Si el
+   secreto guarda otra cosa, la llamada acabará en un 404 que el script explica.
+   Salida limpia: definir `VIGILANCIA_BD_URL` aparte, que ya está soportado.
+5. **Los tests de Deno** (`deno task test:claves`, que ahora incluye la puerta del
+   token) no se han ejecutado: no hay binario de Deno en el contenedor y el proxy
+   bloquea su descarga. Los corre la CI.
+6. **El smoke completo con datos reales** tampoco: sin salida a Supabase, las
+   pantallas del software se quedan en "Cargando tu salón…".
+
+**Un detalle del despliegue que conviene saber:** la edge se subió por el
+conector, y con ella una copia **recortada** de `shared/claveServicio.ts` — solo
+las funciones que esta usa. Es funcionalmente equivalente, pero no es idéntica al
+fichero del repo. Un `supabase functions deploy ejecutar-vigilancia-bd` desde el
+repo la deja igual que el resto; conviene hacerlo la próxima vez que se despliegue
+algo, sin prisa.
+
+### 8.8 Nota sobre la consulta canónica de CLAUDE.md
+
+La decisión 4 dice que buscar *funciones `definer` abiertas a `authenticated` con
+parámetros que no mencionen `auth.uid()`, `is_staff()`, `my_negocio_id_text()` ni
+`exige_mi_negocio()`* "hoy da 0". Ejecutada tal cual **da 49**, y ninguna es un
+agujero: la mayoría son las RPC públicas del portal (guardan por `p_slug`, que es
+el diseño de la decisión 2), y las demás guardan a través de ayudantes que esa
+lista no nombra — `jornada_contexto()` en las de fichaje y `_campana_gestor()` en
+las de campañas (comprobado en su código). Si esa consulta se vuelve a usar como
+termómetro, hay que añadir esos dos nombres o volverá a asustar sin motivo.
