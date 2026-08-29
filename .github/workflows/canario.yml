@@ -60,6 +60,27 @@ jobs:
           node scripts/vigilantes/smoke-a-hallazgos.mjs smoke.json vigilancia-canario.json canario
           node scripts/vigilantes/enviar.mjs vigilancia-canario.json
 
+      # Familia 1c: el canario tambien MIDE (carga, long tasks, fps, peticiones)
+      # contra PRODUCCION. Hasta que se congele su linea base propia
+      # (tests/smoke/rendimiento-baseline.canario.json, con --aprobar --origen
+      # canario sobre el artefacto de abajo), mide sin comparar.
+      - name: Vigilante de rendimiento (contra produccion)
+        if: always() && steps.smoke.outcome != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: |
+          node scripts/vigilantes/rendimiento.mjs rendimiento.jsonl vigilancia-rendimiento-canario.json canario
+          node scripts/vigilantes/enviar.mjs vigilancia-rendimiento-canario.json
+
+      - name: Guardar las medidas de rendimiento
+        if: always() && steps.smoke.outcome != 'skipped'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: rendimiento-canario
+          path: rendimiento.jsonl
+          retention-days: 8
+
       - name: Guardar el informe si algo falla
         if: steps.smoke.outcome == 'failure'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5

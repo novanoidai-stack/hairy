@@ -24,13 +24,21 @@ import path from 'node:path';
 import process from 'node:process';
 import { RAIZ } from './nucleo.mjs';
 
-const BASELINE = path.join(RAIZ, 'tests/smoke/rendimiento-baseline.json');
-
+// Linea base por origen: la CI mide un espejo local recien compilado, el
+// canario mide produccion a traves de la red real (1c). Comparar una contra la
+// base de la otra seria puro ruido.
 const argv = process.argv.slice(2);
 const aprobar = argv.includes('--aprobar');
-const entrada = argv.find((a) => !a.startsWith('--'));
+const posicionales = argv.filter((a) => !a.startsWith('--'));
+const entrada = posicionales[0];
+// El origen entra como tercer posicional ([entrada, salida, origen]) o con
+// --origen canario cuando solo se congela base (--aprobar).
+const iOrigen = argv.indexOf('--origen');
+const origen = (iOrigen >= 0 ? argv[iOrigen + 1] : null) || posicionales[2] || 'ci';
+const BASELINE = path.join(RAIZ, `tests/smoke/rendimiento-baseline${origen === 'canario' ? '.canario' : ''}.json`);
+
 if (!entrada || !existsSync(entrada)) {
-  console.error('Uso: node scripts/vigilantes/rendimiento.mjs <rendimiento.jsonl> [salida.json] [origen] | --aprobar');
+  console.error('Uso: node scripts/vigilantes/rendimiento.mjs <rendimiento.jsonl> [salida.json] [origen] | --aprobar --origen canario');
   process.exit(2);
 }
 
@@ -56,6 +64,12 @@ if (aprobar) {
 }
 
 if (!existsSync(BASELINE)) {
+  if (origen === 'canario') {
+    // La base del canario nace de su primera corrida contra produccion: hasta
+    // que alguien la congele (--aprobar --origen canario), medir sin comparar.
+    console.log(`[rendimiento] sin linea base de canario (${path.relative(RAIZ, BASELINE)}): se mide sin comparar.`);
+    process.exit(0);
+  }
   console.error('[rendimiento] no existe tests/smoke/rendimiento-baseline.json: corre una vez con --aprobar antes de vigilar.');
   process.exit(2);
 }
@@ -165,7 +179,7 @@ for (const pantalla of Object.keys(base)) {
   });
 }
 
-const [, salida, origen = 'ci'] = process.argv.slice(2);
+const salida = posicionales[1];
 if (salida && !salida.startsWith('--')) {
   writeFileSync(salida, JSON.stringify({
     version: 1,
