@@ -21,6 +21,7 @@ import rutasPublicas from './rutas-publicas.mjs';
 import cacheApp from './cache-app.mjs';
 import claves from './claves.mjs';
 import erroresTragados from './errores-tragados.mjs';
+import panelAmbitos from './panel-ambitos.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 
 const ESTATICOS = [
@@ -30,6 +31,7 @@ const ESTATICOS = [
   cacheApp,
   claves,
   erroresTragados,
+  panelAmbitos,
   codigoMuerto,
 ];
 

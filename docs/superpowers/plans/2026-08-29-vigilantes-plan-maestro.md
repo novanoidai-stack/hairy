@@ -14,8 +14,8 @@
 > Este manda sobre ellos en prioridades, en las correcciones de §1 y en todo lo que
 > añade de nuevo (§3.5 en adelante).
 >
-> **Estado:** hecho → fase 1 completa, familias 12 y 1 de la fase 2, familia 2 en
-> curso. Todo lo demás es backlog.
+> **Estado:** hecho → fase 1 completa, familias 12, 1 y **2** de la fase 2.
+> Siguiente: **M1** (que la capa 2 corra sola). Todo lo demás es backlog.
 
 ---
 
@@ -184,7 +184,8 @@ anterior · sin marca = viene de la fase 2 y sigue pendiente.
 | `claves.mjs` **[HECHO]** | Una clave en el código o en el bundle | bloqueante |
 | `codigo-muerto.mjs` **[HECHO]** | La deuda de knip crece | aviso |
 | `peso-bundle.mjs` **[HECHO]** | El bundle engorda >5 % | aviso |
-| **`errores-tragados.mjs`** **[EN CURSO]** | Botón que traga el error (§1.2b) | aviso, base congelada |
+| `errores-tragados.mjs` **[HECHO]** | Botón que traga el error (§1.2b) | aviso, base congelada |
+| `panel-ambitos.mjs` **[HECHO]** | Un ámbito nuevo que el panel de Salud no conoce | aviso |
 
 **Nuevos de este plan:**
 
@@ -301,7 +302,7 @@ que se vuelve público es una fuga de fotos de clientas con nombre y apellidos.
 | Smoke de 17 pantallas | **[HECHO]** |
 | Mediciones de rendimiento (1a) | **[HECHO]** |
 | Canario horario con base propia (1c) | **[HECHO]** |
-| **Sensores de fallo silencioso (2a, redactada como §1.2a)** | **[EN CURSO]** |
+| Sensores de fallo silencioso (2a, redactada como §1.2a) | **[HECHO]** |
 | Checks de layout sin capturas (5b) | pendiente |
 | Responsive a 390 px sobre 5 pantallas núcleo (5c) | pendiente |
 | Contraste AA / accesibilidad | pendiente |
@@ -414,8 +415,12 @@ El criterio es **daño evitado por hora de trabajo**, no elegancia.
 
 ### Ahora (la tanda en curso)
 
-1. **Familia 2** — botones que fallan en silencio (2a redactada como §1.2a + 2b
-   con la regla corregida). **En curso.**
+1. ~~**Familia 2** — botones que fallan en silencio (2a redactada como §1.2a + 2b
+   con la regla corregida).~~ **HECHA** (29 ago 2026). 18 tests del analizador
+   estático + 5 de prueba de vida de los sensores; ambos vistos cazar una
+   regresión inyectada. De propina salió `panel-ambitos.mjs`: el ámbito nuevo
+   `errores-tragados` no lo conocía el panel de Salud, que es la misma clase de
+   deriva silenciosa que estas herramientas existen para cazar (regla 9).
 2. **M1 — que `vigilancia_bd()` corra sola cada 6 h.** Es la pieza de mayor
    retorno del documento entero y son un par de horas.
 3. **P1 — el vigilante de mensajería.** Hay un fallo activo ahora mismo que nadie
