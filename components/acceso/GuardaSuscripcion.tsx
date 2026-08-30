@@ -6,6 +6,8 @@ import { getUserProfile, isStaff } from '@/lib/auth';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { Ionicons } from '@expo/vector-icons';
 
+import { tieneAcceso } from '@/lib/planes';
+
 const T = DESIGN_TOKENS;
 
 interface PerfilSuscripcion {
@@ -25,6 +27,7 @@ export function GuardaSuscripcion() {
   const [perfil, setPerfil] = useState<PerfilSuscripcion | null>(null);
   const [esDelStaff, setEsDelStaff] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const [modoLectura, setModoLectura] = useState(false);
 
   useEffect(() => {
     let vivo = true;
@@ -57,8 +60,8 @@ export function GuardaSuscripcion() {
     return null;
   }
 
-  // 1) Si tiene suscripción activa de pago, no hay aviso ni bloqueo
-  if (perfil.suscripcion_estado === 'activa') {
+  // 1) Si tiene suscripción activa, exenta o pago pendiente sin trial caducado: no hay bloqueo
+  if (perfil.suscripcion_estado === 'activa' || perfil.suscripcion_estado === 'exenta' || perfil.suscripcion_estado === 'pago_pendiente') {
     return null;
   }
 
@@ -66,14 +69,9 @@ export function GuardaSuscripcion() {
   const trialEndsAt = perfil.trial_ends_at ? new Date(perfil.trial_ends_at) : null;
   const now = new Date();
 
-  // Estados que deben bloquear aunque falte o discrepe la fecha: 'caducada'
-  // (marcada por p0-007 al vencer la prueba) y 'cancelada' (suscripción de
-  // pago extinguida). Sin esto, una cuenta cancelada con fecha de trial vieja
-  // en el futuro volvería a ver el banner de "1 mes gratis".
   const estadoBloqueado =
-    perfil.suscripcion_estado === 'caducada' || perfil.suscripcion_estado === 'cancelada';
+    perfil.suscripcion_estado === 'caducada' || perfil.suscripcion_estado === 'cancelada' || perfil.suscripcion_estado === 'impagada';
 
-  // Si no tiene fecha de fin de prueba ni estado bloqueante, no hay nada que mostrar
   if (!trialEndsAt && !estadoBloqueado) {
     return null;
   }
@@ -82,8 +80,31 @@ export function GuardaSuscripcion() {
   const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   const trialVencido = estadoBloqueado || diasRestantes <= 0;
 
-  // 3) BLOQUEO TOTAL SI LA PRUEBA HA CADUCADO
+  // 3) AVISO Y MODO LECTURA SI LA PRUEBA HA CADUCADO
   if (trialVencido) {
+    if (modoLectura) {
+      return (
+        <View style={s.readOnlyBanner}>
+          <View style={s.trialBannerIn}>
+            <View style={s.trialLeft}>
+              <View style={[s.trialPill, { backgroundColor: '#c0260a' }]}>
+                <Text style={s.trialPillTx}>MODO LECTURA</Text>
+              </View>
+              <Text style={s.trialTx}>
+                Prueba caducada. Puedes consultar y exportar tus datos. Para volver a crear citas y cobrar, elige tu plan.
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[s.trialBtn, { backgroundColor: '#f4501e', borderColor: '#f4501e' }]}
+              onPress={() => setModoLectura(false)}
+            >
+              <Text style={s.trialBtnTx}>Ver planes & activar →</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
     return (
       <View style={s.lockOverlay}>
         <View style={s.lockCard}>
@@ -156,6 +177,14 @@ export function GuardaSuscripcion() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={s.btnSecondary}
+              onPress={() => setModoLectura(true)}
+            >
+              <Ionicons name="eye-outline" size={18} color={T.text} style={{ marginRight: 8 }} />
+              <Text style={s.btnSecondaryTx}>Consultar o exportar mis datos (modo lectura)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={s.btnLogout}
               onPress={async () => {
               await supabase.auth.signOut();
@@ -208,6 +237,12 @@ const s = StyleSheet.create({
     backgroundColor: '#1c1814',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(244,80,30,0.3)',
+    zIndex: 99,
+  },
+  readOnlyBanner: {
+    backgroundColor: '#2b1008',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f4501e',
     zIndex: 99,
   },
   trialBannerIn: {

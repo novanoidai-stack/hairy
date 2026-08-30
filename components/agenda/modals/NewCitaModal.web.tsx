@@ -276,6 +276,55 @@ export default function NewCitaModal({
     last: string[];
   }>({ top: [], last: [] });
 
+  const [agendarAlergia48h, setAgendarAlergia48h] = useState(false);
+  const [clienteTieneAlergiaTest, setClienteTieneAlergiaTest] = useState<
+    boolean | null
+  >(null);
+
+  const srvElegido = servicios.find((s: any) => s.id === selectedServicio);
+  const esServicioQuimico = useMemo(() => {
+    if (!srvElegido) return false;
+    const n = (srvElegido.nombre || "").toLowerCase();
+    const c = (srvElegido.categoria || "").toLowerCase();
+    return (
+      n.includes("color") ||
+      n.includes("tinte") ||
+      n.includes("mechas") ||
+      n.includes("balayage") ||
+      n.includes("decolora") ||
+      n.includes("alisado") ||
+      n.includes("permanente") ||
+      c.includes("color") ||
+      c.includes("técnico") ||
+      c.includes("tecnico")
+    );
+  }, [srvElegido]);
+
+  useEffect(() => {
+    if (!selectedCliente || !esServicioQuimico || !negocioId) {
+      setClienteTieneAlergiaTest(null);
+      setAgendarAlergia48h(false);
+      return;
+    }
+    supabase
+      .from("pruebas_alergia")
+      .select("id, resultado, realizada_at")
+      .eq("negocio_id", negocioId)
+      .eq("cliente_id", selectedCliente)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        const tiene =
+          data && data.length > 0 && data[0].resultado === "negativa";
+        setClienteTieneAlergiaTest(!!tiene);
+        if (!tiene) {
+          setAgendarAlergia48h(true);
+        } else {
+          setAgendarAlergia48h(false);
+        }
+      });
+  }, [selectedCliente, esServicioQuimico, negocioId]);
+
   // Buscar servicios más frecuentes del cliente
   useEffect(() => {
     let cancel = false;
@@ -1245,6 +1294,27 @@ export default function NewCitaModal({
                 cita_id: citasInsertadas[i].id,
                 addon_id: aid,
               })),
+            );
+          }
+        }
+
+        // Spec 5: Agendar prueba de alergia 48h antes si está marcado
+        if (
+          agendarAlergia48h &&
+          selectedCliente &&
+          citasInsertadas.length > 0
+        ) {
+          const primeraCita = citasInsertadas[0];
+          try {
+            await supabase.rpc("agendar_prueba_alergia_48h", {
+              p_cliente_id: selectedCliente,
+              p_inicio_color: primeraCita.inicio,
+              p_profesional_id: primeraCita.profesional_id || null,
+            });
+          } catch (alergiaErr) {
+            console.warn(
+              "Aviso: no se pudo agendar la prueba de alergia automática:",
+              alergiaErr,
             );
           }
         }
@@ -3051,6 +3121,73 @@ export default function NewCitaModal({
               </svg>
             </button>
           </div>
+
+          {/* Spec 5: Test de alergia / mechón preventivo 48h (CE 1223/2009) */}
+          {selectedServicio &&
+            esServicioQuimico &&
+            clienteTieneAlergiaTest === false && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: agendarAlergia48h
+                    ? "rgba(244,80,30,0.08)"
+                    : "rgba(0,0,0,0.03)",
+                  border: agendarAlergia48h
+                    ? "1px solid rgba(244,80,30,0.30)"
+                    : `1px solid ${TOKENS.border}`,
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 18 }}>🧪</span>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: TOKENS.text,
+                      }}
+                    >
+                      Test de Alergia / Mechón 48h (CE 1223/2009)
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: TOKENS.textSec,
+                        marginTop: 1,
+                      }}
+                    >
+                      Clienta sin prueba previa registrada para coloración.
+                    </div>
+                  </div>
+                </div>
+
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: agendarAlergia48h ? TOKENS.primary : TOKENS.textSec,
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={agendarAlergia48h}
+                    onChange={(e) => setAgendarAlergia48h(e.target.checked)}
+                    style={{ cursor: "pointer", accentColor: TOKENS.primary }}
+                  />
+                  Agendar 48h antes
+                </label>
+              </div>
+            )}
 
           {/* Add-ons opcionales (5.6) */}
           {selectedServicio && addonsDisponibles.length > 0 && (

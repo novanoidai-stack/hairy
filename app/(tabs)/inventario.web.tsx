@@ -608,6 +608,25 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
               </span>
             </div>
 
+            {productoSeleccionado.unidad_medida && productoSeleccionado.unidad_medida !== 'unidades' && (
+              <div style={{
+                marginBottom: 14,
+                padding: '10px 12px',
+                borderRadius: 8,
+                background: TOKENS.primarySoft,
+                border: `1px solid ${TOKENS.border}`,
+                fontSize: 12.5,
+              }}>
+                <div style={{ fontWeight: 700, color: TOKENS.primary }}>⚖️ Producto por peso/volumen ({productoSeleccionado.unidad_medida})</div>
+                <div style={{ color: TOKENS.textSec, marginTop: 3 }}>
+                  Envase estándar: {productoSeleccionado.capacidad_envase || 60} {UNIDAD_SIMBOLO[productoSeleccionado.unidad_medida]}.
+                  {productoSeleccionado.resto_abierto != null && (
+                    <span> Bote en uso: <strong>{productoSeleccionado.resto_abierto} {UNIDAD_SIMBOLO[productoSeleccionado.unidad_medida]}</strong> restantes.</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Tipo de Ajuste</label>
               <div style={styles.tipoButtons}>

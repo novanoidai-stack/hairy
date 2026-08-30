@@ -4561,6 +4561,45 @@ function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: 
           </div>
         </FieldRow>
       </Section>
+
+      {/* Spec 13: Retención y caducidad RGPD (Art. 5.1.e) */}
+      <Section
+        title="Protección de datos y retención RGPD (Art. 5.1.e)"
+        desc="Anonimización de clientes inactivos tras 3 años sin visitas ni cobros. Conserva la integridad contable y fiscal según VeriFactu/Ley Antifraude disociando los datos personales según el derecho al olvido."
+      >
+        <div style={{ padding: '4px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.5 }}>
+            El RGPD exige no conservar datos personales indefinidamente. La depuración sustituye nombres, teléfonos y correos de clientes sin actividad en más de 3 años por identificadores anónimos ('Cliente Anónimo RGPD').
+          </div>
+          <div style={{ marginTop: 6 }}>
+            <button
+              onClick={async () => {
+                if (!confirm('¿Deseas ejecutar la política de retención RGPD? Se anonimizarán los clientes inactivos desde hace más de 3 años.')) return;
+                try {
+                  const { data, error } = await supabase.rpc('ejecutar_retencion_rgpd');
+                  if (error) throw error;
+                  const res = data as any;
+                  alert(`Retención completada. Clientes anonimizados: ${res?.clientes_anonimizados ?? 0}.`);
+                } catch (err: any) {
+                  alert(mensajeDeError(err, 'No se pudo ejecutar la retención RGPD.'));
+                }
+              }}
+              style={{
+                padding: '9px 16px',
+                borderRadius: 9,
+                background: 'rgba(79,70,229,0.10)',
+                color: '#4338ca',
+                border: '1px solid rgba(79,70,229,0.25)',
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              🛡️ Ejecutar depuración y retención RGPD
+            </button>
+          </div>
+        </div>
+      </Section>
     </>
   );
 }

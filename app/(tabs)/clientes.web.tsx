@@ -4177,10 +4177,8 @@ function BonosClienteSection({ clienteId }: { clienteId: string }) {
     let cancel = false;
     supabase
       .from('bonos')
-      .select('*, servicios(nombre)')
+      .select('*, servicios(nombre), bono_sesiones(*, citas(inicio, estado))')
       .eq('cliente_id', clienteId)
-      .eq('estado', 'activo')
-      .gt('sesiones_disponibles', 0)
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (!cancel) {
@@ -4192,32 +4190,87 @@ function BonosClienteSection({ clienteId }: { clienteId: string }) {
   }, [clienteId]);
 
   if (loading) return <div style={{ fontSize: 13, color: TOKENS.textSec }}>Cargando bonos...</div>;
-  if (bonos.length === 0) return <div style={{ fontSize: 13, color: TOKENS.textSec }}>No hay bonos activos.</div>;
+  if (bonos.length === 0) return <div style={{ fontSize: 13, color: TOKENS.textSec }}>No hay bonos activos para esta clienta.</div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {bonos.map((b) => (
-        <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8 }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>
-              Bono {b.servicios?.nombre || 'Servicio'}
-            </span>
-            <span style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
-              {b.sesiones_disponibles} de {b.sesiones_totales} sesiones disponibles
-            </span>
-            <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-              {Array.from({ length: b.sesiones_totales }).map((_, i) => (
-                <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', background: i < b.sesiones_disponibles ? TOKENS.success : TOKENS.borderHi }} />
-              ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {bonos.map((b) => {
+        const sesiones = (b.bono_sesiones || []).sort((x: any, y: any) => x.numero - y.numero);
+        return (
+          <div
+            key={b.id}
+            style={{
+              padding: '14px',
+              background: TOKENS.bgCard,
+              border: `1px solid ${TOKENS.border}`,
+              borderRadius: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <span style={{ fontSize: 14.5, fontWeight: 800, color: TOKENS.text }}>
+                  Bono {b.servicios?.nombre || 'Servicio'}
+                </span>
+                <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
+                  {b.sesiones_disponibles} de {b.sesiones_totales} sesiones disponibles · {(b.precio_cents / 100).toFixed(2)} €
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 11,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  background: b.sesiones_disponibles > 0 ? 'rgba(16,185,129,0.12)' : 'rgba(0,0,0,0.06)',
+                  color: b.sesiones_disponibles > 0 ? '#059669' : TOKENS.textTer,
+                  fontWeight: 700,
+                }}
+              >
+                {b.sesiones_disponibles > 0 ? 'Activo' : 'Completado'}
+              </span>
             </div>
+
+            {/* Cuadrícula de sesiones calendarizadas (Spec 6) */}
+            {sesiones.length > 0 && (
+              <div style={{ marginTop: 4 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
+                  Calendario de Sesiones
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 6 }}>
+                  {sesiones.map((s: any) => {
+                    const consumida = !!s.consumida_at;
+                    const fechaTxt = s.prevista_para
+                      ? new Date(s.prevista_para).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                      : 'Por agendar';
+                    return (
+                      <div
+                        key={s.id || s.numero}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: 6,
+                          background: consumida ? 'rgba(16,185,129,0.08)' : TOKENS.bgPanel,
+                          border: `1px solid ${consumida ? 'rgba(16,185,129,0.25)' : TOKENS.border}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: 11.5,
+                        }}
+                      >
+                        <span style={{ fontWeight: 700, color: consumida ? '#059669' : TOKENS.text }}>
+                          S{s.numero} · {fechaTxt}
+                        </span>
+                        <span style={{ fontSize: 12 }}>{consumida ? '✓' : '🗓️'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.success }}>
-              {(b.precio_cents / 100).toFixed(2)}€
-            </span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

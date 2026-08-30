@@ -84,6 +84,8 @@ import { useAgendaStore } from "./store/useAgendaStore";
 import type { Cita, Profesional } from "./tipos";
 import { DetalleCitaModal } from "./modals/DetalleCitaModal.web";
 import NewCitaModal from "./modals/NewCitaModal.web";
+import { ColaDiaPanel } from "@/components/cola/ColaDiaPanel.web";
+import { ReservaGrupoModal } from "./modals/ReservaGrupoModal.web";
 import { norm, fmtHHMM } from "./ui/atomos.web";
 import { cacheado } from "@/lib/datos/cacheado";
 import {
@@ -337,6 +339,8 @@ export default function AgendaCalendar() {
   } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
   const [showManualPanel, setShowManualPanel] = useState(false);
+  const [showColaDia, setShowColaDia] = useState(false);
+  const [showReservaGrupo, setShowReservaGrupo] = useState(false);
   const paginaManual = usePaginaManualVista("agenda");
   // Demo guiada: enfoque tipo spotlight sobre una zona (p.ej. el panel de avisos).
   const [demoFocus, setDemoFocus] = useState<string | null>(null);
@@ -4101,6 +4105,48 @@ export default function AgendaCalendar() {
           </button>
           )}
           <button
+            onClick={() => setShowColaDia(true)}
+            style={{
+              padding: isMobile ? "7px 10px" : "7px 12px",
+              background: "rgba(244,80,30,0.10)",
+              color: roleTheme.primary,
+              border: "1px solid rgba(244,80,30,0.25)",
+              borderRadius: 9,
+              cursor: "pointer",
+              fontSize: 12.5,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              whiteSpace: "nowrap",
+              minHeight: 33,
+            }}
+          >
+            <span>💈</span>
+            {!isMobile && "Cola del día"}
+          </button>
+          <button
+            onClick={() => setShowReservaGrupo(true)}
+            style={{
+              padding: isMobile ? "7px 10px" : "7px 12px",
+              background: "rgba(124,58,237,0.10)",
+              color: "#7c3aed",
+              border: "1px solid rgba(124,58,237,0.25)",
+              borderRadius: 9,
+              cursor: "pointer",
+              fontSize: 12.5,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              whiteSpace: "nowrap",
+              minHeight: 33,
+            }}
+          >
+            <span>👰</span>
+            {!isMobile && "Grupo / Boda"}
+          </button>
+          <button
             className="m-btn-primary"
             onClick={() => {
               setNewCitaPrefill(null);
@@ -5522,6 +5568,85 @@ export default function AgendaCalendar() {
           prefillNotas={newCitaPrefill?.notas}
           prefillWaitlistId={newCitaPrefill?.waitlistId}
           prefillReposoContext={newCitaPrefill?.reposoContext}
+        />
+      )}
+
+      {showColaDia && (
+        <div
+          onClick={() => setShowColaDia(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.60)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: 700,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              borderRadius: 16,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: -32,
+                paddingRight: 10,
+                position: "relative",
+                zIndex: 10,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowColaDia(false)}
+                style={{
+                  background: "rgba(0,0,0,0.25)",
+                  border: "none",
+                  borderRadius: 99,
+                  width: 28,
+                  height: 28,
+                  cursor: "pointer",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 14,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <ColaDiaPanel
+              negocioId={negocioId!}
+              profesionales={profesionales}
+              servicios={servicios}
+              onCobrar={() => {
+                setShowColaDia(false);
+                router.push("/(tabs)/caja" as never);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {showReservaGrupo && (
+        <ReservaGrupoModal
+          negocioId={negocioId!}
+          profesionales={profesionales}
+          servicios={servicios}
+          clientes={clientes}
+          selectedDate={selectedDateObj}
+          onClose={() => setShowReservaGrupo(false)}
+          onSaved={() => {
+            setShowReservaGrupo(false);
+          }}
         />
       )}
 

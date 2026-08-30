@@ -65,12 +65,17 @@ export const PLANES_CONTRATABLES: readonly Plan[] = ['esencial', 'estudio'];
 // 'caducada' = se acabo la prueba sin contratar.
 export type EstadoSuscripcion =
   | 'prueba' | 'activa' | 'pago_pendiente' | 'impagada'
-  | 'cancelada' | 'pausada' | 'caducada';
+  | 'cancelada' | 'pausada' | 'caducada' | 'exenta';
 
 // ¿Este estado da acceso al producto? Un impago no corta al instante: Stripe
-// reintenta varios dias y periodo_fin hace de margen.
+// reintenta varios dias y periodo_fin hace de margen. 'exenta' = salones internos/cortesia.
 export function tieneAcceso(estado: string | null | undefined): boolean {
-  return estado === 'prueba' || estado === 'activa' || estado === 'pago_pendiente';
+  return (
+    estado === 'prueba' ||
+    estado === 'activa' ||
+    estado === 'pago_pendiente' ||
+    estado === 'exenta'
+  );
 }
 
 // Addon de IA contratado (profiles.ia_nivel), ortogonal al plan de software.

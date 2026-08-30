@@ -1161,6 +1161,68 @@ export default function EquipoWeb() {
               </div>
             </Section>
 
+            {/* Spec 11: Liquidación de comisiones del mes */}
+            {profSel.comision_pct != null && profSel.comision_pct > 0 && (
+              <Section title="Liquidación de comisiones">
+                <div
+                  style={{
+                    background: TOKENS.bgCard,
+                    border: `1px solid ${TOKENS.border}`,
+                    borderRadius: 12,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>
+                      Comisiones devengadas: {profSel.comisionesDevengadas ?? 0} € ({profSel.comision_pct}%)
+                    </div>
+                    <div style={{ fontSize: 11.5, color: TOKENS.textSec, marginTop: 2 }}>
+                      Cierra y congela el cálculo devengado para este periodo contable.
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`¿Confirmas liquidar ${profSel.comisionesDevengadas ?? 0} € de comisiones para ${profSel.nombre}?`)) return;
+                      try {
+                        const now = new Date();
+                        const inicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                        const fin = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                        const { error } = await supabase.rpc('liquidar_comision_periodo', {
+                          p_profesional_id: profSel.id,
+                          p_periodo_inicio: inicio,
+                          p_periodo_fin: fin,
+                          p_metodo_pago: 'transferencia',
+                        });
+                        if (error) throw error;
+                        alert('Liquidación registrada con éxito.');
+                      } catch (err: any) {
+                        alert(mensajeDeError(err, 'No se pudo liquidar la comisión.'));
+                      }
+                    }}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: 9,
+                      background: 'rgba(245,158,11,0.12)',
+                      color: '#b45309',
+                      border: '1px solid rgba(245,158,11,0.30)',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    🏛️ Liquidar mes
+                  </button>
+                </div>
+              </Section>
+            )}
+
             {/* Registro de jornada de esta persona: entra en la vista de Control
                 horario ya filtrada por ella. */}
             <Section title="Registro de jornada">

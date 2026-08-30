@@ -863,6 +863,14 @@ Deno.serve(async (req) => {
       return json({ error: 'Chispa es el addon de IA por WhatsApp. Actívalo para usarla.', codigo: 'addon_ia_insuficiente' }, 402);
     }
 
+    // Gate de suscripción: salones con prueba caducada o suscripción cancelada no pueden consumir IA
+    if (negocioId !== 'demo_salon_001') {
+      const { data: tieneAccesoRow } = await svc.rpc('negocio_con_acceso', { p_negocio_id: negocioId });
+      if (tieneAccesoRow === false) {
+        return json({ error: 'La suscripción de este salón no está activa.', codigo: 'suscripcion_inactiva' }, 402);
+      }
+    }
+
     // --- Config del negocio ---
     const { data: cfgRow } = await svc
       .from('negocio_config')
