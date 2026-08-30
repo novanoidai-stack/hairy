@@ -126,6 +126,10 @@ test.describe('Agenda (demo) — caracterizacion', () => {
     // pruebas existen para no tener. Se fija a las 12:00 del dia de hoy: dentro
     // del horario, y con los datos que la demo siembra para hoy.
     const mediodia = new Date();
+    if (mediodia.getDay() === 0) {
+      // Domingo: el salon demo cierra y la agenda abre en lunes (ver saltoDemoHecho en AgendaCalendar).
+      mediodia.setDate(mediodia.getDate() + 1);
+    }
     mediodia.setHours(12, 0, 0, 0);
     await page.clock.setFixedTime(mediodia);
 
