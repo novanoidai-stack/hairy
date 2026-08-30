@@ -121,7 +121,8 @@ export function ColaDiaPanel({
       if (nuevoEstado === "completado") updates.atendido_at = new Date().toISOString();
       if (nuevoEstado === "cancelado") updates.cancelado_at = new Date().toISOString();
 
-      await supabase.from("cola_dia").update(updates).eq("id", id);
+      const { error } = await supabase.from("cola_dia").update(updates).eq("id", id);
+      if (error) throw error;
       cargarCola();
     } catch (err: any) {
       console.error("Error actualizando turno:", err);
