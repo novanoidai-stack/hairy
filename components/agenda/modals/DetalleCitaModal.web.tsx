@@ -1356,6 +1356,83 @@ export function DetalleCitaModal({
     cita.formula_resultado ?? "",
   );
   const [formulaNotas, setFormulaNotas] = useState(cita.formula_notas ?? "");
+  const [cargandoFormula, setCargandoFormula] = useState(false);
+  const [formulaCopiadaMsg, setFormulaCopiadaMsg] = useState("");
+
+  const handleRepetirUltimaFormula = async () => {
+    if (!cita.cliente_id) return;
+    try {
+      setCargandoFormula(true);
+      setFormulaCopiadaMsg("");
+      const { data: ultimasCitas } = await supabase
+        .from("citas")
+        .select(
+          "formula_producto, formula_tono, formula_tiempo_min, formula_notas, formula_resultado",
+        )
+        .eq("cliente_id", cita.cliente_id)
+        .neq("id", cita.id)
+        .order("inicio", { ascending: false })
+        .limit(5);
+
+      const citaConFormula = (ultimasCitas || []).find(
+        (c) => c.formula_producto || c.formula_tono,
+      );
+
+      if (citaConFormula) {
+        if (citaConFormula.formula_producto)
+          setFormulaProducto(citaConFormula.formula_producto);
+        if (citaConFormula.formula_tono)
+          setFormulaTono(citaConFormula.formula_tono);
+        if (citaConFormula.formula_tiempo_min != null)
+          setFormulaTiempo(String(citaConFormula.formula_tiempo_min));
+        if (citaConFormula.formula_notas)
+          setFormulaNotas(citaConFormula.formula_notas);
+        if (citaConFormula.formula_resultado)
+          setFormulaResultado(citaConFormula.formula_resultado);
+        setFormulaCopiadaMsg("✓ Fórmula anterior cargada");
+        setShowFormula(true);
+        setTimeout(() => setFormulaCopiadaMsg(""), 3500);
+        return;
+      }
+
+      const { data: fichas } = await supabase
+        .from("fichas_tecnicas_color")
+        .select(
+          "marca_producto, oxidante_volumen, formula, notas, tiempo_exposicion_min",
+        )
+        .eq("cliente_id", cita.cliente_id)
+        .order("fecha", { ascending: false })
+        .limit(1);
+
+      if (fichas && fichas.length > 0) {
+        const f = fichas[0];
+        if (f.marca_producto) setFormulaProducto(f.marca_producto);
+        let tonoStr = "";
+        if (Array.isArray(f.formula)) {
+          tonoStr = f.formula
+            .map((it: any) => `${it.gramos || ""}g ${it.numero || it.tono || ""}`)
+            .filter(Boolean)
+            .join(" + ");
+        }
+        if (f.oxidante_volumen)
+          tonoStr += (tonoStr ? " + " : "") + `${f.oxidante_volumen} vol`;
+        if (tonoStr) setFormulaTono(tonoStr);
+        if (f.tiempo_exposicion_min)
+          setFormulaTiempo(String(f.tiempo_exposicion_min));
+        if (f.notas) setFormulaNotas(f.notas);
+        setFormulaCopiadaMsg("✓ Fórmula de ficha técnica cargada");
+        setShowFormula(true);
+        setTimeout(() => setFormulaCopiadaMsg(""), 3500);
+      } else {
+        setFormulaCopiadaMsg("No hay fórmulas previas para esta clienta");
+        setTimeout(() => setFormulaCopiadaMsg(""), 3500);
+      }
+    } catch (err) {
+      console.error("Error cargando última fórmula:", err);
+    } finally {
+      setCargandoFormula(false);
+    }
+  };
 
   const totalMin = activo + espera + activo2;
   const citaDate = new Date(cita.inicio).toLocaleDateString(LOCALE, {
@@ -5412,6 +5489,55 @@ export function DetalleCitaModal({
                           marginTop: 12,
                         }}
                       >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 8,
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={handleRepetirUltimaFormula}
+                            disabled={cargandoFormula}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 5,
+                              padding: "5px 11px",
+                              borderRadius: 8,
+                              background: "rgba(244,80,30,0.10)",
+                              color: TOKENS.primary,
+                              border: "1px solid rgba(244,80,30,0.25)",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <span>🔄</span>
+                            <span>
+                              {cargandoFormula
+                                ? "Buscando..."
+                                : "Repetir última fórmula"}
+                            </span>
+                          </button>
+
+                          {formulaCopiadaMsg && (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: formulaCopiadaMsg.startsWith("✓")
+                                  ? "#059669"
+                                  : TOKENS.textSec,
+                              }}
+                            >
+                              {formulaCopiadaMsg}
+                            </span>
+                          )}
+                        </div>
+
                         <FormulaInput
                           label="Producto"
                           value={formulaProducto}

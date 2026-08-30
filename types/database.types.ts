@@ -5186,6 +5186,74 @@ export type Database = {
           },
         ]
       }
+      pruebas_alergia: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          negocio_id: string
+          nota: string | null
+          producto_id: string | null
+          profesional_id: string | null
+          realizada_at: string | null
+          resultado: string | null
+          solicitada_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          negocio_id: string
+          nota?: string | null
+          producto_id?: string | null
+          profesional_id?: string | null
+          realizada_at?: string | null
+          resultado?: string | null
+          solicitada_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          negocio_id?: string
+          nota?: string | null
+          producto_id?: string | null
+          profesional_id?: string | null
+          realizada_at?: string | null
+          resultado?: string | null
+          solicitada_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pruebas_alergia_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pruebas_alergia_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pruebas_alergia_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos_con_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pruebas_alergia_profesional_id_fkey"
+            columns: ["profesional_id"]
+            isOneToOne: false
+            referencedRelation: "profesionales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_hits: {
         Row: {
           clave: string
@@ -6897,6 +6965,15 @@ export type Database = {
       agenda_briefing: { Args: { p_scope?: string }; Returns: Json }
       agenda_briefing_operativa: {
         Args: { p_negocio: string; p_prof?: string; p_scope?: string }
+        Returns: Json
+      }
+      agendar_prueba_alergia_48h: {
+        Args: {
+          p_cliente_id: string
+          p_inicio_color: string
+          p_nota?: string
+          p_profesional_id?: string
+        }
         Returns: Json
       }
       anonimizar_cliente: { Args: { p_cliente_id: string }; Returns: Json }
