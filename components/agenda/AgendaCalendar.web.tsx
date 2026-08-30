@@ -863,7 +863,7 @@ export default function AgendaCalendar() {
                   // cobrada/cobro_id son imprescindibles: sin ellos el detalle de
                   // la cita no sabe que ya se cobro y ofrece cobrarla otra vez
                   // hasta que se refresca a mano.
-                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id, cobrada, cobro_id",
+                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id, cobrada, cobro_id, cita_fases(id, orden, tipo, inicio, fin, profesional_id, recurso_tipo, etiqueta, iniciada_at, cerrada_at)",
                 )
                 .eq("negocio_id", negocioId);
               // Las canceladas se ocultan por defecto (es lo que quiere ver el

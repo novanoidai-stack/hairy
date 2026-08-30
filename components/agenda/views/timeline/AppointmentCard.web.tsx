@@ -505,6 +505,54 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
     </span>
   ) : null;
 
+  // Spec 4: Reloj de reposo en vivo (detección de temporizador de cabina)
+  const fasesLista = (cita.cita_fases || cita.fases || []) as any[];
+  const faseReposoEnCurso = fasesLista.find(
+    (f) => f.tipo === "reposo" && f.iniciada_at && !f.cerrada_at,
+  );
+  const planReposoMs = faseReposoEnCurso
+    ? new Date(faseReposoEnCurso.fin).getTime() -
+      new Date(faseReposoEnCurso.inicio).getTime()
+    : 0;
+  const elapsedReposoMs = faseReposoEnCurso
+    ? nowTick - new Date(faseReposoEnCurso.iniciada_at).getTime()
+    : 0;
+  const remainReposoMin = faseReposoEnCurso
+    ? Math.round((planReposoMs - elapsedReposoMs) / 60000)
+    : 0;
+  const reposoPasado = faseReposoEnCurso && remainReposoMin < 0;
+
+  const relojReposoChip = faseReposoEnCurso ? (
+    <span
+      title={
+        reposoPasado
+          ? `¡Tinte pasado de tiempo por ${Math.abs(remainReposoMin)} minutos!`
+          : `Reposo en cabina: ${remainReposoMin}′ restantes`
+      }
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 2,
+        padding: "1.5px 6px",
+        borderRadius: 999,
+        background: reposoPasado
+          ? "rgba(239,68,68,0.22)"
+          : "rgba(245,158,11,0.20)",
+        color: reposoPasado ? "#dc2626" : "#b45309",
+        fontSize: 9,
+        fontWeight: 800,
+        border: reposoPasado
+          ? "1px solid rgba(239,68,68,0.50)"
+          : "1px solid rgba(245,158,11,0.40)",
+        animation: reposoPasado ? "pulse 1s infinite" : "none",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}
+    >
+      {reposoPasado ? `⚠️ +${Math.abs(remainReposoMin)}′` : `⏱️ ${remainReposoMin}′`}
+    </span>
+  ) : null;
+
   return (
     <div
       key={cita.id}
@@ -592,9 +640,110 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         />
       )}
 
-      {hasEspera &&
-        !cancelada &&
+      {!cancelada &&
         (() => {
+          const fasesList = (cita.cita_fases || cita.fases || []) as any[];
+          const repososList = fasesList.filter((f) => f.tipo === "reposo");
+          const msToPx = (ms: number) => (ms / 3600000) * ROW_H;
+
+          // Si hay fases estructuradas (Spec 1: múltiples reposos)
+          if (repososList.length > 0) {
+            return (
+              <>
+                {repososList.map((rep, rIdx) => {
+                  const rIniMs = new Date(rep.inicio).getTime();
+                  const rFinMs = new Date(rep.fin).getTime();
+                  const rTopPx = msToPx(rIniMs - start.getTime());
+                  const rHeightPx = msToPx(rFinMs - rIniMs);
+                  if (rHeightPx <= 2) return null;
+
+                  const ocupados = profCitas
+                    .filter(
+                      (c: any) =>
+                        c._hostId === cita.id &&
+                        c.estado !== CITA_STATUS.CANCELADA,
+                    )
+                    .map(
+                      (c: any) =>
+                        [
+                          new Date(c.inicio).getTime(),
+                          new Date(c.fin).getTime(),
+                        ] as [number, number],
+                    )
+                    .sort(
+                      (a: [number, number], b: [number, number]) =>
+                        a[0] - b[0],
+                    );
+                  const libres: [number, number][] = [];
+                  let cursor = rIniMs;
+                  for (const [ini, fin] of ocupados) {
+                    if (ini > cursor)
+                      libres.push([cursor, Math.min(ini, rFinMs)]);
+                    cursor = Math.max(cursor, fin);
+                  }
+                  if (cursor < rFinMs) libres.push([cursor, rFinMs]);
+
+                  return (
+                    <div
+                      key={`reposo_${rIdx}_${rep.id || rIdx}`}
+                      title={`Reposo (${rep.etiqueta || "Técnico"}): el producto actúa solo y el profesional queda libre`}
+                      style={{
+                        position: "absolute",
+                        top: rTopPx,
+                        left: 0,
+                        right: 0,
+                        height: rHeightPx,
+                        pointerEvents: "auto",
+                        zIndex: 4,
+                        background:
+                          "repeating-linear-gradient(135deg, rgba(115,102,88,0.13) 0px, rgba(115,102,88,0.13) 5px, rgba(255,253,251,0.60) 5px, rgba(255,253,251,0.60) 11px)",
+                        borderTop: "1.5px dashed rgba(115,102,88,0.40)",
+                        borderBottom: "1.5px dashed rgba(115,102,88,0.40)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {libres.map(([ini, fin], i) => {
+                        const gapMin = Math.round((fin - ini) / 60000);
+                        if (gapMin < 5) return null;
+                        const gapTop = msToPx(ini - rIniMs);
+                        const gapH = msToPx(fin - ini);
+                        return (
+                          <ReposoFreeGapInteractive
+                            key={i}
+                            ini={ini}
+                            fin={fin}
+                            gapMin={gapMin}
+                            gapTop={gapTop}
+                            gapH={gapH}
+                            cita={cita}
+                            clienteMap={clienteMap}
+                            servicioMap={servicioMap}
+                            dragging={isDragging}
+                            onSelectReposo={({
+                              horaStr,
+                              profId,
+                              reposoContext,
+                            }) => {
+                              if (onCreateSlot) {
+                                onCreateSlot({
+                                  hora: horaStr,
+                                  profId,
+                                  reposoContext,
+                                });
+                              }
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </>
+            );
+          }
+
+          // Fallback clásico cuando no hay lista explícita de cita_fases
+          if (!hasEspera) return null;
           const reposoIniMs = finActiva!.getTime();
           const reposoFinMs = finEspera!.getTime();
           const hayActiva2 = !(finEspera && finEspera < end);
@@ -618,7 +767,6 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
             cursor = Math.max(cursor, fin);
           }
           if (cursor < reposoFinMs) libres.push([cursor, reposoFinMs]);
-          const msToPx = (ms: number) => (ms / 3600000) * ROW_H;
           return (
             <div
               title="Reposo: el producto actua solo y el profesional queda libre"
@@ -630,9 +778,6 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                 height: esperaPx,
                 pointerEvents: "auto",
                 zIndex: 4,
-                // Canal 3: las fases son ESTRUCTURA, no estado. Rayado neutro
-                // calido; el verde se reserva para el hueco aprovechable, que
-                // si es una accion.
                 background:
                   "repeating-linear-gradient(135deg, rgba(115,102,88,0.13) 0px, rgba(115,102,88,0.13) 5px, rgba(255,253,251,0.60) 5px, rgba(255,253,251,0.60) 11px)",
                 borderTop: "1.5px dashed rgba(115,102,88,0.40)",
@@ -867,6 +1012,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                 }}
               >
                 {chipEstado}
+                {relojReposoChip}
                 {stylistAvatar}
                 {propuesta && !cancelada && (
                   <span

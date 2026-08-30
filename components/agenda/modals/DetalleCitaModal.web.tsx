@@ -41,6 +41,7 @@ import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
 import { CobroSheet } from "@/components/pos/CobroSheet";
 import { FichaColorModal } from "@/app/(tabs)/clientes.web";
 import RetrasoEstrategiasModal from "../RetrasoEstrategiasModal";
+import { FasesCitaPanel } from "../FasesCitaPanel.web";
 import ListaEsperaPropuestaModal, {
   type CandidataListaEspera,
   type CitaOrigen,
@@ -2763,6 +2764,12 @@ export function DetalleCitaModal({
               </button>
             </div>
           </div>
+
+          <FasesCitaPanel
+            cita={cita}
+            onFasesUpdated={triggerRefresh}
+            isMobileOrTablet={isMobileOrTablet}
+          />
 
           {/* Citas ENCAJADAS en el reposo de esta cita: al abrir el host se ve que hay
             otra(s) cita(s) aprovechando su tiempo muerto (feedback Jose). */}

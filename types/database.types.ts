@@ -734,6 +734,69 @@ export type Database = {
           },
         ]
       }
+      cita_fases: {
+        Row: {
+          cerrada_at: string | null
+          cita_id: string
+          created_at: string
+          etiqueta: string | null
+          fin: string
+          id: string
+          iniciada_at: string | null
+          inicio: string
+          negocio_id: string
+          orden: number
+          profesional_id: string | null
+          recurso_tipo: string | null
+          tipo: string
+        }
+        Insert: {
+          cerrada_at?: string | null
+          cita_id: string
+          created_at?: string
+          etiqueta?: string | null
+          fin: string
+          id?: string
+          iniciada_at?: string | null
+          inicio: string
+          negocio_id: string
+          orden: number
+          profesional_id?: string | null
+          recurso_tipo?: string | null
+          tipo: string
+        }
+        Update: {
+          cerrada_at?: string | null
+          cita_id?: string
+          created_at?: string
+          etiqueta?: string | null
+          fin?: string
+          id?: string
+          iniciada_at?: string | null
+          inicio?: string
+          negocio_id?: string
+          orden?: number
+          profesional_id?: string | null
+          recurso_tipo?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cita_fases_cita_id_fkey"
+            columns: ["cita_id"]
+            isOneToOne: false
+            referencedRelation: "citas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cita_fases_profesional_id_fkey"
+            columns: ["profesional_id"]
+            isOneToOne: false
+            referencedRelation: "profesionales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cita_pago_enlaces: {
         Row: {
           cita_id: string
@@ -7441,6 +7504,10 @@ export type Database = {
         }
         Returns: Json
       }
+      finalizar_fase_reposo: {
+        Args: { p_cita_id: string; p_orden?: number }
+        Returns: Json
+      }
       fusionar_clientes: {
         Args: { p_duplicado: string; p_maestro: string }
         Returns: Json
@@ -7595,6 +7662,10 @@ export type Database = {
           p_descuento_cents?: number
           p_propina_cents?: number
         }
+        Returns: Json
+      }
+      iniciar_fase_reposo: {
+        Args: { p_cita_id: string; p_orden?: number }
         Returns: Json
       }
       iniciar_liberacion_hold: {
