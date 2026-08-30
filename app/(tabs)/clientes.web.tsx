@@ -33,6 +33,9 @@ import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import { ColorTryOnModal } from '@/components/clientes/ColorTryOnModal.web';
 import { InstagramPostModal } from '@/components/clientes/InstagramPostModal.web';
+import { evaluarSeguridadFormula } from '@/lib/fichas/colorAlergias';
+import { evaluarPruebaMechon, type PruebaMechon } from '@/lib/fichas/diagnosticoCapilar';
+import { recomendarProductosHomecare } from '@/lib/fichas/recomendarHomecare';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { traerAlFoco } from '@/lib/demoScroll';
 
@@ -2197,13 +2200,46 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
     bano_color: 'Bano de color', correccion_color: 'Correccion', color_fantasia: 'Color fantasia', otro: 'Otro',
   };
 
+  const [showDiagnostico, setShowDiagnostico] = useState(false);
+  const [porosidad, setPorosidad] = useState<'baja' | 'media' | 'alta'>('media');
+  const [elasticidad, setElasticidad] = useState<'excelente' | 'normal' | 'fragil' | 'quebradizo'>('normal');
+  const [tonosAclarar, setTonosAclarar] = useState(2);
+  const [historialDeco, setHistorialDeco] = useState(false);
+
+  const diagnosticoMechon = useMemo(() => {
+    return evaluarPruebaMechon({
+      clienteId: cliente.id,
+      porosidad,
+      elasticidad,
+      historialDecoloracion: historialDeco,
+      tonosAclaradosDeseados: tonosAclarar,
+    });
+  }, [cliente.id, porosidad, elasticidad, historialDeco, tonosAclarar]);
+
+  const homecareRecomendado = useMemo(() => {
+    return recomendarProductosHomecare({
+      clienteId: cliente.id,
+      porosidad,
+      elasticidad,
+      servicioRealizado: 'Color / Decoloración',
+    });
+  }, [cliente.id, porosidad, elasticidad]);
+
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
         <div style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>
           {totalFormulas} {totalFormulas === 1 ? 'formula' : 'formulas'} registrada{totalFormulas === 1 ? '' : 's'}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="m-btn-secondary"
+            onClick={() => setShowDiagnostico(!showDiagnostico)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', background: showDiagnostico ? 'rgba(192,38,10,0.1)' : TOKENS.bgCard, border: `1px solid ${showDiagnostico ? TOKENS.violet : TOKENS.border}`, color: showDiagnostico ? TOKENS.violet : TOKENS.text, borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
+          >
+            🔬 Diagnóstico Capilar
+          </button>
+
           <button
             className="m-btn-secondary"
             onClick={() => setShowTryOn(true)}
@@ -2223,6 +2259,109 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
           </button>
         </div>
       </div>
+
+      {/* Panel interactivo de Diagnóstico Capilar y Mechón */}
+      {showDiagnostico && (
+        <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 14, padding: 16, marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 16 }}>🔬</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>Diagnóstico de Porosidad y Prueba de Mechón</span>
+            </div>
+            <span style={{
+              fontSize: 10,
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: 6,
+              background: diagnosticoMechon.aptoParaDecolorar ? TOKENS.successSoft : TOKENS.dangerSoft,
+              color: diagnosticoMechon.aptoParaDecolorar ? TOKENS.success : TOKENS.danger,
+              textTransform: 'uppercase',
+            }}>
+              {diagnosticoMechon.aptoParaDecolorar ? 'Apto para servicio' : 'Decoloración No Recomendada'}
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4 }}>POROSIDAD</div>
+              <select
+                value={porosidad}
+                onChange={e => setPorosidad(e.target.value as any)}
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCardHi, color: TOKENS.text, fontSize: 12 }}
+              >
+                <option value="baja">Baja (cerrada)</option>
+                <option value="media">Media (normal)</option>
+                <option value="alta">Alta (dañada/abierta)</option>
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4 }}>ELASTICIDAD</div>
+              <select
+                value={elasticidad}
+                onChange={e => setElasticidad(e.target.value as any)}
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCardHi, color: TOKENS.text, fontSize: 12 }}
+              >
+                <option value="excelente">Excelente</option>
+                <option value="normal">Normal</option>
+                <option value="fragil">Frágil</option>
+                <option value="quebradizo">Quebradizo</option>
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4 }}>TONOS A ACLARAR</div>
+              <input
+                type="number"
+                min={1}
+                max={8}
+                value={tonosAclarar}
+                onChange={e => setTonosAclarar(parseInt(e.target.value, 10) || 1)}
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCardHi, color: TOKENS.text, fontSize: 12 }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: TOKENS.textSec, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={historialDeco}
+                  onChange={e => setHistorialDeco(e.target.checked)}
+                />
+                Decoloración previa
+              </label>
+            </div>
+          </div>
+
+          {/* Advertencias y Tratamiento */}
+          <div style={{ padding: '10px 12px', borderRadius: 10, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.text }}>
+              Tratamiento técnico sugerido: <span style={{ color: TOKENS.violet }}>{diagnosticoMechon.tratamientoRecomendado}</span>
+            </div>
+            {diagnosticoMechon.advertencias.map((adv: string, i: number) => (
+              <div key={i} style={{ fontSize: 11, color: TOKENS.danger, marginTop: 3 }}>
+                • {adv}
+              </div>
+            ))}
+          </div>
+
+          {/* Recomendación de Homecare */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', marginBottom: 6 }}>
+              Prescripción de Homecare (para casa)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+              {homecareRecomendado.map(prod => (
+                <div key={prod.id} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, background: TOKENS.bg }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: TOKENS.text }}>{prod.nombre}</div>
+                  <div style={{ fontSize: 10.5, color: TOKENS.textSec, marginTop: 2 }}>{prod.razon}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primaryHi, marginTop: 4 }}>{prod.precioSugerido.toFixed(2)} €</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {totalFormulas === 0 ? (
         <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 18, textAlign: 'center' }}>
@@ -2354,6 +2493,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
           mode={editingFicha ? 'edit' : 'add'}
           ficha={editingFicha}
           clienteId={cliente.id}
+          cliente={cliente}
           negocioId={negocioId}
           citasCliente={clientCitas}
           servicios={servicios}
@@ -2375,10 +2515,11 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
   );
 }
 
-export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, servicios, profesionales, onClose, onSaved, onGoToNotas }: {
+export function FichaColorModal({ mode, ficha, clienteId, cliente, negocioId, citasCliente, servicios, profesionales, onClose, onSaved, onGoToNotas }: {
   mode: 'add' | 'edit';
   ficha: any | null;
   clienteId: string;
+  cliente?: Cliente;
   negocioId: string;
   citasCliente: Cita[];
   servicios: any[];
@@ -2416,6 +2557,27 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
   const [citaId, setCitaId] = useState(ficha?.cita_id ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const diagnosticoSeguridad = useMemo(() => {
+    const alergiasList = cliente?.alergias
+      ? cliente.alergias.split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean)
+      : [];
+    const oxNum = parseInt(oxidanteVol, 10) || 0;
+    const tNum = parseInt(tiempoExp, 10) || 0;
+    const tonoStr = formulaEntries.map(f => f.numero).filter(Boolean).join(' + ') || 'Color';
+
+    return evaluarSeguridadFormula({
+      clienteId,
+      fecha: new Date().toISOString(),
+      profesionalId: profesionalId || '',
+      marcaProducto: marcaProducto || '',
+      tono: tonoStr,
+      volumenesOxigenada: oxNum,
+      tiempoExposicionMin: tNum,
+      sensibilidadCueroCabelludo: alergiasList.some((a: string) => /cuero|sensib|dermat|pico/i.test(a)),
+      alergiasRegistradas: alergiasList,
+    });
+  }, [clienteId, profesionalId, marcaProducto, formulaEntries, oxidanteVol, tiempoExp, cliente?.alergias]);
 
   const { estado: estadoVoz, errorVoz, iniciarEscucha, detenerEscucha, transcripcionParcial } = useChispaVoz();
   const [dictadoWarn, setDictadoWarn] = useState('');
@@ -2565,7 +2727,37 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
           </button>
         )}
 
-
+        {diagnosticoSeguridad.alertas.length > 0 && (
+          <div style={{
+            marginBottom: 14,
+            padding: '12px 14px',
+            borderRadius: 12,
+            backgroundColor: diagnosticoSeguridad.requierePruebaAlergia ? 'rgba(226,59,52,0.08)' : 'rgba(224,138,0,0.08)',
+            border: `1px solid ${diagnosticoSeguridad.requierePruebaAlergia ? 'rgba(226,59,52,0.25)' : 'rgba(224,138,0,0.25)'}`,
+          }}>
+            <div style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: diagnosticoSeguridad.requierePruebaAlergia ? TOKENS.danger : TOKENS.warning,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              marginBottom: 4,
+            }}>
+              <span>⚠️</span>
+              <span>
+                {diagnosticoSeguridad.requierePruebaAlergia
+                  ? 'Prueba de alergia 48h requerida (Reglamento CE 1223/2009)'
+                  : 'Avisos de seguridad técnica'}
+              </span>
+            </div>
+            {diagnosticoSeguridad.alertas.map((al: string, idx: number) => (
+              <div key={idx} style={{ fontSize: 11.5, color: TOKENS.textSec, lineHeight: 1.4, marginTop: 2 }}>
+                • {al}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Form wrapper - disabled when locked */}
         <div style={{ pointerEvents: isLocked ? 'none' : 'auto', opacity: isLocked ? 0.6 : 1 }}>

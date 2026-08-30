@@ -9,6 +9,7 @@ import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConce
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { ModalImportarTarifasIA } from '@/components/config/ModalImportarTarifasIA';
+import { ModalTecnificarCatalogo } from '@/components/config/ModalTecnificarCatalogo';
 import { TabVoz } from '@/components/config/TabVoz.web';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import { TabRecursos } from '@/components/config/TabRecursos.web';
@@ -644,6 +645,7 @@ export default function ConfiguracionWeb() {
   const [categorias, setCategorias] = useState<CategoriaServicio[]>([]);
   const [showCategoriasModal, setShowCategoriasModal] = useState(false);
   const [modalImportarTarifasOpen, setModalImportarTarifasOpen] = useState(false);
+  const [modalTecnificarOpen, setModalTecnificarOpen] = useState(false);
 
   const recargarServicios = useCallback(async () => {
     if (!negocioId) return;
@@ -1569,6 +1571,7 @@ export default function ConfiguracionWeb() {
                 categorias={categorias} isOwnerUser={isOwnerUser}
                 onManageCategorias={() => setShowCategoriasModal(true)}
                 onOpenImportarIA={() => setTab('migracion_magica')}
+                onOpenTecnificarIA={() => setModalTecnificarOpen(true)}
                 onEdit={setEdit} onToggle={handleToggleServicio}
                 onMoveCategory={handleMoveCategory}
                 onDelete={handleDeleteService} onSaveOverride={handleSaveOverride}
@@ -1648,6 +1651,13 @@ export default function ConfiguracionWeb() {
         isOpen={modalImportarTarifasOpen}
         onClose={() => setModalImportarTarifasOpen(false)}
         onImportComplete={recargarServicios}
+      />
+      <ModalTecnificarCatalogo
+        isOpen={modalTecnificarOpen}
+        negocioId={negocioId}
+        servicios={services}
+        onClose={() => setModalTecnificarOpen(false)}
+        onApplied={recargarServicios}
       />
       <DemoSpotlight
         targetRef={demoTargetRef}
@@ -3187,7 +3197,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
 
 // En movil la fila de servicio pasa de grid de 5 columnas con 410px fijos
 // (que dejaba el NOMBRE a ancho 0) a dos lineas: nombre + datos.
-function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onOpenImportarIA, onEdit, onToggle, onMoveCategory, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
+function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onOpenImportarIA, onOpenTecnificarIA, onEdit, onToggle, onMoveCategory, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
   services: Servicio[]; profesionales: any[];
   profId: string | null; setProfId: (id: string | null) => void;
   allOverrides: Override[]; getOverride: (sid: string) => Override | undefined;
@@ -3197,6 +3207,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   catPricing: Record<string, Record<string, number>>;
   categorias: CategoriaServicio[]; isOwnerUser: boolean; onManageCategorias: () => void;
   onOpenImportarIA?: () => void;
+  onOpenTecnificarIA?: () => void;
   onEdit: (s: Servicio) => void; onToggle: (s: Servicio) => void;
   onMoveCategory: (servicioId: string, categoriaId: string | null) => Promise<void>;
   onDelete: (id: string) => void;
@@ -3215,6 +3226,10 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
     const q = search.toLowerCase();
     return services.filter(s => s.nombre.toLowerCase().includes(q) || (s.categoria_id && categoriaNombrePorId.get(s.categoria_id)?.includes(q)));
   }, [services, search, categoriaNombrePorId]);
+
+  const sinReposoCount = useMemo(() => {
+    return services.filter(s => s.activo !== false && (!s.duracion_espera_min || s.duracion_espera_min <= 0)).length;
+  }, [services]);
 
   // Separamos los servicios puntuales (creados al vuelo desde una cita) en su
   // propio grupo, para que no ensucien las categorias normales del catalogo.
@@ -3256,6 +3271,11 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                 Gestionar categorias
               </Btn>
             )}
+            {onOpenTecnificarIA && (
+              <Btn variant="soft" size="md" icon="flash" onClick={onOpenTecnificarIA}>
+                ⚡ Técnificar Catálogo
+              </Btn>
+            )}
             {onOpenImportarIA && (
               <button
                 onClick={onOpenImportarIA}
@@ -3287,6 +3307,39 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
           </div>
         )}
       </div>
+
+      {/* Banner de Técnificación inteligente si hay servicios sin reposo */}
+      {sinReposoCount > 0 && !profId && onOpenTecnificarIA && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+            padding: '12px 16px',
+            borderRadius: 14,
+            marginBottom: 16,
+            background: 'linear-gradient(135deg, rgba(244,80,30,0.08) 0%, rgba(255,112,67,0.03) 100%)',
+            border: '1px solid rgba(244,80,30,0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ fontSize: 20 }}>⚡</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+                {sinReposoCount} servicio{sinReposoCount > 1 ? 's' : ''} sin tiempos de reposo configurados
+              </div>
+              <div style={{ fontSize: 11.5, color: T.textSecondary, marginTop: 2 }}>
+                Declara la química de color y tiempos de espera para doblar citas y aprovechar huecos muertos.
+              </div>
+            </div>
+          </div>
+          <Btn variant="primary" size="sm" icon="flash" onClick={onOpenTecnificarIA}>
+            Técnificar con IA
+          </Btn>
+        </div>
+      )}
 
       {/* Scope selector */}
       {profesionales.length > 0 && (

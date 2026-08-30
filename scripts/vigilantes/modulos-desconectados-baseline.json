@@ -29,10 +29,6 @@
     "lib/fidelizacion/insigniasCliente.ts": "DUPLICA. logros / logros_desbloqueados / niveles_fidelizacion estan en produccion y se pintan en clientes.web.tsx. Borrar.",
     "lib/agenda/validadorFestivosTurnos.ts": "DUPLICA. cierres_negocio + el control de festivos de configuracion.web.tsx y NewCitaModal. Borrar.",
 
-    "lib/fichas/colorAlergias.ts": "SIN ENCHUFAR. Es la spec 5 (prueba de alergia 48 h). Evalua alergias declaradas, sensibilidad de cuero con 30 vol y exposicion >45 min. Reglamento 1223/2009 y seguro de RC.",
-    "lib/fichas/diagnosticoCapilar.ts": "SIN ENCHUFAR y URGENTE: la landing lo VENDE (index.html, featureList 'diagnostico capilar y recomendacion de homecare') y no hay nada mas en todo el repo que mencione 'capilar'. O se enchufa o se quita del claim.",
-    "lib/fichas/recomendarHomecare.ts": "SIN ENCHUFAR. Misma linea de la landing que el anterior, mismo problema.",
-    "lib/informes/rentabilidadSillon.ts": "SIN ENCHUFAR. Es la metrica de los 20,26 EUR/h del informe: lo que vale una hora de sillon y cuanto deja sobre la mesa el reposo vacio. Va en Informes, bloque 2.",
     "lib/agenda/desinfeccionPausas.ts": "SIN ENCHUFAR. Encaja en la spec 1 como fase 'transicion', que hoy no existe en la base de datos.",
     "lib/fiscal/huella.ts": "SIN ENCHUFAR. Calcula la huella con el formato de cadena OFICIAL de la AEAT. Se reutiliza en el bloque 1 (VeriFactu real) en vez de reescribirla.",
     "lib/nominas/liquidacionNominas.ts": "SIN ENCHUFAR. Roza la spec 11 (cerrar el ciclo de comisiones) pero no es lo mismo: comisiones != nomina. Decidir si Mecha entra en nominas antes de enchufarlo.",

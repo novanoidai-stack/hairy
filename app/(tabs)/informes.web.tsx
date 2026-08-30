@@ -30,6 +30,7 @@ import { BandaLectura } from '@/components/charts/BandaLectura.web';
 import { InfoDot } from '@/components/ui/InfoDot.web';
 import { SSelect } from '@/components/ui/SettingsAtoms';
 import { leerReparto, nombreGrano, type Granularidad } from '@/lib/informes/lecturaSerie';
+import { calcularRentabilidadSillon } from '@/lib/informes/rentabilidadSillon';
 // Mismo motor que la calculadora publica /calculadora-comisiones: una sola cuenta.
 import { calcularComisiones } from '@/lib/comisiones/motor';
 import { CUOTA_PATRONAL_PCT, DESGLOSE_CUOTA_PATRONAL, AVISO_LEGAL } from '@/lib/comisiones/parametrosLegales';
@@ -778,6 +779,30 @@ function InformesScreen() {
 
     return { porProf, porServicio, porCliente, total: totalCobrado };
   }, [cobros, cobroLineas, totalCobrado]);
+
+  // -- Rentabilidad y Ocupación por Sillón / Puesto Físico (lib/informes/rentabilidadSillon) --
+  const rentabilidadPuestos = useMemo(() => {
+    const diasEnPeriodo = Math.max(differenceInDays(hasta, desde) + 1, 1);
+    const horasHabilesPorPuesto = diasEnPeriodo * 8;
+
+    return profsActivos.map(p => {
+      const citasProf = activas.filter(c => c.profesional_id === p.id);
+      const minutosOcupados = citasProf.reduce((acc, c) => {
+        const dMin = Math.max(0, (new Date(c.fin).getTime() - new Date(c.inicio).getTime()) / 60000);
+        return acc + dMin;
+      }, 0);
+      const horasOcupadas = Math.round((minutosOcupados / 60) * 10) / 10;
+      const factTotal = (ingresosData.porProf[p.id] || 0);
+
+      return calcularRentabilidadSillon({
+        sillonId: p.id,
+        nombreSillon: `Puesto ${p.nombre}`,
+        horasDisponiblesMes: horasHabilesPorPuesto,
+        horasOcupadasMes: horasOcupadas,
+        facturacionTotalMes: factTotal,
+      });
+    });
+  }, [profsActivos, activas, desde, hasta, ingresosData.porProf]);
 
   // -- 9.6: Servicios top + combinaciones --
   const serviciosData = useMemo(() => {
@@ -2266,6 +2291,56 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   return <BarHorizontal key={p.id} pct={pct} color={TOKENS.violet} label={p.nombre} sublabel={`${Math.round(r.usedMin)}/${Math.round(r.totalMin)}min`} delay={i * 80} />;
                 })}
                 {Object.keys(reposoData.porProf).length === 0 && <div style={{ fontSize: 12, color: TOKENS.textTer, padding: 8 }}>No hay citas con tiempo de reposo en este periodo</div>}
+
+                {/* Desglose de Rendimiento por Puesto Físico */}
+                {rentabilidadPuestos.length > 0 && (
+                  <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${TOKENS.border}` }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text, marginBottom: 8 }}>
+                      Eficiencia y Rentabilidad por Puesto de Trabajo
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                      {rentabilidadPuestos.map((rp) => (
+                        <div
+                          key={rp.sillonId}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: 10,
+                            background: TOKENS.bgCardHi,
+                            border: `1px solid ${TOKENS.border}`,
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{rp.nombreSillon}</span>
+                            <span
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                padding: '1px 6px',
+                                borderRadius: 4,
+                                textTransform: 'uppercase',
+                                background: rp.nivelEficiencia === 'optimo' ? TOKENS.successSoft : rp.nivelEficiencia === 'aceptable' ? TOKENS.warningSoft : TOKENS.dangerSoft,
+                                color: rp.nivelEficiencia === 'optimo' ? TOKENS.success : rp.nivelEficiencia === 'aceptable' ? TOKENS.warning : TOKENS.danger,
+                              }}
+                            >
+                              {rp.nivelEficiencia}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: TOKENS.textSec, marginTop: 4 }}>
+                            <span>Ocupación:</span>
+                            <span style={{ fontWeight: 600, color: TOKENS.text }}>{rp.porcentajeOcupacion}%</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: TOKENS.textSec, marginTop: 2 }}>
+                            <span>Facturación / h ocupada:</span>
+                            <span style={{ fontWeight: 600, color: TOKENS.primaryHi }}>{fmtEur(rp.facturacionPorHoraOcupada)} €/h</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 10, lineHeight: 1.4 }}>
+                      💡 <i>El sector estima un coste de oportunidad de <b>20,26 €/h</b> por cada hora de reposo químico sin solapar.</i>
+                    </div>
+                  </div>
+                )}
               </SectionBody>
             </div>
 
