@@ -116,6 +116,30 @@ if (cuerpo.guardado === false) {
 const hallazgos = Array.isArray(cuerpo.hallazgos) ? cuerpo.hallazgos : [];
 for (const h of hallazgos) console.log(`[vigilancia-bd] ${String(h.nivel).toUpperCase()} ${h.titulo}`);
 
+// Informe en disco para los canales de salida (notificar.mjs / issues.mjs),
+// en el mismo formato que index.mjs --json. Sin esto, los bloqueantes de la
+// capa 2 solo vivian en el panel.
+if (process.env.VIGILANCIA_BD_INFORME) {
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(
+    process.env.VIGILANCIA_BD_INFORME,
+    JSON.stringify(
+      {
+        version: 1,
+        origen: 'bd',
+        commit: process.env.GITHUB_SHA || null,
+        rama: process.env.GITHUB_REF_NAME || null,
+        ejecutado_en: new Date().toISOString(),
+        vigilantes: [{ nombre: 'vigilancia-bd', ambito: 'base-de-datos', ms: cuerpo.duracion_ms ?? 0, ok: !(cuerpo.bloqueantes > 0), bloqueantes: cuerpo.bloqueantes ?? 0, avisos: cuerpo.avisos ?? 0 }],
+        hallazgos,
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
+}
+
 console.log(
   `\n[vigilancia-bd] ${cuerpo.bloqueantes ?? 0} bloqueante(s), ${cuerpo.avisos ?? 0} aviso(s) ` +
     `en ${cuerpo.duracion_ms ?? '?'} ms.`,

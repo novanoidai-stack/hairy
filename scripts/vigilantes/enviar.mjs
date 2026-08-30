@@ -44,6 +44,31 @@ try {
   process.exit(0);
 }
 
+// CONTRATO: todo hallazgo que se publica tiene que tener la forma que el panel
+// y los canales de salida (telegram, issues) saben leer. Un productor fuera de
+// contrato es un hallazgo que se pierde a medio camino: mejor no publicar
+// hallazgos rotos y decirlo en el log. La validacion es a proposito simple y
+// sin dependencias: clave/nivel/ambito/titulo, nivel en {bloqueante, aviso}.
+{
+  const invalidos = (informe.hallazgos ?? [])
+    .filter((h) => !h || typeof h !== 'object')
+    .map(() => 'un hallazgo no es objeto')
+    .concat(
+      (informe.hallazgos ?? [])
+        .filter((h) => h && typeof h === 'object')
+        .filter((h) => !h.clave || !h.titulo || !h.ambito || !['bloqueante', 'aviso'].includes(h.nivel))
+        .map((h) => `clave=${h.clave ?? '(sin clave)'} nivel=${h.nivel ?? '(sin nivel)'}`),
+    );
+  if (invalidos.length > 0) {
+    console.error(
+      `[vigilancia] ${destino} trae ${invalidos.length} hallazgo(s) fuera de contrato ` +
+      `(clave, nivel en {bloqueante,aviso}, ambito, titulo). No se publica un informe a medias: ` +
+      invalidos.slice(0, 5).join(' | '),
+    );
+    process.exit(0);
+  }
+}
+
 const r = await fetch(url, {
   method: 'POST',
   headers: { 'content-type': 'application/json', 'x-vigilancia-token': token },

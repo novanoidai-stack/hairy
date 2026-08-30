@@ -1,0 +1,57 @@
+name: DR mensual (backups y restauracion)
+
+# Vigilancia de continuidad: el riesgo existencial unico del negocio es la
+# base de datos, y nada la miraba. Corre el dia 1 de cada mes, y tambien se
+# puede lanzar a mano.
+#
+# El token es un access token PERSONAL (sbp_...) de la Management API, como
+# secret del repo. Nunca en el codigo (regla 9 de CLAUDE.md, misma idea que
+# con las claves de Supabase).
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dr:
+    name: Backups + PITR + recordatorio de restauracion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc0a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Vigilancia de DR
+        id: dr
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          VIGILAR_DR: '1'
+        run: node scripts/vigilantes/dr-backups.mjs --json vigilancia-dr.json
+        # continue-on-error NO: si la continuidad esta rota, el mes empieza
+        # en rojo. Los avisos (PITR de pago, prueba pendiente) no bloquean.
+
+      - name: Publicar en el panel
+        if: always() && steps.dr.conclusion != 'skipped'
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: node scripts/vigilantes/enviar.mjs vigilancia-dr.json
+
+      - name: Avisar por Telegram si hay bloqueantes
+        if: always() && steps.dr.conclusion != 'skipped'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/vigilantes/notificar.mjs vigilancia-dr.json
+
+      - name: Escalar bloqueantes a issues
+        if: always() && steps.dr.conclusion != 'skipped'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/vigilantes/issues.mjs vigilancia-dr.json

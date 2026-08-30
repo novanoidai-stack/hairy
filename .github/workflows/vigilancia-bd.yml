@@ -30,9 +30,11 @@ on:
       - '.github/workflows/vigilancia-bd.yml'
   workflow_dispatch:
 
-# Solo lectura: este workflow no escribe en el repo.
+# Los issues son la cola de trabajo de los bloqueantes que caze (issues.mjs);
+# el contenido del repo sigue siendo solo lectura para este workflow.
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: vigilancia-bd
@@ -64,4 +66,22 @@ jobs:
           VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
           VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
           VIGILANCIA_BD_URL: ${{ secrets.VIGILANCIA_BD_URL }}
+          VIGILANCIA_BD_INFORME: vigilancia-bd.json
         run: node scripts/vigilantes/pedir-bd.mjs
+
+      # Canal de salida: los bloqueantes de la capa 2 son fallos de PRODUCCION
+      # (vender_bono devolviendo 300, un trigger ciego...). Viven en el panel,
+      # pero tambien tienen que llegar al movil y a la cola de issues.
+      - name: Avisar por Telegram si hay bloqueantes
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/vigilantes/notificar.mjs vigilancia-bd.json
+
+      - name: Escalar bloqueantes a issues
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/vigilantes/issues.mjs vigilancia-bd.json

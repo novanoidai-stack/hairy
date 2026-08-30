@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write # escalar bloqueantes de vigilancia a issues (issues.mjs)
 
 jobs:
   check:
@@ -67,6 +68,25 @@ jobs:
           VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
           VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
         run: node scripts/vigilantes/enviar.mjs vigilancia.json
+
+      # Canal de salida (30 ago 2026): un hallazgo que solo vive en el panel es
+      # un hallazgo que nadie mira a las 3 de la manana. Telegram avisa de los
+      # bloqueantes; issues.mjs abre (o re-comenta) un issue por bloqueante con
+      # su clave, para que cada fallo sea una tarea con dueno y cierre visible.
+      # Si los secrets no estan definidos, ambos se saltan sin romper nada.
+      - name: Avisar por Telegram si hay bloqueantes
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/vigilantes/notificar.mjs vigilancia.json
+
+      - name: Escalar bloqueantes a issues
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/vigilantes/issues.mjs vigilancia.json
 
       - name: Guardar el informe de vigilancia
         if: always()

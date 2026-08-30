@@ -197,6 +197,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     ['vigilancia_bd_triggers_ciegos', 'triggers ciegos'],
     ['vigilancia_bd_sobrecargas_rpc', 'sobrecargas de RPC'],
     ['vigilancia_bd_escritura_critica', 'escritura critica'],
+    ['vigilancia_bd_invariantes', 'invariantes de datos'],
   ];
 
   for (const [rpc, nombre] of vigilanciaSistema) {

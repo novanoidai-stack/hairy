@@ -368,6 +368,43 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       - Peso del bundle: `scripts/vigilantes/peso-bundle.mjs` tras `build:web`
         avisa si sube >5% sobre `scripts/vigilantes/peso-baseline.json`
         (8,20 MB / entry 1,05 MB congelados el 29 ago).
+    - **VIGILANCIA DE SISTEMA, INVARIANTES DE DATOS Y CANAL DE SALIDA (30 ago 2026).**
+      Nacio de la forense del 30 ago: tres desastres de produccion que ninguna capa vio
+      (trigger con columna fantasma que tumbaba TODA alta de citas, sobrecarga de
+      crear_cita_publica que devolia HTTP 300, y cero escrituras de prueba en la
+      vigilancia). Lo que existe ahora:
+      - `bd-triggers-ciegos`: columnas inexistentes en NEW/OLD y en SELECT cross-table
+        dentro de funciones trigger. Funcion compartida con TG_TABLE_NAME = aviso
+        (la rama puede no ejecutarse); sin ramificacion = bloqueante (42703 seguro).
+      - `bd-sobrecargas-rpc`: bloqueante SOLO con el mismo conjunto de nombres de
+        parametro en dos firmas (PGRST203 real; cerrar_caja con 3 y 4 args es legitimo).
+        Grants de anon incoherentes entre firmas de una misma funcion = aviso.
+      - `bd-escritura-critica`: INSERT real en citas con rollback automatico (pg_net
+        solo despacha en COMMIT, nada se envia). Prefiere demo_salon_001. Y ojo: NO
+        existe tabla `negocios` (el tenant es negocio_id TEXT) y citas.canal solo
+        admite manual|web|whatsapp|instagram|agente_voz|asistente_ia.
+      - `bd-invariantes`: DATOS en reposo, no esquema — solapes de agenda (108 pares
+        historicos: la carrera del portal sigue sin constraint EXCLUDE porque los grupos
+        comparten profesional a proposito), bonos con saldo imposible y arqueo de caja.
+        **Convencion de caja verificada contra CobroSheet.tsx: total_cents YA INCLUYE
+        la propina** (el comentario de 20260830210025 que dice "= total + propina"
+        esta mal; con esa formula 161 cobros buenos darian descuadre). En la demo
+        quedan 6 cobros con la convencion opuesta: invariante repartido real.
+      - `ci-cadena-rota` + `trigger-cadenas`: deno test sin --allow-env resolviendo
+        `deno task` a traves de deno.json (la forma exacta del incidente), y cascadas
+        mutuas INSERT<->UPDATE en migraciones (inventario final: los DROP cuentan).
+      - `meta-registro`: ningun vigilante puede quedarse fuera del runner ni de la
+        edge (los 6 ficheros sueltos del equipo multi-agente fueron el motivo).
+      - **Canal de salida**: `notificar.mjs` (Telegram, solo bloqueantes, dedupe por
+        clave) e `issues.mjs` (un issue por bloqueante, re-comenta si ya esta abierto).
+        Corren en ci.yml, vigilancia-bd.yml y dr-mensual.yml con secrets
+        TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID. Y `enviar.mjs` valida el contrato de
+        hallazgos (clave/nivel/ambito/titulo): un informe fuera de contrato no se
+        publica a medias.
+      - **DR**: `dr-backups.mjs` + `dr-mensual.yml` (dia 1 de cada mes): backups
+        diarios al dia, PITR activo y recordatorio mensual de la prueba de
+        restauracion. El secret es un access token PERSONAL (sbp_...) de la
+        Management API en SUPABASE_ACCESS_TOKEN.
     - **Errores tragados y fallos silenciosos (29 ago 2026, familia 2 de la fase 2).**
       - **2b estático (`scripts/vigilantes/errores-tragados.mjs`):** analiza AST de TypeScript
         en `app/` y `components/`. Detecta fuego-y-olvido en funciones que pueden rechazar,

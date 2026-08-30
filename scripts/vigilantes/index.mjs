@@ -39,6 +39,7 @@ import rendimiento from './rendimiento.mjs';
 import calidadCodigo from './calidad-codigo.mjs';
 import ciCadenaRota from './ci-cadena-rota.mjs';
 import triggerCadenas from './trigger-cadenas.mjs';
+import metaRegistro from './meta-registro.mjs';
 
 const ESTATICOS = [
   precios,
@@ -65,6 +66,7 @@ const ESTATICOS = [
   calidadCodigo,
   ciCadenaRota,
   triggerCadenas,
+  metaRegistro,
 ];
 
 const args = process.argv.slice(2);
@@ -134,6 +136,7 @@ async function main() {
         (await import('./bd-triggers-ciegos.mjs')).default,
         (await import('./bd-sobrecargas-rpc.mjs')).default,
         (await import('./bd-escritura-critica.mjs')).default,
+        (await import('./bd-invariantes.mjs')).default,
       ]
     : [];
 
