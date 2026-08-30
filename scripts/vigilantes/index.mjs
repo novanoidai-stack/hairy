@@ -30,6 +30,8 @@ import horariosConvenio from './horarios-convenio.mjs';
 import workflows from './workflows.mjs';
 import ecosistemaCuentas from './ecosistema-cuentas.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
+import claimsFiscales from './claims-fiscales.mjs';
+import modulosDesconectados from './modulos-desconectados.mjs';
 
 const ESTATICOS = [
   precios,
@@ -47,6 +49,8 @@ const ESTATICOS = [
   workflows,
   ecosistemaCuentas,
   codigoMuerto,
+  claimsFiscales,
+  modulosDesconectados,
 ];
 
 const args = process.argv.slice(2);

@@ -25,6 +25,8 @@ export interface TicketPdfData {
   metodo: string;
   hash: string;
   hashAnterior: string | null;
+  qrUrl?: string | null;
+  formatoHuella?: string | null;
   reconstruido?: boolean;
 }
 

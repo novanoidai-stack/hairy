@@ -6,11 +6,11 @@
 //
 // Reestructura del 7 ago 2026: la IA (WhatsApp y voz) dejo de ser exclusiva de
 // "Estudio" y paso a ser un ADDON opcional, ortogonal al plan de software
-// (campo profiles.ia_nivel). VeriFactu bajo a Esencial.
+// (campo profiles.ia_nivel). El libro de tickets bajo a Esencial.
 //
 // Lo que NO cambio, y conviene no volver a confundir: Esencial y Estudio siguen
 // dando software distinto. Esencial trae la base (agenda, fichas, portal,
-// recordatorios, caja, informes, equipo, VeriFactu) y Estudio anade presupuestos,
+// recordatorios, caja, informes, equipo, libro de tickets) y Estudio anade presupuestos,
 // inventario, resenas, senales, campanas y lista de espera, que es exactamente lo
 // que venden las tarjetas de #precios. Durante un tiempo varios comentarios y
 // textos dijeron "los dos dan el mismo software" -- incluido el que se le
@@ -127,7 +127,12 @@ export type FuncionPlan =
   | 'senales'             // cobro de senal/deposito con Stripe (anti no-show)
   | 'campanas'            // campanas de marketing
   | 'lista_espera'        // lista de espera con avisos automaticos
-  | 'verifactu'           // facturacion homologada + fichaje legal
+  | 'verifactu'           // libro de tickets inalterable + fichaje legal
+  //   OJO con el nombre de esta clave: es un identificador interno HISTORICO y no
+  //   se renombra porque lo miran los gates de pantalla. Lo que da hoy es la cadena
+  //   SHA-256 y la numeracion correlativa del RD 1007/2023 (libro de tickets), NO el
+  //   alta en VeriFactu: el envio a la AEAT y el QR de cotejo estan sin construir.
+  //   Ver lib/fiscal/estadoVerifactu.ts, que es lo que vigila que no se prometa.
   // --- Addon de IA (profiles.ia_nivel, no el plan) ---
   | 'ia_chispa'           // el asistente Chispa por WhatsApp
   | 'ia_voz';             // la IA contesta el telefono del salon y da cita hablando
@@ -221,7 +226,7 @@ export const FUNCION_LABEL: Record<FuncionPlan, string> = {
   senales: 'el cobro de señales',
   campanas: 'las campañas de marketing',
   lista_espera: 'la lista de espera inteligente',
-  verifactu: 'la facturación VeriFactu',
+  verifactu: 'el libro de tickets inalterable',
 };
 
 // Planes asignables desde el panel de staff, de menor a mayor.
