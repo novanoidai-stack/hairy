@@ -672,6 +672,9 @@
 
     <div id="saludSemaforo" style="margin-bottom:18px"></div>
 
+    <!-- CEREBRO IA: Diagnóstico Autónomo y Sugerencias de Auto-Reparación -->
+    <div id="saludCerebroIA" class="ad-card" style="margin-bottom:18px"></div>
+
     <!-- ATRIBUCION: lo unico del panel que contesta "desde cuando". El resto
          dice QUE esta mal; esto dice QUE CAMBIO y entre que dos commits, que
          es lo que convierte un aviso en una linea de codigo concreta. -->
@@ -715,6 +718,7 @@
         <option value="base-de-datos">Base de datos</option>
         <option value="vigilancia">Vigilancia</option>
         <option value="cuentas">Ecosistema de cuentas</option>
+        <option value="coherencia">Coherencia</option>
       </select>
       <select class="ad-sel" id="fDiasSal">
         <option value="1">Últimas 24 h</option>
@@ -3054,6 +3058,7 @@
     // Salones sin titular, modo de acceso que contradice a las cuentas, topes
     // que el cliente se puede subir solo, guardas de identidad debilitados.
     cuentas: 'Ecosistema de cuentas',
+    coherencia: 'Coherencia',
     otros: 'Otros'
   };
 
@@ -3178,8 +3183,194 @@
       .catch(function (e) { el.innerHTML = '<div class="ad-muted">No se pudo comparar.</div>'; });
   }
 
+  var filtroDiagEstado = '';
+
+  function loadSaludCerebroIA() {
+    var el = $('saludCerebroIA');
+    if (!el || !api.client) return;
+    el.innerHTML = '<div class="ad-loading">Consultando Cerebro IA de Diagnósticos...</div>';
+
+    api.client.rpc('staff_vigilancia_diagnosticos_ia', {
+      p_dias: 14,
+      p_estado: filtroDiagEstado || null,
+      p_ambito: null,
+      p_limit: 50
+    }).then(function (res) {
+      if (res.error) {
+        el.innerHTML =
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">' +
+            '<div><b>🧠 Cerebro IA de Diagnósticos y Auto-Reparación</b></div>' +
+            '<button class="r-act r-act-ok" id="btnEjecutarIA">⚡ Reanalizar con Cerebro IA</button>' +
+          '</div>' +
+          '<div class="ad-muted">No se pudieron cargar diagnósticos IA (' + esc(res.error.message || '') + '). Pulsa reanalizar para generar un nuevo diagnóstico.</div>';
+        wireBtnEjecutarIA();
+        return;
+      }
+
+      var items = res.data || [];
+      var propuestos = items.filter(function (d) { return d.estado === 'propuesto'; });
+      var criticos = items.filter(function (d) { return d.nivel === 'critico' || d.nivel === 'bloqueante'; });
+
+      var badgeSalud = '<span class="tag" style="background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.3)">✓ Diagnósticos al día</span>';
+      if (criticos.length > 0) {
+        badgeSalud = '<span class="tag" style="background:rgba(239,68,68,.14);color:#f87171;border-color:rgba(239,68,68,.36)">⚠ ' + criticos.length + ' Críticos / Bloqueantes</span>';
+      } else if (propuestos.length > 0) {
+        badgeSalud = '<span class="tag" style="background:rgba(245,158,11,.14);color:#fbbf24;border-color:rgba(245,158,11,.36)">' + propuestos.length + ' Propuestas Pendientes</span>';
+      }
+
+      var filtrosHtml =
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">' +
+          ['', 'propuesto', 'en_revision', 'aplicado', 'descartado'].map(function (st) {
+            var activo = filtroDiagEstado === st;
+            var lbl = st === '' ? 'Todos' : (st === 'propuesto' ? 'Propuestos' : (st === 'en_revision' ? 'En revisión' : (st === 'aplicado' ? 'Aplicados' : 'Descartados')));
+            return '<button class="tag filter-diag-btn" data-st="' + st + '" style="cursor:pointer;background:' +
+              (activo ? 'rgba(59,130,246,.25)' : 'rgba(255,255,255,.05)') + ';color:' + (activo ? '#60a5fa' : 'var(--text-sec)') +
+              ';border-color:' + (activo ? '#3b82f6' : 'rgba(255,255,255,.1)') + '">' + lbl + '</button>';
+          }).join('') +
+        '</div>';
+
+      var listaHtml = '';
+      if (!items.length) {
+        listaHtml = '<div class="ad-empty" style="padding:16px 0">No hay diagnósticos IA registrados con este filtro. Pulsa "⚡ Reanalizar con Cerebro IA" para ejecutar un ciclo diagnóstico.</div>';
+      } else {
+        items.forEach(function (d) {
+          var colNivel = d.nivel === 'critico' || d.nivel === 'bloqueante' ? '#f87171' : (d.nivel === 'aviso' ? '#fbbf24' : '#60a5fa');
+          var bgNivel = d.nivel === 'critico' || d.nivel === 'bloqueante' ? 'rgba(239,68,68,.14)' : (d.nivel === 'aviso' ? 'rgba(245,158,11,.14)' : 'rgba(59,130,246,.14)');
+          var tagEstado = d.estado === 'aplicado' ? '<span class="tag" style="background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.3)">✓ Aplicado</span>' :
+                          (d.estado === 'descartado' ? '<span class="tag" style="background:rgba(148,163,184,.12);color:#94a3b8;border-color:rgba(148,163,184,.3)">✕ Descartado</span>' :
+                          (d.estado === 'en_revision' ? '<span class="tag" style="background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)">En revisión</span>' :
+                          '<span class="tag" style="background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.3)">Propuesto</span>'));
+
+          listaHtml +=
+            '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;margin-bottom:12px">' +
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+                '<span class="tag" style="background:' + bgNivel + ';color:' + colNivel + ';border-color:' + colNivel + '">' + esc(d.nivel.toUpperCase()) + '</span>' +
+                '<span class="plan free">' + esc(AMBITO_SAL_LABEL[d.ambito] || d.ambito || 'otros') + '</span>' +
+                tagEstado +
+                '<span style="font-weight:700;color:var(--text);flex:1;min-width:200px">' + esc(d.titulo) + '</span>' +
+                (d.modelo_ia ? '<span class="ad-muted" style="font-size:11px">🤖 ' + esc(d.modelo_ia) + '</span>' : '') +
+              '</div>' +
+              '<div style="font-size:13px;color:var(--text-sec);line-height:1.5;margin-bottom:8px">' + esc(d.diagnostico) + '</div>' +
+              (d.causa_raiz ?
+                '<div style="background:rgba(245,158,11,.08);border-left:3px solid #f59e0b;padding:8px 12px;border-radius:4px;font-size:12.5px;color:#fef3c7;margin-bottom:8px">' +
+                  '<b>🔍 Causa Raíz:</b> ' + esc(d.causa_raiz) +
+                '</div>' : '') +
+              (d.fichero ?
+                '<div style="font-size:12px;color:var(--text-ter);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:8px">' +
+                  '📁 ' + esc(d.fichero) + (d.linea ? ':' + d.linea : '') +
+                '</div>' : '') +
+              (d.codigo_antes || d.codigo_despues ?
+                '<details style="margin-bottom:10px;font-size:12px">' +
+                  '<summary style="cursor:pointer;color:#60a5fa;margin-bottom:6px">Ver propuesta de cambio de código (Diff)</summary>' +
+                  (d.codigo_antes ? '<div style="margin-top:4px"><span style="color:#f87171">--- Código antes:</span><pre style="background:#0f172a;padding:8px;border-radius:6px;overflow-x:auto;color:#cbd5e1;font-size:11.5px">' + esc(d.codigo_antes) + '</pre></div>' : '') +
+                  (d.codigo_despues ? '<div style="margin-top:4px"><span style="color:#34d399">+++ Código propuesto:</span><pre style="background:#0f172a;padding:8px;border-radius:6px;overflow-x:auto;color:#cbd5e1;font-size:11.5px">' + esc(d.codigo_despues) + '</pre></div>' : '') +
+                '</details>' : '') +
+              '<div class="r-foot" style="margin-top:8px;gap:8px;display:flex;flex-wrap:wrap">' +
+                (d.prompt_autorreparacion ?
+                  '<button class="r-act btn-copy-prompt" data-prompt="' + esc(d.prompt_autorreparacion) + '" style="background:rgba(59,130,246,.15);color:#60a5fa;border-color:rgba(59,130,246,.3)">📋 Copiar Prompt Auto-Reparación</button>' : '') +
+                (d.estado !== 'aplicado' ?
+                  '<button class="r-act r-act-ok btn-diag-act" data-id="' + d.id + '" data-estado="aplicado">✓ Marcar Aplicado</button>' : '') +
+                (d.estado !== 'descartado' ?
+                  '<button class="r-act btn-diag-act" data-id="' + d.id + '" data-estado="descartado">✕ Descartar</button>' : '') +
+                (d.estado === 'aplicado' || d.estado === 'descartado' ?
+                  '<button class="r-act btn-diag-act" data-id="' + d.id + '" data-estado="propuesto">↺ Reabrir</button>' : '') +
+              '</div>' +
+            '</div>';
+        });
+      }
+
+      el.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px">' +
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+            '<b style="font-size:15px">🧠 Cerebro IA de Diagnósticos y Auto-Reparación</b>' +
+            badgeSalud +
+          '</div>' +
+          '<button class="r-act r-act-ok" id="btnEjecutarIA" style="background:rgba(16,185,129,.18);color:#34d399;border-color:rgba(16,185,129,.4)">⚡ Reanalizar con Cerebro IA</button>' +
+        '</div>' +
+        '<div style="font-size:12.5px;color:var(--text-sec);line-height:1.4;margin-bottom:10px">' +
+          'Análisis autónomo de causa raíz y generación de parches ejecutables mediante LLMs (OpenRouter Gemini/Qwen). ' +
+          'Genera diagnósticos y prompts de auto-reparación directamente aplicables.' +
+        '</div>' +
+        filtrosHtml +
+        listaHtml;
+
+      wireBtnEjecutarIA();
+
+      Array.prototype.forEach.call(el.querySelectorAll('.filter-diag-btn'), function (btn) {
+        btn.addEventListener('click', function () {
+          filtroDiagEstado = btn.getAttribute('data-st');
+          loadSaludCerebroIA();
+        });
+      });
+
+      Array.prototype.forEach.call(el.querySelectorAll('.btn-copy-prompt'), function (btn) {
+        btn.addEventListener('click', function () {
+          var promptTexto = btn.getAttribute('data-prompt');
+          if (!promptTexto) return;
+          navigator.clipboard.writeText(promptTexto).then(function () {
+            var orig = btn.innerHTML;
+            btn.innerHTML = '✓ ¡Copiado al portapapeles!';
+            btn.style.color = '#34d399';
+            setTimeout(function () { btn.innerHTML = orig; btn.style.color = ''; }, 2500);
+          }).catch(function () {
+            alert('No se pudo copiar automáticamente.');
+          });
+        });
+      });
+
+      Array.prototype.forEach.call(el.querySelectorAll('.btn-diag-act'), function (btn) {
+        btn.addEventListener('click', function () {
+          btn.disabled = true;
+          var diagId = parseInt(btn.getAttribute('data-id'), 10);
+          var nuevoEst = btn.getAttribute('data-estado');
+          api.client.rpc('staff_marcar_diagnostico_ia', {
+            p_id: diagId,
+            p_estado: nuevoEst,
+            p_notas: null
+          }).then(function (r) {
+            if (r.error) {
+              alert('Error al marcar diagnóstico: ' + (r.error.message || ''));
+              btn.disabled = false;
+              return;
+            }
+            loadSaludCerebroIA();
+          });
+        });
+      });
+
+    }).catch(function (e) {
+      el.innerHTML = '<div class="ad-muted">Error de conexión al cargar Cerebro IA.</div>';
+    });
+  }
+
+  function wireBtnEjecutarIA() {
+    var btn = $('btnEjecutarIA');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Analizando con Cerebro IA...';
+      api.client.functions.invoke('orquestador-ia', { body: {} })
+        .then(function (res) {
+          btn.disabled = false;
+          btn.innerHTML = '⚡ Reanalizar con Cerebro IA';
+          if (res.error) {
+            alert('Fallo en el análisis IA: ' + (res.error.message || JSON.stringify(res.error)));
+            return;
+          }
+          loadSaludCerebroIA();
+          loadSalud();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          btn.innerHTML = '⚡ Reanalizar con Cerebro IA';
+          alert('Error al invocar orquestador IA: ' + (err && err.message ? err.message : err));
+        });
+    });
+  }
+
   function loadSalud() {
     loadSaludSemaforo();
+    loadSaludCerebroIA();
     loadSaludDelta();
     var listEl = $('listSal');
     if (!listEl) return;

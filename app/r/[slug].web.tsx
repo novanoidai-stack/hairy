@@ -745,7 +745,7 @@ export default function PortalReservaWeb() {
       <header style={{ position: 'sticky', top: 0, zIndex: 30, background: '#fffdfb', borderBottom: '1px solid rgba(40,30,24,0.08)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '12px 20px' : '14px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-            <button onClick={volverAtras} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, background: 'rgba(40,30,24,0.06)', border: 'none', cursor: 'pointer' }} title="Volver a los salones">
+            <button onClick={volverAtras} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, minWidth: 44, minHeight: 44, borderRadius: 11, background: 'rgba(40,30,24,0.06)', border: 'none', cursor: 'pointer' }} title="Volver a los salones">
               <Icon name="chevronLeft" size={18} />
             </button>
             <span style={{ display: 'inline-flex', width: 38, height: 38, borderRadius: 11, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}><MechaMark size={20} /></span>
@@ -814,10 +814,10 @@ export default function PortalReservaWeb() {
                           onChange={e => setBusqueda(e.target.value)}
                           placeholder="Buscar servicio..."
                           aria-label="Buscar servicio"
-                          style={{ ...inputStyle, paddingLeft: 38, paddingRight: busqueda ? 38 : 14 }}
+                          style={{ ...inputStyle, paddingLeft: 38, paddingRight: busqueda ? 46 : 14 }}
                         />
                         {busqueda !== '' && (
-                          <button onClick={() => setBusqueda('')} aria-label="Borrar búsqueda" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                          <button onClick={() => setBusqueda('')} aria-label="Borrar búsqueda" style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, minWidth: 44, minHeight: 44, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer' }}>
                             <Icon name="x" size={15} color={T.textTer} />
                           </button>
                         )}
@@ -969,7 +969,7 @@ export default function PortalReservaWeb() {
                       <div ref={pasoProfRef} data-demo="portal-profesional" style={{ marginBottom: 22, scrollMarginTop: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: T.primaryHi }}>2 · Profesional</div>
-                          <button onClick={() => setServicio(null)} style={{ background: 'none', border: 'none', color: '#5c5249', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Cambiar servicio</button>
+                          <button onClick={() => setServicio(null)} style={{ background: 'none', border: 'none', color: '#5c5249', fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: '10px 12px', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Cambiar servicio</button>
                         </div>
                         <div style={{ fontFamily: 'Inter,system-ui,sans-serif', fontSize: 24, marginBottom: 12 }}>¿Con quién prefieres ir?</div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -1051,6 +1051,7 @@ export default function PortalReservaWeb() {
                                     title={titleText}
                                     style={{
                                       padding: '10px 6px',
+                                      minHeight: 44,
                                       borderRadius: 12,
                                       fontSize: 14,
                                       fontWeight: 700,
@@ -1239,7 +1240,7 @@ export default function PortalReservaWeb() {
                     >
                       <Icon name="edit" size={16} color={T.primary} /> ¿Ya nos conoces? Déjanos tu opinión
                     </button>
-                    <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: 8, cursor: 'pointer' }}>Hacer otra reserva</button>
+                    <button onClick={reiniciar} style={{ background: 'none', border: 'none', color: T.primary, fontSize: 14, fontWeight: 700, padding: '12px 16px', minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>Hacer otra reserva</button>
                   </div>
                 </div>
               )}
@@ -1402,7 +1403,7 @@ export default function PortalReservaWeb() {
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: '50%', background: T.primarySoft, marginBottom: 14 }}><MechaMark size={30} /></div>
             <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6 }}>{t('grupo_ok_title')}</div>
             <div style={{ fontSize: 13.5, color: T.textSec, marginBottom: 16 }}>{t('grupo_ok_personas', { n: grupoOk.total })} · {new Date(grupoOk.inicio).toLocaleString(loc, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. {t('grupo_ok_aviso')}</div>
-            <button onClick={() => setGrupoOk(null)} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('grupo_ok_cerrar')}</button>
+            <button onClick={() => setGrupoOk(null)} style={{ padding: '12px 22px', minHeight: 44, borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('grupo_ok_cerrar')}</button>
           </div>
         </div>
       )}
@@ -1416,7 +1417,7 @@ export default function PortalReservaWeb() {
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: T.primary, marginBottom: 6 }}>¡Apuntado correctamente!</div>
                 <div style={{ fontSize: 13, color: T.textSec, marginBottom: 16 }}>Te avisaremos por WhatsApp si se abre un hueco.</div>
-                <button onClick={() => { setShowWlModal(false); setWlExito(false); }} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cerrar</button>
+                <button onClick={() => { setShowWlModal(false); setWlExito(false); }} style={{ padding: '12px 22px', minHeight: 44, borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cerrar</button>
               </div>
             ) : (
               <form onSubmit={async (e) => {
@@ -1470,8 +1471,8 @@ export default function PortalReservaWeb() {
                 </label>
                 {wlError && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 12 }}>{wlError}</div>}
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                  <button type="button" onClick={() => setShowWlModal(false)} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid ' + T.border, background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
-                  <button type="submit" disabled={wlEnviando} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: wlEnviando ? 0.6 : 1 }}>{wlEnviando ? 'Guardando…' : 'Confirmar e inscribir'}</button>
+                  <button type="button" onClick={() => setShowWlModal(false)} style={{ padding: '12px 20px', minHeight: 44, borderRadius: 10, border: '1px solid ' + T.border, background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                  <button type="submit" disabled={wlEnviando} style={{ padding: '12px 22px', minHeight: 44, borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: wlEnviando ? 0.6 : 1 }}>{wlEnviando ? 'Guardando…' : 'Confirmar e inscribir'}</button>
                 </div>
               </form>
             )}

@@ -125,7 +125,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   //
   // Esa ultima nace de lo peor que se encontro el 30 ago 2026: la version
   // DESPLEGADA de guard_profile_identity_columns() no era la del repo. Alguien
-  // la habia reescrito a mano cambiando `new.plan := old.plan` por
+  // habia reescrito a mano cambiando `new.plan := old.plan` por
   // `COALESCE(new.plan, old.plan)`, que no congela nada, y con eso cualquier
   // usuario con sesion podia darse role='owner' y cambiarse el negocio_id -- o
   // sea, entrar en el salon de otro. Ningun vigilante lo vio porque ninguno
@@ -150,6 +150,38 @@ Deno.serve(async (req: Request): Promise<Response> => {
     });
   } else if (Array.isArray(eco)) {
     hallazgos.push(...(eco as Hallazgo[]).map((h) => comoHallazgo(h, 'cuentas')));
+  }
+
+  // --- Suite de Salud Profunda (10 vectores) --------------------------------
+  //
+  // Vector 1: Claves foraneas sin indice en columnas hijas.
+  // Vector 2: Contencion de locks y deadlocks (>5s).
+  // Vector 3: Tuplas muertas y bloat de tablas (>1000 y >20%).
+  // Vector 4: Riesgo de desborde de secuencias numericas (>75% / >90%).
+  // Vector 5: Cobertura 100% RLS en esquema public y definers con search_path.
+  // Vector 6: Saturacion del pool de conexiones (>75% / >90%).
+  // Vector 7: Estado y fallos en jobs de pg_cron.
+  // Vector 8: Privacidad de buckets de Storage (cliente-fotos) y RLS en storage.objects.
+  // Vector 9: Continuidad criptografica SHA-256 de VeriFactu y correlatividad.
+  // Vector 10: Deteccion de registros huerfanos relacionales.
+  const { data: prof, error: eProf } = await supabase.rpc('vigilancia_bd_profunda');
+  if (eProf) {
+    console.error(`[${QUIEN}] vigilancia_bd_profunda() ha fallado:`, eProf.message);
+    hallazgos.push({
+      clave: 'bd/profunda-sin-comprobar',
+      nivel: 'bloqueante',
+      ambito: 'base-de-datos',
+      titulo: 'No se ha podido ejecutar la suite de salud profunda de base de datos',
+      detalle:
+        `vigilancia_bd_profunda() ha devuelto: ${eProf.message}. Si dice que no existe, falta ` +
+        'aplicar 20260830210000_vigilancia_bd_suite_profunda.sql. La vigilancia profunda ' +
+        'comprueba 10 vectores criticos (FKs, locks >5s, bloat, secuencias, RLS 100%, ' +
+        'pool, crons, storage, VeriFactu SHA-256 y huerfanos) y no puede quedarse muda.',
+      fichero: 'base de datos',
+      linea: null,
+    });
+  } else if (Array.isArray(prof)) {
+    hallazgos.push(...(prof as Hallazgo[]).map((h) => comoHallazgo(h, 'base-de-datos')));
   }
 
   // --- Guardia de migraciones ----------------------------------------------
@@ -237,14 +269,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
     rama: cuerpo.rama ?? null,
     ejecutado_en: new Date().toISOString(),
     duracion_ms: duracion,
-    // Se declaran los tres por separado para que el panel pueda decir cual de
+    // Se declaran por separado para que el panel pueda decir cual de
     // ellos encontro que, en vez de atribuirlo todo a "base-de-datos".
     vigilantes: [
       {
         nombre: 'base-de-datos',
         ambito: 'base-de-datos',
         ms: duracion,
-        ok: !hallazgos.some((h) => h.ambito === 'base-de-datos'),
+        ok: !hallazgos.some((h) => h.ambito === 'base-de-datos' && !h.clave.startsWith('bd-profunda/')),
+      },
+      {
+        nombre: 'bd-profunda',
+        ambito: 'base-de-datos',
+        ms: null,
+        ok: !hallazgos.some((h) => h.clave.startsWith('bd-profunda/')),
       },
       {
         nombre: 'bd-rendimiento',

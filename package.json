@@ -28,7 +28,8 @@
     "vigilar": "node scripts/vigilantes/index.mjs",
     "vigilar:rapido": "node scripts/vigilantes/index.mjs --rapido",
     "vigilar:bd": "node scripts/vigilantes/index.mjs --bd",
-    "vigilar:test": "node --test \"scripts/vigilantes/*.test.mjs\""
+    "vigilar:test": "node --test \"scripts/vigilantes/*.test.mjs\"",
+    "vigilar:ia": "node scripts/vigilantes/compilar-estado.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

@@ -32,6 +32,11 @@ import ecosistemaCuentas from './ecosistema-cuentas.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 import claimsFiscales from './claims-fiscales.mjs';
 import modulosDesconectados from './modulos-desconectados.mjs';
+import metaAnclas from './meta-anclas.mjs';
+import metaCobertura from './meta-cobertura.mjs';
+import pesoComponentes from './peso-componentes.mjs';
+import rendimiento from './rendimiento.mjs';
+import calidadCodigo from './calidad-codigo.mjs';
 
 const ESTATICOS = [
   precios,
@@ -51,6 +56,11 @@ const ESTATICOS = [
   codigoMuerto,
   claimsFiscales,
   modulosDesconectados,
+  metaAnclas,
+  metaCobertura,
+  pesoComponentes,
+  rendimiento,
+  calidadCodigo,
 ];
 
 const args = process.argv.slice(2);
@@ -116,6 +126,7 @@ async function main() {
         (await import('./bd-rendimiento.mjs')).default,
         (await import('./bd-migraciones.mjs')).default,
         (await import('./bd-ecosistema.mjs')).default,
+        (await import('./bd-profunda.mjs')).default,
       ]
     : [];
 

@@ -70,7 +70,7 @@ test('hoy ninguna edge con verify_jwt = false esta abierta', async () => {
   assert.deepEqual(hallazgos, [], 'hallazgos:\n' + JSON.stringify(hallazgos, null, 2));
 });
 
-test('las siete que autorizan por su cuenta siguen en el toml', async () => {
+test('las ocho que autorizan por su cuenta siguen en el toml', async () => {
   const { readFileSync } = await import('node:fs');
   const toml = readFileSync('supabase/config.toml', 'utf8');
   assert.deepEqual(funcionesSinVerificacion(toml).sort(), [
@@ -78,6 +78,7 @@ test('las siete que autorizan por su cuenta siguen en el toml', async () => {
     'avisar-fin-prueba',
     'ejecutar-vigilancia-bd',
     'enviar-informe-periodico',
+    'orquestador-ia',
     'registrar-vigilancia',
     'sincronizar-descuento-referidos',
     'vigilar-agenda',

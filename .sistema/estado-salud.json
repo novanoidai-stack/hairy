@@ -1,0 +1,541 @@
+{
+  "version": 1,
+  "timestamp": "2026-08-30T20:01:02.805Z",
+  "duracion_ms": 1375,
+  "git": {
+    "commit": "10b7d63c51a2beba73acfd63ff9c72b84b7bacec",
+    "branch": "master",
+    "dirty": true
+  },
+  "resumen": {
+    "total_hallazgos": 41,
+    "bloqueantes": 0,
+    "avisos": 41,
+    "vigilantes_ejecutados": 16,
+    "salud": "degradada"
+  },
+  "capas": {
+    "estatica": {
+      "vigilantes": 16,
+      "bloqueantes": 0,
+      "avisos": 41,
+      "detalle": [
+        {
+          "nombre": "precios",
+          "ambito": "precios",
+          "ms": 6,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "referidos",
+          "ambito": "referidos",
+          "ms": 7,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "rutas-publicas",
+          "ambito": "seguridad",
+          "ms": 1,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "cache-app",
+          "ambito": "rendimiento",
+          "ms": 0,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "claves",
+          "ambito": "seguridad",
+          "ms": 209,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "errores-tragados",
+          "ambito": "errores-tragados",
+          "ms": 630,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "panel-ambitos",
+          "ambito": "pantallas",
+          "ms": 8,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "edges-autorizadas",
+          "ambito": "seguridad",
+          "ms": 2,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "migraciones",
+          "ambito": "seguridad",
+          "ms": 51,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "husos",
+          "ambito": "seguridad",
+          "ms": 30,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "planes",
+          "ambito": "precios",
+          "ms": 2,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "horarios-convenio",
+          "ambito": "seguridad",
+          "ms": 12,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "workflows",
+          "ambito": "seguridad",
+          "ms": 47,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "ecosistema-cuentas",
+          "ambito": "cuentas",
+          "ms": 19,
+          "bloqueantes": 0,
+          "avisos": 0,
+          "ok": true
+        },
+        {
+          "nombre": "claims-fiscales",
+          "ambito": "fiscal",
+          "ms": 60,
+          "bloqueantes": 0,
+          "avisos": 17,
+          "ok": true
+        },
+        {
+          "nombre": "modulos-desconectados",
+          "ambito": "codigo-muerto",
+          "ms": 153,
+          "bloqueantes": 0,
+          "avisos": 24,
+          "ok": true
+        }
+      ]
+    },
+    "base_datos": {
+      "disponible": false,
+      "vectores": 10,
+      "hallazgos": []
+    },
+    "visual": {
+      "pilares": 3,
+      "hallazgos": []
+    },
+    "rendimiento": {
+      "hallazgos_rendimiento": 24
+    },
+    "meta": {
+      "anclas_vivas": true,
+      "hallazgos": []
+    }
+  },
+  "hallazgos": [
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/diseno-aurora.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-aurora.html dice:\n\n  ...<li><span class=\"ck\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\" /></svg></span><span>Tickets homologados por <...\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": 769
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-aurora.html dice:\n\n  ...<div class=\"faq-a\">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte....\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": 1332
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envío a Hacienda\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-aurora.html dice:\n\n  ...\"Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda\",...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": 141
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/diseno-brasas.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-brasas.html dice:\n\n  ...<li><span class=\"ck\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\" /></svg></span><span>Tickets homologados por <...\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": 769
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-brasas.html dice:\n\n  ...<div class=\"faq-a\">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte....\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": 1332
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envío a Hacienda\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-brasas.html dice:\n\n  ...\"Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda\",...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": 141
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/diseno-forja.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/diseno-forja.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-forja.html dice:\n\n  ...<li><span class=\"ck\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\" /></svg></span><span>Tickets homologados por <...\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-forja.html",
+      "linea": 769
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-forja.html dice:\n\n  ...<div class=\"faq-a\">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte....\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-forja.html",
+      "linea": 1332
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envío a Hacienda\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-forja.html dice:\n\n  ...\"Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda\",...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-forja.html",
+      "linea": 141
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/index_v5.html no la enlaza nadie y publica 4 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/index_v5.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"enviadas a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...<div style=\"flex:1;min-width:0\"><div style=\"font-size:13px;font-weight:600\">9 facturas VeriFactu enviadas a la AEAT</div><div style=\"font-size:11px;color:var(--ink-3)\">con su QR y su hash encadenado</...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 144
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envía a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...<p style=\"margin:0 0 10px;font-size:15px;color:var(--ink-2)\">Cobras y la factura <b>VeriFactu</b> se firma y se envía a la AEAT sola....\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 192
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"enviada a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...5px\">enviada a la AEAT</div></div>...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 304
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"enviada a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...{ tema:\"Facturación española\", otros:\"Fuera del programa: otro software y la gestoría\", mecha:\"VeriFactu con hash y QR, enviada a la AEAT desde la propia caja\" },...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 635
+    },
+    {
+      "clave": "modulos-desconectados/components/agenda/optimizacionTouchAgenda.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "components/agenda/optimizacionTouchAgenda.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. Probable duplicado de useResponsive() (lib/hooks/useResponsive.ts), que es la via oficial segun el CLAUDE.md.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "components/agenda/optimizacionTouchAgenda.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/components/marketplace/tarjetaSalonResponsive.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "components/marketplace/tarjetaSalonResponsive.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. El marketplace funciona y tiene sus e2e; comprobar si esto duplica lo que ya pinta.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "components/marketplace/tarjetaSalonResponsive.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/components/portal/optimizacionTouchPortal.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "components/portal/optimizacionTouchPortal.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. La misma sospecha que su gemelo de agenda, pero el portal lo ve una clienta desde su movil y ahi el movil-primero SI importa de verdad: comprobar que useResponsive() cubre el caso tactil del portal antes de borrarlo.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "components/portal/optimizacionTouchPortal.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/bonificacionReasignacion.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/bonificacionReasignacion.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. Suena a incentivo por aceptar un hueco reasignado. Decidir si es producto antes de nada.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/bonificacionReasignacion.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/desinfeccionPausas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/desinfeccionPausas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Encaja en la spec 1 como fase 'transicion', que hoy no existe en la base de datos.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/desinfeccionPausas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/serviciosCompatiblesReposo.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/serviciosCompatiblesReposo.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. Reimplementa en 12 lineas lo que lib/retrasos.ts ya hace bien y SI esta cableado (fasesDe, ventanasActivas, estrategia aprovechar_reposo). Borrar; la version buena crece con la spec 1.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/serviciosCompatiblesReposo.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/validadorFestivosTurnos.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/validadorFestivosTurnos.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. cierres_negocio + el control de festivos de configuracion.web.tsx y NewCitaModal. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/validadorFestivosTurnos.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/bonos/consumoBonos.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/bonos/consumoBonos.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Va con la spec 6 (bono con calendario de sesiones).\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/bonos/consumoBonos.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/arqueoCajaPropinas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/arqueoCajaPropinas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. El arqueo funciona: sesiones_caja + cerrar_caja, 9 sesiones con numero_z y descuadre. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/arqueoCajaPropinas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/cobroMultiPago.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/cobroMultiPago.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. El multi-pago funciona: cobros.metodo='mixto' con efectivo_cents/datafono_cents, 16 cobros reales. Vive en caja.web.tsx. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/cobroMultiPago.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/propinasAcumuladas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/propinasAcumuladas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. cobros.propina_cents esta en produccion y en la caja. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/propinasAcumuladas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/verifactuHash.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/verifactuHash.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. La cadena real la mina el trigger cobros_mint_ticket_trigger en SQL. Borrar. Ojo: lib/fiscal/huella.ts NO es esto y si se reutiliza (ver abajo).\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/verifactuHash.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/clientes/detectarDuplicados.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/clientes/detectarDuplicados.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. Fusionar duplicados esta en clientes.web.tsx. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/clientes/detectarDuplicados.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/config/validadorToggles.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/config/validadorToggles.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. Comprobar contra lo que ya valida configuracion.web.tsx.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/config/validadorToggles.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/fidelizacion/insigniasCliente.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/fidelizacion/insigniasCliente.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. logros / logros_desbloqueados / niveles_fidelizacion estan en produccion y se pintan en clientes.web.tsx. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/fidelizacion/insigniasCliente.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/fiscal/huella.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/fiscal/huella.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Calcula la huella con el formato de cadena OFICIAL de la AEAT. Se reutiliza en el bloque 1 (VeriFactu real) en vez de reescribirla.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/fiscal/huella.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/inventario/alertasStockMinimo.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/inventario/alertasStockMinimo.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. productos.stock_minimo se usa en inventario.web.tsx y el aviso sale por la campana (useAvisos). Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/inventario/alertasStockMinimo.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/legal/contratoRgpdTablet.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/legal/contratoRgpdTablet.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. consentimientos_cliente ya guarda 4 tipos; esto es la firma en tablet. Mirar contra la spec 13 (retencion) antes de tocarlo.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/legal/contratoRgpdTablet.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/marketing/campanasFranjasValle.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/marketing/campanasFranjasValle.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. La tabla campanas existe y el motor de envio de Alexandro funciona; falta esta segmentacion por franja valle, que es justo la que llena los huecos.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/marketing/campanasFranjasValle.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/marketplace/rankingMarketplace.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/marketplace/rankingMarketplace.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. salones_externos tiene 2.388 filas y el marketplace esta al 95%: ver si el ranking real ya se calcula en otro sitio.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/marketplace/rankingMarketplace.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/nominas/liquidacionNominas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/nominas/liquidacionNominas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Roza la spec 11 (cerrar el ciclo de comisiones) pero no es lo mismo: comisiones != nomina. Decidir si Mecha entra en nominas antes de enchufarlo.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/nominas/liquidacionNominas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/pos/qrPagoRapido.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/pos/qrPagoRapido.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. El cobro por enlace/QR existe: edge crear-checkout-cobro + app/pagar/[token] + terminal-cobro-intent. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/pos/qrPagoRapido.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/security/sanitizadorCliente.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/security/sanitizadorCliente.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "BORRAR, mismo motivo. Escapar HTML en el cliente no es un limite de seguridad; React ya escapa al pintar y el limite de verdad esta en el servidor. Si se quiere validar el telefono en E.164, eso es validacion de formulario y va donde esta el formulario.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/security/sanitizadorCliente.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/security/validadorRPC.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/security/validadorRPC.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "BORRAR, y por un motivo que conviene dejar escrito: detectar 'inyeccion SQL' en el cliente antes de una RPC no es una defensa. Las RPC de Supabase van parametrizadas y el control real es RLS + la regla del parametro (exige_mi_negocio), que es lo que documenta el CLAUDE.md. Enchufar esto seria PEOR que borrarlo: da confianza falsa y bloquea entradas legitimas (una nota que diga 'union' o un apellido con guion).\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/security/validadorRPC.ts",
+      "linea": null
+    }
+  ]
+}

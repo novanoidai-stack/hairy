@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vigilante, { auditarCoberturaPantallas } from './meta-cobertura.mjs';
+
+test('el vigilante meta-cobertura se declara con nombre y ambito', () => {
+  assert.equal(vigilante.nombre, 'meta-cobertura');
+  assert.equal(vigilante.ambito, 'vigilancia');
+});
+
+test('todas las pantallas en app/(tabs) están cubiertas hoy', async () => {
+  const hallazgos = await vigilante.ejecutar();
+  assert.deepEqual(hallazgos, [], 'hallazgos:\n' + JSON.stringify(hallazgos, null, 2));
+});
