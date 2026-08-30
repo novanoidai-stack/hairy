@@ -18,6 +18,16 @@ import { leer, capturar, hallazgo, AnclaPerdida } from './nucleo.mjs';
 
 const PLANES = 'lib/planes.ts';
 const LANDING = 'web/index.html';
+// EL PUNTO CIEGO QUE TENIA ESTO (arreglado el 30 ago 2026). CLAUDE.md dice que lo
+// que se anuncia vive en TRES sitios --lib/planes.ts, la seccion #precios de la
+// landing y el SYSTEM_PROMPT de chispa-landing-- y `precios.mjs` mira los tres
+// para los NUMEROS. Este miraba solo dos para el CONTENIDO, y por eso el prompt
+// del asistente siguio recitando "DOS PLANES DE SOFTWARE, mismo contenido en los
+// dos (... cobro de senales con Stripe, campanas de marketing, lista de espera
+// inteligente ...)" MESES despues de que se corrigiera en los otros dos sitios.
+// O sea: la trampa que este vigilante existe para cazar seguia viva, en el unico
+// sitio donde no miraba, y se la contaba a cada prospecto que preguntaba.
+const CHISPA = 'supabase/functions/chispa-landing/index.ts';
 
 // --- leer la fuente de verdad ------------------------------------------------
 
@@ -203,6 +213,62 @@ async function ejecutar() {
         fichero: LANDING,
       }),
     );
+  }
+
+  // 6. EL PROMPT DE LA IA NO PUEDE VENDER LO QUE EL PLAN NO TRAE.
+  //    Es la superficie mas peligrosa de las tres: no la relee nadie, contesta
+  //    en primera persona y el prospecto se la cree. Se comprueba lo mismo que
+  //    en el JSON-LD -- que no afirme igualdad si los planes no son iguales --
+  //    y ademas que no le atribuya a Esencial, por su nombre, una funcion que
+  //    solo trae Estudio.
+  const chispa = leer(CHISPA);
+  const soloEstudio = [...p.estudio].filter((f) => !p.esencial.has(f));
+
+  if (soloEstudio.length > 0 && /mismo (contenido|software)/i.test(chispa)) {
+    hallazgos.push(
+      hallazgo({
+        clave: 'planes/chispa-dice-mismo-contenido',
+        nivel: 'bloqueante',
+        ambito: 'precios',
+        titulo: 'El prompt del asistente dice que los dos planes traen lo mismo, y no es cierto',
+        detalle:
+          `${PLANES} da ${p.esencial.size} funciones a Esencial y ${p.estudio.size} a Estudio ` +
+          `(solo Estudio: ${soloEstudio.join(', ')}).\n\n` +
+          'Un asistente que recita "mismo contenido en los dos" le esta prometiendo a quien ' +
+          'paga 39 EUR funciones de las de 59. No es SEO: es una respuesta en primera persona ' +
+          'a un prospecto concreto.',
+        fichero: CHISPA,
+      }),
+    );
+  }
+
+  // La linea que describe Esencial en el prompt (la que empieza por "Esencial:").
+  const lineaEsencial = chispa.match(/^\s*[·*-]?\s*Esencial:.*$/mi);
+  if (lineaEsencial) {
+    const PISTAS = {
+      senales: /se[nñ]al(es)?\b|dep[óo]sito|fianza/i,
+      campanas: /campa[nñ]as?\b/i,
+      lista_espera: /lista de espera/i,
+      inventario: /inventario\b/i,
+      presupuestos: /presupuestos?\b/i,
+      resenas: /rese[nñ]as?\b/i,
+    };
+    for (const f of soloEstudio) {
+      const pista = PISTAS[f];
+      if (!pista || !pista.test(lineaEsencial[0])) continue;
+      hallazgos.push(
+        hallazgo({
+          clave: `planes/chispa-esencial-promete-${f}`,
+          nivel: 'bloqueante',
+          ambito: 'precios',
+          titulo: `El prompt le atribuye "${f}" a Esencial, y es de Estudio`,
+          detalle:
+            `La linea del prompt que describe Esencial dice:\n\n  ${lineaEsencial[0].trim()}\n\n` +
+            `Pero ${PLANES} solo da "${f}" a Estudio.`,
+          fichero: CHISPA,
+        }),
+      );
+    }
   }
 
   return hallazgos;

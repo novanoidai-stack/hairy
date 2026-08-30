@@ -29,6 +29,7 @@ import planes from './planes.mjs';
 import horariosConvenio from './horarios-convenio.mjs';
 import workflows from './workflows.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
+import claimsFiscales from './claims-fiscales.mjs';
 
 const ESTATICOS = [
   precios,
@@ -45,6 +46,7 @@ const ESTATICOS = [
   horariosConvenio,
   workflows,
   codigoMuerto,
+  claimsFiscales,
 ];
 
 const args = process.argv.slice(2);

@@ -40,8 +40,8 @@ Tabs principales: Agenda (/(tabs)), Clientes (/(tabs)/clientes), Equipo (/(tabs)
 ### Fichajes (legal)
 - Fichaje de jornada por profesional conforme a la ley: entrada, salida, pausas. Horas calculadas por jornada/semana. Base para el cumplimiento de registro horario obligatorio.
 
-### Facturación legal — VeriFactu
-- Tickets/simplificadas homologadas VeriFactu (AEAT) con QR, encadenamiento de registros y requisitos del RD 1007/2023. Mecha genera la factura/ticket legal con impuestos y se queda listo para inspección. (informes/ARQUITECTURA_FISCAL_Y_COMPLIANCE_MECHA.md)
+### Facturación legal — libro de tickets inalterable
+- Tickets encadenados con hash SHA-256 y numeracion correlativa segun el RD 1007/2023; no se borran, se rectifican. El envio del registro a la AEAT y el QR de cotejo NO estan disponibles todavia: estan en desarrollo, y no hay que decir que Mecha "cumple VeriFactu". Mecha genera la factura/ticket legal con impuestos y se queda listo para inspección. (informes/ARQUITECTURA_FISCAL_Y_COMPLIANCE_MECHA.md)
 
 ### Equipo y comisiones
 - Roles: owner (dueño), profesional, con permisos por módulo (cada uno ve lo justo; dinero y ajustes solo el owner).
@@ -77,7 +77,7 @@ Tabs principales: Agenda (/(tabs)), Clientes (/(tabs)/clientes), Equipo (/(tabs)
 ## 7. Argumentos de venta (para dudas de decisión)
 - Anti no-show: recordatorios automáticos por WhatsApp + opción de cobrar señal/depósito por Stripe al reservar online (se descuenta del total). Un no-show medio ~35 €: evitando 1-2 al mes ya paga el plan o el addon IA.
 - Tiempos de reposo = facturar más sin alargar jornada (lo que Booksy/Fresha dejan vacío).
-- Todo lo legal español resuelto: fichajes conforme a ley, facturación VeriFactu con QR (Ley Antifraude), RGPD con portal de privacidad.
+- Todo lo legal español resuelto: fichajes conforme a ley, libro de tickets inalterable (Ley Antifraude), RGPD con portal de privacidad.
 - Onboarding: el equipo monta el salón contigo (importa clientes, configura servicios y horarios); 1 mes gratis sin tarjeta, sin permanencia; se activa o cancela cuando quiera.
 - Si la duda es sobre precios/funciones no confirmadas: ofrecer la demo guiada (demo.html) o la llamada (reservar.html).
 `;
