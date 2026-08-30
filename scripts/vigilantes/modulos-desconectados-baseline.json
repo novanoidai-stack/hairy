@@ -1,0 +1,53 @@
+{
+  "_comentario": [
+    "Modulos con tests que hoy solo usa su propio test. Uno NUEVO es BLOQUEANTE; estos nacen en",
+    "aviso, asi que la lista solo puede encoger. Cuando uno se enchufe o se borre, quitarlo de",
+    "aqui: el vigilante avisa si se queda listado de mas.",
+    "",
+    "Los 28 se triaron el 30 ago 2026 y NO son la misma cosa. Hay tres clases, y confundirlas es",
+    "lo que hizo que esto pareciera 'hecho' durante meses:",
+    "",
+    "  DUPLICA      La funcion EXISTE, implementada en otro sitio, y este modulo es una segunda",
+    "               implementacion que nunca se enchufo. No hay nada que ganar enchufandola y si",
+    "               que perder: dos implementaciones del mismo invariante son la fabrica de",
+    "               regresiones de la decision 10. Se borra.",
+    "  SIN ENCHUFAR La funcion NO existe y este modulo es lo caro ya hecho. Se enchufa, con su spec.",
+    "  TRIAR        No verificado todavia. Mirar antes de decidir.",
+    "",
+    "Detalle en informes/ESTUDIO-SECTORIAL-Y-REAUDITORIA-2026-08-30.md §8 y las specs en",
+    "informes/SPECS-LO-QUE-FALTA-2026-08-30.md."
+  ],
+  "heredados": {
+    "lib/agenda/serviciosCompatiblesReposo.ts": "DUPLICA. Reimplementa en 12 lineas lo que lib/retrasos.ts ya hace bien y SI esta cableado (fasesDe, ventanasActivas, estrategia aprovechar_reposo). Borrar; la version buena crece con la spec 1.",
+    "lib/caja/verifactuHash.ts": "DUPLICA. La cadena real la mina el trigger cobros_mint_ticket_trigger en SQL. Borrar. Ojo: lib/fiscal/huella.ts NO es esto y si se reutiliza (ver abajo).",
+    "lib/caja/cobroMultiPago.ts": "DUPLICA. El multi-pago funciona: cobros.metodo='mixto' con efectivo_cents/datafono_cents, 16 cobros reales. Vive en caja.web.tsx. Borrar.",
+    "lib/caja/arqueoCajaPropinas.ts": "DUPLICA. El arqueo funciona: sesiones_caja + cerrar_caja, 9 sesiones con numero_z y descuadre. Borrar.",
+    "lib/caja/propinasAcumuladas.ts": "DUPLICA. cobros.propina_cents esta en produccion y en la caja. Borrar.",
+    "lib/pos/qrPagoRapido.ts": "DUPLICA. El cobro por enlace/QR existe: edge crear-checkout-cobro + app/pagar/[token] + terminal-cobro-intent. Borrar.",
+    "lib/clientes/detectarDuplicados.ts": "DUPLICA. Fusionar duplicados esta en clientes.web.tsx. Borrar.",
+    "lib/inventario/alertasStockMinimo.ts": "DUPLICA. productos.stock_minimo se usa en inventario.web.tsx y el aviso sale por la campana (useAvisos). Borrar.",
+    "lib/fidelizacion/insigniasCliente.ts": "DUPLICA. logros / logros_desbloqueados / niveles_fidelizacion estan en produccion y se pintan en clientes.web.tsx. Borrar.",
+    "lib/agenda/validadorFestivosTurnos.ts": "DUPLICA. cierres_negocio + el control de festivos de configuracion.web.tsx y NewCitaModal. Borrar.",
+
+    "lib/fichas/colorAlergias.ts": "SIN ENCHUFAR. Es la spec 5 (prueba de alergia 48 h). Evalua alergias declaradas, sensibilidad de cuero con 30 vol y exposicion >45 min. Reglamento 1223/2009 y seguro de RC.",
+    "lib/fichas/diagnosticoCapilar.ts": "SIN ENCHUFAR y URGENTE: la landing lo VENDE (index.html, featureList 'diagnostico capilar y recomendacion de homecare') y no hay nada mas en todo el repo que mencione 'capilar'. O se enchufa o se quita del claim.",
+    "lib/fichas/recomendarHomecare.ts": "SIN ENCHUFAR. Misma linea de la landing que el anterior, mismo problema.",
+    "lib/informes/rentabilidadSillon.ts": "SIN ENCHUFAR. Es la metrica de los 20,26 EUR/h del informe: lo que vale una hora de sillon y cuanto deja sobre la mesa el reposo vacio. Va en Informes, bloque 2.",
+    "lib/agenda/desinfeccionPausas.ts": "SIN ENCHUFAR. Encaja en la spec 1 como fase 'transicion', que hoy no existe en la base de datos.",
+    "lib/fiscal/huella.ts": "SIN ENCHUFAR. Calcula la huella con el formato de cadena OFICIAL de la AEAT. Se reutiliza en el bloque 1 (VeriFactu real) en vez de reescribirla.",
+    "lib/nominas/liquidacionNominas.ts": "SIN ENCHUFAR. Roza la spec 11 (cerrar el ciclo de comisiones) pero no es lo mismo: comisiones != nomina. Decidir si Mecha entra en nominas antes de enchufarlo.",
+    "lib/bonos/consumoBonos.ts": "SIN ENCHUFAR. Va con la spec 6 (bono con calendario de sesiones).",
+    "lib/marketing/campanasFranjasValle.ts": "SIN ENCHUFAR. La tabla campanas existe y el motor de envio de Alexandro funciona; falta esta segmentacion por franja valle, que es justo la que llena los huecos.",
+    "lib/legal/contratoRgpdTablet.ts": "SIN ENCHUFAR. consentimientos_cliente ya guarda 4 tipos; esto es la firma en tablet. Mirar contra la spec 13 (retencion) antes de tocarlo.",
+
+    "lib/security/validadorRPC.ts": "BORRAR, y por un motivo que conviene dejar escrito: detectar 'inyeccion SQL' en el cliente antes de una RPC no es una defensa. Las RPC de Supabase van parametrizadas y el control real es RLS + la regla del parametro (exige_mi_negocio), que es lo que documenta el CLAUDE.md. Enchufar esto seria PEOR que borrarlo: da confianza falsa y bloquea entradas legitimas (una nota que diga 'union' o un apellido con guion).",
+    "lib/security/sanitizadorCliente.ts": "BORRAR, mismo motivo. Escapar HTML en el cliente no es un limite de seguridad; React ya escapa al pintar y el limite de verdad esta en el servidor. Si se quiere validar el telefono en E.164, eso es validacion de formulario y va donde esta el formulario.",
+
+    "components/agenda/optimizacionTouchAgenda.ts": "TRIAR. Probable duplicado de useResponsive() (lib/hooks/useResponsive.ts), que es la via oficial segun el CLAUDE.md.",
+    "components/portal/optimizacionTouchPortal.ts": "TRIAR. La misma sospecha que su gemelo de agenda, pero el portal lo ve una clienta desde su movil y ahi el movil-primero SI importa de verdad: comprobar que useResponsive() cubre el caso tactil del portal antes de borrarlo.",
+    "components/marketplace/tarjetaSalonResponsive.ts": "TRIAR. El marketplace funciona y tiene sus e2e; comprobar si esto duplica lo que ya pinta.",
+    "lib/marketplace/rankingMarketplace.ts": "TRIAR. salones_externos tiene 2.388 filas y el marketplace esta al 95%: ver si el ranking real ya se calcula en otro sitio.",
+    "lib/agenda/bonificacionReasignacion.ts": "TRIAR. Suena a incentivo por aceptar un hueco reasignado. Decidir si es producto antes de nada.",
+    "lib/config/validadorToggles.ts": "TRIAR. Comprobar contra lo que ya valida configuracion.web.tsx."
+  }
+}

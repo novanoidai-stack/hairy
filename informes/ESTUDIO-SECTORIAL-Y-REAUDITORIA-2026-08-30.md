@@ -27,7 +27,7 @@ cableado en agenda y configuración) y cobro por QR/enlace (`crear-checkout-cobr
 | # | Hallazgo | Evidencia |
 |---|---|---|
 | **A** | **La landing promete a la AEAT algo que el código documenta que no hace.** `web/index.html:154` vende "VeriFactu (AEAT) con cadena SHA-256, QR de cotejo **y envío a Hacienda**"; el FAQ en JSON-LD responde "**Sí**" a "¿cumple la normativa VeriFactu?". `components/pos/CobroSheet.tsx:869` dice literalmente lo contrario: *"no hay alta en VeriFactu ni QR de verificación oficial"*. En producción: `config_fiscal.proveedor_estado` = `no_configurado` / `sandbox`, `apoderamiento_ok = false`, `entorno_aeat = preproduccion`. **1.600 tickets encadenados en local, 0 enviados.** Y `tickets_verifactu` no tiene ni una columna donde anotar un envío. | §7 |
-| **B** | **Seis módulos con lógica y tests que no están enchufados a nada** — incluido el de alergias y el de rentabilidad por sillón. Pasan la CI, cuentan como "hecho", y ningún usuario los ha visto nunca. | §8 |
+| **B** | **28 módulos con lógica y tests que no están enchufados a nada** (el muestreo a mano decía 6; automatizado son 28). Pasan la CI, cuentan como "hecho", y ningún usuario los ha visto nunca. **El vigilante de código muerto no los veía porque `knip.json` declara los tests como entry points: tener un test te exime de tener consumidores.** De tirar de ese hilo salió un tercer claim falso: la landing vende "diagnóstico capilar y recomendación de homecare" y la palabra "capilar" no aparece en ninguna otra parte del repo. | §8 |
 | **C** | **La brecha de activación.** El único salón real tiene **7 de 81 servicios con reposo configurado**, 0 productos tarifados, 2 recursos creados y nunca asignados, y **0 reservas online y 0 señales cobradas en toda la vida del producto**. El producto no está incompleto: está **sin configurar**, y nada en él configura al salón. | §9 |
 | **D** | **`anonimizar_cliente` deja atrás los datos de salud.** Borra fotos, consentimientos y `clientes.alergias`, pero **no toca `fichas_tecnicas_color`** (87 filas con `formula`, `nivel_dano`, `incidencias`) ni `notas_internas_cliente` ni `citas.notas`. Es exactamente el dato del art. 9 RGPD el que sobrevive al derecho de supresión. | §6.3 |
 
@@ -291,47 +291,94 @@ Y esto choca de frente con la decisión 5 del propio CLAUDE.md: *"Sin claims fal
 2. **Para el cliente:** un salón que contrata Esencial creyendo que ya cumple, y no cumple. El
    perjuicio es suyo y la expectativa se la creó Mecha.
 
-## 8. Hallazgo B — Los módulos huérfanos
+## 8. Hallazgo B — Los módulos huérfanos: son 28, no 6
 
-Hay lógica de negocio escrita, comentada, con tests que pasan en CI, y **cero consumidores**.
-Verificado con búsqueda de importaciones en `app/`, `components/`, `lib/`, `scripts/`, `supabase/`
-excluyendo los propios `.test.ts`:
+> **Corrección del 30 ago, misma tarde.** Este apartado decía «seis módulos». Eran los seis
+> que salieron en un muestreo a mano. Al automatizar la comprobación
+> (`scripts/vigilantes/modulos-desconectados.mjs`) el número real es **28**, verificados uno a
+> uno: cero falsos positivos por barrel (el único `index.ts` del proyecto es `lib/manuals/`).
 
-| Módulo | Qué resuelve | Consumidores |
-|---|---|---|
-| `lib/fichas/colorAlergias.ts` | Diagnóstico de seguridad de una fórmula: alergias declaradas, sensibilidad + 30 vol, exposición > 45 min, aviso de 40 vol. **La pieza del §6.2.** | **0** |
-| `lib/informes/rentabilidadSillon.ts` | Rentabilidad por puesto. **La métrica del §3.** | **0** |
-| `lib/caja/verifactuHash.ts` | Cálculo y verificación del encadenamiento | **0** (la cadena real la mina el trigger SQL) |
-| `lib/fiscal/huella.ts` | Huella AEAT con el formato oficial de cadena | **0** |
-| `lib/agenda/desinfeccionPausas.ts` | Pausa de desinfección entre clientes | **0** |
-| `lib/agenda/serviciosCompatiblesReposo.ts` | Qué servicio cabe en un reposo | **0** — pero ver nota |
+Lógica de negocio escrita, comentada, con tests que pasan en CI, y **cero consumidores fuera
+de esos tests**.
 
-Y su equivalente en la base de datos — RPCs desplegadas que **no llama ni el cliente ni otra
-función**:
+### Por qué no los cazaba el vigilante que existe para esto
+
+Está en `knip.json`, en una línea:
+
+```json
+"entry": [ "app/**/*.{ts,tsx}", "components/**/*.web.tsx",
+           "lib/**/*.web.ts", "lib/**/*.test.ts" ]
+                              ^^^^^^^^^^^^^^^^^^
+```
+
+Los tests son **entry points**. Tienen que serlo: si no, knip marcaría cada fichero de test
+como fichero muerto. Pero la consecuencia es que **lo que importa un test cuenta como usado**
+— o sea, **tener un test te exime de tener consumidores**. El vigilante de código muerto
+estaba configurado para dar por vivo exactamente a esta clase de módulo.
+
+No se arregla en knip (quitar los tests de `entry` cambia un falso negativo por sesenta falsos
+positivos). Se arregla preguntando otra cosa: no *«¿lo importa alguien?»* sino **«¿lo importa
+alguien que no sea su propio test?»**. Eso es el vigilante nuevo.
+
+### Los 28, y son tres cosas distintas
+
+Confundirlas es lo que hizo que esto pareciera «hecho» durante meses. El triaje completo, con
+el motivo de cada uno, está en `scripts/vigilantes/modulos-desconectados-baseline.json`.
+
+**a) DUPLICAN algo que sí funciona (10) → se borran.** La función existe, implementada en otro
+sitio y en uso; el módulo es una segunda implementación que nunca se enchufó:
+`cobroMultiPago` (el multi-pago va por `cobros.metodo='mixto'`, 16 cobros reales),
+`arqueoCajaPropinas` y `propinasAcumuladas` (`sesiones_caja` + `cerrar_caja`, 9 arqueos),
+`qrPagoRapido` (`crear-checkout-cobro` + `app/pagar/[token]`), `verifactuHash` (el trigger
+SQL), `detectarDuplicados`, `alertasStockMinimo`, `insigniasCliente`, `validadorFestivosTurnos`
+y `serviciosCompatiblesReposo`. Mantener dos implementaciones del mismo invariante es la
+fábrica de regresiones que describe la decisión 10 del CLAUDE.md.
+
+**b) VALOR REAL sin enchufar (10) → lo caro ya está hecho, falta el cable.**
+`colorAlergias` (spec 5), `rentabilidadSillon` (la métrica de los 20,26 €/h de §3),
+`desinfeccionPausas` (la fase `transicion` de la spec 1), `huella` (formato oficial AEAT, se
+reutiliza en el bloque 1), `consumoBonos`, `campanasFranjasValle`, `liquidacionNominas`,
+`contratoRgpdTablet` y —esto es lo grave— **`diagnosticoCapilar` y `recomendarHomecare`**.
+
+**c) Se borran por una razón de fondo (2).** `lib/security/validadorRPC.ts` y
+`lib/security/sanitizadorCliente.ts` detectan «inyección SQL» y escapan HTML **en el cliente**.
+Eso no es un límite de seguridad: las RPC de Supabase van parametrizadas y el control real es
+RLS más la regla del parámetro (`exige_mi_negocio`), que es justo lo que documenta el
+CLAUDE.md. **Enchufarlos sería peor que borrarlos**: dan confianza falsa y bloquearían entradas
+legítimas (una nota que diga «union», un apellido con guion).
+
+Quedan 6 por triar, anotados como tales.
+
+### El tercer claim falso, que salió de aquí
+
+`web/index.html` vendía a Google, en su `featureList`:
+
+> *«Fotos antes/después, **diagnóstico capilar y recomendación de homecare**»*
+
+Y **la palabra «capilar» no aparece en ninguna otra parte del repo**: ni en `app/`, ni en
+`components/`, ni en `supabase/`. Lo único que existe son esos dos módulos que no importa
+nadie. Es la misma familia que el hallazgo A —una función anunciada que ningún usuario puede
+alcanzar— y se encontró tirando del hilo de los huérfanos, no buscándola. Corregido el mismo
+día: la línea se queda en las fotos antes/después, que sí están construidas.
+
+### Y en la base de datos, lo mismo
+
+RPC desplegadas en producción que no llama ni el cliente ni otra función:
 
 | RPC | Para qué se creó |
 |---|---|
-| `registrar_consumo_cita(cita, producto, cantidad)` | El escandallo en gramos. `cita_consumos`: **0 filas** |
-| `recurso_hay_hueco` / `recursos_ocupados` / `recurso_tramo_de_cita` | El cuello de botella de cabinas y lavacabezas |
-| `candidatos_para_hueco` / `asignar_candidato_hueco` | El matching de lista de espera (pendiente nº 4 del roadmap — **ya está escrito**) |
-| `crear_factura_borrador` | Factura nominativa con NIF. `facturas`: **0 filas** |
+| `registrar_consumo_cita` | El escandallo en gramos · `cita_consumos`: **0 filas** |
+| `recurso_hay_hueco` · `recursos_ocupados` · `recurso_tramo_de_cita` | El cuello de botella de cabinas y lavacabezas |
+| `candidatos_para_hueco` · `asignar_candidato_hueco` | **El pendiente nº 4 del roadmap. Ya está escrito.** |
+| `crear_factura_borrador` | Factura nominativa con NIF · `facturas`: **0 filas** |
 
-**Dos lecturas distintas, y conviene no confundirlas:**
+### La lección de proceso
 
-- **Duplicados superficiales.** `serviciosCompatiblesReposo.ts` (12 líneas útiles) reimplementa
-  peor algo que `lib/retrasos.ts` ya hace bien y **sí está cableado** (`fasesDe`, `ventanasActivas`,
-  estrategia `aprovechar_reposo`, usada en `OrganizarAgendaPanel.web.tsx` y en el Timeline).
-  Igual `verifactuHash.ts` frente al trigger SQL. **Estos hay que borrarlos**: mantener dos
-  implementaciones del mismo invariante es la fábrica de regresiones que describe la decisión 10
-  de CLAUDE.md.
-- **Valor real sin enchufar.** `colorAlergias.ts`, `rentabilidadSillon.ts`, `registrar_consumo_cita`,
-  `recurso_hay_hueco`, `candidatos_para_hueco`. Aquí lo caro ya está hecho: falta el cable.
-
-**La lección de proceso.** Un test verde sobre una función pura no demuestra que el producto
-haga nada. La capa de vigilantes de Mecha (13 vigilantes, `vigilancia_bd()`, smoke) vigila
-**regresiones**; nadie vigila **desconexiones**. Un vigilante nuevo de 30 líneas —"todo módulo
-de `lib/` con test tiene al menos un consumidor fuera de tests, o está en una lista de exención
-razonada"— habría cazado los seis. Va en el bloque 3.
+Un test verde sobre una función pura no demuestra que el producto haga nada. Los vigilantes de
+Mecha vigilan **regresiones**; nadie vigilaba **desconexiones**, y el que más cerca estaba
+tenía la exención escrita en su propia configuración. Ya está puesto
+(`modulos-desconectados.mjs`, con trinquete: los 28 nacen en aviso, uno nuevo bloquea), y
+comprobado en vivo — un módulo huérfano recién creado tumba la CI.
 
 ## 9. Hallazgo C — La brecha de activación
 
@@ -548,8 +595,11 @@ la dueña teclee nada.
 4. **Prueba de alergia 48 h.** Enchufar `lib/fichas/colorAlergias.ts` a la ficha y a la creación
    de cita: si es coloración + clienta nueva o con sensibilidad declarada → propone la prueba,
    la agenda 48 h antes y la registra. Cubre el §6.2 y es un argumento de venta y de seguro.
-5. **Borrar los duplicados** (`serviciosCompatiblesReposo.ts`, `verifactuHash.ts`) y **añadir el
-   vigilante de módulos desconectados** del §8.
+5. **Vaciar la lista de huérfanos.** El vigilante ya está puesto (30 ago) y los 28 están
+   triados en `scripts/vigilantes/modulos-desconectados-baseline.json`: **12 se borran** —10
+   duplican algo que ya funciona y 2 son seguridad de mentira en el cliente—, **10 se enchufan**
+   con su spec y **6 quedan por triar**. Cada uno que se resuelve sale de la línea base, y el
+   trinquete impide que entre uno nuevo.
 
 ### Bloque 4 — Las funciones que faltan
 
