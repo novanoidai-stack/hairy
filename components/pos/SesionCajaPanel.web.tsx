@@ -108,14 +108,17 @@ export function SesionCajaPanel({ onCambio }: { onCambio?: () => void }) {
           <span style={{ fontSize: 15, fontWeight: 700, color }}>{resumen.texto}</span>
         </div>
         <div style={{
-          display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
+          display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(130px, 1fr))',
           gap: 10, marginTop: 14,
         }}>
           {[
             ['Cambio inicial', euros(resumen.fondoInicialCents)],
-            ['Debería haber', euros(resumen.teoricoEfectivoCents)],
-            ['Has contado', euros(resumen.contadoEfectivoCents)],
-            ['Diferencia', euros(resumen.descuadreCents)],
+            ['Debería haber (efectivo)', euros(resumen.teoricoEfectivoCents)],
+            ['Has contado (efectivo)', euros(resumen.contadoEfectivoCents)],
+            ['Diferencia efectivo', euros(resumen.descuadreCents)],
+            ...(resumen.teoricoDatafonoCents != null && resumen.teoricoDatafonoCents > 0 ? [['Datáfono / Tarjeta', euros(resumen.teoricoDatafonoCents)]] : []),
+            ...(resumen.teoricoBizumCents != null && resumen.teoricoBizumCents > 0 ? [['Bizum', euros(resumen.teoricoBizumCents)]] : []),
+            ...(resumen.teoricoOnlineCents != null && resumen.teoricoOnlineCents > 0 ? [['Online / Otros', euros(resumen.teoricoOnlineCents)]] : []),
           ].map(([label, valor]) => (
             <div key={label} style={{
               background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12,

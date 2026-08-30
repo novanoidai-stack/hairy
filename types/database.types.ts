@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -26,6 +26,54 @@ export type Database = {
         Update: {
           negocio_id?: string
           ultimo_aviso?: string
+        }
+        Relationships: []
+      }
+      audit_leads: {
+        Row: {
+          cancelaciones_estimadas: number | null
+          ciudad: string | null
+          created_at: string | null
+          email: string | null
+          fecha_auditoria: string | null
+          id: string
+          nombre: string
+          problema_principal: string | null
+          status: string | null
+          telefono: string | null
+          ticket_medio: number | null
+          tipo_negocio: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cancelaciones_estimadas?: number | null
+          ciudad?: string | null
+          created_at?: string | null
+          email?: string | null
+          fecha_auditoria?: string | null
+          id?: string
+          nombre: string
+          problema_principal?: string | null
+          status?: string | null
+          telefono?: string | null
+          ticket_medio?: number | null
+          tipo_negocio?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cancelaciones_estimadas?: number | null
+          ciudad?: string | null
+          created_at?: string | null
+          email?: string | null
+          fecha_auditoria?: string | null
+          id?: string
+          nombre?: string
+          problema_principal?: string | null
+          status?: string | null
+          telefono?: string | null
+          ticket_medio?: number | null
+          tipo_negocio?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1270,6 +1318,7 @@ export type Database = {
       }
       cobros: {
         Row: {
+          bizum_cents: number | null
           cita_id: string | null
           cliente_id: string | null
           cobrado_at: string
@@ -1292,6 +1341,7 @@ export type Database = {
           total_cents: number
         }
         Insert: {
+          bizum_cents?: number | null
           cita_id?: string | null
           cliente_id?: string | null
           cobrado_at?: string
@@ -1314,6 +1364,7 @@ export type Database = {
           total_cents: number
         }
         Update: {
+          bizum_cents?: number | null
           cita_id?: string | null
           cliente_id?: string | null
           cobrado_at?: string
@@ -1599,6 +1650,183 @@ export type Database = {
           },
         ]
       }
+      contratos: {
+        Row: {
+          archivo_pdf: string | null
+          cliente_id: string | null
+          created_at: string | null
+          descuento_global: number | null
+          dia_facturacion: number | null
+          estado: string | null
+          fecha_fin: string | null
+          fecha_inicio: string
+          firma_estado: string | null
+          firma_evidencia: Json | null
+          firma_token: string | null
+          firma_token_exp: string | null
+          firmado_at: string | null
+          forma_pago: string | null
+          frecuencia_facturacion: string | null
+          hash_documento: string | null
+          id: string
+          negocio_id: string
+          observaciones: string | null
+          pdf_firmado_url: string | null
+          pdf_url: string | null
+          precio_recurrente: number | null
+          telefono_receptor: string | null
+          tipo_recurrente: string
+          updated_at: string | null
+        }
+        Insert: {
+          archivo_pdf?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          descuento_global?: number | null
+          dia_facturacion?: number | null
+          estado?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          firma_estado?: string | null
+          firma_evidencia?: Json | null
+          firma_token?: string | null
+          firma_token_exp?: string | null
+          firmado_at?: string | null
+          forma_pago?: string | null
+          frecuencia_facturacion?: string | null
+          hash_documento?: string | null
+          id?: string
+          negocio_id: string
+          observaciones?: string | null
+          pdf_firmado_url?: string | null
+          pdf_url?: string | null
+          precio_recurrente?: number | null
+          telefono_receptor?: string | null
+          tipo_recurrente?: string
+          updated_at?: string | null
+        }
+        Update: {
+          archivo_pdf?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          descuento_global?: number | null
+          dia_facturacion?: number | null
+          estado?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          firma_estado?: string | null
+          firma_evidencia?: Json | null
+          firma_token?: string | null
+          firma_token_exp?: string | null
+          firmado_at?: string | null
+          forma_pago?: string | null
+          frecuencia_facturacion?: string | null
+          hash_documento?: string | null
+          id?: string
+          negocio_id?: string
+          observaciones?: string | null
+          pdf_firmado_url?: string | null
+          pdf_url?: string | null
+          precio_recurrente?: number | null
+          telefono_receptor?: string | null
+          tipo_recurrente?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_firma_tokens: {
+        Row: {
+          contrato_partner_id: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          token: string
+          usado_at: string | null
+        }
+        Insert: {
+          contrato_partner_id?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          token: string
+          usado_at?: string | null
+        }
+        Update: {
+          contrato_partner_id?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+          usado_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_firma_tokens_contrato_partner_id_fkey"
+            columns: ["contrato_partner_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_partner"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_partner: {
+        Row: {
+          created_at: string | null
+          fecha_firma: string | null
+          firma_evidencia: Json | null
+          firma_token: string | null
+          id: string
+          pdf_firmado_url: string | null
+          pdf_url: string | null
+          socio_id: string | null
+          status: string | null
+          tipo_plantilla: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fecha_firma?: string | null
+          firma_evidencia?: Json | null
+          firma_token?: string | null
+          id?: string
+          pdf_firmado_url?: string | null
+          pdf_url?: string | null
+          socio_id?: string | null
+          status?: string | null
+          tipo_plantilla?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fecha_firma?: string | null
+          firma_evidencia?: Json | null
+          firma_token?: string | null
+          id?: string
+          pdf_firmado_url?: string | null
+          pdf_url?: string | null
+          socio_id?: string | null
+          status?: string | null
+          tipo_plantilla?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_partner_socio_id_fkey"
+            columns: ["socio_id"]
+            isOneToOne: false
+            referencedRelation: "socios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversaciones: {
         Row: {
           cliente_id: string | null
@@ -1715,6 +1943,498 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crm_actividades: {
+        Row: {
+          created_at: string | null
+          duracion_min: number | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+          notas: string | null
+          ocurrida_at: string | null
+          resultado: string | null
+          tipo: string
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duracion_min?: number | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+          notas?: string | null
+          ocurrida_at?: string | null
+          resultado?: string | null
+          tipo: string
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duracion_min?: number | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+          notas?: string | null
+          ocurrida_at?: string | null
+          resultado?: string | null
+          tipo?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_actividades_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_actividades_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_email_templates: {
+        Row: {
+          activa: boolean | null
+          asunto: string
+          categoria: string | null
+          created_at: string | null
+          created_by: string | null
+          cuerpo_html: string
+          id: string
+          nombre: string
+          tasa_apertura: number | null
+          tasa_respuesta: number | null
+          updated_at: string | null
+          variables: string[] | null
+          veces_usado: number | null
+        }
+        Insert: {
+          activa?: boolean | null
+          asunto: string
+          categoria?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          cuerpo_html: string
+          id?: string
+          nombre: string
+          tasa_apertura?: number | null
+          tasa_respuesta?: number | null
+          updated_at?: string | null
+          variables?: string[] | null
+          veces_usado?: number | null
+        }
+        Update: {
+          activa?: boolean | null
+          asunto?: string
+          categoria?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          cuerpo_html?: string
+          id?: string
+          nombre?: string
+          tasa_apertura?: number | null
+          tasa_respuesta?: number | null
+          updated_at?: string | null
+          variables?: string[] | null
+          veces_usado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_email_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_emails: {
+        Row: {
+          abierto_at: string | null
+          abierto_count: number | null
+          asunto: string
+          bounce: boolean | null
+          bounce_motivo: string | null
+          click_at: string | null
+          click_count: number | null
+          created_at: string | null
+          cuerpo_html: string
+          entregado_at: string | null
+          enviado_at: string | null
+          estado: string | null
+          from_email: string
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+          remitente: string | null
+          reply_to: string | null
+          resend_id: string | null
+          respondido_at: string | null
+          template_id: string | null
+          thread_id: string | null
+          to_email: string
+        }
+        Insert: {
+          abierto_at?: string | null
+          abierto_count?: number | null
+          asunto: string
+          bounce?: boolean | null
+          bounce_motivo?: string | null
+          click_at?: string | null
+          click_count?: number | null
+          created_at?: string | null
+          cuerpo_html: string
+          entregado_at?: string | null
+          enviado_at?: string | null
+          estado?: string | null
+          from_email: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          remitente?: string | null
+          reply_to?: string | null
+          resend_id?: string | null
+          respondido_at?: string | null
+          template_id?: string | null
+          thread_id?: string | null
+          to_email: string
+        }
+        Update: {
+          abierto_at?: string | null
+          abierto_count?: number | null
+          asunto?: string
+          bounce?: boolean | null
+          bounce_motivo?: string | null
+          click_at?: string | null
+          click_count?: number | null
+          created_at?: string | null
+          cuerpo_html?: string
+          entregado_at?: string | null
+          enviado_at?: string | null
+          estado?: string | null
+          from_email?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          remitente?: string | null
+          reply_to?: string | null
+          resend_id?: string | null
+          respondido_at?: string | null
+          template_id?: string | null
+          thread_id?: string | null
+          to_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_emails_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_emails_remitente_fkey"
+            columns: ["remitente"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_emails_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "crm_email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_errores: {
+        Row: {
+          contexto: Json | null
+          created_at: string | null
+          fuente: string
+          id: string
+          mensaje: string
+          resolucion_notas: string | null
+          resuelto: boolean | null
+          resuelto_at: string | null
+          resuelto_por: string | null
+          severidad: string | null
+          stack_trace: string | null
+        }
+        Insert: {
+          contexto?: Json | null
+          created_at?: string | null
+          fuente: string
+          id?: string
+          mensaje: string
+          resolucion_notas?: string | null
+          resuelto?: boolean | null
+          resuelto_at?: string | null
+          resuelto_por?: string | null
+          severidad?: string | null
+          stack_trace?: string | null
+        }
+        Update: {
+          contexto?: Json | null
+          created_at?: string | null
+          fuente?: string
+          id?: string
+          mensaje?: string
+          resolucion_notas?: string | null
+          resuelto?: boolean | null
+          resuelto_at?: string | null
+          resuelto_por?: string | null
+          severidad?: string | null
+          stack_trace?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_errores_resuelto_por_fkey"
+            columns: ["resuelto_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_leads: {
+        Row: {
+          asignado_a: string | null
+          ciudad: string | null
+          created_at: string | null
+          created_by: string | null
+          direccion: string | null
+          email: string | null
+          empresa: string | null
+          estado: string
+          estimacion_valor: number | null
+          google_maps_url: string | null
+          id: string
+          instagram: string | null
+          metadata: Json | null
+          nombre: string
+          notas: string | null
+          origen: string | null
+          origen_detalle: string | null
+          pais: string | null
+          probabilidad: number | null
+          provincia: string | null
+          proxima_accion: string | null
+          tags: string[] | null
+          telefono: string | null
+          tipo_negocio: string | null
+          updated_at: string | null
+          web: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          asignado_a?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          direccion?: string | null
+          email?: string | null
+          empresa?: string | null
+          estado?: string
+          estimacion_valor?: number | null
+          google_maps_url?: string | null
+          id?: string
+          instagram?: string | null
+          metadata?: Json | null
+          nombre: string
+          notas?: string | null
+          origen?: string | null
+          origen_detalle?: string | null
+          pais?: string | null
+          probabilidad?: number | null
+          provincia?: string | null
+          proxima_accion?: string | null
+          tags?: string[] | null
+          telefono?: string | null
+          tipo_negocio?: string | null
+          updated_at?: string | null
+          web?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          asignado_a?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          direccion?: string | null
+          email?: string | null
+          empresa?: string | null
+          estado?: string
+          estimacion_valor?: number | null
+          google_maps_url?: string | null
+          id?: string
+          instagram?: string | null
+          metadata?: Json | null
+          nombre?: string
+          notas?: string | null
+          origen?: string | null
+          origen_detalle?: string | null
+          pais?: string | null
+          probabilidad?: number | null
+          provincia?: string | null
+          proxima_accion?: string | null
+          tags?: string[] | null
+          telefono?: string | null
+          tipo_negocio?: string | null
+          updated_at?: string | null
+          web?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_leads_asignado_a_fkey"
+            columns: ["asignado_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_leads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_n8n_runs: {
+        Row: {
+          cliente_id: string | null
+          disparado_por: string | null
+          duracion_ms: number | null
+          error_msg: string | null
+          estado: string
+          finalizado_at: string | null
+          id: string
+          iniciado_at: string | null
+          metadata: Json | null
+          parametros: Json | null
+          resultados_count: number | null
+          workflow_id: string | null
+          workflow_nombre: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          disparado_por?: string | null
+          duracion_ms?: number | null
+          error_msg?: string | null
+          estado?: string
+          finalizado_at?: string | null
+          id?: string
+          iniciado_at?: string | null
+          metadata?: Json | null
+          parametros?: Json | null
+          resultados_count?: number | null
+          workflow_id?: string | null
+          workflow_nombre?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          disparado_por?: string | null
+          duracion_ms?: number | null
+          error_msg?: string | null
+          estado?: string
+          finalizado_at?: string | null
+          id?: string
+          iniciado_at?: string | null
+          metadata?: Json | null
+          parametros?: Json | null
+          resultados_count?: number | null
+          workflow_id?: string | null
+          workflow_nombre?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_n8n_runs_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_n8n_runs_disparado_por_fkey"
+            columns: ["disparado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_n8n_runs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "n8n_webhook_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_referentes: {
+        Row: {
+          ciudad: string | null
+          cliente_nombre: string
+          created_at: string | null
+          cuota_mensual: number | null
+          destacado: boolean | null
+          duracion_implementacion_dias: number | null
+          id: string
+          inversion_inicial: number | null
+          problema: string | null
+          resultado_metrica: string | null
+          solucion: string | null
+          testimonial: string | null
+          tipo_negocio: string | null
+          updated_at: string | null
+          url_caso: string | null
+          url_web: string | null
+        }
+        Insert: {
+          ciudad?: string | null
+          cliente_nombre: string
+          created_at?: string | null
+          cuota_mensual?: number | null
+          destacado?: boolean | null
+          duracion_implementacion_dias?: number | null
+          id?: string
+          inversion_inicial?: number | null
+          problema?: string | null
+          resultado_metrica?: string | null
+          solucion?: string | null
+          testimonial?: string | null
+          tipo_negocio?: string | null
+          updated_at?: string | null
+          url_caso?: string | null
+          url_web?: string | null
+        }
+        Update: {
+          ciudad?: string | null
+          cliente_nombre?: string
+          created_at?: string | null
+          cuota_mensual?: number | null
+          destacado?: boolean | null
+          duracion_implementacion_dias?: number | null
+          id?: string
+          inversion_inicial?: number | null
+          problema?: string | null
+          resultado_metrica?: string | null
+          solucion?: string | null
+          testimonial?: string | null
+          tipo_negocio?: string | null
+          updated_at?: string | null
+          url_caso?: string | null
+          url_web?: string | null
+        }
+        Relationships: []
       }
       cumpleanos_avisos: {
         Row: {
@@ -2052,6 +2772,65 @@ export type Database = {
             columns: ["factura_rectificada_id"]
             isOneToOne: false
             referencedRelation: "facturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facturas_partner: {
+        Row: {
+          anio: number | null
+          archivo_url: string | null
+          base_imponible: number | null
+          created_at: string | null
+          estado: string | null
+          id: string
+          irpf: number | null
+          iva: number | null
+          mes: number | null
+          notas: string | null
+          numero: string | null
+          socio_id: string | null
+          total: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          anio?: number | null
+          archivo_url?: string | null
+          base_imponible?: number | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          irpf?: number | null
+          iva?: number | null
+          mes?: number | null
+          notas?: string | null
+          numero?: string | null
+          socio_id?: string | null
+          total?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          anio?: number | null
+          archivo_url?: string | null
+          base_imponible?: number | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          irpf?: number | null
+          iva?: number | null
+          mes?: number | null
+          notas?: string | null
+          numero?: string | null
+          socio_id?: string | null
+          total?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facturas_partner_socio_id_fkey"
+            columns: ["socio_id"]
+            isOneToOne: false
+            referencedRelation: "socios"
             referencedColumns: ["id"]
           },
         ]
@@ -2550,6 +3329,9 @@ export type Database = {
       }
       inventario: {
         Row: {
+          abierto_restante: number | null
+          cantidad_base: number | null
+          envases_cerrados: number | null
           id: string
           modificado_por: string | null
           negocio_id: string
@@ -2559,6 +3341,9 @@ export type Database = {
           unidades: number
         }
         Insert: {
+          abierto_restante?: number | null
+          cantidad_base?: number | null
+          envases_cerrados?: number | null
           id?: string
           modificado_por?: string | null
           negocio_id: string
@@ -2568,6 +3353,9 @@ export type Database = {
           unidades?: number
         }
         Update: {
+          abierto_restante?: number | null
+          cantidad_base?: number | null
+          envases_cerrados?: number | null
           id?: string
           modificado_por?: string | null
           negocio_id?: string
@@ -3040,6 +3828,7 @@ export type Database = {
       }
       movimientos_inventario: {
         Row: {
+          cantidad_base: number | null
           creado_por: string | null
           created_at: string
           id: string
@@ -3053,6 +3842,7 @@ export type Database = {
           unidades: number
         }
         Insert: {
+          cantidad_base?: number | null
           creado_por?: string | null
           created_at?: string
           id?: string
@@ -3066,6 +3856,7 @@ export type Database = {
           unidades: number
         }
         Update: {
+          cantidad_base?: number | null
           creado_por?: string | null
           created_at?: string
           id?: string
@@ -3101,6 +3892,83 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      n8n_webhook_config: {
+        Row: {
+          cliente_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          n8n_workflow_id: string | null
+          negocio_id: string | null
+          nombre: string | null
+          tipo: string | null
+          ultimo_estado: string | null
+          ultimo_heartbeat: string | null
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          n8n_workflow_id?: string | null
+          negocio_id?: string | null
+          nombre?: string | null
+          tipo?: string | null
+          ultimo_estado?: string | null
+          ultimo_heartbeat?: string | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          n8n_workflow_id?: string | null
+          negocio_id?: string | null
+          nombre?: string | null
+          tipo?: string | null
+          ultimo_estado?: string | null
+          ultimo_heartbeat?: string | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "n8n_webhook_config_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negocio_clasificacion: {
+        Row: {
+          marcado_en: string
+          marcado_por: string | null
+          negocio_id: string
+          nota: string | null
+          tipo: string
+        }
+        Insert: {
+          marcado_en?: string
+          marcado_por?: string | null
+          negocio_id: string
+          nota?: string | null
+          tipo?: string
+        }
+        Update: {
+          marcado_en?: string
+          marcado_por?: string | null
+          negocio_id?: string
+          nota?: string | null
+          tipo?: string
+        }
+        Relationships: []
       }
       negocio_config: {
         Row: {
@@ -3180,6 +4048,33 @@ export type Database = {
           pausa_fin?: string | null
           pausa_inicio?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      negocio_limites: {
+        Row: {
+          actualizado_en: string
+          actualizado_por: string | null
+          max_cuentas: number | null
+          max_profesionales: number | null
+          negocio_id: string
+          nota: string | null
+        }
+        Insert: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          max_cuentas?: number | null
+          max_profesionales?: number | null
+          negocio_id: string
+          nota?: string | null
+        }
+        Update: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          max_cuentas?: number | null
+          max_profesionales?: number | null
+          negocio_id?: string
+          nota?: string | null
         }
         Relationships: []
       }
@@ -3805,11 +4700,13 @@ export type Database = {
           id: string
           imagen_url: string | null
           iva_porcentaje: number | null
+          marca: string | null
           negocio_id: string
           nombre: string
           precio_cents: number
           proveedor: string | null
           stock_minimo: number
+          tono: string | null
           unidad_medida: string
           updated_at: string
         }
@@ -3824,11 +4721,13 @@ export type Database = {
           id?: string
           imagen_url?: string | null
           iva_porcentaje?: number | null
+          marca?: string | null
           negocio_id: string
           nombre: string
           precio_cents?: number
           proveedor?: string | null
           stock_minimo?: number
+          tono?: string | null
           unidad_medida?: string
           updated_at?: string
         }
@@ -3843,11 +4742,13 @@ export type Database = {
           id?: string
           imagen_url?: string | null
           iva_porcentaje?: number | null
+          marca?: string | null
           negocio_id?: string
           nombre?: string
           precio_cents?: number
           proveedor?: string | null
           stock_minimo?: number
+          tono?: string | null
           unidad_medida?: string
           updated_at?: string
         }
@@ -4003,8 +4904,18 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -4014,38 +4925,67 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         Insert: {
+          account_manager_id?: string | null
+          allowed_roles?: string[] | null
           apellido?: string | null
+          approved?: boolean | null
           avatar_url?: string | null
+          bio?: string | null
+          booksy?: string | null
+          booksy_link?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          calendar_id?: string | null
+          cargo?: string | null
           cobro_manual?: boolean
           cobro_manual_en?: string | null
           cobro_manual_nota?: string | null
@@ -4055,38 +4995,67 @@ export type Database = {
           codigo_referido?: string | null
           created_at?: string
           demo_visits_used?: number
+          departamento?: string | null
           descuento_pct?: number
           descuento_referido_aplicado?: boolean
           email: string
           es_cuenta_demo?: boolean
           ia_nivel?: string
           id: string
+          manual_segmentation?: boolean | null
           meses_gratis_canjeados?: number
           meses_gratis_ganados?: number
+          metrics?: Json | null
+          modo_gestor?: boolean | null
+          n8n_webhook?: string | null
           negocio_id?: string | null
+          nif?: string | null
           nombre: string
           nombre_negocio?: string | null
+          opening_hours?: Json | null
+          orden_jerarquia?: number | null
           paginas_manual_vistas?: Json
+          pending_negocio_id?: string | null
           periodo_fin?: string | null
           phone?: string | null
+          pin_barberia?: string | null
+          pin_gestor?: string | null
           plan?: string
+          plan_type?: string | null
           privacy_accepted_at?: string | null
           privacy_policy_version?: string | null
+          reception_mode?: string | null
           referido_en?: string | null
           referido_por?: string | null
+          rol_default?: string | null
           role: string
+          shield_webhook?: string | null
           signup_fingerprint?: string | null
           signup_ip?: string | null
           signup_ua?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
-          suscripcion_estado?: string | null
+          superior_id?: string | null
+          suscripcion_estado: string
           trial_ends_at?: string | null
+          ui_mode?: string | null
+          ultimo_rol_seleccionado?: string | null
           updated_at?: string
+          visible_tabs?: string[] | null
         }
         Update: {
+          account_manager_id?: string | null
+          allowed_roles?: string[] | null
           apellido?: string | null
+          approved?: boolean | null
           avatar_url?: string | null
+          bio?: string | null
+          booksy?: string | null
+          booksy_link?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          calendar_id?: string | null
+          cargo?: string | null
           cobro_manual?: boolean
           cobro_manual_en?: string | null
           cobro_manual_nota?: string | null
@@ -4096,34 +5065,53 @@ export type Database = {
           codigo_referido?: string | null
           created_at?: string
           demo_visits_used?: number
+          departamento?: string | null
           descuento_pct?: number
           descuento_referido_aplicado?: boolean
           email?: string
           es_cuenta_demo?: boolean
           ia_nivel?: string
           id?: string
+          manual_segmentation?: boolean | null
           meses_gratis_canjeados?: number
           meses_gratis_ganados?: number
+          metrics?: Json | null
+          modo_gestor?: boolean | null
+          n8n_webhook?: string | null
           negocio_id?: string | null
+          nif?: string | null
           nombre?: string
           nombre_negocio?: string | null
+          opening_hours?: Json | null
+          orden_jerarquia?: number | null
           paginas_manual_vistas?: Json
+          pending_negocio_id?: string | null
           periodo_fin?: string | null
           phone?: string | null
+          pin_barberia?: string | null
+          pin_gestor?: string | null
           plan?: string
+          plan_type?: string | null
           privacy_accepted_at?: string | null
           privacy_policy_version?: string | null
+          reception_mode?: string | null
           referido_en?: string | null
           referido_por?: string | null
+          rol_default?: string | null
           role?: string
+          shield_webhook?: string | null
           signup_fingerprint?: string | null
           signup_ip?: string | null
           signup_ua?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
-          suscripcion_estado?: string | null
+          superior_id?: string | null
+          suscripcion_estado?: string
           trial_ends_at?: string | null
+          ui_mode?: string | null
+          ultimo_rol_seleccionado?: string | null
           updated_at?: string
+          visible_tabs?: string[] | null
         }
         Relationships: [
           {
@@ -4402,6 +5390,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permissions: Json
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permissions?: Json
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permissions?: Json
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       rpc_rate_hits: {
         Row: {
@@ -4825,6 +5837,7 @@ export type Database = {
           abierta_por: string | null
           cerrada_at: string | null
           cerrada_por: string | null
+          contado_bizum_cents: number | null
           contado_datafono_cents: number | null
           contado_efectivo_cents: number | null
           created_at: string
@@ -4836,6 +5849,7 @@ export type Database = {
           negocio_id: string
           notas: string | null
           numero_z: number | null
+          teorico_bizum_cents: number | null
           teorico_datafono_cents: number | null
           teorico_efectivo_cents: number | null
           teorico_online_cents: number | null
@@ -4846,6 +5860,7 @@ export type Database = {
           abierta_por?: string | null
           cerrada_at?: string | null
           cerrada_por?: string | null
+          contado_bizum_cents?: number | null
           contado_datafono_cents?: number | null
           contado_efectivo_cents?: number | null
           created_at?: string
@@ -4857,6 +5872,7 @@ export type Database = {
           negocio_id: string
           notas?: string | null
           numero_z?: number | null
+          teorico_bizum_cents?: number | null
           teorico_datafono_cents?: number | null
           teorico_efectivo_cents?: number | null
           teorico_online_cents?: number | null
@@ -4867,6 +5883,7 @@ export type Database = {
           abierta_por?: string | null
           cerrada_at?: string | null
           cerrada_por?: string | null
+          contado_bizum_cents?: number | null
           contado_datafono_cents?: number | null
           contado_efectivo_cents?: number | null
           created_at?: string
@@ -4878,6 +5895,7 @@ export type Database = {
           negocio_id?: string
           notas?: string | null
           numero_z?: number | null
+          teorico_bizum_cents?: number | null
           teorico_datafono_cents?: number | null
           teorico_efectivo_cents?: number | null
           teorico_online_cents?: number | null
@@ -4885,10 +5903,67 @@ export type Database = {
         }
         Relationships: []
       }
+      socios: {
+        Row: {
+          area: string | null
+          created_at: string | null
+          equity_pct: number | null
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          notas: string | null
+          profile_id: string | null
+          status: string | null
+          tipo: string
+          updated_at: string | null
+          vesting_cliff_date: string | null
+          vesting_end_date: string | null
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string | null
+          equity_pct?: number | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          notas?: string | null
+          profile_id?: string | null
+          status?: string | null
+          tipo: string
+          updated_at?: string | null
+          vesting_cliff_date?: string | null
+          vesting_end_date?: string | null
+        }
+        Update: {
+          area?: string | null
+          created_at?: string | null
+          equity_pct?: number | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          notas?: string | null
+          profile_id?: string | null
+          status?: string | null
+          tipo?: string
+          updated_at?: string | null
+          vesting_cliff_date?: string | null
+          vesting_end_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "socios_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitudes: {
         Row: {
           created_at: string
           email: string | null
+          es_prueba: boolean
           estado: string
           fecha_preferida: string | null
           herramienta_actual: string | null
@@ -4899,6 +5974,7 @@ export type Database = {
           nombre: string | null
           nota: string | null
           num_profesionales: string | null
+          origen: string | null
           salon: string | null
           telefono: string | null
           tipo: string
@@ -4906,6 +5982,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email?: string | null
+          es_prueba?: boolean
           estado?: string
           fecha_preferida?: string | null
           herramienta_actual?: string | null
@@ -4916,6 +5993,7 @@ export type Database = {
           nombre?: string | null
           nota?: string | null
           num_profesionales?: string | null
+          origen?: string | null
           salon?: string | null
           telefono?: string | null
           tipo: string
@@ -4923,6 +6001,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string | null
+          es_prueba?: boolean
           estado?: string
           fecha_preferida?: string | null
           herramienta_actual?: string | null
@@ -4933,6 +6012,7 @@ export type Database = {
           nombre?: string | null
           nota?: string | null
           num_profesionales?: string | null
+          origen?: string | null
           salon?: string | null
           telefono?: string | null
           tipo?: string
@@ -4950,6 +6030,8 @@ export type Database = {
           leido_en: string | null
           mensaje: string
           negocio_id: string | null
+          negocio_nombre: string | null
+          origen: string | null
           resuelto_en: string | null
           user_id: string | null
         }
@@ -4963,6 +6045,8 @@ export type Database = {
           leido_en?: string | null
           mensaje: string
           negocio_id?: string | null
+          negocio_nombre?: string | null
+          origen?: string | null
           resuelto_en?: string | null
           user_id?: string | null
         }
@@ -4976,6 +6060,8 @@ export type Database = {
           leido_en?: string | null
           mensaje?: string
           negocio_id?: string | null
+          negocio_nombre?: string | null
+          origen?: string | null
           resuelto_en?: string | null
           user_id?: string | null
         }
@@ -5017,42 +6103,422 @@ export type Database = {
         }
         Relationships: []
       }
+      team_hilos: {
+        Row: {
+          archivado: boolean | null
+          creado_por: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          nombre: string
+          participantes: string[] | null
+          tipo: string | null
+          ultimo_mensaje_at: string | null
+          ultimo_mensaje_texto: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          archivado?: boolean | null
+          creado_por?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          nombre: string
+          participantes?: string[] | null
+          tipo?: string | null
+          ultimo_mensaje_at?: string | null
+          ultimo_mensaje_texto?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          archivado?: boolean | null
+          creado_por?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          nombre?: string
+          participantes?: string[] | null
+          tipo?: string | null
+          ultimo_mensaje_at?: string | null
+          ultimo_mensaje_texto?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_hilos_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_invitaciones: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invitado_por: string | null
+          nombre: string
+          tipo: string
+          token: string
+          usada: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invitado_por?: string | null
+          nombre: string
+          tipo?: string
+          token: string
+          usada?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invitado_por?: string | null
+          nombre?: string
+          tipo?: string
+          token?: string
+          usada?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitaciones_invitado_por_fkey"
+            columns: ["invitado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_mensajes: {
+        Row: {
+          adjuntos: Json | null
+          autor_id: string | null
+          created_at: string | null
+          estado_entrega: string | null
+          hilo_uuid: string | null
+          id: string
+          leido_por: string[] | null
+          texto: string
+        }
+        Insert: {
+          adjuntos?: Json | null
+          autor_id?: string | null
+          created_at?: string | null
+          estado_entrega?: string | null
+          hilo_uuid?: string | null
+          id?: string
+          leido_por?: string[] | null
+          texto: string
+        }
+        Update: {
+          adjuntos?: Json | null
+          autor_id?: string | null
+          created_at?: string | null
+          estado_entrega?: string | null
+          hilo_uuid?: string | null
+          id?: string
+          leido_por?: string[] | null
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_mensajes_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_mensajes_hilo_uuid_fkey"
+            columns: ["hilo_uuid"]
+            isOneToOne: false
+            referencedRelation: "team_hilos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_notificaciones: {
+        Row: {
+          cliente_id: string | null
+          created_at: string | null
+          descripcion: string | null
+          hilo_uuid: string | null
+          id: string
+          lead_id: string | null
+          leido: boolean | null
+          leido_at: string | null
+          link: string | null
+          metadata: Json | null
+          prioridad: string | null
+          tarea_id: string | null
+          tipo: string
+          titulo: string
+          user_id: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          hilo_uuid?: string | null
+          id?: string
+          lead_id?: string | null
+          leido?: boolean | null
+          leido_at?: string | null
+          link?: string | null
+          metadata?: Json | null
+          prioridad?: string | null
+          tarea_id?: string | null
+          tipo: string
+          titulo: string
+          user_id?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          hilo_uuid?: string | null
+          id?: string
+          lead_id?: string | null
+          leido?: boolean | null
+          leido_at?: string | null
+          link?: string | null
+          metadata?: Json | null
+          prioridad?: string | null
+          tarea_id?: string | null
+          tipo?: string
+          titulo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_notificaciones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_oauth_tokens: {
+        Row: {
+          access_token: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          provider: string
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider?: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_oauth_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_tareas: {
+        Row: {
+          asignado_a: string | null
+          cliente_id: string | null
+          completada_en: string | null
+          completada_por: string | null
+          creado_por: string | null
+          created_at: string | null
+          descripcion: string | null
+          estado: string | null
+          fecha_objetivo: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+          prioridad: string | null
+          tipo: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          asignado_a?: string | null
+          cliente_id?: string | null
+          completada_en?: string | null
+          completada_por?: string | null
+          creado_por?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          estado?: string | null
+          fecha_objetivo?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          prioridad?: string | null
+          tipo: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          asignado_a?: string | null
+          cliente_id?: string | null
+          completada_en?: string | null
+          completada_por?: string | null
+          creado_por?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          estado?: string | null
+          fecha_objetivo?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          prioridad?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_tareas_asignado_a_fkey"
+            columns: ["asignado_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tareas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tareas_completada_por_fkey"
+            columns: ["completada_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tareas_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tareas_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets_verifactu: {
         Row: {
+          base_cents: number | null
           cobro_id: string
           created_at: string
+          csv_aeat: string | null
+          cuota_cents: number | null
+          enviado_at: string | null
+          estado_envio: string
           fecha_emision: string
+          formato_huella: string
           hash: string
           hash_anterior: string
           id: string
+          intentos: number
           negocio_id: string
+          nif_emisor: string | null
           numero: number
           payload: Json
+          qr_url: string | null
+          respuesta_aeat: Json | null
           serie: string
+          tipo_factura: string | null
+          ultimo_error: string | null
         }
         Insert: {
+          base_cents?: number | null
           cobro_id: string
           created_at?: string
+          csv_aeat?: string | null
+          cuota_cents?: number | null
+          enviado_at?: string | null
+          estado_envio?: string
           fecha_emision?: string
+          formato_huella?: string
           hash: string
           hash_anterior?: string
           id?: string
+          intentos?: number
           negocio_id: string
+          nif_emisor?: string | null
           numero: number
           payload?: Json
+          qr_url?: string | null
+          respuesta_aeat?: Json | null
           serie?: string
+          tipo_factura?: string | null
+          ultimo_error?: string | null
         }
         Update: {
+          base_cents?: number | null
           cobro_id?: string
           created_at?: string
+          csv_aeat?: string | null
+          cuota_cents?: number | null
+          enviado_at?: string | null
+          estado_envio?: string
           fecha_emision?: string
+          formato_huella?: string
           hash?: string
           hash_anterior?: string
           id?: string
+          intentos?: number
           negocio_id?: string
+          nif_emisor?: string | null
           numero?: number
           payload?: Json
+          qr_url?: string | null
+          respuesta_aeat?: Json | null
           serie?: string
+          tipo_factura?: string | null
+          ultimo_error?: string | null
         }
         Relationships: []
       }
@@ -5115,6 +6581,107 @@ export type Database = {
             columns: ["solicitante_id"]
             isOneToOne: false
             referencedRelation: "profesionales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vigilancia_ejecuciones: {
+        Row: {
+          avisos: number
+          bloqueantes: number
+          commit_sha: string | null
+          creado_en: string
+          duracion_ms: number | null
+          id: number
+          ok: boolean | null
+          origen: string
+          rama: string | null
+          total: number
+          vigilantes: Json
+        }
+        Insert: {
+          avisos?: number
+          bloqueantes?: number
+          commit_sha?: string | null
+          creado_en?: string
+          duracion_ms?: number | null
+          id?: never
+          ok?: boolean | null
+          origen: string
+          rama?: string | null
+          total?: number
+          vigilantes?: Json
+        }
+        Update: {
+          avisos?: number
+          bloqueantes?: number
+          commit_sha?: string | null
+          creado_en?: string
+          duracion_ms?: number | null
+          id?: never
+          ok?: boolean | null
+          origen?: string
+          rama?: string | null
+          total?: number
+          vigilantes?: Json
+        }
+        Relationships: []
+      }
+      vigilancia_hallazgos: {
+        Row: {
+          ambito: string
+          clave: string
+          creado_en: string
+          detalle: string | null
+          ejecucion_id: number
+          estado: string
+          fichero: string | null
+          id: number
+          linea: number | null
+          nivel: string
+          notas_staff: string | null
+          revisado_en: string | null
+          revisado_por: string | null
+          titulo: string
+        }
+        Insert: {
+          ambito: string
+          clave: string
+          creado_en?: string
+          detalle?: string | null
+          ejecucion_id: number
+          estado?: string
+          fichero?: string | null
+          id?: never
+          linea?: number | null
+          nivel: string
+          notas_staff?: string | null
+          revisado_en?: string | null
+          revisado_por?: string | null
+          titulo: string
+        }
+        Update: {
+          ambito?: string
+          clave?: string
+          creado_en?: string
+          detalle?: string | null
+          ejecucion_id?: number
+          estado?: string
+          fichero?: string | null
+          id?: never
+          linea?: number | null
+          nivel?: string
+          notas_staff?: string | null
+          revisado_en?: string | null
+          revisado_por?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vigilancia_hallazgos_ejecucion_id_fkey"
+            columns: ["ejecucion_id"]
+            isOneToOne: false
+            referencedRelation: "vigilancia_ejecuciones"
             referencedColumns: ["id"]
           },
         ]
@@ -5287,6 +6854,10 @@ export type Database = {
         }
         Returns: string
       }
+      aplicar_tecnificacion_servicios: {
+        Args: { p_cambios: Json }
+        Returns: Json
+      }
       asignar_candidato_hueco: {
         Args: { p_candidato_id: string; p_cita_id: string }
         Returns: Json
@@ -5296,6 +6867,7 @@ export type Database = {
         Args: { p_cita_origen_id: string; p_lista_espera_id: string }
         Returns: Json
       }
+      avisos_del_negocio: { Args: never; Returns: Json }
       avisos_prueba_pendientes: {
         Args: never
         Returns: {
@@ -5429,14 +7001,24 @@ export type Database = {
         }
         Returns: Json
       }
-      cerrar_caja: {
-        Args: {
-          p_contado_datafono_cents?: number
-          p_contado_efectivo_cents: number
-          p_notas?: string
-        }
-        Returns: Json
-      }
+      cerrar_caja:
+        | {
+            Args: {
+              p_contado_datafono_cents?: number
+              p_contado_efectivo_cents: number
+              p_notas?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_contado_bizum_cents?: number
+              p_contado_datafono_cents?: number
+              p_contado_efectivo_cents: number
+              p_notas?: string
+            }
+            Returns: Json
+          }
       check_landing_rate_limit: { Args: { p_ip: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
@@ -5483,6 +7065,7 @@ export type Database = {
       ciudades_directorio_publico: { Args: never; Returns: Json }
       ciudades_externas_publico: { Args: never; Returns: Json }
       claim_referral: { Args: { p_code: string }; Returns: Json }
+      clasificacion_negocio: { Args: { p_negocio_id: string }; Returns: string }
       clientes_en_riesgo_fuga: {
         Args: never
         Returns: {
@@ -5627,7 +7210,7 @@ export type Database = {
         Returns: string
       }
       crear_mensaje_soporte: {
-        Args: { p_asunto: string; p_mensaje: string }
+        Args: { p_asunto: string; p_mensaje: string; p_origen?: string }
         Returns: number
       }
       crear_producto: {
@@ -5667,6 +7250,15 @@ export type Database = {
         }
         Returns: Json
       }
+      crear_serie_citas: {
+        Args: {
+          p_addon_ids?: string[]
+          p_base: Json
+          p_intervalo_semanas?: number
+          p_repeticiones?: number
+        }
+        Returns: Json
+      }
       crear_solicitud_publica: {
         Args: {
           p_email: string
@@ -5683,6 +7275,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cuentas_de_acceso: { Args: { p_negocio_id: string }; Returns: number }
       cumpleanos_para_felicitar: {
         Args: { p_fecha?: string }
         Returns: {
@@ -5717,6 +7310,10 @@ export type Database = {
         Returns: number
       }
       desconectar_stripe: { Args: { p_negocio_id: string }; Returns: Json }
+      descontar_consumo_formula: {
+        Args: { p_cita_id: string; p_lineas: Json }
+        Returns: Json
+      }
       disponibilidad_publica: {
         Args: {
           p_fecha: string
@@ -5825,6 +7422,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      evaluar_alta_de_acceso: { Args: { p_negocio_id: string }; Returns: Json }
       exige_mi_negocio: {
         Args: { p_negocio_id: string; p_solo_gestor?: boolean }
         Returns: undefined
@@ -6066,6 +7664,10 @@ export type Database = {
         }[]
       }
       jornada_verificar_integridad: { Args: never; Returns: Json }
+      limite_negocio: {
+        Args: { p_clave: string; p_negocio_id: string }
+        Returns: number
+      }
       lista_espera_avisos_pendientes: {
         Args: { p_limit?: number }
         Returns: Json
@@ -6129,9 +7731,21 @@ export type Database = {
         Returns: Json
       }
       matching_lista_espera: { Args: { p_cita_id: string }; Returns: Json }
+      mi_alta_de_acceso: { Args: never; Returns: Json }
       mi_jornada_resumen: {
         Args: { p_desde: string; p_hasta: string; p_profesional_id?: string }
         Returns: Json
+      }
+      migraciones_aplicadas_desde: {
+        Args: { p_desde: string }
+        Returns: {
+          name: string
+          version: string
+        }[]
+      }
+      migraciones_sin_aplicar: {
+        Args: { p_versiones: string[] }
+        Returns: string[]
       }
       mint_ticket_verifactu: { Args: { p_cobro_id: string }; Returns: Json }
       mis_objetivos_progreso: { Args: never; Returns: Json }
@@ -6149,6 +7763,7 @@ export type Database = {
       my_app_role: { Args: never; Returns: string }
       my_negocio_id: { Args: never; Returns: string }
       my_negocio_id_text: { Args: never; Returns: string }
+      negocio_con_acceso: { Args: { p_negocio_id: string }; Returns: boolean }
       negocio_contacto_publico: { Args: { p_slug: string }; Returns: Json }
       normalizar_telefono: { Args: { p: string }; Returns: string }
       notificaciones_hallazgos_pendientes: {
@@ -6331,6 +7946,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      recurso_hay_hueco_negocio: {
+        Args: {
+          p_desde: string
+          p_excluir_cita?: string
+          p_hasta: string
+          p_negocio_id: string
+          p_tipo: string
+        }
+        Returns: boolean
+      }
       recurso_tramo_de_cita: {
         Args: { p_cita_id: string }
         Returns: {
@@ -6340,11 +7965,25 @@ export type Database = {
         }[]
       }
       recursos_capacidad: { Args: { p_tipo: string }; Returns: number }
+      recursos_capacidad_negocio: {
+        Args: { p_negocio_id: string; p_tipo: string }
+        Returns: number
+      }
       recursos_ocupados: {
         Args: {
           p_desde: string
           p_excluir_cita?: string
           p_hasta: string
+          p_tipo: string
+        }
+        Returns: number
+      }
+      recursos_ocupados_negocio: {
+        Args: {
+          p_desde: string
+          p_excluir_cita?: string
+          p_hasta: string
+          p_negocio_id: string
           p_tipo: string
         }
         Returns: number
@@ -6479,6 +8118,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      registrar_vigilancia: { Args: { p_informe: Json }; Returns: Json }
       requerir_pago_total_cita: {
         Args: {
           p_cita_id: string
@@ -6623,8 +8263,18 @@ export type Database = {
       set_member_role: {
         Args: { new_role: string; target_user_id: string }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -6634,34 +8284,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -6764,9 +8433,11 @@ export type Database = {
           p_estado?: string
           p_limit?: number
           p_origen?: string
+          p_solo_reales?: boolean
           p_tipo?: string
         }
         Returns: {
+          clases: string[]
           estado: string
           huella: string
           mensaje: string
@@ -6778,6 +8449,7 @@ export type Database = {
           resuelto_por: string
           ruta: string
           salones: number
+          salones_lista: string[]
           tipo: string
           ultima_vez: string
           veces: number
@@ -6786,8 +8458,18 @@ export type Database = {
       staff_extend_trial: {
         Args: { extra_days: number; target_user_id: string }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -6797,34 +8479,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -6874,8 +8575,18 @@ export type Database = {
           target_user_id: string
         }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -6885,34 +8596,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -6925,6 +8655,10 @@ export type Database = {
         Args: { p_estado: string; p_huella: string; p_notas?: string }
         Returns: Json
       }
+      staff_marcar_hallazgo: {
+        Args: { p_clave: string; p_estado: string; p_notas?: string }
+        Returns: Json
+      }
       staff_marcar_soporte: {
         Args: { p_estado: string; p_id: number }
         Returns: undefined
@@ -6935,30 +8669,62 @@ export type Database = {
           asunto: string
           autor_email: string
           autor_nombre: string
+          clasificacion: string
           creado_en: string
           estado: string
           id: number
           mensaje: string
           negocio_id: string
           negocio_nombre: string
+          origen: string
+          plan_salon: string
         }[]
       }
       staff_remove_member: { Args: { member_email: string }; Returns: boolean }
       staff_resumen_salones: {
         Args: never
         Returns: {
+          clasificacion: string
+          conflictos: Json
           cuentas: number
+          limite_cuentas: number
           limite_profesionales: number
           modo: string
           negocio_id: string
+          owners: number
           profesionales_activos: number
           profesionales_totales: number
           tiene_pin: boolean
+          titular_email: string
+        }[]
+      }
+      staff_salud_cuentas: {
+        Args: never
+        Returns: {
+          clasificacion: string
+          conflictos: Json
+          cuentas: number
+          max_cuentas: number
+          max_profesionales: number
+          modo: string
+          negocio_id: string
+          nombre: string
+          owners: number
+          plan_titular: string
+          profesionales_activos: number
+          suscripcion_estado: string
+          tiene_pin: boolean
+          titular_email: string
+          titular_id: string
         }[]
       }
       staff_salud_envios: { Args: never; Returns: Json }
       staff_set_acceso_modo: {
-        Args: { p_modo: string; p_negocio_id: string }
+        Args: { p_forzar?: boolean; p_modo: string; p_negocio_id: string }
+        Returns: Json
+      }
+      staff_set_clasificacion: {
+        Args: { p_negocio_id: string; p_nota?: string; p_tipo: string }
         Returns: Json
       }
       staff_set_cobro_manual: {
@@ -6968,8 +8734,18 @@ export type Database = {
       staff_set_demo_visits: {
         Args: { new_used: number; target_user_id: string }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -6979,34 +8755,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -7018,8 +8813,18 @@ export type Database = {
       staff_set_ia_nivel: {
         Args: { new_nivel: string; target_user_id: string }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -7029,34 +8834,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -7069,11 +8893,30 @@ export type Database = {
         Args: { p_limite: number; p_negocio_id: string }
         Returns: Json
       }
+      staff_set_limites: {
+        Args: {
+          p_max_cuentas?: number
+          p_max_profesionales?: number
+          p_negocio_id: string
+          p_nota?: string
+        }
+        Returns: Json
+      }
       staff_set_plan: {
         Args: { new_plan: string; target_user_id: string }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -7083,34 +8926,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -7126,8 +8988,18 @@ export type Database = {
       staff_set_role: {
         Args: { new_role: string; target_user_id: string }
         Returns: {
+          account_manager_id: string | null
+          allowed_roles: string[] | null
           apellido: string | null
+          approved: boolean | null
           avatar_url: string | null
+          bio: string | null
+          booksy: string | null
+          booksy_link: string | null
+          business_name: string | null
+          business_type: string | null
+          calendar_id: string | null
+          cargo: string | null
           cobro_manual: boolean
           cobro_manual_en: string | null
           cobro_manual_nota: string | null
@@ -7137,34 +9009,53 @@ export type Database = {
           codigo_referido: string | null
           created_at: string
           demo_visits_used: number
+          departamento: string | null
           descuento_pct: number
           descuento_referido_aplicado: boolean
           email: string
           es_cuenta_demo: boolean
           ia_nivel: string
           id: string
+          manual_segmentation: boolean | null
           meses_gratis_canjeados: number
           meses_gratis_ganados: number
+          metrics: Json | null
+          modo_gestor: boolean | null
+          n8n_webhook: string | null
           negocio_id: string | null
+          nif: string | null
           nombre: string
           nombre_negocio: string | null
+          opening_hours: Json | null
+          orden_jerarquia: number | null
           paginas_manual_vistas: Json
+          pending_negocio_id: string | null
           periodo_fin: string | null
           phone: string | null
+          pin_barberia: string | null
+          pin_gestor: string | null
           plan: string
+          plan_type: string | null
           privacy_accepted_at: string | null
           privacy_policy_version: string | null
+          reception_mode: string | null
           referido_en: string | null
           referido_por: string | null
+          rol_default: string | null
           role: string
+          shield_webhook: string | null
           signup_fingerprint: string | null
           signup_ip: string | null
           signup_ua: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          suscripcion_estado: string | null
+          superior_id: string | null
+          suscripcion_estado: string
           trial_ends_at: string | null
+          ui_mode: string | null
+          ultimo_rol_seleccionado: string | null
           updated_at: string
+          visible_tabs: string[] | null
         }
         SetofOptions: {
           from: "*"
@@ -7182,6 +9073,58 @@ export type Database = {
           tipo: string
         }[]
       }
+      staff_vigilancia_delta: {
+        Args: { p_limite?: number; p_origen?: string }
+        Returns: {
+          ambito: string
+          clave: string
+          commit_actual: string
+          commit_previo: string
+          cuando: string
+          estado: string
+          fichero: string
+          linea: number
+          nivel: string
+          rama: string
+          titulo: string
+        }[]
+      }
+      staff_vigilancia_hallazgos: {
+        Args: {
+          p_ambito?: string
+          p_dias?: number
+          p_estado?: string
+          p_limit?: number
+          p_nivel?: string
+        }
+        Returns: {
+          ambito: string
+          clave: string
+          detalle: string
+          estado: string
+          fichero: string
+          linea: number
+          nivel: string
+          notas_staff: string
+          primera_vez: string
+          revisado_por: string
+          titulo: string
+          ultima_vez: string
+          veces: number
+        }[]
+      }
+      staff_vigilancia_origen_hallazgo: {
+        Args: { p_clave: string }
+        Returns: {
+          commit_sha: string
+          origen: string
+          primera_vez: string
+          rama: string
+          ultima_vez: string
+          veces: number
+        }[]
+      }
+      staff_vigilancia_resumen: { Args: { p_dias?: number }; Returns: Json }
       sugerencias_portal: {
         Args: { p_servicio_ids: string[]; p_slug: string }
         Returns: {
@@ -7194,7 +9137,12 @@ export type Database = {
           prepago: boolean
         }[]
       }
+      suscripcion_del_negocio: {
+        Args: { p_negocio_id: string }
+        Returns: string
+      }
       terminal_contexto: { Args: never; Returns: Json }
+      titular_del_negocio: { Args: { p_negocio_id: string }; Returns: string }
       upsert_config_fiscal: {
         Args: {
           p_aplica_verifactu?: boolean
@@ -7273,11 +9221,64 @@ export type Database = {
             }
             Returns: string
           }
+      verifactu_iso8601: {
+        Args: { p_ts: string; p_tz: string }
+        Returns: string
+      }
+      verifactu_num_serie: {
+        Args: {
+          p_ejercicio: number
+          p_formato: string
+          p_numero: number
+          p_serie: string
+        }
+        Returns: string
+      }
+      verifactu_url_cotejo: {
+        Args: {
+          p_entorno: string
+          p_fecha: string
+          p_nif: string
+          p_num_serie: string
+          p_total_euros: string
+        }
+        Returns: string
+      }
       verificar_logros_cliente: {
         Args: { p_cliente_id: string }
         Returns: Json
       }
       verificar_pin_propietario: { Args: { p_pin: string }; Returns: boolean }
+      vigilancia_bd: {
+        Args: never
+        Returns: {
+          ambito: string
+          clave: string
+          detalle: string
+          nivel: string
+          titulo: string
+        }[]
+      }
+      vigilancia_bd_ecosistema: {
+        Args: never
+        Returns: {
+          ambito: string
+          clave: string
+          detalle: string
+          nivel: string
+          titulo: string
+        }[]
+      }
+      vigilancia_bd_rendimiento: {
+        Args: never
+        Returns: {
+          ambito: string
+          clave: string
+          detalle: string
+          nivel: string
+          titulo: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

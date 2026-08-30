@@ -54,6 +54,9 @@ export type ResumenCierre = {
   teoricoEfectivoCents: number;
   contadoEfectivoCents: number;
   descuadreCents: number;
+  teoricoDatafonoCents?: number;
+  teoricoOnlineCents?: number;
+  teoricoBizumCents?: number;
   gravedad: Gravedad;
   texto: string;
 };
@@ -65,6 +68,9 @@ export function resumenDeCierre(respuesta: {
   teorico_efectivo_cents: number;
   contado_efectivo_cents: number;
   descuadre_cents: number;
+  teorico_datafono_cents?: number;
+  teorico_online_cents?: number;
+  teorico_bizum_cents?: number;
 }): ResumenCierre {
   return {
     numeroZ: respuesta.numero_z,
@@ -72,6 +78,9 @@ export function resumenDeCierre(respuesta: {
     teoricoEfectivoCents: respuesta.teorico_efectivo_cents,
     contadoEfectivoCents: respuesta.contado_efectivo_cents,
     descuadreCents: respuesta.descuadre_cents,
+    teoricoDatafonoCents: respuesta.teorico_datafono_cents,
+    teoricoOnlineCents: respuesta.teorico_online_cents,
+    teoricoBizumCents: respuesta.teorico_bizum_cents,
     gravedad: gravedadDescuadre(respuesta.descuadre_cents),
     texto: textoDescuadre(respuesta.descuadre_cents),
   };
