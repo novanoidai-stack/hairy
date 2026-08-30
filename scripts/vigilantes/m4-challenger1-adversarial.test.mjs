@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
@@ -85,12 +85,21 @@ test('ADVERSARIAL [Rendimiento]: Corrupted JSONL stream & malformed entries via 
     const outJsonPath = path.join(tempDir, 'out-rendimiento.json');
 
     // Synthetic corrupted JSONL with mixed valid lines, truncated JSON, binary chunks, and empty lines
+    // La base de CI de caja ronda los 15,7 s: el bloqueante de degeneracion
+    // extrema exige >15 s Y >3x base (regla de "rendimiento medido" de
+    // CLAUDE.md). Un 22.000 magico solo supera la mitad de la condicion y la
+    // pantalla salia en aviso: el test verificaba una regla que no existe.
+    const baseCaja = JSON.parse(
+      readFileSync(new URL('../../tests/smoke/rendimiento-baseline.json', import.meta.url), 'utf8'),
+    ).caja;
+    const msCatastrofe = Math.max(baseCaja.ms_carga * 3 + 1000, CARGA_EXTREMA_MS + 1000);
+
     const lines = [
       '', // empty line
       '   ', // whitespace line
       '{"pantalla": "agenda", "ms_carga": 1400, "long_tasks_n": 1, "long_tasks_ms": 40, "fps_medio": 60, "peticiones": 4}',
       '{ malformed json syntax: 12345 }',
-      '{"pantalla": "caja", "ms_carga": 22000, "long_tasks_n": 8, "long_tasks_ms": 900, "fps_medio": 30, "peticiones": 12}', // catastrophic slow
+      `{"pantalla": "caja", "ms_carga": ${msCatastrofe}, "long_tasks_n": 8, "long_tasks_ms": 900, "fps_medio": 30, "peticiones": 12}`, // catastrophic slow
       'NUL\u0000\u0001\u0002binary_garbage',
       '{"no_pantalla": true, "ms_carga": 1500}', // missing pantalla
       '{"pantalla": null, "ms_carga": 900}',
@@ -105,10 +114,10 @@ test('ADVERSARIAL [Rendimiento]: Corrupted JSONL stream & malformed entries via 
       timeout: 15_000,
     });
 
-    // Since 'caja' had 22,000ms (> 15s), CLI must report the blocker and exit with status 1
+    // Since 'caja' had a catastrophic load (> 15s and > 3x base), CLI must report the blocker and exit with status 1
     assert.equal(res.status, 1, `Debe salir con código 1 debido al fallo bloqueante. Salida: ${res.stdout}\n${res.stderr}`);
     assert.match(res.stdout, /BLOQUEANTE/);
-    assert.match(res.stdout, /carga-caja/);
+    assert.match(res.stdout, /pantalla caja/);
 
     // Verify valid metrics were parsed despite corrupt lines around them
     assert.match(res.stdout, /3 pantallas medidas/); // agenda, caja, clientes

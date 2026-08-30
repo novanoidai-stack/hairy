@@ -37,6 +37,8 @@ import metaCobertura from './meta-cobertura.mjs';
 import pesoComponentes from './peso-componentes.mjs';
 import rendimiento from './rendimiento.mjs';
 import calidadCodigo from './calidad-codigo.mjs';
+import ciCadenaRota from './ci-cadena-rota.mjs';
+import triggerCadenas from './trigger-cadenas.mjs';
 
 const ESTATICOS = [
   precios,
@@ -61,6 +63,8 @@ const ESTATICOS = [
   pesoComponentes,
   rendimiento,
   calidadCodigo,
+  ciCadenaRota,
+  triggerCadenas,
 ];
 
 const args = process.argv.slice(2);
@@ -127,6 +131,9 @@ async function main() {
         (await import('./bd-migraciones.mjs')).default,
         (await import('./bd-ecosistema.mjs')).default,
         (await import('./bd-profunda.mjs')).default,
+        (await import('./bd-triggers-ciegos.mjs')).default,
+        (await import('./bd-sobrecargas-rpc.mjs')).default,
+        (await import('./bd-escritura-critica.mjs')).default,
       ]
     : [];
 

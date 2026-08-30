@@ -68,7 +68,9 @@ begin
     select 1
     from pg_index i
     where i.indrelid = fk.child_oid
-      and string_to_array(i.indkey::text, ' ')[1:array_length(fk.fk_cols, 1)] =
+      -- Subindices sobre una llamada a funcion llevan parentesis: sin ellos
+      -- esto es un error de sintaxis y la migracion entera no aplicaba.
+      and (string_to_array(i.indkey::text, ' '))[1:array_length(fk.fk_cols, 1)] =
           string_to_array(array_to_string(fk.fk_cols, ' '), ' ')
   );
 

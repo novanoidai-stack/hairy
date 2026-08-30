@@ -184,6 +184,44 @@ Deno.serve(async (req: Request): Promise<Response> => {
     hallazgos.push(...(prof as Hallazgo[]).map((h) => comoHallazgo(h, 'base-de-datos')));
   }
 
+  // --- Vigilancia de sistema (30 ago 2026) ----------------------------------
+  //
+  // Las tres clases de fallo que el 30 ago tumbaron produccion sin que ninguna
+  // capa dijera nada: triggers que referencian columnas inexistentes (ninguna
+  // cita se podia crear), sobrecargas de RPC que PostgREST no desambigua (el
+  // portal devolvia HTTP 300) y una escritura real que nadie probaba nunca.
+  // Migracion: 20260830220000_vigilancia_bd_sistema.sql. Puentes en Node para
+  // `npm run vigilar:bd`: bd-triggers-ciegos / bd-sobrecargas-rpc /
+  // bd-escritura-critica.
+  const vigilanciaSistema: Array<[string, string]> = [
+    ['vigilancia_bd_triggers_ciegos', 'triggers ciegos'],
+    ['vigilancia_bd_sobrecargas_rpc', 'sobrecargas de RPC'],
+    ['vigilancia_bd_escritura_critica', 'escritura critica'],
+  ];
+
+  for (const [rpc, nombre] of vigilanciaSistema) {
+    const { data: sis, error: eSis } = await supabase.rpc(rpc);
+    if (eSis) {
+      console.error(`[${QUIEN}] ${rpc}() ha fallado:`, eSis.message);
+      hallazgos.push({
+        clave: `bd/${rpc}-sin-comprobar`,
+        nivel: 'bloqueante',
+        ambito: 'base-de-datos',
+        titulo: `No se ha podido ejecutar la vigilancia de ${nombre}`,
+        detalle:
+          `${rpc}() ha devuelto: ${eSis.message}. Si dice que no existe, falta aplicar ` +
+          '20260830220000_vigilancia_bd_sistema.sql. Esta vigilancia es la que caza triggers ' +
+          'ciegos (columnas inexistentes que tumban escrituras), sobrecargas de RPC que ' +
+          'PostgREST no desambigua (HTTP 300 en el portal) y la prueba real de INSERT en ' +
+          'citas; no puede quedarse muda.',
+        fichero: 'base de datos',
+        linea: null,
+      });
+    } else if (Array.isArray(sis)) {
+      hallazgos.push(...(sis as Hallazgo[]).map((h) => comoHallazgo(h, 'base-de-datos')));
+    }
+  }
+
   // --- Guardia de migraciones ----------------------------------------------
   //
   // OJO CON LA TRAMPA: que una version NO este en schema_migrations no significa
