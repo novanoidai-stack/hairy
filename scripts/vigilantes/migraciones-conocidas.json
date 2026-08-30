@@ -25,6 +25,102 @@
       "prueba_sql": "select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'chispa_tts_keepwarm' and position('sb_publishable_' in pg_get_functiondef(p.oid)) > 0",
       "prueba_esperado_min": 1,
       "comprobado": "29 ago 2026: chispa_tts_keepwarm lleva sb_publishable_ y ninguna JWT heredada."
+    },
+    {
+      "version": "20260830100000",
+      "fichero": "20260830100000_portal_zona_horaria_del_salon.sql",
+      "aplicada_como": "20260830122503_20260830100000_portal_zona_horaria_del_salon",
+      "prueba_sql": "select count(*) from pg_proc where proname = 'disponibilidad_publica' and position('v_tz' in pg_get_functiondef(oid)) > 0",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: disponibilidad_publica usa la zona horaria del salon configurada en negocio_config."
+    },
+    {
+      "version": "20260830101000",
+      "fichero": "20260830101000_anonimizar_cliente_datos_de_salud.sql",
+      "aplicada_como": "20260830122510_20260830101000_anonimizar_cliente_datos_de_salud",
+      "prueba_sql": "select count(*) from pg_proc where proname = 'anonimizar_cliente' and position('ficha_tecnica_color' in pg_get_functiondef(oid)) > 0",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: anonimizar_cliente borra fichas de color y datos de salud."
+    },
+    {
+      "version": "20260830110000",
+      "fichero": "20260830110000_verifactu_envio_y_encadenado_por_nif.sql",
+      "aplicada_como": "20260830122518_20260830110000_verifactu_envio_y_encadenado_por_nif",
+      "prueba_sql": "select count(*) from information_schema.tables where table_name = 'verifactu_envios'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: tabla verifactu_envios creada y encadenada por NIF."
+    },
+    {
+      "version": "20260830111000",
+      "fichero": "20260830111000_mint_ticket_verifactu_formato_aeat.sql",
+      "aplicada_como": "20260830122547_20260830111000_mint_ticket_verifactu_formato_aeat",
+      "prueba_sql": "select count(*) from pg_proc where proname = 'cobros_mint_ticket_trigger'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: cobros_mint_ticket_trigger mina huellas con el formato oficial de la AEAT."
+    },
+    {
+      "version": "20260830120000",
+      "fichero": "20260830120000_aplicar_tecnificacion_servicios.sql",
+      "aplicada_como": "20260830122555_20260830120000_aplicar_tecnificacion_servicios",
+      "prueba_sql": "select count(*) from pg_proc where proname = 'aplicar_tecnificacion_servicios'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: RPC aplicar_tecnificacion_servicios para catalogo estructurado."
+    },
+    {
+      "version": "20260830130000",
+      "fichero": "20260830130000_recursos_en_disponibilidad_y_bizum.sql",
+      "aplicada_como": "20260830124351_20260830130000_recursos_en_disponibilidad_y_bizum",
+      "prueba_sql": "select count(*) from information_schema.columns where table_name = 'cobros' and column_name = 'bizum_cents'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: columna bizum_cents en cobros y disponibilidad_publica con recursos fisicos."
+    },
+    {
+      "version": "20260830140000",
+      "fichero": "20260830140000_gramajes_inventario_y_formulas.sql",
+      "aplicada_como": "20260830124440_20260830140000_gramajes_inventario_y_formulas",
+      "prueba_sql": "select count(*) from information_schema.columns where table_name = 'cita_productos' and column_name = 'gramos'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: columna gramos y coste_cents en cita_productos para escandallos."
+    },
+    {
+      "version": "20260830150000",
+      "fichero": "20260830150000_cita_fases_y_reloj_reposo.sql",
+      "aplicada_como": "20260830152807_cita_fases_y_reloj_reposo",
+      "prueba_sql": "select count(*) from information_schema.tables where table_name = 'cita_fases'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: tabla cita_fases y RPCs de cronometraje de reposo en vivo."
+    },
+    {
+      "version": "20260830160000",
+      "fichero": "20260830160000_pruebas_alergia_48h.sql",
+      "aplicada_como": "20260830152813_pruebas_alergia_48h",
+      "prueba_sql": "select count(*) from information_schema.tables where table_name = 'pruebas_alergia'",
+      "prueba_esperado_min": 1,
+      "comprobado": "30 ago 2026: tabla pruebas_alergia y RPC agendar_prueba_alergia_48h."
+    },
+    {
+      "version": "20260830170000",
+      "fichero": "20260830170000_bonos_cola_y_grupos.sql",
+      "aplicada_como": "20260830152822_bonos_cola_y_grupos",
+      "prueba_sql": "select count(*) from information_schema.tables where table_name in ('bono_sesiones', 'cola_dia', 'reservas_grupo')",
+      "prueba_esperado_min": 3,
+      "comprobado": "30 ago 2026: tablas bono_sesiones, cola_dia y reservas_grupo."
+    },
+    {
+      "version": "20260830180000",
+      "fichero": "20260830180000_liquidar_comisiones_y_retencion_rgpd.sql",
+      "aplicada_como": "20260830153013_liquidar_comisiones_y_retencion_rgpd",
+      "prueba_sql": "select count(*) from pg_proc where proname in ('liquidar_comision_periodo', 'ejecutar_retencion_rgpd')",
+      "prueba_esperado_min": 2,
+      "comprobado": "30 ago 2026: RPCs liquidar_comision_periodo y ejecutar_retencion_rgpd."
+    },
+    {
+      "version": "20260830190000",
+      "fichero": "20260830190000_cerrar_rpc_helpers_internas.sql",
+      "aplicada_como": "20260830152830_cerrar_rpc_helpers_internas",
+      "prueba_sql": "select count(*) from pg_proc where proname in ('suscripcion_del_negocio', 'negocio_con_acceso') and not has_function_privilege('authenticated', oid, 'execute')",
+      "prueba_esperado_min": 2,
+      "comprobado": "30 ago 2026: RPCs internas sin atadura al llamante revocadas de authenticated/anon."
     }
   ]
 }

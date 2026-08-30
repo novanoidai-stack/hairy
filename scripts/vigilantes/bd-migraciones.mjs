@@ -110,6 +110,20 @@ const CUBIERTAS_POR = {
   //   - y que el origen de un mensaje de soporte diga la PANTALLA ('ayuda' /
   //     'ajustes') en vez de un 'app' que valia para las dos.
   '20260830115223': '20260830003848_trazabilidad_soporte_errores_y_leads.sql',
+  '20260830121552': '20260830003349_modo_acceso_limites_y_clasificacion.sql',
+  '20260830121758': '20260830003349_modo_acceso_limites_y_clasificacion.sql',
+  '20260830122503': '20260830100000_portal_zona_horaria_del_salon.sql',
+  '20260830122510': '20260830101000_anonimizar_cliente_datos_de_salud.sql',
+  '20260830122518': '20260830110000_verifactu_envio_y_encadenado_por_nif.sql',
+  '20260830122547': '20260830111000_mint_ticket_verifactu_formato_aeat.sql',
+  '20260830122555': '20260830120000_aplicar_tecnificacion_servicios.sql',
+  '20260830124351': '20260830130000_recursos_en_disponibilidad_y_bizum.sql',
+  '20260830124440': '20260830140000_gramajes_inventario_y_formulas.sql',
+  '20260830152807': '20260830150000_cita_fases_y_reloj_reposo.sql',
+  '20260830152813': '20260830160000_pruebas_alergia_48h.sql',
+  '20260830152822': '20260830170000_bonos_cola_y_grupos.sql',
+  '20260830152830': '20260830190000_cerrar_rpc_helpers_internas.sql',
+  '20260830153013': '20260830180000_liquidar_comisiones_y_retencion_rgpd.sql',
 };
 
 // El CLI de Supabase nombra <14 digitos>_<nombre>.sql.
