@@ -267,6 +267,54 @@ export type Database = {
           },
         ]
       }
+      bono_sesiones: {
+        Row: {
+          bono_id: string
+          cita_id: string | null
+          consumida_at: string | null
+          created_at: string
+          id: string
+          notas: string | null
+          numero: number
+          prevista_para: string | null
+        }
+        Insert: {
+          bono_id: string
+          cita_id?: string | null
+          consumida_at?: string | null
+          created_at?: string
+          id?: string
+          notas?: string | null
+          numero: number
+          prevista_para?: string | null
+        }
+        Update: {
+          bono_id?: string
+          cita_id?: string | null
+          consumida_at?: string | null
+          created_at?: string
+          id?: string
+          notas?: string | null
+          numero?: number
+          prevista_para?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bono_sesiones_bono_id_fkey"
+            columns: ["bono_id"]
+            isOneToOne: false
+            referencedRelation: "bonos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bono_sesiones_cita_id_fkey"
+            columns: ["cita_id"]
+            isOneToOne: false
+            referencedRelation: "citas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bonos: {
         Row: {
           cliente_id: string
@@ -1462,6 +1510,85 @@ export type Database = {
             columns: ["sesion_caja_id"]
             isOneToOne: false
             referencedRelation: "sesiones_caja"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cola_dia: {
+        Row: {
+          atendido_at: string | null
+          cancelado_at: string | null
+          cliente_id: string | null
+          cliente_nombre: string
+          created_at: string
+          estado: string
+          fecha: string
+          id: string
+          llamado_at: string | null
+          llegada_at: string
+          negocio_id: string
+          notas: string | null
+          orden: number
+          profesional_id: string | null
+          servicio_id: string | null
+          telefono: string | null
+        }
+        Insert: {
+          atendido_at?: string | null
+          cancelado_at?: string | null
+          cliente_id?: string | null
+          cliente_nombre: string
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          llamado_at?: string | null
+          llegada_at?: string
+          negocio_id: string
+          notas?: string | null
+          orden?: number
+          profesional_id?: string | null
+          servicio_id?: string | null
+          telefono?: string | null
+        }
+        Update: {
+          atendido_at?: string | null
+          cancelado_at?: string | null
+          cliente_id?: string | null
+          cliente_nombre?: string
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          llamado_at?: string | null
+          llegada_at?: string
+          negocio_id?: string
+          notas?: string | null
+          orden?: number
+          profesional_id?: string | null
+          servicio_id?: string | null
+          telefono?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cola_dia_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cola_dia_profesional_id_fkey"
+            columns: ["profesional_id"]
+            isOneToOne: false
+            referencedRelation: "profesionales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cola_dia_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
             referencedColumns: ["id"]
           },
         ]
@@ -5522,6 +5649,51 @@ export type Database = {
           },
         ]
       }
+      reservas_grupo: {
+        Row: {
+          contacto_email: string | null
+          contacto_nombre: string | null
+          contacto_telefono: string | null
+          created_at: string
+          estado: string
+          hora_fin_objetivo: string
+          id: string
+          negocio_id: string
+          nombre: string
+          notas: string | null
+          senal_cents: number
+          senal_pagada: boolean
+        }
+        Insert: {
+          contacto_email?: string | null
+          contacto_nombre?: string | null
+          contacto_telefono?: string | null
+          created_at?: string
+          estado?: string
+          hora_fin_objetivo: string
+          id?: string
+          negocio_id: string
+          nombre: string
+          notas?: string | null
+          senal_cents?: number
+          senal_pagada?: boolean
+        }
+        Update: {
+          contacto_email?: string | null
+          contacto_nombre?: string | null
+          contacto_telefono?: string | null
+          created_at?: string
+          estado?: string
+          hora_fin_objetivo?: string
+          id?: string
+          negocio_id?: string
+          nombre?: string
+          notas?: string | null
+          senal_cents?: number
+          senal_pagada?: boolean
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           created_at: string | null
@@ -7263,6 +7435,18 @@ export type Database = {
         Args: { p_producto_id: string }
         Returns: number
       }
+      crear_bono_con_sesiones: {
+        Args: {
+          p_cadencia_dias?: number
+          p_cliente_id: string
+          p_inicio_primera?: string
+          p_precio_cents: number
+          p_profesional_id?: string
+          p_servicio_id: string
+          p_sesiones_totales: number
+        }
+        Returns: Json
+      }
       crear_cita_publica: {
         Args: {
           p_canal?: string
@@ -7390,6 +7574,17 @@ export type Database = {
         }
         Returns: Json
       }
+      crear_reserva_grupo_hacia_atras: {
+        Args: {
+          p_contacto_nombre: string
+          p_contacto_telefono: string
+          p_hora_fin_objetivo: string
+          p_lineas: Json
+          p_nombre: string
+          p_senal_cents: number
+        }
+        Returns: Json
+      }
       crear_serie_citas: {
         Args: {
           p_addon_ids?: string[]
@@ -7498,6 +7693,10 @@ export type Database = {
           extra: number
           total: number
         }[]
+      }
+      ejecutar_retencion_rgpd: {
+        Args: { p_dias_inactividad?: number }
+        Returns: Json
       }
       eliminar_objetivo_profesional: { Args: { p_id: string }; Returns: Json }
       eliminar_producto: { Args: { p_producto_id: string }; Returns: Json }
@@ -7815,6 +8014,15 @@ export type Database = {
       limite_negocio: {
         Args: { p_clave: string; p_negocio_id: string }
         Returns: number
+      }
+      liquidar_comision_periodo: {
+        Args: {
+          p_marcar_pagada?: boolean
+          p_periodo_fin: string
+          p_periodo_inicio: string
+          p_profesional_id: string
+        }
+        Returns: Json
       }
       lista_espera_avisos_pendientes: {
         Args: { p_limit?: number }
@@ -9291,6 +9499,17 @@ export type Database = {
       }
       terminal_contexto: { Args: never; Returns: Json }
       titular_del_negocio: { Args: { p_negocio_id: string }; Returns: string }
+      unirse_cola_dia: {
+        Args: {
+          p_cliente_id?: string
+          p_cliente_nombre: string
+          p_notas?: string
+          p_profesional_id?: string
+          p_servicio_id?: string
+          p_telefono?: string
+        }
+        Returns: Json
+      }
       upsert_config_fiscal: {
         Args: {
           p_aplica_verifactu?: boolean
