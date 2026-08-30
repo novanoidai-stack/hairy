@@ -110,8 +110,16 @@ const CUBIERTAS_POR = {
   //   - y que el origen de un mensaje de soporte diga la PANTALLA ('ayuda' /
   //     'ajustes') en vez de un 'app' que valia para las dos.
   '20260830115223': '20260830003848_trazabilidad_soporte_errores_y_leads.sql',
-  '20260830121552': '20260830003349_modo_acceso_limites_y_clasificacion.sql',
-  '20260830121758': '20260830003349_modo_acceso_limites_y_clasificacion.sql',
+
+  // 20260830121552 y 20260830121758 estuvieron aqui y SOBRABAN: las dos tienen
+  // su propio .sql en el repo con esa misma version, asi que el vigilante las
+  // encuentra solo. Apuntarlas ademas a modo_acceso_limites_y_clasificacion.sql
+  // era una exencion falsa -- y una exencion falsa en esta tabla es exactamente
+  // como se le tapa la boca a este vigilante sin que nadie lo note.
+  //
+  // Las de abajo si son legitimas: son la trampa conocida de apply_migration,
+  // que registra la version con SU timestamp en vez de con el del fichero. La
+  // prueba de cada una es que el nombre registrado ES el nombre del fichero.
   '20260830122503': '20260830100000_portal_zona_horaria_del_salon.sql',
   '20260830122510': '20260830101000_anonimizar_cliente_datos_de_salud.sql',
   '20260830122518': '20260830110000_verifactu_envio_y_encadenado_por_nif.sql',

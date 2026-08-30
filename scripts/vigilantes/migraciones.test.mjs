@@ -55,6 +55,37 @@ test('con su enable row level security, no', () => {
   );
 });
 
+// Regresion del 30 ago 2026: `create table respaldos.citas_...` se leia como si
+// la tabla se llamara "respaldos" y salia un bloqueante por una tabla que no
+// existe. El esquema va aparte del nombre.
+test('una tabla en otro esquema no se confunde con una tabla llamada como el esquema', () => {
+  const c = claves('create table if not exists respaldos.citas_viejas (id uuid);');
+  assert.ok(!c.includes('tabla-sin-rls-respaldos'), `no deberia culpar al esquema: ${c}`);
+  assert.ok(!c.includes('tabla-sin-rls-citas_viejas'), `fuera de public no se exige RLS: ${c}`);
+});
+
+test('un esquema propio sin revoke avisa', () => {
+  assert.deepEqual(
+    claves('create schema respaldos;\ncreate table respaldos.citas_viejas (id uuid);'),
+    ['esquema-abierto-respaldos'],
+  );
+});
+
+test('un esquema propio cerrado con revoke no dice nada', () => {
+  assert.deepEqual(
+    claves(
+      'create schema respaldos;\n' +
+        'revoke all on schema respaldos from public, anon, authenticated;\n' +
+        'create table respaldos.citas_viejas (id uuid);',
+    ),
+    [],
+  );
+});
+
+test('public explicito y public implicito se tratan igual', () => {
+  assert.deepEqual(claves('create table notas (id uuid);'), ['tabla-sin-rls-notas']);
+});
+
 // --- 2. politica de escritura abierta ---------------------------------------
 
 test('una politica de escritura con check (true) es bloqueante', () => {

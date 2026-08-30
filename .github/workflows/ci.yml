@@ -35,6 +35,47 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      # LOS VIGILANTES VAN LOS PRIMEROS, Y CON if: always(). Estaban al final y
+      # el 30 ago 2026 un test de edge function que fallaba (12:03) los dejo sin
+      # ejecutar durante cinco horas: no se generaba vigilancia.json, no se
+      # publicaba nada en la pestaña Salud y el canario -- que depende de este
+      # job -- quedaba en `skipped`. En ese hueco entro en produccion un trigger
+      # que impedia crear NINGUNA cita, y el panel seguia en verde.
+      #
+      # Regla: lo que INFORMA no puede colgar de que lo anterior haya pasado.
+      # Solo necesitan las dependencias de node, asi que pueden ir aqui arriba.
+      - name: Tests de los propios vigilantes
+        if: always()
+        run: npm run vigilar:test
+
+      # Vigilantes de invariantes. Cazan lo que no caza ningún tipo ni ningún
+      # test: cosas que viven en varios sitios a la vez y se desincronizan en
+      # silencio (precios en 3 sitios, referidos en 4), rutas que se abren sin
+      # sesión, la caché de /app y la deuda de código muerto. Dos niveles: los
+      # bloqueantes paran esto, los avisos solo salen en el log y en el panel.
+      # Detalle: docs/superpowers/plans/2026-08-28-vigilantes-de-regresion.md
+      - name: Vigilantes de invariantes
+        if: always()
+        run: node scripts/vigilantes/index.mjs --json vigilancia.json
+
+      # Publica el informe en la pestaña Salud del panel de staff. Si los
+      # secrets no están definidos no hace nada y no rompe: el veredicto ya lo
+      # dio el paso anterior, esto es solo el registro.
+      - name: Publicar el informe de vigilancia
+        if: always()
+        env:
+          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
+          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
+        run: node scripts/vigilantes/enviar.mjs vigilancia.json
+
+      - name: Guardar el informe de vigilancia
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: vigilancia
+          path: vigilancia.json
+          retention-days: 14
+
       - name: Typecheck (tsc --noEmit)
         run: npm run typecheck
 
@@ -76,40 +117,17 @@ jobs:
       - name: Tests del tecnificador de catálogo (Deno)
         run: deno task test:tecnificador
 
-      # Vigilantes de invariantes. Cazan lo que no caza ningún tipo ni ningún
-      # test: cosas que viven en varios sitios a la vez y se desincronizan en
-      # silencio (precios en 3 sitios, referidos en 4), rutas que se abren sin
-      # sesión, la caché de /app y la deuda de código muerto. Dos niveles: los
-      # bloqueantes paran esto, los avisos solo salen en el log y en el panel.
-      # Detalle: docs/superpowers/plans/2026-08-28-vigilantes-de-regresion.md
-      - name: Tests de los propios vigilantes
-        run: npm run vigilar:test
-
-      - name: Vigilantes de invariantes
-        run: node scripts/vigilantes/index.mjs --json vigilancia.json
-
-      # Publica el informe en la pestaña Salud del panel de staff. Si los
-      # secrets no están definidos no hace nada y no rompe: el veredicto ya lo
-      # dio el paso anterior, esto es solo el registro.
-      - name: Publicar el informe de vigilancia
-        if: always()
-        env:
-          VIGILANCIA_URL: ${{ secrets.VIGILANCIA_URL }}
-          VIGILANCIA_TOKEN: ${{ secrets.VIGILANCIA_TOKEN }}
-        run: node scripts/vigilantes/enviar.mjs vigilancia.json
-
-      - name: Guardar el informe de vigilancia
-        if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
-        with:
-          name: vigilancia
-          path: vigilancia.json
-          retention-days: 14
-
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
     needs: check
+    # Corre AUNQUE `check` haya fallado (solo se salta si alguien cancela). El
+    # 30 ago 2026 un test rojo en `check` dejo este job en `skipped` cinco horas
+    # seguidas, y con el se fueron el smoke de pantallas, el vigilante de
+    # rendimiento, el de fallos silenciosos, el de peso del bundle y la puerta
+    # de claves contra el bundle construido -- justo mientras produccion se
+    # rompia. Un job que INFORMA no puede depender de que lo anterior pase.
+    if: ${{ !cancelled() }}
     # Las credenciales llegan como secrets del repositorio. Si NO están
     # definidas, este job sigue siendo útil: ejecuta igualmente todos los specs
     # del proyecto "publico" (landing, marketplace, portal y la agenda sobre la

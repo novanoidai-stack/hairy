@@ -1,5 +1,5 @@
 // Test unitario del saneador de tecnificar-catalogo.
-// Ejecutar con: deno test --no-config supabase/functions/tecnificar-catalogo/tecnificar_catalogo.test.ts
+// Ejecutar con: deno task test:tecnificador
 //
 // Lo que se prueba aqui no es "que la IA acierte" --eso no se puede probar-- sino
 // que NADA de lo que devuelva pueda escribirse tal cual. Un reposo de 400 minutos
@@ -8,7 +8,9 @@
 // servicios en la lista.
 
 import { assertEquals, assert } from 'jsr:@std/assert@1';
-import { sanear } from './index.ts';
+// Del modulo del saneador, NO de index.ts: index.ts llama a Deno.serve() en el
+// nivel superior y importarlo desde aqui levantaba un servidor y tumbaba la CI.
+import { sanear } from './sanear.ts';
 
 const SERVICIO = {
   id: 'aaaaaaaa-0000-0000-0000-000000000001',

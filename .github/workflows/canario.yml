@@ -53,11 +53,19 @@ jobs:
   humo:
     name: Humo contra www.mechaa.es
     runs-on: ubuntu-latest
-    # Si viene de la CI, solo cuando la CI paso. Medir produccion despues de una
-    # CI en rojo no dice nada nuevo: ya se sabe que algo esta mal.
-    if: >-
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
+    # Corre tambien cuando la CI ha fallado. Aqui decia lo contrario ("medir
+    # produccion despues de una CI en rojo no dice nada nuevo") y el 30 ago 2026
+    # se demostro falso: la CI llevaba cinco horas en rojo por un test de una
+    # edge function a la que le faltaba un permiso -- nada que ver con el
+    # producto -- y en ese hueco entro en produccion un trigger que impedia
+    # crear NINGUNA cita. Esas cinco horas el canario salio `skipped` en los
+    # nueve disparos post-merge, y las corridas horarias que GitHub decidio no
+    # lanzar (el cron de `schedule` es de mejor esfuerzo) no lo taparon.
+    #
+    # Una CI roja dice que el REPO esta mal. El canario dice que PRODUCCION esta
+    # mal. No son la misma pregunta, y la segunda importa mas cuanto peor va la
+    # primera.
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:

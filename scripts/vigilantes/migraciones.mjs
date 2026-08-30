@@ -114,15 +114,47 @@ export function analizarMigracion(rel, sqlCrudo, revocadas = new Set()) {
   // 1. TABLA NUEVA SIN RLS.
   // Sin RLS, cualquier usuario autenticado lee y escribe la tabla entera: el
   // multi-tenant deja de existir para esa tabla. Paso con `profiles`.
+  //
+  // El esquema se captura APARTE. Antes el patron solo conocia `public.` y en
+  // `create table respaldos.citas_antes_del_backfill_fases` se quedaba con
+  // "respaldos", o sea que denunciaba una tabla que no existe con ese nombre.
+  // Una tabla FUERA de public no la sirve PostgREST -- que es justo el motivo
+  // de sacar ahi los respaldos de una operacion-- asi que no se le exige RLS
+  // sino que la migracion CIERRE el esquema: sin el revoke, la unica barrera es
+  // que nadie lo anada a los esquemas expuestos de Supabase, y eso no es una
+  // barrera, es una casualidad.
   for (const m of sql.matchAll(
-    /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?"?(\w+)"?/gi,
+    /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:"?(\w+)"?\s*\.\s*)?"?(\w+)"?/gi,
   )) {
-    const tabla = m[1];
+    const esquema = (m[1] || 'public').toLowerCase();
+    const tabla = m[2];
+
+    if (esquema !== 'public') {
+      const cierraEsquema = new RegExp(
+        `revoke\\s+all\\s+on\\s+schema\\s+"?${esquema}"?\\s+from[\\s\\S]{0,120}?;`,
+        'i',
+      ).test(sql);
+      if (cierraEsquema) continue;
+      add(
+        `esquema-abierto-${esquema}`,
+        `El esquema "${esquema}" se usa sin cerrarlo`,
+        `${rel} crea ${esquema}.${tabla} fuera de public. Eso la deja fuera de PostgREST, que ` +
+          'es lo correcto para datos que no son de producto (respaldos, staging de una ' +
+          'operacion), pero solo mientras nadie anada ese esquema a los expuestos.\n\nCierralo ' +
+          `en la misma migracion: "revoke all on schema ${esquema} from public, anon, ` +
+          'authenticated;".',
+        lineaEn(sql, m.index),
+        'aviso',
+      );
+      continue;
+    }
+
     const activaRls = new RegExp(
-      `alter\\s+table[\\s\\S]{0,80}?\\b${tabla}\\b[\\s\\S]{0,80}?enable\\s+row\\s+level\\s+security`,
+      `alter\\s+table[\\s\\S]{0,80}?\\b(?:public\\.)?${tabla}\\b[\\s\\S]{0,80}?enable\\s+row\\s+level\\s+security`,
       'i',
     ).test(sql);
     if (activaRls) continue;
+
     add(
       `tabla-sin-rls-${tabla}`,
       `La tabla nueva "${tabla}" se crea sin RLS`,
