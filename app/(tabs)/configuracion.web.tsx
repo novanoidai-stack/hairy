@@ -5894,6 +5894,39 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 <STextInput value={String(activaExtra)} onChange={v => setActivaExtra(parseInt(v) || 0)} placeholder="0 min" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Tiempo activo adicional tras la fase de reposo.</div>
               </FormField>
+
+              {/* Spec 1: Constructor y previsualización de secuencia de fases */}
+              <div style={{
+                background: 'rgba(244,80,30,0.06)',
+                border: '1px solid rgba(244,80,30,0.20)',
+                borderRadius: 10,
+                padding: '10px 12px',
+                fontSize: 12,
+              }}>
+                <div style={{ fontWeight: 700, color: T.primary, marginBottom: 6 }}>
+                  📐 Secuencia técnica del servicio: {durActiva + espera + activaExtra} min totales
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: 24, borderRadius: 6, overflow: 'hidden' }}>
+                  <div style={{ flex: durActiva || 1, background: T.primary, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                    {durActiva}′ activo
+                  </div>
+                  {espera > 0 && (
+                    <div style={{ flex: espera, background: 'rgba(0,0,0,0.12)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.text, fontSize: 10, fontWeight: 700 }}>
+                      {espera}′ reposo
+                    </div>
+                  )}
+                  {activaExtra > 0 && (
+                    <div style={{ flex: activaExtra, background: T.primaryHi, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                      {activaExtra}′ extra
+                    </div>
+                  )}
+                </div>
+                {espera > 0 && (
+                  <div style={{ fontSize: 10.5, color: T.textSec, marginTop: 6 }}>
+                    ✓ Los {espera} min de reposo se ofrecen como huecos libres para encajar otras clientas en la agenda.
+                  </div>
+                )}
+              </div>
               <FormField label="Puesto que ocupa (opcional)">
                 <SSelect
                   value={recursoTipo}
