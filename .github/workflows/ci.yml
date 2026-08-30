@@ -70,6 +70,12 @@ jobs:
       - name: Chequeo de tipos de Edge Functions críticas
         run: deno task check:edges
 
+      # El tecnificador propone cambios sobre el catálogo entero de un salón: lo
+      # que importa no es que la IA acierte (eso no se prueba) sino que nada de
+      # lo que devuelva pueda escribirse sin pasar por el saneador.
+      - name: Tests del tecnificador de catálogo (Deno)
+        run: deno task test:tecnificador
+
       # Vigilantes de invariantes. Cazan lo que no caza ningún tipo ni ningún
       # test: cosas que viven en varios sitios a la vez y se desincronizan en
       # silencio (precios en 3 sitios, referidos en 4), rutas que se abren sin
