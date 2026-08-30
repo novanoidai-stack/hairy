@@ -74,11 +74,13 @@ const CLAIMS = [
   },
   {
     clave: 'qr-cotejo',
+    // Este NO depende del envio: el QR se compone en local, con el NIF, el numero
+    // de serie, la fecha y el importe que se sellaron al emitir. Por eso tiene su
+    // propio interruptor, y desde el 30 ago 2026 esta a true.
+    gate: 'QR_COTEJO_DISPONIBLE',
     re: /QR\s+(?:de\s+)?(?:cotejo|verificaci[óo]n|tributario)/gi,
     porque:
-      'El QR de cotejo lleva la URL de verificacion de la AEAT y no se genera en ningun ' +
-      'sitio. Se puede construir en local, asi que puede llegar antes que el envio: cuando ' +
-      'llegue, QR_COTEJO_DISPONIBLE.',
+      'El QR de cotejo lleva la URL de verificacion de la AEAT y no se genera en ningun sitio.',
   },
   {
     // La redaccion con comadreja: no dice "homologado" ni "envio", dice que el
@@ -148,9 +150,9 @@ function enlazada(rel) {
   return fuera.includes(base);
 }
 
-export function revisar(texto, fichero, nivel) {
+export function revisar(texto, fichero, nivel, claims = CLAIMS) {
   const out = [];
-  for (const c of CLAIMS) {
+  for (const c of claims) {
     for (const m of texto.matchAll(c.re)) {
       const frase = frasesDe(texto, m.index);
       if (DESMENTIDO.test(frase)) continue;
@@ -178,25 +180,30 @@ export function revisar(texto, fichero, nivel) {
 async function ejecutar() {
   // El ancla. Si desaparece o cambia de forma, esto FALLA en vez de pasar en verde.
   const estado = leer(ESTADO);
-  const envio = capturar(estado, /export const ENVIO_AEAT_DISPONIBLE = (true|false);/, {
-    fichero: ESTADO,
-    ancla: 'ENVIO_AEAT_DISPONIBLE',
-  }).valor;
-  capturar(estado, /export const QR_COTEJO_DISPONIBLE = (true|false);/, {
-    fichero: ESTADO,
-    ancla: 'QR_COTEJO_DISPONIBLE',
-  });
+  const interruptores = {
+    ENVIO_AEAT_DISPONIBLE: capturar(estado, /export const ENVIO_AEAT_DISPONIBLE = (true|false);/, {
+      fichero: ESTADO,
+      ancla: 'ENVIO_AEAT_DISPONIBLE',
+    }).valor === 'true',
+    QR_COTEJO_DISPONIBLE: capturar(estado, /export const QR_COTEJO_DISPONIBLE = (true|false);/, {
+      fichero: ESTADO,
+      ancla: 'QR_COTEJO_DISPONIBLE',
+    }).valor === 'true',
+  };
 
-  // Ya se envia de verdad: estas palabras dejan de ser mentira y no hay nada que mirar.
-  if (envio === 'true') return [];
+  // Cada claim mira SU interruptor: el QR se puede anunciar en cuanto se pinta de
+  // verdad, aunque el envio siga sin existir. Anunciar de menos tambien es un
+  // fallo -- lo construido se vende.
+  const vigilados = CLAIMS.filter((c) => !interruptores[c.gate ?? 'ENVIO_AEAT_DISPONIBLE']);
+  if (vigilados.length === 0) return [];
 
   const hallazgos = [];
   for (const f of SUPERFICIES_VIVAS) {
     if (!existsSync(path.join(RAIZ, f))) continue;
-    hallazgos.push(...revisar(leer(f), f, 'bloqueante'));
+    hallazgos.push(...revisar(leer(f), f, 'bloqueante', vigilados));
   }
   for (const f of copiasMuertas()) {
-    const encontrados = revisar(leer(f), f, 'aviso');
+    const encontrados = revisar(leer(f), f, 'aviso', vigilados);
     if (!encontrados.length) continue;
     hallazgos.push(
       hallazgo({

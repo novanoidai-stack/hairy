@@ -1,11 +1,17 @@
 // PDF del ticket de venta (SOLO web — usa jsPDF con carga diferida).
 // El nativo usa el stub ticketPdf.ts (el nativo va por detras).
 //
-// QUE ES Y QUE NO ES: esto imprime un ticket con los datos fiscales del salon,
-// el desglose de lo cobrado y la huella del registro interno inalterable
-// (hash encadenado de tickets_verifactu). NO es una factura enviada a la AEAT:
-// no hay alta en VeriFactu ni QR de verificacion oficial, y el pie del documento
-// lo dice con todas las letras. Ver informes/MEGA_INFORME_MECHA.md.
+// QUE ES Y QUE NO ES (30 ago 2026): imprime un ticket con los datos fiscales del
+// salon, el desglose de lo cobrado y la huella del registro inalterable
+// (tickets_verifactu). Desde hoy, si el salon tiene NIF configurado, la huella se
+// calcula con la CADENA OFICIAL de la AEAT y el ticket lleva su QR de cotejo.
+//
+// Lo que sigue sin ser: una factura REMITIDA a la AEAT. El QR se genera en local
+// --no hace falta apoderamiento para eso-- pero hasta que el envio funcione, la
+// URL que lleva dentro no encontrara el registro al otro lado. Por eso el pie
+// cambia segun `qrUrl`: con QR dice que el envio esta en curso, y sin el sigue
+// diciendo con todas las letras que el documento no se ha remitido.
+// Ver informes/ESTUDIO-SECTORIAL-Y-REAUDITORIA-2026-08-30.md §7.
 
 export interface TicketPdfLinea {
   nombre: string;
@@ -32,9 +38,13 @@ export interface TicketPdfData {
   propinaCents: number;
   descuentoCents: number;
   metodo: string;
-  // Registro interno
+  // Registro inalterable
   hash: string;
   hashAnterior: string | null;
+  /** URL de cotejo de la AEAT. Null mientras el salon no tenga NIF configurado. */
+  qrUrl?: string | null;
+  /** 'aeat_v1' | 'interno_v1'. Decide el titulo y el pie del bloque. */
+  formatoHuella?: string | null;
   // true si el ticket se reconstruyo a posteriori (no se emitio al cobrar)
   reconstruido?: boolean;
 }
@@ -74,7 +84,7 @@ export async function generarTicketPdf(data: TicketPdfData): Promise<Blob> {
   const { jsPDF } = await import('jspdf');
   // Formato ticket estrecho (80 mm), como el rollo de una impresora de tickets.
   // La altura se estima por contenido: jsPDF necesita el alto al construir.
-  const alto = 150 + data.lineas.length * 6;
+  const alto = 150 + data.lineas.length * 6 + (data.qrUrl ? 34 : 0);
   const doc = new jsPDF({ unit: 'mm', format: [80, alto] });
   const [r, g, b] = hexToRgb(data.color);
   const ink: [number, number, number] = [28, 24, 20];
@@ -197,7 +207,8 @@ export async function generarTicketPdf(data: TicketPdfData): Promise<Blob> {
   doc.setTextColor(...ink);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text('Registro interno inalterable', L, y);
+  const esAeat = data.formatoHuella === 'aeat_v1';
+  doc.text(esAeat ? 'Registro de facturacion (RD 1007/2023)' : 'Registro interno inalterable', L, y);
   y += 4;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...grey);
@@ -220,11 +231,47 @@ export async function generarTicketPdf(data: TicketPdfData): Promise<Blob> {
     y += 3 * (Array.isArray(avisoLines) ? avisoLines.length : 1);
   }
 
+  // --- QR de cotejo ---
+  //
+  // Se dibuja solo si el ticket lo trae. No se inventa aqui: lo compone
+  // `mint_ticket_verifactu` en el momento de emitir, con el NIF, el numero de
+  // serie, la fecha y el importe que de verdad se sellaron. Construirlo en el
+  // cliente seria poder dibujar un QR que no cuadre con lo firmado.
+  if (data.qrUrl) {
+    y += 4;
+    try {
+      const qrcode = (await import('qrcode-generator')).default;
+      // Nivel M: es el que aguanta el manoseo de un ticket de papel sin crecer
+      // demasiado en un rollo de 80 mm. Tipo 0 = que elija el tamano el solo.
+      const qr = qrcode(0, 'M');
+      qr.addData(data.qrUrl);
+      qr.make();
+      const lado = 26;
+      doc.addImage(qr.createDataURL(4, 0), 'GIF', L, y, lado, lado);
+      doc.setFontSize(6);
+      doc.setTextColor(...grey);
+      doc.text('Cotejo AEAT', L + lado + 3, y + 4);
+      const urlLines = doc.splitTextToSize(data.qrUrl, W - lado - 3);
+      doc.text(urlLines, L + lado + 3, y + 7.5);
+      y += lado + 2;
+    } catch {
+      // Un QR que no se puede pintar no puede tumbar la descarga del ticket:
+      // el ticket es lo que la clienta se lleva y el QR es un extra.
+      doc.setFontSize(6.5);
+      doc.setTextColor(...grey);
+      doc.text('QR de cotejo no disponible en este dispositivo.', L, y);
+      y += 3;
+    }
+  }
+
   // --- Pie honesto ---
   y += 4;
   doc.setFontSize(6.5);
+  doc.setTextColor(...grey);
   const pie = doc.splitTextToSize(
-    'Documento sin valor fiscal: no se ha remitido a la AEAT. El IVA mostrado es orientativo.',
+    data.qrUrl
+      ? 'Registro encadenado segun el RD 1007/2023. La remision a la AEAT esta en curso: hasta que se complete, el codigo de cotejo puede no localizar el registro.'
+      : 'Documento sin valor fiscal: no se ha remitido a la AEAT. El IVA mostrado es orientativo.',
     W,
   );
   doc.text(pie, L, y);

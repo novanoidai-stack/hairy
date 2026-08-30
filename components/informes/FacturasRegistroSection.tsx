@@ -40,6 +40,9 @@ interface TicketRow {
   numero_factura: string | null;
   hash: string | null;
   hash_anterior: string | null;
+  qr_url: string | null;
+  formato_huella: string | null;
+  estado_envio: string | null;
   fecha_emision: string | null;
   reconstruido: boolean;
 }
@@ -110,7 +113,7 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
           ids.length
             ? supabase
                 .from('tickets_verifactu')
-                .select('cobro_id, serie, numero, hash, hash_anterior, fecha_emision, payload')
+                .select('cobro_id, serie, numero, hash, hash_anterior, fecha_emision, payload, qr_url, formato_huella, estado_envio')
                 .in('cobro_id', ids)
             : Promise.resolve({ data: [], error: null } as any),
           ids.length
@@ -149,6 +152,9 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
               numero_factura: t?.payload?.numero_factura ?? null,
               hash: t?.hash ?? null,
               hash_anterior: t?.hash_anterior ?? null,
+              qr_url: t?.qr_url ?? null,
+              formato_huella: t?.formato_huella ?? null,
+              estado_envio: t?.estado_envio ?? null,
               fecha_emision: t?.fecha_emision ?? null,
               reconstruido: t?.payload?.backfill === true,
             };
@@ -225,6 +231,8 @@ export function FacturasRegistroSection({ negocioId, desde, hasta }: Props) {
         metodo: f.metodo,
         hash: f.hash ?? '(sin registro)',
         hashAnterior: f.hash_anterior,
+        qrUrl: f.qr_url,
+        formatoHuella: f.formato_huella,
         reconstruido: f.reconstruido,
       });
       descargarBlob(blob, `ticket_${f.numero_factura ?? f.cobro_id.slice(0, 8)}.pdf`);

@@ -30,8 +30,16 @@
 export const ENVIO_AEAT_DISPONIBLE = false;
 
 /** El QR de cotejo se genera en local y NO depende del apoderamiento, asi que
- *  puede llegar antes que el envio. Va aparte a proposito. */
-export const QR_COTEJO_DISPONIBLE = false;
+ *  puede llegar antes que el envio. Va aparte a proposito.
+ *
+ *  A true el 30 ago 2026: `mint_ticket_verifactu` compone la URL de cotejo al
+ *  emitir (con el NIF, el numero de serie, la fecha y el importe que de verdad
+ *  se sellaron) y `lib/caja/ticketPdf.web.ts` la pinta en el ticket.
+ *
+ *  OJO CON LO QUE ESTO PERMITE DECIR: que el ticket LLEVA un QR de cotejo, si.
+ *  Que ese QR encuentra el registro en la AEAT, NO -- para eso hace falta el
+ *  envio, que es ENVIO_AEAT_DISPONIBLE. El pie del ticket lo dice asi. */
+export const QR_COTEJO_DISPONIBLE = true;
 
 /** Lo que si esta y se puede prometer sin letra pequena. */
 export const LIBRO_TICKETS_INALTERABLE = true;

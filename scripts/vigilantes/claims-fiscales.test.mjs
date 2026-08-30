@@ -77,3 +77,15 @@ test('las superficies vivas estan limpias (0 bloqueantes)', async () => {
     'una superficie publica ha vuelto a prometer el envio a la AEAT',
   );
 });
+
+test('cada claim mira SU interruptor, no uno solo para todos', () => {
+  const src = leer('scripts/vigilantes/claims-fiscales.mjs');
+  // El QR se compone en local y no depende del apoderamiento: tiene interruptor
+  // propio para poder anunciarse en cuanto se pinta de verdad. Anunciar de menos
+  // tambien es un fallo -- lo construido se vende.
+  assert.match(src, /gate: 'QR_COTEJO_DISPONIBLE'/);
+  assert.match(src, /CLAIMS\.filter\(\(c\) => !interruptores\[c\.gate \?\? 'ENVIO_AEAT_DISPONIBLE'\]\)/);
+  const estado = leer('lib/fiscal/estadoVerifactu.ts');
+  assert.match(estado, /QR_COTEJO_DISPONIBLE = true/, 'el QR ya se pinta: ticketPdf.web.ts lo dibuja');
+  assert.match(estado, /ENVIO_AEAT_DISPONIBLE = false/, 'el envio sigue sin existir');
+});
