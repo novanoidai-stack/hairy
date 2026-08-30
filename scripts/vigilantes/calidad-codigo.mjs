@@ -41,58 +41,91 @@ export function listarFicherosObjetivo(raiz = RAIZ) {
     .filter((rel) => (rel.endsWith('.tsx') || rel.endsWith('.jsx')) && CARPETAS_OBJETIVO.some((c) => rel.startsWith(c)));
 }
 
+// Caracteres tras los que un `/` abre un LITERAL DE REGEX y no es una division.
+// Es la desambiguacion clasica de JS y no hay forma de hacerla sin mirar atras.
+const ANTES_DE_REGEX = new Set([
+  '', '(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '<', '>', '~', '^', '\n',
+]);
+
 /**
  * Mide la profundidad de anidamiento de estructuras de control y bloques de código,
- * ignorando cadenas de texto y comentarios para evitar falsos conteos de llaves.
+ * ignorando cadenas de texto, comentarios y literales de regex.
+ *
+ * Va carácter a carácter en vez de línea a línea con regex de limpieza, porque lo
+ * segundo no puede acertar: una comilla escapada dentro de una cadena, o unas
+ * llaves dentro de un literal de regex, descuadran el conteo y el nivel se va a
+ * cero sin que se note. El caso que lo destapó es real y de manual —`/\}{2,}/`
+ * tiene dos `}` y una `{`, así que RESTABA un nivel— y el efecto es el peor
+ * posible en un vigilante: mide de MENOS, así que el código profundo deja de
+ * salir y el panel se queda en verde por ceguera, no por limpieza.
  */
 export function medirProfundidadAnidamiento(codigo) {
   if (!codigo || typeof codigo !== 'string') return 0;
 
   let maxNivel = 0;
-  let nivelActual = 0;
-  let enComentarioBloque = false;
+  let nivel = 0;
+  let i = 0;
+  // Último carácter con significado: es lo que distingue `a / b` de `/regex/`.
+  let previo = '';
+  const n = codigo.length;
 
-  const lineas = codigo.split('\n');
+  while (i < n) {
+    const c = codigo[i];
+    const sig = codigo[i + 1];
 
-  for (const lineaRaw of lineas) {
-    let linea = lineaRaw.trim();
-    if (!linea) continue;
+    // Comentario de línea
+    if (c === '/' && sig === '/') {
+      while (i < n && codigo[i] !== '\n') i++;
+      continue;
+    }
 
-    // Manejo de comentarios multilinea
-    if (enComentarioBloque) {
-      const fin = linea.indexOf('*/');
-      if (fin !== -1) {
-        enComentarioBloque = false;
-        linea = linea.slice(fin + 2).trim();
-      } else {
-        continue;
+    // Comentario de bloque
+    if (c === '/' && sig === '*') {
+      i += 2;
+      while (i < n && !(codigo[i] === '*' && codigo[i + 1] === '/')) i++;
+      i += 2;
+      continue;
+    }
+
+    // Cadenas: comilla simple, doble y plantilla. Se saltan enteras, respetando
+    // el escape, que es justo lo que fallaba antes.
+    if (c === '"' || c === "'" || c === '`') {
+      i++;
+      while (i < n) {
+        if (codigo[i] === '\\') { i += 2; continue; }
+        if (codigo[i] === c) { i++; break; }
+        i++;
       }
+      previo = c;
+      continue;
     }
 
-    // Quitar comentarios de una linea y cadenas literales
-    linea = linea.replace(/\/\*[\s\S]*?\*\//g, '');
-    const idxComentLinea = linea.indexOf('//');
-    if (idxComentLinea !== -1) {
-      linea = linea.slice(0, idxComentLinea).trim();
+    // Literal de regex. `[...]` puede contener un `/` sin cerrarlo.
+    if (c === '/' && ANTES_DE_REGEX.has(previo)) {
+      i++;
+      let enClase = false;
+      while (i < n) {
+        const d = codigo[i];
+        if (d === '\\') { i += 2; continue; }
+        if (d === '\n') break;
+        if (d === '[') enClase = true;
+        else if (d === ']') enClase = false;
+        else if (d === '/' && !enClase) { i++; break; }
+        i++;
+      }
+      previo = '/';
+      continue;
     }
 
-    if (linea.includes('/*')) {
-      enComentarioBloque = true;
-      linea = linea.slice(0, linea.indexOf('/*')).trim();
+    if (c === '{') {
+      nivel++;
+      if (nivel > maxNivel) maxNivel = nivel;
+    } else if (c === '}') {
+      nivel = Math.max(0, nivel - 1);
     }
 
-    // Eliminar strings para no contar llaves dentro de textos
-    linea = linea.replace(/'(?:\\.|[^'\\])*'/g, '');
-    linea = linea.replace(/"(?:\\.|[^"\\])*"/g, '');
-    linea = linea.replace(/`(?:\\.|[^`\\])*`/g, '');
-
-    const aperturas = (linea.match(/\{/g) || []).length;
-    const cierres = (linea.match(/\}/g) || []).length;
-
-    nivelActual = Math.max(0, nivelActual + aperturas - cierres);
-    if (nivelActual > maxNivel) {
-      maxNivel = nivelActual;
-    }
+    if (!/\s/.test(c)) previo = c;
+    i++;
   }
 
   return maxNivel;

@@ -1187,20 +1187,33 @@ export default function EquipoWeb() {
                   </div>
 
                   <button
+                    disabled={!profSel.profile_id}
+                    title={profSel.profile_id
+                      ? undefined
+                      : 'Esta persona todavia no tiene cuenta de acceso. La comision se liquida contra la cuenta: invitala desde Accesos y roles.'}
                     onClick={async () => {
                       if (!confirm(`¿Confirmas liquidar ${profSel.comisionesDevengadas ?? 0} € de comisiones para ${profSel.nombre}?`)) return;
                       try {
                         const now = new Date();
                         const inicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                         const fin = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-                        const { error } = await supabase.rpc('liquidar_comision_periodo', {
-                          p_profesional_id: profSel.id,
+                        // OJO: va el id de la CUENTA, no el de la ficha. comisiones.profesional_id
+                        // referencia profiles(id) y calcular_comisiones_periodo tambien espera un
+                        // profile. Pasar profSel.id (la ficha) era uno de los motivos por los que
+                        // esto no habia funcionado nunca.
+                        const { data, error } = await supabase.rpc('liquidar_comision_periodo', {
+                          p_profesional_id: profSel.profile_id,
                           p_periodo_inicio: inicio,
                           p_periodo_fin: fin,
-                          p_metodo_pago: 'transferencia',
+                          p_marcar_pagada: false,
                         });
                         if (error) throw error;
-                        alert('Liquidación registrada con éxito.');
+                        const res = data as any;
+                        // La RPC contesta con ok:false y un motivo hablado; sin esto el usuario
+                        // veia "registrada con exito" aunque no se hubiera guardado nada.
+                        if (!res?.ok) throw new Error(res?.error ?? 'No se pudo liquidar la comisión.');
+                        const importe = ((res.importe_comision_cents ?? 0) / 100).toFixed(2);
+                        alert(`Liquidación congelada: ${importe} € (${res.porcentaje_aplicado ?? 0}%).`);
                       } catch (err: any) {
                         alert(mensajeDeError(err, 'No se pudo liquidar la comisión.'));
                       }
@@ -1213,7 +1226,8 @@ export default function EquipoWeb() {
                       border: '1px solid rgba(245,158,11,0.30)',
                       fontSize: 12.5,
                       fontWeight: 700,
-                      cursor: 'pointer',
+                      cursor: profSel.profile_id ? 'pointer' : 'not-allowed',
+                      opacity: profSel.profile_id ? 1 : 0.5,
                       whiteSpace: 'nowrap',
                     }}
                   >

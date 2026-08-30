@@ -325,10 +325,18 @@ if (esEjecucionDirecta) {
     if (!linea.trim()) continue;
     try {
       const m = JSON.parse(linea);
-      medidas[m.pantalla] = {
-        ms_carga: Math.round(m.ms_carga),
+      // Una fila sin `pantalla` utilizable no es una medicion: antes entraba
+      // igual y creaba pantallas fantasma llamadas "undefined" y "null", que
+      // ademas salian como "pantalla nueva sin linea base". Ruido que tapa las
+      // medidas de verdad, y encima estable — el fantasma vuelve cada corrida.
+      const pantalla = typeof m.pantalla === 'string' ? m.pantalla.trim() : '';
+      if (!pantalla) continue;
+      const ms = Number(m.ms_carga);
+      if (!Number.isFinite(ms)) continue;
+      medidas[pantalla] = {
+        ms_carga: Math.round(ms),
         long_tasks_n: m.long_tasks_n,
-        long_tasks_ms: Math.round(m.long_tasks_ms),
+        long_tasks_ms: Math.round(Number(m.long_tasks_ms) || 0),
         fps_medio: m.fps_medio,
         peticiones: m.peticiones,
       };

@@ -4574,12 +4574,38 @@ function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: 
           <div style={{ marginTop: 6 }}>
             <button
               onClick={async () => {
-                if (!confirm('¿Deseas ejecutar la política de retención RGPD? Se anonimizarán los clientes inactivos desde hace más de 3 años.')) return;
                 try {
+                  // Primero CONTAR, que es el aviso previo que pide la spec 13: quien vive de
+                  // su cartera tiene derecho a saber a cuantas fichas afecta antes de que sea
+                  // irreversible. Preguntar "¿seguro?" sin decir el numero no es avisar.
+                  const { data: previo, error: errPrevio } = await supabase.rpc('ejecutar_retencion_rgpd', {
+                    p_solo_contar: true,
+                  });
+                  if (errPrevio) throw errPrevio;
+                  const prev = previo as any;
+                  if (!prev?.ok) throw new Error(prev?.error ?? 'No se pudo consultar la retención.');
+
+                  const candidatos = prev.candidatos ?? 0;
+                  if (candidatos === 0) {
+                    alert('No hay ninguna clienta que cumpla la política de retención. No se ha tocado nada.');
+                    return;
+                  }
+                  const tanda = Math.min(candidatos, prev.por_tanda ?? 100);
+                  if (!confirm(
+                    `Se anonimizarán ${tanda} de ${candidatos} clientas sin actividad en más de 3 años.\n\n` +
+                    'Se borran sus datos personales, su ficha de color y sus notas. Es IRREVERSIBLE ' +
+                    'y no se puede deshacer.\n\n¿Continuar?'
+                  )) return;
+
                   const { data, error } = await supabase.rpc('ejecutar_retencion_rgpd');
                   if (error) throw error;
                   const res = data as any;
-                  alert(`Retención completada. Clientes anonimizados: ${res?.clientes_anonimizados ?? 0}.`);
+                  if (!res?.ok) throw new Error(res?.error ?? 'No se pudo ejecutar la retención RGPD.');
+                  const quedan = res.quedan ?? 0;
+                  alert(
+                    `Retención completada. Clientas anonimizadas: ${res.clientes_anonimizados ?? 0}.` +
+                    (quedan > 0 ? `\n\nQuedan ${quedan}: vuelve a ejecutarlo para la siguiente tanda.` : '')
+                  );
                 } catch (err: any) {
                   alert(mensajeDeError(err, 'No se pudo ejecutar la retención RGPD.'));
                 }
