@@ -423,7 +423,35 @@ Cuatro bloques, en orden de ejecución. El criterio de orden no es la dificultad
 
 ## 11. El plan
 
-### Bloque 0 — Riesgo. Esta semana. (Carlos)
+### Bloque 0 — Riesgo. Esta semana. (Carlos) — ✅ HECHO el 30 ago 2026
+
+> **Lo que se hizo, y lo que enseñó.** Commit `16927001`. Reescritas las 37 apariciones del
+> claim en `index.html` (texto y los 6 bloques JSON-LD), `especificaciones.html`,
+> `carta-comercial.html`, `terminos.html`, el prompt de `chispa-landing`, la base de
+> conocimiento de la demo y `lib/planes.ts`. Dos migraciones validadas contra producción en
+> una transacción revertida (el portal siguió devolviendo sus 52 huecos). Vigilantes: ya son
+> 15; `npm run vigilar` da 0 bloqueantes y 133/133 tests pasan.
+>
+> Tres cosas que no estaban en el plan y salieron al hacerlo:
+>
+> 1. **Un segundo claim falso, en el prompt del asistente:** *"DOS PLANES DE SOFTWARE, mismo
+>    contenido en los dos"*, listando señales, campañas y lista de espera. Es la trampa que
+>    CLAUDE.md da por corregida — viva en el único de los tres sitios donde `planes.mjs` no
+>    miraba. `precios.mjs` sí lee el prompt (para los números); `planes.mjs` no lo leía (para
+>    el contenido). **Un vigilante con un punto ciego es peor que ninguno, porque da por
+>    cerrado justo lo que vigila.** Arreglado: ahora mira los tres sitios, y se comprobó que
+>    caza los cuatro claims del texto viejo.
+> 2. **`\w` en JavaScript no incluye acentos**, así que el vigilante nuevo dejaba pasar
+>    *"adaptado a los requisitos **técnicos** de la AEAT"* — la comadreja exacta que estaba
+>    publicada. En un vigilante escrito en español eso es un fallo de clase, no un caso borde.
+> 3. **Cinco páginas de `web/` que no enlaza nadie** (`index_v4`, `index_v5`, `diseno-*`)
+>    publican 24 claims viejos; una llega a decir *"9 facturas VeriFactu enviadas a la AEAT"*.
+>    El dominio sirve la carpeta entera, así que son públicas e indexables. Salen como aviso;
+>    el arreglo bueno es borrarlas, como ya se hizo con `demo_v2.html`, y esa es decisión del
+>    equipo.
+>
+> Y un dato que quita urgencia a una parte: **ninguna clienta se había anonimizado todavía**,
+> así que la fuga del RGPD no dejó backlog que reparar. El arreglo es solo hacia delante.
 
 **0.1 · Alinear el claim de VeriFactu con la verdad — hoy.**
 Mientras el envío a la AEAT no exista, ninguna superficie puede decir "envío a Hacienda",
@@ -440,10 +468,14 @@ Redacción honesta y **que sigue vendiendo** — porque lo construido tiene valo
 > Ley Antifraude. *El envío automático a la AEAT y el QR de cotejo llegan en [fecha]; tu histórico
 > se enviará sin que tengas que hacer nada.*
 
-Y un **vigilante nuevo** (`scripts/vigilantes/claims-fiscales.mjs`, bloqueante) que falle si
-"AEAT", "homologad", "envío a Hacienda" o "QR de cotejo" reaparecen en cualquier superficie
-pública mientras `config_fiscal.proveedor_estado <> 'produccion'`. Esta es la clase de deriva
-que ya pasó con los planes (`planes.mjs`); que no pase dos veces.
+Y un **vigilante nuevo** (`scripts/vigilantes/claims-fiscales.mjs`, bloqueante) que falla si
+esas palabras reaparecen en cualquier superficie pública. El ancla **no** es
+`config_fiscal.proveedor_estado` —la capa 1 no toca red— sino `lib/fiscal/estadoVerifactu.ts`,
+un fichero nuevo con `ENVIO_AEAT_DISPONIBLE = false` que se pone a `true` **en el mismo commit
+que despliega el worker**. Primero funciona, luego se anuncia.
+
+Perdona a propósito la redacción honesta que NOMBRA lo que falta ("el envío a la AEAT está en
+desarrollo"): un vigilante que obliga a callarse en vez de a ser exacto es peor que no tenerlo.
 
 **0.2 · Tapar la fuga de `anonimizar_cliente`.**
 Una migración. Añadir al RPC: borrado de `fichas_tecnicas_color` y `notas_internas_cliente` del
@@ -519,17 +551,35 @@ la dueña teclee nada.
 5. **Borrar los duplicados** (`serviciosCompatiblesReposo.ts`, `verifactuHash.ts`) y **añadir el
    vigilante de módulos desconectados** del §8.
 
-### Bloque 4 — Lo que de verdad falta (después)
+### Bloque 4 — Las funciones que faltan
 
-| Qué | Por qué | Coste |
-|---|---|---|
-| **Bizum como método propio** en `cobros`/`sesiones_caja` y en el arqueo | Hoy no cuadra con ningún extracto bancario | Bajo |
-| **Citas recurrentes al servidor** (hoy solo en el modal web, 4 usos de 2.011) | Subirla a RPC la abre al portal y a Chispa. Es lo que más fideliza en barbería y en tinte de raíz | Bajo |
-| **Cola del día / walk-in** | Distinto de `lista_espera`. Es el flujo real de la barbería | Medio |
-| **Bono con calendario de sesiones** (3 de 10, caducidad, aviso) | El 60 % de la facturación de la estética pura | Medio |
-| **Política de retención** de datos de salud | §6.2. Hoy no caduca nada | Medio |
-| **Multi-sucursal** | Los ~5 % de cadenas, hoy inalcanzables | Alto |
-| **Alquiler de sillón** | La tipología del §1. **Depende de la decisión de esquema del bloque 1.1** | Alto |
+Esto ya no son erratas: son funciones que el salón necesita y Mecha no tiene. Están
+especificadas una a una —modelo de datos, reglas, UI, orden de migración y criterio de
+aceptación— en **`informes/SPECS-LO-QUE-FALTA-2026-08-30.md`**. Resumen:
+
+| # | Spec | Coste | La carencia, en una línea |
+|---|---|---|---|
+| **1** | **Reposos asíncronos múltiples** | Alto | El foso de Mecha son 4 marcas de tiempo en `citas`: **un solo reposo**. Un balayage tiene dos, y una permanente también |
+| **2** | **Gramajes de verdad** | Alto | `inventario.unidades` es `integer` y `cita_consumos.cantidad` también: **no se pueden restar 35 g de un bote de 60** |
+| 3 | Fórmula ligada al producto | Medio | Las 87 fichas guardan `{gramos:"30", numero:"6.2"}` — texto, y sin `producto_id`. Es el puente que le falta a la 2 |
+| 4 | Reloj de reposo en vivo | Bajo | Mecha planifica el reposo y no lo cuenta. El tinte pasado de tiempo es el fallo nº 1 de cabina |
+| 5 | Prueba de alergia 48 h | Bajo | Reglamento 1223/2009 y el seguro de RC. `colorAlergias.ts` ya está escrito y huérfano |
+| 6 | Bono con calendario de sesiones | Medio | `bonos` es un contador; la estética vende «la sesión 3 de 10 el jueves» |
+| 7 | Cola del día (walk-in) | Medio | `lista_espera` mira al futuro. La barbería trabaja a puerta |
+| 8 | Reserva de grupo (novia, comunión) | Medio | Ticket de 400-900 €, el más alto del año, hoy cuadrado a mano |
+| 9 | Recursos en la disponibilidad | Bajo | Las 5 RPC están desplegadas y no las llama nadie |
+| 10 | Bizum como método propio | Bajo | 292 cobros en `online_cents` que no cuadran con ningún extracto |
+| 11 | Comisiones: cerrar el ciclo | Bajo | Se calcula y no se liquida: 0 filas en `comisiones` |
+| 12 | Series al servidor | Bajo | Solo en el modal web: ni el portal ni Chispa pueden crear una, y no es atómico |
+| 13 | Retención y caducidad | Medio | Hoy no caduca nada: fichas de color de 2019 de clientas que no vuelven |
+| 14 | Alquiler de sillón (multi-NIF) | Alto | **Condiciona la decisión de encadenado del bloque 1, que no se deshace** |
+
+Multi-sucursal (las cadenas, ~5 % del mercado) sigue fuera: es otro producto y otro comprador.
+
+**Las dos grandes tienen la misma forma, y por eso no se hacen a la vez:** una tabla nueva
+(`cita_fases`, `cantidad_base`), las columnas viejas degradadas a resumen mantenido por
+trigger, y los lectores migrados de uno en uno. Así el día del despliegue nada de lo viejo se
+entera. Comparten el cierre de la cita, así que chocarían.
 
 ## 12. Encaje con el pricing (que no cambia)
 
@@ -554,21 +604,35 @@ gateaba seis funciones no puede repetirse.
 ## 13. Orden recomendado
 
 ```
-Semana 1     B0  Claim VeriFactu + fuga RGPD + zona horaria        Carlos     RIESGO
-Semana 1     B1.4 Arrancar apoderamiento AEAT (papeleo, plazo externo)  Alexandro
-Semanas 2-4  B2  Técnificador + tarifar inventario + QR del portal  Carlos     ROI
-Semanas 2-5  B1  VeriFactu real (esquema -> QR -> worker -> AEAT)   Alexandro  RIESGO
-Semanas 5-6  B3  Enchufar huérfanos + vigilante de desconexión      Carlos
-Semana 7+    B4  Según lo que pida el primer cliente de pago
+HECHO        B0   Claim VeriFactu + fuga RGPD + zona horaria       Carlos      RIESGO
+Semana 1     B1.1 Apoderamiento AEAT (papeleo, es lo que tiene     Alexandro
+                  plazo externo: empezar por aqui, no por codigo)
+Semanas 2-4  B2   Tecnificador + tarifar inventario + QR del       Carlos      ROI
+                  portal  -> es lo que da DATOS a las specs 1 y 2
+Semanas 2-5  B1   VeriFactu real (esquema -> QR -> worker -> AEAT) Alexandro   RIESGO
+                  El esquema decide el encadenado: (negocio_id,
+                  nif_emisor, serie). Esa no se deshace.
+Semanas 5-6  B3   Enchufar huerfanos + vigilante de desconexion    Carlos
+                  specs 9, 12, 10, 11 -- baratas y validan patron
+Semana 7+    B4   Las specs grandes, en este orden:
+                    3 formula->producto  (prepara la 2)
+                    1 reposos multiples  (la grande de agenda)
+                    2 gramajes           (encima de la 3)
+                    4 reloj de reposo    (cae solo con la 1)
+                    5, 13, y 6/7/8 segun lo que pida el cliente
 ```
 
-**Las dos frases con las que quedarse:**
+**Las tres frases con las que quedarse:**
 
-1. **Lo urgente no es construir: es dejar de prometer a Hacienda lo que no se hace, y dejar de
-   guardar datos de salud de quien pidió que se borraran.** Ambas cosas se arreglan esta semana.
+1. **Lo urgente no era construir: era dejar de prometer a Hacienda lo que no se hace, y dejar
+   de guardar datos de salud de quien pidió que se borraran.** Hecho el 30 ago.
 2. **Lo rentable no es una función nueva: es que las 81 filas del catálogo de un salón real
    tengan puesto el reposo.** Eso vale 334 €/mes para el salón, contra una cuota de 59 €, y hoy
    está al 8,6 %.
+3. **Y de las catorce specs, ninguna se da por hecha cuando compila: se da por hecha cuando el
+   salón real la ha usado una vez.** Es la lección del hallazgo C, y aplica igual a lo que se
+   construya a partir de ahora. Si al empezar una spec no se sabe decir quién la va a activar y
+   cómo se entera de que existe, esa spec todavía no está lista para empezarse.
 
 ---
 
