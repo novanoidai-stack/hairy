@@ -1434,6 +1434,58 @@ export function DetalleCitaModal({
     }
   };
 
+  const [descontandoInv, setDescontandoInv] = useState(false);
+  const [invDescontadoMsg, setInvDescontadoMsg] = useState("");
+
+  const handleDescontarInventario = async () => {
+    if (!formulaTono && !formulaProducto) return;
+    try {
+      setDescontandoInv(true);
+      setInvDescontadoMsg("");
+
+      const matches = [
+        ...(formulaTono || "").matchAll(
+          /(\d+(?:[.,]\d+)?)\s*g(?:ramos?)?\s*([^,+]*)/gi,
+        ),
+      ];
+      let lineas: Array<{ gramos: number; tono?: string; marca?: string }> = [];
+
+      if (matches.length > 0) {
+        lineas = matches.map((m) => ({
+          gramos: parseFloat(m[1].replace(",", ".")),
+          tono: m[2]?.trim() || undefined,
+          marca: formulaProducto.trim() || undefined,
+        }));
+      } else {
+        lineas = [
+          {
+            gramos: 60,
+            tono: formulaTono.trim() || undefined,
+            marca: formulaProducto.trim() || undefined,
+          },
+        ];
+      }
+
+      const { error: rpcErr } = await supabase.rpc(
+        "descontar_consumo_formula",
+        {
+          p_cita_id: cita.id,
+          p_lineas: lineas as any,
+        },
+      );
+
+      if (rpcErr) throw rpcErr;
+      setInvDescontadoMsg("✓ Stock descontado");
+      setTimeout(() => setInvDescontadoMsg(""), 3500);
+    } catch (err: any) {
+      console.error("Error descontando inventario:", err);
+      setInvDescontadoMsg("Error descontando");
+      setTimeout(() => setInvDescontadoMsg(""), 3500);
+    } finally {
+      setDescontandoInv(false);
+    }
+  };
+
   const totalMin = activo + espera + activo2;
   const citaDate = new Date(cita.inicio).toLocaleDateString(LOCALE, {
     weekday: "long",
@@ -5495,45 +5547,84 @@ export function DetalleCitaModal({
                             alignItems: "center",
                             justifyContent: "space-between",
                             gap: 8,
+                            flexWrap: "wrap",
                           }}
                         >
-                          <button
-                            type="button"
-                            onClick={handleRepetirUltimaFormula}
-                            disabled={cargandoFormula}
+                          <div
                             style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                              padding: "5px 11px",
-                              borderRadius: 8,
-                              background: "rgba(244,80,30,0.10)",
-                              color: TOKENS.primary,
-                              border: "1px solid rgba(244,80,30,0.25)",
-                              fontSize: 11,
-                              fontWeight: 700,
-                              cursor: "pointer",
+                              display: "flex",
+                              gap: 6,
+                              flexWrap: "wrap",
                             }}
                           >
-                            <span>🔄</span>
-                            <span>
-                              {cargandoFormula
-                                ? "Buscando..."
-                                : "Repetir última fórmula"}
-                            </span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={handleRepetirUltimaFormula}
+                              disabled={cargandoFormula}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                padding: "5px 11px",
+                                borderRadius: 8,
+                                background: "rgba(244,80,30,0.10)",
+                                color: TOKENS.primary,
+                                border: "1px solid rgba(244,80,30,0.25)",
+                                fontSize: 11,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                              }}
+                            >
+                              <span>🔄</span>
+                              <span>
+                                {cargandoFormula
+                                  ? "Buscando..."
+                                  : "Repetir última fórmula"}
+                              </span>
+                            </button>
 
-                          {formulaCopiadaMsg && (
+                            {(formulaTono || formulaProducto) && (
+                              <button
+                                type="button"
+                                onClick={handleDescontarInventario}
+                                disabled={descontandoInv}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 5,
+                                  padding: "5px 11px",
+                                  borderRadius: 8,
+                                  background: "rgba(16,185,129,0.10)",
+                                  color: "#059669",
+                                  border: "1px solid rgba(16,185,129,0.30)",
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <span>📦</span>
+                                <span>
+                                  {descontandoInv
+                                    ? "Descontando..."
+                                    : "Descontar del stock"}
+                                </span>
+                              </button>
+                            )}
+                          </div>
+
+                          {(formulaCopiadaMsg || invDescontadoMsg) && (
                             <span
                               style={{
                                 fontSize: 11,
                                 fontWeight: 700,
-                                color: formulaCopiadaMsg.startsWith("✓")
+                                color: (
+                                  formulaCopiadaMsg || invDescontadoMsg
+                                ).startsWith("✓")
                                   ? "#059669"
                                   : TOKENS.textSec,
                               }}
                             >
-                              {formulaCopiadaMsg}
+                              {formulaCopiadaMsg || invDescontadoMsg}
                             </span>
                           )}
                         </div>

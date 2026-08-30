@@ -243,6 +243,7 @@ export interface Fases {
   finA: number; // fin fase activa 1
   finE: number; // fin reposo/espera
   fin: number; // fin total (incluye 2a fase activa si la hay)
+  fasesMultiples?: Array<[number, number]>; // Ventanas activas completas si hay cita_fases
 }
 
 export function fasesDe(c: CitaRetraso): Fases {
@@ -250,7 +251,15 @@ export function fasesDe(c: CitaRetraso): Fases {
   const fin = +new Date(c.fin);
   const finA = c.fin_activa ? +new Date(c.fin_activa) : fin;
   const finE = c.fin_espera ? +new Date(c.fin_espera) : finA;
-  return { id: c.id, ini, finA, finE, fin };
+  const cf = (c as any).cita_fases as any[] | undefined;
+  let fasesMultiples: Array<[number, number]> | undefined;
+  if (Array.isArray(cf) && cf.length > 0) {
+    const activas = cf.filter((f) => f.tipo !== 'reposo');
+    if (activas.length > 0) {
+      fasesMultiples = activas.map((f) => [+new Date(f.inicio), +new Date(f.fin)]);
+    }
+  }
+  return { id: c.id, ini, finA, finE, fin, fasesMultiples };
 }
 
 // Un bloqueo ocupa TODO su tramo: sin fase de reposo aprovechable (finE === fin hace que
@@ -266,6 +275,9 @@ export function fasesDeBloqueo(b: BloqueoProfesional): Fases {
 // Exportada: organizarAgenda.ts la necesita para calcular los huecos reales del dia
 // y no debe reimplementar esta regla (el reposo es hueco aprovechable, no ocupacion).
 export function ventanasActivas(f: Fases): Array<[number, number]> {
+  if (f.fasesMultiples && f.fasesMultiples.length > 0) {
+    return f.fasesMultiples;
+  }
   const w: Array<[number, number]> = [[f.ini, f.finA]];
   if (f.finE < f.fin) w.push([f.finE, f.fin]);
   return w;

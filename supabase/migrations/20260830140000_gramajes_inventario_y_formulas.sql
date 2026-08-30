@@ -111,7 +111,7 @@ begin
       for update;
 
       if found then
-        v_capacidad := coalesce(v_capacidad, 60);
+        v_capacidad := case when coalesce(v_capacidad, 0) <= 0 then 60 else v_capacidad end;
         v_restante := coalesce(v_inv.abierto_restante, 0);
         v_cerrados := coalesce(v_inv.envases_cerrados, v_inv.unidades, 0);
 

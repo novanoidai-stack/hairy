@@ -839,6 +839,29 @@ export function CobroSheet(props: CobroSheetProps) {
             </div>
             <div style={{ height: 16 }} />
 
+            {metodo === 'bizum' && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  background: 'rgba(0,170,166,0.08)',
+                  border: '1px solid rgba(0,170,166,0.30)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <span style={{ fontSize: 20 }}>📱</span>
+                <div style={{ fontSize: 12, color: T.text }}>
+                  <div style={{ fontWeight: 700, color: '#00838f' }}>Cobro por Bizum directo</div>
+                  <div style={{ color: T.textSec, fontSize: 11.5, marginTop: 2 }}>
+                    Pide al cliente que envíe <strong>{(totalCents / 100).toFixed(2)} €</strong> al Bizum del salón.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {metodo === 'mixto' && (
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 12, color: T.textSec, marginBottom: 8 }}>Reparte los {(totalCents / 100).toFixed(2)} € entre efectivo y datáfono:</div>

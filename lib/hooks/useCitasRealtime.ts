@@ -71,6 +71,45 @@ export function useCitasRealtime<T extends CitaBase>({
         { event: 'DELETE', schema: 'public', table: 'citas' },
         (payload) => mezclar('DELETE', null, payload.old as CitaRealtime),
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'cita_fases', filter: `negocio_id=eq.${negocioId}` },
+        (payload) => {
+          const nuevaFase = payload.new as any;
+          const viejaFase = payload.old as any;
+          const citaId = nuevaFase?.cita_id || viejaFase?.cita_id;
+          if (!citaId) return;
+          onCambioRef.current((previas) =>
+            previas.map((c) => {
+              if (c.id !== citaId) return c;
+              const fases = ((c as any).cita_fases || []) as any[];
+              if (payload.eventType === 'INSERT') {
+                return {
+                  ...c,
+                  cita_fases: [...fases.filter((f) => f.id !== nuevaFase.id), nuevaFase].sort(
+                    (a, b) => (a.orden || 0) - (b.orden || 0),
+                  ),
+                };
+              } else if (payload.eventType === 'UPDATE') {
+                const existe = fases.some((f) => f.id === nuevaFase.id);
+                const actualizadas = existe
+                  ? fases.map((f) => (f.id === nuevaFase.id ? { ...f, ...nuevaFase } : f))
+                  : [...fases, nuevaFase];
+                return {
+                  ...c,
+                  cita_fases: actualizadas.sort((a, b) => (a.orden || 0) - (b.orden || 0)),
+                };
+              } else if (payload.eventType === 'DELETE') {
+                return {
+                  ...c,
+                  cita_fases: fases.filter((f) => f.id !== viejaFase.id),
+                };
+              }
+              return c;
+            }),
+          );
+        },
+      )
       .subscribe();
 
     return () => {

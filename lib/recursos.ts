@@ -38,6 +38,14 @@ export type CitaConRecurso = {
   oculta_en_calendario?: boolean | null;
   recurso_tipo?: TipoRecurso | null;
   recurso_fase?: FaseRecurso | null;
+  cita_fases?: Array<{
+    id?: string;
+    orden?: number;
+    tipo?: string;
+    inicio: string;
+    fin: string;
+    recurso_tipo?: TipoRecurso | null;
+  }> | null;
 };
 
 export type Tramo = { desde: number; hasta: number };
@@ -107,6 +115,30 @@ export function tramoDeRecurso(cita: CitaConRecurso): Tramo | null {
   return { desde, hasta: fin };
 }
 
+/**
+ * Devuelve todos los tramos ocupados por recursos físicos (considera cita_fases si existen).
+ */
+export function tramosDeRecurso(cita: CitaConRecurso, tipo?: TipoRecurso): Tramo[] {
+  if (Array.isArray(cita.cita_fases) && cita.cita_fases.length > 0) {
+    const fasesConRecurso = cita.cita_fases.filter(
+      (f) => (tipo ? f.recurso_tipo === tipo : !!f.recurso_tipo),
+    );
+    if (fasesConRecurso.length > 0) {
+      return fasesConRecurso
+        .map((f) => ({
+          desde: new Date(f.inicio).getTime(),
+          hasta: new Date(f.fin).getTime(),
+        }))
+        .filter((t) => !Number.isNaN(t.desde) && !Number.isNaN(t.hasta) && t.desde < t.hasta);
+    }
+  }
+
+  const tramo = tramoDeRecurso(cita);
+  if (!tramo) return [];
+  if (tipo && cita.recurso_tipo !== tipo) return [];
+  return [tramo];
+}
+
 function solapan(a: Tramo, b: Tramo): boolean {
   // A medio abrir: dos tramos que solo se tocan en el borde no compiten. La
   // clienta que sale del lavacabezas a y cuarto y la que entra a y cuarto caben.
@@ -129,11 +161,10 @@ export function ocupacionEnTramo(
 ): CitaConRecurso[] {
   return citas.filter((c) => {
     if (c.id === excluirCitaId) return false;
-    if (c.recurso_tipo !== tipo) return false;
     if (c.oculta_en_calendario) return false;
     if (!ESTADOS_QUE_OCUPAN.has(c.estado ?? 'pendiente')) return false;
-    const suyo = tramoDeRecurso(c);
-    return !!suyo && solapan(suyo, tramo);
+    const tramos = tramosDeRecurso(c, tipo);
+    return tramos.some((suyo) => solapan(suyo, tramo));
   });
 }
 
