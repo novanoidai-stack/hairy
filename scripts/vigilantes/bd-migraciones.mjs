@@ -36,6 +36,18 @@ const DESDE = '20260828120000';
 // Aplicadas sin fichero que NO son un problema: son la misma migracion aplicada
 // dos veces (el mismo SQL, otro timestamp) o el eco de un `apply_migration` que
 // ya tiene su fichero con otra version. Cada una con el fichero que la cubre.
+//
+// COMO SE COMPRUEBA UNA DE ESTAS, porque "parece la misma" no vale. El SQL que
+// se aplico de verdad esta guardado: `statements` de
+// supabase_migrations.schema_migrations. Se lee de ahi y se compara con el
+// fichero. Solo se exime si el fichero es IGUAL o SUPERCONJUNTO de lo aplicado
+// -- si al fichero le falta algo que produccion tiene, no es un duplicado: es
+// justo la deriva que este vigilante busca, y entonces hay que escribir el .sql.
+//
+// El patron que las genera todas: una sesion aplica un borrador, luego un
+// refinamiento, y al final consolida los dos en UN fichero que se aplica otra
+// vez. Los pasos intermedios quedan en el historial sin fichero propio, y su
+// contenido ya vive dentro del consolidado.
 const CUBIERTAS_POR = {
   '20260828170139': '20260828120000_claves_pg_net_cabecera_apikey.sql',
   '20260828172830': '20260828180000_chispa_tts_keepwarm_publishable.sql',
@@ -44,6 +56,48 @@ const CUBIERTAS_POR = {
   '20260828202046': '20260828212000_vigilancia_bd.sql',
   '20260828202443': '20260828213000_vigilancia_registro.sql',
   '20260829154953': '20260829120000_vigilancia_bd_rendimiento.sql',
+
+  // --- Comprobadas una a una el 30 ago 2026 contra `statements` de produccion.
+  // Las seis son pasos intermedios de vigilancia_bd()/registrar_vigilancia() ya
+  // consolidados en el fichero que se indica. La SEPTIMA de aquella tanda, la
+  // 20260829092623 (comprobacion 11, bd/pgnet-latidos-perdidos), NO estaba
+  // cubierta por nada y por eso tiene fichero propio desde hoy.
+
+  // Refinamiento del borrador 20260828202046: cierra chispa_tts_keepwarm a anon
+  // y quita los dos falsos positivos de la comprobacion 1. El fichero lo trae
+  // todo: el `revoke execute ... chispa_tts_keepwarm`, el `proname <>
+  // 'vigilancia_bd'` (no detectarse a si misma) y el `prorettype <> 'trigger'`.
+  // Mismo conjunto de claves 'bd/...' que lo aplicado.
+  '20260828202234': '20260828212000_vigilancia_bd.sql',
+
+  // Guard de registrar_vigilancia() por rol real. Diff del cuerpo de la funcion
+  // contra lo aplicado: identico salvo cuatro lineas de COMENTARIO de mas en el
+  // fichero. El guard que importa, `auth.role() = 'service_role' or current_user
+  // = 'service_role'`, esta en el fichero (linea 220).
+  '20260828202535': '20260828213000_vigilancia_registro.sql',
+
+  // Arregla el ancla del bloque 7: el job real escribe el negocio con
+  // jsonb_build_object (comillas simples), no como JSON literal, y la primera
+  // version daba verde sobre el job que la motivo. El fichero ya trae las DOS
+  // alternativas del regex y el bloque 8 (bd/vigilancia-agenda-sin-cron).
+  '20260828230123': '20260828225907_cerrar_rpc_sin_atadura_al_llamante.sql',
+
+  // Comprobacion 9 (bd/trigger-campo-inexistente). El bloque del fichero y el
+  // aplicado son identicos caracter a caracter, descontando el doblado de
+  // comillas que exige meterlo dentro de una cadena SQL del parche.
+  '20260828230627': '20260828225907_cerrar_rpc_sin_atadura_al_llamante.sql',
+
+  // Comprobacion 10 (bd/rls-sin-tenant). Mismo ancla, misma clave, mismo
+  // predicado; solo cambia la REDACCION del detalle (una coma y donde parte la
+  // linea). Nada de comportamiento.
+  '20260829092325': '20260829092248_rls_profiles_y_multitenant.sql',
+
+  // pg_stat_statements vive en el esquema `extensions`, no en `public`. El
+  // fichero ya nombra `extensions.pg_stat_statements` en los tres sitios, y
+  // ademas es superconjunto de lo aplicado: trae los comentarios de cada bloque
+  // y el revoke/grant explicito que el parche no repetia.
+  '20260829155043': '20260829120000_vigilancia_bd_rendimiento.sql',
+
   // Tanda del 30 ago 2026 (ecosistema de cuentas). Estas dos son retoques que
   // se aplicaron sueltos y cuyo texto final YA vive en el fichero de su
   // migracion madre, asi que no hay nada que reconstruir:
