@@ -364,6 +364,13 @@
         <option value="ganada">Ganada</option>
         <option value="descartada">Descartada</option>
       </select>
+      <!-- Las altas nuestras (QA, demos internas, correos del equipo) no son
+           leads. Se guardan igual — probar el formulario de punta a punta es
+           justo lo que hay que poder hacer — pero por defecto no se enseñan. -->
+      <select class="ad-sel" id="fPrueba" title="Las altas de prueba nuestras no cuentan como lead.">
+        <option value="0">Solo leads reales</option>
+        <option value="1">Incluir pruebas nuestras</option>
+      </select>
       <button class="ad-refresh" id="refreshBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
         Actualizar
@@ -396,6 +403,15 @@
         <option value="admin">Dirección</option>
         <option value="recepcion">Recepción</option>
         <option value="employee">Profesional</option>
+      </select>
+      <!-- Cartera de verdad vs. cosas nuestras. Sin esto el panel contaba los
+           salones de pruebas, la demo y las cuentas @novanoidai.com como
+           mercado: "9 cuentas en 7 negocios" cuando 6 de los 7 eran internos. -->
+      <select class="ad-sel" id="fClase" title="Cartera real o salones nuestros (pruebas, demo, QA).">
+        <option value="real">Solo salones reales</option>
+        <option value="">Todos (incluye internos)</option>
+        <option value="interno">Solo internos</option>
+        <option value="conflicto">Solo con conflictos</option>
       </select>
       <button class="ad-refresh" id="refreshCueBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
@@ -606,6 +622,15 @@
         <option value="30">Últimos 30 días</option>
         <option value="90">Últimos 90 días</option>
       </select>
+      <!-- Esta tabla existe para "se rompió en casa de un cliente real, hay
+           alguien esperando" (decisión 10). Un crash de un salón que paga no
+           puede quedar enterrado bajo los de nuestro salón de pruebas. Los
+           errores sin salón (landing, marketplace, visitante anónimo) cuentan
+           como reales: pueden ser un prospecto. -->
+      <select class="ad-sel" id="fRealErr" title="Solo lo que le pasó a la cartera real.">
+        <option value="">Todos los salones</option>
+        <option value="1">Solo clientes reales</option>
+      </select>
       <button class="ad-refresh" id="refreshErrBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
         Actualizar
@@ -688,6 +713,7 @@
         <option value="landing">Landing</option>
         <option value="base-de-datos">Base de datos</option>
         <option value="vigilancia">Vigilancia</option>
+        <option value="cuentas">Ecosistema de cuentas</option>
       </select>
       <select class="ad-sel" id="fDiasSal">
         <option value="1">Últimas 24 h</option>
@@ -910,28 +936,38 @@
   var qDud = $('qDud'); if (qDud) qDud.addEventListener('input', renderDudas);
   var rd = $('refreshDudBtn'); if (rd) rd.addEventListener('click', loadDudas);
 
+  // Un lead nuestro no es un lead. De las 23 solicitudes guardadas el 30 ago
+  // 2026, 22 eran pruebas propias ("el cagiom", "testeo", "caca@gmail.com",
+  // "Salon QA") y la unica real estaba en 'ganada': la pestana anunciaba "22
+  // nuevos" de ruido, que es la forma mas rapida de que se deje de mirar.
   function renderStats() {
-    var total = rows.length;
-    var nuevas = rows.filter(function (r) { return r.estado === 'nueva'; }).length;
-    var ganadas = rows.filter(function (r) { return r.estado === 'ganada'; }).length;
-    var reservas = rows.filter(function (r) { return r.tipo === 'reserva_llamada'; }).length;
+    var reales = rows.filter(function (r) { return !r.es_prueba; });
+    var total = reales.length;
+    var nuevas = reales.filter(function (r) { return r.estado === 'nueva'; }).length;
+    var ganadas = reales.filter(function (r) { return r.estado === 'ganada'; }).length;
+    var reservas = reales.filter(function (r) { return r.tipo === 'reserva_llamada'; }).length;
+    var pruebas = rows.length - total;
     var stats = [
-      { n: total, l: 'Total' },
+      { n: total, l: 'Leads reales' },
       { n: nuevas, l: 'Nuevas' },
       { n: reservas, l: 'Reservas' },
-      { n: ganadas, l: 'Ganadas' }
+      { n: ganadas, l: 'Ganadas' },
+      { n: pruebas, l: 'Pruebas nuestras' }
     ];
     $('stats').innerHTML = stats.map(function (s) {
       return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
     }).join('');
-    var bs = $('badgeSol'); if (bs) bs.textContent = total;
+    // El badge cuenta lo que hay que ATENDER, no lo que hay guardado.
+    var bs = $('badgeSol'); if (bs) bs.textContent = nuevas;
   }
 
   function filtered() {
     var q = ($('q').value || '').trim().toLowerCase();
     var tipo = $('fTipo').value;
     var estado = $('fEstado').value;
+    var verPruebas = $('fPrueba') && $('fPrueba').value === '1';
     return rows.filter(function (r) {
+      if (!verPruebas && r.es_prueba) return false;
       if (tipo && r.tipo !== tipo) return false;
       if (estado && r.estado !== estado) return false;
       if (q) {
@@ -1002,13 +1038,24 @@
       acciones += '<button class="r-act r-act-ok" data-contactada="' + esc(r.id) + '">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Marcar contactada</button>';
     }
+    // Marcar a mano lo que la regla automatica no puede afirmar. Solo se
+    // detectan solos los dominios que son objetivamente nuestros: un gmail
+    // personal que huele a prueba se deja en real, porque un falso "es prueba"
+    // esconde un lead y eso es el error caro.
+    acciones += '<button class="r-act" data-prueba="' + esc(r.id) + '" data-valor="' + (r.es_prueba ? '0' : '1') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' +
+      (r.es_prueba ? 'Es un lead real' : 'Es prueba nuestra') + '</button>';
     acciones += '</div>';
 
-    return '<div class="card-row" data-id="' + esc(r.id) + '">' +
+    return '<div class="card-row" data-id="' + esc(r.id) + '"' + (r.es_prueba ? ' style="opacity:.62"' : '') + '>' +
       '<div class="r-head">' +
         '<div class="r-id">' +
           '<span class="tag ' + esc(r.tipo) + '">' + (TIPO_LABEL[r.tipo] || esc(r.tipo)) + '</span>' +
-          (r.meta && r.meta.origen ? '<span class="tag" style="background:rgba(124,108,240,.14);color:#7c6cf0">' + esc(r.meta.origen) + '</span>' : '') +
+          (r.origen || (r.meta && r.meta.origen)
+            ? '<span class="tag" style="background:rgba(124,108,240,.14);color:#7c6cf0" title="De donde salio el formulario">' +
+              esc(r.origen || r.meta.origen) + '</span>'
+            : '') +
+          (r.es_prueba ? '<span class="tag" style="background:rgba(148,163,184,.16);color:#94a3b8" title="Alta nuestra: no cuenta como lead ni en los contadores.">prueba nuestra</span>' : '') +
           '<span class="r-name">' + (esc(r.nombre) || 'Sin nombre') + '</span>' +
           (r.salon ? '<span class="r-salon">· ' + esc(r.salon) + '</span>' : '') +
         '</div>' +
@@ -1052,6 +1099,27 @@
       });
     });
 
+    // Marcar (o desmarcar) una solicitud como prueba nuestra. Va por la RLS de
+    // staff sobre `solicitudes`, que ya deja actualizar a is_staff().
+    listEl.querySelectorAll('[data-prueba]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-prueba');
+        var valor = btn.getAttribute('data-valor') === '1';
+        btn.disabled = true;
+        api.client.from('solicitudes').update({ es_prueba: valor }).eq('id', id).then(function (res) {
+          btn.disabled = false;
+          if (res.error) {
+            msg($('panelMsg'), 'err', 'No se pudo marcar la solicitud: ' + (res.error.message || ''));
+            return;
+          }
+          var local = rows.filter(function (x) { return x.id === id; })[0];
+          if (local) local.es_prueba = valor;
+          renderStats();
+          render();
+        });
+      });
+    });
+
     listEl.querySelectorAll('.estado-sel').forEach(function (sel) {
       sel.addEventListener('change', function () {
         var id = sel.getAttribute('data-id');
@@ -1074,7 +1142,7 @@
     });
   }
 
-  ['q', 'fTipo', 'fEstado'].forEach(function (id) {
+  ['q', 'fTipo', 'fEstado', 'fPrueba'].forEach(function (id) {
     var el = $(id);
     if (el) el.addEventListener('input', render);
     if (el) el.addEventListener('change', render);
@@ -1222,36 +1290,70 @@
     };
   }
 
+  // Clasificacion del salon al que pertenece una cuenta. Sale de
+  // staff_resumen_salones (tabla negocio_clasificacion); si el salon no esta en
+  // el resumen todavia, se asume 'real' -- un falso interno esconde un cliente,
+  // que es el error caro.
+  function claseDe(negocioId) {
+    var s = salones[negocioId];
+    return (s && s.clasificacion) || (negocioId === 'demo_salon_001' ? 'demo' : 'real');
+  }
+  function esReal(negocioId) { return claseDe(negocioId) === 'real'; }
+
+  var CLASE_TXT = { real: 'Cliente', interno: 'Interno', prueba: 'Prueba', demo: 'Demo' };
+  var CLASE_ESTILO = {
+    real:    'background:rgba(34,197,94,0.12);color:#16a34a;border:1px solid rgba(34,197,94,0.30)',
+    interno: 'background:rgba(148,163,184,0.14);color:#94a3b8;border:1px dashed rgba(148,163,184,0.45)',
+    prueba:  'background:rgba(148,163,184,0.14);color:#94a3b8;border:1px dashed rgba(148,163,184,0.45)',
+    demo:    'background:rgba(124,108,240,0.14);color:#7c6cf0;border:1px solid rgba(124,108,240,0.30)'
+  };
+
+  // Las metricas de cabecera cuentan CARTERA, no todo lo que hay en la tabla.
+  // Antes decian "7 negocios, 3 pruebas activas" y 6 de esos 7 eran nuestros:
+  // el numero no describia el mercado y aun asi era el que se miraba.
   function renderCuentasStats() {
-    var total = accounts.length;
+    var reales = accounts.filter(function (p) { return !isStaffAccount(p) && esReal(p.negocio_id); });
+    var total = reales.length;
     var staffN = accounts.filter(isStaffAccount).length;
-    var enPruebaActiva = accounts.filter(function (p) {
-      if (isStaffAccount(p) || p.suscripcion_estado === 'activa') return false;
+    var internas = accounts.length - total - staffN;
+    var enPruebaActiva = reales.filter(function (p) {
+      if (p.suscripcion_estado === 'activa') return false;
       if (!p.trial_ends_at) return false;
       return new Date(p.trial_ends_at).getTime() > Date.now();
     }).length;
-    var pruebasCaducadas = accounts.filter(function (p) {
-      if (isStaffAccount(p) || p.suscripcion_estado === 'activa') return false;
+    var pruebasCaducadas = reales.filter(function (p) {
+      if (p.suscripcion_estado === 'activa') return false;
       if (!p.trial_ends_at) return false;
       return new Date(p.trial_ends_at).getTime() <= Date.now();
     }).length;
-    var dePago = accounts.filter(function (p) { return p.suscripcion_estado === 'activa'; }).length;
+    var dePago = reales.filter(function (p) { return p.suscripcion_estado === 'activa'; }).length;
     var negocios = {};
-    accounts.forEach(function (p) {
-      if (p.negocio_id) negocios[p.negocio_id] = true;
-    });
+    reales.forEach(function (p) { if (p.negocio_id) negocios[p.negocio_id] = true; });
     var negociosUnicos = Object.keys(negocios).length;
 
+    // Cuantos salones tienen algo mal (sin titular, modo incoherente, sin PIN...).
+    var conConflicto = 0, bloqueantes = 0;
+    Object.keys(salones).forEach(function (nid) {
+      var c = salones[nid].conflictos || [];
+      if (!c.length) return;
+      conConflicto++;
+      if (c.some(function (x) { return x.nivel === 'bloqueante'; })) bloqueantes++;
+    });
+
     var stats = [
-      { n: total, l: 'Cuentas' },
-      { n: negociosUnicos, l: 'Negocios' },
+      { n: total, l: 'Cuentas (cartera)' },
+      { n: negociosUnicos, l: 'Salones reales' },
       { n: enPruebaActiva, l: 'Pruebas Activas' },
       { n: pruebasCaducadas, l: 'Pruebas Vencidas' },
       { n: dePago, l: 'De Pago' },
+      { n: conConflicto, l: 'Con conflictos', alerta: bloqueantes > 0 },
+      { n: internas, l: 'Internas / pruebas' },
       { n: staffN, l: 'Staff' }
     ];
     $('statsCue').innerHTML = stats.map(function (s) {
-      return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
+      return '<div class="ad-stat"' + (s.alerta ? ' style="border-color:rgba(239,68,68,0.45)"' : '') + '>' +
+        '<div class="n"' + (s.alerta ? ' style="color:#ef4444"' : '') + '>' + s.n + '</div>' +
+        '<div class="l">' + s.l + '</div></div>';
     }).join('');
     var bc = $('badgeCue'); if (bc) bc.textContent = total;
   }
@@ -1444,9 +1546,20 @@
     var q = ($('qCue').value || '').trim().toLowerCase();
     var plan = $('fPlan').value;
     var role = $('fRole').value;
+    var clase = $('fClase') ? $('fClase').value : '';
 
     // Filtrar cuentas primero
     var filtered = accounts.filter(function (p) {
+      // "Solo reales" es el valor por defecto: lo normal es querer ver la
+      // cartera. Las cuentas del equipo de Mecha no se esconden nunca -- son
+      // pocas y quien mira este panel es justo esa gente.
+      if (clase === 'conflicto') {
+        var cf = (salones[p.negocio_id] && salones[p.negocio_id].conflictos) || [];
+        if (!cf.length) return false;
+      } else if (clase && !isStaffAccount(p)) {
+        if (clase === 'real' && !esReal(p.negocio_id)) return false;
+        if (clase === 'interno' && esReal(p.negocio_id)) return false;
+      }
       if (plan && planCanonico(p) !== plan) return false;
       if (role) {
         var roleMatch = (p.role || 'employee') === role || (role === 'employee' && !p.role);
@@ -1515,13 +1628,36 @@
       html += '<div class="negocio-group" style="margin-bottom:24px;">';
 
       // Header del negocio
-      html += '<div class="negocio-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:12px;margin-bottom:12px;cursor:pointer;" onclick="toggleNegocioGroup(event, \'' + esc(g.negocioId) + '\')">';
+      var resumen = salones[g.negocioId] || null;
+      var claseG = claseDe(g.negocioId);
+      var conflictos = (resumen && resumen.conflictos) || [];
+      var hayBloqueante = conflictos.some(function (c) { return c.nivel === 'bloqueante'; });
+
+      // El borde del grupo dice de un vistazo si ese salon tiene algo roto.
+      var bordeG = hayBloqueante ? 'rgba(239,68,68,0.45)'
+                 : conflictos.length ? 'rgba(245,158,11,0.40)'
+                 : 'rgba(168,85,247,0.2)';
+      var fondoG = hayBloqueante ? 'rgba(239,68,68,0.07)'
+                 : conflictos.length ? 'rgba(245,158,11,0.06)'
+                 : 'rgba(168,85,247,0.08)';
+
+      html += '<div class="negocio-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:' + fondoG + ';border:1px solid ' + bordeG + ';border-radius:12px;margin-bottom:' + (conflictos.length ? '0' : '12px') + ';cursor:pointer;" onclick="toggleNegocioGroup(event, \'' + esc(g.negocioId) + '\')">';
       html += '<svg style="width:18px;height:18px;color:#a855f7;transition:transform 0.2s;" id="ngarrow-' + esc(g.negocioId) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
       html += '<span style="font-size:14px;font-weight:700;color:#a855f7;">' + esc(g.nombreNegocio) + '</span>';
-      var resumen = salones[g.negocioId] || null;
+
+      // Cliente / Interno / Prueba / Demo. Cambiarlo aqui mismo, sin salir.
+      html += '<span class="acceso-modo" onclick="event.stopPropagation()" ' +
+        'title="Cartera real o cosa nuestra. Los internos no cuentan en las metricas de arriba ni en los contadores de Leads y Errores.">' +
+        '<select data-clase-for="' + esc(g.negocioId) + '" style="' + (CLASE_ESTILO[claseG] || '') + ';border-radius:6px;padding:2px 6px;font-size:10.5px;font-weight:700">' +
+          ['real', 'interno', 'prueba', 'demo'].map(function (t) {
+            return '<option value="' + t + '"' + (claseG === t ? ' selected' : '') + '>' + CLASE_TXT[t] + '</option>';
+          }).join('') +
+        '</select></span>';
+
       var profesN = resumen ? resumen.profesionales_activos : null;
       html += '<span style="font-size:12px;color:var(--text-sec);margin-left:auto;">' +
         g.cuentas.length + (g.cuentas.length === 1 ? ' cuenta' : ' cuentas') +
+        (resumen && resumen.limite_cuentas ? ' / ' + resumen.limite_cuentas : '') +
         (subs.length ? ' · ' + subs.length + (subs.length === 1 ? ' trabajador' : ' trabajadores') : '') +
         (profesN != null ? ' · ' + profesN + (profesN === 1 ? ' profesional' : ' profesionales') : '') +
         '</span>';
@@ -1556,6 +1692,32 @@
           '</span>';
       }
       html += '</div>';
+
+      // Lo que este salon tiene mal AHORA MISMO, con su texto ya escrito.
+      // El texto viene del servidor (staff_salud_cuentas) a proposito: si el
+      // panel lo redactara, seria otro invariante repartido de los que fabrican
+      // regresiones. Aqui solo se pinta.
+      if (conflictos.length) {
+        html += '<div style="margin:-1px 0 12px;padding:10px 14px;border:1px solid ' + bordeG + ';border-top:none;border-radius:0 0 12px 12px;background:' + fondoG + '">';
+        conflictos.forEach(function (c) {
+          var esBloq = c.nivel === 'bloqueante';
+          html += '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:4px">' +
+            '<span style="flex:0 0 auto;margin-top:1px;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:1px 6px;border-radius:4px;' +
+              (esBloq
+                ? 'background:rgba(239,68,68,0.15);color:#ef4444'
+                : 'background:rgba(245,158,11,0.15);color:#d97706') + '">' +
+              (esBloq ? 'Roto' : 'Aviso') + '</span>' +
+            '<span style="font-size:12px;line-height:1.5;color:var(--text-sec)">' + esc(c.texto) + '</span>' +
+            '</div>';
+        });
+        if (resumen && resumen.titular_email) {
+          html += '<div style="margin-top:8px;font-size:11px;color:var(--text-ter)">' +
+            'Titular del salón: <b>' + esc(resumen.titular_email) + '</b>' +
+            (resumen.owners === 0 ? ' — pero NO tiene el rol de Propietario' : '') +
+            '</div>';
+        }
+        html += '</div>';
+      }
 
       // Lista de cuentas de este negocio (expandido por defecto)
       html += '<div id="negocio-' + esc(g.negocioId) + '" style="display:block;">';
@@ -1712,27 +1874,78 @@
           : 'Volver "' + nid + '" a CADA UNO CON SU CORREO?' + String.fromCharCode(10, 10) +
             'Dejara de preguntar quien eres al entrar. Cada persona necesitara su propia cuenta invitada.';
         if (!window.confirm(aviso)) { sel.value = anterior; return; }
+        aplicarModo(false);
+
+        // El servidor se niega a encender el correo unico si el salon tiene
+        // cuentas individuales vivas, y dice cuantas. Forzar existe para el
+        // salon a medio migrar, pero es un acto consciente: queda escrito en
+        // eventos_negocio y el conflicto se sigue viendo hasta que se resuelva.
+        function aplicarModo(forzar) {
+          sel.disabled = true;
+          api.client.rpc('staff_set_acceso_modo', { p_negocio_id: nid, p_modo: nuevo, p_forzar: forzar }).then(function (res) {
+            sel.disabled = false;
+            if (res.error) {
+              var m = res.error.message || '';
+              var cuantas = (m.match(/hay_cuentas_individuales:(\d+)/) || [])[1];
+              if (cuantas && !forzar) {
+                if (window.confirm(
+                  'Este salon tiene ' + cuantas + ' cuentas de acceso individuales.' + String.fromCharCode(10, 10) +
+                  'Con el correo unico encendido conviven las DOS formas de entrar, y lo que puede hacer una ' +
+                  'persona pasa a depender de por donde entro, no de quien es.' + String.fromCharCode(10, 10) +
+                  'Lo limpio es retirar antes esos accesos desde el propio salon (Ajustes -> Accesos y roles). ' +
+                  'Puedes forzarlo igualmente si el salon esta a medio migrar: quedara marcado como conflicto ' +
+                  'hasta que se resuelva.' + String.fromCharCode(10, 10) + 'Forzar el cambio?'
+                )) {
+                  aplicarModo(true);
+                  return;
+                }
+                sel.value = anterior;
+                return;
+              }
+              sel.value = anterior;
+              msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
+                ? 'Tu cuenta no tiene permiso para cambiar el modo de acceso.'
+                : 'No se pudo cambiar el modo de acceso: ' + m);
+              return;
+            }
+            anterior = nuevo;
+            if (salones[nid]) salones[nid].modo = nuevo;
+            msg($('cueMsg'), 'ok', (nuevo === 'compartido'
+              ? 'Salon "' + nid + '" en modo un solo correo. Recuerdale al propietario que ponga su PIN en Configuracion.'
+              : 'Salon "' + nid + '" vuelve a cada persona con su correo.') +
+              (forzar ? ' Forzado: el conflicto sigue marcado.' : ''));
+            loadCuentas();
+          }).catch(function (e) {
+            sel.disabled = false;
+            sel.value = anterior;
+            msg($('cueMsg'), 'err', 'No se pudo cambiar el modo de acceso: ' + (e && e.message ? e.message : e));
+          });
+        }
+      });
+    });
+
+    // Cliente de verdad o cosa nuestra. Cambiarlo recarga: las metricas de
+    // arriba y los contadores de las otras pestanas dependen de esto.
+    listEl.querySelectorAll('select[data-clase-for]').forEach(function (sel) {
+      var anterior = sel.value;
+      sel.addEventListener('change', function () {
+        var nid = sel.getAttribute('data-clase-for');
+        var nuevo = sel.value;
         sel.disabled = true;
-        api.client.rpc('staff_set_acceso_modo', { p_negocio_id: nid, p_modo: nuevo }).then(function (res) {
+        api.client.rpc('staff_set_clasificacion', { p_negocio_id: nid, p_tipo: nuevo }).then(function (res) {
           sel.disabled = false;
           if (res.error) {
             sel.value = anterior;
-            var m = res.error.message || '';
-            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
-              ? 'Tu cuenta no tiene permiso para cambiar el modo de acceso.'
-              : 'No se pudo cambiar el modo de acceso: ' + m);
+            msg($('cueMsg'), 'err', 'No se pudo clasificar el salon: ' + (res.error.message || ''));
             return;
           }
           anterior = nuevo;
-          if (salones[nid]) salones[nid].modo = nuevo;
-          msg($('cueMsg'), 'ok', nuevo === 'compartido'
-            ? 'Salon "' + nid + '" en modo un solo correo. Recuerdale al propietario que ponga su PIN en Configuracion.'
-            : 'Salon "' + nid + '" vuelve a cada persona con su correo.');
-          renderCuentas();
+          msg($('cueMsg'), 'ok', 'Salon "' + nid + '" marcado como ' + (CLASE_TXT[nuevo] || nuevo) + '.');
+          loadCuentas();
         }).catch(function (e) {
           sel.disabled = false;
           sel.value = anterior;
-          msg($('cueMsg'), 'err', 'No se pudo cambiar el modo de acceso: ' + (e && e.message ? e.message : e));
+          msg($('cueMsg'), 'err', 'No se pudo clasificar el salon: ' + (e && e.message ? e.message : e));
         });
       });
     });
@@ -1782,9 +1995,17 @@
           if (res.error) {
             sel.value = anterior;
             var m = res.error.message || '';
-            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
-              ? 'Tu cuenta no tiene permiso para cambiar roles.'
-              : 'No se pudo cambiar el rol: ' + m);
+            // Degradar al unico Propietario deja el salon sin titular, y con el
+            // se apagan en silencio el plan del equipo, la caducidad de la
+            // prueba, el cobro fuera de Stripe y los referidos. Habia CINCO
+            // salones asi el 30 ago 2026, y nadie lo habia notado.
+            msg($('cueMsg'), 'err',
+              m.indexOf('ultimo_propietario') !== -1
+                ? 'Ese es el unico Propietario de su salon. Un salon sin Propietario deja de propagar el plan a su equipo, ' +
+                  'su prueba no caduca nunca y no se le puede marcar el cobro. Asciende antes a otra persona.'
+              : m.indexOf('not_authorized') !== -1
+                ? 'Tu cuenta no tiene permiso para cambiar roles.'
+                : 'No se pudo cambiar el rol: ' + m);
             return;
           }
           var updated = res.data && res.data.length ? res.data[0] : res.data;
@@ -1792,7 +2013,9 @@
           if (local && updated) local.role = updated.role;
           anterior = nuevo;
           msg($('cueMsg'), 'ok', 'Rol de "' + quien + '" cambiado a ' + TXT[nuevo] + '.');
-          renderCuentas();
+          // Cambiar un rol puede resolver (o crear) el conflicto de "sin titular",
+          // y eso lo calcula el servidor: hay que volver a preguntarselo.
+          loadCuentas();
         }).catch(function (e) {
           sel.disabled = false;
           sel.value = anterior;
@@ -1913,7 +2136,7 @@
     });
   }
 
-  ['qCue', 'fPlan', 'fRole'].forEach(function (id) {
+  ['qCue', 'fPlan', 'fRole', 'fClase'].forEach(function (id) {
     var el = $(id);
     if (el) el.addEventListener('input', renderCuentas);
     if (el) el.addEventListener('change', renderCuentas);
@@ -2524,8 +2747,15 @@
       .then(function (r) { if (!r.error) pon('badgeCue', r.count); }).catch(function () {});
     api.client.from('dudas_demo').select('id', { count: 'exact', head: true })
       .then(function (r) { if (!r.error) pon('badgeDud', r.count); }).catch(function () {});
-    api.client.rpc('staff_errores_cliente', { p_dias: 7, p_limit: 100, p_estado: 'nuevo' })
+    // Un badge es una peticion de atencion. El de Errores cuenta solo lo que le
+    // paso a un salon de la cartera (o a un anonimo, que puede ser un prospecto):
+    // si contara tambien los de nuestro salon de pruebas, seria un numero que
+    // nunca baja, y un numero que nunca baja se deja de mirar.
+    api.client.rpc('staff_errores_cliente', { p_dias: 7, p_limit: 100, p_estado: 'nuevo', p_solo_reales: true })
       .then(function (r) { if (!r.error && Array.isArray(r.data)) pon('badgeErr', r.data.length ? r.data.length : ''); }).catch(function () {});
+    // Y el de Leads, solo lo que hay que atender de verdad.
+    api.client.from('solicitudes').select('id', { count: 'exact', head: true }).eq('estado', 'nueva').eq('es_prueba', false)
+      .then(function (r) { if (!r.error) pon('badgeSol', r.count ? String(r.count) : '0'); }).catch(function () {});
     api.client.rpc('staff_mensajes_soporte', { p_estado: 'nuevo', p_limit: 100 })
       .then(function (r) { if (!r.error && Array.isArray(r.data)) pon('badgeSup', r.data.length ? r.data.length : ''); }).catch(function () {});
     // Solo los BLOQUEANTES cuentan para el badge. Si contara tambien los avisos,
@@ -2819,7 +3049,11 @@
     seguridad: 'Seguridad', precios: 'Precios', referidos: 'Referidos',
     rendimiento: 'Rendimiento', pantallas: 'Pantallas', 'codigo-muerto': 'Código muerto',
     'errores-tragados': 'Errores tragados', vigilancia: 'Vigilancia',
-    landing: 'Landing', 'base-de-datos': 'Base de datos', otros: 'Otros'
+    landing: 'Landing', 'base-de-datos': 'Base de datos',
+    // Salones sin titular, modo de acceso que contradice a las cuentas, topes
+    // que el cliente se puede subir solo, guardas de identidad debilitados.
+    cuentas: 'Ecosistema de cuentas',
+    otros: 'Otros'
   };
 
   function haceCuanto(iso) {
@@ -3069,7 +3303,8 @@
       p_limit: 100,
       p_estado: estadoSel || null,
       p_origen: origenSel || null,
-      p_tipo: tipoSel || null
+      p_tipo: tipoSel || null,
+      p_solo_reales: !!($('fRealErr') && $('fRealErr').value === '1')
     }).then(function (res) {
       erroresLoaded = true;
       if (res.error) {
@@ -3080,12 +3315,15 @@
       var filas = res.data || [];
       var nuevos = filas.filter(function (f) { return (f.estado || 'nuevo') === 'nuevo'; }).length;
       var veces = filas.reduce(function (n, f) { return n + (f.veces || 0); }, 0);
-      var salones = filas.reduce(function (n, f) { return Math.max(n, f.salones || 0); }, 0);
+      // Ojo: NO llamar a esto `salones`. Hay un `var salones` de modulo con el
+      // resumen por salon (el que usan claseDe() y la pestana Cuentas), y una
+      // variable local con ese nombre lo tapaba dentro de toda esta funcion.
+      var maxSalonesAfectados = filas.reduce(function (n, f) { return Math.max(n, f.salones || 0); }, 0);
 
       if ($('statErrNuevos')) $('statErrNuevos').textContent = nuevos;
       $('statErrTipos').textContent = filas.length;
       $('statErrVeces').textContent = veces;
-      $('statErrSalones').textContent = salones;
+      $('statErrSalones').textContent = maxSalonesAfectados;
       $('badgeErr').textContent = nuevos ? String(nuevos) : '';
       $('countErr').textContent = filas.length
         ? filas.length + (filas.length === 1 ? ' fallo registrado' : ' fallos registrados') + ' en los últimos ' + dias + ' días'
@@ -3137,7 +3375,25 @@
         // Tag de Frecuencia
         html += '<span class="plan ' + (esCritico ? 'demo' : 'free') + '">' + (f.veces || 0) + (f.veces === 1 ? ' vez' : ' veces') + '</span>';
         if ((f.salones || 0) > 1) html += '<span class="plan demo">' + f.salones + ' salones</span>';
+
+        // A QUIEN le paso. "3 salones" no dice si eran tres clientes que pagan
+        // o tres veces nuestro salon de pruebas, y eso cambia si esto se mira
+        // hoy o el mes que viene.
+        var clases = f.clases || [];
+        if (clases.indexOf('real') !== -1) {
+          html += '<span class="tag" style="background:rgba(239,68,68,.14);color:#f87171;border-color:rgba(239,68,68,.34)" ' +
+            'title="Le paso a un salon de la cartera.">cliente real</span>';
+        } else if (clases.length) {
+          html += '<span class="tag" style="background:rgba(148,163,184,.14);color:#94a3b8;border-color:rgba(148,163,184,.3)" ' +
+            'title="Solo en salones nuestros (pruebas, demo, QA).">solo interno</span>';
+        }
         html += '</div>';
+
+        var quienes = f.salones_lista || [];
+        if (quienes.length) {
+          html += '<div style="font-size:11.5px;color:var(--text-ter);margin-bottom:6px">Salones: ' +
+            quienes.map(function (nid) { return '<b>' + esc(nid) + '</b>'; }).join(' · ') + '</div>';
+        }
 
         html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:8px">' +
           (f.ruta ? 'Ruta: <b>' + esc(f.ruta) + '</b> · ' : '') +
@@ -3208,6 +3464,7 @@
   var rErr = $('refreshErrBtn'); if (rErr) rErr.addEventListener('click', loadErrores);
   var fdErr = $('fDiasErr'); if (fdErr) fdErr.addEventListener('change', loadErrores);
   var feErr = $('fEstadoErr'); if (feErr) feErr.addEventListener('change', loadErrores);
+  var frErr = $('fRealErr'); if (frErr) frErr.addEventListener('change', loadErrores);
   var foErr = $('fOrigenErr'); if (foErr) foErr.addEventListener('change', loadErrores);
   var ftErr = $('fTipoErr'); if (ftErr) ftErr.addEventListener('change', loadErrores);
 
@@ -3253,9 +3510,29 @@
         html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">';
         html += '<span style="font-size:13.5px;font-weight:700;color:var(--text)">' + esc(f.asunto || '') + '</span>';
         html += '<span class="plan ' + (f.estado === 'nuevo' ? 'demo' : 'free') + '">' + esc(ESTADO_SUP_LABEL[f.estado] || f.estado) + '</span>';
+        // Quien escribe y en que situacion esta. Hasta el 30 ago 2026 la RPC
+        // guardaba el ROTULO del salon dentro de la columna negocio_id, asi que
+        // el mensaje no se podia unir con nada: no habia forma de saber si
+        // quien pide ayuda paga, en que plan esta ni si es un salon nuestro.
+        if (f.clasificacion && f.clasificacion !== 'real') {
+          html += '<span class="tag" style="background:rgba(148,163,184,.14);color:#94a3b8;border-color:rgba(148,163,184,.3)">' +
+            esc(CLASE_TXT[f.clasificacion] || f.clasificacion) + '</span>';
+        }
+        if (f.plan_salon) {
+          html += '<span class="plan ' + (f.plan_salon === 'free' ? 'free' : 'full') + '" title="Plan del salon que escribe.">' +
+            esc(PLAN_TXT[f.plan_salon] || f.plan_salon) + '</span>';
+        }
+        // Desde que formulario escribio: "Ayuda" o "Ajustes -> Escríbenos".
+        // Antes los dos llegaban iguales.
+        if (f.origen) {
+          var ORIGEN_SUP = { ayuda: 'desde Ayuda', ajustes: 'desde Ajustes', landing: 'desde la web', automatico: 'automático' };
+          html += '<span class="tag" style="background:rgba(124,108,240,.14);color:#7c6cf0">' +
+            esc(ORIGEN_SUP[f.origen] || f.origen) + '</span>';
+        }
         html += '</div>';
         html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:8px">' +
-          esc(f.negocio_nombre || f.negocio_id || '') +
+          esc(f.negocio_nombre || f.negocio_id || 'Sin salón identificado') +
+          (f.negocio_id ? ' <span style="color:var(--text-ter)">(' + esc(f.negocio_id) + ')</span>' : '') +
           (f.autor_nombre ? ' · ' + esc(f.autor_nombre) : '') +
           (f.autor_email ? ' · ' + esc(f.autor_email) : '') +
           ' · ' + new Date(f.creado_en).toLocaleString('es-ES') + '</div>';

@@ -39,12 +39,49 @@ export type RolInvitable = 'admin' | 'recepcion' | 'employee';
 interface RespuestaEdge {
   ok?: boolean;
   error?: string;
+  // Explicacion larga escrita en el servidor (evaluar_alta_de_acceso). Cuando
+  // viene, manda sobre el texto corto de ERROR_ACCESO: la regla y su motivo se
+  // escriben una sola vez, en SQL, y aqui solo se relatan.
+  detalle?: string | null;
   // Aviso: la invitacion SI salio, pero algo secundario no cuajo (la ficha).
   aviso?: string | null;
   user_id?: string;
   email?: string;
   profesional_id?: string | null;
   plan?: string;
+}
+
+// Lo que el servidor contesta a "¿puede este salon dar de alta otra cuenta?".
+// Misma funcion que aplica la edge al invitar (public.evaluar_alta_de_acceso),
+// asi que la pantalla nunca ofrece un boton que el servidor va a rechazar.
+export interface AltaDeAcceso {
+  ok: boolean;
+  motivo: string | null;
+  detalle: string | null;
+  plan: string;
+  modo: 'individual' | 'compartido';
+  cuentas: number;
+  maxCuentas: number;
+}
+
+export async function consultarAltaDeAcceso(): Promise<AltaDeAcceso> {
+  const { data, error } = await supabase.rpc('mi_alta_de_acceso');
+  if (error || !data) {
+    // Si no se puede preguntar, se asume que SI para no bloquear a nadie por un
+    // fallo de red: la puerta de verdad es la edge, que vuelve a comprobarlo.
+    reportarError(error ?? 'mi_alta_de_acceso sin datos', { origen: 'app', tipo: 'operativo' });
+    return { ok: true, motivo: null, detalle: null, plan: 'free', modo: 'individual', cuentas: 0, maxCuentas: 15 };
+  }
+  const d = data as Record<string, unknown>;
+  return {
+    ok: d.ok === true,
+    motivo: (d.motivo as string) ?? null,
+    detalle: (d.detalle as string) ?? null,
+    plan: (d.plan as string) ?? 'free',
+    modo: d.modo === 'compartido' ? 'compartido' : 'individual',
+    cuentas: Number(d.cuentas ?? 0),
+    maxCuentas: Number(d.max_cuentas ?? 15),
+  };
 }
 
 // Mensajes en cristiano para todo lo que puede devolver el servidor.
@@ -71,6 +108,14 @@ export const ERROR_ACCESO: Record<string, string> = {
   ficha_ya_vinculada: 'Esa ficha ya tiene una cuenta vinculada.',
   link_failed: 'No se pudo generar el enlace. Inténtalo de nuevo.',
   delete_failed: 'No se pudo retirar el acceso.',
+  // Los cinco motivos por los que un salón no puede dar de alta otra cuenta.
+  // Son el respaldo corto: si el servidor manda `detalle`, gana ese.
+  modo_compartido: 'Este salón entra con un solo correo, así que no se invitan cuentas. Añade a la persona como ficha en Equipo y aparecerá en el selector de "¿Quién eres?".',
+  plan_sin_equipo: 'Dar acceso al equipo entra en los planes Esencial y Estudio.',
+  suscripcion_inactiva: 'La suscripción de este salón no está activa.',
+  limite_cuentas: 'Este salón ha llegado a su tope de cuentas de acceso.',
+  alta_no_permitida: 'Ahora mismo este salón no puede crear cuentas de acceso.',
+  sin_negocio: 'Tu cuenta no tiene un salón asignado.',
 };
 
 // Avisos: la invitación salió, pero la ficha de la agenda no. La persona podrá
@@ -118,7 +163,9 @@ async function llamarEdge(body: Record<string, unknown>): Promise<{ ok: boolean;
   }
   if (error || resp?.error) {
     if (error) reportarError(error, { origen: 'app', tipo: 'operativo' });
-    let msg = mensaje(resp?.error);
+    // El `detalle` del servidor explica ademas COMO se arregla (cambiar el modo
+    // de acceso, contratar un plan...). Se prefiere al texto corto de la tabla.
+    let msg = resp?.detalle?.trim() || mensaje(resp?.error);
     if (msg === 'No se pudo completar la operación.' && error) {
       msg = `${msg} Detalles: ${error.message || 'Error de conexión'}`;
     }

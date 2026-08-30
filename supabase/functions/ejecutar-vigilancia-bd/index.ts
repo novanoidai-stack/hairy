@@ -117,6 +117,41 @@ Deno.serve(async (req: Request): Promise<Response> => {
     hallazgos.push(...(rend as Hallazgo[]).map((h) => comoHallazgo(h, 'rendimiento')));
   }
 
+  // --- Ecosistema de cuentas ------------------------------------------------
+  //
+  // Salones sin titular, modo de acceso que contradice a las cuentas, topes que
+  // el cliente se puede subir solo y -- la que justifica la familia entera -- el
+  // guarda de identidad de `profiles` comprobado palabra por palabra.
+  //
+  // Esa ultima nace de lo peor que se encontro el 30 ago 2026: la version
+  // DESPLEGADA de guard_profile_identity_columns() no era la del repo. Alguien
+  // la habia reescrito a mano cambiando `new.plan := old.plan` por
+  // `COALESCE(new.plan, old.plan)`, que no congela nada, y con eso cualquier
+  // usuario con sesion podia darse role='owner' y cambiarse el negocio_id -- o
+  // sea, entrar en el salon de otro. Ningun vigilante lo vio porque ninguno
+  // comparaba CUERPOS de funcion: bd-migraciones.mjs compara versiones.
+  const { data: eco, error: eEco } = await supabase.rpc('vigilancia_bd_ecosistema');
+  if (eEco) {
+    // No poder mirar NO es "todo bien" (regla del ancla perdida).
+    console.error(`[${QUIEN}] vigilancia_bd_ecosistema() ha fallado:`, eEco.message);
+    hallazgos.push({
+      clave: 'bd/ecosistema-sin-comprobar',
+      nivel: 'bloqueante',
+      ambito: 'cuentas',
+      titulo: 'No se ha podido comprobar el ecosistema de cuentas',
+      detalle:
+        `vigilancia_bd_ecosistema() ha devuelto: ${eEco.message}. Si dice que no existe, falta ` +
+        'aplicar 20260830104500_vigilancia_ecosistema_cuentas.sql. Mientras no corra, nadie ' +
+        'esta mirando si el guarda de identidad de profiles sigue congelando role y negocio_id, ' +
+        'que es lo que impide que un empleado se ascienda a Propietario o se cambie de salon. ' +
+        'Es bloqueante a proposito: esta comprobacion no puede quedarse muda en silencio.',
+      fichero: 'base de datos',
+      linea: null,
+    });
+  } else if (Array.isArray(eco)) {
+    hallazgos.push(...(eco as Hallazgo[]).map((h) => comoHallazgo(h, 'cuentas')));
+  }
+
   // --- Guardia de migraciones ----------------------------------------------
   //
   // OJO CON LA TRAMPA: que una version NO este en schema_migrations no significa
@@ -216,6 +251,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         ambito: 'rendimiento',
         ms: null,
         ok: !hallazgos.some((h) => h.ambito === 'rendimiento'),
+      },
+      {
+        nombre: 'bd-ecosistema',
+        ambito: 'cuentas',
+        ms: null,
+        ok: !hallazgos.some((h) => h.ambito === 'cuentas'),
       },
     ],
     hallazgos,

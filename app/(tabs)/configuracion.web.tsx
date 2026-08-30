@@ -39,7 +39,8 @@ import { esTamanoTexto, normalizarTamanoTexto, guardarYAplicarTamanoTexto, sincr
 import type { TamanoTexto } from '@/lib/tamanoTexto';
 import {
   cargarCuentasEquipo, avisoDeAcceso, invitarAcceso, reenviarInvitacion, revocarAcceso,
-  estadoLegible, type CuentaEquipo, type RolInvitable,
+  estadoLegible, consultarAltaDeAcceso,
+  type CuentaEquipo, type RolInvitable, type AltaDeAcceso,
 } from '@/lib/equipoAccesos';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { traerAlFoco } from '@/lib/demoScroll';
@@ -2007,6 +2008,17 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
   const [guardandoPin, setGuardandoPin] = useState(false);
   const [pinMsg, setPinMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // ¿Puede este salón dar de alta otra cuenta ahora mismo? Lo contesta el
+  // servidor (mi_alta_de_acceso), que aplica exactamente la misma regla que la
+  // edge al invitar. Sin esto, la pantalla ofrecía un botón que el servidor
+  // rechaza — que es la peor forma de comunicar una regla.
+  const [alta, setAlta] = useState<AltaDeAcceso | null>(null);
+  const [modoMsg, setModoMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const recargarAlta = useCallback(async () => {
+    setAlta(await consultarAltaDeAcceso());
+  }, []);
+
   useEffect(() => {
     let vivo = true;
     supabase.rpc('acceso_salon_estado').then(({ data }) => {
@@ -2015,8 +2027,9 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
       setModoAcceso(d.modo === 'compartido' ? 'compartido' : 'individual');
       setTienePin(d.tiene_pin === true);
     });
+    void recargarAlta();
     return () => { vivo = false; };
-  }, []);
+  }, [recargarAlta]);
 
   async function guardarPin() {
     setGuardandoPin(true);
@@ -2098,6 +2111,9 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     setSavingId(null);
     if (!ok) { setMsg({ id: c.id, text: error ?? '', ok: false }); return; }
     setCuentas(prev => prev.filter(x => x.id !== c.id));
+    // Retirar accesos es justamente como un salón deja de tener cuentas
+    // individuales sueltas y puede pasar a correo único: hay que releerlo.
+    void recargarAlta();
   }
 
   async function crearAcceso() {
@@ -2119,6 +2135,8 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     setCreada({ email, aviso: avisoDeAcceso(data) });
     setFormEmail(''); setFormNombre(''); setFormRol('employee'); setFormFicha(true);
     load();
+    // Una cuenta más: puede que con esta se haya llegado al tope.
+    void recargarAlta();
   }
 
   const pendientes = cuentas.filter(c => c.estado === 'pendiente' && !IS_DEMO_MODE).length;
@@ -2128,7 +2146,15 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     <Section
       title="Accesos y roles"
       desc="Cada persona de tu equipo entra con SU correo, dentro de tu salón. Tú decides qué ve cada una: Profesional ve lo suyo, Recepción lleva la agenda y los clientes, Dirección accede además a configuración e informes, y Propietario lo controla todo."
-      action={<Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>{showForm ? 'Cancelar' : 'Invitar a alguien'}</Btn>}
+      action={
+        // El botón solo aparece si el servidor dice que sí. Ofrecerlo y que
+        // luego falle es la peor forma de explicar una regla.
+        alta && !alta.ok ? null : (
+          <Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>
+            {showForm ? 'Cancelar' : 'Invitar a alguien'}
+          </Btn>
+        )
+      }
     >
       {/* Selector de modo de acceso al salón */}
       {isOwner && (
@@ -2147,12 +2173,31 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
               value={modoAcceso}
               onChange={async (nuevoModo: 'individual' | 'compartido') => {
                 if (nuevoModo === modoAcceso) return;
+                setModoMsg(null);
                 const { error } = await supabase.rpc('set_acceso_salon_modo', { p_modo: nuevoModo });
                 if (error) {
-                  alert('No se pudo cambiar el modo: ' + error.message);
-                } else {
-                  setModoAcceso(nuevoModo);
+                  // El servidor se niega a encender el correo único si el salón
+                  // tiene cuentas individuales vivas, y dice CUÁNTAS: es la
+                  // información que hace falta para poder arreglarlo.
+                  const cuantas = (error.message || '').match(/hay_cuentas_individuales:(\d+)/)?.[1];
+                  setModoMsg({
+                    ok: false,
+                    text: cuantas
+                      ? `No se puede pasar a correo único: este salón tiene ${cuantas} cuentas de acceso. ` +
+                        'Con las dos formas de entrar a la vez, lo que puede hacer cada persona depende de por dónde entre. ' +
+                        'Retira abajo los accesos que sobren (su ficha y su historial de citas se quedan) y vuelve a intentarlo.'
+                      : 'No se pudo cambiar el modo de acceso. Inténtalo de nuevo.',
+                  });
+                  return;
                 }
+                setModoAcceso(nuevoModo);
+                setModoMsg({
+                  ok: true,
+                  text: nuevoModo === 'compartido'
+                    ? 'Listo. Al abrir Mecha se preguntará quién eres. Pon el PIN aquí abajo antes de dejar la tablet en el mostrador.'
+                    : 'Listo. Ahora cada persona entra con su propio correo.',
+                });
+                void recargarAlta();
               }}
               options={[
                 { value: 'individual', label: 'Cada uno con su correo' },
@@ -2165,6 +2210,16 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
               ? 'Recomendado para la mayoría de salones: cada profesional entra con su correo y contraseña en su móvil.'
               : 'Ideal para tablets en el mostrador del salón: se entra con el correo del propietario y se selecciona la ficha de cada empleado al empezar.'}
           </div>
+          {modoMsg && (
+            <div style={{
+              marginTop: 10, padding: '9px 11px', borderRadius: 10, fontSize: 12.5, lineHeight: 1.5,
+              background: modoMsg.ok ? 'rgba(15,157,107,0.10)' : 'rgba(239,68,68,0.10)',
+              border: `1px solid ${modoMsg.ok ? 'rgba(15,157,107,0.30)' : 'rgba(239,68,68,0.30)'}`,
+              color: T.text,
+            }}>
+              {modoMsg.text}
+            </div>
+          )}
         </div>
       )}
 
@@ -2197,6 +2252,29 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
             </div>
           ) : (
             <div style={{ fontSize: 12, color: T.textTertiary }}>Solo el Propietario puede cambiar el PIN.</div>
+          )}
+        </div>
+      )}
+
+      {/* Por qué no se puede invitar. El texto lo escribe el servidor
+          (evaluar_alta_de_acceso) para que diga lo mismo aquí, en Equipo y en
+          la respuesta de la edge, y para que explique cómo se arregla. */}
+      {alta && !alta.ok && (
+        <div style={{
+          marginBottom: 14, padding: 13, borderRadius: 12,
+          background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.30)',
+          fontSize: 12.5, lineHeight: 1.55, color: T.text,
+        }}>
+          <b style={{ display: 'block', marginBottom: 3 }}>
+            {alta.motivo === 'modo_compartido'
+              ? 'Este salón no invita cuentas'
+              : 'Ahora mismo no se pueden crear cuentas de acceso'}
+          </b>
+          {alta.detalle ?? 'Consulta con el equipo de Mecha.'}
+          {alta.motivo === 'limite_cuentas' && (
+            <span style={{ color: T.textTertiary }}>
+              {' '}({alta.cuentas} de {alta.maxCuentas}). Si necesitas más, escríbenos y te lo subimos.
+            </span>
           )}
         </div>
       )}
@@ -2670,6 +2748,9 @@ function TabSoporte({ account }: { account: AccountInfo | null }) {
     const { error } = await supabase.rpc('crear_mensaje_soporte', {
       p_asunto: asuntoDirecto,
       p_mensaje: mensajeDirecto.trim(),
+      // Ver el comentario gemelo en ayuda.web.tsx: al staff le llegaban iguales
+      // los mensajes de los dos formularios.
+      p_origen: 'ajustes',
     });
     setEnviandoDirecto(false);
     if (error) { setErrorDirecto(mensajeDeError(error, 'No se pudo enviar el mensaje.')); return; }

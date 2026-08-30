@@ -87,6 +87,10 @@ export default function AyudaScreen() {
     const { error } = await supabase.rpc('crear_mensaje_soporte', {
       p_asunto: asuntoSoporte,
       p_mensaje: mensajeSoporte.trim(),
+      // De dónde sale el mensaje. Hay dos formularios distintos (este y el de
+      // Ajustes) y al staff le llegaban iguales: no se podía distinguir "se me
+      // atasca la pantalla de ayuda" de "quiero algo de mi cuenta".
+      p_origen: 'ayuda',
     });
     setEnviandoSoporte(false);
     if (error) {

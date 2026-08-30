@@ -44,6 +44,18 @@ const CUBIERTAS_POR = {
   '20260828202046': '20260828212000_vigilancia_bd.sql',
   '20260828202443': '20260828213000_vigilancia_registro.sql',
   '20260829154953': '20260829120000_vigilancia_bd_rendimiento.sql',
+  // Tanda del 30 ago 2026 (ecosistema de cuentas). Estas dos son retoques que
+  // se aplicaron sueltos y cuyo texto final YA vive en el fichero de su
+  // migracion madre, asi que no hay nada que reconstruir:
+  //   - los dominios propios (@novanoidtest.com, @mecha.app) que tambien cuentan
+  //     como alta de prueba,
+  //   - y que "compartido sin PIN" solo se avise si el salon tiene alguna cuenta
+  //     (el estreno del vigilante grito por un tenant fantasma sin ninguna).
+  '20260830004001': '20260830003848_trazabilidad_soporte_errores_y_leads.sql',
+  '20260830113634': '20260830113509_vigilancia_ecosistema_cuentas.sql',
+  //   - y que el origen de un mensaje de soporte diga la PANTALLA ('ayuda' /
+  //     'ajustes') en vez de un 'app' que valia para las dos.
+  '20260830115223': '20260830003848_trazabilidad_soporte_errores_y_leads.sql',
 };
 
 // El CLI de Supabase nombra <14 digitos>_<nombre>.sql.

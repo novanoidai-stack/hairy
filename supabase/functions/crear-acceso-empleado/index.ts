@@ -131,6 +131,21 @@ Deno.serve(async (req: Request) => {
   // El salon demo es un escaparate compartido: no se tocan sus cuentas.
   if (negocioId === 'demo_salon_001') return json({ error: 'demo_no_permitido' }, 403, req);
 
+  // ¿Puede este salon tener otra cuenta de acceso, y con que plan nacería?
+  // La regla vive ENTERA en la base de datos (evaluar_alta_de_acceso) para que
+  // la pantalla de Accesos pueda preguntar exactamente lo mismo antes de
+  // ense~ar el boton, en vez de que cada lado tenga su propia version.
+  // Se pide siempre, aunque solo la use 'invitar': el resto de acciones tambien
+  // necesitan el plan del titular y asi es una sola ida y vuelta.
+  const { data: altaRaw } = await admin.rpc('evaluar_alta_de_acceso', { p_negocio_id: negocioId });
+  const alta = (altaRaw ?? {}) as {
+    ok?: boolean;
+    motivo?: string | null;
+    detalle?: string | null;
+    plan?: string;
+    ia_nivel?: string;
+  };
+
   // Datos del salon para el correo.
   const { data: portal } = await admin
     .from('negocio_portal')
@@ -215,6 +230,21 @@ Deno.serve(async (req: Request) => {
   // -------------------------------------------------------------------------
   if (accion !== 'invitar') return json({ error: 'accion_no_valida' }, 400, req);
 
+  // La puerta. Antes aqui no se miraba ni el modo de acceso del salon, ni el
+  // plan, ni si la prueba habia caducado, ni cuantas cuentas habia ya.
+  //
+  // Ojo con lo que NO se bloquea: 'reenviar' y sobre todo 'revocar' siguen
+  // funcionando pase lo que pase. Retirar una cuenta suelta es justo como un
+  // salon en modo compartido resuelve el conflicto, y dejarlo bloqueado seria
+  // encerrarlo en el problema.
+  if (alta.ok !== true) {
+    const motivo = alta.motivo || 'alta_no_permitida';
+    // 402 = "esto va de dinero" (plan o suscripcion); 409 = "tu configuracion
+    // actual lo impide" (modo de acceso, tope de cuentas).
+    const status = motivo === 'plan_sin_equipo' || motivo === 'suscripcion_inactiva' ? 402 : 409;
+    return json({ error: motivo, detalle: alta.detalle ?? null }, status, req);
+  }
+
   const email = String(payload.email || '').trim().toLowerCase();
   const nombre = String(payload.nombre || '').trim();
   const rol = String(payload.rol || '').trim();
@@ -237,19 +267,15 @@ Deno.serve(async (req: Request) => {
   }
 
   // El plan (y desde el 7 ago 2026, el addon de IA) los contrata el SALON: el
-  // equipo hereda los del propietario. Antes se grababa 'full' a pelo y un
-  // salon en Esencial acababa con empleados en Estudio; el mismo fallo se
-  // repetiria con ia_nivel si no se hereda aqui tambien.
-  const { data: duenio } = await admin
-    .from('profiles')
-    .select('plan, ia_nivel')
-    .eq('negocio_id', negocioId)
-    .eq('role', 'owner')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const planHeredado = duenio?.plan || 'free';
-  const iaNivelHeredado = duenio?.ia_nivel || 'ninguna';
+  // equipo hereda los del TITULAR.
+  //
+  // Antes esto era una consulta con `.eq('role','owner')` escrita aqui, y el 30
+  // ago 2026 habia CINCO salones sin ninguna fila con ese rol: la consulta no
+  // fallaba, devolvia vacio, y el invitado nacia con plan 'free' -- entraba al
+  // software y no veia nada. Ahora lo resuelve titular_del_negocio() dentro de
+  // evaluar_alta_de_acceso(), que nunca devuelve vacio si el salon tiene cuentas.
+  const planHeredado = alta.plan || 'free';
+  const iaNivelHeredado = alta.ia_nivel || 'ninguna';
 
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: 'invite',

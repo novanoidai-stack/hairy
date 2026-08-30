@@ -381,7 +381,10 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
         descartados automáticamente) y mensajes de error de sistema según catálogo anclado a
         `lib/errores.ts`. Línea base congelada en `tests/smoke/silencios-baseline.json`.
         Prueba de vida: `npx playwright test tests/smoke/silencios.spec.ts` (5 tests).
-    - **Cinco vigilantes más de capa 1 (29 ago 2026).** `npm run vigilar` son ya 13.
+    - **Cinco vigilantes más de capa 1 (29 ago 2026).** `npm run vigilar` son ya 15 (el 30 ago
+      se añadió `ecosistema-cuentas`, la gemela barata de `bd-ecosistema` para el PR: guarda de
+      identidad congelando de verdad, nadie deduciendo al titular a mano, el tope fuera de
+      `negocio_config` y `crear-acceso-empleado` preguntando antes de invitar).
       Los cinco nuevos llevan al PR cosas que hasta ahora solo se cazaban leyendo la
       BD en producción — o no se cazaban.
       - `edges-autorizadas.mjs`: toda edge con `verify_jwt = false` autoriza por su
@@ -419,8 +422,17 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
       - La puerta del token vive en **`shared/tokenVigilancia.ts`**, compartida por las dos
         funciones que llama Actions. Estaba escrita a mano en una y se iba a copiar en la
         otra: un chequeo de autorización duplicado es el invariante repartido de manual.
-      - `npm run vigilar:bd` son ya **tres**: `bd` (invariantes), `bd-rendimiento`
-        (`pg_stat_statements`) y `bd-migraciones` (la guardia). Comparten `bd-comun.mjs`.
+      - `npm run vigilar:bd` son ya **cuatro**: `bd` (invariantes), `bd-rendimiento`
+        (`pg_stat_statements`), `bd-migraciones` (la guardia) y **`bd-ecosistema`** (30 ago
+        2026: el ecosistema de cuentas). Comparten `bd-comun.mjs`.
+      - **`bd-ecosistema` mira lo que ningún otro miraba: el CUERPO de una función crítica.**
+        Su comprobación 1 lee `guard_profile_identity_columns()` palabra por palabra y exige
+        que congele con `new.x := old.x` —nunca `COALESCE`— las ocho columnas de identidad y
+        facturación. Nació porque la versión desplegada de ese guarda no era la del repo y
+        durante meses cualquier usuario con sesión pudo darse `role='owner'` y cambiarse el
+        `negocio_id`. **Que una migración conste aplicada no dice nada de lo que corre hoy:
+        una función se reescribe desde el dashboard sin dejar rastro en `schema_migrations`.**
+        Si añades un control de seguridad en SQL, añade su ancla aquí en el mismo commit.
       - **La guardia de migraciones trae un falso positivo de serie, y hay que conocerlo:**
         el editor SQL del dashboard aplica el SQL pero **registra la versión con SU PROPIO
         timestamp**. Una migración aplicada por ahí sale como "sin aplicar" para siempre.
@@ -568,6 +580,106 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
     distingue por `role`.
   - El tenant de la demo **no expone cuentas reales**: ahí nacen todos los registros, así que la
     política de SELECT y `equipo_cuentas()` filtran por `profiles.es_cuenta_demo` (las 4 de atrezzo).
+
+  > ### La auditoría del ecosistema de cuentas (30 ago 2026)
+  >
+  > Cinco cosas que llevaban meses rotas y que ningún vigilante miraba. Se cuentan juntas
+  > porque comparten una forma: **nada fallaba**. Cada una devolvía un cero razonable y
+  > seguía, y eso es lo que las hizo invisibles.
+  >
+  > **1. El guarda de identidad de `profiles` no guardaba nada.** La versión DESPLEGADA de
+  > `guard_profile_identity_columns()` no era la del repo: alguien la reescribió desde el
+  > editor SQL cambiando `new.plan := old.plan` por `COALESCE(new.plan, old.plan)`, quitando
+  > la línea de `role` y añadiendo una salida por `service_role`. **COALESCE solo rellena
+  > nulos**: si la fila nueva trae un valor —que es lo que trae cualquier UPDATE— lo deja
+  > pasar. Con la política `profiles_update_all` (`id = auth.uid()`), eso significaba que
+  > **cualquier usuario con sesión reescribía su propia fila**. Comprobado con
+  > `set local role authenticated` y el uid de un empleado real: `role='owner'`,
+  > `plan='estudio'`, `suscripcion_estado='activa'`, `trial_ends_at` a diez años y
+  > **`negocio_id` apuntando a otro salón** — que es la columna de la que vive
+  > `my_negocio_id_text()` y con ella TODA la RLS multi-tenant. Los seis cambios se
+  > guardaron sin un solo error.
+  > **La lección, que es la que importa:** el repo estaba BIEN. Lo que faltaba es que
+  > **nada compara la definición desplegada de una función con la del repo** —
+  > `bd-migraciones.mjs` compara *versiones de migración*, no *cuerpos de función*. De las
+  > funciones que SON un control de seguridad no basta con saber que existen: hay que
+  > comprobar que **siguen diciendo lo que tienen que decir**. Lo hace ahora la
+  > comprobación 1 de `vigilancia_bd_ecosistema()`, palabra por palabra, y su gemela
+  > barata en `scripts/vigilantes/ecosistema-cuentas.mjs` para el PR.
+  >
+  > **2. Cinco de siete salones no tenían propietario.** Nadie lo había cambiado (ni un
+  > `rol_cambiado` en `eventos_negocio`): nacieron así. Y "salón sin propietario" apagaba
+  > **seis subsistemas a la vez**, porque los seis deducían al titular con la misma consulta
+  > copiada, `role='owner' order by created_at limit 1`, y ninguno fallaba al no encontrar
+  > a nadie: `plan_del_negocio()` decía `free` mientras las filas decían `estudio`;
+  > `sincronizar_plan_negocio()` hacía `return 0` y el plan no llegaba al equipo;
+  > `caducar_pruebas_vencidas()` **no iba a caducar esas pruebas jamás**;
+  > `staff_set_cobro_manual` contestaba `no_es_owner`; el motor de referidos los contaba
+  > como cero; y el panel escondía el selector de Cobro. **Hoy hay una sola definición:
+  > `titular_del_negocio()`**, que devuelve el owner más antiguo y, si no hay ninguno, la
+  > cuenta más antigua — nunca null. La incoherencia sale por la vigilancia
+  > (`bd/salon-sin-titular`), no por seis funciones apagándose en silencio.
+  > `staff_set_role` ya no deja degradar al último propietario (`ultimo_propietario`).
+  >
+  > **3. El modo de acceso y las cuentas se contradecían.** Un salón puede entrar de dos
+  > formas: `individual` (cada persona su correo) o `compartido` (un correo + selector de
+  > "¿quién eres?" + PIN). Son **dos modelos de identidad distintos** — en compartido el rol
+  > efectivo lo elige quien está delante de la tablet (`lib/identidadActiva.ts`), en
+  > individual lo dice `profiles.role` — y nada impedía tenerlos encendidos a la vez.
+  > El único salón real estaba así. Con los dos activos, *qué puede hacer una persona*
+  > depende de por dónde entró, no de quién es. Ahora `set_acceso_salon_modo` y
+  > `staff_set_acceso_modo` se niegan (`hay_cuentas_individuales:N`); staff puede
+  > `p_forzar` para un salón a medio migrar, queda en `eventos_negocio` y el conflicto
+  > se sigue viendo hasta resolverlo. **`revocar` nunca se bloquea**: es como el salón
+  > sale del conflicto.
+  >
+  > **4. El tope de profesionales se lo subía el propio cliente.** Vivía en
+  > `negocio_config.config->>'limiteProfesionales'`, y esa tabla tiene una política RLS que
+  > deja a cualquier miembro del salón escribir el blob entero. Comprobado: 15 → 999 en un
+  > solo `insert ... on conflict do update`. **Un límite que pone Mecha no puede vivir en
+  > una tabla que escribe el cliente**: ahora está en `public.negocio_limites` (sin
+  > políticas, solo por RPC de staff) y se lee con `limite_negocio(negocio_id, clave)`.
+  > Regla general: antes de poner un límite, pregúntate quién puede escribir la fila donde
+  > lo guardas.
+  >
+  > **5. `crear-acceso-empleado` invitaba sin mirar nada** — ni el modo, ni el plan
+  > (`equipo` está en Esencial y Estudio, no en `free`), ni la prueba caducada, ni cuántas
+  > cuentas había. La regla vive entera en **`evaluar_alta_de_acceso()`** y la preguntan los
+  > dos lados: la edge antes de invitar y la pantalla (`mi_alta_de_acceso()` →
+  > `consultarAltaDeAcceso()`) para saber si enseñar el botón. El texto del "por qué no"
+  > lo escribe el SERVIDOR y lo relata el cliente: si cada pantalla lo redactara, sería
+  > otro invariante repartido.
+- **CUENTAS DE PRUEBA vs. CARTERA (30 ago 2026).** De siete salones, **seis eran nuestros**
+  (demo, dos de pruebas, dos con correo `@novanoidai.com`, un "Testv3") y el panel los contaba
+  como mercado: "9 cuentas en 7 negocios · 3 pruebas activas" no describía nada. En Leads,
+  **22 de 23 eran pruebas propias** y el único real estaba en `ganada`; la pestaña anunciaba
+  22 nuevos de ruido, que es la forma más rápida de que se deje de mirar un panel.
+  - Fuente: `public.negocio_clasificacion` (`real | interno | prueba | demo`), que solo toca
+    el staff (`staff_set_clasificacion`). La siembra inicial solo marca lo que se puede
+    afirmar con una regla objetiva; **un falso "interno" esconde un cliente, que es el error
+    caro**, así que el resto se deja en `real` y se marca a mano.
+  - Los leads llevan `solicitudes.es_prueba` (+ columna `origen`, que antes solo vivía dentro
+    de `meta->>origen` y solo la ponían dos de los cinco tipos). Auto-marcado solo por dominio
+    propio (`@novanoidai.com`, `@novanoidtest.com`, `@mecha.app`) o correo del equipo.
+  - **Los badges cuentan lo que hay que ATENDER, no lo que hay guardado.** Errores cuenta solo
+    lo que le pasó a un salón real (o a un anónimo, que puede ser un prospecto); Leads, solo
+    los reales sin contactar. Un número que nunca baja se deja de mirar.
+- **DE DÓNDE VIENE CADA COSA QUE LLEGA AL STAFF (30 ago 2026).** Tres de las cinco corrientes
+  no sabían decir de qué salón venían:
+  - `crear_mensaje_soporte()` metía `nombre_negocio` (el **rótulo**, texto libre) dentro de la
+    columna **`negocio_id`**. El join de `staff_mensajes_soporte` nunca casaba y caía al
+    `coalesce`: en pantalla se veía bien **por accidente**, pero el mensaje no estaba atado a
+    ningún tenant. Ahora van en columnas distintas y el panel enseña clasificación y plan de
+    quien escribe.
+  - **76 de los 130 errores** eran del portal público con `negocio_id` NULL, porque
+    `registrar_error_cliente` lo saca de `my_negocio_id_text()` y ahí no hay sesión — pero la
+    URL lleva el slug delante. Ahora el salón se **deduce de la ruta** (nunca se acepta por
+    parámetro: el cliente ya controla su URL, así que no gana nada, y no abrimos un campo
+    donde escribir el id de otro).
+  - Y `deducirOrigen()` de `lib/reportarError.ts` buscaba `/r/` cuando la ruta real es
+    **`/app/r/<slug>`** (la app va montada en `/app`): los errores del portal se clasificaban
+    como `app` salvo los que traían el origen a mano. El panel filtra por ese campo, así que
+    un error del portal escondido entre los de la app es un error que nadie mira.
 - **Contacto comercial: TRES vías** en `#precios` (llamada de 10 min · mensaje · "quiero el
   software"). Todas dejan la solicitud en `solicitudes` **y** avisan por correo con la edge
   `notificar-solicitud` (SMTP de Hostinger): a `contacto@mechaa.es` con los datos y al interesado

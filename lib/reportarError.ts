@@ -60,9 +60,24 @@ function rutaActual(): string {
   }
 }
 
+// Ojo con el orden y con el prefijo. La app web va montada en /app, asi que la
+// ruta REAL del portal publico es `/app/r/<slug>`, no `/r/<slug>`: mientras
+// esto miro solo `/r/`, los 76 errores del portal que hay guardados se
+// clasificaron como 'app' salvo los que traian el origen puesto a mano. Y
+// clasificar mal el origen no es cosmetico: el panel de staff filtra por el, y
+// un error del portal escondido entre los de la app es un error que nadie mira.
+// El prefijo /app se quita ANTES de comparar, y por eso el caso `/app` a secas
+// se resuelve al final.
 function deducirOrigen(ruta: string): OrigenError {
-  if (ruta.startsWith('/salones') || ruta.startsWith('/directorio')) return 'marketplace';
-  if (ruta.startsWith('/r/') || ruta.startsWith('/cita/')) return 'portal';
+  const sinPrefijo = ruta.startsWith('/app/') ? ruta.slice(4) : ruta;
+  if (sinPrefijo.startsWith('/salones') || sinPrefijo.startsWith('/directorio')) return 'marketplace';
+  if (
+    sinPrefijo.startsWith('/r/') ||
+    sinPrefijo.startsWith('/resena/') ||
+    sinPrefijo.startsWith('/cita/')
+  ) {
+    return 'portal';
+  }
   if (ruta.startsWith('/app')) return 'app';
   if (ruta === '/' || ruta.endsWith('.html')) return 'landing';
   return 'app';

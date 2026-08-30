@@ -28,6 +28,7 @@ import husos from './husos.mjs';
 import planes from './planes.mjs';
 import horariosConvenio from './horarios-convenio.mjs';
 import workflows from './workflows.mjs';
+import ecosistemaCuentas from './ecosistema-cuentas.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
 
 const ESTATICOS = [
@@ -44,6 +45,7 @@ const ESTATICOS = [
   planes,
   horariosConvenio,
   workflows,
+  ecosistemaCuentas,
   codigoMuerto,
 ];
 
@@ -109,6 +111,7 @@ async function main() {
         (await import('./bd.mjs')).default,
         (await import('./bd-rendimiento.mjs')).default,
         (await import('./bd-migraciones.mjs')).default,
+        (await import('./bd-ecosistema.mjs')).default,
       ]
     : [];
 

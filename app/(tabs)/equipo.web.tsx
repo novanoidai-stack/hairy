@@ -20,7 +20,7 @@ import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
 import * as chispaOps from '@/lib/chispaOps';
-import { cargarCuentasEquipo, avisoDeAcceso, estadoLegible, invitarAcceso, reenviarInvitacion, type CuentaEquipo } from '@/lib/equipoAccesos';
+import { cargarCuentasEquipo, avisoDeAcceso, estadoLegible, invitarAcceso, reenviarInvitacion, consultarAltaDeAcceso, type CuentaEquipo, type AltaDeAcceso } from '@/lib/equipoAccesos';
 import { RendimientoEquipo } from '@/components/equipo/RendimientoEquipo.web';
 import { RegistroJornada } from '@/components/jornada/RegistroJornada.web';
 
@@ -2036,11 +2036,16 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
   // elige a si misma en la pantalla de "¿quien eres?".
   const [rolAcceso, setRolAcceso] = useState<string>(prof.rol_acceso ?? 'employee');
   const [modoAcceso, setModoAcceso] = useState<'individual' | 'compartido'>('individual');
+  // Y, aparte del modo, si el salón puede dar de alta otra cuenta (plan, prueba
+  // caducada, tope). Lo contesta el servidor con la misma regla que aplica la
+  // edge al invitar, así que el botón nunca ofrece algo que va a ser rechazado.
+  const [alta, setAlta] = useState<AltaDeAcceso | null>(null);
   useEffect(() => {
     let vivo = true;
     supabase.rpc('acceso_salon_estado').then(({ data }) => {
       if (vivo && (data as any)?.modo === 'compartido') setModoAcceso('compartido');
     });
+    consultarAltaDeAcceso().then((a) => { if (vivo) setAlta(a); });
     return () => { vivo = false; };
   }, []);
   const [fotoPerfil, setFotoPerfil] = useState(prof.foto_perfil ?? '');
@@ -2334,15 +2339,22 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
             ) : (
               <div style={{ padding: '10px 12px', background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 10 }}>
                 <div style={{ fontSize: 12.5, color: TOKENS.text, lineHeight: 1.5 }}>
-                  Esta persona no entra al software. Le puedes dar citas igual; si quieres que
-                  vea su agenda, sus cobros y su rendimiento en Mi jornada, invítala.
+                  {alta && !alta.ok
+                    ? alta.detalle
+                    : 'Esta persona no entra al software. Le puedes dar citas igual; si quieres que ' +
+                      'vea su agenda, sus cobros y su rendimiento en Mi jornada, invítala.'}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={invitarCuenta} disabled={invitando} style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.text, borderRadius: 9, cursor: invitando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
-                    {invitando ? 'Invitando...' : 'Invitar por correo'}
-                  </button>
-                  <span style={{ fontSize: 11.5, color: TOKENS.textTer }}>Se usa el correo de arriba.</span>
-                </div>
+                {/* Sin botón cuando el servidor ya ha dicho que no: en un salón
+                    de correo único la persona no necesita cuenta, entra por el
+                    selector de "¿Quién eres?" con la ficha que estás editando. */}
+                {(!alta || alta.ok) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={invitarCuenta} disabled={invitando} style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.text, borderRadius: 9, cursor: invitando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                      {invitando ? 'Invitando...' : 'Invitar por correo'}
+                    </button>
+                    <span style={{ fontSize: 11.5, color: TOKENS.textTer }}>Se usa el correo de arriba.</span>
+                  </div>
+                )}
                 {cuentas.length > 0 && (
                   <div style={{ marginTop: 10 }}>
                     <div style={{ fontSize: 11.5, color: TOKENS.textTer, marginBottom: 4 }}>
@@ -3523,6 +3535,14 @@ function BotonInvitarAcceso({ prof, cuenta, negocioId }: { prof: Profesional; cu
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
+  // Misma pregunta que en el modal de la ficha y en Ajustes -> Accesos: la
+  // contesta el servidor, no cada pantalla por su cuenta.
+  const [alta, setAlta] = useState<AltaDeAcceso | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    consultarAltaDeAcceso().then((a) => { if (vivo) setAlta(a); });
+    return () => { vivo = false; };
+  }, []);
 
   // If there's already an account linked to this professional, show nothing (or show "Tiene acceso").
   // But wait, the parent might already check this. We'll check anyway.
@@ -3574,6 +3594,17 @@ function BotonInvitarAcceso({ prof, cuenta, negocioId }: { prof: Profesional; cu
     );
   }
 
+  // El servidor ya ha dicho que este salón no crea cuentas: se explica por qué
+  // en vez de ofrecer un botón que va a devolver un error.
+  if (alta && !alta.ok) {
+    return (
+      <div style={{ marginBottom: 16, padding: 14, background: '#fff', border: '1px dashed rgba(40,30,24,0.15)', borderRadius: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#1c1814', marginBottom: 3 }}>Acceso al software</div>
+        <div style={{ fontSize: 11.5, color: '#736658', lineHeight: 1.5 }}>{alta.detalle}</div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginBottom: 16, padding: 14, background: '#fff', border: '1px dashed rgba(40,30,24,0.15)', borderRadius: 10 }}>
       {!showForm ? (
@@ -3582,7 +3613,7 @@ function BotonInvitarAcceso({ prof, cuenta, negocioId }: { prof: Profesional; cu
             <div style={{ fontSize: 13, fontWeight: 600, color: '#1c1814' }}>Acceso al software</div>
             <div style={{ fontSize: 11.5, color: '#736658' }}>No tiene cuenta para iniciar sesión.</div>
           </div>
-          <button 
+          <button
             onClick={() => setShowForm(true)}
             style={{ padding: '6px 12px', background: 'rgba(244,80,30,0.1)', color: '#f4501e', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
             Dar acceso (Invitar)
