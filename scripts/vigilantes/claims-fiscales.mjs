@@ -46,6 +46,15 @@ const SUPERFICIES_VIVAS = [
   'supabase/functions/chispa-dudas-demo/kb.ts',
   'supabase/functions/chispa-dudas-demo/index.ts',
   'lib/planes.ts',
+  // La FUENTE de las landings de SEO, y la unica que se puede vigilar en CI.
+  //
+  // `web/verifactu-peluqueria/`, `web/alternativa-*/` y `web/software-*/` estan
+  // GITIGNORADAS: las genera el build a partir de este fichero. En un checkout
+  // limpio no existen, asi que recorrer web/ no las ve --y era ahi donde estaba
+  // publicado "Mecha genera el XML de Alta y lo envia a la AEAT". Vigilando el
+  // generador se caza el claim ANTES de que exista la pagina, que es cuando
+  // todavia es barato.
+  'scripts/seo/pages.mjs',
 ];
 
 // OJO CON \w EN UN VIGILANTE ESCRITO EN ESPANOL: en JavaScript es [A-Za-z0-9_] y
@@ -122,32 +131,68 @@ function lineaEn(texto, indice) {
   return n;
 }
 
-// Paginas de web/ que no enlaza nadie. Siguen SIRVIENDOSE (el dominio publica la
-// carpeta entera), asi que un claim viejo ahi sigue siendo publico -- pero como
-// no las ve casi nadie van de aviso, no tumban la CI. El arreglo de verdad es
-// borrarlas, como ya se hizo con demo_v2.html.
-function copiasMuertas() {
-  const dir = path.join(RAIZ, 'web');
-  if (!existsSync(dir)) return [];
-  const htmls = readdirSync(dir).filter((f) => f.endsWith('.html')).map((f) => `web/${f}`);
-  const vivas = new Set(SUPERFICIES_VIVAS);
-  return htmls.filter((f) => !vivas.has(f) && !enlazada(f));
+// TODOS los .html bajo web/, subcarpetas incluidas.
+//
+// EL PUNTO CIEGO QUE ESTO ARREGLA (31 ago 2026). Aqui habia un `readdirSync`
+// PLANO sobre web/, asi que este vigilante no veia `web/<carpeta>/index.html` --
+// y ahi es exactamente donde viven las landings de SEO. Ocho paginas indexables
+// (`verifactu-peluqueria`, `alternativa-booksy`, `alternativa-treatwell`,
+// `alternativa-square-appointments`, `software-barberia`, `software-estetica`,
+// `software-unas-manicura`...) prometian "envio a Hacienda", "facturas
+// homologadas por la AEAT" y "QR de cotejo", y el vigilante daba VERDE. Una de
+// ellas es una landing entera dedicada a VeriFactu, con el claim repetido en la
+// meta description, el og:description, el twitter:description y el JSON-LD.
+//
+// Es la segunda vez que un vigilante de esta familia se queda ciego por donde
+// mira (la primera fue `planes.mjs`, que leia el prompt para los precios pero no
+// para el contenido). La leccion ya esta escrita en el CLAUDE.md y conviene
+// repetirla: **un vigilante con un punto ciego es peor que ninguno, porque da
+// por cerrado justo lo que vigila.**
+function htmlsDeWeb() {
+  const raizWeb = path.join(RAIZ, 'web');
+  if (!existsSync(raizWeb)) return [];
+  const out = [];
+  const anda = (dir, rel) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      // `web/app` es el export de Expo (gitignored, ~8 MB): ni es fuente ni se
+      // edita a mano. Lo suyo lo vigila `claves.mjs` contra el bundle.
+      if (e.name === 'app' || e.name === 'node_modules' || e.name.startsWith('.')) continue;
+      const abs = path.join(dir, e.name);
+      const r = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) anda(abs, r);
+      else if (e.name.endsWith('.html')) out.push(`web/${r}`);
+    }
+  };
+  anda(raizWeb, '');
+  return out;
 }
 
-let indiceEnlaces = null;
-function enlazada(rel) {
-  if (indiceEnlaces === null) {
-    indiceEnlaces = '';
-    for (const f of readdirSync(path.join(RAIZ, 'web')).filter((x) => x.endsWith('.html'))) {
-      indiceEnlaces += leer(`web/${f}`);
-    }
-    if (existsSync(path.join(RAIZ, 'vercel.json'))) indiceEnlaces += leer('vercel.json');
-  }
-  const base = path.basename(rel);
-  // Una pagina se cuenta como enlazada si otra la nombra (fuera de si misma).
-  const propio = leer(rel);
-  const fuera = indiceEnlaces.split(propio).join('');
-  return fuera.includes(base);
+// Un boceto es una pagina que se marca `noindex` a proposito (index_v4, index_v5,
+// diseno-*). Todo lo demas que sirva el dominio lo puede indexar un buscador.
+function esBoceto(rel) {
+  return /noindex/i.test(leer(rel));
+}
+
+// Superficie viva = la que puede ver un cliente o un buscador.
+//
+// Ya NO es solo la lista de arriba: es la lista MAS cualquier html de web/ que no
+// se declare `noindex`. Con la lista sola, cada landing nueva nacia invisible
+// para este vigilante y habia que acordarse de anadirla a mano -- que es
+// justamente lo que no paso con las ocho de SEO. Ahora nace vigilada, y para
+// salir de la vigilancia hay que decir explicitamente que es un boceto.
+function superficiesVivas() {
+  const explicitas = SUPERFICIES_VIVAS.filter((f) => existsSync(path.join(RAIZ, f)));
+  const htmlVivas = htmlsDeWeb().filter((f) => !esBoceto(f));
+  return [...new Set([...explicitas, ...htmlVivas])];
+}
+
+// Bocetos: siguen SIRVIENDOSE (el dominio publica la carpeta entera), asi que un
+// claim viejo ahi sigue siendo publico -- pero como llevan noindex y no los ve
+// casi nadie van de aviso, no tumban la CI. El arreglo de verdad es borrarlos,
+// como ya se hizo con demo_v2.html.
+function copiasMuertas() {
+  const vivas = new Set(superficiesVivas());
+  return htmlsDeWeb().filter((f) => !vivas.has(f));
 }
 
 export function revisar(texto, fichero, nivel, claims = CLAIMS) {
@@ -198,7 +243,7 @@ async function ejecutar() {
   if (vigilados.length === 0) return [];
 
   const hallazgos = [];
-  for (const f of SUPERFICIES_VIVAS) {
+  for (const f of superficiesVivas()) {
     if (!existsSync(path.join(RAIZ, f))) continue;
     hallazgos.push(...revisar(leer(f), f, 'bloqueante', vigilados));
   }

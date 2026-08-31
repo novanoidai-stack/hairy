@@ -18,7 +18,7 @@ export const LANDING_PAGES = [
       { titulo: 'Agenda que respeta los tiempos reales de la barberia', texto: 'Cada servicio lleva su duracion real. Si un servicio tiene tiempo de reposo (un tinte o tratamiento de barba) o encadena dos manos, la agenda lo coloca solo y te avisa de los huecos muertos que podrias estar aprovechando.' },
       { titulo: 'Barberia y peluqueria en la misma cuenta', texto: 'Si combinas servicio de senor y senora, tarifas de barba, corte y color, todo convive sin duplicar clientes ni agendas. Servicios combinables y precios por profesional.' },
       { titulo: 'Fichaje legal del personal', texto: 'Registro de jornada inalterable que cumple el art. 34.9 del Estatuto de los Trabajadores, con entradas, salidas, pausas y correcciones con doble conformidad. Descargable en PDF para una inspeccion.' },
-      { titulo: 'Facturacion VeriFactu en regla', texto: 'Tickets y facturas con cadena AEAT, QR de cotejo y envio a Hacienda. Sin otro programa de facturacion encimado.' },
+      { titulo: 'Libro de tickets inalterable', texto: 'Tickets y facturas con cadena SHA-256 y numeracion correlativa segun el RD 1007/2023; el QR de cotejo y el envio a Hacienda estan en desarrollo. Sin otro programa de facturacion encimado.' },
       { titulo: 'Asistente que atiende WhatsApp 24/7', texto: 'Reserva citas, consulta el catalogo y cobra la senal por Stripe cuando alguien escribe fuera de horario. La barberia sigue vendiendo aunque estes cortando.' },
       { titulo: 'Sin comisiones por reserva', texto: 'No cobramos un porcentaje de cada cita ni de cada cobro. Precios cerrados desde 39 eur/mes, profesionales ilimitados.' }
     ],
@@ -42,7 +42,7 @@ export const LANDING_PAGES = [
       { titulo: 'Fichas tecnicas y memoria de cada tratamiento', texto: 'Alergias y alertas sanitarias visibles, fotos antes/despues, historial de servicios y productos de homecare recomendados. Todo en la ficha de la clienta.' },
       { titulo: 'Agenda para servicios largos y combinados', texto: 'Tiempos de reposo aprovechados (mientras un producto actua, atiendes a otra clienta) y servicios que encadenan varias manos sin descoordinar el dia.' },
       { titulo: 'Campañas y fidelizacion', texto: 'Reactiva a tus clientas con campañas de WhatsApp, cumpleanos automatizados, bonos, tarjetas regalo y un programa de fidelizacion por niveles y referidos.' },
-      { titulo: 'Caja, informes y VeriFactu integrados', texto: 'Cobro multi-pago (efectivo, tarjeta, bono), arqueo, informes de ingresos por profesional/servicio y facturacion oficial AEAT con QR de cotejo. Un solo programa, no cinco.' },
+      { titulo: 'Caja, informes y libro de tickets integrados', texto: 'Cobro multi-pago (efectivo, tarjeta, bono), arqueo, informes de ingresos por profesional/servicio y libro de tickets encadenado con SHA-256, cuyo envio a la AEAT y QR de cotejo estan en desarrollo. Un solo programa, no cinco.' },
       { titulo: 'Asistente de IA por WhatsApp y voz', texto: 'Da cita, contesta dudas y cobra la senal fuera de horario. Opcional y aparte del plan: se activa o se apaga cuando quieras.' }
     ],
     faqs: [
@@ -65,7 +65,7 @@ export const LANDING_PAGES = [
       { titulo: 'Senales anti no-show para proteger tus huecos', texto: 'Cobra una senal por Stripe a clientas nuevas o con historial de ausencias. Si no asisten, el hueco queda compensado y la lista de espera se activa sola.' },
       { titulo: 'WhatsApp con IA que atiende mientras trabajas', texto: 'Chispa responde dudas de precios, muestra huecos libres y reserva citas mientras tienes las manos ocupadas con una clienta.' },
       { titulo: 'Fichas con fotos de disenos y preferencias', texto: 'Guarda fotos de disenos anteriores, colores favoritos y sensibilidades en la ficha de cada clienta para dar un servicio personalizado.' },
-      { titulo: 'Facturacion VeriFactu y control de caja', texto: 'Cobro por tarjeta, Bizum o efectivo con tickets homologados por la AEAT y arqueo diario sin errores.' }
+      { titulo: 'Libro de tickets inalterable y control de caja', texto: 'Cobro por tarjeta, Bizum o efectivo con tickets encadenados por SHA-256 --el envio a la AEAT esta en desarrollo-- y arqueo diario sin errores.' }
     ],
     faqs: [
       { q: 'Puedo combinar retirada de esmalte y manicura en una sola cita?', a: 'Si. Mecha permite anadir complementos (add-ons) y servicios encadenados para que la clienta reserve el servicio principal y los extras con su duracion real calculada.' },
@@ -96,23 +96,23 @@ export const LANDING_PAGES = [
   {
     slug: 'verifactu-peluqueria',
     tipo: 'modulo',
-    h1: 'Facturacion VeriFactu para peluquerias: tickets AEAT con QR, sin otro programa',
-    title: 'VeriFactu para peluquerias | Facturacion AEAT con QR — Mecha',
-    description: 'Facturacion VeriFactu para peluquerias y barberias: tickets y facturas con cadena AEAT, QR de cotejo y envio a Hacienda, integrados en tu software de gestion. Sin otro programa.',
-    lead: 'Con la obligacion de VeriFactu, los tickets de tu peluqueria tienen que ir a Hacienda con cadena, huella y QR. Mecha lo lleva integrado: cobras en caja y la factura se genera, encadena, firma y envia a la AEAT sin abrir otro programa ni otro datofono fiscal.',
+    h1: 'Facturacion para peluquerias: libro de tickets inalterable, sin otro programa',
+    title: 'VeriFactu para peluquerias | Libro de tickets inalterable — Mecha',
+    description: 'Facturacion para peluquerias y barberias: libro de tickets inalterable con cadena SHA-256 y numeracion correlativa segun el RD 1007/2023, integrado en tu software de gestion. Sin otro programa.',
+    lead: 'Con la obligacion de VeriFactu, los tickets de tu peluqueria tienen que ir a Hacienda con cadena, huella y QR, y en Mecha ese envio a la AEAT con su QR de cotejo esta en desarrollo. Lo que si llevas integrado hoy: cobras en caja y el ticket se registra, se encadena con hash SHA-256 y se numera de forma correlativa, sin abrir otro programa ni otro datofono fiscal.',
     bullets: [
-      { titulo: 'Cadena AEAT con huella SHA-256', texto: 'Cada factura se encadena con la anterior mediante huella SHA-256, segun el esquema RegFactuSistemaFacturacion. Inmutable una vez generada.' },
-      { titulo: 'QR de cotejo en cada factura', texto: 'El cliente puede escanear el QR y verificar la factura en el portal de la AEAT. Cumple el formato exigido por la orden HAC.' },
-      { titulo: 'Envio automatico de Altas y Anulaciones', texto: 'Mecha genera el XML de Alta y lo envia a la AEAT, gestiona la respuesta y permite anular facturas con su evento correspondiente.' },
+      { titulo: 'Cadena inalterable con huella SHA-256', texto: 'Cada factura se encadena con la anterior mediante huella SHA-256, segun el esquema RegFactuSistemaFacturacion. Inmutable una vez generada.' },
+      { titulo: 'QR de cotejo', texto: 'El QR con el que la clienta podra verificar la factura en el portal de la AEAT esta en desarrollo y llegara junto con el envio.' },
+      { titulo: 'Registro inalterable de cada cobro', texto: 'Cada ticket entra en un libro encadenado con hash SHA-256 y numeracion correlativa, y se rectifica en vez de borrarse; el XML de Alta y su envio a la AEAT estan en desarrollo.' },
       { titulo: 'Modalidad puro VeriFactu', texto: 'Disenado para la modalidad de aseguramiento por el propio sistema del contribuyente, sin depender de terceros para el encadenamiento.' },
       { titulo: 'Todo en tu caja habitual', texto: 'No duplicas operativa: cobras en el TPV de Mecha y la factura fiscal nace del cobro, con el cliente, las lineas y los impuestos correctos.' },
       { titulo: 'Configuracion fiscal y borradores', texto: 'Defines tus datos fiscales, serie, numero, regimen de IVA y generas borradores antes de remitir. Controles de test de cadena incluidos.' }
     ],
     faqs: [
-      { q: 'Que es VeriFactu y a quien obliga?', a: 'VeriFactu es el sistema de facturacion verificable aprobado por la Orden HAC/1177/2024 que obliga a determinados contribuyentes (incluidos muchos salones) a remitir los registros de facturacion a la AEAT con encadenamiento y firma. Mecha lo implementa en modalidad puro.' },
-      { q: 'Tengo que comprar un datofono fiscal aparte?', a: 'No. Mecha genera la factura VeriFactu directamente desde tu cobro de caja, con el QR y la cadena AEAT. No necesitas un sistema fiscal independiente.' },
+      { q: 'Que es VeriFactu y a quien obliga?', a: 'VeriFactu es el sistema de facturacion verificable aprobado por la Orden HAC/1177/2024 que obliga a determinados contribuyentes (incluidos muchos salones) a remitir los registros de facturacion a la AEAT con encadenamiento y firma, y en Mecha esa remision y el QR de cotejo estan en desarrollo: hoy lo que funciona es el libro de tickets inalterable, con cadena SHA-256 y numeracion correlativa del RD 1007/2023.' },
+      { q: 'Tengo que comprar un datofono fiscal aparte?', a: 'No. Mecha registra el ticket directamente desde tu cobro de caja y lo encadena con SHA-256, y el QR y el envio a la AEAT estan en desarrollo. No necesitas un sistema fiscal independiente.' },
       { q: 'Como se encadenan las facturas en Mecha?', a: 'Cada factura lleva una huella SHA-256 calculada a partir de la factura anterior, formando una cadena inmutable que cumple el esquema RegFactuSistemaFacturacion de la AEAT.' },
-      { q: 'Puedo anular una factura emitida por error?', a: 'Si. Mecha registra el evento de anulacion correspondiente y lo envia a la AEAT, manteniendo la cadena y la trazabilidad intactas.' },
+      { q: 'Puedo anular una factura emitida por error?', a: 'Si. Mecha registra el evento de anulacion manteniendo la cadena y la trazabilidad intactas --el ticket no se borra, se rectifica--, y su remision a la AEAT todavia no esta disponible.' },
       { q: 'El VeriFactu de Mecha esta incluido en el precio?', a: 'Si. La facturacion VeriFactu esta dentro del plan Esencial (39 eur/mes mas IVA), junto con la agenda, las fichas, la caja y los informes. Sin modulos extra para facturar en regla.' }
     ]
   },
@@ -199,7 +199,7 @@ export const LANDING_PAGES = [
       { titulo: 'Sin comision por reserva', texto: 'Booksy cobra por cada reserva que entra. Mecha no: precios cerrados desde 39 eur/mes, sin porcentaje por cita ni por cobro. Cuanto mas creces, mas te ahorras.' },
       { titulo: 'Una agenda que entiende el tinte', texto: 'Tiempos muertos productivos, fases activo-reposo-activo y servicios encadenados entre profesionales. La agenda de Mecha esta hecha para como trabaja una peluqueria, no para cualquier negocio.' },
       { titulo: 'IA que atiende WhatsApp 24/7', texto: 'Un asistente que da cita, contesta dudas y cobra la senal fuera de horario. En Booksy no existe; en Mecha es un addon que activas cuando quieras.' },
-      { titulo: 'VeriFactu y fichaje legal incluidos', texto: 'Facturacion oficial AEAT con QR de cotejo y registro de jornada conforme al art. 34.9 ET, dentro del plan. Sin modulos fiscales extra.' },
+      { titulo: 'Libro de tickets y fichaje legal incluidos', texto: 'Libro de tickets encadenado con SHA-256 --su envio a la AEAT y el QR de cotejo estan en desarrollo-- y registro de jornada conforme al art. 34.9 ET, dentro del plan. Sin modulos fiscales extra.' },
       { titulo: 'Tus clientes son tuyos', texto: 'Mecha no es un marketplace: no compartes tus clientas con otros salones ni competis en el mismo buscador. Tus datos son tuyos y los exportas cuando quieras.' },
       { titulo: 'Migracion desde Booksy en 10 minutos', texto: 'Importas tus clientes y tu agenda desde Booksy de forma asistida, o subes una foto de tu agenda y el importador IA de Mecha la convierte en datos.' }
     ],
@@ -208,7 +208,7 @@ export const LANDING_PAGES = [
       { aspecto: 'Agenda con tiempos de reposo de tinte', mecha: 'Si (fases activo-reposo)', otro: 'No' },
       { aspecto: 'Servicios encadenados entre profesionales', mecha: 'Si', otro: 'No' },
       { aspecto: 'Asistente IA por WhatsApp y voz 24/7', mecha: 'Si (Chispa)', otro: 'No' },
-      { aspecto: 'Facturacion VeriFactu (AEAT)', mecha: 'Si, incluida (SHA-256)', otro: 'No / modulo aparte' },
+      { aspecto: 'Libro de tickets inalterable (SHA-256)', mecha: 'Si, incluido', otro: 'No / modulo aparte' },
       { aspecto: 'Fichaje legal (art. 34.9 ET)', mecha: 'Si, inalterable', otro: 'No' },
       { aspecto: 'Modelo de privacidad', mecha: 'Software (tus clientas son tuyas)', otro: 'Marketplace competidor' },
       { aspecto: 'Precio mensual', mecha: 'Desde 39 eur/mes + IVA', otro: 'Cuota base + comisiones' }
@@ -218,7 +218,7 @@ export const LANDING_PAGES = [
       { q: 'Puedo migrar mis clientes y mi agenda desde Booksy?', a: 'Si. La migracion desde Booksy es asistida y suele tardar unos 10 minutos. Tambien puedes subir una foto de tu agenda de papel y el importador IA de Mecha la convierte en datos.' },
       { q: 'Mecha cobra comision por cada reserva como Booksy?', a: 'No. Mecha tiene precios cerrados (Esencial 39 eur/mes, Estudio 59 eur/mes, mas IVA) sin comision por reserva ni por cobro. Cuantas mas reservas entran, mas te ahorras frente a un modelo por comision.' },
       { q: 'En Mecha mis clientes compiten con otros salones como en un marketplace?', a: 'No. Mecha es software de gestion, no un marketplace. Tus clientas no se comparten ni aparecen junto a otros salones en un buscador. Tus datos son tuyos y los exportas cuando quieras.' },
-      { q: 'Tiene Mecha cosas que Booksy no tiene?', a: 'Si: agenda con tiempos muertos productivos y servicios encadenados, IA conversacional por WhatsApp y voz, facturacion VeriFactu con QR AEAT, fichaje legal y depositos dinamicos por riesgo de no-show.' }
+      { q: 'Tiene Mecha cosas que Booksy no tiene?', a: 'Si: agenda con tiempos muertos productivos y servicios encadenados, IA conversacional por WhatsApp y voz, libro de tickets inalterable con cadena SHA-256, fichaje legal y depositos dinamicos por riesgo de no-show.' }
     ]
   },
   {
@@ -233,7 +233,7 @@ export const LANDING_PAGES = [
       { titulo: 'Precios cerrados, sin comision por reserva', texto: 'Frente al modelo de 20% por cliente nuevo y comision por cita de Fresha, Mecha ofrece precios cerrados desde 39 eur/mes sin porcentaje por reserva ni por cobro. Ahorra miles de euros al ano.' },
       { titulo: 'Agenda inteligente de peluqueria', texto: 'Tiempos muertos productivos, fases activo-reposo-activo, servicios encadenados multi-profesional y absorcion automatica de retrasos en cascada.' },
       { titulo: 'IA conversacional 24/7', texto: 'Un asistente que atiende WhatsApp y (opcional) la voz: da cita, consulta el catalogo y cobra la senal fuera de horario.' },
-      { titulo: 'VeriFactu y registro de jornada', texto: 'Facturacion oficial AEAT con QR y cadena, y fichaje legal conforme al art. 34.9 ET, integrados en el plan. Sin modulos fiscales extra.' },
+      { titulo: 'Libro de tickets y registro de jornada', texto: 'Libro de tickets con cadena SHA-256 --su envio a la AEAT y el QR de cotejo estan en desarrollo-- y fichaje legal conforme al art. 34.9 ET, integrados en el plan. Sin modulos fiscales extra.' },
       { titulo: 'Tus clientes son tuyos, no un marketplace', texto: 'Mecha es software, no un marketplace: tus clientas no se comparten ni compiten con otros salones. Exportas tus datos cuando quieras.' },
       { titulo: 'Migracion desde Fresha en 10 minutos', texto: 'Importas clientes y agenda desde Fresha de forma asistida, o subes una foto de tu agenda y el importador IA la convierte en datos.' }
     ],
@@ -266,7 +266,7 @@ export const LANDING_PAGES = [
       { titulo: '0% comisiones frente al 35% de Treatwell', texto: 'No cedas un tercio de tu facturacion en comisiones de marketplace. Con Mecha el 100% del dinero de cada cita es para tu salon.' },
       { titulo: 'Tus clientas nunca veran a la competencia', texto: 'En Treatwell tus clientas reciben ofertas de otros salones cercanos. En Mecha tu portal de reservas es privado y exclusivo de tu marca.' },
       { titulo: 'Agenda especializada en peluqueria y color', texto: 'Gestiona fases de reposo de tinte, balayage y tratamientos sin bloquear el sillon a ciegas como hace Treatwell.' },
-      { titulo: 'VeriFactu y control horario incluidos', texto: 'Facturas homologadas por la AEAT con QR y registro inalterable de jornada para inspecciones laborales dentro de tu cuota.' },
+      { titulo: 'Libro de tickets y control horario incluidos', texto: 'Facturas encadenadas con SHA-256 --su envio a la AEAT y el QR de cotejo estan en desarrollo-- y registro inalterable de jornada para inspecciones laborales dentro de tu cuota.' },
       { titulo: 'Migracion asistida en 10 minutos', texto: 'Traspasa tu base de datos de clientes desde Treatwell de forma rapida y segura.' }
     ],
     comparativa: [
@@ -295,14 +295,14 @@ export const LANDING_PAGES = [
     bullets: [
       { titulo: 'Especializado en peluqueria y estetica', texto: 'Fichas de color con oxidante, gramos, tonos y tiempos de exposicion que Square no tiene.' },
       { titulo: 'Tiempos de reposo quimico nativos', texto: 'La agenda de Mecha permite meter cortes rapidos mientras un tinte actua, duplicando el rendimiento por sillon.' },
-      { titulo: 'Cumplimiento fiscal VeriFactu (AEAT)', texto: 'Tickets encadenados con SHA-256 y codigo QR oficial de Hacienda, adaptado a la ley espanola.' },
+      { titulo: 'Libro de tickets inalterable (RD 1007/2023)', texto: 'Tickets encadenados con SHA-256 y numeracion correlativa, adaptado a la ley espanola; el envio a la AEAT y el QR de cotejo estan en desarrollo.' },
       { titulo: 'Fichaje legal inalterable art. 34.9 ET', texto: 'Registro de jornada obligatorio con marca de tiempo del servidor para inspecciones de trabajo.' },
       { titulo: 'Recepcionista de WhatsApp con IA', texto: 'Atiende y cobra reservas automaticamente mientras Square solo envia SMS basicos.' }
     ],
     comparativa: [
       { aspecto: 'Fichas con formulas de color y tecnicas', mecha: 'Si, especializado', otro: 'Notas de texto basicas' },
       { aspecto: 'Tiempos de reposo en la agenda', mecha: 'Si (fases automaticas)', otro: 'No (bloque continuo ciego)' },
-      { aspecto: 'VeriFactu AEAT con QR de cotejo', mecha: 'Si, homologado', otro: 'No' },
+      { aspecto: 'Libro de tickets inalterable (SHA-256)', mecha: 'Si', otro: 'No' },
       { aspecto: 'Registro de jornada laboral (Art. 34.9 ET)', mecha: 'Si, inalterable', otro: 'No' },
       { aspecto: 'Asistente IA por WhatsApp 24/7', mecha: 'Si (Chispa)', otro: 'No' },
       { aspecto: 'Tarifa mensual', mecha: 'Desde 39 eur/mes', otro: 'Gratis limitado / suscripcion por staff' }
