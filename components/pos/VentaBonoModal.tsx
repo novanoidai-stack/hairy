@@ -19,7 +19,14 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
   const [sesiones, setSesiones] = useState('5');
   const [precio, setPrecio] = useState('');
   const [metodo, setMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
-  
+
+  // Spec 6: el bono de estetica no es un contador, es un calendario ("la sesion
+  // 3 de 10 el jueves"). Si se agenda aqui, la venta deja las N citas puestas
+  // con su cadencia clinica; si no, quedan las N sesiones sin fecha.
+  const [agendar, setAgendar] = useState(false);
+  const [inicioPrimera, setInicioPrimera] = useState('');
+  const [cadenciaDias, setCadenciaDias] = useState('30');
+
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -64,6 +71,12 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
     const precioFloat = parseFloat((precio || '0').replace(',', '.'));
     if (isNaN(precioFloat) || precioFloat <= 0) { setError('Precio inválido'); return; }
 
+    const numCadencia = parseInt(cadenciaDias, 10);
+    if (agendar) {
+      if (!inicioPrimera) { setError('Indica cuándo es la primera sesión'); return; }
+      if (isNaN(numCadencia) || numCadencia <= 0) { setError('Cadencia inválida'); return; }
+    }
+
     setEnviando(true);
     setError('');
 
@@ -73,7 +86,10 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
         p_servicio_id: servicioId,
         p_sesiones: numSesiones,
         p_precio_cents: Math.round(precioFloat * 100),
-        p_metodo: metodo
+        p_metodo: metodo,
+        // Sin agendar van como null y el servidor crea las sesiones sin fecha.
+        p_inicio_primera: agendar ? new Date(inicioPrimera).toISOString() : null,
+        p_cadencia_dias: agendar ? numCadencia : null
       });
 
       if (rpcErr) throw rpcErr;
@@ -142,6 +158,29 @@ export function VentaBonoModal({ onClose, onSuccess }: VentaBonoModalProps) {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input type="checkbox" checked={agendar} onChange={e => setAgendar(e.target.checked)} style={{ cursor: 'pointer' }} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Agendar las sesiones ahora</span>
+              </label>
+              <div style={{ fontSize: 11, color: T.textTer, marginTop: 4, lineHeight: 1.45 }}>
+                Deja las {parseInt(sesiones, 10) > 0 ? parseInt(sesiones, 10) : 'N'} citas puestas con su cadencia. Sin marcar, las sesiones quedan sin fecha y se enganchan a citas según se pidan.
+              </div>
+
+              {agendar && (
+                <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                  <div style={{ flex: 2 }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textTer, marginBottom: 4 }}>Primera sesión</label>
+                    <input type="datetime-local" value={inicioPrimera} onChange={e => setInicioPrimera(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 14, boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textTer, marginBottom: 4 }}>Cada (días)</label>
+                    <input type="number" min="1" value={cadenciaDias} onChange={e => setCadenciaDias(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 14, boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {error && <div style={{ fontSize: 12, color: T.danger }}>{error}</div>}

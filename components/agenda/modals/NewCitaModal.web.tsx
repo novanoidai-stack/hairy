@@ -1159,8 +1159,8 @@ export default function NewCitaModal({
         citasAGuardar.length === 1 &&
         !grupoId &&
         !citasAGuardar[0].deposito_requerido;
-      const serieId = esRecurrente ? crypto.randomUUID() : null;
-      if (esRecurrente) citasAGuardar[0].serie_id = serieId;
+      // El serie_id lo pone `crear_serie_citas` en el servidor (spec 12): es quien
+      // crea las N ocurrencias, asi que es quien las hermana.
 
       // Validar cada cita contra DB y entre si
       for (let i = 0; i < citasAGuardar.length; i++) {
@@ -1269,11 +1269,51 @@ export default function NewCitaModal({
       const addonsPerCita = citasAGuardar.map((c) => c._addons || []);
       const citasParaDB = citasAGuardar.map(({ _addons, ...rest }) => rest);
 
-      // Insert all citas
-      const { data: citasInsertadas, error } = await supabase
-        .from("citas")
-        .insert(citasParaDB)
-        .select();
+      // Spec 12: la serie la monta el SERVIDOR, en UNA transaccion.
+      //
+      // Antes se insertaba aqui la cita base y luego el cliente generaba las
+      // ocurrencias 2..M una a una: si fallaba la quinta quedaban cuatro sueltas,
+      // y al vivir solo en este modal ni el portal ni Chispa podian crear una
+      // serie. `crear_serie_citas` valida lo mismo que valida esta pantalla
+      // (cierre, bloqueo, horario laboral y solape activa-activa) y devuelve las
+      // omitidas con su motivo.
+      let citasInsertadas: any[] | null = null;
+      let error: any = null;
+
+      if (esRecurrente) {
+        const { data: res, error: rpcErr } = await supabase.rpc(
+          "crear_serie_citas",
+          {
+            p_base: citasParaDB[0],
+            p_intervalo_semanas: repetirCada,
+            p_repeticiones: repetirVeces,
+            p_addon_ids: addonsPerCita[0] || [],
+          },
+        );
+        const r = res as any;
+        if (rpcErr) {
+          error = rpcErr;
+        } else if (!r?.ok) {
+          error = new Error(r?.error || "No se pudo crear la serie.");
+        } else {
+          const ids: string[] = r.cita_ids || [];
+          const { data: creadas } = await supabase
+            .from("citas")
+            .select()
+            .in("id", ids);
+          citasInsertadas = creadas ?? [];
+          const omitidas: string[] = r.omitidas || [];
+          if (omitidas.length > 0) {
+            alert(
+              `Serie creada: ${r.creadas} de ${repetirVeces} citas.\nOmitidas: ${omitidas.join(", ")}.\nColocalas a mano si lo necesitas.`,
+            );
+          }
+        }
+      } else {
+        const r = await supabase.from("citas").insert(citasParaDB).select();
+        citasInsertadas = r.data;
+        error = r.error;
+      }
 
       setGuardando(false);
       if (error) {
@@ -1284,17 +1324,21 @@ export default function NewCitaModal({
         return;
       }
 
-      // Insert add-ons for each cita
+      // Insert add-ons for each cita.
+      // En la serie no: `crear_serie_citas` ya los inserta para cada ocurrencia
+      // dentro de su transaccion, y repetirlos aqui los duplicaria.
       if (citasInsertadas) {
-        for (let i = 0; i < citasInsertadas.length; i++) {
-          const addons = addonsPerCita[i];
-          if (addons.length > 0 && citasInsertadas[i]?.id) {
-            await supabase.from("cita_addons").insert(
-              addons.map((aid: string) => ({
-                cita_id: citasInsertadas[i].id,
-                addon_id: aid,
-              })),
-            );
+        if (!esRecurrente) {
+          for (let i = 0; i < citasInsertadas.length; i++) {
+            const addons = addonsPerCita[i];
+            if (addons.length > 0 && citasInsertadas[i]?.id) {
+              await supabase.from("cita_addons").insert(
+                addons.map((aid: string) => ({
+                  cita_id: citasInsertadas[i].id,
+                  addon_id: aid,
+                })),
+              );
+            }
           }
         }
 
@@ -1317,123 +1361,6 @@ export default function NewCitaModal({
               alergiaErr,
             );
           }
-        }
-      }
-
-      // Serie recurrente: genera las repeticiones (occ 2..M) desplazando la cita base
-      // repetirCada semanas cada vez. Cada ocurrencia se valida igual que la base
-      // (bloqueo + horario laboral + solape activa-activa en DB); las que chocan se
-      // OMITEN y se reportan (no se mueven de hueco: el gestor las coloca a mano).
-      if (esRecurrente && citasInsertadas && citasInsertadas.length > 0) {
-        const base = citasAGuardar[0];
-        const addonsBase: string[] = base._addons || [];
-        const bInicio = new Date(base.inicio);
-        const bFin = new Date(base.fin);
-        const bFinActiva = new Date(base.fin_activa);
-        const bFinEspera = new Date(base.fin_espera);
-        const durMs = bFin.getTime() - bInicio.getTime();
-        const filasSerie: any[] = [];
-        const omitidas: string[] = [];
-
-        for (let k = 1; k < repetirVeces; k++) {
-          const shift = k * repetirCada * 7 * 86400000;
-          const oInicio = new Date(bInicio.getTime() + shift);
-          const oFin = new Date(oInicio.getTime() + durMs);
-          const oFinActiva = new Date(bFinActiva.getTime() + shift);
-          const oFinEspera = new Date(bFinEspera.getTime() + shift);
-          const fechaTxt = oInicio.toLocaleDateString(LOCALE, {
-            day: "numeric",
-            month: "short",
-          });
-
-          // Bloqueo del profesional en ese hueco
-          const { data: bloq } = await supabase
-            .from("bloqueos_profesional")
-            .select("id")
-            .eq("profesional_id", base.profesional_id)
-            .lt("inicio", oFin.toISOString())
-            .gt("fin", oInicio.toISOString());
-          if (bloq && bloq.length > 0) {
-            omitidas.push(fechaTxt);
-            continue;
-          }
-
-          // Horario laboral (turnos / horario partido)
-          const errH = await validarHorarioLaboral(
-            base.profesional_id,
-            oInicio,
-            oFin,
-          );
-          if (errH) {
-            omitidas.push(fechaTxt);
-            continue;
-          }
-
-          // Solape activa-activa contra las citas que ocupan hueco en DB
-          const { data: cand } = await supabase
-            .from("citas")
-            .select("id, profesional_id, inicio, fin_activa, fin_espera, fin")
-            .eq("profesional_id", base.profesional_id)
-            .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
-            .lt("inicio", oFin.toISOString())
-            .gt("fin", oInicio.toISOString());
-          const choca = citaSolapaOcupacion(
-            {
-              inicio: oInicio,
-              finActiva: oFinActiva,
-              finEspera: oFinEspera,
-              fin: oFin,
-            },
-            (cand || []) as any,
-            base.profesional_id,
-          );
-          if (choca) {
-            omitidas.push(fechaTxt);
-            continue;
-          }
-
-          filasSerie.push({
-            negocio_id: base.negocio_id,
-            profesional_id: base.profesional_id,
-            servicio_id: base.servicio_id,
-            cliente_id: base.cliente_id,
-            inicio: oInicio.toISOString(),
-            fin: oFin.toISOString(),
-            fin_activa: oFinActiva.toISOString(),
-            fin_espera: oFinEspera.toISOString(),
-            // Las repeticiones de la serie nacen pendiente igual que la base.
-            estado: CITA_STATUS.PENDIENTE,
-            canal: "manual",
-            creado_por: userId,
-            serie_id: serieId,
-          });
-        }
-
-        if (filasSerie.length > 0) {
-          const { data: serieInsertadas } = await supabase
-            .from("citas")
-            .insert(filasSerie)
-            .select();
-          if (serieInsertadas && addonsBase.length > 0) {
-            for (const s of serieInsertadas) {
-              if (s?.id)
-                await supabase.from("cita_addons").insert(
-                  addonsBase.map((aid: string) => ({
-                    cita_id: s.id,
-                    addon_id: aid,
-                  })),
-                );
-            }
-          }
-          if (serieInsertadas)
-            for (const s of serieInsertadas) citasInsertadas.push(s);
-        }
-
-        const creadas = 1 + filasSerie.length;
-        if (omitidas.length > 0) {
-          alert(
-            `Serie creada: ${creadas} de ${repetirVeces} citas.\nOmitidas por conflicto de horario/hueco: ${omitidas.join(", ")}.\nColocalas a mano si lo necesitas.`,
-          );
         }
       }
 
