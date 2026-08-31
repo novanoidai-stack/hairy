@@ -7,8 +7,10 @@
 >
 > Complementa —y en tres puntos **corrige**— a `informes/SPECS-LO-QUE-FALTA-2026-08-30.md` §1.
 >
-> Incluye además, por petición, el estado real de los **módulos huérfanos** (§8) y de la
-> **activación** (§9), que son los otros dos frentes abiertos.
+> Incluye además, por petición, el estado real de los **módulos huérfanos** (parte 2) y de la
+> **activación** (parte 3), que son los otros dos frentes abiertos, y dos cabos sueltos que
+> salieron auditando —un claim fiscal por implicación y las vulnerabilidades de dependencias—
+> en la parte 4.
 
 ---
 
@@ -354,7 +356,7 @@ fases, ±5 min en móvil, visual de `transicion`, cinta de «aquí cabe») es UI
 
 ---
 
-# PARTE 2 — MÓDULOS HUÉRFANOS (§8)
+# PARTE 2 — MÓDULOS HUÉRFANOS (§8 del estudio del 30 ago)
 
 Estado **medido el 31 ago 2026**. El triaje del 30 ago decía «12 se borran, 10 se enchufan, 6
 por triar». Ejecutado: **poco**.
@@ -402,7 +404,7 @@ aquí cabe» quiso ser. La spec dice explícitamente «se rehace bien y se borra
 
 ---
 
-# PARTE 3 — ACTIVACIÓN (§9)
+# PARTE 3 — ACTIVACIÓN (§9 del estudio del 30 ago)
 
 El hallazgo C del estudio decía que Mecha no tiene un problema de funciones que faltan sino de
 funciones construidas que nadie usa. **Sigue siendo verdad, con un matiz nuevo bueno.**
@@ -460,7 +462,100 @@ catálogo con 7 servicios técnificados, el resultado medible será el mismo cer
 
 ---
 
-## 10. Orden recomendado
+# PARTE 4 — DOS CABOS SUELTOS QUE NO SON DE LA SPEC 1
+
+Salieron auditando lo anterior. No bloquean nada, pero se pierden si no se anotan.
+
+## 10. El claim de VeriFactu que queda, y es por implicación
+
+El 31 ago se corrigieron 20 claims fiscales falsos en `scripts/seo/pages.mjs` (el generador
+de las landings). Queda uno que **el vigilante no marca y probablemente debería**, en el FAQ de
+`alternativa-square-appointments`:
+
+> «Porque Square carece de las funciones críticas de una peluquería: no gestiona tiempos de
+> reposo (**te hace perder hasta un 40 % de citas**), no guarda fórmulas de tinte estructuradas
+> y **no cumple con la normativa española de VeriFactu** ni el registro obligatorio de jornada
+> laboral.»
+
+Son **dos** problemas en una frase, y ninguno lo caza `claims-fiscales.mjs` porque literalmente
+habla del competidor:
+
+1. **El claim fiscal por implicación.** Decir «Square no cumple VeriFactu» como razón para
+   elegir Mecha afirma, sin decirlo, que Mecha sí. Y no cumple: el envío a la AEAT no existe.
+   Es más difícil de defender que un claim directo, no menos: la comparativa es justo donde el
+   lector lo lee como un hecho verificado.
+2. **La cifra sin fuente.** «Hasta un 40 % de citas» no sale de ningún sitio medido. La
+   decisión 5 del `CLAUDE.md` («sin claims falsos») lo prohíbe explícitamente para la landing, y
+   ya se retiraron cifras así una vez.
+
+**Por qué no lo he tocado:** cambiar una comparativa con un competidor nombrado es decisión
+comercial, no técnica, y no tengo con qué sustituir el 40 % (habría que medirlo o quitarlo).
+
+**Si se decide arreglarlo**, el sitio es `scripts/seo/pages.mjs` (las páginas de `web/` son
+generadas y gitignoradas), y conviene extender `claims-fiscales.mjs` con un patrón para la forma
+comparativa —«no cumple … VeriFactu», «carece de … VeriFactu»— porque hoy es un hueco del
+vigilante, no un descuido puntual.
+
+## 11. Las vulnerabilidades de dependencias, y la trampa de arreglarlas
+
+GitHub avisa de 7 en la rama por defecto; `npm audit` local cuenta **19 (7 high, 12 moderate)**.
+La diferencia es normal —Dependabot deduplica y solo cuenta lo accionable— pero conviene mirar
+el detalle antes de tocar nada, porque **la reparación automática es peor que el problema**.
+
+### La trampa: `npm audit fix --force` degrada el proyecto
+
+Doce de los diecinueve avisos proponen como arreglo `expo@46.0.21`, marcado
+`isSemVerMajor: true`. Mecha va en **Expo ~54 con expo-router 6**. Eso no es una actualización:
+es **bajar ocho majors** y romper el producto entero. Afecta a `expo`, `@expo/cli`,
+`@expo/config`, `@expo/config-plugins`, `@expo/metro-config`, `uuid`, `xcode` y compañía.
+
+> **Regla:** aquí no se corre `npm audit fix --force` jamás. Se miran uno a uno.
+
+### El reparto real
+
+| Grupo | Paquetes | Riesgo real |
+|---|---|---|
+| **Cadena de build** (no viaja al navegador) | `metro`, `metro-config`, `metro-transform-worker`, `@expo/metro`, `@expo/*`, `image-size`, `js-yaml`, `brace-expansion`, `xcode` | DoS y consumo de CPU **en la máquina que compila**. Molesto en CI, no alcanzable por un usuario |
+| **Directas** | `expo`, `expo-splash-screen` | Su «arreglo» es el downgrade de arriba. No se toca sin un plan de actualización |
+| **Runtime, y es el único** | `dompurify` | Ver abajo |
+
+### El único con camino hasta el navegador: `dompurify`
+
+`jspdf@4.2.1` arrastra `dompurify@3.4.12`, y **está en el bundle de producción** —comprobado:
+`web/app/_expo/static/js/web/purify-*.js`—. El aviso es
+[GHSA-55q2-fjhq-7xh7](https://github.com/advisories/GHSA-55q2-fjhq-7xh7): *IN_PLACE hook removal
+leaves a detached subtree executable*, o sea, un bypass del saneado que deja ejecutable un
+subárbol.
+
+Dónde se usa jsPDF en Mecha, que es lo que decide si importa:
+
+```
+lib/caja/ticketPdf.web.ts       el ticket fiscal
+lib/jornadaPdf.web.ts           el registro de jornada (art. 34.9 ET)
+lib/presupuestoPdf.web.ts       los presupuestos
+```
+
+**La cadena teórica que habría que descartar:** el nombre y las notas que entran por el
+**portal público** los escribe la clienta, acaban en la ficha, y de ahí en un PDF que se genera
+**en el navegador del salón**. Es el único punto donde texto de un tercero pasa por ese
+sanitizador.
+
+**No está demostrado que sea explotable aquí** —jsPDF usa DOMPurify sobre su propio HTML de
+render, no sobre el DOM de la app— y por eso no lo he tratado como incidente. Pero es el único
+de los 19 con superficie de usuario, tiene `fixAvailable: true` **sin downgrade**, y por tanto
+es el que se mira primero.
+
+### Orden sugerido
+
+1. `dompurify` (vía `jspdf`) — el único con camino a un navegador, y se arregla solo.
+2. `brace-expansion`, `image-size`, `js-yaml` — `high`, arreglo directo, sin downgrade.
+3. La familia `metro`/`@expo/metro` — arreglo disponible, pero verificar que el build sigue
+   dando el mismo bundle (`npm run build:web` + `scripts/vigilantes/peso-bundle.mjs`).
+4. `expo` / `expo-splash-screen` — **no tocar** salvo dentro de una subida de versión planeada.
+
+---
+
+## 12. Orden recomendado
 
 ```
 1.  Paso 1 del §7      Llevar las 20 funciones del grupo A a la costura.
