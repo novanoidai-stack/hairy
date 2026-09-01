@@ -1115,7 +1115,6 @@ export function DetalleCitaModal({
   const toggleAddon = async (addon: any) => {
     setTogglingAddon(addon.id);
     const exists = citaAddons.find((ca: any) => ca.addon_id === addon.id);
-    const delta = addon.duracion_min || 0;
 
     if (exists) {
       await supabase
@@ -1136,22 +1135,7 @@ export function DetalleCitaModal({
       ]);
     }
 
-    // Addons suman al final: solo cambia fin, no fin_activa ni fin_espera
-    const inicioDate = new Date(cita.inicio);
-    const finActivaDate = new Date(inicioDate.getTime() + activo * 60000);
-    const finEsperaDate = new Date(finActivaDate.getTime() + espera * 60000);
-    const newActivo2 = exists ? Math.max(0, activo2 - delta) : activo2 + delta;
-    const newFin = new Date(finEsperaDate.getTime() + newActivo2 * 60000);
-    setActivo2(newActivo2);
-
-    await supabase
-      .from("citas")
-      .update({
-        fin: newFin.toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", cita.id);
-
+    // Los addons son solo dinero: no tocan fin, fin_activa ni fin_espera.
     triggerRefresh();
     setTogglingAddon(null);
   };
@@ -3908,7 +3892,7 @@ export function DetalleCitaModal({
                               }}
                             >
                               {active ? "+" : ""} {addon.nombre} (
-                              {addon.duracion_min}min · {addon.precio}EUR)
+                              {addon.precio}EUR)
                             </button>
                           );
                         })}

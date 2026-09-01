@@ -5598,12 +5598,12 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   // Add-ons state
   const [addons, setAddons] = useState<any[]>([]);
   const [newAddonNombre, setNewAddonNombre] = useState('');
-  const [newAddonDur, setNewAddonDur] = useState(10);
+  const [newAddonDur, setNewAddonDur] = useState(0);
   const [newAddonPrecio, setNewAddonPrecio] = useState('');
   const [addingAddon, setAddingAddon] = useState(false);
   const [editingAddonId, setEditingAddonId] = useState<string | null>(null);
   const [editAddonNombre, setEditAddonNombre] = useState('');
-  const [editAddonDur, setEditAddonDur] = useState(10);
+  const [editAddonDur, setEditAddonDur] = useState(0);
   const [editAddonPrecio, setEditAddonPrecio] = useState('');
 
   // Category pricing state
@@ -5984,22 +5984,16 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
               {!isNew && (
                 <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 14 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Add-ons opcionales</div>
-                  <div style={{ fontSize: 10, color: T.textTertiary, marginBottom: 10 }}>Extras que el cliente puede anadir a este servicio. Suman duracion y precio.</div>
+                  <div style={{ fontSize: 10, color: T.textTertiary, marginBottom: 10 }}>Extras que el cliente puede anadir a este servicio. Suman solo precio: no ocupan tiempo en agenda.</div>
 
                   {addons.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                       {addons.map((a: any) => editingAddonId === a.id ? (
                         <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(244,80,30,0.4)' }}>
                           <input className="m-input" value={editAddonNombre} onChange={e => setEditAddonNombre(e.target.value)} placeholder="Nombre" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Duracion (min)</div>
-                              <input className="m-input" value={editAddonDur} onChange={e => setEditAddonDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
-                              <input className="m-input" value={editAddonPrecio} onChange={e => setEditAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
-                            </div>
+                          <div>
+                            <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
+                            <input className="m-input" value={editAddonPrecio} onChange={e => setEditAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           </div>
                           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                             <Btn variant="ghost" size="sm" onClick={() => setEditingAddonId(null)}>Cancelar</Btn>
@@ -6023,7 +6017,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                           <div>
                             <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{a.nombre}</span>
-                            <span style={{ fontSize: 10, color: T.textTertiary, marginLeft: 8 }}>+{a.duracion_min}min -- {a.precio}EUR</span>
+                            <span style={{ fontSize: 10, color: T.textTertiary, marginLeft: 8 }}>+{a.precio}EUR</span>
                           </div>
                           <button className="m-btn-danger" onClick={async (ev) => { ev.stopPropagation(); await supabase.from('service_addons').delete().eq('id', a.id); setAddons(prev => prev.filter(x => x.id !== a.id)); }}
                             style={{ background: 'none', border: 'none', color: T.danger, cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
@@ -6042,18 +6036,12 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: `1px solid ${T.border}` }}>
                       <input className="m-input" value={newAddonNombre} onChange={e => setNewAddonNombre(e.target.value)} placeholder="Nombre (ej: Hidratacion profunda)" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Duracion (min)</div>
-                          <input className="m-input" value={newAddonDur} onChange={e => setNewAddonDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
-                          <input className="m-input" value={newAddonPrecio} onChange={e => setNewAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
-                        </div>
+                      <div>
+                        <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
+                        <input className="m-input" value={newAddonPrecio} onChange={e => setNewAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                       </div>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                        <Btn variant="ghost" size="sm" onClick={() => { setAddingAddon(false); setNewAddonNombre(''); setNewAddonDur(10); setNewAddonPrecio(''); }}>Cancelar</Btn>
+                        <Btn variant="ghost" size="sm" onClick={() => { setAddingAddon(false); setNewAddonNombre(''); setNewAddonDur(0); setNewAddonPrecio(''); }}>Cancelar</Btn>
                         <Btn variant="primary" size="sm" disabled={!newAddonNombre.trim()} onClick={async () => {
                           if (!newAddonNombre.trim() || !negocioId) return;
                           const { data, error } = await supabase.from('service_addons').insert({
@@ -6062,7 +6050,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                           }).select().single();
                           if (!error && data) {
                             setAddons(prev => [...prev, data]);
-                            setNewAddonNombre(''); setNewAddonDur(10); setNewAddonPrecio('');
+                            setNewAddonNombre(''); setNewAddonDur(0); setNewAddonPrecio('');
                             setAddingAddon(false);
                           }
                         }}>Guardar</Btn>

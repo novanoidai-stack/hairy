@@ -920,12 +920,8 @@ export default function NewCitaModal({
     duracionOverride?.duracion_activa_extra_min ??
     servicioActual?.duracion_activa_extra_min ??
     0;
-  const addonsDuracion = selectedAddons.reduce((sum, aid) => {
-    const a = addonsDisponibles.find((x: any) => x.id === aid);
-    return sum + (a?.duracion_min ?? 0);
-  }, 0);
-  const duracionTotal =
-    duracionActiva + duracionEspera + duracionActivaExtra + addonsDuracion;
+  // Los addons son solo dinero: no suman duracion ni bloquean agenda.
+  const duracionTotal = duracionActiva + duracionEspera + duracionActivaExtra;
 
   const horaActual = (useCustomHora && horaPersonalizada) || selectedHora;
   let inicio: Date | null = null;
@@ -939,9 +935,7 @@ export default function NewCitaModal({
     inicio.setHours(hh, mm, 0, 0);
     finActiva = new Date(inicio.getTime() + duracionActiva * 60000);
     finEspera = new Date(finActiva.getTime() + duracionEspera * 60000);
-    fin = new Date(
-      finEspera.getTime() + (duracionActivaExtra + addonsDuracion) * 60000,
-    );
+    fin = new Date(finEspera.getTime() + duracionActivaExtra * 60000);
   }
 
   // Puestos fisicos: la profesional puede estar libre y el lavacabezas no. Es un
@@ -1010,7 +1004,7 @@ export default function NewCitaModal({
     let total = duracionTotal;
     for (const c of citasConfirmadas) {
       total +=
-        c.durActiva + c.durEspera + c.durActivaExtra + (c.addonsDuracion ?? 0);
+        c.durActiva + c.durEspera + c.durActivaExtra;
     }
     return total;
   }, [citasConfirmadas, duracionTotal]);
@@ -1039,7 +1033,6 @@ export default function NewCitaModal({
       durActiva: duracionActiva,
       durEspera: duracionEspera,
       durActivaExtra: duracionActivaExtra,
-      addonsDuracion,
       addons: [...selectedAddons],
       inicio: new Date(inicio),
       finActiva: new Date(finActiva),
@@ -3171,7 +3164,7 @@ export default function NewCitaModal({
                           fontWeight: 400,
                         }}
                       >
-                        +{a.duracion_min}min · {a.precio}€
+                        +{a.precio}€
                       </span>
                     </button>
                   );

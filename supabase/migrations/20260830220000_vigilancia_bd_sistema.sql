@@ -333,10 +333,15 @@ BEGIN
     ));
   END IF;
 
-  -- ---- PRUEBA 1: INSERT directo en citas ----
+  -- ---- PRUEBA 1: Ciclo de vida completo en citas (INSERT -> UPDATE duración -> CANCELACIÓN) ----
   -- 400 dias en el futuro para no chocar con nada real; canal 'web' y estado
   -- 'pendiente' son valores validos de los CHECK de la tabla.
+  DECLARE
+    v_cita_id   uuid;
+    v_fin_esperado timestamptz;
+    v_fin_actual timestamptz;
   BEGIN
+    -- 1.A: INSERT
     INSERT INTO public.citas (
       negocio_id, profesional_id, servicio_id,
       inicio, fin, estado, canal
@@ -345,14 +350,50 @@ BEGIN
       now() + interval '400 days',
       now() + interval '400 days' + interval '30 minutes',
       'pendiente', 'web'
-    );
-    -- Exito: forzar rollback de la subtransaccion (BEGIN/EXCEPTION no tiene
-    -- "rollback on success", asi que se provoca a proposito y se atrapa).
+    ) RETURNING id INTO v_cita_id;
+
+    -- 1.B: UPDATE de duración (alargar cita 30 min)
+    -- Caza el bug del 30 ago: alargar una cita se revertia solo porque los triggers
+    -- de sync sobre cita_fases recalculaban el fin desde las fases estaticas.
+    v_fin_esperado := now() + interval '400 days' + interval '60 minutes';
+    UPDATE public.citas
+    SET fin = v_fin_esperado
+    WHERE id = v_cita_id
+    RETURNING fin INTO v_fin_actual;
+
+    IF v_fin_actual IS DISTINCT FROM v_fin_esperado THEN
+      RAISE EXCEPTION 'ALARGAMIENTO_REVERTIDO: Se alargó la cita a % pero tras triggers quedó en %',
+        v_fin_esperado, v_fin_actual
+        USING ERRCODE = 'VGREV';
+    END IF;
+
+    -- 1.C: Transición de estado a 'cancelada'
+    UPDATE public.citas
+    SET estado = 'cancelada'
+    WHERE id = v_cita_id;
+
+    -- Exito del ciclo completo: forzar rollback de la subtransaccion
     RAISE EXCEPTION USING ERRCODE = 'VG001';
   EXCEPTION
     WHEN SQLSTATE 'VG001' THEN
-      -- INSERT funciono y todos los triggers se dispararon sin error. Todo bien.
+      -- Ciclo completo (INSERT -> UPDATE duracion -> CANCELACION) funciono sin errores. Todo bien.
       NULL;
+    WHEN SQLSTATE 'VGREV' THEN
+      GET STACKED DIAGNOSTICS
+        v_error   = MESSAGE_TEXT,
+        v_context = PG_EXCEPTION_CONTEXT;
+      hallazgos := hallazgos || jsonb_build_object(
+        'tipo',     'alargamiento-cita-revertido',
+        'nivel', 'bloqueante', 'ambito', 'base-de-datos',
+        'sqlstate', 'VGREV',
+        'error',    v_error,
+        'titulo',   'Alargar la duración de una cita se revierte solo (conflicto de triggers)',
+        'detalle',  format(
+          'Al modificar citas.fin para alargar la cita, los triggers de sync la sobreescriben. ' ||
+          'Detalle: %s. Contexto: %s.',
+          v_error, coalesce(left(v_context, 300), '(sin contexto)')
+        )
+      );
     WHEN OTHERS THEN
       GET STACKED DIAGNOSTICS
         v_sqlstate = RETURNED_SQLSTATE,
@@ -364,11 +405,10 @@ BEGIN
         'nivel', 'bloqueante', 'ambito', 'base-de-datos',
         'sqlstate', v_sqlstate,
         'error',    v_error,
-        'titulo',   format('INSERT INTO citas falla con %s: no se puede crear NINGUNA cita', v_sqlstate),
+        'titulo',   format('Ciclo de escritura en citas falla con %s: no se pueden crear/editar citas', v_sqlstate),
         'detalle',  format(
-          'INSERT INTO citas falla con %s: %s. Detalle: %s. Contexto: %s. Esto tumba el alta ' ||
-          'de citas en TODOS los canales (agenda, portal publico, WhatsApp, agente de voz). ' ||
-          'Casi siempre es un trigger que referencia una columna que no existe.',
+          'El ciclo de escritura en citas falla con %s: %s. Detalle: %s. Contexto: %s. ' ||
+          'Esto tumba el alta o modificacion de citas en TODOS los canales (agenda, portal publico, WhatsApp).',
           v_sqlstate, v_error,
           coalesce(v_detail, '(sin detalle)'),
           coalesce(left(v_context, 300), '(sin contexto)')

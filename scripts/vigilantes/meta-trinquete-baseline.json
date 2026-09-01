@@ -1,0 +1,5 @@
+{
+  "_comentario": "Línea base congelada de avisos máximos permitidos en MECHA OS. El trinquete solo gira hacia abajo.",
+  "fecha_congelacion": "2026-09-01T20:00:00.000Z",
+  "maximo_avisos_permitidos": 42
+}

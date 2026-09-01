@@ -40,6 +40,12 @@ import calidadCodigo from './calidad-codigo.mjs';
 import ciCadenaRota from './ci-cadena-rota.mjs';
 import triggerCadenas from './trigger-cadenas.mjs';
 import metaRegistro from './meta-registro.mjs';
+import metaContrato from './meta-contrato.mjs';
+import metaMutaciones from './meta-mutaciones.mjs';
+import metaTrinquete from './meta-trinquete.mjs';
+import guardrailIA from './guardrail-ia.mjs';
+import fugasListeners from './fugas-listeners.mjs';
+import modalesFantasma from './modales-fantasma.mjs';
 
 const ESTATICOS = [
   precios,
@@ -67,6 +73,12 @@ const ESTATICOS = [
   ciCadenaRota,
   triggerCadenas,
   metaRegistro,
+  metaContrato,
+  metaMutaciones,
+  metaTrinquete,
+  guardrailIA,
+  fugasListeners,
+  modalesFantasma,
 ];
 
 const args = process.argv.slice(2);

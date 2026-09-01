@@ -231,6 +231,36 @@ export function CobroSheet(props: CobroSheetProps) {
 
   const aEntero = (s: string) => Math.max(0, parseFloat((s || '0').replace(',', '.')) || 0);
 
+  // --- Edicion del importe antes de cobrar (solo 1 cita): el dueño ajusta lo
+  // que se cobra de verdad (el extra "vale 12 EUR" pero hoy toca otra cosa).
+  // El importe final viaja como p_base_cents y queda auditado en cobros y
+  // cobro_lineas, de donde leen caja e informes. ---
+  const puedeEditarBase = props.mode === 'cita' && props.citaIds.length === 1 && !usarBono;
+  const [editandoBase, setEditandoBase] = useState(false);
+  const [baseInput, setBaseInput] = useState('');
+
+  // --- Add-ons de la cita(s): solo dinero (no ocupan agenda desde 2026-09-01),
+  // pero hay que cobrarlos. El RPC los suma server-side; aqui solo se muestran
+  // para que el total del ticket cuadre con lo que ve el usuario. ---
+  const [addonsCita, setAddonsCita] = useState<Array<{ nombre: string; precio: number }>>([]);
+  useEffect(() => {
+    if (props.mode !== 'cita') return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('cita_addons')
+          .select('service_addons(nombre, precio)')
+          .in('cita_id', props.citaIds);
+        setAddonsCita(
+          (data ?? [])
+            .map((ca: any) => ca.service_addons)
+            .filter(Boolean),
+        );
+      } catch { /* mejor esfuerzo: el RPC igualmente los cobra */ }
+    })();
+  }, [props.mode, props.mode === 'cita' ? props.citaIds.join(',') : '']);
+  const addonsCents = addonsCita.reduce((s, a) => s + Math.round(a.precio * 100), 0);
+
   const [lineaProductoId, setLineaProductoId] = useState('');
 
   // Categorías reales presentes en el catálogo del negocio (para las píldoras del picker).
@@ -303,7 +333,11 @@ export function CobroSheet(props: CobroSheetProps) {
   );
 
   const pendienteBaseCents = 'pendienteCents' in props ? props.pendienteCents : 0;
-  const pendienteCents = pendienteBaseCents + lineasBaseCents;
+  // Importe editado a mano (centimos) o el que llega del caller. El editado es
+  // el pendiente DEL SERVICIO (neto de señal); el RPC recibe base+señal.
+  const baseEditadaCents = editandoBase ? Math.round(aEntero(baseInput) * 100) : null;
+  const baseEfectivaCents = baseEditadaCents ?? pendienteBaseCents;
+  const pendienteCents = baseEfectivaCents + addonsCents + lineasBaseCents;
   const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
   // Base sobre la que se aplica el descuento: con bono la cita la cubre el bono,
   // asi que el % se calcula solo sobre los productos extra del ticket.
@@ -429,6 +463,11 @@ export function CobroSheet(props: CobroSheetProps) {
                 p_propina_cents: propinaCents,
                 p_descuento_cents: descuentoCents,
                 p_lineas_extra: idx === 0 ? lineasExtra : [],
+                // Importe corregido a mano: el RPC espera la base del servicio
+                // (bruta de señal) porque el descuenta la señal el mismo.
+                ...(props.citaIds.length === 1 && baseEditadaCents !== null
+                  ? { p_base_cents: baseEditadaCents + senalCents }
+                  : {}),
                 ...(metodo === 'mixto'
                   ? { p_efectivo_cents: efectivoSplitCents, p_datafono_cents: datafonoSplitCents }
                   : {}),
@@ -745,10 +784,49 @@ export function CobroSheet(props: CobroSheetProps) {
           )}
           {!usarBono && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                 <span style={{ fontSize: 12.5, color: T.textSec }}>Pendiente</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{(pendienteCents / 100).toFixed(2)} €</span>
+                {editandoBase ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="text" inputMode="decimal" autoFocus value={baseInput}
+                      onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9.,]/g, ''))}
+                      onKeyDown={(e) => { if (e.key === 'Enter') setEditandoBase(false); }}
+                      placeholder={(baseEfectivaCents / 100).toFixed(2)}
+                      style={{ width: 84, padding: '6px 10px', textAlign: 'right', background: T.bgPanel, border: `1px solid ${T.primary}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, boxSizing: 'border-box' }}
+                    />
+                    <button type="button" title="Confirmar importe" onClick={() => setEditandoBase(false)}
+                      style={{ padding: '6px 10px', background: T.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                      ✓
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: baseEditadaCents !== null ? T.primary : T.text }}>
+                      {((baseEfectivaCents + addonsCents + lineasBaseCents) / 100).toFixed(2)} €
+                    </span>
+                    {puedeEditarBase && (
+                      <button type="button" title="Corregir el importe antes de cobrar" onClick={() => { setBaseInput((baseEfectivaCents / 100).toFixed(2)); setEditandoBase(true); }}
+                        style={{ padding: '4px 8px', background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, color: T.textSec, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                        ✎ editar
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
+              {baseEditadaCents !== null && baseEditadaCents !== pendienteBaseCents && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: 11, color: T.textTer }}>
+                    corregido: catálogo {(pendienteBaseCents / 100).toFixed(2)} € → {(baseEditadaCents / 100).toFixed(2)} €
+                  </span>
+                </div>
+              )}
+              {addonsCita.length > 0 && addonsCita.map((a, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12.5, color: T.textSec }}>Extra · {a.nombre}</span>
+                  <span style={{ fontSize: 12.5, color: T.textSec }}>+{a.precio.toFixed(2)} €</span>
+                </div>
+              ))}
               {senalCents > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 12.5, color: T.success }}>Señal ya pagada</span>
@@ -901,7 +979,8 @@ export function CobroSheet(props: CobroSheetProps) {
 
             {props.mode === 'cita' && props.citaIds.length === 1 && (
               <div style={{ marginTop: 14 }}>
-                <button onClick={generarQr} disabled={qrBusy || enviando} 
+                <button onClick={generarQr} disabled={qrBusy || enviando || baseEditadaCents !== null}
+                  title={baseEditadaCents !== null ? 'El QR cobra el importe de catálogo; con importe corregido usa efectivo/datáfono/Bizum' : undefined}
                   style={{ width: '100%', padding: '12px 0', background: 'linear-gradient(to right, #004481, #005ce6)', border: 'none', color: '#fff', borderRadius: 10, cursor: qrBusy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, opacity: qrBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(0, 68, 129, 0.3)', transition: 'transform 0.15s ease' }}
                   onMouseEnter={(e) => { if (!qrBusy) e.currentTarget.style.transform = 'translateY(-2px)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'none' }}

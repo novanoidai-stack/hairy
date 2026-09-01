@@ -151,6 +151,10 @@ export function inventarioDesde(sqlPorFichero) {
   return { triggers, funciones };
 }
 
+export function analizarCadenasTriggers(sql, fichero = 'migracion.sql') {
+  return analizarInventario(inventarioDesde([[fichero, sql]]), fichero);
+}
+
 async function ejecutar() {
   const dir = path.join(RAIZ, DIR_MIGRACIONES);
   const ficheros = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
