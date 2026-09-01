@@ -99,6 +99,50 @@ consecutivas de la demo (para demostrar que el seed ya no los fabrica).
 
 ## P3 — Citas dobladas: 108 solapes, y NO solo por la carrera del portal
 
+> **AVANCE 1 sep 2026 (sesión de continuación):**
+> - **Los 77 de la demo ya NO existen.** Causa raíz encontrada: `resembrar_demo()`
+>   fabricaba UN par al día (Mechas de Carmen `ancla..ancla+75` vs Lavado de Sara
+>   `ancla+45..ancla+75`, ambas con María); la cita se completaba, se cobraba, y el
+>   delete del seed solo borra desde hoy → el par quedaba vivo para siempre desde
+>   febrero. Arreglado con parche por ancla (lavado → `ancla+75..ancla+105`) +
+>   limpieza de históricos con sus cobros (mismo orden que usa el propio seed) en
+>   `supabase/migrations/20260901113000_resembrar_demo_sin_solape_y_limpieza_historica.sql`,
+>   aplicada y verificada: **0 pares en dos re-siembras consecutivas**.
+> - **Los 30 del salón real, identificados y documentados (pendiente decisión de
+>   Carlos):** NO son clientas dobladas. Son **25 citas anónimas (`cliente_id`
+>   NULL) del sábado 08-ago 10:00–14:00, todas SUSANA, canal manual, todas
+>   `completada` y todas cobradas a 0 céntimos en efectivo**. 12 de ellas se
+>   solapan entre sí (30 pares). Pinta inequívoca de carga de prueba/importación
+>   del primer día. Opciones: (a) cancelar las 12 solapadas (el candado excluye
+>   canceladas; los cobros a 0 no se tocan, que los borra el trigger financiero),
+>   (b) dejarlas y eximirlas — descartado, ensucia al vigilante para siempre.
+> - **El 1 de `salon_pruebas_mecha`:** tenant de pruebas (Marta Ledo, 18-ago,
+>   anticaspa whatsapp vs hidratación manual). Mismo tratamiento que la demo.
+> - La migración del candado `20260831220000` sigue SIN aplicar a propósito: su
+>   guardia fallaría con los 30+1 vivos. Se aplica cuando Carlos decida.
+> - Queda pendiente el test E2E del portal con dos reservas concurrentes.
+>
+> **CIERRE 1 sep 2026 (tarde, con decisión de Carlos):**
+> - **Decisión de Carlos sobre los 30 reales + el 1 de pruebas: NO se tocan.**
+>   Es un salón real y no se quiere tocar su histórico; se quedan vivos con su
+>   aviso del vigilante (exactamente los 2 avisos actuales: florent_surez y
+>   salon_pruebas_mecha).
+> - En consecuencia el candado `20260831220000` se aplicó con **fecha de corte
+>   2026-09-01**: el EXCLUDE protege toda cita que nazca o se mueva a partir de
+>   esa fecha; los 31 pares anteriores quedan exentos y vigilados como dato.
+>   Verificado en producción: insert solapado → 23P01; `resembrar_demo()` pasa
+>   bajo el candado; `migration repair --status applied` hecho.
+> - **Criterio extra cumplido:** `scripts/vigilantes/carrera-reserva.test.mjs`
+>   dispara dos `crear_cita_publica` reales en paralelo sobre el mismo hueco de
+>   la demo (con captcha tokens sembrados) y exige exactamente una ganadora.
+>   Pasa (`node --test`). Se limpia detrás (cita cancelada, tokens y clientes
+>   de prueba fuera).
+> - **P3 queda CERRADA** en este estado: demo 0 pares (dos re-siembras
+>   consecutivas), salón real 30 + pruebas 1 documentados y aceptados como
+>   aviso permanente, candado activo para todo lo nuevo. Si algún día se
+>   limpian los históricos, quitar el término de corte del WHERE del constraint
+>   y el vigilante podrá llegar a 0.
+
 **Ámbito:** `coherencia` · **Nivel:** aviso (deuda heredada) · **Vigilante:** `vigilancia_bd_invariantes()`
 
 ### Evidencia (producción)
