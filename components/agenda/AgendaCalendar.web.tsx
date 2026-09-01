@@ -67,10 +67,12 @@ import { useDebounce } from "@/lib/hooks/useDebounce";
 import {
   NEGOCIO_ID_FALLBACK,
   CITA_STATUS,
+  CITA_STATUS_BLOQUEAN_SOLAPE,
   sigueViva,
   LOCALE,
   OCUPACION_MAX_PER_MES,
 } from "@/lib/constants";
+import { pisaOtraCitaAlSoltar } from "@/lib/agenda/solapeAlSoltar";
 import {
   cuentaComoConfirmada,
   esActiva,
@@ -5494,13 +5496,69 @@ export default function AgendaCalendar() {
                     new Date(cita.fin_espera).getTime() + diffMs,
                   ).toISOString();
 
+                // Ultimo control contra la BD antes de guardar: todo lo de
+                // arriba se decide con la foto local de `citas`. Si mientras se
+                // arrastraba entro otra cita en ese hueco (otro dispositivo, el
+                // portal publico, WhatsApp), aqui se descubriria... si se
+                // mirara. Este era el unico camino de arrastre sin revalidar
+                // (P3 del informe de auditoria del 31 ago 2026); la regla es la
+                // misma del Timeline: pisaOtraCitaAlSoltar ->
+                // citaSolapaOcupacion, contando solo fases ACTIVAS.
+                const nuevoFin = new Date(
+                  new Date(cita.fin).getTime() + diffMs,
+                );
+                const { data: choqueSem } = await supabase
+                  .from("citas")
+                  .select("id, inicio, fin, fin_activa, fin_espera")
+                  .eq("profesional_id", cita.profesional_id)
+                  .in("estado", CITA_STATUS_BLOQUEAN_SOLAPE)
+                  .neq("id", cita.id)
+                  .lt("inicio", nuevoFin.toISOString())
+                  .gt("fin", newInicio.toISOString());
+                const pisaEnSemana = pisaOtraCitaAlSoltar(
+                  {
+                    inicio: newInicio,
+                    finActiva: cita.fin_activa
+                      ? new Date(new Date(cita.fin_activa).getTime() + diffMs)
+                      : nuevoFin,
+                    finEspera: cita.fin_espera
+                      ? new Date(new Date(cita.fin_espera).getTime() + diffMs)
+                      : cita.fin_activa
+                        ? new Date(
+                            new Date(cita.fin_activa).getTime() + diffMs,
+                          )
+                        : nuevoFin,
+                    fin: nuevoFin,
+                  },
+                  choqueSem,
+                  cita.profesional_id,
+                  cita.id,
+                );
+                if (pisaEnSemana) {
+                  mostrarToast(
+                    "Ese hueco lo acaba de ocupar otra cita. Se ha recargado la agenda.",
+                  );
+                  triggerRefresh();
+                  return;
+                }
+
                 // Optimistic update
                 setCitas((prev) =>
                   prev.map((c: any) =>
                     c.id === citaId ? { ...c, ...payload } : c,
                   ),
                 );
-                await supabase.from("citas").update(payload).eq("id", citaId);
+                const { error: errUpdate } = await supabase
+                  .from("citas")
+                  .update(payload)
+                  .eq("id", citaId);
+                if (errUpdate) {
+                  // El candado de BD (citas_solape_profesional_excl) es la
+                  // ultima linea de defensa; esto es la educacion de la UI.
+                  mostrarToast(mensajeDeError(errUpdate));
+                  triggerRefresh();
+                  return;
+                }
                 const profile = await getUserProfile();
                 registrarHistorial(
                   citaId,

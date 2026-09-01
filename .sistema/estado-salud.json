@@ -1,29 +1,29 @@
 {
   "version": 1,
-  "timestamp": "2026-08-30T21:39:16.904Z",
-  "duracion_ms": 1402,
+  "timestamp": "2026-09-01T14:48:41.016Z",
+  "duracion_ms": 43342,
   "git": {
-    "commit": "502ca780a9540f6ae8e3367225d176c099317153",
-    "branch": "fix/auditoria-specs-30ago",
+    "commit": "0fff1d1e2481466cc4966d0c5ac2d86dcc969f32",
+    "branch": "master",
     "dirty": true
   },
   "resumen": {
-    "total_hallazgos": 41,
+    "total_hallazgos": 39,
     "bloqueantes": 0,
-    "avisos": 41,
-    "vigilantes_ejecutados": 16,
+    "avisos": 39,
+    "vigilantes_ejecutados": 17,
     "salud": "degradada"
   },
   "capas": {
     "estatica": {
-      "vigilantes": 16,
+      "vigilantes": 17,
       "bloqueantes": 0,
-      "avisos": 41,
+      "avisos": 39,
       "detalle": [
         {
           "nombre": "precios",
           "ambito": "precios",
-          "ms": 6,
+          "ms": 11,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -31,7 +31,7 @@
         {
           "nombre": "referidos",
           "ambito": "referidos",
-          "ms": 6,
+          "ms": 7,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -39,7 +39,7 @@
         {
           "nombre": "rutas-publicas",
           "ambito": "seguridad",
-          "ms": 0,
+          "ms": 2,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -47,7 +47,7 @@
         {
           "nombre": "cache-app",
           "ambito": "rendimiento",
-          "ms": 1,
+          "ms": 0,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -55,7 +55,7 @@
         {
           "nombre": "claves",
           "ambito": "seguridad",
-          "ms": 207,
+          "ms": 498,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -63,7 +63,7 @@
         {
           "nombre": "errores-tragados",
           "ambito": "errores-tragados",
-          "ms": 676,
+          "ms": 1591,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -71,7 +71,7 @@
         {
           "nombre": "panel-ambitos",
           "ambito": "pantallas",
-          "ms": 7,
+          "ms": 16,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -79,7 +79,7 @@
         {
           "nombre": "edges-autorizadas",
           "ambito": "seguridad",
-          "ms": 2,
+          "ms": 3,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -87,7 +87,7 @@
         {
           "nombre": "migraciones",
           "ambito": "seguridad",
-          "ms": 52,
+          "ms": 82,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -95,7 +95,7 @@
         {
           "nombre": "husos",
           "ambito": "seguridad",
-          "ms": 29,
+          "ms": 43,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -103,7 +103,7 @@
         {
           "nombre": "planes",
           "ambito": "precios",
-          "ms": 2,
+          "ms": 3,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -111,7 +111,7 @@
         {
           "nombre": "horarios-convenio",
           "ambito": "seguridad",
-          "ms": 12,
+          "ms": 18,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -119,7 +119,7 @@
         {
           "nombre": "workflows",
           "ambito": "seguridad",
-          "ms": 51,
+          "ms": 74,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
@@ -127,23 +127,31 @@
         {
           "nombre": "ecosistema-cuentas",
           "ambito": "cuentas",
-          "ms": 20,
+          "ms": 30,
           "bloqueantes": 0,
           "avisos": 0,
           "ok": true
         },
         {
+          "nombre": "codigo-muerto",
+          "ambito": "codigo-muerto",
+          "ms": 40041,
+          "bloqueantes": 0,
+          "avisos": 2,
+          "ok": true
+        },
+        {
           "nombre": "claims-fiscales",
           "ambito": "fiscal",
-          "ms": 70,
+          "ms": 554,
           "bloqueantes": 0,
-          "avisos": 17,
+          "avisos": 13,
           "ok": true
         },
         {
           "nombre": "modulos-desconectados",
           "ambito": "codigo-muerto",
-          "ms": 154,
+          "ms": 201,
           "bloqueantes": 0,
           "avisos": 24,
           "ok": true
@@ -160,7 +168,7 @@
       "hallazgos": []
     },
     "rendimiento": {
-      "hallazgos_rendimiento": 24
+      "hallazgos_rendimiento": 26
     },
     "meta": {
       "anclas_vivas": true,
@@ -169,22 +177,31 @@
   },
   "hallazgos": [
     {
-      "clave": "claims-fiscales/copia-muerta",
+      "clave": "codigo-muerto/files",
       "nivel": "aviso",
-      "ambito": "fiscal",
-      "titulo": "web/diseno-aurora.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
-      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
-      "fichero": "web/diseno-aurora.html",
+      "ambito": "codigo-muerto",
+      "titulo": "Suben los ficheros que no importa nadie: 8 -> 9",
+      "detalle": "Este cambio deja 1 mas. Verlos con: npx knip. Si son inevitables, sube el numero en scripts/vigilantes/knip-baseline.json y explica por que en el commit.",
+      "fichero": "scripts/vigilantes/knip-baseline.json",
       "linea": null
     },
     {
-      "clave": "claims-fiscales/homologado",
+      "clave": "codigo-muerto/mejora-exports",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "Bajan los exports sin uso: 66 -> 65. Baja la linea base",
+      "detalle": "Se ha limpiado deuda. Poner \"exports\": 65 en scripts/vigilantes/knip-baseline.json para que no vuelva a subir.",
+      "fichero": "scripts/vigilantes/knip-baseline.json",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
       "nivel": "aviso",
       "ambito": "fiscal",
-      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
-      "detalle": "web/diseno-aurora.html dice:\n\n  ...<li><span class=\"ck\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\" /></svg></span><span>Tickets homologados por <...\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "titulo": "web/diseno-aurora.html no la enlaza nadie y publica 2 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
       "fichero": "web/diseno-aurora.html",
-      "linea": 769
+      "linea": null
     },
     {
       "clave": "claims-fiscales/homologado",
@@ -208,19 +225,10 @@
       "clave": "claims-fiscales/copia-muerta",
       "nivel": "aviso",
       "ambito": "fiscal",
-      "titulo": "web/diseno-brasas.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
+      "titulo": "web/diseno-brasas.html no la enlaza nadie y publica 2 claim(s) fiscales viejos",
       "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
       "fichero": "web/diseno-brasas.html",
       "linea": null
-    },
-    {
-      "clave": "claims-fiscales/homologado",
-      "nivel": "aviso",
-      "ambito": "fiscal",
-      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
-      "detalle": "web/diseno-brasas.html dice:\n\n  ...<li><span class=\"ck\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\" /></svg></span><span>Tickets homologados por <...\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
-      "fichero": "web/diseno-brasas.html",
-      "linea": 769
     },
     {
       "clave": "claims-fiscales/homologado",
@@ -244,19 +252,10 @@
       "clave": "claims-fiscales/copia-muerta",
       "nivel": "aviso",
       "ambito": "fiscal",
-      "titulo": "web/diseno-forja.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
+      "titulo": "web/diseno-forja.html no la enlaza nadie y publica 2 claim(s) fiscales viejos",
       "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
       "fichero": "web/diseno-forja.html",
       "linea": null
-    },
-    {
-      "clave": "claims-fiscales/homologado",
-      "nivel": "aviso",
-      "ambito": "fiscal",
-      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
-      "detalle": "web/diseno-forja.html dice:\n\n  ...<li><span class=\"ck\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\" /></svg></span><span>Tickets homologados por <...\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
-      "fichero": "web/diseno-forja.html",
-      "linea": 769
     },
     {
       "clave": "claims-fiscales/homologado",
@@ -280,19 +279,10 @@
       "clave": "claims-fiscales/copia-muerta",
       "nivel": "aviso",
       "ambito": "fiscal",
-      "titulo": "web/index_v5.html no la enlaza nadie y publica 4 claim(s) fiscales viejos",
+      "titulo": "web/index_v5.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
       "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
       "fichero": "web/index_v5.html",
       "linea": null
-    },
-    {
-      "clave": "claims-fiscales/envio-aeat",
-      "nivel": "aviso",
-      "ambito": "fiscal",
-      "titulo": "Se promete \"enviadas a la AEAT\" y el envio a la AEAT no existe",
-      "detalle": "web/index_v5.html dice:\n\n  ...<div style=\"flex:1;min-width:0\"><div style=\"font-size:13px;font-weight:600\">9 facturas VeriFactu enviadas a la AEAT</div><div style=\"font-size:11px;color:var(--ink-3)\">con su QR y su hash encadenado</...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
-      "fichero": "web/index_v5.html",
-      "linea": 144
     },
     {
       "clave": "claims-fiscales/envio-aeat",

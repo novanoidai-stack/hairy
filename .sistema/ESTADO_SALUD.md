@@ -1,9 +1,9 @@
 # 🛡️ Estado de Salud del Sistema — MECHA OS
 
-**Última compilación**: `2026-08-30T21:39:16.904Z`  
+**Última compilación**: `2026-09-01T14:48:41.016Z`  
 **Estado Global**: **🟡 DEGRADADA**  
-**Git**: Rama `fix/auditoria-specs-30ago` · Commit `502ca780` (con cambios locales)  
-**Duración compilación**: 1402 ms  
+**Git**: Rama `master` · Commit `0fff1d1e` (con cambios locales)  
+**Duración compilación**: 43342 ms  
 
 ## 📊 Resumen Ejecutivo
 
@@ -11,14 +11,14 @@
 |---|---|
 | **Salud del Sistema** | **🟡 DEGRADADA** |
 | **Hallazgos Bloqueantes** | `0` |
-| **Avisos / Deuda Vigilada** | `41` |
-| **Vigilantes Ejecutados** | `16` |
+| **Avisos / Deuda Vigilada** | `39` |
+| **Vigilantes Ejecutados** | `17` |
 
 ## 🏛️ Desglose de las 5 Capas
 
 ### 1. Capa 1: Invariantes Estáticos (Sin Red)
-- Vigilantes evaluados: **16**
-- Bloqueantes: **0** | Avisos: **41**
+- Vigilantes evaluados: **17**
+- Bloqueantes: **0** | Avisos: **39**
 
 ### 2. Capa 2: Base de Datos PostgreSQL
 - Estado conexión: **Modo Local / Desconectado**
@@ -29,32 +29,32 @@
 - Hallazgos visuales: **0**
 
 ### 4. Capa 4: Rendimiento y Calidad de Código
-- Hallazgos de complejidad / código muerto: **24**
+- Hallazgos de complejidad / código muerto: **26**
 
 ### 5. Capa 5: Meta-Vigilancia (Guardianes de Integridad)
 - Anclas vivas: **✓ 100% Intactas**
 
-## 🔍 Detalle de Hallazgos Activos (41)
+## 🔍 Detalle de Hallazgos Activos (39)
 
-### 1. [🟡 AVISO] web/diseno-aurora.html no la enlaza nadie y publica 3 claim(s) fiscales viejos
+### 1. [🟡 AVISO] Suben los ficheros que no importa nadie: 8 -> 9
+- **Clave**: `codigo-muerto/files`
+- **Ámbito**: `codigo-muerto`
+- **Ubicación**: `scripts/vigilantes/knip-baseline.json`
+- **Detalle**: Este cambio deja 1 mas. Verlos con: npx knip. Si son inevitables, sube el numero en scripts/vigilantes/knip-baseline.json y explica por que en el commit.
+
+### 2. [🟡 AVISO] Bajan los exports sin uso: 66 -> 65. Baja la linea base
+- **Clave**: `codigo-muerto/mejora-exports`
+- **Ámbito**: `codigo-muerto`
+- **Ubicación**: `scripts/vigilantes/knip-baseline.json`
+- **Detalle**: Se ha limpiado deuda. Poner "exports": 65 en scripts/vigilantes/knip-baseline.json para que no vuelva a subir.
+
+### 3. [🟡 AVISO] web/diseno-aurora.html no la enlaza nadie y publica 2 claim(s) fiscales viejos
 - **Clave**: `claims-fiscales/copia-muerta`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-aurora.html`
 - **Detalle**: El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.
 
-### 2. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
-- **Clave**: `claims-fiscales/homologado`
-- **Ámbito**: `fiscal`
-- **Ubicación**: `web/diseno-aurora.html:769`
-- **Detalle**: web/diseno-aurora.html dice:
-
-  ...<li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tickets homologados por <...
-
-"Homologado" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.
-
-Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
-
-### 3. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
+### 4. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/homologado`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-aurora.html:1332`
@@ -66,7 +66,7 @@ Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto 
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 4. [🟡 AVISO] Se promete "envío a Hacienda" y el envio a la AEAT no existe
+### 5. [🟡 AVISO] Se promete "envío a Hacienda" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/envio-aeat`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-aurora.html:141`
@@ -78,23 +78,11 @@ No hay envio. No existe ni la columna donde anotar el resultado de uno.
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 5. [🟡 AVISO] web/diseno-brasas.html no la enlaza nadie y publica 3 claim(s) fiscales viejos
+### 6. [🟡 AVISO] web/diseno-brasas.html no la enlaza nadie y publica 2 claim(s) fiscales viejos
 - **Clave**: `claims-fiscales/copia-muerta`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-brasas.html`
 - **Detalle**: El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.
-
-### 6. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
-- **Clave**: `claims-fiscales/homologado`
-- **Ámbito**: `fiscal`
-- **Ubicación**: `web/diseno-brasas.html:769`
-- **Detalle**: web/diseno-brasas.html dice:
-
-  ...<li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tickets homologados por <...
-
-"Homologado" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.
-
-Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
 ### 7. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/homologado`
@@ -120,25 +108,13 @@ No hay envio. No existe ni la columna donde anotar el resultado de uno.
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 9. [🟡 AVISO] web/diseno-forja.html no la enlaza nadie y publica 3 claim(s) fiscales viejos
+### 9. [🟡 AVISO] web/diseno-forja.html no la enlaza nadie y publica 2 claim(s) fiscales viejos
 - **Clave**: `claims-fiscales/copia-muerta`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-forja.html`
 - **Detalle**: El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.
 
 ### 10. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
-- **Clave**: `claims-fiscales/homologado`
-- **Ámbito**: `fiscal`
-- **Ubicación**: `web/diseno-forja.html:769`
-- **Detalle**: web/diseno-forja.html dice:
-
-  ...<li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tickets homologados por <...
-
-"Homologado" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.
-
-Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
-
-### 11. [🟡 AVISO] Se promete "homologados" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/homologado`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-forja.html:1332`
@@ -150,7 +126,7 @@ Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto 
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 12. [🟡 AVISO] Se promete "envío a Hacienda" y el envio a la AEAT no existe
+### 11. [🟡 AVISO] Se promete "envío a Hacienda" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/envio-aeat`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/diseno-forja.html:141`
@@ -162,25 +138,13 @@ No hay envio. No existe ni la columna donde anotar el resultado de uno.
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 13. [🟡 AVISO] web/index_v5.html no la enlaza nadie y publica 4 claim(s) fiscales viejos
+### 12. [🟡 AVISO] web/index_v5.html no la enlaza nadie y publica 3 claim(s) fiscales viejos
 - **Clave**: `claims-fiscales/copia-muerta`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/index_v5.html`
 - **Detalle**: El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.
 
-### 14. [🟡 AVISO] Se promete "enviadas a la AEAT" y el envio a la AEAT no existe
-- **Clave**: `claims-fiscales/envio-aeat`
-- **Ámbito**: `fiscal`
-- **Ubicación**: `web/index_v5.html:144`
-- **Detalle**: web/index_v5.html dice:
-
-  ...<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">9 facturas VeriFactu enviadas a la AEAT</div><div style="font-size:11px;color:var(--ink-3)">con su QR y su hash encadenado</...
-
-No hay envio. No existe ni la columna donde anotar el resultado de uno.
-
-Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
-
-### 15. [🟡 AVISO] Se promete "envía a la AEAT" y el envio a la AEAT no existe
+### 13. [🟡 AVISO] Se promete "envía a la AEAT" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/envio-aeat`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/index_v5.html:192`
@@ -192,7 +156,7 @@ No hay envio. No existe ni la columna donde anotar el resultado de uno.
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 16. [🟡 AVISO] Se promete "enviada a la AEAT" y el envio a la AEAT no existe
+### 14. [🟡 AVISO] Se promete "enviada a la AEAT" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/envio-aeat`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/index_v5.html:304`
@@ -204,7 +168,7 @@ No hay envio. No existe ni la columna donde anotar el resultado de uno.
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 17. [🟡 AVISO] Se promete "enviada a la AEAT" y el envio a la AEAT no existe
+### 15. [🟡 AVISO] Se promete "enviada a la AEAT" y el envio a la AEAT no existe
 - **Clave**: `claims-fiscales/envio-aeat`
 - **Ámbito**: `fiscal`
 - **Ubicación**: `web/index_v5.html:635`
@@ -216,7 +180,7 @@ No hay envio. No existe ni la columna donde anotar el resultado de uno.
 
 Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
 
-### 18. [🟡 AVISO] components/agenda/optimizacionTouchAgenda.ts sigue sin enchufar (solo lo usa su test)
+### 16. [🟡 AVISO] components/agenda/optimizacionTouchAgenda.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/components/agenda/optimizacionTouchAgenda.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `components/agenda/optimizacionTouchAgenda.ts`
@@ -224,7 +188,7 @@ Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto 
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 19. [🟡 AVISO] components/marketplace/tarjetaSalonResponsive.ts sigue sin enchufar (solo lo usa su test)
+### 17. [🟡 AVISO] components/marketplace/tarjetaSalonResponsive.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/components/marketplace/tarjetaSalonResponsive.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `components/marketplace/tarjetaSalonResponsive.ts`
@@ -232,7 +196,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 20. [🟡 AVISO] components/portal/optimizacionTouchPortal.ts sigue sin enchufar (solo lo usa su test)
+### 18. [🟡 AVISO] components/portal/optimizacionTouchPortal.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/components/portal/optimizacionTouchPortal.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `components/portal/optimizacionTouchPortal.ts`
@@ -240,7 +204,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 21. [🟡 AVISO] lib/agenda/bonificacionReasignacion.ts sigue sin enchufar (solo lo usa su test)
+### 19. [🟡 AVISO] lib/agenda/bonificacionReasignacion.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/agenda/bonificacionReasignacion.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/agenda/bonificacionReasignacion.ts`
@@ -248,7 +212,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 22. [🟡 AVISO] lib/agenda/desinfeccionPausas.ts sigue sin enchufar (solo lo usa su test)
+### 20. [🟡 AVISO] lib/agenda/desinfeccionPausas.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/agenda/desinfeccionPausas.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/agenda/desinfeccionPausas.ts`
@@ -256,7 +220,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 23. [🟡 AVISO] lib/agenda/serviciosCompatiblesReposo.ts sigue sin enchufar (solo lo usa su test)
+### 21. [🟡 AVISO] lib/agenda/serviciosCompatiblesReposo.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/agenda/serviciosCompatiblesReposo.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/agenda/serviciosCompatiblesReposo.ts`
@@ -264,7 +228,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 24. [🟡 AVISO] lib/agenda/validadorFestivosTurnos.ts sigue sin enchufar (solo lo usa su test)
+### 22. [🟡 AVISO] lib/agenda/validadorFestivosTurnos.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/agenda/validadorFestivosTurnos.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/agenda/validadorFestivosTurnos.ts`
@@ -272,7 +236,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 25. [🟡 AVISO] lib/bonos/consumoBonos.ts sigue sin enchufar (solo lo usa su test)
+### 23. [🟡 AVISO] lib/bonos/consumoBonos.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/bonos/consumoBonos.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/bonos/consumoBonos.ts`
@@ -280,7 +244,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 26. [🟡 AVISO] lib/caja/arqueoCajaPropinas.ts sigue sin enchufar (solo lo usa su test)
+### 24. [🟡 AVISO] lib/caja/arqueoCajaPropinas.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/caja/arqueoCajaPropinas.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/caja/arqueoCajaPropinas.ts`
@@ -288,7 +252,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 27. [🟡 AVISO] lib/caja/cobroMultiPago.ts sigue sin enchufar (solo lo usa su test)
+### 25. [🟡 AVISO] lib/caja/cobroMultiPago.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/caja/cobroMultiPago.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/caja/cobroMultiPago.ts`
@@ -296,7 +260,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 28. [🟡 AVISO] lib/caja/propinasAcumuladas.ts sigue sin enchufar (solo lo usa su test)
+### 26. [🟡 AVISO] lib/caja/propinasAcumuladas.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/caja/propinasAcumuladas.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/caja/propinasAcumuladas.ts`
@@ -304,7 +268,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 29. [🟡 AVISO] lib/caja/verifactuHash.ts sigue sin enchufar (solo lo usa su test)
+### 27. [🟡 AVISO] lib/caja/verifactuHash.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/caja/verifactuHash.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/caja/verifactuHash.ts`
@@ -312,7 +276,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 30. [🟡 AVISO] lib/clientes/detectarDuplicados.ts sigue sin enchufar (solo lo usa su test)
+### 28. [🟡 AVISO] lib/clientes/detectarDuplicados.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/clientes/detectarDuplicados.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/clientes/detectarDuplicados.ts`
@@ -320,7 +284,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 31. [🟡 AVISO] lib/config/validadorToggles.ts sigue sin enchufar (solo lo usa su test)
+### 29. [🟡 AVISO] lib/config/validadorToggles.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/config/validadorToggles.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/config/validadorToggles.ts`
@@ -328,7 +292,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 32. [🟡 AVISO] lib/fidelizacion/insigniasCliente.ts sigue sin enchufar (solo lo usa su test)
+### 30. [🟡 AVISO] lib/fidelizacion/insigniasCliente.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/fidelizacion/insigniasCliente.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/fidelizacion/insigniasCliente.ts`
@@ -336,7 +300,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 33. [🟡 AVISO] lib/fiscal/huella.ts sigue sin enchufar (solo lo usa su test)
+### 31. [🟡 AVISO] lib/fiscal/huella.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/fiscal/huella.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/fiscal/huella.ts`
@@ -344,7 +308,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 34. [🟡 AVISO] lib/inventario/alertasStockMinimo.ts sigue sin enchufar (solo lo usa su test)
+### 32. [🟡 AVISO] lib/inventario/alertasStockMinimo.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/inventario/alertasStockMinimo.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/inventario/alertasStockMinimo.ts`
@@ -352,7 +316,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 35. [🟡 AVISO] lib/legal/contratoRgpdTablet.ts sigue sin enchufar (solo lo usa su test)
+### 33. [🟡 AVISO] lib/legal/contratoRgpdTablet.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/legal/contratoRgpdTablet.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/legal/contratoRgpdTablet.ts`
@@ -360,7 +324,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 36. [🟡 AVISO] lib/marketing/campanasFranjasValle.ts sigue sin enchufar (solo lo usa su test)
+### 34. [🟡 AVISO] lib/marketing/campanasFranjasValle.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/marketing/campanasFranjasValle.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/marketing/campanasFranjasValle.ts`
@@ -368,7 +332,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 37. [🟡 AVISO] lib/marketplace/rankingMarketplace.ts sigue sin enchufar (solo lo usa su test)
+### 35. [🟡 AVISO] lib/marketplace/rankingMarketplace.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/marketplace/rankingMarketplace.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/marketplace/rankingMarketplace.ts`
@@ -376,7 +340,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 38. [🟡 AVISO] lib/nominas/liquidacionNominas.ts sigue sin enchufar (solo lo usa su test)
+### 36. [🟡 AVISO] lib/nominas/liquidacionNominas.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/nominas/liquidacionNominas.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/nominas/liquidacionNominas.ts`
@@ -384,7 +348,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 39. [🟡 AVISO] lib/pos/qrPagoRapido.ts sigue sin enchufar (solo lo usa su test)
+### 37. [🟡 AVISO] lib/pos/qrPagoRapido.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/pos/qrPagoRapido.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/pos/qrPagoRapido.ts`
@@ -392,7 +356,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 40. [🟡 AVISO] lib/security/sanitizadorCliente.ts sigue sin enchufar (solo lo usa su test)
+### 38. [🟡 AVISO] lib/security/sanitizadorCliente.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/security/sanitizadorCliente.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/security/sanitizadorCliente.ts`
@@ -400,7 +364,7 @@ Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json
 
 Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
 
-### 41. [🟡 AVISO] lib/security/validadorRPC.ts sigue sin enchufar (solo lo usa su test)
+### 39. [🟡 AVISO] lib/security/validadorRPC.ts sigue sin enchufar (solo lo usa su test)
 - **Clave**: `modulos-desconectados/lib/security/validadorRPC.ts`
 - **Ámbito**: `codigo-muerto`
 - **Ubicación**: `lib/security/validadorRPC.ts`

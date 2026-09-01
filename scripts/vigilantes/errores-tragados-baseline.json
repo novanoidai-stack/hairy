@@ -54,7 +54,7 @@
   "components/agenda/AgendaCalendar.web.tsx": {
     "fuego-y-olvido": 1,
     "handler-async-sin-catch": 1,
-    "supabase-sin-comprobar": 3
+    "supabase-sin-comprobar": 2
   },
   "components/agenda/OrganizarAgendaPanel.web.tsx": {
     "fuego-y-olvido": 6,
