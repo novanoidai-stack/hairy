@@ -193,6 +193,20 @@ Lo que **sí** falta en el cliente: arrastrar el borde entre dos fases para repa
 La spec dice «seis sitios». Contados en `pg_proc` el 31 ago, **26 funciones** mencionan
 `fin_espera`. Se dividen en tres grupos, y solo el primero es trabajo de verdad.
 
+> **CORREGIDO el 1 sep 2026, al ejecutar el paso 1.** El grupo A no son 20 funciones sino
+> **8**. Contadas por el predicado inline (`coalesce(c.fin_espera, coalesce(c.fin_activa,
+> c.fin))`), que es lo único que hay que migrar, no por mencionar `fin_espera`. De las 12
+> restantes de esta lista: `crear_serie_citas` ya estaba en la costura desde el 31 ago;
+> `asignar_candidato_hueco` y `_lista_espera_ofrecer` nombran la columna en la lista de un
+> INSERT; `responder_propuesta_cambio` desplaza las cuatro marcas por un delta;
+> `revisar_hueco_lista_espera` las recibe como parámetros y **no consulta `citas`**;
+> `procesar_lista_espera` y `avisar_lista_espera_candidata` son la máquina de estados de las
+> ofertas; `citas_normalizar_fases` es el trigger BEFORE que rellena las marcas que faltan.
+> Ninguna decide ocupación. Aparte quedan `recurso_tramo_de_cita` y
+> `recursos_ocupados_negocio`: **sí deciden, pero otra cosa** — desde cuándo un servicio
+> retiene un recurso, según `recurso_fase`. Pasarlas por la costura de ocupación les
+> cambiaría el significado; van con el paso 5.
+
 ### Grupo A — deciden ocupación (hay que migrarlas): 20
 
 ```
@@ -244,7 +258,7 @@ anterior.
 La idea: **primero se centraliza sin cambiar comportamiento, luego se cambia el comportamiento
 en un solo sitio.** Cada paso es desplegable y reversible por separado.
 
-### Paso 1 · Llevar el Grupo A a la costura (sin cambiar nada)
+### Paso 1 · Llevar el Grupo A a la costura (sin cambiar nada) — ✅ HECHO el 1 sep 2026
 
 Reescribir las 20 funciones del grupo A para que su comprobación de solape pase por
 `citas_chocan_activa_activa()` / `ventanas_activas_cita()` en vez de hacerlo inline.
@@ -255,6 +269,45 @@ Reescribir las 20 funciones del grupo A para que su comprobación de solape pase
   DESPUÉS y comparar. `disponibilidad_publica` es la fácil de comprobar: cuenta de huecos por
   (salón, servicio, día) sobre 14 días × los 4 tenants. Tiene que dar **idéntico**.
 - Se puede hacer en varios PR, una función por commit. **Aquí no hay riesgo de datos.**
+
+> **ENTREGADO.** Migración `20260901145526_grupo_a_a_la_costura_de_ocupacion.sql`, aplicada a
+> producción. Las **8** funciones con predicado inline (ver la corrección del §5) pasan ya por
+> `ventanas_activas_cita()`; `grep` de `coalesce(c.fin_espera` en todo `public` da **0**.
+>
+> **Lo que se comprobó, en este orden:**
+> 1. **Equivalencia del predicado, exhaustiva.** 763.476 comparaciones — las 2.051 citas
+>    reales **más una matriz sintética de 35 combinaciones de NULL y de orden entre las cuatro
+>    marcas** (hace falta: en producción no hay ni una cita con `fin_activa` o `fin_espera` a
+>    NULL, y ese es justo el caso que se lee al revés), cruzadas con 61 desplazamientos y 6
+>    duraciones. **0 discrepancias.**
+> 2. **Extremo a extremo, dentro de una sola transacción** (foto → migración → foto →
+>    `rollback`): 4 salones × servicios reservables × 14 días = 1.876 casos.
+>    `disponibilidad_publica` 110.637 huecos y `portal_dias_disponibles` 1.506 días,
+>    `except all` **en los dos sentidos: 0**. Las de cadena, 311 huecos y 12 días, también 0.
+>    La transacción es imprescindible por dos motivos: `now()` queda congelado (si no, el
+>    filtro de antelación mueve el resultado) y la demo se resiembra cada 2 h — entre dos
+>    medidas mías el total ya se movió de 110.815 a 110.637 solo por eso.
+> 3. **Las 4 de escritura, ejecutadas de verdad** (`begin … rollback`): crear en hueco libre
+>    → ok; crear encima de la fase activa → «El hueco ya esta ocupado»; **crear DENTRO del
+>    reposo → reserva** (la regla que no se puede perder); modificar sobre ocupado, cadena y
+>    grupo → todas rechazan por ocupación. PL/pgSQL no valida alias en tiempo de creación, así
+>    que sin ejecutarlas un `v.desde` mal resuelto no habría saltado hasta la primera clienta.
+> 4. `tsc` · `vigilar` (0 bloqueantes) · `vigilar:bd` (0 bloqueantes) · `vigilar:test`
+>    (327/327) · `npm test` deno (481/481) · smoke `--project=publico` (24/24) · advisors sin
+>    categoría nueva.
+>
+> **Dos cosas aprendidas que condicionan el paso 5:**
+>
+> - **La costura se llama con `cross join lateral`, NUNCA envuelta en un ayudante booleano.**
+>   Un `cita_ocupa_ventana(marcas…, desde, hasta) → boolean` queda más limpio y es una trampa:
+>   Postgres no inlinea una función escalar cuyo cuerpo es un `EXISTS (SELECT … FROM <función
+>   de conjunto>)`, así que el plan deja la llamada opaca en el `Join Filter` y se evalúa por
+>   fila. Medido sobre `salon_pruebas_mecha`, 14 días de slots: **15 ms con el lateral, 883 ms
+>   con el booleano — 59×**. Con el lateral sí se inlinea y el plan sale `Hash Anti Join`.
+> - **Se parcheó por ancla sobre `pg_get_functiondef()`, no con `CREATE OR REPLACE` desde el
+>   repo.** `crear_cita_publica` tiene 10 definiciones repartidas entre `supabase/migrations/`
+>   y `archive/migraciones-legacy/`; reconstruirlas enteras es como se revierte un hotfix sin
+>   que nadie se entere. La migración **exige que el ancla exista** y falla si no.
 
 ### Paso 2 · `servicios.fases` y el técnificador
 
