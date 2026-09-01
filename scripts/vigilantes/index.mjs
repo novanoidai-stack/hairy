@@ -27,6 +27,7 @@ import migraciones from './migraciones.mjs';
 import husos from './husos.mjs';
 import planes from './planes.mjs';
 import horariosConvenio from './horarios-convenio.mjs';
+import inmutabilidadCobros from './inmutabilidad-cobros.mjs';
 import workflows from './workflows.mjs';
 import ecosistemaCuentas from './ecosistema-cuentas.mjs';
 import codigoMuerto from './codigo-muerto.mjs';
@@ -60,6 +61,7 @@ const ESTATICOS = [
   husos,
   planes,
   horariosConvenio,
+  inmutabilidadCobros,
   workflows,
   ecosistemaCuentas,
   codigoMuerto,
