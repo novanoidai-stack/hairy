@@ -238,6 +238,9 @@ export function CobroSheet(props: CobroSheetProps) {
   const puedeEditarBase = props.mode === 'cita' && props.citaIds.length === 1 && !usarBono;
   const [editandoBase, setEditandoBase] = useState(false);
   const [baseInput, setBaseInput] = useState('');
+  // Importe YA confirmado (centimos). Vive fuera del modo edicion para que
+  // pulsar el check o Enter no lo pierda: es lo que viaja como p_base_cents.
+  const [baseConfirmadaCents, setBaseConfirmadaCents] = useState<number | null>(null);
 
   // --- Add-ons de la cita(s): solo dinero (no ocupan agenda desde 2026-09-01),
   // pero hay que cobrarlos. El RPC los suma server-side; aqui solo se muestran
@@ -333,15 +336,21 @@ export function CobroSheet(props: CobroSheetProps) {
   );
 
   const pendienteBaseCents = 'pendienteCents' in props ? props.pendienteCents : 0;
-  // Importe editado a mano (centimos) o el que llega del caller. El editado es
-  // el pendiente DEL SERVICIO (neto de señal); el RPC recibe base+señal.
-  const baseEditadaCents = editandoBase ? Math.round(aEntero(baseInput) * 100) : null;
+  // Importe corregido a mano ya confirmado (neto de señal); el RPC recibe
+  // base+señal porque descuenta la señal el mismo.
+  const baseEditadaCents = baseConfirmadaCents;
   const baseEfectivaCents = baseEditadaCents ?? pendienteBaseCents;
+  const confirmarBase = () => {
+    // Vaciar y confirmar = volver al precio de catalogo.
+    setBaseConfirmadaCents(baseInput.trim() ? Math.round(aEntero(baseInput) * 100) : null);
+    setEditandoBase(false);
+  };
   const pendienteCents = baseEfectivaCents + addonsCents + lineasBaseCents;
   const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
-  // Base sobre la que se aplica el descuento: con bono la cita la cubre el bono,
-  // asi que el % se calcula solo sobre los productos extra del ticket.
-  const baseDescuentoCents = usarBono ? lineasBaseCents : pendienteCents;
+  // Base sobre la que se aplica el descuento: con bono la cita la cubre el
+  // bono, asi que el % se calcula solo sobre productos extra y add-ons (que el
+  // bono no cubre y si se cobran).
+  const baseDescuentoCents = usarBono ? lineasBaseCents + addonsCents : pendienteCents;
   const descuentoCents =
     descuentoTipo === 'pct'
       ? Math.round((baseDescuentoCents * Math.min(100, aEntero(descuento))) / 100)
@@ -352,10 +361,10 @@ export function CobroSheet(props: CobroSheetProps) {
   const trAplicadoCents = trUsarSaldo && trTarjeta
     ? Math.min(trTarjeta.saldo_actual_cents, netoCents)
     : 0;
-  // Con bono: la cita la cubre el bono (0 €), pero los productos extra del
-  // ticket SI se cobran, menos el descuento aplicado, mas la propina.
+  // Con bono: la cita la cubre el bono (0 €), pero los productos extra y los
+  // add-ons SI se cobran, menos el descuento aplicado, mas la propina.
   const totalCents = usarBono
-    ? Math.max(0, lineasBaseCents - descuentoCents) + propinaCents
+    ? Math.max(0, lineasBaseCents + addonsCents - descuentoCents) + propinaCents
     : (netoCents - trAplicadoCents) + propinaCents;
   // Split efectivo+datafono (solo cobro de 1 cita). El datafono es el resto: siempre cuadra.
   const puedeMixto = props.mode === 'cita' && props.citaIds.length === 1;
@@ -510,6 +519,8 @@ export function CobroSheet(props: CobroSheetProps) {
         p_metodo: 'online',
         p_propina_cents: propinaCents,
         p_descuento_cents: descuentoCents,
+        // Importe corregido a mano (bruto de señal), igual que en el POS.
+        ...(baseEditadaCents !== null ? { p_base_cents: baseEditadaCents + senalCents } : {}),
       });
       if (rpcErr) throw rpcErr;
       const token = (data as { token?: string })?.token;
@@ -791,11 +802,11 @@ export function CobroSheet(props: CobroSheetProps) {
                     <input
                       type="text" inputMode="decimal" autoFocus value={baseInput}
                       onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9.,]/g, ''))}
-                      onKeyDown={(e) => { if (e.key === 'Enter') setEditandoBase(false); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') confirmarBase(); }}
                       placeholder={(baseEfectivaCents / 100).toFixed(2)}
                       style={{ width: 84, padding: '6px 10px', textAlign: 'right', background: T.bgPanel, border: `1px solid ${T.primary}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, boxSizing: 'border-box' }}
                     />
-                    <button type="button" title="Confirmar importe" onClick={() => setEditandoBase(false)}
+                    <button type="button" title="Confirmar importe" onClick={confirmarBase}
                       style={{ padding: '6px 10px', background: T.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                       ✓
                     </button>
@@ -821,12 +832,6 @@ export function CobroSheet(props: CobroSheetProps) {
                   </span>
                 </div>
               )}
-              {addonsCita.length > 0 && addonsCita.map((a, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12.5, color: T.textSec }}>Extra · {a.nombre}</span>
-                  <span style={{ fontSize: 12.5, color: T.textSec }}>+{a.precio.toFixed(2)} €</span>
-                </div>
-              ))}
               {senalCents > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 12.5, color: T.success }}>Señal ya pagada</span>
@@ -835,6 +840,14 @@ export function CobroSheet(props: CobroSheetProps) {
               )}
             </>
           )}
+          {/* Add-ons de la cita: se cobran siempre (el bono cubre el servicio,
+              los extras no). Fuera del bloque !usarBono para verse tambien con bono. */}
+          {addonsCita.map((a, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 12.5, color: T.textSec }}>Extra · {a.nombre}</span>
+              <span style={{ fontSize: 12.5, color: T.textSec }}>+{a.precio.toFixed(2)} €</span>
+            </div>
+          ))}
           {/* El descuento se muestra tambien con bono: aplica a los productos
               extra del ticket (la cita la cubre el bono). */}
           {(
@@ -979,8 +992,7 @@ export function CobroSheet(props: CobroSheetProps) {
 
             {props.mode === 'cita' && props.citaIds.length === 1 && (
               <div style={{ marginTop: 14 }}>
-                <button onClick={generarQr} disabled={qrBusy || enviando || baseEditadaCents !== null}
-                  title={baseEditadaCents !== null ? 'El QR cobra el importe de catálogo; con importe corregido usa efectivo/datáfono/Bizum' : undefined}
+                <button onClick={generarQr} disabled={qrBusy || enviando}
                   style={{ width: '100%', padding: '12px 0', background: 'linear-gradient(to right, #004481, #005ce6)', border: 'none', color: '#fff', borderRadius: 10, cursor: qrBusy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, opacity: qrBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(0, 68, 129, 0.3)', transition: 'transform 0.15s ease' }}
                   onMouseEnter={(e) => { if (!qrBusy) e.currentTarget.style.transform = 'translateY(-2px)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'none' }}
