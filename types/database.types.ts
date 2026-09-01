@@ -7494,6 +7494,7 @@ export type Database = {
       }
       crear_cobro_desde_cita: {
         Args: {
+          p_base_cents?: number
           p_cita_id: string
           p_datafono_cents?: number
           p_descuento_cents?: number

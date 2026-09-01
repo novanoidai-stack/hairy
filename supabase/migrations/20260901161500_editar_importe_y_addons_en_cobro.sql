@@ -14,6 +14,8 @@
 -- Ojo firma nueva => entrada nueva en pg_proc con grants por defecto (anon
 -- incluido). Se re-ajregan explicitamente: solo authenticated y service_role.
 -- Patron de 20260828211000_cerrar_rpc_que_se_fian_del_parametro.sql.
+-- Limpiar la sobrecarga de 7 argumentos para evitar PGRST203 (ambiguedad en PostgREST).
+drop function if exists public.crear_cobro_desde_cita(uuid, text, integer, integer, integer, integer, jsonb);
 
 create or replace function public.crear_cobro_desde_cita(
   p_cita_id uuid, p_metodo text, p_propina_cents integer default 0,
@@ -156,3 +158,5 @@ $function$;
 -- y los edge functions con service_role pueden llamarla.
 revoke all on function public.crear_cobro_desde_cita(uuid, text, integer, integer, integer, integer, jsonb, integer) from public, anon;
 grant execute on function public.crear_cobro_desde_cita(uuid, text, integer, integer, integer, integer, jsonb, integer) to authenticated, service_role;
+
+notify pgrst, 'reload schema';

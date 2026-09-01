@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.crear_cobro_desde_cita(p_cita_id uuid, p_metodo text, p_propina_cents integer DEFAULT 0, p_descuento_cents integer DEFAULT 0, p_efectivo_cents integer DEFAULT NULL::integer, p_datafono_cents integer DEFAULT NULL::integer, p_lineas_extra jsonb DEFAULT '[]'::jsonb)
+CREATE OR REPLACE FUNCTION public.crear_cobro_desde_cita(p_cita_id uuid, p_metodo text, p_propina_cents integer DEFAULT 0, p_descuento_cents integer DEFAULT 0, p_efectivo_cents integer DEFAULT NULL::integer, p_datafono_cents integer DEFAULT NULL::integer, p_lineas_extra jsonb DEFAULT '[]'::jsonb, p_base_cents integer DEFAULT NULL::integer)
  RETURNS uuid
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -10,6 +10,8 @@ declare
   v_precio numeric;
   v_nombre text;
   v_base_cents integer;
+  v_addon record;
+  v_addons_cents integer;
   v_senal_cents integer;
   v_extras_cents integer;
   v_total_cents integer;
@@ -30,7 +32,13 @@ begin
   if p_metodo not in ('efectivo','datafono','online','bizum','mixto') then raise exception 'metodo_invalido'; end if;
 
   select precio, nombre into v_precio, v_nombre from public.servicios where id = v_cita.servicio_id;
-  v_base_cents := coalesce(round(coalesce(v_precio, 0) * 100), 0);
+  -- Importe del servicio: el editado en el POS si llega, si no el de catalogo.
+  if p_base_cents is not null then
+    if p_base_cents < 0 then raise exception 'base_invalida'; end if;
+    v_base_cents := p_base_cents;
+  else
+    v_base_cents := coalesce(round(coalesce(v_precio, 0) * 100), 0);
+  end if;
 
   select coalesce(sum(importe_cents), 0) into v_senal_cents
   from public.pagos
@@ -49,7 +57,15 @@ begin
     v_extras_cents := 0;
   end if;
 
-  v_total_cents := greatest(0, v_base_cents + v_extras_cents - v_desc - coalesce(v_senal_cents, 0)) + v_prop;
+  -- Add-ons de la cita: solo dinero desde 2026-09-01, pero dinero que hay que
+  -- cobrar. Se suman al total y dejan linea propia para informes/comisiones.
+  select coalesce(sum(round(coalesce(sa.precio, 0) * 100)), 0)
+    into v_addons_cents
+    from public.cita_addons ca
+    join public.service_addons sa on sa.id = ca.addon_id
+   where ca.cita_id = p_cita_id;
+
+  v_total_cents := greatest(0, v_base_cents + v_addons_cents + v_extras_cents - v_desc - coalesce(v_senal_cents, 0)) + v_prop;
 
   if p_metodo = 'mixto' then
     v_efe := greatest(0, coalesce(p_efectivo_cents, 0));
@@ -73,23 +89,45 @@ begin
   insert into public.cobro_lineas (cobro_id, tipo, ref_id, nombre, precio_cents, cantidad)
   values (v_cobro_id, 'servicio', v_cita.servicio_id, coalesce(v_nombre, 'Servicio'), v_base_cents, 1);
 
+  for v_addon in
+    select ca.addon_id, sa.nombre, round(coalesce(sa.precio, 0) * 100) as precio_cents
+      from public.cita_addons ca
+      join public.service_addons sa on sa.id = ca.addon_id
+     where ca.cita_id = p_cita_id
+  loop
+    insert into public.cobro_lineas (cobro_id, tipo, ref_id, nombre, precio_cents, cantidad)
+    values (v_cobro_id, 'addon', v_addon.addon_id, v_addon.nombre, v_addon.precio_cents, 1);
+  end loop;
+
   if jsonb_typeof(p_lineas_extra) = 'array' and jsonb_array_length(p_lineas_extra) > 0 then
     for v_extra_line in select * from jsonb_array_elements(p_lineas_extra) loop
       insert into public.cobro_lineas (cobro_id, tipo, ref_id, nombre, precio_cents, cantidad)
       values (
-        v_cobro_id, 
-        coalesce(v_extra_line->>'tipo', 'producto'), 
-        (case when v_extra_line->>'ref_id' = '' then null else (v_extra_line->>'ref_id')::uuid end), 
-        coalesce(v_extra_line->>'nombre', 'Extra'), 
-        (v_extra_line->>'precio_cents')::int, 
+        v_cobro_id,
+        coalesce(v_extra_line->>'tipo', 'producto'),
+        (case when v_extra_line->>'ref_id' = '' then null else (v_extra_line->>'ref_id')::uuid end),
+        coalesce(v_extra_line->>'nombre', 'Extra'),
+        (v_extra_line->>'precio_cents')::int,
         coalesce((v_extra_line->>'cantidad')::int, 1)
       );
     end loop;
   end if;
 
+  -- 2F: enlace de trazabilidad producto-usado ↔ producto-cobrado (mejor esfuerzo;
+  -- asigna una columna nullable, no puede romper el cobro).
+  update public.cita_productos cp
+  set cobro_linea_id = cl.id
+  from public.cobro_lineas cl
+  where cl.cobro_id = v_cobro_id
+    and cl.tipo = 'producto'
+    and cl.ref_id is not null
+    and cp.cita_id = v_cita.id
+    and cp.producto_id = cl.ref_id
+    and cp.cobro_linea_id is null;
+
   update public.citas set cobrada = true, cobro_id = v_cobro_id where id = v_cita.id;
 
   return v_cobro_id;
 end;
-$function$
+$function$;
 

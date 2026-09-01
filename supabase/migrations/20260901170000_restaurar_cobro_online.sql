@@ -282,6 +282,7 @@ begin
   );
 end;
 $$;
+-- Publica para la pantalla anonima /app/pagar/[token] (token opaco con TTL, sin PII sensible).
 revoke all on function public.pago_info_publica(text) from public;
 grant execute on function public.pago_info_publica(text) to anon, authenticated, service_role;
 
@@ -348,6 +349,7 @@ begin
   return jsonb_build_object('ok', true);
 end;
 $$;
+-- Publica para rellenar datos del cliente en /app/pagar/[token] (valida token de pago vivo).
 revoke all on function public.completar_datos_pago_publico(text, text, text, text, boolean) from public;
 grant execute on function public.completar_datos_pago_publico(text, text, text, text, boolean) to anon, authenticated;
 
