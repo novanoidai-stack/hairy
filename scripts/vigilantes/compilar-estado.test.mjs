@@ -18,9 +18,17 @@ import {
   obtenerMetadatosGit,
   ESTATICOS,
 } from './compilar-estado.mjs';
-import { AnclaPerdida, hallazgo } from './nucleo.mjs';
+import { RAIZ, AnclaPerdida, hallazgo } from './nucleo.mjs';
 
 const RUNNER = fileURLToPath(new URL('./compilar-estado.mjs', import.meta.url));
+
+// Los dos artefactos de `.sistema/` estan VERSIONADOS: correr la suite no puede
+// degradarlos. Se leen antes y despues de lanzar el CLI para probarlo.
+const ARTEFACTOS_VERSIONADOS = [
+  path.join(RAIZ, '.sistema', 'estado-salud.json'),
+  path.join(RAIZ, '.sistema', 'ESTADO_SALUD.md'),
+];
+const leerSiExiste = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : null);
 
 test('compilarEstado devuelve un snapshot con la estructura de contrato requerida', async () => {
   const snapshot = await compilarEstado({ escribirArchivos: false, incluirBD: false, rapido: true });
@@ -220,13 +228,43 @@ test('obtenerMetadatosGit gestiona errores y directorios sin git sin reventar', 
   }
 });
 
-test('ejecución CLI como proceso hijo completa con código 0', () => {
-  const r = spawnSync(process.execPath, [RUNNER, '--rapido'], {
+test('ejecución CLI como proceso hijo completa con código 0 sin tocar los artefactos versionados', () => {
+  const antes = ARTEFACTOS_VERSIONADOS.map(leerSiExiste);
+  const tempDir = mkdtempSync(path.join(os.tmpdir(), 'mecha-salud-cli-'));
+
+  try {
+    const r = spawnSync(process.execPath, [RUNNER, '--rapido', '--salida', tempDir], {
+      encoding: 'utf8',
+      timeout: 60_000,
+    });
+
+    assert.equal(r.signal, null, 'El proceso terminó limpiamente');
+    assert.equal(r.status, 0, `Esperaba salida 0, obtuvo ${r.status}. stderr:\n${r.stderr}`);
+    assert.ok(r.stdout.includes('MECHA OS - Compilación de Estado de Salud'));
+
+    assert.ok(existsSync(path.join(tempDir, 'estado-salud.json')), '--salida debe recibir el snapshot');
+    assert.ok(existsSync(path.join(tempDir, 'ESTADO_SALUD.md')), '--salida debe recibir el markdown');
+
+    assert.deepEqual(
+      ARTEFACTOS_VERSIONADOS.map(leerSiExiste),
+      antes,
+      'La suite no puede degradar el snapshot versionado de .sistema/: un panel de salud ' +
+        'reescrito por una corrida parcial de pruebas es exactamente el "verde porque nadie mira"',
+    );
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('el CLI rechaza --salida sin ruta en vez de escribir en .sistema por descuido', () => {
+  const antes = ARTEFACTOS_VERSIONADOS.map(leerSiExiste);
+
+  const r = spawnSync(process.execPath, [RUNNER, '--salida'], {
     encoding: 'utf8',
     timeout: 60_000,
   });
 
-  assert.equal(r.signal, null, 'El proceso terminó limpiamente');
-  assert.equal(r.status, 0, `Esperaba salida 0, obtuvo ${r.status}. stderr:\n${r.stderr}`);
-  assert.ok(r.stdout.includes('MECHA OS - Compilación de Estado de Salud'));
+  assert.equal(r.status, 1, `Esperaba salida 1, obtuvo ${r.status}. stderr:\n${r.stderr}`);
+  assert.ok(r.stderr.includes('--salida requiere una ruta'), 'Debe explicar el uso correcto');
+  assert.deepEqual(ARTEFACTOS_VERSIONADOS.map(leerSiExiste), antes, 'Un --salida mal escrito no escribe nada');
 });

@@ -305,8 +305,21 @@ export function generarMarkdownEstado(s) {
 const esEjecucionDirecta = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (esEjecucionDirecta) {
   const rapido = process.argv.includes('--rapido');
-  compilarEstado({ rapido })
+
+  // --salida <dir> redirige los dos artefactos fuera de `.sistema/`. Sin esto,
+  // cualquiera que lance el CLI (los tests, por ejemplo) sobrescribe un snapshot
+  // VERSIONADO con una corrida parcial: el panel se queda en verde describiendo
+  // otra rama y otro commit, que es justo el fallo que estos vigilantes persiguen.
+  const idxSalida = process.argv.indexOf('--salida');
+  const dirSalida = idxSalida === -1 ? undefined : process.argv[idxSalida + 1];
+  if (idxSalida !== -1 && (!dirSalida || dirSalida.startsWith('--'))) {
+    console.error('Error: --salida requiere una ruta de directorio.');
+    process.exit(1);
+  }
+
+  compilarEstado({ rapido, dirSalida })
     .then((s) => {
+      const dirMostrado = (dirSalida || '.sistema').replace(/[\\/]+$/, '');
       console.log(`\n============================================================`);
       console.log(`🧠 MECHA OS - Compilación de Estado de Salud`);
       console.log(`============================================================`);
@@ -314,8 +327,8 @@ if (esEjecucionDirecta) {
       console.log(`Bloqueantes:  ${s.resumen.bloqueantes}`);
       console.log(`Avisos:       ${s.resumen.avisos}`);
       console.log(`Vigilantes:   ${s.resumen.vigilantes_ejecutados}`);
-      console.log(`Snapshot:     .sistema/estado-salud.json`);
-      console.log(`Markdown:     .sistema/ESTADO_SALUD.md`);
+      console.log(`Snapshot:     ${dirMostrado}/estado-salud.json`);
+      console.log(`Markdown:     ${dirMostrado}/ESTADO_SALUD.md`);
       console.log(`============================================================\n`);
     })
     .catch((err) => {
