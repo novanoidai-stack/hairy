@@ -156,17 +156,71 @@ export function evaluarTrinquete(avisosActuales, limitePermitido) {
   return hallazgos;
 }
 
+/**
+ * Comprueba que el techo se calibró con el MISMO alcance con el que se midió el
+ * snapshot. Dos recuentos de vigilantes distintos no son comparables, y decir
+ * "42 avisos como mucho" sin decir sobre cuántos vigilantes no significa nada.
+ *
+ * POR QUE (4 sep 2026): el techo de 42 se calibró cuando compilar-estado.mjs
+ * corría 17 vigilantes con su propia lista; el runner corría 32. Al unificar la
+ * lista, la MISMA salud pasa a medirse sobre 32 y el recuento sube de 39 a unos
+ * 300 sin que haya entrado ni una línea de deuda nueva. Sin esta comprobación,
+ * la primera persona que regenerase el snapshot se habría comido un bloqueante
+ * por un cambio de alcance, y la lectura obvia --subir el techo para callarlo--
+ * es justo lo que un trinquete no puede permitir que se haga a ciegas.
+ * @param {unknown} snapshot
+ * @param {unknown} configBase
+ * @returns {import('./nucleo.mjs').Hallazgo[]}
+ */
+export function comprobarAlcance(snapshot, configBase) {
+  const medidos = esObjeto(snapshot?.capas?.estatica) ? snapshot.capas.estatica.vigilantes : undefined;
+  const calibrado = esObjeto(configBase) ? configBase.medido_con_vigilantes : undefined;
+
+  if (typeof calibrado !== 'number' || typeof medidos !== 'number') {
+    throw new AnclaPerdida(
+      'Para comparar deuda hacen falta los dos alcances: `capas.estatica.vigilantes` en ' +
+        `${RUTA_SNAPSHOT} (hay ${JSON.stringify(medidos)}) y \`medido_con_vigilantes\` en ` +
+        `${RUTA_LINEA_BASE} (hay ${JSON.stringify(calibrado)}). Un techo sin alcance no ` +
+        'dice nada: 42 avisos sobre 17 vigilantes y sobre 32 no son la misma salud.',
+      { fichero: RUTA_LINEA_BASE, ancla: 'medido_con_vigilantes' },
+    );
+  }
+
+  if (medidos === calibrado) return [];
+
+  return [
+    hallazgo({
+      clave: 'meta-trinquete/alcance-cambiado',
+      nivel: 'aviso',
+      ambito: 'meta',
+      titulo: `El techo se calibró sobre ${calibrado} vigilantes y el snapshot mide ${medidos}`,
+      detalle:
+        'No se compara la deuda: dos alcances distintos no son comparables, y un ' +
+        'bloqueante aquí sería un rojo falso por un cambio de alcance, no por deuda nueva.\n\n' +
+        'Para recalibrar, y hazlo con el ÁRBOL LIMPIO (regenerar desde una rama sucia mete ' +
+        'trabajo a medias en un artefacto versionado):\n' +
+        '  1. npm run vigilar:ia        (reescribe .sistema/)\n' +
+        `  2. copia resumen.avisos al techo de ${RUTA_LINEA_BASE}\n` +
+        `  3. pon medido_con_vigilantes = capas.estatica.vigilantes\n` +
+        '  4. commitea los tres cambios juntos, para que el salto se vea de una pieza.',
+      fichero: RUTA_LINEA_BASE,
+    }),
+  ];
+}
+
 async function ejecutar() {
   // `leer()` lanza AnclaPerdida si el fichero no está, que es lo que queremos:
   // los dos están versionados y su ausencia es un hallazgo, no un no-aplica.
-  const limite = leerLimiteDeLineaBase(
-    parsearJson(leer(RUTA_LINEA_BASE), RUTA_LINEA_BASE),
-    RUTA_LINEA_BASE,
-  );
-  const avisosActuales = leerAvisosDelSnapshot(
-    parsearJson(leer(RUTA_SNAPSHOT), RUTA_SNAPSHOT),
-    RUTA_SNAPSHOT,
-  );
+  const configBase = parsearJson(leer(RUTA_LINEA_BASE), RUTA_LINEA_BASE);
+  const snapshot = parsearJson(leer(RUTA_SNAPSHOT), RUTA_SNAPSHOT);
+
+  // Primero el alcance: si no cuadra, comparar los recuentos es aritmética sin
+  // significado y vale más callar el número que dar uno que engaña.
+  const desajuste = comprobarAlcance(snapshot, configBase);
+  if (desajuste.length) return desajuste;
+
+  const limite = leerLimiteDeLineaBase(configBase, RUTA_LINEA_BASE);
+  const avisosActuales = leerAvisosDelSnapshot(snapshot, RUTA_SNAPSHOT);
 
   return evaluarTrinquete(avisosActuales, limite);
 }

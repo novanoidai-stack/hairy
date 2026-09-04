@@ -1,5 +1,7 @@
 {
   "_comentario": "Línea base congelada de avisos máximos permitidos en MECHA OS. El trinquete solo gira hacia abajo.",
   "fecha_congelacion": "2026-09-01T20:00:00.000Z",
-  "maximo_avisos_permitidos": 42
+  "maximo_avisos_permitidos": 42,
+  "medido_con_vigilantes": 17,
+  "_alcance": "El techo de 42 se calibro el 1 sep 2026 cuando compilar-estado.mjs corria su PROPIA lista de 17 vigilantes, mientras el runner corria 32. Desde el 4 sep la lista es unica (scripts/vigilantes/registro.mjs), asi que la proxima regeneracion del snapshot medira sobre 32 y el recuento subira de 39 a ~300 SIN QUE HAYA ENTRADO DEUDA NUEVA. Por eso el trinquete compara primero el alcance y avisa en vez de dar un rojo falso: hay que regenerar con el arbol limpio y subir techo y alcance en el mismo commit."
 }

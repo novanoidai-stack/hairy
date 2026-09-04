@@ -7,8 +7,7 @@ import path from 'node:path';
 import metaTrinquete, {
   evaluarTrinquete,
   leerAvisosDelSnapshot,
-  leerLimiteDeLineaBase,
-} from './meta-trinquete.mjs';
+  leerLimiteDeLineaBase, comprobarAlcance } from './meta-trinquete.mjs';
 import { RAIZ, AnclaPerdida } from './nucleo.mjs';
 
 // Un snapshot con la MISMA FORMA que el que escribe compilar-estado.mjs: las
@@ -153,5 +152,55 @@ describe('meta-trinquete', () => {
           `se esperaban ${esperados} hallazgos`,
       );
     });
+  });
+});
+
+// --- El alcance: 42 avisos sobre 17 vigilantes no es 42 sobre 32 -------------
+//
+// Anadido el 4 sep 2026, al unificar la lista de vigilantes. El techo estaba
+// calibrado contra los 17 que corria compilar-estado con su lista propia; el
+// runner corria 32. Sin esta comprobacion, la primera regeneracion del snapshot
+// habria dado un bloqueante por un cambio de ALCANCE, no por deuda nueva -- y la
+// reaccion obvia (subir el techo hasta que calle) es justo lo que un trinquete
+// no puede permitir a ciegas.
+
+describe('el alcance de la medida', () => {
+  const base = (n) => ({ maximo_avisos_permitidos: 42, medido_con_vigilantes: n });
+  const snap = (n, avisos = 10) => ({ resumen: { avisos }, capas: { estatica: { vigilantes: n } } });
+
+  it('calla cuando el techo y el snapshot miden los mismos vigilantes', () => {
+    assert.deepEqual(comprobarAlcance(snap(17), base(17)), []);
+  });
+
+  it('avisa --y no bloquea-- cuando los alcances no coinciden', () => {
+    const h = comprobarAlcance(snap(32), base(17));
+    assert.equal(h.length, 1);
+    assert.equal(h[0].nivel, 'aviso', 'un cambio de alcance no es deuda nueva: no puede tumbar la CI');
+    assert.match(h[0].titulo, /17 vigilantes y el snapshot mide 32/);
+    assert.match(h[0].detalle, /ÁRBOL LIMPIO/, 'tiene que decir como recalibrar, no solo que algo pasa');
+  });
+
+  it('con los alcances descuadrados NO se compara la deuda', async () => {
+    // El numero de avisos esta muy por encima del techo, pero lo que sale es el
+    // aviso de alcance y no el desborde: comparar seria aritmetica sin sentido.
+    const h = comprobarAlcance(snap(32, 9999), base(17));
+    assert.equal(h.length, 1);
+    assert.equal(h[0].clave, 'meta-trinquete/alcance-cambiado');
+  });
+
+  it('un alcance ausente es un ancla perdida, no un pase libre', () => {
+    assert.throws(() => comprobarAlcance(snap(17), { maximo_avisos_permitidos: 42 }), /AnclaPerdida|alcance/);
+    assert.throws(() => comprobarAlcance({ resumen: { avisos: 1 } }, base(17)), /AnclaPerdida|alcance/);
+  });
+
+  it('los dos ficheros versionados de hoy declaran el mismo alcance', () => {
+    const snapshot = JSON.parse(readFileSync(new URL('../../.sistema/estado-salud.json', import.meta.url), 'utf8'));
+    const cfg = JSON.parse(readFileSync(new URL('./meta-trinquete-baseline.json', import.meta.url), 'utf8'));
+    assert.deepEqual(
+      comprobarAlcance(snapshot, cfg),
+      [],
+      'El snapshot del repo y su linea base miden distinto numero de vigilantes. ' +
+        'Regenera con el arbol limpio y sube techo y alcance en el mismo commit.',
+    );
   });
 });

@@ -14,10 +14,15 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { RAIZ, hallazgo, NO_SON_VIGILANTES, codigoEjecutable } from './nucleo.mjs';
+import { RAIZ, hallazgo, NO_SON_VIGILANTES, codigoEjecutable, DE_RED } from './nucleo.mjs';
 
 const DIR = 'scripts/vigilantes';
+// Desde el 4 sep 2026 la lista vive en registro.mjs y la comparten el runner y
+// compilar-estado (el que escribe el snapshot del panel). Se miran los DOS: el
+// registro es donde tiene que estar un vigilante nuevo, e index.mjs sigue
+// contando porque ahi viven el guardia y los modos del CLI.
 const RUNNER = 'scripts/vigilantes/index.mjs';
+const REGISTRO = 'scripts/vigilantes/registro.mjs';
 
 // La lista de "esto no es un vigilante" vive en nucleo.mjs y la comparte con
 // meta-contrato. Estuvo duplicada aqui y alli hasta el 4 sep 2026, y la copia
@@ -28,7 +33,15 @@ async function ejecutar() {
     (f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs'),
   );
 
-  const textoRunner = readFileSync(path.join(RAIZ, RUNNER), 'utf8');
+  const textoRunner =
+    readFileSync(path.join(RAIZ, RUNNER), 'utf8') +
+    readFileSync(path.join(RAIZ, REGISTRO), 'utf8');
+
+  // Los de red no se nombran en ningun texto: son DATOS en la lista DE_RED. Se
+  // pregunta a la lista, no al fichero donde este escrita hoy -- mover esa lista
+  // de sitio (paso el 4 sep 2026, al romper un ciclo de importacion) dejaba
+  // ciega la comprobacion si iba por texto.
+  const estaRegistrado = (f) => textoRunner.includes(`./${f}`) || DE_RED.includes(`./${f}`);
 
   const hallazgos = [];
 
@@ -110,7 +123,7 @@ async function ejecutar() {
     // El corazon: todo vigilante tiene que estar referenciado en el runner.
     // El runner referencia por ruta ('./bd.mjs') tanto en ESTATICOS como en
     // la lista dinamica de --bd.
-    if (!textoRunner.includes(`./${f}`)) {
+    if (!estaRegistrado(f)) {
       hallazgos.push(
         hallazgo({
           clave: `meta-registro/fuera-del-runner:${f}`,
@@ -122,7 +135,7 @@ async function ejecutar() {
             'Un vigilante que existe en el disco y no en el runner no corre nunca y cuenta ' +
             'como cobertura falsa. Anadirlo a ESTATICOS o a la lista --bd. Esto es ' +
             'exactamente lo que paso el 30 ago 2026 con seis ficheros del equipo multi-agente.',
-          fichero: RUNNER,
+          fichero: REGISTRO,
         }),
       );
     }
@@ -134,9 +147,11 @@ async function ejecutar() {
     path.join(RAIZ, 'supabase/functions/ejecutar-vigilancia-bd/index.ts'),
     'utf8',
   );
-  const deRed = ['bd.mjs', 'bd-rendimiento.mjs', 'bd-migraciones.mjs', 'bd-ecosistema.mjs',
-    'bd-profunda.mjs', 'bd-triggers-ciegos.mjs', 'bd-sobrecargas-rpc.mjs',
-    'bd-escritura-critica.mjs', 'bd-invariantes.mjs'];
+  // Los nombres salen del registro, no de una copia: esta lista escrita a mano
+  // habria sido la cuarta copia de lo mismo el mismo dia que se unificaron las
+  // otras tres. Lo que SI vive aqui es el mapa fichero -> RPC, que es
+  // conocimiento propio de esta comprobacion.
+  const deRed = DE_RED.map((r) => r.replace('./', ''));
   const rpcDe = {
     'bd.mjs': 'vigilancia_bd',
     'bd-rendimiento.mjs': 'vigilancia_bd_rendimiento',
@@ -149,7 +164,7 @@ async function ejecutar() {
     'bd-invariantes.mjs': 'vigilancia_bd_invariantes',
   };
   for (const f of deRed) {
-    if (!textoRunner.includes(`./${f}`)) continue; // ya lo caza el chequeo de arriba
+    if (!estaRegistrado(f)) continue; // ya lo caza el chequeo de arriba
     if (!textoEdge.includes(`'${rpcDe[f]}'`)) {
       hallazgos.push(
         hallazgo({

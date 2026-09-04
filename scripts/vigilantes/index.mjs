@@ -22,73 +22,11 @@ import { writeFileSync } from 'node:fs';
 import process from 'node:process';
 import { AnclaPerdida, hallazgo } from './nucleo.mjs';
 
-import precios from './precios.mjs';
-import referidos from './referidos.mjs';
-import rutasPublicas from './rutas-publicas.mjs';
-import cacheApp from './cache-app.mjs';
-import claves from './claves.mjs';
-import erroresTragados from './errores-tragados.mjs';
-import panelAmbitos from './panel-ambitos.mjs';
-import edgesAutorizadas from './edges-autorizadas.mjs';
-import migraciones from './migraciones.mjs';
-import husos from './husos.mjs';
-import planes from './planes.mjs';
-import horariosConvenio from './horarios-convenio.mjs';
-import inmutabilidadCobros from './inmutabilidad-cobros.mjs';
-import workflows from './workflows.mjs';
-import ecosistemaCuentas from './ecosistema-cuentas.mjs';
-import codigoMuerto from './codigo-muerto.mjs';
-import claimsFiscales from './claims-fiscales.mjs';
-import modulosDesconectados from './modulos-desconectados.mjs';
-import metaAnclas from './meta-anclas.mjs';
-import metaCobertura from './meta-cobertura.mjs';
-import pesoComponentes from './peso-componentes.mjs';
-import rendimiento from './rendimiento.mjs';
-import calidadCodigo from './calidad-codigo.mjs';
-import ciCadenaRota from './ci-cadena-rota.mjs';
-import triggerCadenas from './trigger-cadenas.mjs';
-import metaRegistro from './meta-registro.mjs';
-import metaContrato from './meta-contrato.mjs';
-import metaMutaciones from './meta-mutaciones.mjs';
-import metaTrinquete from './meta-trinquete.mjs';
-import guardrailIA from './guardrail-ia.mjs';
-import fugasListeners from './fugas-listeners.mjs';
-import modalesFantasma from './modales-fantasma.mjs';
-
-const ESTATICOS = [
-  precios,
-  referidos,
-  rutasPublicas,
-  cacheApp,
-  claves,
-  erroresTragados,
-  panelAmbitos,
-  edgesAutorizadas,
-  migraciones,
-  husos,
-  planes,
-  horariosConvenio,
-  inmutabilidadCobros,
-  workflows,
-  ecosistemaCuentas,
-  codigoMuerto,
-  claimsFiscales,
-  modulosDesconectados,
-  metaAnclas,
-  metaCobertura,
-  pesoComponentes,
-  rendimiento,
-  calidadCodigo,
-  ciCadenaRota,
-  triggerCadenas,
-  metaRegistro,
-  metaContrato,
-  metaMutaciones,
-  metaTrinquete,
-  guardrailIA,
-  fugasListeners,
-  modalesFantasma,
-];
+// La lista de vigilantes vive en registro.mjs y la comparte con
+// compilar-estado.mjs (el que escribe el snapshot de salud). Estuvo escrita en
+// los dos, con 32 aqui y 17 alli, y por eso el panel de staff media medio
+// sistema en silencio: ver la forense en registro.mjs.
+import { ESTATICOS, cargarDeRed } from './registro.mjs';
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -147,19 +85,7 @@ async function main() {
 
   // Los de red no van en la CI: necesitan credencial y las RPC no se crean por
   // pull request, sino por migracion aplicada en remoto. Con --bd se anaden.
-  const conRed = flag('--bd')
-    ? [
-        (await import('./bd.mjs')).default,
-        (await import('./bd-rendimiento.mjs')).default,
-        (await import('./bd-migraciones.mjs')).default,
-        (await import('./bd-ecosistema.mjs')).default,
-        (await import('./bd-profunda.mjs')).default,
-        (await import('./bd-triggers-ciegos.mjs')).default,
-        (await import('./bd-sobrecargas-rpc.mjs')).default,
-        (await import('./bd-escritura-critica.mjs')).default,
-        (await import('./bd-invariantes.mjs')).default,
-      ]
-    : [];
+  const conRed = flag('--bd') ? await cargarDeRed() : [];
 
   const aCorrer = [...ESTATICOS, ...conRed]
     .filter((v) => !soloUno || v.nombre === soloUno)

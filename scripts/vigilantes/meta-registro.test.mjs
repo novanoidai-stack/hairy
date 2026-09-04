@@ -9,12 +9,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import metaRegistro from './meta-registro.mjs';
-import { codigoEjecutable } from './nucleo.mjs';
+import { codigoEjecutable, ES_FIXTURE_DE_TEST } from './nucleo.mjs';
 
-// index.test.mjs deja un fichero trampa en este mismo directorio mientras
-// prueba el runner de punta a punta, y `node --test` corre los ficheros en
-// paralelo. Un hallazgo suyo aqui no es una regresion: es el fixture del vecino.
-const ES_FIXTURE = /^trampa-/;
+// El fixture del vecino (index.test.mjs) no es una regresion: ver nucleo.mjs.
+const ES_FIXTURE = ES_FIXTURE_DE_TEST;
 
 test('se declara con nombre, ambito y ejecutar', () => {
   assert.equal(metaRegistro.nombre, 'meta-registro');

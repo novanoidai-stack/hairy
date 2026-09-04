@@ -13,43 +13,17 @@ import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { RAIZ, AnclaPerdida, hallazgo } from './nucleo.mjs';
 
-import precios from './precios.mjs';
-import referidos from './referidos.mjs';
-import rutasPublicas from './rutas-publicas.mjs';
-import cacheApp from './cache-app.mjs';
-import claves from './claves.mjs';
-import erroresTragados from './errores-tragados.mjs';
-import panelAmbitos from './panel-ambitos.mjs';
-import edgesAutorizadas from './edges-autorizadas.mjs';
-import migraciones from './migraciones.mjs';
-import husos from './husos.mjs';
-import planes from './planes.mjs';
-import horariosConvenio from './horarios-convenio.mjs';
-import workflows from './workflows.mjs';
-import ecosistemaCuentas from './ecosistema-cuentas.mjs';
-import codigoMuerto from './codigo-muerto.mjs';
-import claimsFiscales from './claims-fiscales.mjs';
-import modulosDesconectados from './modulos-desconectados.mjs';
+// LA LISTA ES LA DEL RUNNER, NO UNA PROPIA (4 sep 2026).
+// Aqui habia una copia con 17 de los 32 vigilantes, y como este fichero es el
+// que escribe .sistema/estado-salud.json --el informe de salud versionado del
+// repo, del que vive la linea base del trinquete-- el trinquete llevaba midiendo
+// medio sistema sin decirlo: 39 avisos donde el runner ve 301. Faltaban calidad-codigo,
+// peso-componentes, inmutabilidad-cobros y todos los meta-*, con lo que la
+// "capa 5: meta-vigilancia" de aqui abajo salia siempre vacia y `anclas_vivas`
+// siempre true. Forense completa en registro.mjs.
+import { ESTATICOS } from './registro.mjs';
 
-export const ESTATICOS = [
-  precios,
-  referidos,
-  rutasPublicas,
-  cacheApp,
-  claves,
-  erroresTragados,
-  panelAmbitos,
-  edgesAutorizadas,
-  migraciones,
-  husos,
-  planes,
-  horariosConvenio,
-  workflows,
-  ecosistemaCuentas,
-  codigoMuerto,
-  claimsFiscales,
-  modulosDesconectados,
-];
+export { ESTATICOS };
 
 export function obtenerMetadatosGit(directorioRaiz = RAIZ) {
   try {

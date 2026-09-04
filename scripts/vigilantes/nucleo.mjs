@@ -52,7 +52,43 @@ export const NO_SON_VIGILANTES = new Set([
   'issues.mjs', // canal de salida (github issues)
   'dr-backups.mjs', // corre en su propio workflow mensual
   'red-de-seguridad.mjs', // el guardia que oye al runner morir a destiempo
+  'registro.mjs', // la lista unica de vigilantes que comparten runner y snapshot
 ]);
+
+// Los ficheros trampa que crean los tests de este directorio.
+//
+// `index.test.mjs` deja un vigilante ENVENENADO (con process.exit() de cuerpo)
+// en scripts/vigilantes/ para comprobar de punta a punta que el runner lo caza
+// sin morirse. Los escaneres NO lo ignoran -- esa es justo la gracia del test.
+// Pero `node --test` corre los ficheros EN PARALELO, asi que los otros tests,
+// los que afirman "hoy esta todo limpio", se lo encuentran por el camino y
+// fallarian por el fixture del vecino.
+//
+// Esta constante existe para que esos tests lo descuenten con UNA definicion y
+// no con tres copias de un regex, que es la enfermedad que estas herramientas
+// existen para cazar. Solo la usan los tests: el codigo de produccion no la mira.
+export const ES_FIXTURE_DE_TEST = /^trampa-/;
+
+// Los vigilantes de RED, por ruta. No van en la CI del PR: necesitan credencial
+// y sus RPC no se crean por pull request, sino por migracion aplicada en remoto.
+//
+// Vive aqui y no en registro.mjs porque la pregunta meta-registro, y registro
+// importa a meta-registro: ponerla alli creaba un CICLO de importacion. El
+// sintoma fue bonito y conviene recordarlo -- `npm run vigilar` seguia en verde
+// (entrando por registro.mjs el ciclo se resuelve en el orden bueno) y solo
+// reventaba al importar meta-registro.mjs directamente, que es lo que hace su
+// test. Un ciclo ESM no falla siempre: falla segun por donde entres.
+export const DE_RED = [
+  './bd.mjs',
+  './bd-rendimiento.mjs',
+  './bd-migraciones.mjs',
+  './bd-ecosistema.mjs',
+  './bd-profunda.mjs',
+  './bd-triggers-ciegos.mjs',
+  './bd-sobrecargas-rpc.mjs',
+  './bd-escritura-critica.mjs',
+  './bd-invariantes.mjs',
+];
 
 // El ancla ya no esta donde estaba: el vigilante se ha quedado ciego.
 export class AnclaPerdida extends Error {

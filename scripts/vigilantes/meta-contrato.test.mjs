@@ -20,10 +20,8 @@ import metaContrato, { auditarContratosVigilantes } from './meta-contrato.mjs';
 // que se leeria como "el recorrido ha vuelto a matar el proceso" y no lo es.
 const AQUI = new URL('./meta-contrato.mjs', import.meta.url).href;
 
-// index.test.mjs deja un fichero trampa en este mismo directorio mientras prueba
-// el runner de punta a punta, y `node --test` corre los ficheros en paralelo. Un
-// hallazgo suyo aqui no es una regresion: es el fixture del vecino.
-const ES_FIXTURE = /^trampa-/;
+// El fixture del vecino (index.test.mjs) no es una regresion: ver nucleo.mjs.
+import { ES_FIXTURE_DE_TEST as ES_FIXTURE } from './nucleo.mjs';
 const sinFixtures = (hallazgos) =>
   hallazgos.filter((h) => !ES_FIXTURE.test(String(h.fichero ?? '').split('/').pop()));
 
