@@ -14,28 +14,14 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { RAIZ, hallazgo } from './nucleo.mjs';
+import { RAIZ, hallazgo, NO_SON_VIGILANTES, codigoEjecutable } from './nucleo.mjs';
 
 const DIR = 'scripts/vigilantes';
 const RUNNER = 'scripts/vigilantes/index.mjs';
 
-// Ficheros que NO son vigilantes: herramientas y scripts de infraestructura.
-// Si se añade uno nuevo, añadirlo aqui a proposito (que no sea por olvido).
-const NO_SON_VIGILANTES = new Set([
-  'index.mjs', // el propio runner
-  'nucleo.mjs', // contrato comun
-  'bd-comun.mjs', // credencial y RPC compartidos
-  'enviar.mjs', // publica informes
-  'pedir-bd.mjs', // cli de diagnostico
-  'compilar-estado.mjs', // compilador del snapshot global
-  'smoke-a-hallazgos.mjs', // traductor de informes de playwright
-  'peso-bundle.mjs', // corre en el job e2e, no en el runner
-  'rendimiento.mjs', // idem: traduce mediciones del smoke
-  'silencios.mjs', // idem
-  'notificar.mjs', // canal de salida (telegram)
-  'issues.mjs', // canal de salida (github issues)
-  'dr-backups.mjs', // corre en su propio workflow mensual
-]);
+// La lista de "esto no es un vigilante" vive en nucleo.mjs y la comparte con
+// meta-contrato. Estuvo duplicada aqui y alli hasta el 4 sep 2026, y la copia
+// vieja tumbaba el runner entero en silencio: ver el comentario de nucleo.mjs.
 
 async function ejecutar() {
   const ficheros = readdirSync(path.join(RAIZ, DIR)).filter(
@@ -48,6 +34,38 @@ async function ejecutar() {
 
   for (const f of ficheros) {
     if (NO_SON_VIGILANTES.has(f)) continue;
+
+    // Importar es EJECUTAR. Un fichero con process.exit() en el cuerpo se lleva
+    // por delante el proceso entero al importarlo -- asi murio el runner del 1 al
+    // 4 sep 2026 (forense en nucleo.mjs). Aqui no se importa: se dice que no se
+    // ha podido mirar, que es lo unico honesto.
+    let fuente;
+    try {
+      fuente = readFileSync(path.join(RAIZ, DIR, f), 'utf8');
+    } catch (e) {
+      // Borrado entre el readdir y el read (los tests del directorio crean y
+      // quitan fixtures en paralelo). Lo que ya no existe no hay que registrarlo.
+      if (e?.code === 'ENOENT') continue;
+      throw e;
+    }
+    if (/\bprocess\s*\.\s*exit\s*\(/.test(codigoEjecutable(fuente))) {
+      hallazgos.push(
+        hallazgo({
+          clave: `meta-registro/se-suicida-al-importar:${f}`,
+          nivel: 'bloqueante',
+          ambito: 'vigilancia',
+          titulo: `${f} llama a process.exit() a nivel de modulo: no se puede inspeccionar`,
+          detalle:
+            `${DIR}/${f} no esta en NO_SON_VIGILANTES y llama a process.exit() fuera de ` +
+            'cualquier funcion. Importarlo para comprobar si es un vigilante mataria este ' +
+            'proceso y dejaria toda la vigilancia en un verde falso, que es exactamente lo ' +
+            'que paso del 1 al 4 sep 2026. O es infraestructura --y entonces va a la lista de ' +
+            'nucleo.mjs, a proposito-- o tiene que devolver hallazgos en vez de matar el proceso.',
+          fichero: `${DIR}/${f}`,
+        }),
+      );
+      continue;
+    }
 
     let mod;
     try {

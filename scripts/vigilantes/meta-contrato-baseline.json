@@ -1,0 +1,17 @@
+{
+  "_comentario": "Vigilantes que hoy no llevan su *.test.mjs. Deuda HEREDADA, congelada el 4 sep 2026: sale como aviso, no bloquea. Un vigilante NUEVO sin test si bloquea. Esta lista solo puede ENCOGER: se baja escribiendo el test y quitando el nombre, nunca anadiendo uno.",
+  "_por_que_estaban_escondidos": "meta-contrato no llego a emitir estos hallazgos ni un solo dia: moria importando peso-bundle.mjs antes de terminar el recorrido. Al arreglar el runner el 4 sep 2026 aparecieron los diez de golpe. No son deuda nueva, son deuda que nadie habia podido ver.",
+  "fecha_congelacion": "2026-09-04",
+  "vigilantes_sin_test": [
+    "bd.mjs",
+    "bd-ecosistema.mjs",
+    "bd-escritura-critica.mjs",
+    "bd-invariantes.mjs",
+    "bd-migraciones.mjs",
+    "bd-rendimiento.mjs",
+    "bd-sobrecargas-rpc.mjs",
+    "bd-triggers-ciegos.mjs",
+    "codigo-muerto.mjs"
+  ],
+  "_ultima_bajada": "2026-09-04: meta-registro.mjs sale de la lista, ya tiene su test. De 10 a 9."
+}

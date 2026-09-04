@@ -13,7 +13,7 @@
 // que los codigos de salida siguen siendo exactamente los de antes.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -66,4 +66,81 @@ test('los codigos de salida siguen siendo los de siempre', () => {
   });
   assert.equal(r.signal, null, `el runner no ha terminado solo: senal ${r.signal}`);
   assert.equal(r.status, 2, `esperaba salir con 2 y ha salido con ${r.status}. stderr:\n${r.stderr}`);
+});
+
+// --- La red de seguridad (4 sep 2026) ---------------------------------------
+//
+// Del 1 al 4 sep el runner salio en VERDE tres dias sin ejecutar un vigilante:
+// meta-contrato importaba peso-bundle.mjs, que llama a process.exit(0) a nivel
+// de modulo, y eso mata el proceso con SU codigo. 43 s, una linea, exit 0.
+//
+// Estos dos tests amarran las dos mitades de la cura: que morir a destiempo se
+// OIGA (el guardia), y que el caso concreto ya no llegue a matar a nadie porque
+// se caza y se nombra (el recorrido).
+
+test('el guardia convierte una muerte a destiempo en exit 2, no en un verde', () => {
+  const guardia = new URL('./red-de-seguridad.mjs', import.meta.url).href;
+  const r = spawnSync(
+    process.execPath,
+    ['--input-type=module', '-e', `import ${JSON.stringify(guardia)};\nprocess.exit(0);`],
+    { encoding: 'utf8', timeout: 30_000 },
+  );
+  assert.equal(
+    r.status,
+    2,
+    `un process.exit(0) ajeno sin veredicto tiene que acabar en 2 y ha acabado en ${r.status}`,
+  );
+  assert.match(r.stderr, /SIN emitir veredicto/, 'y tiene que decirlo en voz alta');
+});
+
+test('el guardia se calla cuando el veredicto ya se ha emitido', () => {
+  const guardia = new URL('./red-de-seguridad.mjs', import.meta.url).href;
+  const r = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `import { marcarVeredictoEmitido } from ${JSON.stringify(guardia)};\n` +
+        'marcarVeredictoEmitido();\nprocess.exit(0);',
+    ],
+    { encoding: 'utf8', timeout: 30_000 },
+  );
+  assert.equal(r.status, 0, 'una salida legitima no puede convertirse en fallo');
+  assert.doesNotMatch(r.stderr, /SIN emitir veredicto/);
+});
+
+test('un vigilante que se suicida al importarlo se caza y NO tumba el recorrido', () => {
+  // El fichero se descubre por el directorio (meta-registro y meta-contrato lo
+  // importarian dinamicamente): es exactamente la forma del incidente.
+  const trampa = fileURLToPath(new URL('./trampa-de-prueba.mjs', import.meta.url));
+  writeFileSync(
+    trampa,
+    'process.exit(0);\n' +
+      'export default { nombre: "trampa-de-prueba", ambito: "meta", descripcion: "x", ejecutar: async () => [] };\n',
+    'utf8',
+  );
+  try {
+    const r = spawnSync(process.execPath, [RUNNER, '--json', ''], {
+      encoding: 'utf8',
+      timeout: 120_000,
+    });
+    assert.equal(r.signal, null, `el runner no termino solo: senal ${r.signal}`);
+    assert.notEqual(
+      r.status,
+      0,
+      'un vigilante que se mata al importarlo NO puede acabar en verde. stdout:\n' + r.stdout,
+    );
+    assert.match(
+      r.stdout,
+      /trampa-de-prueba\.mjs llama a process\.exit\(\) a nivel de modulo/,
+      'el hallazgo tiene que NOMBRAR al culpable, no ser un fallo generico',
+    );
+    assert.match(
+      r.stdout,
+      /32 vigilantes|3\d vigilantes/,
+      'y el recorrido tiene que haber terminado igual, no pararse en el primero',
+    );
+  } finally {
+    rmSync(trampa, { force: true });
+  }
 });

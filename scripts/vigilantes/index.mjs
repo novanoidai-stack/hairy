@@ -11,6 +11,13 @@
 // Codigo de salida: 1 si hay algun hallazgo BLOQUEANTE. Los avisos no paran nada.
 // 2 si el propio runner revienta.
 
+// ESTE IMPORT VA EL PRIMERO Y NO ES DECORATIVO. Registra el guardia que impide
+// que el runner muera a media pasada pareciendo un verde, y tiene que estar
+// puesto ANTES de que se evalue el primer vigilante: los imports estaticos
+// corren antes que el cuerpo de este fichero, asi que un exit dentro de
+// precios.mjs no lo veria nadie si el guardia se registrara aqui abajo.
+import { marcarVeredictoEmitido } from './red-de-seguridad.mjs';
+
 import { writeFileSync } from 'node:fs';
 import process from 'node:process';
 import { AnclaPerdida, hallazgo } from './nucleo.mjs';
@@ -271,7 +278,12 @@ async function main() {
   salir(bloqueantes.length ? 1 : 0);
 }
 
-main().catch((e) => {
-  console.error('El runner de vigilantes ha reventado:', e);
-  salir(2);
-});
+// El veredicto ya esta dado (con hallazgos o sin ellos): a partir de aqui salir
+// es legitimo. El guardia vive en red-de-seguridad.mjs, cargado el primero.
+main()
+  .then(marcarVeredictoEmitido)
+  .catch((e) => {
+    marcarVeredictoEmitido();
+    console.error('El runner de vigilantes ha reventado:', e);
+    salir(2);
+  });
