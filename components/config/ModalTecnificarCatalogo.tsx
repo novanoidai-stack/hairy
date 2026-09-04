@@ -19,12 +19,23 @@ export interface ServicioCatalogo {
   activo?: boolean;
 }
 
+// Una fase de la plantilla (servicios.fases). La forma es la que exige el CHECK
+// servicios_fases_forma: el saneador de la edge ya la ha pasado, y aqui solo se
+// puede retocar dentro de los mismos limites.
+export interface FaseIA {
+  tipo: 'activa' | 'reposo' | 'transicion';
+  min: number;
+  etiqueta?: string | null;
+  recurso_tipo?: string | null;
+}
+
 export interface PropuestaIA {
   id: string;
   duracion_activa_min: number;
   duracion_espera_min: number;
   recurso_tipo: string | null;
   recurso_fase: string | null;
+  fases?: FaseIA[] | null;
   confianza: string;
   motivo: string;
   seleccionada: boolean;
@@ -50,6 +61,18 @@ const FASES_OPTIONS = [
   { value: 'final', label: 'Fase final (tras reposo)' },
   { value: 'completa', label: 'Servicio completo' },
 ];
+
+const TIPOS_FASE_OPTIONS = [
+  { value: 'activa', label: 'Activa', color: '#c0260a', bg: 'rgba(244,80,30,0.10)' },
+  { value: 'reposo', label: 'Reposo', color: '#2563eb', bg: 'rgba(37,99,235,0.10)' },
+  { value: 'transicion', label: 'Transición', color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
+];
+
+// Dos reposos seguidos son UN reposo mal escrito: el CHECK de la base de datos
+// los rechaza, y la RPC rechazaria el servicio entero. Se avisa aqui, en la
+// pantalla, antes de que la duena le de a guardar.
+const fasesTienenDosRepososSeguidos = (fases: FaseIA[]) =>
+  fases.some((f, i) => f.tipo === 'reposo' && fases[i - 1]?.tipo === 'reposo');
 
 export function ModalTecnificarCatalogo({
   isOpen,
@@ -140,6 +163,54 @@ export function ModalTecnificarCatalogo({
     );
   }
 
+  function handleUpdateFase(id: string, idx: number, fields: Partial<FaseIA>) {
+    setPropuestas((prev) =>
+      prev.map((p) =>
+        p.id === id && p.fases
+          ? { ...p, fases: p.fases.map((f, i) => (i === idx ? { ...f, ...fields } : f)) }
+          : p
+      )
+    );
+  }
+
+  function handleRemoveFase(id: string, idx: number) {
+    setPropuestas((prev) =>
+      prev.map((p) => (p.id === id && p.fases ? { ...p, fases: p.fases.filter((_, i) => i !== idx) } : p))
+    );
+  }
+
+  function handleAddFase(id: string) {
+    setPropuestas((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, fases: [...(p.fases ?? []), { tipo: 'activa', min: 10, etiqueta: null }] }
+          : p
+      )
+    );
+  }
+
+  // Plantilla on/off. Al desmarcar se envia null: borrar la plantilla deja el
+  // servicio en el camino clasico de tres tramos. Al marcar sin secuencia
+  // previa se siembra una basica desde los dos numeros.
+  function handleTogglePlantilla(id: string) {
+    setPropuestas((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        if (p.fases) return { ...p, fases: null };
+        const reposo = Math.max(0, p.duracion_espera_min);
+        const activa = Math.max(5, p.duracion_activa_min);
+        return {
+          ...p,
+          fases: [
+            { tipo: 'activa' as const, min: Math.max(5, activa - 15), etiqueta: 'Aplicación' },
+            ...(reposo > 0 ? [{ tipo: 'reposo' as const, min: reposo }] : []),
+            { tipo: 'activa' as const, min: 15, etiqueta: 'Lavado y peinado' },
+          ],
+        };
+      })
+    );
+  }
+
   async function handleAplicarCambios() {
     const seleccionadas = propuestas.filter((p) => p.seleccionada);
     if (seleccionadas.length === 0) return;
@@ -154,6 +225,18 @@ export function ModalTecnificarCatalogo({
         duracion_espera_min: p.duracion_espera_min,
         recurso_tipo: p.recurso_tipo || null,
         recurso_fase: p.recurso_tipo ? (p.recurso_fase || 'final') : null,
+        // fases: null = sin plantilla (y borra la que hubiera). Solo viaja la
+        // secuencia que pasa las reglas de forma: si la edicion la ha dejado
+        // coja, se envia null y el servicio se queda en el camino clasico en
+        // vez de rechazarse entero en la RPC.
+        fases: p.fases && p.fases.length > 0 && !fasesTienenDosRepososSeguidos(p.fases)
+          ? p.fases.map((f) => ({
+              tipo: f.tipo,
+              min: Math.min(300, Math.max(1, Math.round(f.min) || 1)),
+              etiqueta: f.etiqueta || null,
+              recurso_tipo: f.recurso_tipo || null,
+            }))
+          : null,
       }));
 
       const { data, error } = await supabase.rpc('aplicar_tecnificacion_servicios', {
@@ -617,6 +700,125 @@ export function ModalTecnificarCatalogo({
                                     </option>
                                   ))}
                                 </select>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* SECUENCIA DE FASES (plantilla) */}
+                          <div
+                            style={{
+                              marginTop: 12,
+                              padding: 12,
+                              borderRadius: 10,
+                              border: `1px solid ${prop.fases ? 'rgba(37,99,235,0.25)' : T.border}`,
+                              backgroundColor: prop.fases ? 'rgba(37,99,235,0.03)' : 'transparent',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: T.text, cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={!!prop.fases}
+                                  onChange={() => handleTogglePlantilla(prop.id)}
+                                  style={{ width: 15, height: 15, cursor: 'pointer' }}
+                                />
+                                Secuencia de fases
+                                {prop.fases && (
+                                  <span style={{ fontWeight: 400, color: T.textSecondary }}>
+                                    (suma {prop.fases.reduce((s, f) => s + (f.min || 0), 0)} min)
+                                  </span>
+                                )}
+                              </label>
+                              {prop.fases && (
+                                <button
+                                  onClick={() => handleAddFase(prop.id)}
+                                  style={{ border: 'none', background: 'transparent', color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                  + fase
+                                </button>
+                              )}
+                            </div>
+
+                            {prop.fases ? (
+                              <>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                  {prop.fases.map((fase, idx) => {
+                                    const meta = TIPOS_FASE_OPTIONS.find((t) => t.value === fase.tipo) ?? TIPOS_FASE_OPTIONS[0];
+                                    const mala =
+                                      fase.tipo === 'reposo' && prop.fases?.[idx - 1]?.tipo === 'reposo';
+                                    return (
+                                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                        <span
+                                          style={{
+                                            fontSize: 10,
+                                            fontWeight: 700,
+                                            padding: '2px 8px',
+                                            borderRadius: 6,
+                                            backgroundColor: meta.bg,
+                                            color: meta.color,
+                                            minWidth: 64,
+                                            textAlign: 'center',
+                                          }}
+                                        >
+                                          {meta.label}
+                                        </span>
+                                        <select
+                                          value={fase.tipo}
+                                          onChange={(e) =>
+                                            handleUpdateFase(prop.id, idx, {
+                                              tipo: e.target.value as FaseIA['tipo'],
+                                            })
+                                          }
+                                          style={{ padding: '4px 6px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, outline: 'none', background: T.bgCard }}
+                                        >
+                                          {TIPOS_FASE_OPTIONS.map((t) => (
+                                            <option key={t.value} value={t.value}>
+                                              {t.label}
+                                            </option>
+                                          ))}
+                                        </select>
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          max={300}
+                                          value={fase.min}
+                                          onChange={(e) =>
+                                            handleUpdateFase(prop.id, idx, {
+                                              min: parseInt(e.target.value, 10) || 1,
+                                            })
+                                          }
+                                          style={{ width: 64, padding: '4px 6px', borderRadius: 6, border: `1px solid ${mala ? '#dc2626' : T.border}`, fontSize: 12, outline: 'none' }}
+                                        />
+                                        <input
+                                          type="text"
+                                          placeholder="etiqueta (opcional)"
+                                          maxLength={40}
+                                          value={fase.etiqueta ?? ''}
+                                          onChange={(e) =>
+                                            handleUpdateFase(prop.id, idx, { etiqueta: e.target.value || null })
+                                          }
+                                          style={{ flex: 1, minWidth: 120, padding: '4px 6px', borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, outline: 'none' }}
+                                        />
+                                        <button
+                                          onClick={() => handleRemoveFase(prop.id, idx)}
+                                          title="Quitar fase"
+                                          style={{ border: 'none', background: 'transparent', color: '#dc2626', fontSize: 14, cursor: 'pointer' }}
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {fasesTienenDosRepososSeguidos(prop.fases) && (
+                                  <div style={{ fontSize: 11, color: '#dc2626', marginTop: 6 }}>
+                                    Dos reposos seguidos: son un solo reposo. Al guardar se enviará sin plantilla.
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div style={{ fontSize: 11, color: T.textSecondary }}>
+                                Sin plantilla: la cita se descompone en los tres tramos clásicos.
                               </div>
                             )}
                           </div>

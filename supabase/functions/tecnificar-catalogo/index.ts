@@ -81,20 +81,38 @@ cuanto tiempo el producto actua SOLO, que es cuando el profesional queda libre.
   (el lavado del tinte), "completa" si lo ocupa de principio a fin (una cabina
   de depilacion). Si recurso_tipo es null, recurso_fase es null.
 
+## La secuencia de fases
+- fases: la descomposicion del servicio EN ORDEN, para los servicios con reposo.
+  Cada fase: {"tipo": "activa"|"reposo"|"transicion", "min": N, "etiqueta": "..."}.
+  - "activa" es trabajo con las manos puestas. "reposo" es quimica actuando
+    sola. "transicion" es un hueco corto entre trabajos (aclarado, retirada de
+    papel, secado rapido) donde el profesional sigue atado a la clienta.
+  - La suma de minutos de la secuencia tiene que ser la duracion NOMINAL del
+    servicio (la misma que activa+reposo de tus dos numeros, aprox): cada cita
+    la reescala Mecha a su duracion real.
+  - duracion_espera_min SIEMPRE = minutos del PRIMER tramo de reposo (0 si no hay).
+  - Nunca dos tramos de reposo seguidos: si van pegados es UN tramo.
+  - Entre 2 y 6 fases, etiqueta corta (max 40 caracteres) o null.
+  - Solo propone secuencia donde de verdad la hay (color, mechas, permanentes).
+    Para un corte o unas cejas: fases null.
+  Ejemplo de tinte de raiz: [{"tipo":"activa","min":25,"etiqueta":"Aplicacion"},
+  {"tipo":"reposo","min":35},{"tipo":"activa","min":15,"etiqueta":"Lavado y peinado"}]
+
 ## Como decidir
 - Usa el NOMBRE y la descripcion. Si el nombre trae un tiempo ("tinte 90 min"),
   respetalo repartiendolo entre activa y reposo.
 - Si la duracion actual del servicio ya parece la SUMA de activa+reposo, reparte
   esa suma en vez de alargar el servicio: la duenna no quiere que sus citas duren
   mas de golpe, quiere saber donde esta el hueco.
-- Si no reconoces el servicio, di reposo 0 y confianza "baja". Preferimos no
-  proponer a proponer mal.
+- Si no reconoces el servicio, di reposo 0, fases null y confianza "baja".
+  Preferimos no proponer a proponer mal.
 
 ## Salida: JSON estricto, sin texto alrededor
 {"propuestas": [
   {"id": "<el id tal cual te lo doy>",
    "duracion_activa_min": 25, "duracion_espera_min": 35,
    "recurso_tipo": "lavacabezas", "recurso_fase": "final",
+   "fases": [{"tipo":"activa","min":25,"etiqueta":"Aplicacion"},{"tipo":"reposo","min":35},{"tipo":"activa","min":15,"etiqueta":"Lavado y peinado"}],
    "confianza": "alta|media|baja",
    "motivo": "una frase corta y en cristiano para que la duenna lo entienda"}
 ]}
@@ -199,7 +217,7 @@ Deno.serve(async (req) => {
             ],
           },
         ],
-        maxTokens: 2400,
+        maxTokens: 3600,
         temperatura: 0.1,
       });
 

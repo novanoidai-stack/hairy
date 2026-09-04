@@ -10,7 +10,7 @@
 import { assertEquals, assert } from 'jsr:@std/assert@1';
 // Del modulo del saneador, NO de index.ts: index.ts llama a Deno.serve() en el
 // nivel superior y importarlo desde aqui levantaba un servidor y tumbaba la CI.
-import { sanear } from './sanear.ts';
+import { sanear, sanearFases } from './sanear.ts';
 
 const SERVICIO = {
   id: 'aaaaaaaa-0000-0000-0000-000000000001',
@@ -108,4 +108,107 @@ Deno.test('basura entera no revienta', () => {
     const r = sanear(cruda, conocidos);
     assert('descartada' in r, `deberia descartar: ${JSON.stringify(cruda)}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// La SECUENCIA de fases. Regla que gobierna estos tests: la secuencia es un
+// extra, y un extra roto nunca puede tirar los dos numeros. La forma exigida es
+// la misma del CHECK servicios_fases_forma de la base de datos.
+// ---------------------------------------------------------------------------
+
+const SECUENCIA = [
+  { tipo: 'activa', min: 25, etiqueta: 'Aplicacion' },
+  { tipo: 'reposo', min: 35 },
+  { tipo: 'activa', min: 15, etiqueta: 'Lavado y peinado' },
+];
+
+Deno.test('una secuencia buena pasa y el resumen sale del primer reposo', () => {
+  const r = sanear({ ...base, fases: SECUENCIA }, conocidos);
+  assert(!('descartada' in r));
+  assertEquals(r.fases?.length, 3);
+  assertEquals(r.fases?.[1].tipo, 'reposo');
+  // duracion_espera_min MANDA la secuencia (35 = reposo de la plantilla), no el
+  // numero suelto que dijo el modelo: el resumen no puede contradecir a la
+  // plantilla.
+  assertEquals(r.duracion_espera_min, 35);
+});
+
+Deno.test('el resumen se recalcula aunque el modelo dijera otro numero', () => {
+  const r = sanear({ ...base, duracion_espera_min: 20, fases: SECUENCIA }, conocidos);
+  assert(!('descartada' in r));
+  assertEquals(r.duracion_espera_min, 35);
+});
+
+Deno.test('secuencia sin reposo pone el resumen a 0', () => {
+  const r = sanear({
+    ...base,
+    duracion_espera_min: 35,
+    fases: [{ tipo: 'activa', min: 30 }, { tipo: 'transicion', min: 10 }, { tipo: 'activa', min: 20 }],
+  }, conocidos);
+  assert(!('descartada' in r));
+  assertEquals(r.duracion_espera_min, 0);
+});
+
+Deno.test('dos reposos seguidos tumban la secuencia, no la propuesta', () => {
+  const r = sanear({
+    ...base,
+    fases: [{ tipo: 'activa', min: 20 }, { tipo: 'reposo', min: 30 }, { tipo: 'reposo', min: 10 }, { tipo: 'activa', min: 15 }],
+  }, conocidos);
+  assert(!('descartada' in r));
+  assertEquals(r.fases, null);
+  assertEquals(r.duracion_espera_min, 35, 'el numero suelto se conserva');
+});
+
+Deno.test('todo reposo, o sin trabajo, no es una plantilla', () => {
+  const todoReposo = sanear({ ...base, fases: [{ tipo: 'reposo', min: 30 }] }, conocidos);
+  assert(!('descartada' in todoReposo));
+  assertEquals(todoReposo.fases, null);
+});
+
+Deno.test('minutos y etiquetas fuera de regla tumban la secuencia', () => {
+  for (const fases of [
+    [{ tipo: 'activa', min: 0 }],
+    [{ tipo: 'activa', min: 301 }],
+    [{ tipo: 'activa', min: '99999999999' }],
+    [{ tipo: 'activa', min: 20, etiqueta: 'x'.repeat(41) }],
+    [{ tipo: 'vuelo', min: 20 }],
+    // 13 fases: el CHECK admite hasta 12
+    Array.from({ length: 13 }, () => ({ tipo: 'activa', min: 1 })),
+    // suma > 600
+    [{ tipo: 'activa', min: 300 }, { tipo: 'reposo', min: 301 }],
+  ]) {
+    const r = sanear({ ...base, fases }, conocidos);
+    assert(!('descartada' in r), `la propuesta entera no cae: ${JSON.stringify(fases)}`);
+    assertEquals(r.fases, null, `la secuencia debe caer: ${JSON.stringify(fases)}`);
+  }
+});
+
+Deno.test('un reposo de la secuencia mayor que 120 tumba la secuencia', () => {
+  // El CHECK de la tabla admite reposos de hasta 300, pero el resumen (que
+  // guarda la RPC) esta acotado a 120: una secuencia cuyo resumen no cupiera
+  // no sale del saneador.
+  const r = sanear({
+    ...base,
+    fases: [{ tipo: 'activa', min: 20 }, { tipo: 'reposo', min: 150 }, { tipo: 'activa', min: 15 }],
+  }, conocidos);
+  assert(!('descartada' in r));
+  assertEquals(r.fases, null);
+  assertEquals(r.duracion_espera_min, 35, 'el numero suelto original se queda');
+});
+
+Deno.test('un recurso inventado en una fase se limpia, la fase sigue', () => {
+  const r = sanear({
+    ...base,
+    fases: [{ tipo: 'activa', min: 20, recurso_tipo: 'secador-magico' }, { tipo: 'reposo', min: 30 }],
+  }, conocidos);
+  assert(!('descartada' in r));
+  assertEquals(r.fases?.[0].recurso_tipo, null);
+});
+
+Deno.test('sanearFases directo: null y basura no revientan', () => {
+  assertEquals(sanearFases(null), null);
+  assertEquals(sanearFases(undefined), null);
+  assertEquals(sanearFases('texto'), null);
+  assertEquals(sanearFases([]), null);
+  assertEquals(sanearFases({}), null);
 });
