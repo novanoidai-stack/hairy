@@ -90,6 +90,11 @@ export default function PagoTotalWeb() {
           const m = (d as any)?.motivo;
           setErr(m === 'telefono_invalido' ? 'Introduce un teléfono válido.'
             : m === 'nombre_invalido' ? 'Introduce tu nombre.'
+            // El servidor limita los intentos por enlace y por IP (anti-abuso
+            // de completar_datos_pago_publico): decirlo tal cual, que si no
+            // parece que fallan sus datos y los reescribe una y otra vez.
+            : m === 'demasiados_intentos' ? 'Demasiados intentos con este enlace. Espera un momento o pide uno nuevo al salón.'
+            : m === 'ya_cobrada' ? 'Este servicio ya está pagado.'
             : 'No se pudieron guardar tus datos.');
           setBusy(false); return;
         }
