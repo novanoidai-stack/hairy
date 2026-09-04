@@ -198,6 +198,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     ['vigilancia_bd_sobrecargas_rpc', 'sobrecargas de RPC'],
     ['vigilancia_bd_escritura_critica', 'escritura critica'],
     ['vigilancia_bd_invariantes', 'invariantes de datos'],
+    // Paso 3 de la spec 1 (20260904190000): la foto de respaldos contra la
+    // realidad. Tripwire del paso 4; se retira con el paso 5.
+    ['regresion_citas_fases_v2', 'regresion de fases'],
   ];
 
   for (const [rpc, nombre] of vigilanciaSistema) {

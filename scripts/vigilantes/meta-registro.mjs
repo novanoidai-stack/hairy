@@ -162,6 +162,7 @@ async function ejecutar() {
     'bd-sobrecargas-rpc.mjs': 'vigilancia_bd_sobrecargas_rpc',
     'bd-escritura-critica.mjs': 'vigilancia_bd_escritura_critica',
     'bd-invariantes.mjs': 'vigilancia_bd_invariantes',
+    'bd-regresion-fases.mjs': 'regresion_citas_fases_v2',
   };
   for (const f of deRed) {
     if (!estaRegistrado(f)) continue; // ya lo caza el chequeo de arriba

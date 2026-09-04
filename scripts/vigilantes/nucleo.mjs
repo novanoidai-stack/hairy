@@ -88,6 +88,7 @@ export const DE_RED = [
   './bd-sobrecargas-rpc.mjs',
   './bd-escritura-critica.mjs',
   './bd-invariantes.mjs',
+  './bd-regresion-fases.mjs',
 ];
 
 // El ancla ya no esta donde estaba: el vigilante se ha quedado ciego.
