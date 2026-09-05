@@ -4,10 +4,14 @@
 // en tiempo real para control de tiempos de tinte/técnicos en cabina.
 // ===========================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { type CitaFase } from '@/lib/agenda/citaFases';
+import {
+  serviciosQueCabenEnReposos,
+  type ServicioParaEncaje,
+} from '@/lib/agenda/serviciosCompatiblesReposo';
 
 interface FasesCitaPanelProps {
   cita: any;
@@ -24,6 +28,33 @@ export function FasesCitaPanel({
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const [catalogo, setCatalogo] = useState<ServicioParaEncaje[]>([]);
+
+  // El catalogo vivo del salon, para la cinta de "aqui cabe": que servicios
+  // caben en los reposos de ESTA cita (Spec 1, UI incremental).
+  useEffect(() => {
+    if (!cita?.negocio_id) return;
+    let vivo = true;
+    supabase
+      .from('servicios')
+      .select('id, nombre, duracion_activa_min, duracion_espera_min')
+      .eq('negocio_id', cita.negocio_id)
+      .eq('activo', true)
+      .then(({ data }: any) => {
+        if (!vivo || !data) return;
+        setCatalogo(
+          data.map((s: any) => ({
+            id: s.id,
+            nombre: s.nombre,
+            duracionTotalMin:
+              (s.duracion_activa_min || 0) + (s.duracion_espera_min || 0),
+          })),
+        );
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [cita?.negocio_id]);
 
   // Tick cada segundo para el cronómetro si hay alguna fase activa
   useEffect(() => {
@@ -93,6 +124,41 @@ export function FasesCitaPanel({
     cargarFases();
   }, [cita?.id]);
 
+  // Mover la frontera entre una fase y la siguiente ±N minutos (Spec 1, UI
+  // incremental; en movil/tablet son los botones de ±5'). Desde el paso 4 se
+  // escribe en cita_fases y el trigger de resumen recalcula las marcas solo.
+  const moverFrontera = async (fase: CitaFase, deltaMin: number) => {
+    const ordenadas = [...fases].sort((a, b) => a.orden - b.orden);
+    const idx = ordenadas.findIndex((f) => f.orden === fase.orden);
+    const next = ordenadas[idx + 1];
+    if (!next || !fase.id || !next.id) return;
+
+    const nueva = new Date(
+      new Date(fase.fin).getTime() + deltaMin * 60000,
+    ).toISOString();
+    // 5' minimas a cada lado: una fase de 0 minutos no es una fase.
+    if (
+      new Date(nueva).getTime() - new Date(fase.inicio).getTime() < 300000 ||
+      new Date(next.fin).getTime() - new Date(nueva).getTime() < 300000
+    ) {
+      return;
+    }
+
+    try {
+      setActionLoading(`borde_${fase.orden}`);
+      const a = await supabase.from('cita_fases').update({ fin: nueva }).eq('id', fase.id);
+      if (a.error) throw a.error;
+      const b = await supabase.from('cita_fases').update({ inicio: nueva }).eq('id', next.id);
+      if (b.error) throw b.error;
+      await cargarFases();
+      onFasesUpdated?.();
+    } catch (err: any) {
+      console.error('Error al mover la frontera de fases:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleIniciarReposo = async (fase: CitaFase) => {
     try {
       setActionLoading(`ini_${fase.orden}`);
@@ -146,6 +212,18 @@ export function FasesCitaPanel({
     const d = new Date(iso);
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   };
+
+  // La cinta de "aqui cabe" y los botones de frontera solo tienen sentido con
+  // fases reales (con id) y sin ningun reloj de reposo corriendo.
+  const ordenadas = [...fases].sort((a, b) => a.orden - b.orden);
+  const relojCorriendo = ordenadas.some(
+    (f) => f.tipo === 'reposo' && f.iniciada_at && !f.cerrada_at,
+  );
+
+  const encajes = useMemo(
+    () => serviciosQueCabenEnReposos(ordenadas, catalogo),
+    [fases, catalogo],
+  );
 
   return (
     <div
@@ -275,6 +353,51 @@ export function FasesCitaPanel({
                   <div style={{ fontSize: 11, color: TOKENS.textSec }}>
                     {fmtTime(fase.inicio)} - {fmtTime(fase.fin)} · {fmtMin(fase.inicio, fase.fin)}
                   </div>
+                  {(() => {
+                    const idx = ordenadas.findIndex((f) => f.orden === fase.orden);
+                    const next = ordenadas[idx + 1];
+                    if (!next || !fase.id || !next.id || relojCorriendo) return null;
+                    return (
+                      <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                        <button
+                          type="button"
+                          onClick={() => moverFrontera(fase, -5)}
+                          disabled={actionLoading === `borde_${fase.orden}`}
+                          title={`Acortar esta fase 5' y alargar la siguiente (frontera de las ${fmtTime(fase.fin)})`}
+                          style={{
+                            padding: '1px 7px',
+                            borderRadius: 6,
+                            border: '1px solid rgba(40,30,24,0.18)',
+                            background: '#ffffff',
+                            color: TOKENS.text,
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          −5′
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moverFrontera(fase, 5)}
+                          disabled={actionLoading === `borde_${fase.orden}`}
+                          title={`Alargar esta fase 5' y acortar la siguiente (frontera de las ${fmtTime(fase.fin)})`}
+                          style={{
+                            padding: '1px 7px',
+                            borderRadius: 6,
+                            border: '1px solid rgba(40,30,24,0.18)',
+                            background: '#ffffff',
+                            color: TOKENS.text,
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          +5′
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -354,6 +477,40 @@ export function FasesCitaPanel({
           );
         })}
       </div>
+
+      {encajes.length > 0 && (
+        <div
+          style={{
+            marginTop: 10,
+            paddingTop: 10,
+            borderTop: '1px dashed rgba(40,30,24,0.14)',
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 800, color: TOKENS.text, marginBottom: 6 }}>
+            💡 Durante sus reposos cabe
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {encajes.slice(0, 8).map((e) => (
+              <span
+                key={e.servicio.id}
+                title={`${e.servicio.nombre} (${e.servicio.duracionTotalMin}′) cabe en el reposo${e.reposoEtiqueta ? ` «${e.reposoEtiqueta}»` : ` nº ${e.reposoOrden}`} de ${e.huecoMin}′`}
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  background: 'rgba(15,157,107,0.10)',
+                  border: '1px solid rgba(15,157,107,0.30)',
+                  color: '#0f7a52',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {e.servicio.nombre} · {e.servicio.duracionTotalMin}′
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

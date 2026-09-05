@@ -15,6 +15,7 @@
 //
 // MUDANZA, NO REESCRITURA: los cuerpos son identicos a los que tenian.
 import { memo, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { CITA_STATUS, LOCALE } from "@/lib/constants";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
 import {
@@ -156,6 +157,156 @@ const ReposoFreeGapInteractive = memo(
   },
 );
 
+// ---------------------------------------------------------------------------
+// El borde arrastrable entre dos fases (Spec 1, UI incremental).
+//
+// Desde el paso 4 cita_fases es la fuente de verdad: mover el borde entre la
+// fase i y la i+1 son DOS updates (fin de una, inicio de la siguiente) y el
+// trigger de resumen recalcula las 4 marcas de la cita solo. El realtime
+// (useCitasRealtime, suscrito a cita_fases) trae el resultado de vuelta.
+//
+// Nunca durante el reloj de reposo: mientras un reposo corre, sus fronteras
+// son la realidad que se esta cronometrando, no algo que se reordena.
+const FaseBorderHandle = memo(
+  ({
+    top,
+    msPerPx,
+    boundary,
+    minMs,
+    maxMs,
+    faseId,
+    nextFaseId,
+    disabled,
+  }: {
+    top: number;
+    msPerPx: number;
+    boundary: number; // frontera actual en ms epoch
+    minMs: number; // limite: inicio de la fase anterior + 5'
+    maxMs: number; // limite: fin de la fase siguiente - 5'
+    faseId: string;
+    nextFaseId: string;
+    disabled?: boolean;
+  }) => {
+    const [hovered, setHovered] = useState(false);
+    const [dragging, setDragging] = useState(false);
+    const [deltaPx, setDeltaPx] = useState(0);
+    const [saving, setSaving] = useState(false);
+
+    const snap5 = (ms: number) => Math.round(ms / 300000) * 300000;
+    const clamped = Math.min(
+      maxMs,
+      Math.max(minMs, snap5(boundary + deltaPx * msPerPx)),
+    );
+    const movedMin = Math.round((clamped - boundary) / 60000);
+
+    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (disabled || saving) return;
+      e.stopPropagation();
+      e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDragging(true);
+    };
+
+    const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!dragging) return;
+      e.stopPropagation();
+      setDeltaPx((d) => d + e.movementY);
+    };
+
+    const onPointerUp = async (e: React.PointerEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      setDragging(false);
+      if (clamped === boundary) {
+        setDeltaPx(0);
+        return;
+      }
+      const nuevoIso = new Date(clamped).toISOString();
+      setSaving(true);
+      try {
+        // Dos updates, no una transaccion: el trinquete del paso 4 hace que
+        // el estado intermedio converja y el resumen es idempotente.
+        const a = await supabase
+          .from("cita_fases")
+          .update({ fin: nuevoIso })
+          .eq("id", faseId);
+        if (!a.error) {
+          await supabase
+            .from("cita_fases")
+            .update({ inicio: nuevoIso })
+            .eq("id", nextFaseId);
+        }
+      } finally {
+        setSaving(false);
+        setDeltaPx(0);
+      }
+    };
+
+    const visible = (hovered || dragging) && !disabled;
+    return (
+      <div
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        title={
+          disabled
+            ? undefined
+            : `Arrastra para repartir minutos entre las dos fases${movedMin !== 0 ? ` (${movedMin > 0 ? "+" : ""}${movedMin}′)` : ""}`
+        }
+        style={{
+          position: "absolute",
+          top: top - 6,
+          left: 0,
+          right: 0,
+          height: 12,
+          transform: dragging ? `translateY(${deltaPx}px)` : undefined,
+          pointerEvents: disabled || saving ? "none" : "auto",
+          cursor: disabled ? undefined : "ns-resize",
+          zIndex: 12,
+          touchAction: "none",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            height: dragging ? 3 : 2,
+            background: visible
+              ? dragging
+                ? TOKENS.chainRail || "#2563eb"
+                : "rgba(37,99,235,0.75)"
+              : "rgba(37,99,235,0.35)",
+            borderRadius: 2,
+            opacity: visible ? 1 : 0.45,
+          }}
+        />
+        {dragging && (
+          <span
+            style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              top: -16,
+              padding: "1px 6px",
+              borderRadius: 6,
+              background: "#2563eb",
+              color: "#fff",
+              fontSize: 9.5,
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {movedMin > 0 ? "+" : ""}
+            {movedMin}′
+          </span>
+        )}
+      </div>
+    );
+  },
+);
+
 interface DayTimelineAppointmentCardProps {
   cita: any;
   prof: any;
@@ -208,6 +359,15 @@ function areCardPropsEqual(
   if (prev.cita?.importe_final !== next.cita?.importe_final) return false;
   if (prev.cita?.notas !== next.cita?.notas) return false;
   if (prev.cita?.updated_at !== next.cita?.updated_at) return false;
+  // Las fases pintan bandas y bordes arrastrables: si se mueve una frontera
+  // sin cambiar inicio/fin (p.ej. el arranque del segundo reposo), lo unico
+  // que cambia es cita_fases y hay que repintar igual. Es un array de 1-12
+  // filas: el stringify no duele.
+  {
+    const pf = prev.cita?.cita_fases ?? prev.cita?.fases;
+    const nf = next.cita?.cita_fases ?? next.cita?.fases;
+    if (pf !== nf && JSON.stringify(pf) !== JSON.stringify(nf)) return false;
+  }
   if (prev.isBeingDragged !== next.isBeingDragged) return false;
   if (prev.isDragging !== next.isDragging) return false;
   if (prev.START_H !== next.START_H) return false;
@@ -650,6 +810,38 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
           if (repososList.length > 0) {
             return (
               <>
+                {fasesList
+                  .filter((f: any) => f.tipo === "transicion")
+                  .map((tr: any, tIdx: number) => {
+                    const tIniMs = new Date(tr.inicio).getTime();
+                    const tFinMs = new Date(tr.fin).getTime();
+                    const tTopPx = msToPx(tIniMs - start.getTime());
+                    const tHeightPx = msToPx(tFinMs - tIniMs);
+                    if (tHeightPx <= 2) return null;
+                    return (
+                      <div
+                        key={`transicion_${tIdx}_${tr.id || tIdx}`}
+                        title={`Transición${tr.etiqueta ? ` · ${tr.etiqueta}` : ""}: desinfección y lavado. Ocupa al profesional pero no es trabajo de tinte`}
+                        style={{
+                          position: "absolute",
+                          top: tTopPx,
+                          left: 0,
+                          right: 0,
+                          height: tHeightPx,
+                          pointerEvents: "none",
+                          zIndex: 3,
+                          // Azul translúcido liso: se distingue del reposo
+                          // (rayado neutro) y del activo (el fondo de la tarjeta).
+                          background:
+                            "repeating-linear-gradient(90deg, rgba(59,130,246,0.14) 0px, rgba(59,130,246,0.14) 6px, rgba(255,253,251,0.30) 6px, rgba(255,253,251,0.30) 12px)",
+                          borderTop:
+                            "1.5px solid rgba(37,99,235,0.45)",
+                          borderBottom:
+                            "1.5px solid rgba(37,99,235,0.45)",
+                        }}
+                      />
+                    );
+                  })}
                 {repososList.map((rep, rIdx) => {
                   const rIniMs = new Date(rep.inicio).getTime();
                   const rFinMs = new Date(rep.fin).getTime();
@@ -814,6 +1006,44 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
               })}
             </div>
           );
+        })()}
+
+      {!cancelada &&
+        (() => {
+          // Los bordes arrastrables entre fases (Spec 1, UI incremental).
+          // Solo entre fases REALES (con id): las provisionales del fallback
+          // clasico no existen en cita_fases y no hay nada que escribir.
+          const conIds = [...fasesLista]
+            .filter((f: any) => f.id)
+            .sort((a: any, b: any) => a.orden - b.orden);
+          if (conIds.length < 2) return null;
+          // Mientras un reposo corre, sus fronteras son la realidad que se
+          // esta cronometrando: no se reordenan.
+          const relojCorriendo = conIds.some(
+            (f: any) => f.tipo === "reposo" && f.iniciada_at && !f.cerrada_at,
+          );
+          const msToPx = (ms: number) => (ms / 3600000) * ROW_H;
+          return conIds.slice(0, -1).map((f: any, i: number) => {
+            const next: any = conIds[i + 1];
+            const boundaryMs = new Date(f.fin).getTime();
+            // La frontera solo puede moverse dejando 5' a cada lado.
+            const minMs = new Date(f.inicio).getTime() + 300000;
+            const maxMs = new Date(next.fin).getTime() - 300000;
+            if (maxMs <= minMs) return null;
+            return (
+              <FaseBorderHandle
+                key={`borde_${f.id}`}
+                top={msToPx(boundaryMs - start.getTime())}
+                msPerPx={3600000 / ROW_H}
+                boundary={boundaryMs}
+                minMs={minMs}
+                maxMs={maxMs}
+                faseId={f.id}
+                nextFaseId={next.id}
+                disabled={relojCorriendo || isDragging || isBeingDragged}
+              />
+            );
+          });
         })()}
 
       <div

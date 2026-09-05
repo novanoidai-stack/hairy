@@ -65,6 +65,11 @@ export function construirFasesDesdePlantilla(
 /**
  * Calcula las cuatro marcas clásicas de resumen para mantener 100% de compatibilidad con
  * el esquema tradicional (inicio, fin, fin_activa, fin_espera).
+ *
+ * MISMA fórmula que el trigger de resumen de la migración 20260905110000
+ * (que a su vez corrigió la spec original, ver 20260904151604 §5):
+ *   fin_activa = INICIO del primer reposo — no "fin de la primera activa",
+ *   que con una transición declaraba libre un tramo con trabajo.
  */
 export function calcularMarcasResumen(fases: CitaFase[]): {
   inicio: string;
@@ -81,12 +86,9 @@ export function calcularMarcasResumen(fases: CitaFase[]): {
   const inicio = ordenadas[0].inicio;
   const fin = ordenadas[ordenadas.length - 1].fin;
 
-  // Fin de la primera fase activa o de transición
-  const primeraActiva = ordenadas.find((f) => f.tipo === 'activa' || f.tipo === 'transicion');
-  const fin_activa = primeraActiva ? primeraActiva.fin : fin;
-
-  // Fin del primer reposo técnico
+  // Inicio y fin del PRIMER reposo técnico
   const primerReposo = ordenadas.find((f) => f.tipo === 'reposo');
+  const fin_activa = primerReposo ? primerReposo.inicio : fin;
   const fin_espera = primerReposo ? primerReposo.fin : fin_activa;
 
   return { inicio, fin, fin_activa, fin_espera };
