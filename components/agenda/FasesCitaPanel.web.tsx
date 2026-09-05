@@ -218,6 +218,21 @@ export function FasesCitaPanel({
     }
   };
 
+  // OJO: TODOS los hooks van ANTES de los returns tempranos de abajo.
+  //
+  // Aqui debajo habia un `useMemo` (la cinta de "aqui cabe"), y con los dos
+  // `return null` por delante el numero de hooks cambiaba entre renders: el
+  // primero, sin fases cargadas, salia antes de llegar a el; el segundo, ya con
+  // datos, lo ejecutaba. React tumba el arbol con el error #310 ("rendered more
+  // hooks than during the previous render"), y como este panel vive dentro de
+  // DetalleCitaModal, lo que se caia era la AGENDA entera. Detectado por el
+  // canario contra www.mechaa.es el 5 sep 2026: 143 errores de consola.
+  const ordenadas = [...fases].sort((a, b) => a.orden - b.orden);
+  const encajes = useMemo(
+    () => serviciosQueCabenEnReposos(ordenadas, catalogo),
+    [fases, catalogo],
+  );
+
   if (loading && fases.length === 0) {
     return null;
   }
@@ -239,15 +254,10 @@ export function FasesCitaPanel({
   };
 
   // La cinta de "aqui cabe" y los botones de frontera solo tienen sentido con
-  // fases reales (con id) y sin ningun reloj de reposo corriendo.
-  const ordenadas = [...fases].sort((a, b) => a.orden - b.orden);
+  // fases reales (con id) y sin ningun reloj de reposo corriendo. `ordenadas` y
+  // `encajes` se calculan arriba, con el resto de hooks.
   const relojCorriendo = ordenadas.some(
     (f) => f.tipo === 'reposo' && f.iniciada_at && !f.cerrada_at,
-  );
-
-  const encajes = useMemo(
-    () => serviciosQueCabenEnReposos(ordenadas, catalogo),
-    [fases, catalogo],
   );
 
   return (

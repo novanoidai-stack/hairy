@@ -33,6 +33,7 @@
       },
       "correctness": {
         "noUnusedImports": "warn",
+      "useHookAtTopLevel": "error",
         "noUnusedVariables": "warn",
         "noUnreachable": "error",
         "noConstantCondition": "error",
