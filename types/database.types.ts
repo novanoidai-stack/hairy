@@ -8117,6 +8117,14 @@ export type Database = {
         }
         Returns: Json
       }
+      mover_frontera_fase: {
+        Args: {
+          p_fase_id: string
+          p_nuevo: string
+          p_siguiente_fase_id: string
+        }
+        Returns: Json
+      }
       my_app_role: { Args: never; Returns: string }
       my_negocio_id: { Args: never; Returns: string }
       my_negocio_id_text: { Args: never; Returns: string }

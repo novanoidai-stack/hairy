@@ -16,6 +16,7 @@
 // MUDANZA, NO REESCRITURA: los cuerpos son identicos a los que tenian.
 import { memo, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { mensajeDeError } from "@/lib/errores";
 import { CITA_STATUS, LOCALE } from "@/lib/constants";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
 import {
@@ -161,12 +162,21 @@ const ReposoFreeGapInteractive = memo(
 // El borde arrastrable entre dos fases (Spec 1, UI incremental).
 //
 // Desde el paso 4 cita_fases es la fuente de verdad: mover el borde entre la
-// fase i y la i+1 son DOS updates (fin de una, inicio de la siguiente) y el
+// fase i y la i+1 son DOS escrituras (fin de una, inicio de la siguiente) y el
 // trigger de resumen recalcula las 4 marcas de la cita solo. El realtime
 // (useCitasRealtime, suscrito a cita_fases) trae el resultado de vuelta.
 //
+// ESAS DOS ESCRITURAS NO SALEN DE AQUI SUELTAS (revision del 5 sep 2026). Se
+// hacian con dos `update` seguidos desde el navegador, y si el segundo fallaba
+// quedaba un hueco o un solape PERMANENTES entre las dos fases -- que ya no es
+// un detalle de pintado, es la ocupacion real del salon. La tabla tampoco lo
+// impide: `cita_fases` solo tiene la FK, el unique de (cita_id, orden) y el
+// check de `tipo`. Van juntas en `mover_frontera_fase`, que ademas valida en
+// servidor lo que aqui solo se miraba de reojo.
+//
 // Nunca durante el reloj de reposo: mientras un reposo corre, sus fronteras
-// son la realidad que se esta cronometrando, no algo que se reordena.
+// son la realidad que se esta cronometrando, no algo que se reordena. Aqui se
+// desactiva el tirador, y la RPC lo vuelve a comprobar por su cuenta.
 const FaseBorderHandle = memo(
   ({
     top,
@@ -223,17 +233,22 @@ const FaseBorderHandle = memo(
       const nuevoIso = new Date(clamped).toISOString();
       setSaving(true);
       try {
-        // Dos updates, no una transaccion: el trinquete del paso 4 hace que
-        // el estado intermedio converja y el resumen es idempotente.
-        const a = await supabase
-          .from("cita_fases")
-          .update({ fin: nuevoIso })
-          .eq("id", faseId);
-        if (!a.error) {
-          await supabase
-            .from("cita_fases")
-            .update({ inicio: nuevoIso })
-            .eq("id", nextFaseId);
+        // Las dos escrituras, en una sola transaccion del servidor.
+        const { data, error } = await supabase.rpc("mover_frontera_fase", {
+          p_fase_id: faseId,
+          p_siguiente_fase_id: nextFaseId,
+          p_nuevo: nuevoIso,
+        });
+        const res = data as { ok?: boolean; error?: string } | null;
+        if (error || !res?.ok) {
+          // Un rechazo de la RPC ("hay un reposo en marcha") no es un fallo de
+          // la app: se dice y ya. Lo que no puede volver a pasar es que no se
+          // diga nada y la frontera se quede donde estaba sin explicacion.
+          const texto =
+            res?.error || mensajeDeError(error, "No se pudo mover la frontera.");
+          window.dispatchEvent(
+            new CustomEvent("mecha-toast", { detail: { text: texto } }),
+          );
         }
       } finally {
         setSaving(false);

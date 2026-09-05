@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { mensajeDeError } from '@/lib/errores';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { type CitaFase } from '@/lib/agenda/citaFases';
 import {
@@ -127,6 +128,11 @@ export function FasesCitaPanel({
   // Mover la frontera entre una fase y la siguiente ±N minutos (Spec 1, UI
   // incremental; en movil/tablet son los botones de ±5'). Desde el paso 4 se
   // escribe en cita_fases y el trigger de resumen recalcula las marcas solo.
+  //
+  // Va por `mover_frontera_fase` y no por dos `update` sueltos: son dos
+  // escrituras que tienen que caer juntas o no caer (revision del 5 sep 2026).
+  // A medias dejaban hueco o solape permanentes entre las fases, y desde el
+  // paso 4 eso es la ocupacion real del salon, no un detalle de pintado.
   const moverFrontera = async (fase: CitaFase, deltaMin: number) => {
     const ordenadas = [...fases].sort((a, b) => a.orden - b.orden);
     const idx = ordenadas.findIndex((f) => f.orden === fase.orden);
@@ -146,14 +152,33 @@ export function FasesCitaPanel({
 
     try {
       setActionLoading(`borde_${fase.orden}`);
-      const a = await supabase.from('cita_fases').update({ fin: nueva }).eq('id', fase.id);
-      if (a.error) throw a.error;
-      const b = await supabase.from('cita_fases').update({ inicio: nueva }).eq('id', next.id);
-      if (b.error) throw b.error;
+      const { data, error } = await supabase.rpc('mover_frontera_fase', {
+        p_fase_id: fase.id,
+        p_siguiente_fase_id: next.id,
+        p_nuevo: nueva,
+      });
+      if (error) throw error;
+      const res = data as { ok?: boolean; error?: string } | null;
+      if (!res?.ok) {
+        // Un "no" razonado del servidor (un reposo cronometrandose, por
+        // ejemplo) se dice en voz alta: antes el boton no hacia nada y no
+        // habia forma de saber por que.
+        window.dispatchEvent(
+          new CustomEvent('mecha-toast', {
+            detail: { text: res?.error || 'No se pudo mover la frontera.' },
+          }),
+        );
+        return;
+      }
       await cargarFases();
       onFasesUpdated?.();
     } catch (err: any) {
       console.error('Error al mover la frontera de fases:', err);
+      window.dispatchEvent(
+        new CustomEvent('mecha-toast', {
+          detail: { text: mensajeDeError(err, 'No se pudo mover la frontera.') },
+        }),
+      );
     } finally {
       setActionLoading(null);
     }
