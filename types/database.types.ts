@@ -989,6 +989,7 @@ export type Database = {
           servicio_id: string | null
           updated_at: string
           variante_id: string | null
+          ventanas_ocupadas: unknown | null
         }
         Insert: {
           canal?: string
@@ -1040,6 +1041,7 @@ export type Database = {
           servicio_id?: string | null
           updated_at?: string
           variante_id?: string | null
+          ventanas_ocupadas?: unknown | null
         }
         Update: {
           canal?: string
@@ -1091,6 +1093,7 @@ export type Database = {
           servicio_id?: string | null
           updated_at?: string
           variante_id?: string | null
+          ventanas_ocupadas?: unknown | null
         }
         Relationships: [
           {
