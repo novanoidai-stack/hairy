@@ -6,6 +6,7 @@ import { identidadActiva } from '@/lib/identidadActiva';
 import { mensajeDeError } from '@/lib/errores';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useLectorCodigoBarras } from '@/lib/hooks/useLectorCodigoBarras';
+import { SelectorCatalogo, type ItemCatalogo, type TipoCatalogo } from './SelectorCatalogo';
 
 export type CobroMetodo = 'efectivo' | 'datafono' | 'bizum' | 'mixto';
 
@@ -24,11 +25,14 @@ interface CobroSheetCitaProps {
   // Render embebido (sin overlay), p.ej. en la pestaña Pagos de la ficha de cita.
   inline?: boolean;
   // Lineas precargadas (productos elegidos en la pestaña Productos de la cita).
+  // `tipo` es opcional por compatibilidad: quien no lo manda esta pasando
+  // productos, que es lo unico que se podia adjuntar antes.
   lineasIniciales?: Array<{
     nombre: string;
     precio: string;
     cantidad: string;
     ref_id?: string;
+    tipo?: TipoCatalogo;
   }>;
   onClose: () => void;
   onSuccess: (cobroIds: string[]) => void;
@@ -70,7 +74,38 @@ interface LineaWalkin {
   // Producto del catalogo al que corresponde la linea, si lo hay. Ya se venia
   // rellenando al elegir del selector; faltaba declararlo.
   ref_id?: string;
+  // Que es esta linea. Viaja hasta cobro_lineas.tipo, de donde Informes saca el
+  // desglose de ingresos por servicio y el registro de productos vendidos. Antes
+  // el servidor lo DEDUCIA ("trae ref_id => es producto"), que era cierto solo
+  // mientras el selector cargaba unicamente productos.
+  tipo: TipoCatalogo;
 }
+
+// Etiqueta corta por tipo para la fila del ticket. 'suplemento' es como se
+// llama un add-on en cobro_lineas; al usuario se le dice "Extra".
+const ETIQUETA_TIPO: Record<TipoCatalogo, string> = {
+  servicio: 'Servicio',
+  producto: 'Producto',
+  suplemento: 'Extra',
+};
+
+// Detalle de cada cita del ticket: hace falta para poder corregir el importe
+// LINEA A LINEA cuando se cobran varias a la vez (antes solo se podia con una).
+interface CitaCobrable {
+  id: string;
+  nombre: string;
+  // Precio de catalogo del servicio, BRUTO de señal (es lo que espera el RPC
+  // en p_base_cents: la señal la descuenta el mismo).
+  precioCents: number;
+  senalCents: number;
+}
+
+// Una relacion de Supabase llega como objeto o como array segun la cardinalidad
+// que infiera PostgREST. Se normaliza en un sitio en vez de en cada uso.
+const relacionUnica = <X,>(v: X | X[] | null | undefined): X | null =>
+  Array.isArray(v) ? (v[0] ?? null) : (v ?? null);
+
+const SENAL_PAGADA = ['completado', 'pagado', 'succeeded', 'paid'];
 
 // Motor de cobro unico (POS-0/1/1.5): usado desde la ficha de cita, desde Caja
 // (cobro de pendientes) y desde el cobro rapido/walk-in de Caja. El caso "cita"
@@ -140,10 +175,15 @@ export function CobroSheet(props: CobroSheetProps) {
     } catch { return ''; }
   }, [qrEnlace]);
 
-  // --- Solo walk-in: lineas libres + profesional opcional (comision) ---
-  const [lineas, setLineas] = useState<LineaWalkin[]>(
-    () => ((props as any).lineasIniciales as LineaWalkin[] | undefined) ?? [],
-  );
+  // --- Lineas libres del ticket + profesional opcional (comision) ---
+  const [lineas, setLineas] = useState<LineaWalkin[]>(() => {
+    const iniciales = (props as { lineasIniciales?: CobroSheetCitaProps['lineasIniciales'] }).lineasIniciales ?? [];
+    return iniciales.map((l) => ({
+      ...l,
+      // Sin tipo declarado se mantiene la regla vieja: con ref_id era producto.
+      tipo: l.tipo ?? (l.ref_id ? 'producto' : 'servicio'),
+    }));
+  });
   const [lineaNombre, setLineaNombre] = useState('');
   const [lineaPrecio, setLineaPrecio] = useState('');
   const [profesionalId, setProfesionalId] = useState('');
@@ -155,15 +195,19 @@ export function CobroSheet(props: CobroSheetProps) {
   const [clienteId, setClienteId] = useState('');
   const [clientes, setClientes] = useState<Array<{ id: string; nombre: string }>>([]);
 
+  // Los productos siguen aparte del catalogo unificado porque el lector de
+  // codigo de barras necesita `codigo_barras`, que solo tienen ellos.
   const [productos, setProductos] = useState<Array<{ id: string; nombre: string; categoria: string; precio: number; codigo_barras?: string | null }>>([]);
-  const [productoPickerOpen, setProductoPickerOpen] = useState(false);
-  const [categoriaProductoFiltro, setCategoriaProductoFiltro] = useState<string>('todas');
+  // Catalogo del selector: productos + servicios + extras en una sola lista.
+  const [catalogo, setCatalogo] = useState<ItemCatalogo[]>([]);
+  const [catalogoCargando, setCatalogoCargando] = useState(true);
+  const [selectorAbierto, setSelectorAbierto] = useState(false);
 
   useEffect(() => {
     if (props.mode !== 'walkin' && props.mode !== 'cita') return;
     (async () => {
       const profile = await getUserProfile();
-      if (!profile?.negocio_id) return;
+      if (!profile?.negocio_id) { setCatalogoCargando(false); return; }
       const { data } = await supabase
         .from('profesionales')
         .select('id, nombre')
@@ -189,14 +233,37 @@ export function CobroSheet(props: CobroSheetProps) {
           .limit(500);
         setClientes(clis ?? []);
       }
-      const { data: prods } = await supabase
-        .from('productos')
-        .select('id, nombre, categoria, precio_cents, codigo_barras')
-        .eq('negocio_id', profile.negocio_id)
-        .eq('activo', true)
-        .order('nombre');
+      // Las tres patas del catalogo, en paralelo. Los add-ons se piden TODOS los
+      // del salon (no los de un servicio concreto): aqui se venden sueltos, asi
+      // que el cargador por servicio del contrato 1 no aplica a esta consulta.
+      const [prodsRes, srvsRes, addsRes] = await Promise.all([
+        supabase
+          .from('productos')
+          .select('id, nombre, categoria, precio_cents, codigo_barras')
+          .eq('negocio_id', profile.negocio_id)
+          .eq('activo', true)
+          .order('nombre'),
+        supabase
+          .from('servicios')
+          .select('id, nombre, categoria, precio, duracion_activa_min')
+          .eq('negocio_id', profile.negocio_id)
+          .eq('activo', true)
+          .order('nombre'),
+        supabase
+          .from('service_addons')
+          .select('id, nombre, precio')
+          .eq('negocio_id', profile.negocio_id)
+          .eq('activo', true)
+          .order('nombre'),
+      ]);
+      // Sin catalogo se sigue pudiendo cobrar a mano, pero hay que decirlo: un
+      // selector vacio en silencio parece "este salon no tiene servicios".
+      const fallo = prodsRes.error ?? srvsRes.error ?? addsRes.error;
+      if (fallo) setError(mensajeDeError(fallo, 'No se ha podido cargar el catálogo.'));
+
+      const prods = prodsRes.data ?? [];
       setProductos(
-        (prods ?? []).map((p) => ({
+        prods.map((p) => ({
           id: p.id,
           nombre: p.nombre,
           categoria: p.categoria || 'general',
@@ -204,6 +271,31 @@ export function CobroSheet(props: CobroSheetProps) {
           codigo_barras: p.codigo_barras ?? null,
         })),
       );
+      setCatalogo([
+        ...(srvsRes.data ?? []).map((s): ItemCatalogo => ({
+          id: s.id,
+          tipo: 'servicio',
+          nombre: s.nombre,
+          categoria: s.categoria || 'general',
+          precioCents: Math.round(Number(s.precio ?? 0) * 100),
+          duracionMin: s.duracion_activa_min ?? undefined,
+        })),
+        ...prods.map((p): ItemCatalogo => ({
+          id: p.id,
+          tipo: 'producto',
+          nombre: p.nombre,
+          categoria: p.categoria || 'general',
+          precioCents: p.precio_cents,
+        })),
+        ...(addsRes.data ?? []).map((a): ItemCatalogo => ({
+          id: a.id,
+          tipo: 'suplemento',
+          nombre: a.nombre,
+          categoria: 'extras',
+          precioCents: Math.round(Number(a.precio ?? 0) * 100),
+        })),
+      ]);
+      setCatalogoCargando(false);
     })();
   }, [props.mode]);
 
@@ -231,16 +323,64 @@ export function CobroSheet(props: CobroSheetProps) {
 
   const aEntero = (s: string) => Math.max(0, parseFloat((s || '0').replace(',', '.')) || 0);
 
-  // --- Edicion del importe antes de cobrar (solo 1 cita): el dueño ajusta lo
-  // que se cobra de verdad (el extra "vale 12 EUR" pero hoy toca otra cosa).
-  // El importe final viaja como p_base_cents y queda auditado en cobros y
-  // cobro_lineas, de donde leen caja e informes. ---
-  const puedeEditarBase = props.mode === 'cita' && props.citaIds.length === 1 && !usarBono;
-  const [editandoBase, setEditandoBase] = useState(false);
+  // --- Desglose por cita: quien cobra ve UNA fila por servicio, con su precio,
+  // y puede corregir cada una. Antes se cobraban N citas contra un unico numero
+  // agregado y por eso la correccion estaba capada a citaIds.length === 1. ---
+  const [citasDetalle, setCitasDetalle] = useState<CitaCobrable[]>([]);
+  const [detalleFallo, setDetalleFallo] = useState(false);
+  useEffect(() => {
+    if (props.mode !== 'cita') return;
+    (async () => {
+      const { data, error: dbErr } = await supabase
+        .from('citas')
+        .select('id, servicios(nombre, precio), pagos(tipo, importe_cents, estado)')
+        .in('id', props.citaIds);
+      if (dbErr || !data) { setDetalleFallo(true); return; }
+      type FilaCita = {
+        id: string;
+        servicios: { nombre: string | null; precio: number | null } | Array<{ nombre: string | null; precio: number | null }> | null;
+        pagos: Array<{ tipo: string | null; importe_cents: number | null; estado: string | null }> | null;
+      };
+      const filas = data as unknown as FilaCita[];
+      // Se respeta el orden en que las paso el caller, no el que devuelva la BD.
+      const porId = new Map(filas.map((f) => [f.id, f]));
+      setCitasDetalle(
+        props.citaIds.flatMap((id) => {
+          const f = porId.get(id);
+          if (!f) return [];
+          const srv = relacionUnica(f.servicios);
+          return [{
+            id,
+            nombre: srv?.nombre || 'Servicio',
+            precioCents: Math.round(Number(srv?.precio ?? 0) * 100),
+            senalCents: (f.pagos ?? [])
+              .filter((p) => p.tipo === 'senal' && SENAL_PAGADA.includes(p.estado ?? ''))
+              .reduce((s, p) => s + (p.importe_cents ?? 0), 0),
+          }];
+        }),
+      );
+      setDetalleFallo(false);
+    })();
+  }, [props.mode, props.mode === 'cita' ? props.citaIds.join(',') : '']);
+
+  // --- Edicion del importe antes de cobrar: el dueño ajusta lo que se cobra de
+  // verdad (el extra "vale 12 EUR" pero hoy toca otra cosa). El importe final
+  // viaja como p_base_cents y queda auditado en cobros y cobro_lineas, de donde
+  // leen caja e informes.
+  //
+  // Se levantan los dos limites que lo escondian:
+  //  - citaIds.length === 1 -> ahora hay una fila por cita y cada una se corrige
+  //    por separado, que es lo unico que puede significar "editar N importes".
+  //  - venta suelta -> ahi no hay "base": cada linea del ticket es editable.
+  // Queda EL TERCERO a proposito: con bono el servicio lo cubre el bono y sigue
+  // valiendo 0 EUR. Editable si es lo demas del ticket. Decision de producto del
+  // 6 sep 2026: corregir el importe no puede significar "pago Y gasto sesion". ---
+  const puedeEditarBase = props.mode === 'cita' && !usarBono;
+  // Importe corregido por cita (centimos, BRUTO de señal). Sin entrada = precio
+  // de catalogo, y el RPC ni recibe p_base_cents.
+  const [basesPorCita, setBasesPorCita] = useState<Record<string, number>>({});
+  const [editandoCita, setEditandoCita] = useState<string | null>(null);
   const [baseInput, setBaseInput] = useState('');
-  // Importe YA confirmado (centimos). Vive fuera del modo edicion para que
-  // pulsar el check o Enter no lo pierda: es lo que viaja como p_base_cents.
-  const [baseConfirmadaCents, setBaseConfirmadaCents] = useState<number | null>(null);
 
   // --- Add-ons de la cita(s): solo dinero (no ocupan agenda desde 2026-09-01),
   // pero hay que cobrarlos. El RPC los suma server-side; aqui solo se muestran
@@ -264,39 +404,38 @@ export function CobroSheet(props: CobroSheetProps) {
   }, [props.mode, props.mode === 'cita' ? props.citaIds.join(',') : '']);
   const addonsCents = addonsCita.reduce((s, a) => s + Math.round(a.precio * 100), 0);
 
-  const [lineaProductoId, setLineaProductoId] = useState('');
-
-  // Categorías reales presentes en el catálogo del negocio (para las píldoras del picker).
-  const categoriasProductos = useMemo(
-    () => Array.from(new Set(productos.map((p) => p.categoria))).sort((a, b) => a.localeCompare(b)),
-    [productos],
-  );
-
-  // Filtra por categoría elegida + texto ya escrito en el campo de nombre (misma caja sirve de búsqueda).
-  const productosFiltrados = useMemo(() => {
-    const q = lineaNombre.trim().toLowerCase();
-    return productos.filter(
-      (p) =>
-        (categoriaProductoFiltro === 'todas' || p.categoria === categoriaProductoFiltro) &&
-        (!q || p.nombre.toLowerCase().includes(q)),
-    );
-  }, [productos, lineaNombre, categoriaProductoFiltro]);
-
-  const elegirProducto = (p: { id: string; nombre: string; precio: number }) => {
-    setLineaNombre(p.nombre);
-    setLineaPrecio(p.precio.toString());
-    setLineaProductoId(p.id);
-    setProductoPickerOpen(false);
+  // Elegir del catalogo mete la linea DIRECTAMENTE en el ticket: la peticion de
+  // Jose era "cobrar un servicio sin escribirlo a mano", no rellenar el campo de
+  // nombre por el. El precio queda editable en la propia fila.
+  const elegirDelCatalogo = (item: ItemCatalogo) => {
+    setLineas((prev) => {
+      // Repetir el mismo articulo sube la cantidad, como hace el lector.
+      const i = prev.findIndex((l) => l.ref_id === item.id && l.tipo === item.tipo);
+      if (i === -1) {
+        return [...prev, {
+          nombre: item.nombre,
+          precio: (item.precioCents / 100).toFixed(2),
+          cantidad: '1',
+          ref_id: item.id,
+          tipo: item.tipo,
+        }];
+      }
+      const copia = prev.slice();
+      copia[i] = { ...copia[i], cantidad: String((parseInt(copia[i].cantidad, 10) || 1) + 1) };
+      return copia;
+    });
+    setSelectorAbierto(false);
   };
 
+  // Linea suelta escrita a mano: sigue existiendo para lo que no esta en el
+  // catalogo (un arreglo puntual, una consulta). Sin ref_id y por tanto sin
+  // atribucion en Informes, que es justo lo que evita el selector.
   const agregarLinea = () => {
     const precio = aEntero(lineaPrecio);
     if (!lineaNombre.trim() || precio <= 0) return;
-    setLineas((prev) => [...prev, { nombre: lineaNombre.trim(), precio: lineaPrecio, cantidad: '1', ref_id: lineaProductoId || undefined }]);
+    setLineas((prev) => [...prev, { nombre: lineaNombre.trim(), precio: lineaPrecio, cantidad: '1', tipo: 'servicio' }]);
     setLineaNombre('');
     setLineaPrecio('');
-    setLineaProductoId('');
-    setProductoPickerOpen(false);
   };
   // Escaner de mostrador: pasar el champu por el lector lo mete en el ticket.
   // El escaner se presenta como un teclado, asi que lo que distingue una lectura
@@ -313,9 +452,9 @@ export function CobroSheet(props: CobroSheetProps) {
       setAvisoEscaner('');
       // Si ya estaba en el ticket, sube la cantidad en vez de repetir linea.
       setLineas((prev) => {
-        const i = prev.findIndex((l) => l.ref_id === prod.id);
+        const i = prev.findIndex((l) => l.ref_id === prod.id && l.tipo === 'producto');
         if (i === -1) {
-          return [...prev, { nombre: prod.nombre, precio: prod.precio.toString(), cantidad: '1', ref_id: prod.id }];
+          return [...prev, { nombre: prod.nombre, precio: prod.precio.toString(), cantidad: '1', ref_id: prod.id, tipo: 'producto' }];
         }
         const copia = prev.slice();
         copia[i] = { ...copia[i], cantidad: String((parseInt(copia[i].cantidad, 10) || 1) + 1) };
@@ -329,6 +468,11 @@ export function CobroSheet(props: CobroSheetProps) {
   const cambiarCantidad = (idx: number, cantidad: string) => {
     setLineas((prev) => prev.map((l, i) => (i === idx ? { ...l, cantidad } : l)));
   };
+  // El precio de CUALQUIER linea se corrige antes de cobrar, venga del catalogo
+  // o escrita a mano (peticion 2 de Jose, la parte que faltaba).
+  const cambiarPrecioLinea = (idx: number, precio: string) => {
+    setLineas((prev) => prev.map((l, i) => (i === idx ? { ...l, precio: precio.replace(/[^0-9.,]/g, '') } : l)));
+  };
 
   const lineasBaseCents = lineas.reduce(
     (s, l) => s + Math.round(aEntero(l.precio) * 100) * Math.max(1, parseInt(l.cantidad || '1', 10)),
@@ -336,17 +480,45 @@ export function CobroSheet(props: CobroSheetProps) {
   );
 
   const pendienteBaseCents = 'pendienteCents' in props ? props.pendienteCents : 0;
-  // Importe corregido a mano ya confirmado (neto de señal); el RPC recibe
-  // base+señal porque descuenta la señal el mismo.
-  const baseEditadaCents = baseConfirmadaCents;
-  const baseEfectivaCents = baseEditadaCents ?? pendienteBaseCents;
-  const confirmarBase = () => {
-    // Vaciar y confirmar = volver al precio de catalogo.
-    setBaseConfirmadaCents(baseInput.trim() ? Math.round(aEntero(baseInput) * 100) : null);
-    setEditandoBase(false);
-  };
-  const pendienteCents = baseEfectivaCents + addonsCents + lineasBaseCents;
   const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
+
+  // Filas de servicio del ticket. Si el desglose no llega (fallo de red) y solo
+  // hay una cita, se sintetiza con lo que ya dio el caller: asi no se pierde la
+  // correccion de importe que ya existia para el caso de una cita.
+  const filasCita: CitaCobrable[] = citasDetalle.length > 0
+    ? citasDetalle
+    : (props.mode === 'cita' && props.citaIds.length === 1
+        ? [{ id: props.citaIds[0], nombre: props.subtitulo || 'Servicio', precioCents: pendienteBaseCents + senalCents, senalCents }]
+        : []);
+
+  const baseDeCita = (c: CitaCobrable) => basesPorCita[c.id] ?? c.precioCents;
+  // El agregado que dio el caller manda mientras nadie corrija nada: asi el
+  // numero en pantalla no baila por recalcularlo aqui de otra forma. Cada
+  // correccion lo mueve exactamente su diferencia con el catalogo.
+  const ajusteBaseCents = filasCita.reduce((s, c) => s + (baseDeCita(c) - c.precioCents), 0);
+  const baseEfectivaCents = Math.max(0, pendienteBaseCents + ajusteBaseCents);
+
+  // Un cliente puede acumular decenas de citas sin cobrar (en la demo hay
+  // conceptos de 14 y 27 servicios). Con tantas, una fila por cita entierra el
+  // total y los botones de metodo bajo un scroll enorme. Hasta cinco se
+  // enseñan; a partir de ahi, resumen y "ver desglose" para quien quiera
+  // corregir una en concreto.
+  const [desgloseAbierto, setDesgloseAbierto] = useState(false);
+  const desgloseColapsable = filasCita.length > 5;
+  const filasVisibles = desgloseColapsable && !desgloseAbierto ? [] : filasCita;
+
+  const confirmarBase = (citaId: string) => {
+    setBasesPorCita((prev) => {
+      const copia = { ...prev };
+      // Vaciar y confirmar = volver al precio de catalogo.
+      if (!baseInput.trim()) delete copia[citaId];
+      else copia[citaId] = Math.round(aEntero(baseInput) * 100);
+      return copia;
+    });
+    setEditandoCita(null);
+  };
+
+  const pendienteCents = baseEfectivaCents + addonsCents + lineasBaseCents;
   // Base sobre la que se aplica el descuento: con bono la cita la cubre el
   // bono, asi que el % se calcula solo sobre productos extra y add-ons (que el
   // bono no cubre y si se cobran).
@@ -404,7 +576,8 @@ export function CobroSheet(props: CobroSheetProps) {
           nombre: l.nombre,
           precio_cents: Math.round(aEntero(l.precio) * 100),
           cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
-          ref_id: (l as any).ref_id
+          ref_id: l.ref_id,
+          tipo: l.tipo,
         }));
         const { data, error: rpcErr } = await supabase.rpc('crear_cobro_walkin', {
           p_lineas: lineasPayload,
@@ -439,7 +612,8 @@ export function CobroSheet(props: CobroSheetProps) {
             nombre: l.nombre,
             precio_cents: Math.round(aEntero(l.precio) * 100),
             cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
-            ref_id: (l as any).ref_id,
+            ref_id: l.ref_id,
+            tipo: l.tipo,
           }));
           const { data, error: rpcErr } = await supabase.rpc('consumir_bono_cita', {
             p_cita_id: props.citaIds[0],
@@ -461,8 +635,8 @@ export function CobroSheet(props: CobroSheetProps) {
             nombre: l.nombre,
             precio_cents: Math.round(aEntero(l.precio) * 100),
             cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
-            ref_id: (l as any).ref_id,
-            tipo: 'producto',
+            ref_id: l.ref_id,
+            tipo: l.tipo,
           }));
           const resultados = await Promise.all(
             props.citaIds.map((id, idx) =>
@@ -472,11 +646,10 @@ export function CobroSheet(props: CobroSheetProps) {
                 p_propina_cents: propinaCents,
                 p_descuento_cents: descuentoCents,
                 p_lineas_extra: idx === 0 ? lineasExtra : [],
-                // Importe corregido a mano: el RPC espera la base del servicio
-                // (bruta de señal) porque el descuenta la señal el mismo.
-                ...(props.citaIds.length === 1 && baseEditadaCents !== null
-                  ? { p_base_cents: baseEditadaCents + senalCents }
-                  : {}),
+                // Importe corregido a mano, POR CITA: el RPC espera la base del
+                // servicio (bruta de señal) porque el descuenta la señal solo.
+                // Sin correccion no se manda y el servidor usa su catalogo.
+                ...(basesPorCita[id] !== undefined ? { p_base_cents: basesPorCita[id] } : {}),
                 ...(metodo === 'mixto'
                   ? { p_efectivo_cents: efectivoSplitCents, p_datafono_cents: datafonoSplitCents }
                   : {}),
@@ -520,7 +693,9 @@ export function CobroSheet(props: CobroSheetProps) {
         p_propina_cents: propinaCents,
         p_descuento_cents: descuentoCents,
         // Importe corregido a mano (bruto de señal), igual que en el POS.
-        ...(baseEditadaCents !== null ? { p_base_cents: baseEditadaCents + senalCents } : {}),
+        ...(basesPorCita[props.citaIds[0]] !== undefined
+          ? { p_base_cents: basesPorCita[props.citaIds[0]] }
+          : {}),
       });
       if (rpcErr) throw rpcErr;
       const token = (data as { token?: string })?.token;
@@ -612,109 +787,69 @@ export function CobroSheet(props: CobroSheetProps) {
 
         {(isWalkin || props.mode === 'cita') && (
           <div style={{ marginBottom: 14, marginTop: subtitulo ? 0 : 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{isWalkin ? 'Líneas' : 'Añadir Extra/Producto'}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{isWalkin ? 'Líneas' : 'Añadir servicio, producto o extra'}</div>
             {lineas.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                 {lineas.map((l, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, padding: '6px 8px' }}>
-                    <span style={{ flex: 1, fontSize: 12.5, color: T.text }}>{l.nombre}</span>
+                    <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: 12.5, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.nombre}</span>
+                      <span style={{ fontSize: 10, color: T.textTer, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3 }}>{ETIQUETA_TIPO[l.tipo]}</span>
+                    </span>
                     <input
                       type="text" inputMode="numeric" value={l.cantidad}
+                      aria-label={`Cantidad de ${l.nombre}`}
                       onChange={(e) => cambiarCantidad(idx, e.target.value)}
                       style={{ width: 32, padding: '4px 2px', textAlign: 'center', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 6, color: T.text, fontSize: 12 }}
                     />
-                    <span style={{ fontSize: 12.5, color: T.textSec, minWidth: 56, textAlign: 'right' }}>{aEntero(l.precio).toFixed(2)} €</span>
+                    {/* Precio editable en TODA linea: es la mitad de la peticion 2
+                        que faltaba (antes solo se podia corregir el servicio de
+                        una cita, y solo si era una). */}
+                    <input
+                      type="text" inputMode="decimal" value={l.precio}
+                      aria-label={`Precio de ${l.nombre}`}
+                      onChange={(e) => cambiarPrecioLinea(idx, e.target.value)}
+                      style={{ width: 62, padding: '4px 6px', textAlign: 'right', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 6, color: T.text, fontSize: 12, fontWeight: 600, boxSizing: 'border-box' }}
+                    />
+                    <span style={{ fontSize: 11.5, color: T.textTer }}>€</span>
                     <button onClick={() => quitarLinea(idx)} aria-label="Quitar línea" style={{ background: 'none', border: 'none', color: T.danger, cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '0 2px' }}>×</button>
                   </div>
                 ))}
               </div>
             )}
-            <div style={{ display: 'flex', gap: 6 }}>
-              <div
-                style={{ flex: 1, position: 'relative' }}
-                onBlur={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setProductoPickerOpen(false);
-                }}
-              >
-                <input
-                  type="text" value={lineaNombre}
-                  onFocus={() => setProductoPickerOpen(true)}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setLineaNombre(val);
-                    setProductoPickerOpen(true);
-                    const p = productos.find(x => x.nombre.toLowerCase() === val.toLowerCase());
-                    if (p) {
-                      setLineaProductoId(p.id);
-                      setLineaPrecio(p.precio.toString());
-                    } else {
-                      setLineaProductoId('');
-                    }
-                  }}
-                  placeholder="Nombre o busca producto..."
-                  style={{ width: '100%', padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
-                />
-                {productoPickerOpen && productos.length > 0 && (
-                  <div
-                    style={{
-                      position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 5,
-                      background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 10,
-                      boxShadow: '0 12px 28px rgba(40,30,24,0.18)', overflow: 'hidden',
-                    }}
-                  >
-                    {categoriasProductos.length > 1 && (
-                      <div style={{ display: 'flex', gap: 5, padding: '8px 8px 0', overflowX: 'auto' }}>
-                        {['todas', ...categoriasProductos].map((cat) => {
-                          const on = categoriaProductoFiltro === cat;
-                          return (
-                            <button
-                              key={cat}
-                              type="button"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => setCategoriaProductoFiltro(cat)}
-                              style={{
-                                flexShrink: 0, padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                background: on ? T.primarySoft : T.bgPanel, border: `1px solid ${on ? T.primary : T.border}`,
-                                color: on ? T.primaryHi : T.textSec, textTransform: 'capitalize',
-                              }}
-                            >
-                              {cat}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                    <div style={{ maxHeight: 200, overflowY: 'auto', padding: 6 }}>
-                      {productosFiltrados.length === 0 ? (
-                        <div style={{ padding: '8px 6px', fontSize: 12, color: T.textTer }}>Sin productos. Puedes escribir una línea libre.</div>
-                      ) : (
-                        productosFiltrados.map((p) => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => elegirProducto(p)}
-                            style={{
-                              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                              padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = T.bgCardHi)}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <span style={{ fontSize: 12.5, color: T.text }}>{p.nombre}</span>
-                            <span style={{ fontSize: 12, color: T.textSec, flexShrink: 0 }}>{p.precio.toFixed(2)} €</span>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Camino principal: el catalogo entero en un modal ancho con
+                buscador. Antes esto era un desplegable de 200 px que solo tenia
+                productos, y por eso un servicio habia que escribirlo a mano. */}
+            <button
+              type="button"
+              onClick={() => setSelectorAbierto(true)}
+              data-testid="abrir-selector-catalogo"
+              style={{
+                width: '100%', padding: '11px 14px', background: T.primarySoft, border: `1px solid ${T.primary}`,
+                borderRadius: 10, color: T.primaryHi, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxSizing: 'border-box',
+              }}
+            >
+              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+              Buscar en el catálogo
+              {!catalogoCargando && catalogo.length > 0 && (
+                <span style={{ fontWeight: 600, color: T.textSec, fontSize: 12 }}>({catalogo.length})</span>
+              )}
+            </button>
+            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+              <input
+                type="text" value={lineaNombre}
+                onChange={(e) => setLineaNombre(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') agregarLinea(); }}
+                placeholder="...o escribe una línea suelta"
+                style={{ flex: 1, minWidth: 0, padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
+              />
               <input
                 type="text" inputMode="decimal" value={lineaPrecio} onChange={(e) => setLineaPrecio(e.target.value)} placeholder="€"
+                aria-label="Precio de la línea suelta"
                 style={{ width: 70, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
               />
-              <button onClick={agregarLinea} style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+</button>
+              <button onClick={agregarLinea} aria-label="Añadir línea suelta" style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+</button>
             </div>
 
             {avisoEscaner && (
@@ -795,41 +930,91 @@ export function CobroSheet(props: CobroSheetProps) {
           )}
           {!usarBono && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ fontSize: 12.5, color: T.textSec }}>Pendiente</span>
-                {editandoBase ? (
+              {/* Una fila por cita, cada una con su precio corregible. Con una
+                  sola cita se lee igual que antes; con varias, cada servicio
+                  se ajusta por separado, que es lo unico que puede significar
+                  "editar el importe de N citas". */}
+              {desgloseColapsable && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ fontSize: 12.5, color: T.textSec }}>{filasCita.length} servicios</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <input
-                      type="text" inputMode="decimal" autoFocus value={baseInput}
-                      onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9.,]/g, ''))}
-                      onKeyDown={(e) => { if (e.key === 'Enter') confirmarBase(); }}
-                      placeholder={(baseEfectivaCents / 100).toFixed(2)}
-                      style={{ width: 84, padding: '6px 10px', textAlign: 'right', background: T.bgPanel, border: `1px solid ${T.primary}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, boxSizing: 'border-box' }}
-                    />
-                    <button type="button" title="Confirmar importe" onClick={confirmarBase}
-                      style={{ padding: '6px 10px', background: T.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                      ✓
+                    <span style={{ fontSize: 13, fontWeight: 600, color: ajusteBaseCents !== 0 ? T.primary : T.text }}>
+                      {(filasCita.reduce((s, c) => s + baseDeCita(c), 0) / 100).toFixed(2)} €
+                    </span>
+                    <button type="button" onClick={() => setDesgloseAbierto(!desgloseAbierto)}
+                      style={{ padding: '4px 8px', background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, color: T.textSec, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                      {desgloseAbierto ? 'ocultar desglose' : 'ver desglose'}
                     </button>
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: baseEditadaCents !== null ? T.primary : T.text }}>
-                      {((baseEfectivaCents + addonsCents + lineasBaseCents) / 100).toFixed(2)} €
-                    </span>
-                    {puedeEditarBase && (
-                      <button type="button" title="Corregir el importe antes de cobrar" onClick={() => { setBaseInput((baseEfectivaCents / 100).toFixed(2)); setEditandoBase(true); }}
-                        style={{ padding: '4px 8px', background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, color: T.textSec, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-                        ✎ editar
-                      </button>
+                </div>
+              )}
+              {filasVisibles.map((c) => {
+                const base = baseDeCita(c);
+                const corregida = basesPorCita[c.id] !== undefined && base !== c.precioCents;
+                return (
+                  <div key={c.id}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      {/* El nombre del servicio, no "Pendiente": lo que se
+                          enseña y se corrige es el PRECIO del servicio (bruto),
+                          y la señal se descuenta en su propia fila de abajo. */}
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: T.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {c.nombre}
+                      </span>
+                      {editandoCita === c.id ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <input
+                            type="text" inputMode="decimal" autoFocus value={baseInput}
+                            aria-label={`Importe de ${c.nombre}`}
+                            onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9.,]/g, ''))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') confirmarBase(c.id);
+                              if (e.key === 'Escape') setEditandoCita(null);
+                            }}
+                            placeholder={(base / 100).toFixed(2)}
+                            style={{ width: 84, padding: '6px 10px', textAlign: 'right', background: T.bgPanel, border: `1px solid ${T.primary}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, boxSizing: 'border-box' }}
+                          />
+                          <button type="button" title="Confirmar importe" onClick={() => confirmarBase(c.id)}
+                            style={{ padding: '6px 10px', background: T.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                            ✓
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: corregida ? T.primary : T.text }}>
+                            {(base / 100).toFixed(2)} €
+                          </span>
+                          {puedeEditarBase && (
+                            <button type="button" title="Corregir el importe antes de cobrar"
+                              onClick={() => { setBaseInput((base / 100).toFixed(2)); setEditandoCita(c.id); }}
+                              style={{ padding: '4px 8px', background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, color: T.textSec, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                              ✎ editar
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {corregida && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <span style={{ fontSize: 11, color: T.textTer }}>
+                          corregido: catálogo {(c.precioCents / 100).toFixed(2)} € → {(base / 100).toFixed(2)} €
+                        </span>
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-              {baseEditadaCents !== null && baseEditadaCents !== pendienteBaseCents && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 11, color: T.textTer }}>
-                    corregido: catálogo {(pendienteBaseCents / 100).toFixed(2)} € → {(baseEditadaCents / 100).toFixed(2)} €
-                  </span>
+                );
+              })}
+              {/* Sin desglose (fallo al cargarlo) se sigue viendo el agregado que
+                  dio el caller, pero no se puede corregir: no sabriamos a que
+                  cita mandarle el p_base_cents. */}
+              {props.mode === 'cita' && filasCita.length === 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ fontSize: 12.5, color: T.textSec }}>Pendiente</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{(pendienteBaseCents / 100).toFixed(2)} €</span>
+                </div>
+              )}
+              {props.mode === 'cita' && detalleFallo && (
+                <div style={{ fontSize: 11, color: T.textTer }}>
+                  No se ha podido cargar el desglose por servicio; los importes no se pueden corregir aquí.
                 </div>
               )}
               {senalCents > 0 && (
@@ -848,6 +1033,16 @@ export function CobroSheet(props: CobroSheetProps) {
               <span style={{ fontSize: 12.5, color: T.textSec }}>+{a.precio.toFixed(2)} €</span>
             </div>
           ))}
+          {/* Con varias lineas el ticket de arriba se lee mal de un vistazo: se
+              resume aqui, junto al resto de conceptos del total. */}
+          {lineasBaseCents > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 12.5, color: T.textSec }}>
+                {lineas.length === 1 ? '1 línea' : `${lineas.length} líneas`}
+              </span>
+              <span style={{ fontSize: 12.5, color: T.textSec }}>+{(lineasBaseCents / 100).toFixed(2)} €</span>
+            </div>
+          )}
           {/* El descuento se muestra tambien con bono: aplica a los productos
               extra del ticket (la cita la cubre el bono). */}
           {(
@@ -1017,18 +1212,37 @@ export function CobroSheet(props: CobroSheetProps) {
         )}
       </div>
   );
+  // El selector va FUERA de la hoja (no dentro de sheetBody) porque en modo
+  // `inline` la hoja vive dentro de un contenedor con scroll y overflow: un
+  // modal ahi dentro se recorta. Como es `position: fixed`, da igual donde
+  // cuelgue del arbol mientras no herede un overflow.
+  const selector = selectorAbierto ? (
+    <SelectorCatalogo
+      items={catalogo}
+      cargando={catalogoCargando}
+      onElegir={elegirDelCatalogo}
+      onCerrar={() => setSelectorAbierto(false)}
+    />
+  ) : null;
+
   return inline ? (
-    sheetBody
-  ) : (
-    <div
-      onClick={() => { if (!enviando) onClose(); }}
-      // El recorrido guiado abre esta hoja para el paso "asi se cobra". Al pasar
-      // al siguiente paso hay que recogerla: si no, se queda encima del arqueo y
-      // de los registros, tapando justo lo que se esta explicando.
-      data-demo-cerrar="caja-cobrar"
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: 'center', padding: 16 }}
-    >
+    <>
       {sheetBody}
-    </div>
+      {selector}
+    </>
+  ) : (
+    <>
+      <div
+        onClick={() => { if (!enviando) onClose(); }}
+        // El recorrido guiado abre esta hoja para el paso "asi se cobra". Al pasar
+        // al siguiente paso hay que recogerla: si no, se queda encima del arqueo y
+        // de los registros, tapando justo lo que se esta explicando.
+        data-demo-cerrar="caja-cobrar"
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: 'center', padding: 16 }}
+      >
+        {sheetBody}
+      </div>
+      {selector}
+    </>
   );
 }
