@@ -23,10 +23,30 @@ const WORDMARK_FONT = Platform.select({
   default: undefined,
 }) as string | undefined;
 
+// Degradados de marca (paleta fuego de lib/designTokens.ts).
+//
+// Dos, y la diferencia importa: ADORNO puede arrancar en el naranja vivo porque
+// nunca lleva texto encima; SOBRE_TEXTO se queda en la mitad profunda de la
+// gama porque el blanco sobre #f4501e solo da 3,5:1 y el AA de texto normal
+// pide 4,5:1. #e0340e da 4,5:1 y #c0260a 6,0:1, asi que el relleno del item
+// activo es legible en todo su recorrido.
+const FUEGO_ADORNO = 'linear-gradient(180deg,#f4501e 0%,#c0260a 100%)';
+const FUEGO_SOBRE_TEXTO = 'linear-gradient(135deg,#e0340e 0%,#c0260a 100%)';
+const FUEGO_VELO = 'linear-gradient(160deg,rgba(244,80,30,0.11) 0%,rgba(192,38,10,0.04) 100%)';
+
+// react-native-web traduce `backgroundImage` a CSS tal cual; en nativo esa
+// propiedad no existe. El degradado es decoracion, no informacion: fuera de la
+// web el bloque se queda con su color plano y no se pierde nada.
+const degradado = (css: string) =>
+  (Platform.OS === 'web' ? { backgroundImage: css } : null) as any;
+
 // Color distintivo por sector: tinta iconos, etiquetas de seccion y estado activo
 // para que cada bloque de navegacion se reconozca de un vistazo (tambien plegado).
-const GROUP_META: Record<string, { color: string }> = {
-  'Operativa': { color: '#f4501e' },
+// `destacado`: el bloque de uso diario. Va sobre un panel con degradado de marca
+// y su item activo se rellena, para que se distinga sin leer las etiquetas —
+// tambien con el rail plegado, donde no hay etiquetas que leer.
+const GROUP_META: Record<string, { color: string; destacado?: boolean }> = {
+  'Operativa': { color: '#f4501e', destacado: true },
   'CRM & Marketing': { color: '#e11d6b' },
   'Gestión': { color: '#0891b2' },
   'Análisis': { color: '#8b5cf6' },
@@ -37,6 +57,11 @@ const GROUP_META: Record<string, { color: string }> = {
 // permiso del ROL; son dos filtros distintos y hay que pasar los dos.
 const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability; plan?: FuncionPlan; group?: string }[] = [
   { label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)', group: 'Operativa' },
+  // Caja vive en Operativa (uso diario), no en Gestion: se abre tantas veces al
+  // dia como la agenda. El `cap` sigue siendo 'config.ver' — es el permiso del
+  // ROL, no decoracion: sin el, un profesional no ve Caja aunque este arriba.
+  // En movil ya estaba de segunda pestana (MobileTabBar.tsx), ese fichero no se toca.
+  { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver', group: 'Operativa' },
   { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada', group: 'Operativa' },
   { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas', plan: 'lista_espera', group: 'Operativa' },
   { label: 'Citas', labelKey: 'nav_citas', icon: 'calendar-number-outline', activeIcon: 'calendar-number', href: '/(tabs)/citas', cap: 'agenda.ver_todas', group: 'Operativa' },
@@ -45,7 +70,6 @@ const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: st
   { label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja', group: 'CRM & Marketing' },
   { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver', plan: 'campanas', group: 'CRM & Marketing' },
   
-  { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver', group: 'Gestión' },
   { label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos', group: 'Gestión' },
   { label: 'Equipo', labelKey: 'nav_equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver', group: 'Gestión' },
   { label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario', group: 'Gestión' },
@@ -217,6 +241,27 @@ export function Sidebar() {
     ? `${accountName} · ${accountSubtitle} — pulsa para cambiar de persona`
     : accountSubtitle ? `${accountName} · ${accountSubtitle} — pulsa para ir a tu cuenta` : accountName;
 
+  // Cabecera del grupo (solo desplegado). Fuera del JSX del mapa a proposito:
+  // metida ahi dentro era un ternario mas de anidamiento y no se leia mejor.
+  const renderCabeceraGrupo = (groupName: string, gColor: string, destacado: boolean, groupIndex: number) => {
+    if (!destacado) {
+      return (
+        <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.85 }]}>
+          {groupName}
+        </TText>
+      );
+    }
+    // Pildora con el degradado de marca en lugar del rotulo tenue del resto: se
+    // lee como "esto es lo de todos los dias" antes de leer la palabra.
+    return (
+      <View style={s.navSectionPillWrap}>
+        <View style={[s.navSectionPill, degradado(FUEGO_SOBRE_TEXTO)]}>
+          <TText style={s.navSectionPillText}>{groupName}</TText>
+        </View>
+      </View>
+    );
+  };
+
   const renderNavItem = (item: typeof NAV_ITEMS[0], idx: number) => {
     const hrefSlug = item.href.split('/').pop() || '';
     const isActive =
@@ -232,12 +277,22 @@ export function Sidebar() {
       hoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, collapsed ? 0 : 4] })
     );
 
-    const isPrincipal = idx < 4;
     // Acento del item = color de su sector (no del rol): asi Operativa, CRM,
     // Gestion y Analisis se distinguen aun con el rail plegado.
-    const gColor = (GROUP_META[item.group || 'General'] || GROUP_META.General).color;
+    const meta = GROUP_META[item.group || 'General'] || GROUP_META.General;
+    const gColor = meta.color;
     const gSoft = `${gColor}14`;
     const gBorder = `${gColor}3d`;
+    // "Principal" = el bloque destacado. Antes esto era `idx < 4`, que describia
+    // por POSICION justo a los cuatro items de Operativa; al entrar Caja en el
+    // grupo, ese recuento habria dejado a Citas fuera del realce sin que nadie
+    // lo notara. Ahora sale del grupo, que es lo que de verdad significaba.
+    const destacado = !!meta.destacado;
+    const isPrincipal = destacado;
+    // El item activo del bloque destacado se RELLENA con el degradado (texto e
+    // icono en blanco) en vez de teñirse: es lo que hace que el bloque de uso
+    // diario cante tambien con el rail plegado, donde no hay etiquetas.
+    const rellenoActivo = destacado && isActive;
 
     return (
       <Animated.View
@@ -261,6 +316,13 @@ export function Sidebar() {
             !isActive && hoveredIdx === idx && s.navItemHovered,
             isPrincipal && !collapsed && s.navItemPrincipal,
             isPrincipal && !collapsed && isActive && { backgroundColor: gSoft, borderColor: gBorder },
+            // Hover calido en el bloque destacado (el gris apagado de
+            // navItemHovered ahi parecia deshabilitado sobre el velo de marca).
+            destacado && !isActive && hoveredIdx === idx && s.navItemHoveredDestacado,
+            // Van al final a proposito: en un array de estilos gana el ultimo,
+            // y este relleno tiene que pisar el tinte suave de mas arriba.
+            rellenoActivo && s.navItemRelleno,
+            rellenoActivo && degradado(FUEGO_SOBRE_TEXTO),
           ]}
           onPress={() => router.replace(item.href as any)}
           {...{
@@ -278,11 +340,13 @@ export function Sidebar() {
             ...webTitle(t(item.labelKey) || item.label)
           } as any}
         >
-          {isActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: gColor }]} />}
+          {/* Con relleno no hace falta barra: el propio bloque ya es el
+              indicador, y la barra vive en left:-16, fuera del panel destacado. */}
+          {isActive && !collapsed && !rellenoActivo && <View style={[s.navItemBar, { backgroundColor: gColor }]} />}
           <Ionicons
             name={(isActive ? item.activeIcon : item.icon) as any}
             size={collapsed ? 24 : 20}
-            color={isActive ? gColor : `${gColor}b3`}
+            color={rellenoActivo ? '#ffffff' : isActive ? gColor : `${gColor}${destacado ? 'cc' : 'b3'}`}
           />
           {!collapsed && (
             <TText style={[
@@ -290,6 +354,7 @@ export function Sidebar() {
               isActive && s.navLabelActive,
               isActive && { color: gColor },
               isPrincipal && s.navLabelPrincipal,
+              rellenoActivo && s.navLabelRelleno,
             ]}>
               {t(item.labelKey) || item.label}
             </TText>
@@ -374,16 +439,22 @@ export function Sidebar() {
           }, {} as Record<string, { item: typeof NAV_ITEMS[0]; index: number }[]>);
 
           return Object.entries(groups).map(([groupName, items], groupIndex) => {
-            const gColor = (GROUP_META[groupName] || GROUP_META.General).color;
+            const meta = GROUP_META[groupName] || GROUP_META.General;
+            const gColor = meta.color;
+            const destacado = !!meta.destacado;
             return (
             <View key={groupName} style={collapsed ? { marginBottom: 12 } : {}}>
               {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: `${gColor}2e` }]} />}
-              {!collapsed && (
-                <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.85 }]}>
-                  {groupName}
-                </TText>
-              )}
-              <View style={s.navGroupContainer}>
+              {!collapsed && renderCabeceraGrupo(groupName, gColor, destacado, groupIndex)}
+              <View style={[
+                s.navGroupContainer,
+                destacado && (collapsed ? s.navGroupDestacadoCollapsed : s.navGroupDestacado),
+                destacado && degradado(FUEGO_VELO),
+              ]}>
+                {/* Riel de marca del bloque destacado. Solo desplegado: en el rail
+                    plegado el panel ya es la señal y un riel de 3px al borde
+                    descuadraria los iconos, que van centrados. */}
+                {destacado && !collapsed && <View style={[s.navGroupRail, degradado(FUEGO_ADORNO)]} />}
                 {items.map(({ item, index }) => {
                   if (!allows(item.cap) || !entraEnPlan(item.plan)) return null;
                   return renderNavItem(item, index);
@@ -642,6 +713,78 @@ const s = StyleSheet.create({
     paddingHorizontal: tokens.spacing.md,
     paddingVertical: tokens.spacing.sm,
     marginBottom: tokens.spacing.xs,
+  },
+  // --- Bloque destacado (Operativa): el de uso diario ---
+  navSectionPillWrap: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+    marginBottom: tokens.spacing.xs,
+    alignItems: 'flex-start',
+  },
+  navSectionPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: tokens.radius.full,
+    // Color plano de respaldo: en nativo (y si el degradado no pinta) el rotulo
+    // sigue siendo blanco sobre rojo profundo, que es lo que da el contraste.
+    backgroundColor: '#c0260a',
+    boxShadow: '0 3px 10px rgba(192,38,10,0.26)' as any,
+  },
+  navSectionPillText: {
+    fontSize: 10,
+    letterSpacing: 1.4,
+    fontWeight: '700',
+    color: '#ffffff',
+    textTransform: 'uppercase',
+  },
+  navGroupDestacado: {
+    position: 'relative',
+    paddingVertical: tokens.spacing.sm,
+    paddingLeft: tokens.spacing.sm,
+    paddingRight: tokens.spacing.xs,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(244,80,30,0.20)',
+    backgroundColor: 'rgba(244,80,30,0.07)',
+    marginBottom: tokens.spacing.sm,
+  },
+  navGroupDestacadoCollapsed: {
+    alignSelf: 'center',
+    alignItems: 'center',
+    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.xs,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(244,80,30,0.20)',
+    backgroundColor: 'rgba(244,80,30,0.07)',
+    marginBottom: tokens.spacing.xs,
+  },
+  navGroupRail: {
+    position: 'absolute',
+    left: 0,
+    top: tokens.spacing.md,
+    bottom: tokens.spacing.md,
+    width: 3,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: '#f4501e',
+  },
+  navItemHoveredDestacado: {
+    backgroundColor: 'rgba(244,80,30,0.12)',
+    borderColor: 'rgba(244,80,30,0.18)',
+  },
+  navItemRelleno: {
+    backgroundColor: '#c0260a',
+    borderWidth: 1,
+    borderColor: 'rgba(192,38,10,0.55)',
+    shadowColor: '#c0260a',
+    shadowOpacity: 0.42,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  navLabelRelleno: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
   navDivider: {
     height: 1,
