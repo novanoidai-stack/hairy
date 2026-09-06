@@ -17,6 +17,13 @@ export const supabase = new Proxy(
     },
   },
 );
+// El mismo cliente, con los tipos generados de la base puestos. En la app real
+// es `supabase as SupabaseClient<Database>`; aqui es el mismo Proxy que grita.
+// Hace falta porque lib/datos/* importa este nombre y no el otro: sin esta
+// linea, cualquier test de esa capa muere al enlazar con "does not provide an
+// export named 'supabaseTipado'" antes de correr una sola prueba.
+export const supabaseTipado = supabase;
+
 export async function signInDemoViewer() {
   throw new Error('No disponible en el shim de Deno');
 }
