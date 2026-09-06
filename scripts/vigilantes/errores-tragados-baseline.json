@@ -16,7 +16,7 @@
   "app/(tabs)/configuracion.web.tsx": {
     "fuego-y-olvido": 2,
     "handler-async-sin-catch": 1,
-    "supabase-sin-comprobar": 8
+    "supabase-sin-comprobar": 7
   },
   "app/(tabs)/equipo.tsx": {
     "supabase-sin-comprobar": 1
