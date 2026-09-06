@@ -2,8 +2,8 @@
 //
 // POR QUE EXISTE (6 sep 2026)
 // Un add-on colgaba de UN servicio (`service_addons.servicio_id NOT NULL`). Para
-// ofrecer "Espuma" en los 178 servicios del salon de Jose harian falta 178 filas
-// mantenidas a mano, una por una, cada vez que cambia el precio. Por eso
+// ofrecer "Espuma" en los 78 servicios activos del salon de Jose harian falta 78
+// filas mantenidas a mano, una por una, cada vez que cambia el precio. Por eso
 // `servicio_id` pasa a admitir NULL:
 //
 //   servicio_id = <uuid>  ->  add-on de ESE servicio

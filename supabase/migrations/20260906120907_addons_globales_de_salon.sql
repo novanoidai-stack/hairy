@@ -10,7 +10,9 @@
 -- El motor ya esta bien: los add-ons son SOLO DINERO desde el 1 sep 2026
 -- (20260901153000_addons_solo_dinero.sql) y no suman duracion. El problema era
 -- que llevar esas lineas a `service_addons` costaba, con el modelo de una fila
--- por servicio, **178 filas por extra**, mantenidas a mano una por una cada vez
+-- por servicio, **78 filas por extra** (78 servicios activos de 87, medido el 6 sep
+-- 2026; el informe de peticiones decia 178 y ese numero no cuadra con produccion),
+-- mantenidas a mano una por una cada vez
 -- que cambia el precio. Eso no es un catalogo, es un invariante repartido de
 -- manual -- justo la fabrica de regresiones de la decision 10 del CLAUDE.md.
 --
@@ -77,7 +79,7 @@ create unique index if not exists service_addons_salon_nombre_uk
 -- permitir, y de paso la demo ensena el modelo nuevo.
 --
 -- Solo la demo. En un salon real, convertir un add-on de un servicio en global
--- cambia lo que se le ofrece a la clienta en los otros 177: esa es una decision
+-- cambia lo que se le ofrece a la clienta en los otros 77: esa es una decision
 -- del salon, no de una migracion. Para eso esta el script reversible
 -- `scripts/migrar-servicios-a-addons.mjs`.
 do $$

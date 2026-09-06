@@ -5619,7 +5619,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [newAddonNombre, setNewAddonNombre] = useState('');
   const [newAddonPrecio, setNewAddonPrecio] = useState('');
   // Ambito del add-on nuevo. 'salon' lo guarda con servicio_id null y con eso
-  // aparece en los 178 servicios sin crear 178 filas.
+  // aparece en los 78 servicios del catalogo de Jose sin crear 78 filas.
   const [newAddonAmbito, setNewAddonAmbito] = useState<'servicio' | 'salon'>('servicio');
   const [addingAddon, setAddingAddon] = useState(false);
   const [editingAddonId, setEditingAddonId] = useState<string | null>(null);
