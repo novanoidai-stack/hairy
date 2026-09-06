@@ -66,6 +66,7 @@ import metaTrinquete from './meta-trinquete.mjs';
 import guardrailIA from './guardrail-ia.mjs';
 import fugasListeners from './fugas-listeners.mjs';
 import modalesFantasma from './modales-fantasma.mjs';
+import addonsCargador from './addons-cargador.mjs';
 
 export const ESTATICOS = [
   precios,
@@ -100,6 +101,7 @@ export const ESTATICOS = [
   guardrailIA,
   fugasListeners,
   modalesFantasma,
+  addonsCargador,
 ];
 
 // La lista de red vive en nucleo.mjs (meta-registro tambien la pregunta, y

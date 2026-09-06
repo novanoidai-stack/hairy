@@ -34,6 +34,7 @@ import {
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
   Btn, IconBtn, ScopeChip, SettingsIcon,
 } from '@/components/ui/SettingsAtoms';
+import { listarAddonsDeServicio, type Addon } from '@/lib/datos/addons';
 import { mensajeDeError } from '@/lib/errores';
 import { reportarError } from '@/lib/reportarError';
 import { esTamanoTexto, normalizarTamanoTexto, guardarYAplicarTamanoTexto, sincronizarTamanoTexto } from '@/lib/tamanoTexto';
@@ -5550,6 +5551,18 @@ function FlamesRow({ value, size = 16, color }: { value: number; size?: number; 
   );
 }
 
+// El indice `service_addons_salon_nombre_uk` impide dos add-ons de salon con el
+// mismo nombre. El mensaje generico de 23505 ("Ya existe un registro con ...")
+// no dice donde esta el otro, y el otro puede estar colgado de un servicio que
+// no tienes delante: por eso este caso se traduce aparte.
+function errorDeAddon(error: unknown): string {
+  const texto = `${(error as { code?: string })?.code ?? ''} ${(error as { message?: string })?.message ?? ''}`;
+  if (texto.includes('service_addons_salon_nombre_uk')) {
+    return 'Ya hay un extra con ese nombre para todo el salon. Edita el que existe en vez de crear otro.';
+  }
+  return mensajeDeError(error);
+}
+
 // ===========================================================================
 // EditServiceModal (preserved from original)
 // ===========================================================================
@@ -5596,14 +5609,21 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [fotoErr, setFotoErr] = useState('');
 
   // Add-ons state
-  const [addons, setAddons] = useState<any[]>([]);
+  //
+  // OJO con `duracion_min`: ya no se guarda desde aqui. Los add-ons son solo
+  // dinero desde el 1 sep 2026 y la columna nace en 0 por defecto; el estado que
+  // habia (siempre 0, sin ningun campo que lo escribiera) solo servia para que
+  // el siguiente que lo leyera creyera que el formulario pide una duracion.
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [addonError, setAddonError] = useState('');
   const [newAddonNombre, setNewAddonNombre] = useState('');
-  const [newAddonDur, setNewAddonDur] = useState(0);
   const [newAddonPrecio, setNewAddonPrecio] = useState('');
+  // Ambito del add-on nuevo. 'salon' lo guarda con servicio_id null y con eso
+  // aparece en los 78 servicios del catalogo de Jose sin crear 78 filas.
+  const [newAddonAmbito, setNewAddonAmbito] = useState<'servicio' | 'salon'>('servicio');
   const [addingAddon, setAddingAddon] = useState(false);
   const [editingAddonId, setEditingAddonId] = useState<string | null>(null);
   const [editAddonNombre, setEditAddonNombre] = useState('');
-  const [editAddonDur, setEditAddonDur] = useState(0);
   const [editAddonPrecio, setEditAddonPrecio] = useState('');
 
   // Category pricing state
@@ -5611,15 +5631,18 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [catPricesDb, setCatPricesDb] = useState<Record<string, number | null>>({});
   const [savingCatPrice, setSavingCatPrice] = useState<string | null>(null);
 
+  // Cargador unico (lib/datos/addons.ts): trae los de ESTE servicio y ademas
+  // los de salon (servicio_id null). Se usa la variante CRUDA, sin conciliar
+  // nombres repetidos ni esconder los apagados: esta pantalla administra el
+  // catalogo, y una fila que no se ve no se puede borrar.
   useEffect(() => {
-    if (!service.id || isProfMode) return;
-    supabase
-      .from('service_addons')
-      .select('id, nombre, duracion_min, precio, activo')
-      .eq('servicio_id', service.id)
-      .order('nombre')
-      .then(({ data }) => setAddons(data ?? []));
-  }, [service.id, isProfMode]);
+    if (!service.id || isProfMode || !negocioId) return;
+    let vigente = true;
+    listarAddonsDeServicio(negocioId, service.id)
+      .then(filas => { if (vigente) { setAddons(filas); setAddonError(''); } })
+      .catch(e => { if (vigente) setAddonError(mensajeDeError(e)); });
+    return () => { vigente = false; };
+  }, [service.id, isProfMode, negocioId]);
 
   useEffect(() => {
     if (!service.id || isProfMode) return;
@@ -5984,42 +6007,64 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
               {!isNew && (
                 <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 14 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Add-ons opcionales</div>
-                  <div style={{ fontSize: 10, color: T.textTertiary, marginBottom: 10 }}>Extras que el cliente puede anadir a este servicio. Suman solo precio: no ocupan tiempo en agenda.</div>
+                  <div style={{ fontSize: 10, color: T.textTertiary, marginBottom: 10 }}>Extras que el cliente puede anadir. Suman solo precio: no ocupan tiempo en agenda. Los marcados como <b>todo el salon</b> se ofrecen ademas en el resto de servicios.</div>
+
+                  {!!addonError && (
+                    <div style={{ fontSize: 11, color: T.danger, marginBottom: 8 }}>{addonError}</div>
+                  )}
 
                   {addons.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-                      {addons.map((a: any) => editingAddonId === a.id ? (
+                      {addons.map((a) => editingAddonId === a.id ? (
                         <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(244,80,30,0.4)' }}>
                           <input className="m-input" value={editAddonNombre} onChange={e => setEditAddonNombre(e.target.value)} placeholder="Nombre" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           <div>
                             <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
                             <input className="m-input" value={editAddonPrecio} onChange={e => setEditAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           </div>
+                          {a.servicio_id === null && (
+                            <div style={{ fontSize: 10, color: T.warning }}>
+                              Este extra vale para todo el salon: lo que cambies aqui cambia en todos los servicios.
+                            </div>
+                          )}
                           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                             <Btn variant="ghost" size="sm" onClick={() => setEditingAddonId(null)}>Cancelar</Btn>
                             <Btn variant="primary" size="sm" disabled={!editAddonNombre.trim()} onClick={async () => {
                               if (!editAddonNombre.trim()) return;
-                              const { error } = await supabase.from('service_addons').update({
-                                nombre: editAddonNombre.trim(), duracion_min: editAddonDur, precio: parseFloat(editAddonPrecio) || 0,
-                              }).eq('id', a.id);
-                              if (!error) {
-                                setAddons(prev => prev.map(x => x.id === a.id ? { ...x, nombre: editAddonNombre.trim(), duracion_min: editAddonDur, precio: parseFloat(editAddonPrecio) || 0 } : x));
-                                setEditingAddonId(null);
-                              }
+                              const nombre = editAddonNombre.trim();
+                              const precio = parseFloat(editAddonPrecio) || 0;
+                              const { error } = await supabase.from('service_addons').update({ nombre, precio }).eq('id', a.id);
+                              if (error) { setAddonError(errorDeAddon(error)); return; }
+                              setAddons(prev => prev.map(x => x.id === a.id ? { ...x, nombre, precio } : x));
+                              setEditingAddonId(null);
+                              setAddonError('');
                             }}>Guardar</Btn>
                           </div>
                         </div>
                       ) : (
                         <div key={a.id}
-                          onClick={() => { setEditingAddonId(a.id); setEditAddonNombre(a.nombre); setEditAddonDur(a.duracion_min); setEditAddonPrecio(String(a.precio)); }}
+                          onClick={() => { setEditingAddonId(a.id); setEditAddonNombre(a.nombre); setEditAddonPrecio(String(a.precio)); }}
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(244,80,30,0.4)'; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
-                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <div>
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                             <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{a.nombre}</span>
-                            <span style={{ fontSize: 10, color: T.textTertiary, marginLeft: 8 }}>+{a.precio}EUR</span>
+                            <span style={{ fontSize: 10, color: T.textTertiary }}>+{a.precio}EUR</span>
+                            {a.servicio_id === null && <Badge tone="primary">Todo el salon</Badge>}
+                            {!a.activo && <Badge tone="neutral">Inactivo</Badge>}
                           </div>
-                          <button className="m-btn-danger" onClick={async (ev) => { ev.stopPropagation(); await supabase.from('service_addons').delete().eq('id', a.id); setAddons(prev => prev.filter(x => x.id !== a.id)); }}
+                          <button className="m-btn-danger" onClick={async (ev) => {
+                            ev.stopPropagation();
+                            // Borrar un add-on de salon lo quita de TODOS los servicios, no
+                            // solo de este. Sin este aviso, quitarlo desde la ficha de un
+                            // servicio parece un cambio local y no lo es.
+                            if (a.servicio_id === null && typeof window !== 'undefined' &&
+                                !window.confirm(`"${a.nombre}" vale para todo el salon. Si lo borras deja de ofrecerse en TODOS los servicios. Continuar?`)) return;
+                            const { error } = await supabase.from('service_addons').delete().eq('id', a.id);
+                            if (error) { setAddonError(errorDeAddon(error)); return; }
+                            setAddons(prev => prev.filter(x => x.id !== a.id));
+                            setAddonError('');
+                          }}
                             style={{ background: 'none', border: 'none', color: T.danger, cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
                             x
                           </button>
@@ -6040,19 +6085,38 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                         <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
                         <input className="m-input" value={newAddonPrecio} onChange={e => setNewAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                       </div>
+                      <div>
+                        <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Donde se ofrece</div>
+                        <Segmented
+                          value={newAddonAmbito}
+                          onChange={v => setNewAddonAmbito(v as 'servicio' | 'salon')}
+                          options={[
+                            { value: 'servicio', label: 'Solo este servicio' },
+                            { value: 'salon', label: 'Todo el salon' },
+                          ]}
+                        />
+                        <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>
+                          {newAddonAmbito === 'salon'
+                            ? 'Se ofrecera en todos los servicios del catalogo, y se edita desde cualquiera de ellos. Una sola linea, no una por servicio.'
+                            : 'Solo aparecera al reservar o cobrar este servicio.'}
+                        </div>
+                      </div>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                        <Btn variant="ghost" size="sm" onClick={() => { setAddingAddon(false); setNewAddonNombre(''); setNewAddonDur(0); setNewAddonPrecio(''); }}>Cancelar</Btn>
+                        <Btn variant="ghost" size="sm" onClick={() => { setAddingAddon(false); setNewAddonNombre(''); setNewAddonPrecio(''); setNewAddonAmbito('servicio'); setAddonError(''); }}>Cancelar</Btn>
                         <Btn variant="primary" size="sm" disabled={!newAddonNombre.trim()} onClick={async () => {
                           if (!newAddonNombre.trim() || !negocioId) return;
+                          // duracion_min NO se manda: la columna nace en 0 (los add-ons no
+                          // ocupan agenda desde el 1 sep 2026) y escribirla desde aqui solo
+                          // servia para que el dato mintiera.
                           const { data, error } = await supabase.from('service_addons').insert({
-                            negocio_id: negocioId, servicio_id: service.id,
-                            nombre: newAddonNombre.trim(), duracion_min: newAddonDur, precio: parseFloat(newAddonPrecio) || 0,
-                          }).select().single();
-                          if (!error && data) {
-                            setAddons(prev => [...prev, data]);
-                            setNewAddonNombre(''); setNewAddonDur(0); setNewAddonPrecio('');
-                            setAddingAddon(false);
-                          }
+                            negocio_id: negocioId,
+                            servicio_id: newAddonAmbito === 'salon' ? null : service.id,
+                            nombre: newAddonNombre.trim(), precio: parseFloat(newAddonPrecio) || 0,
+                          }).select('id, nombre, duracion_min, precio, activo, servicio_id').single();
+                          if (error || !data) { setAddonError(errorDeAddon(error)); return; }
+                          setAddons(prev => [...prev, data as Addon].sort((x, y) => x.nombre.localeCompare(y.nombre, 'es')));
+                          setNewAddonNombre(''); setNewAddonPrecio(''); setNewAddonAmbito('servicio');
+                          setAddingAddon(false); setAddonError('');
                         }}>Guardar</Btn>
                       </div>
                     </div>
