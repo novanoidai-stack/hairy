@@ -113,7 +113,9 @@ web/zamora/
 web/zaragoza/
 
 # Herramientas de agente y pruebas temporales
-.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/.mimosa/
 .playwright-mcp/
 playwright-report/
 playwright/.auth/
