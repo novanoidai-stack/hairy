@@ -498,6 +498,15 @@ export function CobroSheet(props: CobroSheetProps) {
   const ajusteBaseCents = filasCita.reduce((s, c) => s + (baseDeCita(c) - c.precioCents), 0);
   const baseEfectivaCents = Math.max(0, pendienteBaseCents + ajusteBaseCents);
 
+  // Un cliente puede acumular decenas de citas sin cobrar (en la demo hay
+  // conceptos de 14 y 27 servicios). Con tantas, una fila por cita entierra el
+  // total y los botones de metodo bajo un scroll enorme. Hasta cinco se
+  // enseñan; a partir de ahi, resumen y "ver desglose" para quien quiera
+  // corregir una en concreto.
+  const [desgloseAbierto, setDesgloseAbierto] = useState(false);
+  const desgloseColapsable = filasCita.length > 5;
+  const filasVisibles = desgloseColapsable && !desgloseAbierto ? [] : filasCita;
+
   const confirmarBase = (citaId: string) => {
     setBasesPorCita((prev) => {
       const copia = { ...prev };
@@ -925,7 +934,21 @@ export function CobroSheet(props: CobroSheetProps) {
                   sola cita se lee igual que antes; con varias, cada servicio
                   se ajusta por separado, que es lo unico que puede significar
                   "editar el importe de N citas". */}
-              {filasCita.map((c) => {
+              {desgloseColapsable && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ fontSize: 12.5, color: T.textSec }}>{filasCita.length} servicios</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: ajusteBaseCents !== 0 ? T.primary : T.text }}>
+                      {(filasCita.reduce((s, c) => s + baseDeCita(c), 0) / 100).toFixed(2)} €
+                    </span>
+                    <button type="button" onClick={() => setDesgloseAbierto(!desgloseAbierto)}
+                      style={{ padding: '4px 8px', background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, color: T.textSec, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                      {desgloseAbierto ? 'ocultar desglose' : 'ver desglose'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {filasVisibles.map((c) => {
                 const base = baseDeCita(c);
                 const corregida = basesPorCita[c.id] !== undefined && base !== c.precioCents;
                 return (
