@@ -193,6 +193,18 @@ begin
 end;
 $function$;
 
+-- Deriva encontrada al pasar los advisors (6 sep 2026): `crear_cobro_walkin`
+-- era ejecutable por `anon` en produccion. Dos migraciones del repo la revocan
+-- (`pos-cobro-walkin-inventory.sql:112`, `fix-cobros-refid-uuid.sql:130`), asi
+-- que en algun momento se recreo sin arrastrar el ACL. Sus dos hermanas de
+-- cobro (`crear_cobro_desde_cita`, `consumir_bono_cita`) si estaban cerradas.
+-- Hoy no era explotable --sin sesion, auth.uid() es null y la funcion sale por
+-- 'sin_perfil'-- pero la regla 4 del CLAUDE.md no admite "es que igual falla":
+-- una RPC financiera no se ofrece a `anon`. Ningun sitio la llama sin sesion
+-- (los dos unicos callers son CobroSheet y el carrito de Caja).
+revoke all on function public.crear_cobro_walkin(jsonb, text, integer, integer, uuid, uuid) from public, anon;
+grant execute on function public.crear_cobro_walkin(jsonb, text, integer, integer, uuid, uuid) to authenticated, service_role;
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 2. Guarda comun de los ref_id de linea (la regla del parametro).
 --    Se escribe UNA vez y la llaman las tres funciones de cobro: si cada una
