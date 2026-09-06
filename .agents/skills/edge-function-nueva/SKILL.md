@@ -81,6 +81,12 @@ con horas del salón: pásalas por `horariosAlRelojDelRuntime(filas, campos, { r
 de `shared/relojSalon.ts` (también `parseInstanteSalon`, `enHoraSalon`, `fechaSalon`,
 `horaSalon`). Lo vigila el vigilante `husos`.
 
+## Correo
+
+No inventes una puerta de envío nueva: el SMTP de Hostinger lo usa `notificar-solicitud`,
+y `avisar-fin-prueba` / `enviar-informe-periodico` son los ejemplos de "cron diario que
+avisa por correo". Cópialos antes de escribir un `smtp` a mano.
+
 ## LLM: una sola puerta
 
 Toda llamada a un modelo pasa por `shared/openrouterClient.ts`. Nunca `fetch` a

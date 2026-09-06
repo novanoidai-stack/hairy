@@ -91,6 +91,12 @@ Patrón de `crear_cita_publica` / `completar_datos_pago_publico`: negocio por sl
 captcha de un solo uso si `negocio_portal.captcha_activo`. Grants `to anon, authenticated`
 y `notify pgrst, 'reload schema'` al final de la migración.
 
+Dos detalles que muerden: si el recurso público necesita un identificador (una
+"referencia"), que no sea adivinable ni el uuid de fila — columna propia con índice único
+parcial. Y antes de escribir un `estado` en un UPDATE, mira el CHECK de la tabla: si el
+valor que quieres no está en la lista (p. ej. un 'cancelado' que no existe en `bonos`),
+la escritura falla con 23514 y el usuario ve un error genérico.
+
 ## Después de escribir (obligatorio, en este orden)
 
 1. **Advisors de Supabase (security)**: se AUDITAN, no se limpian a ciegas. La inmensa

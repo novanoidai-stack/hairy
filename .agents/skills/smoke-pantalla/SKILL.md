@@ -42,7 +42,8 @@ npx playwright test tests/smoke --project=publico
 
 El config levanta solo el espejo de Vercel (`node scripts/serve-web.mjs` en :8080).
 `PW_NO_SERVER=1` lo desactiva (así corre el canario) y `PLAYWRIGHT_BASE_URL` cambia el
-destino. `workers: 1`, no paraleliza a propósito. El proyecto `publico` es el sin
+destino. `workers: 1`, no paraleliza a propósito. Mientras iteras sobre UNA pantalla,
+filtra en vez de lanzar la suite: `npx playwright test tests/smoke --project=publico -g inventario`. El proyecto `publico` es el sin
 credenciales (landing, marketplace, portal, demo, pantallas, silencios); el proyecto
 `chromium` necesita el setup de login.
 

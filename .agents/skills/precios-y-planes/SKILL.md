@@ -40,6 +40,10 @@ pagaba Esencial leía que incluía señales, campañas y lista de espera. Lo vig
 
 Lo contrasta `scripts/vigilantes/precios.mjs` (anclas en las tarjetas y la calculadora).
 
+Dos trampas: el "desde 39 €/mes" de la meta description y del FAQ es Esencial — NO cambia
+cuando subes el Estudio. Y la calculadora de `web/index.html` también recita los precios
+del plan y del addon (el vigilante tiene anclas ahí; si la dejas vieja, grita).
+
 ## Cambiar los REFERIDOS = 4 sitios a la vez
 
 Valores actuales (motor): nivel 1 −10%, nivel 2 −4%, nivel 3 −2%, **tope 30%**; al llegar

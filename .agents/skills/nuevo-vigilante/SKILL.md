@@ -9,6 +9,13 @@ Los vigilantes son los tres ojos del proyecto: estáticos en el PR (`npm run vig
 dentro de Postgres (`vigilancia_bd()`, skill `migracion-bd-segura`) y el smoke del navegador
 (skill `smoke-pantalla`). Esta skill es para la capa 1: un módulo en `scripts/vigilantes/`.
 
+## Antes de crear uno: ¿ya tiene dueño?
+
+Si el invariante cae dentro del ámbito de un vigilante existente (promesas de venta →
+`planes.mjs` / `claims-fiscales.mjs`, precios → `precios.mjs`, referidos → `referidos.mjs`),
+**extiéndelo** en vez de crear otro: duplicar al dueño reparte el invariante, que es justo
+lo que esta casa quiere evitar. Vigilante nuevo solo para un ámbito que nadie mira.
+
 ## Contrato
 
 Un vigilante es un módulo con export por defecto:
