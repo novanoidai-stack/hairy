@@ -3,6 +3,37 @@
 Revisión del trabajo repartido en
 [BLOQUES-PARALELOS-2026-09-06.md](BLOQUES-PARALELOS-2026-09-06.md).
 
+> ## CERRADO el 7 sep 2026 — lo de abajo es el estado ANTES de actuar
+>
+> Todo lo que este informe describe como "hecho y sin desplegar" **ya está en
+> producción**. Merges hechos y empujados en `eb2c036d7`, desplegado por Vercel
+> (`dpl_GxbThutvCnRrFA5Qt6CS2d8wYQfu`, estado READY):
+>
+> - **A** (`52cdfc5a0`) · **B** (`fc4382da8`) · **C** (`9d021f351`)
+> - `fix/pgnet-timeout-crons` (`eb2c036d7`), que tenía el mismo problema de
+>   migraciones aplicadas y ausentes del repo.
+>
+> **La desincronización BD↔repo de la §2 está cerrada**: `vigilar:bd` bajó de
+> 322 a 320 avisos al desaparecer los dos "corre en producción y no está en el
+> repo".
+>
+> Verificado sobre el resultado combinado, que es lo que ninguna sesión pudo
+> comprobar por separado: `vigilar` 0 bloqueantes · `vigilar:bd` 0 bloqueantes ·
+> `tsc` limpio · `vigilar:test` 403/403 · `test:componentes` 6/6 ·
+> `build:web` desde caché limpia · 0 claves heredadas en el bundle ·
+> peso 8,30 MB (+1,2 %, umbral 5 %) · humo `--project=publico` **24/24**.
+>
+> Y comprobado que el código está VIVO, no solo desplegado: el chunk
+> `caja-c16e10784fd81e77c71a3147f27abe57.js` que sirve www.mechaa.es pesa 68.045
+> bytes —idéntico al del build local— y contiene la cadena del selector nuevo.
+> (Ojo con el método: el hash del `entry-` NO coincide entre build local y
+> Vercel, porque los `EXPO_PUBLIC_*` se incrustan ahí y el entorno es otro.
+> Comparar nombres de fichero da un falso negativo; hay que mirar el chunk que
+> referencia el entry DE PRODUCCIÓN. Y un 200 no basta: la reescritura de la SPA
+> devuelve `index.html` con 200 para cualquier ruta inexistente.)
+>
+> **Sigue sin hacerse nada de los bloques E y F.** Eso no ha cambiado.
+
 ## Veredicto
 
 **No está todo. De seis bloques: uno en producción, tres hechos y sin desplegar,
