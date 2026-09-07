@@ -142,31 +142,49 @@ Deno.serve(async (req) => {
     const pi = piOf(session.payment_intent);
     if (pagoId) {
       if (session.metadata?.fianza_modo === 'hold') {
-        await supabase.rpc('registrar_hold_colocado', { p_pago_id: pagoId, p_payment_intent: pi });
+        const { error } = await supabase.rpc('registrar_hold_colocado', { p_pago_id: pagoId, p_payment_intent: pi });
+        if (error) throw new Error(`hold_no_registrado:${error.message}`);
       } else {
         if (session.payment_status !== 'paid' && session.mode === 'payment') {
           console.log(`Checkout session ${session.id} pendiente de pago (status: ${session.payment_status})`);
           return new Response('Payment not completed yet', { status: 200 });
         }
-        const { data: pago } = await supabase.from('pagos').select('negocio_id, cita_id, tipo, metadata').eq('id', pagoId).single();
+        const { data: pago, error: pagoErr } = await supabase
+          .from('pagos')
+          .select('negocio_id, cita_id, tipo, metadata')
+          .eq('id', pagoId)
+          .single();
+        if (pagoErr || !pago) throw new Error(`pago_no_encontrado:${pagoErr?.message ?? pagoId}`);
         if (negocio && pago && pago.negocio_id !== negocio) {
           console.error(`Cross-tenant webhook mismatch: URL negocio=${negocio} vs pago.negocio_id=${pago.negocio_id}`);
           return new Response('Tenant mismatch', { status: 403 });
         }
         const mergedMeta = { ...((pago?.metadata as Record<string, unknown>) ?? {}), ...(pi ? { payment_intent: pi } : {}) };
-        await supabase.from('pagos').update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'tarjeta', metadata: mergedMeta }).eq('id', pagoId);
+        const { error: pagoUpdateErr } = await supabase
+          .from('pagos')
+          .update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'tarjeta', metadata: mergedMeta })
+          .eq('id', pagoId);
+        if (pagoUpdateErr) throw new Error(`pago_no_actualizado:${pagoUpdateErr.message}`);
         if (pago?.tipo === 'total') {
           const metodo = (pago.metadata?.metodo as string) ?? 'online';
-          await supabase.rpc('registrar_cobro_online', { p_pago_id: pagoId, p_metodo: metodo });
+          const { error: cobroErr } = await supabase.rpc('registrar_cobro_online', { p_pago_id: pagoId, p_metodo: metodo });
+          if (cobroErr) throw new Error(`cobro_no_registrado:${cobroErr.message}`);
         } else if (pago?.cita_id) {
-          await supabase.from('citas').update({ deposito_pagado: true, estado: 'confirmada' }).eq('id', pago.cita_id);
+          const { error: citaErr } = await supabase
+            .from('citas')
+            .update({ deposito_pagado: true, estado: 'confirmada' })
+            .eq('id', pago.cita_id);
+          if (citaErr) throw new Error(`cita_no_confirmada:${citaErr.message}`);
         }
       }
     }
   } else if (event.type === 'payment_intent.amount_capturable_updated') {
     const pi = event.data.object as Stripe.PaymentIntent;
     const pagoId = pi.metadata?.pago_id as string | undefined;
-    if (pagoId) await supabase.rpc('registrar_hold_colocado', { p_pago_id: pagoId, p_payment_intent: pi.id });
+    if (pagoId) {
+      const { error } = await supabase.rpc('registrar_hold_colocado', { p_pago_id: pagoId, p_payment_intent: pi.id });
+      if (error) throw new Error(`hold_no_registrado:${error.message}`);
+    }
   } else if (event.type === 'payment_intent.succeeded') {
     // S7.2 (Tap to Pay): el cobro por Terminal no pasa por checkout.session; se concilia aqui.
     // Solo actuamos sobre PaymentIntents de Terminal (canal='terminal') para no colisionar con los
@@ -175,15 +193,25 @@ Deno.serve(async (req) => {
     if (pi.metadata?.canal === 'terminal') {
       const pagoId = pi.metadata?.pago_id as string | undefined;
       if (pagoId) {
-        const { data: pago } = await supabase.from('pagos').select('negocio_id, estado, metadata').eq('id', pagoId).maybeSingle();
+        const { data: pago, error: pagoErr } = await supabase
+          .from('pagos')
+          .select('negocio_id, estado, metadata')
+          .eq('id', pagoId)
+          .maybeSingle();
+        if (pagoErr || !pago) throw new Error(`pago_terminal_no_encontrado:${pagoErr?.message ?? pagoId}`);
         if (negocio && pago && pago.negocio_id !== negocio) {
           console.error(`Cross-tenant webhook mismatch: URL negocio=${negocio} vs pago.negocio_id=${pago.negocio_id}`);
           return new Response('Tenant mismatch', { status: 403 });
         }
         if (pago && pago.estado !== 'pagado') {
           const merged = { ...((pago.metadata as Record<string, unknown>) ?? {}), payment_intent: pi.id };
-          await supabase.from('pagos').update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'datafono', metadata: merged }).eq('id', pagoId);
-          await supabase.rpc('registrar_cobro_online', { p_pago_id: pagoId, p_metodo: 'datafono' });
+          const { error: pagoUpdateErr } = await supabase
+            .from('pagos')
+            .update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'datafono', metadata: merged })
+            .eq('id', pagoId);
+          if (pagoUpdateErr) throw new Error(`pago_terminal_no_actualizado:${pagoUpdateErr.message}`);
+          const { error: cobroErr } = await supabase.rpc('registrar_cobro_online', { p_pago_id: pagoId, p_metodo: 'datafono' });
+          if (cobroErr) throw new Error(`cobro_terminal_no_registrado:${cobroErr.message}`);
         }
       }
     }
@@ -191,26 +219,32 @@ Deno.serve(async (req) => {
     const pi = event.data.object as Stripe.PaymentIntent;
     const pagoId = pi.metadata?.pago_id as string | undefined;
     if (pagoId) {
-      await supabase.rpc('registrar_liberacion_hold', { p_pago_id: pagoId });
+      const { error } = await supabase.rpc('registrar_liberacion_hold', { p_pago_id: pagoId });
+      if (error) throw new Error(`hold_no_liberado:${error.message}`);
     } else {
       const { data: pago } = await supabase.from('pagos')
         .select('id').eq('metadata->>payment_intent', pi.id).eq('estado', 'retenido').maybeSingle();
-      if (pago?.id) await supabase.rpc('registrar_liberacion_hold', { p_pago_id: pago.id });
+      if (pago?.id) {
+        const { error } = await supabase.rpc('registrar_liberacion_hold', { p_pago_id: pago.id });
+        if (error) throw new Error(`hold_no_liberado:${error.message}`);
+      }
     }
   } else if (event.type === 'charge.refunded') {
     const charge = event.data.object as Stripe.Charge;
     const pi = piOf(charge.payment_intent);
     const refundId = charge.refunds?.data?.[0]?.id ?? charge.id;
     if (pi) {
-      await supabase.rpc('registrar_reembolso', {
+      const { error } = await supabase.rpc('registrar_reembolso', {
         p_payment_intent: pi, p_importe_cents: charge.amount_refunded, p_refund_id: refundId,
       });
+      if (error) throw new Error(`reembolso_no_registrado:${error.message}`);
     }
   } else if (event.type === 'checkout.session.expired') {
     const session = event.data.object as Stripe.Checkout.Session;
     if (session.id) {
-      await supabase.from('pagos').update({ estado: 'cancelado' })
+      const { error } = await supabase.from('pagos').update({ estado: 'cancelado' })
         .eq('pasarela_ref', session.id).eq('estado', 'pendiente');
+      if (error) throw new Error(`pago_no_cancelado:${error.message}`);
     }
   } else if (event.type.startsWith('customer.subscription.')) {
     // --- Suscripcion de Mecha al salon (P0-003) ---
@@ -225,7 +259,7 @@ Deno.serve(async (req) => {
     // reventaba el handler y, con el dedup ya escrito, el evento se perdia.
     const subP = sub as unknown as { current_period_end?: number; items?: { data?: Array<{ current_period_end?: number }> } };
     const finTs = subP.current_period_end ?? subP.items?.data?.[0]?.current_period_end ?? null;
-    await supabase.rpc('aplicar_suscripcion_stripe', {
+    const { error } = await supabase.rpc('aplicar_suscripcion_stripe', {
       p_stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
       p_stripe_subscription_id: sub.id,
       p_estado: estado,
@@ -234,11 +268,12 @@ Deno.serve(async (req) => {
       p_profile_id: (sub.metadata?.profile_id as string) ?? null,
       p_ia_nivel: baja ? 'ninguna' : iaNivel,
     });
+    if (error) throw new Error(`suscripcion_no_aplicada:${error.message}`);
   } else if (event.type === 'invoice.paid') {
     const inv = event.data.object as Stripe.Invoice;
     const invSub = subDeInvoice(inv);
     if (invSub) {
-      await supabase.rpc('aplicar_suscripcion_stripe', {
+      const { error } = await supabase.rpc('aplicar_suscripcion_stripe', {
         p_stripe_customer_id: typeof inv.customer === 'string' ? inv.customer : inv.customer?.id,
         p_stripe_subscription_id: invSub,
         p_estado: 'activa',
@@ -246,6 +281,7 @@ Deno.serve(async (req) => {
           ? new Date(inv.lines.data[0].period.end * 1000).toISOString()
           : null,
       });
+      if (error) throw new Error(`suscripcion_no_aplicada:${error.message}`);
     }
   } else if (event.type === 'invoice.payment_failed') {
     const inv = event.data.object as Stripe.Invoice;
@@ -253,10 +289,11 @@ Deno.serve(async (req) => {
       // No se corta el acceso aqui: se marca y se deja que periodo_fin haga de
       // margen. Stripe reintenta varios dias antes de dar la suscripcion por
       // impagada, y ahi llegara customer.subscription.updated con unpaid.
-      await supabase.rpc('aplicar_suscripcion_stripe', {
+      const { error } = await supabase.rpc('aplicar_suscripcion_stripe', {
         p_stripe_customer_id: typeof inv.customer === 'string' ? inv.customer : inv.customer?.id,
         p_estado: 'pago_pendiente',
       });
+      if (error) throw new Error(`suscripcion_no_aplicada:${error.message}`);
     }
   } else {
     console.log('evento no manejado:', event.type);

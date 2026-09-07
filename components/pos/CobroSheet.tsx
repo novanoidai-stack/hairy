@@ -546,19 +546,15 @@ export function CobroSheet(props: CobroSheetProps) {
   // Tras completar un cobro, si se uso tarjeta regalo, descontar saldo y registrar movimiento.
   const aplicarTarjetaRegalo = async (cobroId: string) => {
     if (!trUsarSaldo || !trTarjeta || trAplicadoCents <= 0) return;
-    // 1. Reducir saldo de la tarjeta
-    await supabase
-      .from('tarjetas_regalo')
-      .update({ saldo_actual_cents: trTarjeta.saldo_actual_cents - trAplicadoCents })
-      .eq('id', trTarjeta.id);
-    // 2. Registrar movimiento (negativo = consumo)
-    await supabase
-      .from('tarjetas_regalo_movimientos')
-      .insert({
-        tarjeta_id: trTarjeta.id,
-        cobro_id: cobroId,
-        importe_cents: -trAplicadoCents,
-      });
+    // El servidor bloquea la tarjeta y hace saldo + movimiento en una sola
+    // transacción. Dos escrituras independientes dejaban la caja incoherente
+    // si una fallaba o si dos pestañas consumían el mismo saldo a la vez.
+    const { error } = await supabase.rpc('aplicar_tarjeta_regalo_a_cobro', {
+      p_tarjeta_id: trTarjeta.id,
+      p_cobro_id: cobroId,
+      p_importe_cents: trAplicadoCents,
+    });
+    if (error) throw error;
   };
 
   const enviandoRef = useRef(false);

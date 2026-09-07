@@ -369,7 +369,7 @@
           <div class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div>
           <h2>¡Llamada reservada!</h2>
           <div class="conf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg><span id="doneWhen">—</span></div>
-          <p class="note" id="doneNote">Te hemos enviado la confirmación por email. Te llamaremos a la hora elegida.</p>
+          <p class="note" id="doneNote">Hemos recibido tu solicitud. Te confirmaremos la llamada por email.</p>
           <a id="doneMeet" class="btn btn-primary" href="#" target="_blank" rel="noopener" style="display:none;margin-top:14px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
             Unirse a Google Meet
@@ -608,7 +608,7 @@
   // Endpoint (OMNI/web_vercel) que crea el evento de Google Calendar + Meet y
   // envia la invitacion al cliente por email. Cuenta Google fija de Mecha.
   var MECHA_CALL_URL='https://www.novanoidai.com/api/public/mecha-call';
-  $('#confirmBtn').addEventListener('click',function(){
+  $('#confirmBtn').addEventListener('click',async function(){
     if(!validate()){
       var first=$('.bk-field.invalid'); if(first) first.querySelector('input,select').focus();
       return;
@@ -618,8 +618,10 @@
     var dt=null;
     if(state.day){ dt=new Date(state.day); if(state.slot){ var hm=String(state.slot).split(':'); dt.setHours(parseInt(hm[0],10)||0, parseInt(hm[1],10)||0, 0, 0); } }
     var fechaHoraISO = dt ? dt.toISOString() : null;
-    // Enviamos la solicitud de reserva a Supabase (no bloquea la confirmacion)
-    if(window.MechaAPI){ window.MechaAPI.insertSolicitud({
+    // La solicitud debe quedar persistida antes de confirmar la llamada al cliente.
+    var confirmBtn=$('#confirmBtn');
+    confirmBtn.disabled=true;
+    var solicitud={
       tipo:'reserva_llamada',
       nombre:$('#fName').value.trim(),
       salon:$('#fSalon').value.trim(),
@@ -633,7 +635,16 @@
       // La fecha en ISO va en meta: fecha_preferida es texto legible y no sirve
       // para saber que horas estan cogidas (ver horas_llamada_ocupadas).
       meta:{ fecha_iso: diaLocal(state.day) }
-    }); }
+    };
+    try {
+      if(!window.MechaAPI) throw new Error('No se pudo conectar con el sistema de reservas.');
+      var resultadoSolicitud=await window.MechaAPI.insertSolicitud(solicitud);
+      if(resultadoSolicitud && resultadoSolicitud.error) throw resultadoSolicitud.error;
+    } catch (e) {
+      confirmBtn.disabled=false;
+      alert('No hemos podido guardar tu solicitud. Comprueba tu conexión e inténtalo de nuevo.');
+      return;
+    }
     // Aviso por correo: a NOSOTROS con sus datos y a el con la confirmacion.
     // Antes solo se escribia la solicitud en la base y el correo dependia de un
     // endpoint de otro proyecto: si fallaba, no nos enteraba nadie.
@@ -673,7 +684,7 @@
       }).catch(function(){});
     }catch(e){}
     $('#doneWhen').textContent=fmtLong(state.day)+' · '+state.slot+'h';
-    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+escHtml(name)+'</b>. Te hemos enviado la confirmacion a tu email y te llamamos a la hora elegida. Es <b style="color:var(--text)">gratis y sin compromiso</b>.';
+    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+escHtml(name)+'</b>. Hemos recibido tu solicitud y confirmaremos la llamada por email. Es <b style="color:var(--text)">gratis y sin compromiso</b>.';
     gotoStep(3);
   });
 

@@ -199,6 +199,7 @@ jobs:
       # scripts/vigilantes/peso-baseline.json; avisa (no bloquea) si sube >5%.
       # Bajar la línea base es --aprobar, un acto consciente cuyo diff se ve.
       - name: Vigilante de peso del bundle
+        if: always()
         run: node scripts/vigilantes/peso-bundle.mjs
 
       # ESTE ES EL ÚNICO SITIO DE LA CI DONDE EL BUNDLE EXISTE, y por eso el
@@ -212,6 +213,7 @@ jobs:
       # VIGILAR_BUNDLE=1 convierte "no hay bundle" en un hallazgo bloqueante en
       # vez de un silencio: si este paso se mueve antes del build, la CI lo dice.
       - name: Puerta de claves contra el bundle construido
+        if: always()
         env:
           VIGILAR_BUNDLE: '1'
         run: node scripts/vigilantes/index.mjs --solo claves

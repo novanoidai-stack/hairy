@@ -359,7 +359,7 @@ export default function EquipoScreen() {
       </ScrollView>
 
       {/* Modal crear profesional */}
-      <Modal visible={modalProfVisible} transparent animationType="fade">
+      <Modal visible={modalProfVisible} transparent animationType="fade" onRequestClose={() => setModalProfVisible(false)}>
         <View style={s.modalOverlay}>
           <View style={[s.modalContent, { backgroundColor: c.surface, borderColor: c.border }]}>
             <TText style={[s.modalTitle, { color: c.text }]}>Nuevo profesional</TText>
@@ -409,7 +409,7 @@ export default function EquipoScreen() {
       </Modal>
 
       {/* Modal gestionar bloques */}
-      <Modal visible={modalBloquesVisible} transparent animationType="slide">
+      <Modal visible={modalBloquesVisible} transparent animationType="slide" onRequestClose={() => setModalBloquesVisible(false)}>
         <View style={[s.modalContainer, { backgroundColor: c.bg }]}>
           <View style={[s.modalHeader, { backgroundColor: c.surface, borderBottomColor: c.border, paddingTop: insets.top }]}>
             <TouchableOpacity onPress={() => setModalBloquesVisible(false)}>
@@ -491,7 +491,7 @@ export default function EquipoScreen() {
       </Modal>
 
       {/* Modal crear bloqueo */}
-      <Modal visible={modalBloqueVisible} transparent animationType="fade">
+      <Modal visible={modalBloqueVisible} transparent animationType="fade" onRequestClose={() => setModalBloqueVisible(false)}>
         <View style={s.modalOverlay}>
           <View style={[s.modalContent, { backgroundColor: c.surface, borderColor: c.border }]}>
             <TText style={[s.modalTitle, { color: c.text }]}>Nuevo bloqueo</TText>

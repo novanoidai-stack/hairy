@@ -733,7 +733,7 @@ function ClientesScreen() {
       </ScrollView>
 
       {/* ─── Modal detalle cliente ─── */}
-      <Modal visible={detalleVisible} transparent animationType="slide">
+      <Modal visible={detalleVisible} transparent animationType="slide" onRequestClose={() => setDetalleVisible(false)}>
         <View style={[s.detalleContainer, { backgroundColor: c.bg }]}>
           <View style={[s.detalleHeader, { borderBottomColor: tokens.border, paddingTop: insets.top }]}>
             <TouchableOpacity onPress={() => setDetalleVisible(false)}>
@@ -780,7 +780,7 @@ function ClientesScreen() {
       </Modal>
 
       {/* ─── Modal crear cliente ─── */}
-      <Modal visible={modalCrear} transparent animationType="fade">
+      <Modal visible={modalCrear} transparent animationType="fade" onRequestClose={() => setModalCrear(false)}>
         <View style={s.modalOverlay}>
           <View style={[s.modalContent, { backgroundColor: tokens.bgPanel, borderColor: tokens.border }]}>
             <TText style={[s.modalTitle, { color: c.text }]}>Nuevo cliente</TText>
