@@ -741,6 +741,14 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
       data-mecha-estado={cita.estado}
       data-mecha-fase={hasEspera ? "con-reposo" : "solo-activa"}
       data-mecha-encadenada={enCadena ? "si" : "no"}
+      data-mecha-solape-forzado={cita.solape_forzado ? "si" : "no"}
+      // El borde discontinuo dice QUE pasa; esto dice POR QUE. Sin el, la marca
+      // es un adorno raro que nadie sabe interpretar.
+      title={
+        cita.solape_forzado
+          ? "Esta cita se puso a proposito encima de otra, aceptando el aviso."
+          : undefined
+      }
       style={{
         position: "absolute",
         top,
@@ -761,10 +769,19 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         // rejilla ni la franja de reposo de debajo.
         backgroundColor: TOKENS.bgCard,
         backgroundImage: `linear-gradient(${bloque.fondo}, ${bloque.fondo})`,
-        border: `1px solid ${bloque.borde}`,
+        // Solape puesto A PROPOSITO (citas.solape_forzado, 7 sep 2026): borde
+        // discontinuo. Sin marca, una cita doblada a sabiendas se ve EXACTAMENTE
+        // igual que una doble reserva por error, y quien mira la agenda manana no
+        // puede distinguirlas. Se usa el patron del trazo y no el color porque el
+        // color ya esta ocupado por el estado de la cita, que no se puede pisar.
+        border: cita.solape_forzado
+          ? `1.5px dashed ${TOKENS.danger}`
+          : `1px solid ${bloque.borde}`,
         borderLeft: bloque.acento
           ? `3px solid ${bloque.acento}`
-          : `1px solid ${bloque.borde}`,
+          : cita.solape_forzado
+            ? `1.5px dashed ${TOKENS.danger}`
+            : `1px solid ${bloque.borde}`,
         // El radio lo manda el bloque real, no el tramo activo: una cita larga
         // con el activo corto sigue siendo una tarjeta grande.
         borderRadius: height <= 50 ? 7 : 10,

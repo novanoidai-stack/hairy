@@ -43,6 +43,8 @@ import { FichaColorModal } from "@/app/(tabs)/clientes.web";
 import RetrasoEstrategiasModal from "../RetrasoEstrategiasModal";
 import { FasesCitaPanel } from "../FasesCitaPanel.web";
 import { AvisosAgendaPanel } from "../AvisosAgendaPanel.web";
+import { cargarAddonsAplicables } from "@/lib/datos/addons";
+import { reportarError } from "@/lib/reportarError";
 import ListaEsperaPropuestaModal, {
   type CandidataListaEspera,
   type CitaOrigen,
@@ -1101,19 +1103,35 @@ export function DetalleCitaModal({
       .then(({ data }) => setCitaAddons(data ?? []));
   }, [cita.id]);
 
+  // Add-ons aplicables. Pasa por el cargador unico (Contrato 1 del reparto del
+  // 6 sep): con `servicio_id` nullable, un `.eq('servicio_id', X)` a secas deja
+  // fuera todos los add-ons de salon SIN dar error -- devuelve menos filas y
+  // sigue, que es la clase de fallo que se investiga como problema de datos.
   useEffect(() => {
     const srvId = selectedServicio?.id || cita.servicio_id;
     if (!srvId) {
       setAvailableAddons([]);
       return;
     }
-    supabase
-      .from("service_addons")
-      .select("id, nombre, duracion_min, precio")
-      .eq("servicio_id", srvId)
-      .eq("activo", true)
-      .order("nombre")
-      .then(({ data }) => setAvailableAddons(data ?? []));
+    let vivo = true;
+    // El negocio sale del PERFIL, no de `cita.negocio_id`: la agenda no
+    // selecciona esa columna (ver el select de AgendaCalendar) y leerla de la
+    // cita daria undefined, o sea cero add-ons y ni un error. Es como se hace en
+    // el resto de este fichero.
+    (async () => {
+      try {
+        const perfil = await getUserProfile();
+        const negId = perfil?.negocio_id || NEGOCIO_ID_FALLBACK;
+        const filas = await cargarAddonsAplicables(negId, srvId);
+        if (vivo) setAvailableAddons(filas);
+      } catch (e) {
+        reportarError(e, { origen: "app", tipo: "operativo" });
+        if (vivo) setAvailableAddons([]);
+      }
+    })();
+    return () => {
+      vivo = false;
+    };
   }, [selectedServicio?.id, cita.servicio_id]);
 
   const toggleAddon = async (addon: any) => {

@@ -811,8 +811,17 @@ function DayTimeline({
         cita.id,
       );
       if (pisaOtraCita) {
+        // ARRASTRAR NO FUERZA, Y ESO ES DELIBERADO (7 sep 2026). Desde que existe
+        // solape_forzado se puede pisar a proposito, pero desde los modales, que
+        // es donde hay un aviso que leer y una decision que tomar. Un arrastre es
+        // un gesto de medio segundo y a menudo un resbalon: convertirlo en la via
+        // rapida para doblar la agenda seria justo lo contrario de "un aviso bien
+        // claro y fuerte".
+        //
+        // El mensaje ya no da por hecho una carrera --casi nunca lo es-- y dice
+        // por donde se hace si de verdad se quiere.
         setDragError(
-          "Ese hueco lo acaba de ocupar otra cita. Se ha recargado la agenda.",
+          "Ahi ya trabaja otra cita. Si quieres ponerla igualmente, abrela y cambiale la hora: te avisara y podras confirmarlo.",
         );
         setTimeout(() => setDragError(null), 3500);
         triggerRefresh();

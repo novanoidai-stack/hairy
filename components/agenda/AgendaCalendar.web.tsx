@@ -86,6 +86,7 @@ import { useAgendaStore } from "./store/useAgendaStore";
 import type { Cita, Profesional } from "./tipos";
 import { DetalleCitaModal } from "./modals/DetalleCitaModal.web";
 import NewCitaModal from "./modals/NewCitaModal.web";
+import { SelectorCreacionAgenda } from "./SelectorCreacionAgenda.web";
 import { ColaDiaPanel } from "@/components/cola/ColaDiaPanel.web";
 import { ReservaGrupoModal } from "./modals/ReservaGrupoModal.web";
 import { norm, fmtHHMM } from "./ui/atomos.web";
@@ -320,6 +321,13 @@ export default function AgendaCalendar() {
   const selectedDateRef = useRef<Date>(new Date());
   const loadedRangeRef = useRef<{ desde: Date; hasta: Date } | null>(null);
   const [showNewCita, setShowNewCita] = useState(false);
+  // Hueco pulsado en la rejilla, a la espera de que se elija QUE poner ahi
+  // (cita o bloqueo). Ver SelectorCreacionAgenda y onCreateSlot.
+  const [slotElegido, setSlotElegido] = useState<{
+    hora: string;
+    profId: string;
+    reposoContext?: any;
+  } | null>(null);
   const [showEditCita, setShowEditCita] = useState(false);
   const [selectedCitaEdit, setSelectedCitaEdit] = useState<any>(null);
   // Prellenado al crear cita desde un clic en un hueco de la rejilla o en un reposo
@@ -869,7 +877,10 @@ export default function AgendaCalendar() {
                   // cobrada/cobro_id son imprescindibles: sin ellos el detalle de
                   // la cita no sabe que ya se cobro y ofrece cobrarla otra vez
                   // hasta que se refresca a mano.
-                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id, cobrada, cobro_id, cita_fases(id, orden, tipo, inicio, fin, profesional_id, recurso_tipo, etiqueta, iniciada_at, cerrada_at)",
+                  // solape_forzado: sin el, una cita puesta a proposito encima de
+                  // otra se ve en la agenda exactamente igual que una doble
+                  // reserva por error, y no hay forma de distinguirlas mirando.
+                  "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id, cobrada, cobro_id, solape_forzado, cita_fases(id, orden, tipo, inicio, fin, profesional_id, recurso_tipo, etiqueta, iniciada_at, cerrada_at)",
                 )
                 .eq("negocio_id", negocioId);
               // Las canceladas se ocultan por defecto (es lo que quiere ver el
@@ -5402,8 +5413,20 @@ export default function AgendaCalendar() {
                     profId: string;
                     reposoContext?: any;
                   }) => {
-                    setNewCitaPrefill({ hora, profId, reposoContext });
-                    setShowNewCita(true);
+                    // Peticion 6 de Jose: el hueco ya no abre la cita a bocajarro,
+                    // pregunta primero. El atajo sirve para apuntar un descanso o
+                    // una ausencia sin salir a Equipo, con la agenda delante.
+                    //
+                    // EXCEPCION: un hueco de REPOSO. Ahi solo cabe una cita --es
+                    // el diferencial del producto, encajar a otra clienta mientras
+                    // el tinte reposa-- y nadie va a bloquear el reposo de otra.
+                    // Preguntar ahi seria un peaje sin ninguna alternativa detras.
+                    if (reposoContext) {
+                      setNewCitaPrefill({ hora, profId, reposoContext });
+                      setShowNewCita(true);
+                      return;
+                    }
+                    setSlotElegido({ hora, profId, reposoContext });
                   }}
                   selectedDateObj={selectedDateObj}
                   theme={roleTheme}
@@ -5535,8 +5558,12 @@ export default function AgendaCalendar() {
                   cita.id,
                 );
                 if (pisaEnSemana) {
+                  // Mismo criterio que el arrastre del dia (Timeline): arrastrar
+                  // NO fuerza. Pisar a proposito se hace desde el modal, que es
+                  // donde hay un aviso que leer. Un arrastre es medio segundo y a
+                  // menudo un resbalon.
                   mostrarToast(
-                    "Ese hueco lo acaba de ocupar otra cita. Se ha recargado la agenda.",
+                    "Ahi ya trabaja otra cita. Si quieres ponerla igualmente, abrela y cambiale la hora: te avisara y podras confirmarlo.",
                   );
                   triggerRefresh();
                   return;
@@ -5598,6 +5625,34 @@ export default function AgendaCalendar() {
           )}
         </div>
       </div>
+
+      <SelectorCreacionAgenda
+        abierto={!!slotElegido}
+        hora={slotElegido?.hora ?? ""}
+        profesionalId={slotElegido?.profId ?? ""}
+        profesionalNombre={
+          (profesionales as any[]).find((p) => p.id === slotElegido?.profId)
+            ?.nombre || "Profesional"
+        }
+        fecha={selectedDateObj}
+        negocioId={negocioId}
+        onCerrar={() => setSlotElegido(null)}
+        onElegirCita={() => {
+          setNewCitaPrefill({
+            hora: slotElegido?.hora,
+            profId: slotElegido?.profId,
+            reposoContext: slotElegido?.reposoContext,
+          });
+          setSlotElegido(null);
+          setShowNewCita(true);
+        }}
+        onBloqueoCreado={() => {
+          // El bloqueo ya esta en la BD; la agenda vive de una foto local y no se
+          // entera sola. Sin esto el hueco sigue pareciendo libre hasta recargar.
+          qc.invalidateQueries({ queryKey: clavesConfig.bloqueos(negocioId) });
+          triggerRefresh();
+        }}
+      />
 
       {showNewCita && (
         <NewCitaModal

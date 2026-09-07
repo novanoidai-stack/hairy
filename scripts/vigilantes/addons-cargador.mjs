@@ -58,10 +58,12 @@ const TABLA = 'service_addons';
 //
 // CUANDO E CAMBIE SU LLAMADA, QUITA SU LINEA DE AQUI. Si te olvidas, este mismo
 // vigilante lo dice: una exencion sin hallazgo detras es un aviso.
-export const PENDIENTES = new Map([
-  ['components/agenda/modals/NewCitaModal.web.tsx', 'bloque E'],
-  ['components/agenda/modals/DetalleCitaModal.web.tsx', 'bloque E'],
-]);
+// VACIA desde el 7 sep 2026: el bloque E cambio sus dos llamadas al cargador
+// unico y el propio vigilante reclamo que se quitaran de aqui ("una exencion sin
+// hallazgo detras es un aviso"). Dejarlas habria sido peor que no tenerlas:
+// mientras un fichero este en esta lista, una consulta rota NUEVA en el mismo
+// fichero sale como aviso en vez de parar la CI.
+export const PENDIENTES = new Map([]);
 
 // --- deteccion ---------------------------------------------------------------
 

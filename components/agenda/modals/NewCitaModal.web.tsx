@@ -52,6 +52,8 @@ import {
 import { TimeDrumPicker } from "@/components/ui/Pickers";
 import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
 import { AvisosAgendaPanel } from "../AvisosAgendaPanel.web";
+import { cargarAddonsAplicables } from "@/lib/datos/addons";
+import { reportarError } from "@/lib/reportarError";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { Icon } from "../ui/Icon.web";
 import type { Cita, Profesional } from "../tipos";
@@ -812,21 +814,33 @@ export default function NewCitaModal({
     setCitasConfirmadas([]);
   }, [selectedCliente]);
 
-  // Fetch add-ons for the selected service
+  // Add-ons aplicables al servicio elegido.
+  //
+  // Pasa por el cargador unico (Contrato 1 del reparto del 6 sep): desde que
+  // `service_addons.servicio_id` admite NULL, un `.eq('servicio_id', X)` a secas
+  // se come TODOS los add-ons de salon y NO falla -- devuelve menos filas y
+  // sigue. El sintoma llega despues, como "un extra que existe no aparece al
+  // reservar", y se investiga como un problema de datos.
   useEffect(() => {
     setSelectedAddons([]);
-    if (!selectedServicio) {
+    if (!selectedServicio || !negocioId) {
       setAddonsDisponibles([]);
       return;
     }
-    supabase
-      .from("service_addons")
-      .select("id, nombre, duracion_min, precio")
-      .eq("servicio_id", selectedServicio)
-      .eq("activo", true)
-      .order("nombre")
-      .then(({ data }) => setAddonsDisponibles(data ?? []));
-  }, [selectedServicio]);
+    let vivo = true;
+    cargarAddonsAplicables(negocioId, selectedServicio)
+      .then((filas) => {
+        if (vivo) setAddonsDisponibles(filas);
+      })
+      .catch((e) => {
+        // Sin extras se puede reservar; sin saberlo, no. Que no se trague el error.
+        reportarError(e, { origen: "app", tipo: "operativo" });
+        if (vivo) setAddonsDisponibles([]);
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [selectedServicio, negocioId]);
 
   useEffect(() => {
     if (!selectedProf) {
