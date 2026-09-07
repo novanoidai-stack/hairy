@@ -51,6 +51,7 @@ import {
 } from "@/lib/constants";
 import { TimeDrumPicker } from "@/components/ui/Pickers";
 import { DemoSpotlight } from "@/components/ui/DemoSpotlight";
+import { AvisosAgendaPanel } from "../AvisosAgendaPanel.web";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { Icon } from "../ui/Icon.web";
 import type { Cita, Profesional } from "../tipos";
@@ -144,6 +145,17 @@ export default function NewCitaModal({
 }: any) {
   const { triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
+  // El velo del modal. Peticion 8 de Jose (6 sep 2026): al crear una cita quiere
+  // SEGUIR VIENDO la agenda de detras -- es donde estan las horas ocupadas y las
+  // columnas de los companeros, o sea el contexto que hace falta justo mientras
+  // se decide el hueco. Con blur(8px) sobre un velo al 65 % no se distinguia nada.
+  //
+  // En movil se queda como estaba a proposito: ahi el modal es una hoja que ocupa
+  // casi toda la pantalla, no hay agenda visible que enseñar, y aclarar el velo
+  // solo empeora el contraste del texto.
+  const veloModal = isMobile || isTablet
+    ? { fondo: "rgba(11,18,32,0.65)", desenfoque: "blur(8px)" }
+    : { fondo: "rgba(11,18,32,0.34)", desenfoque: "blur(2px)" };
   // Misma cache que la agenda: los overrides de duracion y los puestos son
   // datos de referencia y ya los habra traido ella.
   const qcModal = useQueryClient();
@@ -256,6 +268,10 @@ export default function NewCitaModal({
     };
   }, [selectedCliente, selectedServicio, servicios, negocioId]);
   const [errMsg, setErrMsg] = useState("");
+  // Avisos de agenda que el usuario tiene que aceptar antes de guardar (fuera de
+  // horario, ausencia del profesional, solape). Lista vacia / null = no hay nada
+  // que preguntar. Ver handleGuardar.
+  const [avisosPendientes, setAvisosPendientes] = useState<string[] | null>(null);
   const [guardando, setGuardando] = useState(false);
   // Cita recurrente: repetir cada N semanas, M veces (serie). Solo para reserva simple
   // (1 servicio, sin encadenar, sin senal): las cadenas multiprofesional quedan fuera.
@@ -1053,7 +1069,11 @@ export default function NewCitaModal({
     setDuracionActivaExtraCustom(null);
   };
 
-  const handleGuardar = async () => {
+  // `forzar`: segunda pasada, cuando el usuario ya ha leido los avisos de agenda
+  // (fuera de horario, ausencia, solape) y ha dicho que si. No se guarda ningun
+  // estado "ya confirmado": si cambia algo del formulario y vuelve a guardar, se
+  // valida otra vez desde cero y vuelve a preguntar.
+  const handleGuardar = async (forzar = false) => {
     // Determinar si el form actual tiene un servicio completo
     const formCompleto = !!(
       selectedServicio &&
@@ -1076,6 +1096,7 @@ export default function NewCitaModal({
     }
 
     setErrMsg("");
+    setAvisosPendientes(null);
     setGuardando(true);
 
     try {
@@ -1155,7 +1176,25 @@ export default function NewCitaModal({
       // El serie_id lo pone `crear_serie_citas` en el servidor (spec 12): es quien
       // crea las N ocurrencias, asi que es quien las hermana.
 
-      // Validar cada cita contra DB y entre si
+      // Validar cada cita contra DB y entre si.
+      //
+      // AVISAR EN VEZ DE BLOQUEAR (peticiones 1 y 7 de Jose, 6 sep 2026).
+      // Estas cuatro comprobaciones cortaban el guardado con un `return`. Un salon
+      // real necesita poder saltarselas: la clienta de siempre que viene fuera de
+      // horario, el hueco que se dobla porque el tinte de la otra esta en reposo.
+      // Ahora se ACUMULAN y se preguntan de golpe en un solo aviso; el usuario
+      // decide. Lo que NO cambia es que sigan detectandose: la diferencia esta en
+      // que el "no" lo dice una persona, no el formulario.
+      //
+      // Se acumulan en vez de preguntar una a una a proposito: encadenar cuatro
+      // dialogos seguidos es la forma mas rapida de que se acepten sin leer.
+      const avisos: string[] = [];
+      const nombreProf = (id: string) =>
+        profesionales.find((p: any) => p.id === id)?.nombre || "Profesional";
+      // Con una sola cita, "(servicio 1)" es ruido; con varias hace falta.
+      const cual = (i: number) =>
+        citasAGuardar.length > 1 ? ` (servicio ${i + 1})` : "";
+
       for (let i = 0; i < citasAGuardar.length; i++) {
         const cita = citasAGuardar[i];
         const cInicio = new Date(cita.inicio);
@@ -1172,14 +1211,9 @@ export default function NewCitaModal({
           .gt("fin", cita.inicio);
 
         if (bloqueos && bloqueos.length > 0) {
-          const profName =
-            profesionales.find((p: any) => p.id === cita.profesional_id)
-              ?.nombre || "Profesional";
-          setErrMsg(
-            `${profName} no disponible (servicio ${i + 1}): ${bloqueos[0].motivo || bloqueos[0].tipo}`,
+          avisos.push(
+            `${nombreProf(cita.profesional_id)} tiene una ausencia a esa hora${cual(i)}: ${bloqueos[0].motivo || bloqueos[0].tipo}.`,
           );
-          setGuardando(false);
-          return;
         }
 
         // Check horario laboral del profesional (respeta turnos / horario partido)
@@ -1189,12 +1223,9 @@ export default function NewCitaModal({
           cFin,
         );
         if (errHorario) {
-          const profName =
-            profesionales.find((p: any) => p.id === cita.profesional_id)
-              ?.nombre || "Profesional";
-          setErrMsg(`${profName} (servicio ${i + 1}): ${errHorario}`);
-          setGuardando(false);
-          return;
+          avisos.push(
+            `${nombreProf(cita.profesional_id)}${cual(i)} esta fuera de su horario. ${errHorario}.`,
+          );
         }
 
         // Check overlap contra DB (ambas fases activas).
@@ -1225,14 +1256,12 @@ export default function NewCitaModal({
         );
 
         if (solapa) {
-          const profName =
-            profesionales.find((p: any) => p.id === cita.profesional_id)
-              ?.nombre || "Profesional";
-          setErrMsg(
-            `Conflicto: servicio ${i + 1} con ${profName} se solapa con otra cita activa.`,
+          avisos.push(
+            `${nombreProf(cita.profesional_id)}${cual(i)} ya tiene otra clienta trabajando a esa hora.`,
           );
-          setGuardando(false);
-          return;
+          // Marca la cita concreta, no todas: `solape_forzado` saca la fila del
+          // indice parcial del candado, y sacar de mas es abrir agujero de mas.
+          cita._solapeForzado = true;
         }
 
         // Check intra-group overlap (same prof doing multiple services in chain)
@@ -1247,20 +1276,55 @@ export default function NewCitaModal({
           cita.profesional_id,
         );
         if (intraConflict) {
-          const profName =
-            profesionales.find((p: any) => p.id === cita.profesional_id)
-              ?.nombre || "Profesional";
-          setErrMsg(
-            `Conflicto interno: servicio ${i + 1} con ${profName} se solapa con otro servicio del encadenado.`,
+          avisos.push(
+            `Dos de los servicios encadenados se pisan entre si con ${nombreProf(cita.profesional_id)}${cual(i)}.`,
           );
-          setGuardando(false);
-          return;
+          cita._solapeForzado = true;
         }
+      }
+
+      // Cierre del salon: va fuera del bucle porque es del DIA, no de cada cita.
+      // La rejilla ya lo anuncia mientras se elige la hora; aqui se vuelve a
+      // preguntar, que es donde la decision cuenta.
+      if (cierreDelDia) {
+        avisos.push(
+          `El salon esta cerrado ese dia${cierreDelDia.motivo ? ` (${cierreDelDia.motivo})` : ""}.`,
+        );
+      }
+
+      // LIMITE CONOCIDO, y se dice en voz alta en vez de sorprender despues.
+      // Una serie recurrente la monta `crear_serie_citas` en el servidor, que
+      // valida por su cuenta (cierre, bloqueo, horario y solape) y NO conoce
+      // solape_forzado: se le puede pasar la clave, pero la ignora. Asi que en una
+      // serie el forzado no se aplica y la RPC devuelve las fechas en conflicto
+      // como `omitidas` con su motivo. Es el comportamiento correcto --forzar diez
+      // solapes de un clic no es lo que nadie quiere-- pero tiene que saberse.
+      if (avisos.length > 0 && esRecurrente) {
+        avisos.push(
+          "Es una cita que se repite: las repeticiones que choquen se omitiran y te diremos cuales. Solo se guardara forzada la primera.",
+        );
+      }
+
+      // La puerta. Si hay avisos y nadie los ha aceptado todavia, no se guarda
+      // nada: se ensenan y se espera. `forzar` llega en la segunda pasada, cuando
+      // el usuario ya ha leido y confirmado.
+      if (avisos.length > 0 && !forzar) {
+        setAvisosPendientes(avisos);
+        setGuardando(false);
+        return;
       }
 
       // Extraer addons antes de insertar (no es columna de DB)
       const addonsPerCita = citasAGuardar.map((c) => c._addons || []);
-      const citasParaDB = citasAGuardar.map(({ _addons, ...rest }) => rest);
+      // `_solapeForzado` tampoco es columna: se traduce a `solape_forzado`, que es
+      // lo que el candado citas_solape_profesional_excl mira para dejarla pasar.
+      // Si se colara con el guion bajo, el insert entero fallaria con PGRST204.
+      const citasParaDB = citasAGuardar.map(
+        ({ _addons, _solapeForzado, ...rest }) => ({
+          ...rest,
+          solape_forzado: !!_solapeForzado,
+        }),
+      );
 
       // Spec 12: la serie la monta el SERVIDOR, en UNA transaccion.
       //
@@ -1536,9 +1600,9 @@ export default function NewCitaModal({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(11,18,32,0.65)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
+          background: veloModal.fondo,
+          backdropFilter: veloModal.desenfoque,
+          WebkitBackdropFilter: veloModal.desenfoque,
           display: "grid",
           placeItems: "center",
           zIndex: 100,
@@ -1584,9 +1648,9 @@ export default function NewCitaModal({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(11,18,32,0.65)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+        background: veloModal.fondo,
+        backdropFilter: veloModal.desenfoque,
+        WebkitBackdropFilter: veloModal.desenfoque,
         display: "flex",
         alignItems: isMobileOrTablet ? "flex-end" : "center",
         justifyContent: "center",
@@ -3380,20 +3444,13 @@ export default function NewCitaModal({
                       Cargando horas disponibles...
                     </div>
                   );
-                // Festivo o cierre del salon: ese dia no hay horas que ofrecer.
-                if (cierreDelDia)
-                  return (
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: TOKENS.textTer,
-                        padding: "10px 0",
-                      }}
-                    >
-                      El salon esta cerrado ese dia
-                      {cierreDelDia.motivo ? ` (${cierreDelDia.motivo})` : ""}.
-                    </div>
-                  );
+                // Festivo o cierre del salon. Hasta el 6 sep 2026 esto cortaba aqui
+                // y no ofrecia NINGUNA hora, que es la forma mas silenciosa de
+                // bloquear: no habia error que leer, simplemente no habia horas.
+                // Peticion 1 de Jose: que avise, pero que deje. Las horas se siguen
+                // ofreciendo --con la ventana del salon, porque el profesional no
+                // tiene turno ese dia-- y el cierre se anuncia sobre la rejilla.
+                // Al guardar vuelve a preguntarse (ver `avisos` en handleGuardar).
                 // La rejilla sale de los turnos REALES del profesional ese dia y solo
                 // ofrece horas en las que la cita entera termina dentro del turno. Sin
                 // franjas configuradas se cae a la ventana del salon, que es lo que
@@ -3530,6 +3587,24 @@ export default function NewCitaModal({
 
                 return (
                   <>
+                    {cierreDelDia && (
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: TOKENS.danger,
+                          background: "rgba(226,59,52,0.10)",
+                          border: `1px solid rgba(226,59,52,0.35)`,
+                          borderRadius: 8,
+                          padding: "7px 9px",
+                          marginBottom: 8,
+                        }}
+                      >
+                        El salon esta cerrado ese dia
+                        {cierreDelDia.motivo ? ` (${cierreDelDia.motivo})` : ""}.
+                        Puedes citar igualmente; te lo recordaremos al guardar.
+                      </div>
+                    )}
                     {visibleReposoCount > 0 && (
                       <div
                         style={{
@@ -4032,6 +4107,16 @@ export default function NewCitaModal({
               <div style={{ fontSize: 12, color: TOKENS.danger }}>{errMsg}</div>
             </div>
           )}
+
+          <AvisosAgendaPanel
+            avisos={avisosPendientes}
+            onCancelar={() => setAvisosPendientes(null)}
+            onForzar={() => {
+              setAvisosPendientes(null);
+              handleGuardar(true);
+            }}
+            etiquetaForzar="Crear igualmente"
+          />
 
           {/* Modal crear cliente */}
           {showCreateCliente && (
@@ -4629,7 +4714,10 @@ export default function NewCitaModal({
                 </button>
               )}
               <button
-                onClick={handleGuardar}
+                // Envuelto a proposito: `onClick={handleGuardar}` le pasaria el
+                // evento del clic como primer argumento y `forzar` seria truthy,
+                // asi que los avisos de agenda no se ensenarian NUNCA.
+                onClick={() => handleGuardar()}
                 disabled={!puedeGuardar}
                 style={{
                   flex: isMobileOrTablet ? 1 : undefined,

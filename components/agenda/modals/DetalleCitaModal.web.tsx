@@ -42,6 +42,7 @@ import { CobroSheet } from "@/components/pos/CobroSheet";
 import { FichaColorModal } from "@/app/(tabs)/clientes.web";
 import RetrasoEstrategiasModal from "../RetrasoEstrategiasModal";
 import { FasesCitaPanel } from "../FasesCitaPanel.web";
+import { AvisosAgendaPanel } from "../AvisosAgendaPanel.web";
 import ListaEsperaPropuestaModal, {
   type CandidataListaEspera,
   type CitaOrigen,
@@ -874,6 +875,9 @@ export function DetalleCitaModal({
     );
   }
   const [errMsg, setErrMsg] = useState("");
+  // Avisos de agenda que hay que aceptar antes de guardar los cambios de la cita
+  // (fuera de horario, solape al mover). Ver handleGuardar.
+  const [avisosPendientes, setAvisosPendientes] = useState<string[] | null>(null);
   const [notasCita, setNotasCita] = useState(cita.notas ?? "");
   const [citaAddons, setCitaAddons] = useState<any[]>([]);
   const [availableAddons, setAvailableAddons] = useState<any[]>([]);
@@ -1514,9 +1518,13 @@ export function DetalleCitaModal({
       ? `${Math.floor(totalMin / 60)}h${totalMin % 60 ? ` ${totalMin % 60}m` : ""}`
       : `${totalMin}m`;
 
-  const handleGuardar = async () => {
+  // `forzar`: segunda pasada, con los avisos de agenda ya leidos y aceptados.
+  // Mismo patron que NewCitaModal: mover una cita fuera de horario o encima de
+  // otra deja de ser imposible y pasa a ser una decision de quien esta delante.
+  const handleGuardar = async (forzar = false) => {
     if (!selectedCliente || !selectedServicio || !selectedProf) return;
     setErrMsg("");
+    setAvisosPendientes(null);
     setGuardando(true);
     try {
       const [hh, mm] = horaEditada.split(":").map(Number);
@@ -1535,6 +1543,11 @@ export function DetalleCitaModal({
       // Horario laboral del profesional (respeta turnos / horario partido).
       // Solo al mover la cita o cambiar de profesional, para no bloquear
       // ediciones (notas, formula) de citas ya existentes.
+      // AVISAR EN VEZ DE BLOQUEAR (peticiones 1 y 7 de Jose, 6 sep 2026): se
+      // acumulan y se preguntan de golpe al final, en un solo aviso.
+      const avisos: string[] = [];
+      let hayQuePisar = false;
+
       if (inicioMoved || profMoved) {
         const errHorarioEdit = await validarHorarioLaboral(
           selectedProf.id,
@@ -1542,9 +1555,9 @@ export function DetalleCitaModal({
           fin,
         );
         if (errHorarioEdit) {
-          setErrMsg(errHorarioEdit);
-          setGuardando(false);
-          return;
+          avisos.push(
+            `${selectedProf.nombre || "El profesional"} esta fuera de su horario. ${errHorarioEdit}.`,
+          );
         }
       }
 
@@ -1567,11 +1580,10 @@ export function DetalleCitaModal({
             cita.id,
           );
         if (conflictActivo1 || conflictActivo2) {
-          setErrMsg(
-            "Conflicto activo+activo: la fase activa se solapa con otra cita activa del profesional.",
+          avisos.push(
+            `${selectedProf.nombre || "El profesional"} ya tiene otra clienta trabajando a esa hora.`,
           );
-          setGuardando(false);
-          return;
+          hayQuePisar = true;
         }
       }
 
@@ -1596,6 +1608,18 @@ export function DetalleCitaModal({
         }
       }
 
+      // La puerta: si hay avisos sin aceptar, se ensenan y no se guarda nada.
+      //
+      // El "bloqueo duro" de arriba (RN-AG-013, el activo que se sale del reposo
+      // de la cita anfitriona) NO entra aqui a proposito: no es ocupacion de
+      // agenda sino la fisica de una cita anidada, y saltarselo dejaria la cita
+      // anfitriona partida. Jose no lo pidio y relajarlo no es gratis.
+      if (avisos.length > 0 && !forzar) {
+        setAvisosPendientes(avisos);
+        setGuardando(false);
+        return;
+      }
+
       const formulaTiempoNum = formulaTiempo.trim()
         ? parseInt(formulaTiempo.trim(), 10)
         : null;
@@ -1617,6 +1641,11 @@ export function DetalleCitaModal({
             : null,
         formula_resultado: formulaResultado.trim() || null,
         formula_notas: formulaNotas.trim() || null,
+        // Solo se MARCA, nunca se desmarca aqui: si la cita ya estaba forzada y
+        // ahora se mueve a un hueco limpio, quitarle la marca la devolveria al
+        // indice del candado y el propio UPDATE fallaria contra la cita con la que
+        // convivia. Desmarcar es una operacion aparte, no un efecto de guardar.
+        ...(hayQuePisar ? { solape_forzado: true } : {}),
         updated_at: new Date().toISOString(),
       };
       const { error } = await supabase
@@ -6636,6 +6665,15 @@ export function DetalleCitaModal({
               {errMsg}
             </div>
           ) : null}
+          <AvisosAgendaPanel
+            avisos={avisosPendientes}
+            onCancelar={() => setAvisosPendientes(null)}
+            onForzar={() => {
+              setAvisosPendientes(null);
+              handleGuardar(true);
+            }}
+            etiquetaForzar="Guardar igualmente"
+          />
           <div style={{ display: "flex", gap: 8 }}>
             {onDuplicate && (
               <button
@@ -6675,7 +6713,9 @@ export function DetalleCitaModal({
             </button>
             <button
               className="m-btn-primary"
-              onClick={handleGuardar}
+              // Envuelto: pasarlo pelado le daria el evento del clic como
+              // primer argumento y `forzar` seria truthy, saltandose el aviso.
+              onClick={() => handleGuardar()}
               disabled={
                 !selectedCliente ||
                 !selectedServicio ||
