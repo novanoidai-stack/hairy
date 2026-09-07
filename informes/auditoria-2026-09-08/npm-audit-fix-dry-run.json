@@ -1,0 +1,1045 @@
+remove xmlchars 2.2.0
+remove xml-name-validator 5.0.0
+remove why-is-node-running 2.3.0
+remove whatwg-mimetype 5.0.0
+remove w3c-xmlserializer 5.0.0
+remove vitest 4.1.11
+remove vite 8.2.2
+change update-browserslist-db 1.2.3 => 1.3.2
+remove undici 7.29.0
+remove tough-cookie 6.0.2
+remove tldts-core 7.4.11
+remove tldts 7.4.11
+remove tinyrainbow 3.1.1
+remove tinyexec 1.3.0
+remove tinybench 2.9.0
+remove symbol-tree 3.2.4
+remove std-env 4.2.0
+remove stackback 0.0.2
+remove siginfo 2.0.0
+remove saxes 6.0.0
+remove rolldown 1.2.6
+remove require-from-string 2.0.2
+change @xmldom/xmldom 0.9.10 => 0.9.12
+remove playwright-core 1.61.1
+remove playwright 1.61.1
+remove pathe 2.0.3
+remove parse5 8.0.1
+remove entities 8.0.0
+remove obug 2.1.4
+change node-releases 2.0.51 => 2.0.54
+remove make-dir 4.0.0
+remove semver 7.8.5
+remove magicast 0.5.4
+remove magic-string 0.30.21
+remove jsdom 29.1.1
+remove whatwg-url 16.0.1
+remove webidl-conversions 8.0.1
+remove tr46 6.0.0
+remove mdn-data 2.27.1
+remove lru-cache 11.5.2
+remove css-tree 3.2.1
+remove @csstools/css-syntax-patches-for-csstree 1.1.9
+remove istanbul-reports 3.2.0
+remove istanbul-lib-report 3.0.1
+remove istanbul-lib-coverage 3.2.2
+remove is-potential-custom-element-name 1.0.1
+remove html-escaper 2.0.2
+remove html-encoding-sniffer 6.0.0
+remove expect-type 1.4.0
+remove estree-walker 3.0.3
+remove es-module-lexer 2.3.2
+change electron-to-chromium 1.5.389 => 1.5.422
+remove decimal.js 10.6.0
+remove data-urls 7.0.0
+remove whatwg-url 16.0.1
+remove webidl-conversions 8.0.1
+remove tr46 6.0.0
+remove claude 0.1.1
+remove chai 6.2.2
+change caniuse-lite 1.0.30001805 => 1.0.30001810
+change browserslist 4.28.6 => 4.28.9
+remove bidi-js 1.0.3
+change baseline-browser-mapping 2.10.43 => 2.11.21
+remove ast-v8-to-istanbul 1.0.5
+remove js-tokens 10.0.0
+remove assertion-error 2.0.1
+change @xmldom/xmldom 0.8.13 => 0.8.15
+remove @vitest/utils 4.1.11
+remove @vitest/spy 4.1.11
+remove @vitest/snapshot 4.1.11
+remove @vitest/runner 4.1.11
+remove @vitest/pretty-format 4.1.11
+remove @vitest/mocker 4.1.11
+remove @vitest/expect 4.1.11
+remove @vitest/coverage-v8 4.1.11
+remove @types/qrcode-generator 1.0.6
+remove @types/estree 1.0.9
+remove @types/deep-eql 4.0.2
+remove @types/chai 5.2.3
+remove @testing-library/react 16.3.3
+remove @testing-library/jest-dom 7.0.1
+remove dom-accessibility-api 0.6.3
+remove @standard-schema/spec 1.1.0
+remove @rolldown/pluginutils 1.0.1
+remove @rolldown/binding-win32-x64-msvc 1.2.6
+remove @playwright/test 1.61.1
+remove @oxc-project/types 0.147.0
+change @expo/metro 56.0.0 => 56.0.2
+add ob1 0.84.5
+add hermes-estree 0.35.0
+add hermes-parser 0.35.0
+add metro-transform-worker 0.84.5
+add metro-transform-plugins 0.84.5
+add metro-symbolicate 0.84.5
+add metro-source-map 0.84.5
+add metro-runtime 0.84.5
+add metro-resolver 0.84.5
+add metro-minify-terser 0.84.5
+add metro-file-map 0.84.5
+add metro-core 0.84.5
+add metro-config 0.84.5
+add metro-cache-key 0.84.5
+add metro-cache 0.84.5
+add metro-babel-transformer 0.84.5
+add metro 0.84.5
+remove @exodus/bytes 1.15.1
+remove @csstools/css-tokenizer 4.0.0
+remove @csstools/css-parser-algorithms 4.0.0
+remove @csstools/css-color-parser 4.2.1
+remove @csstools/css-calc 3.3.0
+remove @csstools/color-helpers 6.1.1
+remove @bramus/specificity 2.4.2
+remove mdn-data 2.27.1
+remove css-tree 3.2.1
+remove @biomejs/cli-win32-x64 2.5.11
+remove @biomejs/biome 2.5.11
+remove @bcoe/v8-coverage 1.0.2
+remove @asamuzakjp/nwsapi 2.3.9
+remove @asamuzakjp/generational-cache 1.0.1
+remove @asamuzakjp/dom-selector 7.1.1
+remove mdn-data 2.27.1
+remove css-tree 3.2.1
+remove @asamuzakjp/css-color 5.1.11
+{
+  "add": [
+    {
+      "name": "ob1",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\ob1"
+    },
+    {
+      "name": "hermes-estree",
+      "version": "0.35.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\hermes-estree"
+    },
+    {
+      "name": "hermes-parser",
+      "version": "0.35.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\hermes-parser"
+    },
+    {
+      "name": "metro-transform-worker",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-transform-worker"
+    },
+    {
+      "name": "metro-transform-plugins",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-transform-plugins"
+    },
+    {
+      "name": "metro-symbolicate",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-symbolicate"
+    },
+    {
+      "name": "metro-source-map",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-source-map"
+    },
+    {
+      "name": "metro-runtime",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-runtime"
+    },
+    {
+      "name": "metro-resolver",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-resolver"
+    },
+    {
+      "name": "metro-minify-terser",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-minify-terser"
+    },
+    {
+      "name": "metro-file-map",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-file-map"
+    },
+    {
+      "name": "metro-core",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-core"
+    },
+    {
+      "name": "metro-config",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-config"
+    },
+    {
+      "name": "metro-cache-key",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-cache-key"
+    },
+    {
+      "name": "metro-cache",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-cache"
+    },
+    {
+      "name": "metro-babel-transformer",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro-babel-transformer"
+    },
+    {
+      "name": "metro",
+      "version": "0.84.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro\\node_modules\\metro"
+    }
+  ],
+  "added": 17,
+  "audited": 689,
+  "change": [
+    {
+      "from": {
+        "name": "update-browserslist-db",
+        "version": "1.2.3",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\update-browserslist-db"
+      },
+      "to": {
+        "name": "update-browserslist-db",
+        "version": "1.3.2",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\update-browserslist-db"
+      }
+    },
+    {
+      "from": {
+        "name": "@xmldom/xmldom",
+        "version": "0.9.10",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\plist\\node_modules\\@xmldom\\xmldom"
+      },
+      "to": {
+        "name": "@xmldom/xmldom",
+        "version": "0.9.12",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\plist\\node_modules\\@xmldom\\xmldom"
+      }
+    },
+    {
+      "from": {
+        "name": "node-releases",
+        "version": "2.0.51",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\node-releases"
+      },
+      "to": {
+        "name": "node-releases",
+        "version": "2.0.54",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\node-releases"
+      }
+    },
+    {
+      "from": {
+        "name": "electron-to-chromium",
+        "version": "1.5.389",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\electron-to-chromium"
+      },
+      "to": {
+        "name": "electron-to-chromium",
+        "version": "1.5.422",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\electron-to-chromium"
+      }
+    },
+    {
+      "from": {
+        "name": "caniuse-lite",
+        "version": "1.0.30001805",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\caniuse-lite"
+      },
+      "to": {
+        "name": "caniuse-lite",
+        "version": "1.0.30001810",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\caniuse-lite"
+      }
+    },
+    {
+      "from": {
+        "name": "browserslist",
+        "version": "4.28.6",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\browserslist"
+      },
+      "to": {
+        "name": "browserslist",
+        "version": "4.28.9",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\browserslist"
+      }
+    },
+    {
+      "from": {
+        "name": "baseline-browser-mapping",
+        "version": "2.10.43",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\baseline-browser-mapping"
+      },
+      "to": {
+        "name": "baseline-browser-mapping",
+        "version": "2.11.21",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\baseline-browser-mapping"
+      }
+    },
+    {
+      "from": {
+        "name": "@xmldom/xmldom",
+        "version": "0.8.13",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@xmldom\\xmldom"
+      },
+      "to": {
+        "name": "@xmldom/xmldom",
+        "version": "0.8.15",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@xmldom\\xmldom"
+      }
+    },
+    {
+      "from": {
+        "name": "@expo/metro",
+        "version": "56.0.0",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro"
+      },
+      "to": {
+        "name": "@expo/metro",
+        "version": "56.0.2",
+        "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@expo\\metro"
+      }
+    }
+  ],
+  "changed": 9,
+  "funding": 61,
+  "remove": [
+    {
+      "name": "xmlchars",
+      "version": "2.2.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\xmlchars"
+    },
+    {
+      "name": "xml-name-validator",
+      "version": "5.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\xml-name-validator"
+    },
+    {
+      "name": "why-is-node-running",
+      "version": "2.3.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\why-is-node-running"
+    },
+    {
+      "name": "whatwg-mimetype",
+      "version": "5.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\whatwg-mimetype"
+    },
+    {
+      "name": "w3c-xmlserializer",
+      "version": "5.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\w3c-xmlserializer"
+    },
+    {
+      "name": "vitest",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\vitest"
+    },
+    {
+      "name": "vite",
+      "version": "8.2.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\vite"
+    },
+    {
+      "name": "undici",
+      "version": "7.29.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\undici"
+    },
+    {
+      "name": "tough-cookie",
+      "version": "6.0.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\tough-cookie"
+    },
+    {
+      "name": "tldts-core",
+      "version": "7.4.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\tldts-core"
+    },
+    {
+      "name": "tldts",
+      "version": "7.4.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\tldts"
+    },
+    {
+      "name": "tinyrainbow",
+      "version": "3.1.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\tinyrainbow"
+    },
+    {
+      "name": "tinyexec",
+      "version": "1.3.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\tinyexec"
+    },
+    {
+      "name": "tinybench",
+      "version": "2.9.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\tinybench"
+    },
+    {
+      "name": "symbol-tree",
+      "version": "3.2.4",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\symbol-tree"
+    },
+    {
+      "name": "std-env",
+      "version": "4.2.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\std-env"
+    },
+    {
+      "name": "stackback",
+      "version": "0.0.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\stackback"
+    },
+    {
+      "name": "siginfo",
+      "version": "2.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\siginfo"
+    },
+    {
+      "name": "saxes",
+      "version": "6.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\saxes"
+    },
+    {
+      "name": "rolldown",
+      "version": "1.2.6",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\rolldown"
+    },
+    {
+      "name": "require-from-string",
+      "version": "2.0.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\require-from-string"
+    },
+    {
+      "name": "playwright-core",
+      "version": "1.61.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\playwright-core"
+    },
+    {
+      "name": "playwright",
+      "version": "1.61.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\playwright"
+    },
+    {
+      "name": "pathe",
+      "version": "2.0.3",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\pathe"
+    },
+    {
+      "name": "parse5",
+      "version": "8.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\parse5"
+    },
+    {
+      "name": "entities",
+      "version": "8.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\parse5\\node_modules\\entities"
+    },
+    {
+      "name": "obug",
+      "version": "2.1.4",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\obug"
+    },
+    {
+      "name": "make-dir",
+      "version": "4.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\make-dir"
+    },
+    {
+      "name": "semver",
+      "version": "7.8.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\make-dir\\node_modules\\semver"
+    },
+    {
+      "name": "magicast",
+      "version": "0.5.4",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\magicast"
+    },
+    {
+      "name": "magic-string",
+      "version": "0.30.21",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\magic-string"
+    },
+    {
+      "name": "jsdom",
+      "version": "29.1.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom"
+    },
+    {
+      "name": "whatwg-url",
+      "version": "16.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\whatwg-url"
+    },
+    {
+      "name": "webidl-conversions",
+      "version": "8.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\webidl-conversions"
+    },
+    {
+      "name": "tr46",
+      "version": "6.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\tr46"
+    },
+    {
+      "name": "mdn-data",
+      "version": "2.27.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\mdn-data"
+    },
+    {
+      "name": "lru-cache",
+      "version": "11.5.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\lru-cache"
+    },
+    {
+      "name": "css-tree",
+      "version": "3.2.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\css-tree"
+    },
+    {
+      "name": "@csstools/css-syntax-patches-for-csstree",
+      "version": "1.1.9",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\jsdom\\node_modules\\@csstools\\css-syntax-patches-for-csstree"
+    },
+    {
+      "name": "istanbul-reports",
+      "version": "3.2.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\istanbul-reports"
+    },
+    {
+      "name": "istanbul-lib-report",
+      "version": "3.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\istanbul-lib-report"
+    },
+    {
+      "name": "istanbul-lib-coverage",
+      "version": "3.2.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\istanbul-lib-coverage"
+    },
+    {
+      "name": "is-potential-custom-element-name",
+      "version": "1.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\is-potential-custom-element-name"
+    },
+    {
+      "name": "html-escaper",
+      "version": "2.0.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\html-escaper"
+    },
+    {
+      "name": "html-encoding-sniffer",
+      "version": "6.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\html-encoding-sniffer"
+    },
+    {
+      "name": "expect-type",
+      "version": "1.4.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\expect-type"
+    },
+    {
+      "name": "estree-walker",
+      "version": "3.0.3",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\estree-walker"
+    },
+    {
+      "name": "es-module-lexer",
+      "version": "2.3.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\es-module-lexer"
+    },
+    {
+      "name": "decimal.js",
+      "version": "10.6.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\decimal.js"
+    },
+    {
+      "name": "data-urls",
+      "version": "7.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\data-urls"
+    },
+    {
+      "name": "whatwg-url",
+      "version": "16.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\data-urls\\node_modules\\whatwg-url"
+    },
+    {
+      "name": "webidl-conversions",
+      "version": "8.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\data-urls\\node_modules\\webidl-conversions"
+    },
+    {
+      "name": "tr46",
+      "version": "6.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\data-urls\\node_modules\\tr46"
+    },
+    {
+      "name": "claude",
+      "version": "0.1.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\claude"
+    },
+    {
+      "name": "chai",
+      "version": "6.2.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\chai"
+    },
+    {
+      "name": "bidi-js",
+      "version": "1.0.3",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\bidi-js"
+    },
+    {
+      "name": "ast-v8-to-istanbul",
+      "version": "1.0.5",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\ast-v8-to-istanbul"
+    },
+    {
+      "name": "js-tokens",
+      "version": "10.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\ast-v8-to-istanbul\\node_modules\\js-tokens"
+    },
+    {
+      "name": "assertion-error",
+      "version": "2.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\assertion-error"
+    },
+    {
+      "name": "@vitest/utils",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\utils"
+    },
+    {
+      "name": "@vitest/spy",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\spy"
+    },
+    {
+      "name": "@vitest/snapshot",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\snapshot"
+    },
+    {
+      "name": "@vitest/runner",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\runner"
+    },
+    {
+      "name": "@vitest/pretty-format",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\pretty-format"
+    },
+    {
+      "name": "@vitest/mocker",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\mocker"
+    },
+    {
+      "name": "@vitest/expect",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\expect"
+    },
+    {
+      "name": "@vitest/coverage-v8",
+      "version": "4.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@vitest\\coverage-v8"
+    },
+    {
+      "name": "@types/qrcode-generator",
+      "version": "1.0.6",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@types\\qrcode-generator"
+    },
+    {
+      "name": "@types/estree",
+      "version": "1.0.9",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@types\\estree"
+    },
+    {
+      "name": "@types/deep-eql",
+      "version": "4.0.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@types\\deep-eql"
+    },
+    {
+      "name": "@types/chai",
+      "version": "5.2.3",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@types\\chai"
+    },
+    {
+      "name": "@testing-library/react",
+      "version": "16.3.3",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@testing-library\\react"
+    },
+    {
+      "name": "@testing-library/jest-dom",
+      "version": "7.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@testing-library\\jest-dom"
+    },
+    {
+      "name": "dom-accessibility-api",
+      "version": "0.6.3",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@testing-library\\jest-dom\\node_modules\\dom-accessibility-api"
+    },
+    {
+      "name": "@standard-schema/spec",
+      "version": "1.1.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@standard-schema\\spec"
+    },
+    {
+      "name": "@rolldown/pluginutils",
+      "version": "1.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@rolldown\\pluginutils"
+    },
+    {
+      "name": "@rolldown/binding-win32-x64-msvc",
+      "version": "1.2.6",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@rolldown\\binding-win32-x64-msvc"
+    },
+    {
+      "name": "@playwright/test",
+      "version": "1.61.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@playwright\\test"
+    },
+    {
+      "name": "@oxc-project/types",
+      "version": "0.147.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@oxc-project\\types"
+    },
+    {
+      "name": "@exodus/bytes",
+      "version": "1.15.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@exodus\\bytes"
+    },
+    {
+      "name": "@csstools/css-tokenizer",
+      "version": "4.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@csstools\\css-tokenizer"
+    },
+    {
+      "name": "@csstools/css-parser-algorithms",
+      "version": "4.0.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@csstools\\css-parser-algorithms"
+    },
+    {
+      "name": "@csstools/css-color-parser",
+      "version": "4.2.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@csstools\\css-color-parser"
+    },
+    {
+      "name": "@csstools/css-calc",
+      "version": "3.3.0",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@csstools\\css-calc"
+    },
+    {
+      "name": "@csstools/color-helpers",
+      "version": "6.1.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@csstools\\color-helpers"
+    },
+    {
+      "name": "@bramus/specificity",
+      "version": "2.4.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@bramus\\specificity"
+    },
+    {
+      "name": "mdn-data",
+      "version": "2.27.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@bramus\\specificity\\node_modules\\mdn-data"
+    },
+    {
+      "name": "css-tree",
+      "version": "3.2.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@bramus\\specificity\\node_modules\\css-tree"
+    },
+    {
+      "name": "@biomejs/cli-win32-x64",
+      "version": "2.5.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@biomejs\\cli-win32-x64"
+    },
+    {
+      "name": "@biomejs/biome",
+      "version": "2.5.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@biomejs\\biome"
+    },
+    {
+      "name": "@bcoe/v8-coverage",
+      "version": "1.0.2",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@bcoe\\v8-coverage"
+    },
+    {
+      "name": "@asamuzakjp/nwsapi",
+      "version": "2.3.9",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@asamuzakjp\\nwsapi"
+    },
+    {
+      "name": "@asamuzakjp/generational-cache",
+      "version": "1.0.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@asamuzakjp\\generational-cache"
+    },
+    {
+      "name": "@asamuzakjp/dom-selector",
+      "version": "7.1.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@asamuzakjp\\dom-selector"
+    },
+    {
+      "name": "mdn-data",
+      "version": "2.27.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@asamuzakjp\\dom-selector\\node_modules\\mdn-data"
+    },
+    {
+      "name": "css-tree",
+      "version": "3.2.1",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@asamuzakjp\\dom-selector\\node_modules\\css-tree"
+    },
+    {
+      "name": "@asamuzakjp/css-color",
+      "version": "5.1.11",
+      "path": "C:\\Users\\carli\\OneDrive\\Escritorio\\Trabajo\\novanoidai\\Hairy\\node_modules\\@asamuzakjp\\css-color"
+    }
+  ],
+  "removed": 97,
+  "audit": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {
+      "@expo/metro": {
+        "name": "@expo/metro",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          "metro",
+          "metro-config",
+          "metro-transform-worker"
+        ],
+        "effects": [],
+        "range": "<=55.1.1 || 56.0.0-rc.0 - 56.0.1",
+        "nodes": [
+          ""
+        ],
+        "fixAvailable": true
+      },
+      "@xmldom/xmldom": {
+        "name": "@xmldom/xmldom",
+        "severity": "moderate",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1158517,
+            "name": "@xmldom/xmldom",
+            "dependency": "@xmldom/xmldom",
+            "title": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+            "url": "https://github.com/advisories/GHSA-6gmq-8vp8-gcm6",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-116"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": ">=0.9.0 <=0.9.11"
+          },
+          {
+            "source": 1158518,
+            "name": "@xmldom/xmldom",
+            "dependency": "@xmldom/xmldom",
+            "title": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+            "url": "https://github.com/advisories/GHSA-6gmq-8vp8-gcm6",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-116"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": ">=0.7.0 <=0.8.14"
+          }
+        ],
+        "effects": [],
+        "range": "<=0.8.14 || 0.9.0 - 0.9.11",
+        "nodes": [
+          "",
+          ""
+        ],
+        "fixAvailable": true
+      },
+      "browserslist": {
+        "name": "browserslist",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1153171,
+            "name": "browserslist",
+            "dependency": "browserslist",
+            "title": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+            "url": "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+            "severity": "high",
+            "cwe": [
+              "CWE-770"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=4.28.6"
+          },
+          {
+            "source": 1153172,
+            "name": "browserslist",
+            "dependency": "browserslist",
+            "title": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+            "url": "https://github.com/advisories/GHSA-73wf-gq98-2v4g",
+            "severity": "high",
+            "cwe": [
+              "CWE-248",
+              "CWE-1321"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=4.28.6"
+          }
+        ],
+        "effects": [],
+        "range": "<=4.28.6",
+        "nodes": [
+          ""
+        ],
+        "fixAvailable": true
+      },
+      "image-size": {
+        "name": "image-size",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1138808,
+            "name": "image-size",
+            "dependency": "image-size",
+            "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+            "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+            "severity": "high",
+            "cwe": [
+              "CWE-835"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=2.0.2"
+          },
+          {
+            "source": 1138809,
+            "name": "image-size",
+            "dependency": "image-size",
+            "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+            "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+            "severity": "high",
+            "cwe": [
+              "CWE-835"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=2.0.2"
+          }
+        ],
+        "effects": [
+          "metro"
+        ],
+        "range": "*",
+        "nodes": [
+          "node_modules/image-size"
+        ],
+        "fixAvailable": true
+      },
+      "metro": {
+        "name": "metro",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          "image-size",
+          "metro-config",
+          "metro-transform-worker"
+        ],
+        "effects": [
+          "@expo/metro",
+          "metro-config",
+          "metro-transform-worker"
+        ],
+        "range": "0.22.1 - 0.83.7 || 0.84.0 - 0.84.4 || >=0.85.0",
+        "nodes": [
+          "node_modules/metro"
+        ],
+        "fixAvailable": true
+      },
+      "metro-config": {
+        "name": "metro-config",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          "metro"
+        ],
+        "effects": [
+          "metro"
+        ],
+        "range": "<=0.83.7 || 0.84.0 - 0.84.4 || >=0.85.0",
+        "nodes": [
+          "node_modules/metro-config"
+        ],
+        "fixAvailable": true
+      },
+      "metro-transform-worker": {
+        "name": "metro-transform-worker",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          "metro"
+        ],
+        "effects": [
+          "@expo/metro",
+          "metro"
+        ],
+        "range": "0.60.0 - 0.83.7 || 0.84.0 - 0.84.4 || >=0.85.0",
+        "nodes": [
+          "node_modules/metro-transform-worker"
+        ],
+        "fixAvailable": true
+      }
+    },
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 1,
+        "high": 6,
+        "critical": 0,
+        "total": 7
+      },
+      "dependencies": {
+        "prod": 660,
+        "dev": 0,
+        "optional": 16,
+        "peer": 13,
+        "peerOptional": 0,
+        "total": 688
+      }
+    }
+  }
+}

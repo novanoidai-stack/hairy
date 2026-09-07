@@ -1,0 +1,87 @@
+{
+  "captured_at": "2026-09-07T22:55:04.043Z",
+  "status": 201,
+  "query": "\nselect p.proname,\n       pg_get_function_identity_arguments(p.oid) as args,\n       (pg_get_functiondef(p.oid) like '%senal_ya_pagada%') as tiene_bloqueo_senal_pagada,\n       (pg_get_functiondef(p.oid) like '%rate_limit_ok%') as tiene_rate_limit,\n       (pg_get_functiondef(p.oid) like '%consumir_captcha_token%') as consume_captcha,\n       (pg_get_functiondef(p.oid) like '%auth.role()%') as mira_rol,\n       (pg_get_functiondef(p.oid) like '%p_base_cents%') as acepta_base_cents,\n       length(pg_get_functiondef(p.oid)) as longitud_def\nfrom pg_proc p join pg_namespace n on n.oid = p.pronamespace\nwhere n.nspname = 'public'\n  and p.proname in ('crear_cita_publica','crear_cita_publica_legacy_20260908','crear_cita_publica_grupo',\n                    'crear_cita_publica_cadena','requerir_senal_cita','requerir_pago_total_cita',\n                    'aplicar_tarjeta_regalo_a_cobro','request_ip','rate_limit_ok','consumir_captcha_token')\norder by 1, 2",
+  "data": [
+    {
+      "proname": "consumir_captcha_token",
+      "args": "p_token text",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": false,
+      "consume_captcha": true,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 569
+    },
+    {
+      "proname": "crear_cita_publica",
+      "args": "p_slug text, p_servicio_id uuid, p_profesional_id uuid, p_inicio timestamp with time zone, p_nombre text, p_telefono text, p_email text, p_notas text, p_consiente_ia boolean, p_captcha_token text, p_canal text",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": true,
+      "consume_captcha": true,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 9599
+    },
+    {
+      "proname": "crear_cita_publica_cadena",
+      "args": "p_slug text, p_servicio_ids uuid[], p_profesional_id uuid, p_inicio timestamp with time zone, p_nombre text, p_telefono text, p_email text, p_notas text, p_consiente_ia boolean, p_captcha_token text, p_canal text",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": true,
+      "consume_captcha": true,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 10988
+    },
+    {
+      "proname": "crear_cita_publica_grupo",
+      "args": "p_slug text, p_inicio timestamp with time zone, p_reservante_nombre text, p_reservante_telefono text, p_reservante_email text, p_asistentes jsonb, p_consentimiento_datos boolean, p_captcha_token text",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": false,
+      "consume_captcha": false,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 7431
+    },
+    {
+      "proname": "rate_limit_ok",
+      "args": "p_bucket text, p_clave text, p_max integer, p_ventana interval",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": true,
+      "consume_captcha": false,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 730
+    },
+    {
+      "proname": "requerir_pago_total_cita",
+      "args": "p_cita_id uuid, p_propina_cents integer, p_descuento_cents integer, p_metodo text, p_base_cents integer",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": false,
+      "consume_captcha": false,
+      "mira_rol": false,
+      "acepta_base_cents": true,
+      "longitud_def": 3075
+    },
+    {
+      "proname": "requerir_senal_cita",
+      "args": "p_cita_id uuid",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": false,
+      "consume_captcha": false,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 1959
+    },
+    {
+      "proname": "request_ip",
+      "args": "",
+      "tiene_bloqueo_senal_pagada": false,
+      "tiene_rate_limit": false,
+      "consume_captcha": false,
+      "mira_rol": false,
+      "acepta_base_cents": false,
+      "longitud_def": 288
+    }
+  ]
+}

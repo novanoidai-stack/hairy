@@ -1,0 +1,11 @@
+{
+  "captured_at": "2026-09-07T22:55:04.263Z",
+  "status": 201,
+  "query": "\nselect (select count(*) from information_schema.columns where table_schema='public' and table_name='negocio_portal' and column_name='captcha_activo') as columna_captcha_activo,\n       (select string_agg(tablename, ', ') from pg_tables where schemaname='public' and tablename like '%captcha%') as tablas_captcha",
+  "data": [
+    {
+      "columna_captcha_activo": 1,
+      "tablas_captcha": "captcha_tokens"
+    }
+  ]
+}

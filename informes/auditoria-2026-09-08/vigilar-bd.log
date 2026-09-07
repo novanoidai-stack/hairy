@@ -1,0 +1,1102 @@
+
+> hairy@1.0.0 vigilar:bd
+> node scripts/vigilantes/index.mjs --bd
+
+
+    ok   precios          21 ms
+    ok   referidos        11 ms
+    ok   rutas-publicas   2 ms
+    ok   cache-app        1 ms
+    ok   claves           440 ms
+    ok   errores-tragados 1657 ms
+    ok   panel-ambitos    30 ms
+    ok   edges-autorizadas 9 ms
+  FALLA  migraciones      143 ms
+    ok   husos            58 ms
+    ok   planes           2 ms
+    ok   horarios-convenio 28 ms
+    ok   inmutabilidad-cobros 17 ms
+    ok   workflows        105 ms
+    ok   ecosistema-cuentas 64 ms
+  AVISA  codigo-muerto    8860 ms
+  AVISA  claims-fiscales  617 ms
+  AVISA  modulos-desconectados 230 ms
+    ok   meta-anclas      2 ms
+    ok   meta-cobertura   1 ms
+  AVISA  peso-componentes 162 ms
+  AVISA  rendimiento      0 ms
+  AVISA  calidad-codigo   657 ms
+  AVISA  ci-cadena-rota   42 ms
+    ok   trigger-cadenas  26 ms
+    ok   meta-registro    36 ms
+  AVISA  meta-contrato    38 ms
+    ok   meta-mutaciones  0 ms
+    ok   meta-trinquete   2 ms
+    ok   guardrail-ia     0 ms
+    ok   fugas-listeners  29 ms
+  AVISA  modales-fantasma 24 ms
+    ok   addons-cargador  61 ms
+    ok   gastos-categorias 1 ms
+    ok   base-de-datos    3362 ms
+  AVISA  bd-rendimiento   488 ms
+  AVISA  bd-migraciones   330 ms
+    ok   bd-ecosistema    182 ms
+  AVISA  bd-profunda      1108 ms
+    ok   bd-triggers-ciegos 291 ms
+    ok   bd-sobrecargas-rpc 156 ms
+    ok   bd-escritura-critica 324 ms
+  AVISA  bd-invariantes   482 ms
+
+BLOQUEANTES (1)
+
+  * public.crear_cita_publica() se abre a anon sin decir por que supabase/migrations/20260907224902_cerrar_cobros_senales_y_captchas.sql:75
+    Toda RPC publica nueva necesita su "grant execute ... to anon" explicito (round 4 de seguridad), y por eso mismo cada uno tiene que venir con un comentario encima que diga que hace publica esa funcion y como se defiende del abuso (limites por telefono/IP/negocio, como el resto del portal publico).
+
+Sin ese comentario nadie puede revisar en el PR si la exposicion es correcta.
+
+AVISOS (310)
+
+  * Suben los ficheros que no importa nadie: 8 -> 9 scripts/vigilantes/knip-baseline.json
+    Este cambio deja 1 mas. Verlos con: npx knip. Si son inevitables, sube el numero en scripts/vigilantes/knip-baseline.json y explica por que en el commit.
+
+  * web/index_v5.html no la enlaza nadie y publica 3 claim(s) fiscales viejos web/index_v5.html
+    El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.
+
+  * Se promete "envía a la AEAT" y el envio a la AEAT no existe web/index_v5.html:192
+    web/index_v5.html dice:
+
+  ...<p style="margin:0 0 10px;font-size:15px;color:var(--ink-2)">Cobras y la factura <b>VeriFactu</b> se firma y se envía a la AEAT sola....
+
+No hay envio. No existe ni la columna donde anotar el resultado de uno.
+
+Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
+
+  * Se promete "enviada a la AEAT" y el envio a la AEAT no existe web/index_v5.html:304
+    web/index_v5.html dice:
+
+  ...5px">enviada a la AEAT</div></div>...
+
+No hay envio. No existe ni la columna donde anotar el resultado de uno.
+
+Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
+
+  * Se promete "enviada a la AEAT" y el envio a la AEAT no existe web/index_v5.html:635
+    web/index_v5.html dice:
+
+  ...{ tema:"Facturación española", otros:"Fuera del programa: otro software y la gestoría", mecha:"VeriFactu con hash y QR, enviada a la AEAT desde la propia caja" },...
+
+No hay envio. No existe ni la columna donde anotar el resultado de uno.
+
+Mientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.
+
+  * components/agenda/optimizacionTouchAgenda.ts sigue sin enchufar (solo lo usa su test) components/agenda/optimizacionTouchAgenda.ts
+    TRIAR. Probable duplicado de useResponsive() (lib/hooks/useResponsive.ts), que es la via oficial segun el CLAUDE.md.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * components/marketplace/tarjetaSalonResponsive.ts sigue sin enchufar (solo lo usa su test) components/marketplace/tarjetaSalonResponsive.ts
+    TRIAR. El marketplace funciona y tiene sus e2e; comprobar si esto duplica lo que ya pinta.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * components/portal/optimizacionTouchPortal.ts sigue sin enchufar (solo lo usa su test) components/portal/optimizacionTouchPortal.ts
+    TRIAR. La misma sospecha que su gemelo de agenda, pero el portal lo ve una clienta desde su movil y ahi el movil-primero SI importa de verdad: comprobar que useResponsive() cubre el caso tactil del portal antes de borrarlo.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/agenda/bonificacionReasignacion.ts sigue sin enchufar (solo lo usa su test) lib/agenda/bonificacionReasignacion.ts
+    TRIAR. Suena a incentivo por aceptar un hueco reasignado. Decidir si es producto antes de nada.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/agenda/desinfeccionPausas.ts sigue sin enchufar (solo lo usa su test) lib/agenda/desinfeccionPausas.ts
+    SIN ENCHUFAR. Encaja en la spec 1 como fase 'transicion', que hoy no existe en la base de datos.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/agenda/validadorFestivosTurnos.ts sigue sin enchufar (solo lo usa su test) lib/agenda/validadorFestivosTurnos.ts
+    DUPLICA. cierres_negocio + el control de festivos de configuracion.web.tsx y NewCitaModal. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/bonos/consumoBonos.ts sigue sin enchufar (solo lo usa su test) lib/bonos/consumoBonos.ts
+    SIN ENCHUFAR. Va con la spec 6 (bono con calendario de sesiones).
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/caja/arqueoCajaPropinas.ts sigue sin enchufar (solo lo usa su test) lib/caja/arqueoCajaPropinas.ts
+    DUPLICA. El arqueo funciona: sesiones_caja + cerrar_caja, 9 sesiones con numero_z y descuadre. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/caja/cobroMultiPago.ts sigue sin enchufar (solo lo usa su test) lib/caja/cobroMultiPago.ts
+    DUPLICA. El multi-pago funciona: cobros.metodo='mixto' con efectivo_cents/datafono_cents, 16 cobros reales. Vive en caja.web.tsx. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/caja/propinasAcumuladas.ts sigue sin enchufar (solo lo usa su test) lib/caja/propinasAcumuladas.ts
+    DUPLICA. cobros.propina_cents esta en produccion y en la caja. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/caja/verifactuHash.ts sigue sin enchufar (solo lo usa su test) lib/caja/verifactuHash.ts
+    DUPLICA. La cadena real la mina el trigger cobros_mint_ticket_trigger en SQL. Borrar. Ojo: lib/fiscal/huella.ts NO es esto y si se reutiliza (ver abajo).
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/clientes/detectarDuplicados.ts sigue sin enchufar (solo lo usa su test) lib/clientes/detectarDuplicados.ts
+    DUPLICA. Fusionar duplicados esta en clientes.web.tsx. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/config/validadorToggles.ts sigue sin enchufar (solo lo usa su test) lib/config/validadorToggles.ts
+    TRIAR. Comprobar contra lo que ya valida configuracion.web.tsx.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/fidelizacion/insigniasCliente.ts sigue sin enchufar (solo lo usa su test) lib/fidelizacion/insigniasCliente.ts
+    DUPLICA. logros / logros_desbloqueados / niveles_fidelizacion estan en produccion y se pintan en clientes.web.tsx. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/fiscal/huella.ts sigue sin enchufar (solo lo usa su test) lib/fiscal/huella.ts
+    SIN ENCHUFAR. Calcula la huella con el formato de cadena OFICIAL de la AEAT. Se reutiliza en el bloque 1 (VeriFactu real) en vez de reescribirla.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/inventario/alertasStockMinimo.ts sigue sin enchufar (solo lo usa su test) lib/inventario/alertasStockMinimo.ts
+    DUPLICA. productos.stock_minimo se usa en inventario.web.tsx y el aviso sale por la campana (useAvisos). Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/legal/contratoRgpdTablet.ts sigue sin enchufar (solo lo usa su test) lib/legal/contratoRgpdTablet.ts
+    SIN ENCHUFAR. consentimientos_cliente ya guarda 4 tipos; esto es la firma en tablet. Mirar contra la spec 13 (retencion) antes de tocarlo.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/marketing/campanasFranjasValle.ts sigue sin enchufar (solo lo usa su test) lib/marketing/campanasFranjasValle.ts
+    SIN ENCHUFAR. La tabla campanas existe y el motor de envio de Alexandro funciona; falta esta segmentacion por franja valle, que es justo la que llena los huecos.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/marketplace/rankingMarketplace.ts sigue sin enchufar (solo lo usa su test) lib/marketplace/rankingMarketplace.ts
+    TRIAR. salones_externos tiene 2.388 filas y el marketplace esta al 95%: ver si el ranking real ya se calcula en otro sitio.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/nominas/liquidacionNominas.ts sigue sin enchufar (solo lo usa su test) lib/nominas/liquidacionNominas.ts
+    SIN ENCHUFAR. Roza la spec 11 (cerrar el ciclo de comisiones) pero no es lo mismo: comisiones != nomina. Decidir si Mecha entra en nominas antes de enchufarlo.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/pos/qrPagoRapido.ts sigue sin enchufar (solo lo usa su test) lib/pos/qrPagoRapido.ts
+    DUPLICA. El cobro por enlace/QR existe: edge crear-checkout-cobro + app/pagar/[token] + terminal-cobro-intent. Borrar.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/security/sanitizadorCliente.ts sigue sin enchufar (solo lo usa su test) lib/security/sanitizadorCliente.ts
+    BORRAR, mismo motivo. Escapar HTML en el cliente no es un limite de seguridad; React ya escapa al pintar y el limite de verdad esta en el servidor. Si se quiere validar el telefono en E.164, eso es validacion de formulario y va donde esta el formulario.
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/security/validadorRPC.ts sigue sin enchufar (solo lo usa su test) lib/security/validadorRPC.ts
+    BORRAR, y por un motivo que conviene dejar escrito: detectar 'inyeccion SQL' en el cliente antes de una RPC no es una defensa. Las RPC de Supabase van parametrizadas y el control real es RLS + la regla del parametro (exige_mi_negocio), que es lo que documenta el CLAUDE.md. Enchufar esto seria PEOR que borrarlo: da confianza falsa y bloquea entradas legitimas (una nota que diga 'union' o un apellido con guion).
+
+Sigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.
+
+  * lib/agenda/serviciosCompatiblesReposo.ts ya esta enchufado: quitalo de la linea base scripts/vigilantes/modulos-desconectados-baseline.json
+    scripts/vigilantes/modulos-desconectados-baseline.json sigue listandolo como pendiente y ya tiene consumidores de verdad. Una linea base que no baja deja de ser una lista de deuda y pasa a ser un cajon.
+
+  * app/(tabs)/ayuda.web.tsx supera el l�mite de tama�o (634 l�neas > 450) app/(tabs)/ayuda.web.tsx
+    El componente tiene 634 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/ayuda.web.tsx tiene anidamiento excesivo (nivel 8 > 4) app/(tabs)/ayuda.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/bandeja.web.tsx supera el l�mite de tama�o (538 l�neas > 450) app/(tabs)/bandeja.web.tsx
+    El componente tiene 538 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/caja.web.tsx supera el l�mite de tama�o (2980 l�neas > 450) app/(tabs)/caja.web.tsx
+    El componente tiene 2980 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/caja.web.tsx tiene anidamiento excesivo (nivel 10 > 4) app/(tabs)/caja.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/campanas.web.tsx supera el l�mite de tama�o (462 l�neas > 450) app/(tabs)/campanas.web.tsx
+    El componente tiene 462 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/citas.web.tsx supera el l�mite de tama�o (481 l�neas > 450) app/(tabs)/citas.web.tsx
+    El componente tiene 481 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/clientes.tsx supera el l�mite de tama�o (957 l�neas > 450) app/(tabs)/clientes.tsx
+    El componente tiene 957 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/clientes.web.tsx supera el l�mite de tama�o (5015 l�neas > 450) app/(tabs)/clientes.web.tsx
+    El componente tiene 5015 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/clientes.web.tsx tiene anidamiento excesivo (nivel 8 > 4) app/(tabs)/clientes.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/configuracion.web.tsx supera el l�mite de tama�o (6592 l�neas > 450) app/(tabs)/configuracion.web.tsx
+    El componente tiene 6592 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/configuracion.web.tsx tiene anidamiento excesivo (nivel 9 > 4) app/(tabs)/configuracion.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/equipo.tsx supera el l�mite de tama�o (615 l�neas > 450) app/(tabs)/equipo.tsx
+    El componente tiene 615 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/equipo.web.tsx supera el l�mite de tama�o (3743 l�neas > 450) app/(tabs)/equipo.web.tsx
+    El componente tiene 3743 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/equipo.web.tsx tiene anidamiento excesivo (nivel 10 > 4) app/(tabs)/equipo.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/informes.web.tsx supera el l�mite de tama�o (3338 l�neas > 450) app/(tabs)/informes.web.tsx
+    El componente tiene 3338 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/informes.web.tsx tiene anidamiento excesivo (nivel 8 > 4) app/(tabs)/informes.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/inventario.web.tsx supera el l�mite de tama�o (2428 l�neas > 450) app/(tabs)/inventario.web.tsx
+    El componente tiene 2428 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/inventario.web.tsx tiene anidamiento excesivo (nivel 7 > 4) app/(tabs)/inventario.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/lista-espera.web.tsx supera el l�mite de tama�o (653 l�neas > 450) app/(tabs)/lista-espera.web.tsx
+    El componente tiene 653 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/lista-espera.web.tsx tiene anidamiento excesivo (nivel 8 > 4) app/(tabs)/lista-espera.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/mi-jornada.web.tsx supera el l�mite de tama�o (1522 l�neas > 450) app/(tabs)/mi-jornada.web.tsx
+    El componente tiene 1522 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/mi-jornada.web.tsx tiene anidamiento excesivo (nivel 7 > 4) app/(tabs)/mi-jornada.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/(tabs)/presupuestos.web.tsx supera el l�mite de tama�o (966 l�neas > 450) app/(tabs)/presupuestos.web.tsx
+    El componente tiene 966 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/resenas.web.tsx supera el l�mite de tama�o (785 l�neas > 450) app/(tabs)/resenas.web.tsx
+    El componente tiene 785 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/(tabs)/resenas.web.tsx tiene anidamiento excesivo (nivel 7 > 4) app/(tabs)/resenas.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/_layout.tsx supera el l�mite de tama�o (463 l�neas > 450) app/_layout.tsx
+    El componente tiene 463 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/cita/[id].web.tsx supera el l�mite de tama�o (677 l�neas > 450) app/cita/[id].web.tsx
+    El componente tiene 677 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/r/[slug].web.tsx supera el l�mite de tama�o (1485 l�neas > 450) app/r/[slug].web.tsx
+    El componente tiene 1485 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/r/[slug].web.tsx tiene anidamiento excesivo (nivel 9 > 4) app/r/[slug].web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/screens/agenda-detalle.tsx supera el l�mite de tama�o (971 l�neas > 450) app/screens/agenda-detalle.tsx
+    El componente tiene 971 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/screens/agenda-detalle.tsx tiene anidamiento excesivo (nivel 8 > 4) app/screens/agenda-detalle.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * app/screens/configuracion.tsx supera el l�mite de tama�o (491 l�neas > 450) app/screens/configuracion.tsx
+    El componente tiene 491 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * app/screens/nueva-cita.tsx supera el l�mite de tama�o (1056 l�neas > 450) app/screens/nueva-cita.tsx
+    El componente tiene 1056 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/acceso/GuardaSuscripcion.tsx supera el l�mite de tama�o (472 l�neas > 450) components/acceso/GuardaSuscripcion.tsx
+    El componente tiene 472 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/AgendaCalendar.tsx supera el l�mite de tama�o (867 l�neas > 450) components/agenda/AgendaCalendar.tsx
+    El componente tiene 867 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/AgendaCalendar.tsx tiene anidamiento excesivo (nivel 7 > 4) components/agenda/AgendaCalendar.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/AgendaCalendar.web.tsx supera el l�mite de tama�o (7385 l�neas > 450) components/agenda/AgendaCalendar.web.tsx
+    El componente tiene 7385 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/AgendaCalendar.web.tsx tiene anidamiento excesivo (nivel 8 > 4) components/agenda/AgendaCalendar.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/BriefingAgenda.web.tsx tiene anidamiento excesivo (nivel 7 > 4) components/agenda/BriefingAgenda.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/FasesCitaPanel.web.tsx supera el l�mite de tama�o (552 l�neas > 450) components/agenda/FasesCitaPanel.web.tsx
+    El componente tiene 552 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/FasesCitaPanel.web.tsx tiene anidamiento excesivo (nivel 7 > 4) components/agenda/FasesCitaPanel.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/OrganizarAgendaPanel.web.tsx supera el l�mite de tama�o (1260 l�neas > 450) components/agenda/OrganizarAgendaPanel.web.tsx
+    El componente tiene 1260 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/OrganizarAgendaPanel.web.tsx tiene anidamiento excesivo (nivel 7 > 4) components/agenda/OrganizarAgendaPanel.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/RetrasoEstrategiasModal.web.tsx tiene anidamiento excesivo (nivel 7 > 4) components/agenda/RetrasoEstrategiasModal.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/modals/DetalleCitaModal.web.tsx supera el l�mite de tama�o (7278 l�neas > 450) components/agenda/modals/DetalleCitaModal.web.tsx
+    El componente tiene 7278 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/modals/DetalleCitaModal.web.tsx tiene anidamiento excesivo (nivel 10 > 4) components/agenda/modals/DetalleCitaModal.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/modals/NewCitaModal.web.tsx supera el l�mite de tama�o (4820 l�neas > 450) components/agenda/modals/NewCitaModal.web.tsx
+    El componente tiene 4820 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/modals/NewCitaModal.web.tsx tiene anidamiento excesivo (nivel 9 > 4) components/agenda/modals/NewCitaModal.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/modals/ReservaGrupoModal.web.tsx supera el l�mite de tama�o (611 l�neas > 450) components/agenda/modals/ReservaGrupoModal.web.tsx
+    El componente tiene 611 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/ui/atomos.web.tsx supera el l�mite de tama�o (983 l�neas > 450) components/agenda/ui/atomos.web.tsx
+    El componente tiene 983 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/views/VistaDiaLista.web.tsx tiene anidamiento excesivo (nivel 7 > 4) components/agenda/views/VistaDiaLista.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/views/VistasSemanaMes.web.tsx supera el l�mite de tama�o (1411 l�neas > 450) components/agenda/views/VistasSemanaMes.web.tsx
+    El componente tiene 1411 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/views/VistasSemanaMes.web.tsx tiene anidamiento excesivo (nivel 9 > 4) components/agenda/views/VistasSemanaMes.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/views/timeline/AppointmentCard.web.tsx supera el l�mite de tama�o (1325 l�neas > 450) components/agenda/views/timeline/AppointmentCard.web.tsx
+    El componente tiene 1325 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/views/timeline/AppointmentCard.web.tsx tiene anidamiento excesivo (nivel 12 > 4) components/agenda/views/timeline/AppointmentCard.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/views/timeline/ProfessionalColumn.web.tsx supera el l�mite de tama�o (726 l�neas > 450) components/agenda/views/timeline/ProfessionalColumn.web.tsx
+    El componente tiene 726 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/views/timeline/ProfessionalColumn.web.tsx tiene anidamiento excesivo (nivel 8 > 4) components/agenda/views/timeline/ProfessionalColumn.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/agenda/views/timeline/Timeline.web.tsx supera el l�mite de tama�o (2446 l�neas > 450) components/agenda/views/timeline/Timeline.web.tsx
+    El componente tiene 2446 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/agenda/views/timeline/Timeline.web.tsx tiene anidamiento excesivo (nivel 11 > 4) components/agenda/views/timeline/Timeline.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/chispa/BloqueRenderer.web.tsx supera el l�mite de tama�o (752 l�neas > 450) components/chispa/BloqueRenderer.web.tsx
+    El componente tiene 752 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/chispa/ChispaPanel.web.tsx supera el l�mite de tama�o (1988 l�neas > 450) components/chispa/ChispaPanel.web.tsx
+    El componente tiene 1988 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/chispa/ChispaPanel.web.tsx tiene anidamiento excesivo (nivel 7 > 4) components/chispa/ChispaPanel.web.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/cola/ColaDiaPanel.web.tsx supera el l�mite de tama�o (603 l�neas > 450) components/cola/ColaDiaPanel.web.tsx
+    El componente tiene 603 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/config/ModalImportarTarifasIA.tsx supera el l�mite de tama�o (676 l�neas > 450) components/config/ModalImportarTarifasIA.tsx
+    El componente tiene 676 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/config/ModalTecnificarCatalogo.tsx supera el l�mite de tama�o (905 l�neas > 450) components/config/ModalTecnificarCatalogo.tsx
+    El componente tiene 905 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/config/ModalTecnificarCatalogo.tsx tiene anidamiento excesivo (nivel 9 > 4) components/config/ModalTecnificarCatalogo.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/config/SeccionSuscripcion.web.tsx supera el l�mite de tama�o (475 l�neas > 450) components/config/SeccionSuscripcion.web.tsx
+    El componente tiene 475 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/config/TabMigracionMagica.tsx supera el l�mite de tama�o (822 l�neas > 450) components/config/TabMigracionMagica.tsx
+    El componente tiene 822 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/config/TabMigracionMagica.tsx tiene anidamiento excesivo (nivel 7 > 4) components/config/TabMigracionMagica.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/config/TabRecompensas.web.tsx supera el l�mite de tama�o (1417 l�neas > 450) components/config/TabRecompensas.web.tsx
+    El componente tiene 1417 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/informes/FacturasRegistroSection.tsx supera el l�mite de tama�o (551 l�neas > 450) components/informes/FacturasRegistroSection.tsx
+    El componente tiene 551 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/informes/LiquidacionesSection.tsx supera el l�mite de tama�o (942 l�neas > 450) components/informes/LiquidacionesSection.tsx
+    El componente tiene 942 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/informes/LiquidacionesSection.tsx tiene anidamiento excesivo (nivel 7 > 4) components/informes/LiquidacionesSection.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/jornada/RegistroJornada.web.tsx supera el l�mite de tama�o (715 l�neas > 450) components/jornada/RegistroJornada.web.tsx
+    El componente tiene 715 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/layout/Sidebar.tsx supera el l�mite de tama�o (895 l�neas > 450) components/layout/Sidebar.tsx
+    El componente tiene 895 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/onboarding/AsistentePuestaEnMarcha.web.tsx supera el l�mite de tama�o (1045 l�neas > 450) components/onboarding/AsistentePuestaEnMarcha.web.tsx
+    El componente tiene 1045 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/onboarding/OnboardingPanel.tsx supera el l�mite de tama�o (504 l�neas > 450) components/onboarding/OnboardingPanel.tsx
+    El componente tiene 504 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/pos/CobroSheet.tsx supera el l�mite de tama�o (1251 l�neas > 450) components/pos/CobroSheet.tsx
+    El componente tiene 1251 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * components/pos/CobroSheet.tsx tiene anidamiento excesivo (nivel 7 > 4) components/pos/CobroSheet.tsx
+    Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.
+
+  * components/ui/SettingsAtoms.tsx supera el l�mite de tama�o (915 l�neas > 450) components/ui/SettingsAtoms.tsx
+    El componente tiene 915 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.
+
+  * Pantalla "agenda" supera presupuesto de carga (4.70 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 4703 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "agenda" supera cuota de peticiones iniciales (70 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 70 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "mi-jornada" supera presupuesto de carga (2.48 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 2482 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "mi-jornada" supera cuota de peticiones iniciales (7 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 7 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "lista-espera" supera presupuesto de carga (1.84 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 1836 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "lista-espera" supera límite de Long Tasks (3 tareas > 2) tests/smoke/rendimiento-baseline.canario.json
+    Se registraron 3 tareas largas en el hilo principal acumulando 200 ms de bloqueo. Conviene trocear computación pesada con requestIdleCallback o Web Workers.
+
+  * Pantalla "lista-espera" supera cuota de peticiones iniciales (14 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 14 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "citas" supera cuota de peticiones iniciales (9 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 9 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "clientes" supera presupuesto de carga (3.14 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 3142 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "clientes" supera límite de Long Tasks (3 tareas > 2) tests/smoke/rendimiento-baseline.canario.json
+    Se registraron 3 tareas largas en el hilo principal acumulando 198 ms de bloqueo. Conviene trocear computación pesada con requestIdleCallback o Web Workers.
+
+  * Pantalla "clientes" supera cuota de peticiones iniciales (22 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 22 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "caja" supera presupuesto de carga (3.31 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 3306 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "caja" supera cuota de peticiones iniciales (19 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 19 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "presupuestos" supera cuota de peticiones iniciales (18 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 18 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "equipo" supera presupuesto de carga (2.35 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 2352 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "equipo" supera cuota de peticiones iniciales (19 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 19 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "inventario" supera cuota de peticiones iniciales (15 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 15 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "resenas" supera cuota de peticiones iniciales (10 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 10 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "informes" supera cuota de peticiones iniciales (18 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 18 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "ayuda" supera cuota de peticiones iniciales (13 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 13 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "configuracion" supera cuota de peticiones iniciales (8 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 8 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "portal-reserva" supera presupuesto de carga (2.78 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 2781 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "portal-reserva" supera cuota de peticiones iniciales (21 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 21 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * Pantalla "portal-resena" supera presupuesto de carga (3.78 s > 1.8 s) tests/smoke/rendimiento-baseline.canario.json
+    Tiempo de carga medido: 3781 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.
+
+  * Pantalla "portal-resena" supera cuota de peticiones iniciales (22 > 6) tests/smoke/rendimiento-baseline.canario.json
+    La carga inicial disparó 22 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.
+
+  * app/(tabs)/ayuda.web.tsx supera el límite de tamaño (634 líneas > 450) app/(tabs)/ayuda.web.tsx:1
+    El componente tiene 634 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/ayuda.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) app/(tabs)/ayuda.web.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/bandeja.web.tsx supera el límite de tamaño (538 líneas > 450) app/(tabs)/bandeja.web.tsx:1
+    El componente tiene 538 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/bandeja.web.tsx tiene complejidad/anidamiento excesivo (nivel 12 > 4) app/(tabs)/bandeja.web.tsx:1
+    Se detectaron bloques de control con profundidad de 12 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/caja.web.tsx supera el límite de tamaño (2980 líneas > 450) app/(tabs)/caja.web.tsx:1
+    El componente tiene 2980 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/campanas.web.tsx supera el límite de tamaño (462 líneas > 450) app/(tabs)/campanas.web.tsx:1
+    El componente tiene 462 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/campanas.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) app/(tabs)/campanas.web.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/citas.web.tsx supera el límite de tamaño (481 líneas > 450) app/(tabs)/citas.web.tsx:1
+    El componente tiene 481 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/citas.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) app/(tabs)/citas.web.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/clientes.tsx supera el límite de tamaño (957 líneas > 450) app/(tabs)/clientes.tsx:1
+    El componente tiene 957 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/clientes.tsx tiene complejidad/anidamiento excesivo (nivel 15 > 4) app/(tabs)/clientes.tsx:1
+    Se detectaron bloques de control con profundidad de 15 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/clientes.web.tsx supera el límite de tamaño (5015 líneas > 450) app/(tabs)/clientes.web.tsx:1
+    El componente tiene 5015 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/clientes.web.tsx tiene complejidad/anidamiento excesivo (nivel 51 > 4) app/(tabs)/clientes.web.tsx:1
+    Se detectaron bloques de control con profundidad de 51 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/configuracion.web.tsx supera el límite de tamaño (6592 líneas > 450) app/(tabs)/configuracion.web.tsx:1
+    El componente tiene 6592 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/configuracion.web.tsx tiene complejidad/anidamiento excesivo (nivel 50 > 4) app/(tabs)/configuracion.web.tsx:1
+    Se detectaron bloques de control con profundidad de 50 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/equipo.tsx supera el límite de tamaño (615 líneas > 450) app/(tabs)/equipo.tsx:1
+    El componente tiene 615 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/equipo.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) app/(tabs)/equipo.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/equipo.web.tsx supera el límite de tamaño (3743 líneas > 450) app/(tabs)/equipo.web.tsx:1
+    El componente tiene 3743 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/equipo.web.tsx tiene complejidad/anidamiento excesivo (nivel 27 > 4) app/(tabs)/equipo.web.tsx:1
+    Se detectaron bloques de control con profundidad de 27 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/informes.web.tsx supera el límite de tamaño (3338 líneas > 450) app/(tabs)/informes.web.tsx:1
+    El componente tiene 3338 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/informes.web.tsx tiene complejidad/anidamiento excesivo (nivel 21 > 4) app/(tabs)/informes.web.tsx:1
+    Se detectaron bloques de control con profundidad de 21 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/inventario.web.tsx supera el límite de tamaño (2428 líneas > 450) app/(tabs)/inventario.web.tsx:1
+    El componente tiene 2428 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/inventario.web.tsx tiene complejidad/anidamiento excesivo (nivel 16 > 4) app/(tabs)/inventario.web.tsx:1
+    Se detectaron bloques de control con profundidad de 16 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/lista-espera.web.tsx supera el límite de tamaño (653 líneas > 450) app/(tabs)/lista-espera.web.tsx:1
+    El componente tiene 653 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/lista-espera.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) app/(tabs)/lista-espera.web.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/mi-jornada.web.tsx supera el límite de tamaño (1522 líneas > 450) app/(tabs)/mi-jornada.web.tsx:1
+    El componente tiene 1522 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/mi-jornada.web.tsx tiene complejidad/anidamiento excesivo (nivel 12 > 4) app/(tabs)/mi-jornada.web.tsx:1
+    Se detectaron bloques de control con profundidad de 12 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/presupuestos.web.tsx supera el límite de tamaño (966 líneas > 450) app/(tabs)/presupuestos.web.tsx:1
+    El componente tiene 966 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/presupuestos.web.tsx tiene complejidad/anidamiento excesivo (nivel 13 > 4) app/(tabs)/presupuestos.web.tsx:1
+    Se detectaron bloques de control con profundidad de 13 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/(tabs)/resenas.web.tsx supera el límite de tamaño (785 líneas > 450) app/(tabs)/resenas.web.tsx:1
+    El componente tiene 785 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/(tabs)/resenas.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) app/(tabs)/resenas.web.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/_layout.tsx supera el límite de tamaño (463 líneas > 450) app/_layout.tsx:1
+    El componente tiene 463 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/_layout.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) app/_layout.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/cita/[id].web.tsx supera el límite de tamaño (677 líneas > 450) app/cita/[id].web.tsx:1
+    El componente tiene 677 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/cita/[id].web.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4) app/cita/[id].web.tsx:1
+    Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/login.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) app/login.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/pagar/[token].web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) app/pagar/[token].web.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/presupuesto/[token].web.tsx tiene complejidad/anidamiento excesivo (nivel 13 > 4) app/presupuesto/[token].web.tsx:1
+    Se detectaron bloques de control con profundidad de 13 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/r/[slug].web.tsx supera el límite de tamaño (1485 líneas > 450) app/r/[slug].web.tsx:1
+    El componente tiene 1485 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/r/[slug].web.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4) app/r/[slug].web.tsx:1
+    Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/screens/agenda-detalle.tsx supera el límite de tamaño (971 líneas > 450) app/screens/agenda-detalle.tsx:1
+    El componente tiene 971 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/screens/agenda-detalle.tsx tiene complejidad/anidamiento excesivo (nivel 15 > 4) app/screens/agenda-detalle.tsx:1
+    Se detectaron bloques de control con profundidad de 15 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * app/screens/configuracion.tsx supera el límite de tamaño (491 líneas > 450) app/screens/configuracion.tsx:1
+    El componente tiene 491 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/screens/nueva-cita.tsx supera el límite de tamaño (1056 líneas > 450) app/screens/nueva-cita.tsx:1
+    El componente tiene 1056 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * app/screens/nueva-cita.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) app/screens/nueva-cita.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/acceso/GuardaSuscripcion.tsx supera el límite de tamaño (472 líneas > 450) components/acceso/GuardaSuscripcion.tsx:1
+    El componente tiene 472 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/AgendaCalendar.tsx supera el límite de tamaño (867 líneas > 450) components/agenda/AgendaCalendar.tsx:1
+    El componente tiene 867 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/AgendaCalendar.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/agenda/AgendaCalendar.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/AgendaCalendar.web.tsx supera el límite de tamaño (7385 líneas > 450) components/agenda/AgendaCalendar.web.tsx:1
+    El componente tiene 7385 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/AgendaCalendar.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/agenda/AgendaCalendar.web.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/BriefingAgenda.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/agenda/BriefingAgenda.web.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/ChainFlowOverlay.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/agenda/ChainFlowOverlay.web.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/FasesCitaPanel.web.tsx supera el límite de tamaño (552 líneas > 450) components/agenda/FasesCitaPanel.web.tsx:1
+    El componente tiene 552 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/FasesCitaPanel.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/agenda/FasesCitaPanel.web.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/ListaEsperaPropuestaModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/agenda/ListaEsperaPropuestaModal.web.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/OrganizarAgendaPanel.web.tsx supera el límite de tamaño (1260 líneas > 450) components/agenda/OrganizarAgendaPanel.web.tsx:1
+    El componente tiene 1260 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/OrganizarAgendaPanel.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/agenda/OrganizarAgendaPanel.web.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/RetrasoEstrategiasModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/agenda/RetrasoEstrategiasModal.web.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/modals/DetalleCitaModal.web.tsx supera el límite de tamaño (7278 líneas > 450) components/agenda/modals/DetalleCitaModal.web.tsx:1
+    El componente tiene 7278 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/modals/DetalleCitaModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) components/agenda/modals/DetalleCitaModal.web.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/modals/NewCitaModal.web.tsx supera el límite de tamaño (4820 líneas > 450) components/agenda/modals/NewCitaModal.web.tsx:1
+    El componente tiene 4820 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/modals/NewCitaModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/agenda/modals/NewCitaModal.web.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/modals/ReservaGrupoModal.web.tsx supera el límite de tamaño (611 líneas > 450) components/agenda/modals/ReservaGrupoModal.web.tsx:1
+    El componente tiene 611 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/ui/atomos.web.tsx supera el límite de tamaño (983 líneas > 450) components/agenda/ui/atomos.web.tsx:1
+    El componente tiene 983 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/views/VistaDiaLista.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/agenda/views/VistaDiaLista.web.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/views/VistasSemanaMes.web.tsx supera el límite de tamaño (1411 líneas > 450) components/agenda/views/VistasSemanaMes.web.tsx:1
+    El componente tiene 1411 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/views/VistasSemanaMes.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/agenda/views/VistasSemanaMes.web.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/views/timeline/AppointmentCard.web.tsx supera el límite de tamaño (1325 líneas > 450) components/agenda/views/timeline/AppointmentCard.web.tsx:1
+    El componente tiene 1325 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/views/timeline/AppointmentCard.web.tsx tiene complejidad/anidamiento excesivo (nivel 12 > 4) components/agenda/views/timeline/AppointmentCard.web.tsx:1
+    Se detectaron bloques de control con profundidad de 12 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/views/timeline/ProfessionalColumn.web.tsx supera el límite de tamaño (726 líneas > 450) components/agenda/views/timeline/ProfessionalColumn.web.tsx:1
+    El componente tiene 726 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/views/timeline/ProfessionalColumn.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/agenda/views/timeline/ProfessionalColumn.web.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/agenda/views/timeline/Timeline.web.tsx supera el límite de tamaño (2446 líneas > 450) components/agenda/views/timeline/Timeline.web.tsx:1
+    El componente tiene 2446 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/agenda/views/timeline/Timeline.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) components/agenda/views/timeline/Timeline.web.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/avisos/AvisosBell.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/avisos/AvisosBell.web.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/chispa/BloqueRenderer.web.tsx supera el límite de tamaño (752 líneas > 450) components/chispa/BloqueRenderer.web.tsx:1
+    El componente tiene 752 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/chispa/BloqueRenderer.web.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4) components/chispa/BloqueRenderer.web.tsx:1
+    Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/chispa/ChispaPanel.web.tsx supera el límite de tamaño (1988 líneas > 450) components/chispa/ChispaPanel.web.tsx:1
+    El componente tiene 1988 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/chispa/ChispaPanel.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) components/chispa/ChispaPanel.web.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/chispa/TarjetaAyudaIA.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) components/chispa/TarjetaAyudaIA.web.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/chispa/TourLauncher.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/chispa/TourLauncher.web.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/clientes/InstagramPostModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/clientes/InstagramPostModal.web.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/cola/ColaDiaPanel.web.tsx supera el límite de tamaño (603 líneas > 450) components/cola/ColaDiaPanel.web.tsx:1
+    El componente tiene 603 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/config/ModalImportarTarifasIA.tsx supera el límite de tamaño (676 líneas > 450) components/config/ModalImportarTarifasIA.tsx:1
+    El componente tiene 676 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/config/ModalTecnificarCatalogo.tsx supera el límite de tamaño (905 líneas > 450) components/config/ModalTecnificarCatalogo.tsx:1
+    El componente tiene 905 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/config/ModalTecnificarCatalogo.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/config/ModalTecnificarCatalogo.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/config/SeccionSuscripcion.web.tsx supera el límite de tamaño (475 líneas > 450) components/config/SeccionSuscripcion.web.tsx:1
+    El componente tiene 475 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/config/SeccionSuscripcion.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) components/config/SeccionSuscripcion.web.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/config/TabMigracionMagica.tsx supera el límite de tamaño (822 líneas > 450) components/config/TabMigracionMagica.tsx:1
+    El componente tiene 822 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/config/TabMigracionMagica.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/config/TabMigracionMagica.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/config/TabPresupuestoConceptos.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/config/TabPresupuestoConceptos.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/config/TabRecompensas.web.tsx supera el límite de tamaño (1417 líneas > 450) components/config/TabRecompensas.web.tsx:1
+    El componente tiene 1417 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/config/TabRecompensas.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/config/TabRecompensas.web.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/equipo/RendimientoEquipo.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) components/equipo/RendimientoEquipo.web.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/informes/AuditoriaSection.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/informes/AuditoriaSection.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/informes/FacturasRegistroSection.tsx supera el límite de tamaño (551 líneas > 450) components/informes/FacturasRegistroSection.tsx:1
+    El componente tiene 551 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/informes/FacturasRegistroSection.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/informes/FacturasRegistroSection.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/informes/GastosSection.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) components/informes/GastosSection.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/informes/LiquidacionesSection.tsx supera el límite de tamaño (942 líneas > 450) components/informes/LiquidacionesSection.tsx:1
+    El componente tiene 942 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/informes/LiquidacionesSection.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/informes/LiquidacionesSection.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/informes/ProductosVendidosSection.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4) components/informes/ProductosVendidosSection.tsx:1
+    Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/jornada/RegistroJornada.web.tsx supera el límite de tamaño (715 líneas > 450) components/jornada/RegistroJornada.web.tsx:1
+    El componente tiene 715 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/jornada/RegistroJornada.web.tsx tiene complejidad/anidamiento excesivo (nivel 17 > 4) components/jornada/RegistroJornada.web.tsx:1
+    Se detectaron bloques de control con profundidad de 17 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/layout/Sidebar.tsx supera el límite de tamaño (895 líneas > 450) components/layout/Sidebar.tsx:1
+    El componente tiene 895 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/layout/Sidebar.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) components/layout/Sidebar.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/onboarding/AsistentePuestaEnMarcha.web.tsx supera el límite de tamaño (1045 líneas > 450) components/onboarding/AsistentePuestaEnMarcha.web.tsx:1
+    El componente tiene 1045 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/onboarding/AsistentePuestaEnMarcha.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4) components/onboarding/AsistentePuestaEnMarcha.web.tsx:1
+    Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/onboarding/OnboardingPanel.tsx supera el límite de tamaño (504 líneas > 450) components/onboarding/OnboardingPanel.tsx:1
+    El componente tiene 504 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/pos/CobroSheet.tsx supera el límite de tamaño (1251 líneas > 450) components/pos/CobroSheet.tsx:1
+    El componente tiene 1251 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/pos/CobroSheet.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4) components/pos/CobroSheet.tsx:1
+    Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/pos/SelectorCatalogo.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/pos/SelectorCatalogo.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/ui/DesignComponents.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4) components/ui/DesignComponents.tsx:1
+    Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/ui/Pickers.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4) components/ui/Pickers.tsx:1
+    Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * components/ui/SettingsAtoms.tsx supera el límite de tamaño (915 líneas > 450) components/ui/SettingsAtoms.tsx:1
+    El componente tiene 915 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.
+
+  * components/ui/SettingsAtoms.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4) components/ui/SettingsAtoms.tsx:1
+    Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/clientes.web.tsx y app/(tabs)/ayuda.web.tsx app/(tabs)/clientes.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/clientes.web.tsx y app/(tabs)/ayuda.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/equipo.web.tsx y app/(tabs)/ayuda.web.tsx app/(tabs)/equipo.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/equipo.web.tsx y app/(tabs)/ayuda.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/informes.tsx y app/(tabs)/ayuda.tsx app/(tabs)/informes.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/informes.tsx y app/(tabs)/ayuda.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/informes.web.tsx y app/(tabs)/clientes.web.tsx app/(tabs)/informes.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/informes.web.tsx y app/(tabs)/clientes.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/inventario.web.tsx y app/(tabs)/clientes.web.tsx app/(tabs)/inventario.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/inventario.web.tsx y app/(tabs)/clientes.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/lista-espera.web.tsx y app/(tabs)/bandeja.web.tsx app/(tabs)/lista-espera.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/lista-espera.web.tsx y app/(tabs)/bandeja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/presupuestos.web.tsx y app/(tabs)/bandeja.web.tsx app/(tabs)/presupuestos.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/presupuestos.web.tsx y app/(tabs)/bandeja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/(tabs)/resenas.web.tsx y app/(tabs)/clientes.web.tsx app/(tabs)/resenas.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/(tabs)/resenas.web.tsx y app/(tabs)/clientes.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/pago/[ref].web.tsx y app/pagar/[token].web.tsx app/pago/[ref].web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/pago/[ref].web.tsx y app/pagar/[token].web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/r/[slug].web.tsx y app/cita/[id].web.tsx app/r/[slug].web.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/r/[slug].web.tsx y app/cita/[id].web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre app/screens/nueva-cita.tsx y app/screens/agenda-detalle.tsx app/screens/nueva-cita.tsx:1
+    Se detectó un bloque de lógica idéntica entre app/screens/nueva-cita.tsx y app/screens/agenda-detalle.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/acceso/PuertaIdentidad.web.tsx y components/acceso/PuertaIdentidad.tsx components/acceso/PuertaIdentidad.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/acceso/PuertaIdentidad.web.tsx y components/acceso/PuertaIdentidad.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/AgendaCalendar.web.tsx y app/(tabs)/caja.web.tsx components/agenda/AgendaCalendar.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/AgendaCalendar.web.tsx y app/(tabs)/caja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/ListaEsperaDropdown.web.tsx y app/(tabs)/caja.web.tsx components/agenda/ListaEsperaDropdown.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/ListaEsperaDropdown.web.tsx y app/(tabs)/caja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/RetrasoEstrategiasModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx components/agenda/RetrasoEstrategiasModal.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/RetrasoEstrategiasModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/RetrasoPropuestaModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx components/agenda/RetrasoPropuestaModal.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/RetrasoPropuestaModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/SelectorCreacionAgenda.web.tsx y components/agenda/AvisosAgendaPanel.web.tsx components/agenda/SelectorCreacionAgenda.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/SelectorCreacionAgenda.web.tsx y components/agenda/AvisosAgendaPanel.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/modals/DetalleCitaModal.web.tsx y app/(tabs)/caja.web.tsx components/agenda/modals/DetalleCitaModal.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/modals/DetalleCitaModal.web.tsx y app/(tabs)/caja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/modals/NewCitaModal.web.tsx y app/screens/nueva-cita.tsx components/agenda/modals/NewCitaModal.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/modals/NewCitaModal.web.tsx y app/screens/nueva-cita.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/modals/ReservaGrupoModal.web.tsx y app/(tabs)/caja.web.tsx components/agenda/modals/ReservaGrupoModal.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/modals/ReservaGrupoModal.web.tsx y app/(tabs)/caja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/views/VistaDiaLista.web.tsx y app/(tabs)/caja.web.tsx components/agenda/views/VistaDiaLista.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/views/VistaDiaLista.web.tsx y app/(tabs)/caja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/views/VistasSemanaMes.web.tsx y app/(tabs)/caja.web.tsx components/agenda/views/VistasSemanaMes.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/views/VistasSemanaMes.web.tsx y app/(tabs)/caja.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/agenda/views/timeline/Timeline.web.tsx y components/agenda/modals/ReservaGrupoModal.web.tsx components/agenda/views/timeline/Timeline.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/agenda/views/timeline/Timeline.web.tsx y components/agenda/modals/ReservaGrupoModal.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/chispa/TourLauncher.web.tsx y components/chispa/CoachLauncher.web.tsx components/chispa/TourLauncher.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/chispa/TourLauncher.web.tsx y components/chispa/CoachLauncher.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/config/MiPerfilProfesional.tsx y app/(tabs)/configuracion.web.tsx components/config/MiPerfilProfesional.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/config/MiPerfilProfesional.tsx y app/(tabs)/configuracion.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/equipo/RendimientoEquipo.web.tsx y app/(tabs)/mi-jornada.web.tsx components/equipo/RendimientoEquipo.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/equipo/RendimientoEquipo.web.tsx y app/(tabs)/mi-jornada.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/informes/LiquidacionesSection.tsx y app/(tabs)/clientes.web.tsx components/informes/LiquidacionesSection.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/informes/LiquidacionesSection.tsx y app/(tabs)/clientes.web.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/layout/Sidebar.tsx y components/layout/MobileTabBar.tsx components/layout/Sidebar.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/layout/Sidebar.tsx y components/layout/MobileTabBar.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/pos/VentaTarjetaRegaloModal.tsx y components/pos/VentaBonoModal.tsx components/pos/VentaTarjetaRegaloModal.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/pos/VentaTarjetaRegaloModal.tsx y components/pos/VentaBonoModal.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Lógica duplicada (8+ líneas) entre components/ui/PhoneInput.web.tsx y components/ui/PhoneInput.tsx components/ui/PhoneInput.web.tsx:1
+    Se detectó un bloque de lógica idéntica entre components/ui/PhoneInput.web.tsx y components/ui/PhoneInput.tsx.
+Se recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.
+
+  * Vigilante cascade-skippable: job "e2e", paso "Vigilante de peso del bundle" .github/workflows/ci.yml
+    .github/workflows/ci.yml: el paso de vigilancia "Vigilante de peso del bundle" esta despues de pasos que pueden fallar y NO tiene `if: always()`. Si un paso anterior falla, este vigilante nunca corre y su informe no se genera: el panel se queda con la ultima foto vieja sin decirlo.
+
+Solucion: anadir `if: always()` al paso, o mover el vigilante antes de los pasos fragiles.
+
+  * Vigilante cascade-skippable: job "e2e", paso "Puerta de claves contra el bundle construido" .github/workflows/ci.yml
+    .github/workflows/ci.yml: el paso de vigilancia "Puerta de claves contra el bundle construido" esta despues de pasos que pueden fallar y NO tiene `if: always()`. Si un paso anterior falla, este vigilante nunca corre y su informe no se genera: el panel se queda con la ultima foto vieja sin decirlo.
+
+Solucion: anadir `if: always()` al paso, o mover el vigilante antes de los pasos fragiles.
+
+  * El vigilante scripts/vigilantes/bd-ecosistema.mjs no tiene archivo de test bd-ecosistema.test.mjs scripts/vigilantes/bd-ecosistema.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd-escritura-critica.mjs no tiene archivo de test bd-escritura-critica.test.mjs scripts/vigilantes/bd-escritura-critica.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd-invariantes.mjs no tiene archivo de test bd-invariantes.test.mjs scripts/vigilantes/bd-invariantes.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd-migraciones.mjs no tiene archivo de test bd-migraciones.test.mjs scripts/vigilantes/bd-migraciones.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd-rendimiento.mjs no tiene archivo de test bd-rendimiento.test.mjs scripts/vigilantes/bd-rendimiento.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd-sobrecargas-rpc.mjs no tiene archivo de test bd-sobrecargas-rpc.test.mjs scripts/vigilantes/bd-sobrecargas-rpc.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd-triggers-ciegos.mjs no tiene archivo de test bd-triggers-ciegos.test.mjs scripts/vigilantes/bd-triggers-ciegos.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/bd.mjs no tiene archivo de test bd.test.mjs scripts/vigilantes/bd.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * El vigilante scripts/vigilantes/codigo-muerto.mjs no tiene archivo de test codigo-muerto.test.mjs scripts/vigilantes/codigo-muerto.mjs
+    Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.
+
+  * app/(tabs)/clientes.tsx: <Modal> no implementa onRequestClose / onDismiss app/(tabs)/clientes.tsx
+    En app/(tabs)/clientes.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.
+
+  * app/(tabs)/clientes.tsx: <Modal> no implementa onRequestClose / onDismiss app/(tabs)/clientes.tsx
+    En app/(tabs)/clientes.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.
+
+  * app/(tabs)/equipo.tsx: <Modal> no implementa onRequestClose / onDismiss app/(tabs)/equipo.tsx
+    En app/(tabs)/equipo.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.
+
+  * app/(tabs)/equipo.tsx: <Modal> no implementa onRequestClose / onDismiss app/(tabs)/equipo.tsx
+    En app/(tabs)/equipo.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.
+
+  * app/(tabs)/equipo.tsx: <Modal> no implementa onRequestClose / onDismiss app/(tabs)/equipo.tsx
+    En app/(tabs)/equipo.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.
+
+  * notificaciones_pendientes se lleva el 14.4 % del tiempo de la base base de datos
+    En 59297 llamadas: 37.3 ms de media, pico de 3662 ms, 2212 s en total. Se mide en proporcion del periodo a proposito: los totales absolutos solo crecen y cualquier umbral sobre ellos acabaria saltando siempre. Consulta: WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_limit", "p_recordatorio_horas" FROM json_to
+
+  * una consulta se lleva el 10.8 % del tiempo de la base base de datos
+    En 294032 llamadas: 5.6 ms de media, pico de 5093 ms, 1657 s en total. Se mide en proporcion del periodo a proposito: los totales absolutos solo crecen y cualquier umbral sobre ellos acabaria saltando siempre. Consulta: SELECT wal->>$5 as type, wal->>$6 as schema, wal->>$7 as table, COALESCE(wal->>$8, $9) as columns, COALESCE(wal->>$10, $11) as record, COALESCE(wal->>$12, $13) 
+
+  * vigilancia_bd tarda 1998 ms de media base de datos
+    Con 222 llamadas y un pico de 3530 ms. Cada persona que abre esa pantalla espera eso. Consulta: WITH pgrst_source AS (SELECT "pgrst_call".* FROM "public"."vigilancia_bd"() pgrst_call) SELECT $3::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS
+
+  * vigilancia_bd_profunda tarda 949 ms de media base de datos
+    Con 102 llamadas y un pico de 1803 ms. Cada persona que abre esa pantalla espera eso. Consulta: WITH pgrst_source AS (SELECT "pgrst_call".* FROM "public"."vigilancia_bd_profunda"() pgrst_call) SELECT $3::bigint AS total_result_set, pg_catalog.count(_postgr
+
+  * resembrar_demo tarda 320 ms de media base de datos
+    Con 445 llamadas y un pico de 937 ms. Cada persona que abre esa pantalla espera eso. Consulta: select public.resembrar_demo() as resultado
+
+  * 20260901153000_addons_solo_dinero.sql no consta aplicada en el historial remoto supabase/migrations/20260901153000_addons_solo_dinero.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * 20260901154500_restaurar_servicios_sugeridos.sql no consta aplicada en el historial remoto supabase/migrations/20260901154500_restaurar_servicios_sugeridos.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * 20260901161500_editar_importe_y_addons_en_cobro.sql no consta aplicada en el historial remoto supabase/migrations/20260901161500_editar_importe_y_addons_en_cobro.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * 20260901170000_restaurar_cobro_online.sql no consta aplicada en el historial remoto supabase/migrations/20260901170000_restaurar_cobro_online.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * 20260901171500_bono_cobra_addons.sql no consta aplicada en el historial remoto supabase/migrations/20260901171500_bono_cobra_addons.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * 20260901173000_cobro_online_con_importe_corregido.sql no consta aplicada en el historial remoto supabase/migrations/20260901173000_cobro_online_con_importe_corregido.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * 20260907224902_cerrar_cobros_senales_y_captchas.sql no consta aplicada en el historial remoto supabase/migrations/20260907224902_cerrar_cobros_senales_y_captchas.sql
+    El historial remoto manda. O falta aplicarla, o se aplico desde el editor SQL del dashboard --que registra la version con SU PROPIO timestamp-- y entonces esto es un falso positivo.
+
+ANTES de darla por aplicada, MIRA que lo este: comprueba el efecto que traia (la funcion que crea, la politica que cambia, la columna que anade). Si lo esta, anadela a scripts/vigilantes/migraciones-conocidas.json con esa prueba escrita. "La version no consta" no es "no se aplico", pero tampoco es "seguro que si".
+
+  * Clave foránea sin índice: gastos.gastos_profesional_id_fkey base de datos
+    La clave foránea "gastos_profesional_id_fkey" en la tabla gastos no cuenta con un índice que cubra sus columnas hijas. Al borrar o actualizar en la tabla padre, se requerirá un escaneo secuencial en gastos.
+
+  * florent_surez_peluqueros_15004: 24 par(es) de citas solapadas anteriores al 31 ago 2026 base de datos
+    Hay 24 pares de citas vivas con el trabajo solapado, las dos ANTERIORES al candado citas_solape_profesional_excl (31 ago 2026). Quedan exentas por decision de producto --el candado tiene esa misma fecha de corte-- y son la carrera del portal y las migraciones a mano de entonces. Deuda congelada: el trinquete solo baja. Si este numero SUBE, alguien esta insertando citas con fecha antigua y hay que mirar quien.
+
+  * demo_salon_001: 7 cobro(s) descuadrado(s) anteriores al 31 ago 2026 base de datos
+    Hay 7 cobros que no cumplen el invariante de caja y son ANTERIORES al arreglo del generador de la demo (31 ago 2026). No se pueden corregir ni borrar: cobros_prevent_financial_updates lo impide (Ley Antifraude 11/2021), y esta bien que lo impida. Quedan como deuda congelada: el trinquete solo puede bajar. Si este numero SUBE, es que alguien ha insertado cobros con fecha antigua.
+
+1 bloqueante(s), 310 aviso(s). 43 vigilantes, 20107 ms.
+

@@ -1,0 +1,6 @@
+{
+  "captured_at": "2026-09-07T22:55:04.533Z",
+  "status": 400,
+  "query": "\nselect (select count(*) from public.tarjetas_regalo) as tarjetas_regalo,\n       (select count(*) from public.tarjetas_regalo_movimientos) as movimientos_regalo,\n       (select count(*) from public.tarjetas_regalo_movimientos where created_at > now() - interval '7 days') as movimientos_7d,\n       (select count(*) from public.pagos where tipo='senal') as senales_total,\n       (select count(*) from public.pagos where tipo='senal' and estado='pendiente') as senales_pendientes,\n       (select count(*) from public.pagos where tipo='senal' and estado='pagado') as senales_pagadas",
+  "data": "{\"message\":\"Failed to run sql query: ERROR:  42P01: relation \\\"public.tarjetas_regalo\\\" does not exist\\nLINE 2: select (select count(*) from public.tarjetas_regalo) as tarjetas_regalo,\\n                                     ^\\n\"}"
+}

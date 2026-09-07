@@ -1,0 +1,7 @@
+[
+  {
+    "proname": "requerir_pago_total_cita",
+    "args": "p_cita_id uuid, p_propina_cents integer, p_descuento_cents integer, p_metodo text, p_base_cents integer",
+    "inicio": "CREATE OR REPLACE FUNCTION public.requerir_pago_total_cita(p_cita_id uuid, p_propina_cents integer DEFAULT 0, p_descuento_cents integer DEFAULT 0, p_metodo text DEFAULT 'online'::text, p_base_cents integer DEFAULT NULL::integer)\n RETURNS pagos\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare\n  v_cita public.citas;\n  v_cabecera uuid;\n  v_base int;\n  v_senal int"
+  }
+]
