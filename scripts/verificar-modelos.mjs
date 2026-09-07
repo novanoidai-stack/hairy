@@ -114,4 +114,4 @@ if (mejores.length > 0) {
 }
 
 console.log(`\n${errores} errores, ${avisos} avisos.`);
-process.exit(errores > 0 ? 1 : 0);
+process.exitCode = errores > 0 ? 1 : 0;

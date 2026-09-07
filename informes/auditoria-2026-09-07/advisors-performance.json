@@ -1,0 +1,1779 @@
+{
+  "captured_at": "2026-09-07T14:57:19.469Z",
+  "status": 200,
+  "data": {
+    "lints": [
+      {
+        "name": "unindexed_foreign_keys",
+        "title": "Unindexed foreign keys",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+        "detail": "Table \\`public.gastos\\` has a foreign key \\`gastos_profesional_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+        "metadata": {
+          "schema": "public",
+          "name": "gastos",
+          "type": "table",
+          "fkey_name": "gastos_profesional_id_fkey",
+          "fkey_columns": [
+            12
+          ]
+        },
+        "cache_key": "unindexed_foreign_keys_public_gastos_gastos_profesional_id_fkey",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "no_primary_key",
+        "title": "No Primary Key",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if a table does not have a primary key. Tables without a primary key can be inefficient to interact with at scale.",
+        "detail": "Table \\`respaldos.citas_antes_de_fases_v2\\` does not have a primary key",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0004_no_primary_key",
+        "metadata": {
+          "schema": "respaldos",
+          "name": "citas_antes_de_fases_v2",
+          "type": "table"
+        },
+        "cache_key": "no_primary_key_respaldos_citas_antes_de_fases_v2",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_bloqueos_grupo\\` on table \\`public.bloqueos_profesional\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "bloqueos_profesional",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_bloqueos_profesional_idx_bloqueos_grupo",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_audit_entidad\\` on table \\`public.audit_log\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "audit_log",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_audit_log_idx_audit_entidad",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_bonos_servicio_id\\` on table \\`public.bonos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "bonos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_bonos_idx_bonos_servicio_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_servicios_sugeridos_sugerido_id\\` on table \\`public.servicios_sugeridos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "servicios_sugeridos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_servicios_sugeridos_idx_servicios_sugeridos_sugerido_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_n8n_webhook_config_cliente_id\\` on table \\`public.n8n_webhook_config\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "n8n_webhook_config",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_n8n_webhook_config_idx_n8n_webhook_config_cliente_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_leads_asignado_a\\` on table \\`public.crm_leads\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_leads",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_leads_idx_crm_leads_asignado_a",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_leads_created_by\\` on table \\`public.crm_leads\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_leads",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_leads_idx_crm_leads_created_by",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_actividades_lead_id\\` on table \\`public.crm_actividades\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_actividades",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_actividades_idx_crm_actividades_lead_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_email_templates_created_by\\` on table \\`public.crm_email_templates\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_email_templates",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_email_templates_idx_crm_email_templates_created_by",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_emails_lead_id\\` on table \\`public.crm_emails\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_emails",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_emails_idx_crm_emails_lead_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`planes_ia_negocio_estado_idx\\` on table \\`public.planes_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "planes_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_planes_ia_planes_ia_negocio_estado_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`planes_ia_expira_idx\\` on table \\`public.planes_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "planes_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_planes_ia_planes_ia_expira_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_emails_template_id\\` on table \\`public.crm_emails\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_emails",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_emails_idx_crm_emails_template_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_crm_n8n_runs_workflow_id\\` on table \\`public.crm_n8n_runs\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "crm_n8n_runs",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_crm_n8n_runs_idx_crm_n8n_runs_workflow_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_socios_profile_id\\` on table \\`public.socios\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "socios",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_socios_idx_socios_profile_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_team_tareas_asignado_a\\` on table \\`public.team_tareas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "team_tareas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_team_tareas_idx_team_tareas_asignado_a",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_team_tareas_cliente_id\\` on table \\`public.team_tareas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "team_tareas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_team_tareas_idx_team_tareas_cliente_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_team_tareas_completada_por\\` on table \\`public.team_tareas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "team_tareas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_team_tareas_idx_team_tareas_completada_por",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_team_tareas_creado_por\\` on table \\`public.team_tareas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "team_tareas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_team_tareas_idx_team_tareas_creado_por",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_team_tareas_lead_id\\` on table \\`public.team_tareas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "team_tareas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_team_tareas_idx_team_tareas_lead_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_team_mensajes_hilo_uuid\\` on table \\`public.team_mensajes\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "team_mensajes",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_team_mensajes_idx_team_mensajes_hilo_uuid",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_contratos_firma_tokens_contrato\\` on table \\`public.contratos_firma_tokens\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "contratos_firma_tokens",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_contratos_firma_tokens_idx_contratos_firma_tokens_contrato",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`comisiones_tramos_activos\\` on table \\`public.comisiones_tramos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "comisiones_tramos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_comisiones_tramos_comisiones_tramos_activos",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`recompensas_canjeadas_estado\\` on table \\`public.recompensas_canjeadas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "recompensas_canjeadas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_recompensas_canjeadas_recompensas_canjeadas_estado",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`logros_negocio\\` on table \\`public.logros\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "logros",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_logros_logros_negocio",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`logros_activos\\` on table \\`public.logros\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "logros",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_logros_logros_activos",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`comisiones_cat_activos\\` on table \\`public.comisiones_por_categoria\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "comisiones_por_categoria",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_comisiones_por_categoria_comisiones_cat_activos",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`productos_codigo_barras\\` on table \\`public.productos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "productos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_productos_productos_codigo_barras",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`inventario_stock_bajo\\` on table \\`public.inventario\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "inventario",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_inventario_inventario_stock_bajo",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`servicios_bonus\\` on table \\`public.servicios\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "servicios",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_servicios_servicios_bonus",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_chispa_acciones_negocio_usuario\\` on table \\`public.chispa_acciones\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "chispa_acciones",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_chispa_acciones_idx_chispa_acciones_negocio_usuario",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_eventos_entidad\\` on table \\`public.eventos_negocio\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "eventos_negocio",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_eventos_negocio_idx_eventos_entidad",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_chispa_auditoria_usuario_fecha\\` on table \\`public.chispa_auditoria\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "chispa_auditoria",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_chispa_auditoria_idx_chispa_auditoria_usuario_fecha",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_chispa_auditoria_modelo\\` on table \\`public.chispa_auditoria\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "chispa_auditoria",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_chispa_auditoria_idx_chispa_auditoria_modelo",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`facturas_pendiente_envio\\` on table \\`public.facturas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "facturas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_facturas_facturas_pendiente_envio",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_negocio_portal_ciudad\\` on table \\`public.negocio_portal\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "negocio_portal",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_negocio_portal_idx_negocio_portal_ciudad",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`citas_variante_id_idx\\` on table \\`public.citas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "citas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_citas_citas_variante_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`citas_presupuesto_id_idx\\` on table \\`public.citas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "citas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_citas_citas_presupuesto_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`clientes_nivel_fidelizacion_override_idx\\` on table \\`public.clientes\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "clientes",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_clientes_clientes_nivel_fidelizacion_override_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`facturas_factura_rectificada_id_idx\\` on table \\`public.facturas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "facturas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_facturas_facturas_factura_rectificada_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`facturas_factura_anulada_id_idx\\` on table \\`public.facturas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "facturas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_facturas_facturas_factura_anulada_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`fichajes_corrige_a_idx\\` on table \\`public.fichajes\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "fichajes",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_fichajes_fichajes_corrige_a_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`fuga_clientas_avisos_recompensa_sugerida_id_idx\\` on table \\`public.fuga_clientas_avisos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "fuga_clientas_avisos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_fuga_clientas_avisos_fuga_clientas_avisos_recompensa_sugerida_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`staff_email_lower_idx\\` on table \\`public.staff\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "staff",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_staff_staff_email_lower_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`chispa_acciones_usuario_id_idx\\` on table \\`public.chispa_acciones\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "chispa_acciones",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_chispa_acciones_chispa_acciones_usuario_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`jornada_correcciones_fichaje_id_idx\\` on table \\`public.jornada_correcciones\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "jornada_correcciones",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_jornada_correcciones_jornada_correcciones_fichaje_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`jornada_correcciones_fichaje_nuevo_id_idx\\` on table \\`public.jornada_correcciones\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "jornada_correcciones",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_jornada_correcciones_jornada_correcciones_fichaje_nuevo_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`lista_espera_cliente_id_idx\\` on table \\`public.lista_espera\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "lista_espera",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_lista_espera_lista_espera_cliente_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`lista_espera_profesional_id_idx\\` on table \\`public.lista_espera\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "lista_espera",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_lista_espera_lista_espera_profesional_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`lista_espera_servicio_id_idx\\` on table \\`public.lista_espera\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "lista_espera",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_lista_espera_lista_espera_servicio_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`pagos_cliente_id_idx\\` on table \\`public.pagos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "pagos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_pagos_pagos_cliente_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`presupuesto_lineas_concepto_id_idx\\` on table \\`public.presupuesto_lineas\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "presupuesto_lineas",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_presupuesto_lineas_presupuesto_lineas_concepto_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`presupuestos_cobro_id_idx\\` on table \\`public.presupuestos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "presupuestos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_presupuestos_presupuestos_cobro_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`presupuestos_profesional_id_idx\\` on table \\`public.presupuestos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "presupuestos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_presupuestos_presupuestos_profesional_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`presupuestos_cita_id_idx\\` on table \\`public.presupuestos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "presupuestos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_presupuestos_presupuestos_cita_id_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`salones_externos_directorio_idx\\` on table \\`public.salones_externos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "salones_externos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_salones_externos_salones_externos_directorio_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_chispa_auditoria_usuario_funcion_fecha\\` on table \\`public.chispa_auditoria\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "chispa_auditoria",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_chispa_auditoria_idx_chispa_auditoria_usuario_funcion_fecha",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`tickets_verifactu_por_enviar_idx\\` on table \\`public.tickets_verifactu\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "tickets_verifactu",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_tickets_verifactu_tickets_verifactu_por_enviar_idx",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_cita_consumos_negocio\\` on table \\`public.cita_consumos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_consumos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_cita_consumos_idx_cita_consumos_negocio",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_cita_consumos_producto_id\\` on table \\`public.cita_consumos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_consumos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_cita_consumos_idx_cita_consumos_producto_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_productos_marca_tono\\` on table \\`public.productos\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "productos",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_productos_idx_productos_marca_tono",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_errores_cliente_huella\\` on table \\`public.errores_cliente\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "errores_cliente",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_errores_cliente_idx_errores_cliente_huella",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_cita_fases_prof_tiempo\\` on table \\`public.cita_fases\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_cita_fases_idx_cita_fases_prof_tiempo",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_pruebas_alergia_resultado\\` on table \\`public.pruebas_alergia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_pruebas_alergia_idx_pruebas_alergia_resultado",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_reservas_grupo_negocio\\` on table \\`public.reservas_grupo\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "reservas_grupo",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_reservas_grupo_idx_reservas_grupo_negocio",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`ix_vig_diag_creado\\` on table \\`public.vigilancia_diagnosticos_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "vigilancia_diagnosticos_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_vigilancia_diagnosticos_ia_ix_vig_diag_creado",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`ix_vig_diag_clave\\` on table \\`public.vigilancia_diagnosticos_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "vigilancia_diagnosticos_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_vigilancia_diagnosticos_ia_ix_vig_diag_clave",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`ix_vig_diag_estado\\` on table \\`public.vigilancia_diagnosticos_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "vigilancia_diagnosticos_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_vigilancia_diagnosticos_ia_ix_vig_diag_estado",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`ix_vig_diag_ambito\\` on table \\`public.vigilancia_diagnosticos_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "vigilancia_diagnosticos_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_vigilancia_diagnosticos_ia_ix_vig_diag_ambito",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_cita_fases_profesional_id\\` on table \\`public.cita_fases\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_cita_fases_idx_cita_fases_profesional_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_pruebas_alergia_producto_id\\` on table \\`public.pruebas_alergia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_pruebas_alergia_idx_pruebas_alergia_producto_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_pruebas_alergia_profesional_id\\` on table \\`public.pruebas_alergia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_pruebas_alergia_idx_pruebas_alergia_profesional_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_cola_dia_profesional_id\\` on table \\`public.cola_dia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "cola_dia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_cola_dia_idx_cola_dia_profesional_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_cola_dia_servicio_id\\` on table \\`public.cola_dia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "cola_dia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_cola_dia_idx_cola_dia_servicio_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "detail": "Index \\`idx_vigilancia_diagnosticos_ia_ejecucion_id\\` on table \\`public.vigilancia_diagnosticos_ia\\` has not been used",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "metadata": {
+          "schema": "public",
+          "name": "vigilancia_diagnosticos_ia",
+          "type": "table"
+        },
+        "cache_key": "unused_index_public_vigilancia_diagnosticos_ia_idx_vigilancia_diagnosticos_ia_ejecucion_id",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.cita_fases\\` has multiple permissive policies for role \\`anon\\` for action \\`SELECT\\`. Policies include \\`{cita_fases_tenant_all,cita_fases_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_cita_fases_anon_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pruebas_alergia\\` has multiple permissive policies for role \\`anon\\` for action \\`SELECT\\`. Policies include \\`{pruebas_alergia_tenant_all,pruebas_alergia_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pruebas_alergia_anon_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.cita_fases\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{cita_fases_tenant_all,cita_fases_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_cita_fases_authenticated_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.negocio_portal\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{negocio_portal_owner_all,negocio_portal_staff_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "negocio_portal",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_negocio_portal_authenticated_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pagos\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{\"Negocio ve sus pagos\",\"Recepcion gestiona pagos\"}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pagos",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pagos_authenticated_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pruebas_alergia\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{pruebas_alergia_tenant_all,pruebas_alergia_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pruebas_alergia_authenticated_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.resenas\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{resenas_negocio_all,resenas_staff_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "resenas",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_resenas_authenticated_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.servicios_sugeridos\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{servicios_sugeridos_escritura,servicios_sugeridos_lectura}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "servicios_sugeridos",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_servicios_sugeridos_authenticated_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.cita_fases\\` has multiple permissive policies for role \\`authenticator\\` for action \\`SELECT\\`. Policies include \\`{cita_fases_tenant_all,cita_fases_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_cita_fases_authenticator_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pruebas_alergia\\` has multiple permissive policies for role \\`authenticator\\` for action \\`SELECT\\`. Policies include \\`{pruebas_alergia_tenant_all,pruebas_alergia_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pruebas_alergia_authenticator_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.cita_fases\\` has multiple permissive policies for role \\`cli_login_postgres\\` for action \\`SELECT\\`. Policies include \\`{cita_fases_tenant_all,cita_fases_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_cita_fases_cli_login_postgres_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pruebas_alergia\\` has multiple permissive policies for role \\`cli_login_postgres\\` for action \\`SELECT\\`. Policies include \\`{pruebas_alergia_tenant_all,pruebas_alergia_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pruebas_alergia_cli_login_postgres_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.cita_fases\\` has multiple permissive policies for role \\`dashboard_user\\` for action \\`SELECT\\`. Policies include \\`{cita_fases_tenant_all,cita_fases_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_cita_fases_dashboard_user_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pruebas_alergia\\` has multiple permissive policies for role \\`dashboard_user\\` for action \\`SELECT\\`. Policies include \\`{pruebas_alergia_tenant_all,pruebas_alergia_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pruebas_alergia_dashboard_user_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.cita_fases\\` has multiple permissive policies for role \\`supabase_privileged_role\\` for action \\`SELECT\\`. Policies include \\`{cita_fases_tenant_all,cita_fases_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "cita_fases",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_cita_fases_supabase_privileged_role_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "detail": "Table \\`public.pruebas_alergia\\` has multiple permissive policies for role \\`supabase_privileged_role\\` for action \\`SELECT\\`. Policies include \\`{pruebas_alergia_tenant_all,pruebas_alergia_tenant_select}\\`",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "metadata": {
+          "schema": "public",
+          "name": "pruebas_alergia",
+          "type": "table"
+        },
+        "cache_key": "multiple_permissive_policies_public_pruebas_alergia_supabase_privileged_role_SELECT",
+        "observed_at": "2026-09-07T14:57:19.322Z"
+      }
+    ]
+  }
+}

@@ -480,6 +480,12 @@
           <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px" id="signupBtn">Crear cuenta y empezar los 30 días</button>
           <div class="auth-msg" id="signupMsg"></div>
         </form>
+        <div class="divider">o crea tu cuenta con</div>
+        <div class="auth-sso">
+          <button class="sso-btn" type="button" id="ssoGoogleSignup"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.23 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" /><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.22V7.04H2.18a11 11 0 0 0 0 9.9z" /><path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.04L5.84 9.9C6.71 7.3 9.14 4.75 12 4.75z" /></svg>Google</button>
+          <button class="sso-btn is-soon" type="button" id="ssoAppleSignup" disabled aria-disabled="true" title="Disponible pronto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 1c.1 1.2-.4 2.4-1.1 3.3-.8.9-2 1.6-3.2 1.5-.1-1.2.5-2.4 1.2-3.2C14.2 1.7 15.4 1.1 16.5 1zm3.6 16.3c-.6 1.4-.9 2-1.7 3.2-1.1 1.7-2.6 3.8-4.5 3.8-1.7 0-2.1-1.1-4.4-1.1s-2.8 1.1-4.4 1.1c-1.9 0-3.4-1.9-4.5-3.6C-.7 16.5-1 11 1.2 8c1-1.5 2.7-2.5 4.5-2.5 1.8 0 2.9 1.1 4.4 1.1 1.4 0 2.3-1.1 4.4-1.1 1.6 0 3.3.9 4.5 2.4-3.9 2.2-3.3 7.8 1.1 9.4z" /></svg>Apple<span class="sso-soon">Pronto</span></button>
+        </div>
+        <div class="auth-msg" id="ssoSignupMsg"></div>
         <p class="legal">Al crear tu cuenta aceptas los <a href="terminos.html">Términos</a> y la <a href="privacidad.html">Política de privacidad</a> de Mecha.</p>
         <p class="auth-foot">¿Ya tienes cuenta? <a href="#" id="goLogin">Inicia sesión</a></p>
       </div>
@@ -672,6 +678,7 @@
     // post-login que pudiera haber quedado activo (el loader arranca con 'on' para evitar
     // el flash del formulario durante el callback de SSO).
     if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }
+    desarmarWatchdog();
     clearLoadTip();
     ['paneChooser', 'paneFree', 'paneComplete', 'paneLoading'].forEach(function (p) {
       var el = document.getElementById(p);
@@ -732,6 +739,7 @@
     setLoadTip();
     setProgress(0);
     if (loadTimer) clearInterval(loadTimer);
+    armarWatchdog();
 
     var start = Date.now();
     var duration = 1200; // Llegará a 85% en 1.2s (más suave)
@@ -748,11 +756,33 @@
 
   function endLoading(callback) {
     if (loadTimer) clearInterval(loadTimer);
+    desarmarWatchdog();
     clearLoadTip();
     setProgress(100);
     setTimeout(function () {
       if (callback) callback();
     }, 400); // Esperar 400ms al 100% de progreso (más tiempo para ver el completado)
+  }
+
+  // Perro guardián de la carga: si tras ENCARAR la carga no se ha llegado a
+  // ninguna pantalla (ni error), se devuelve el formulario en vez de dejar el
+  // spinner girando para siempre. Cubre promesas sin catch y red colgada.
+  var WATCHDOG_MS = 15000;
+  var watchdogTimer = null;
+  function armarWatchdog() {
+    if (watchdogTimer) clearTimeout(watchdogTimer);
+    watchdogTimer = setTimeout(function () {
+      watchdogTimer = null;
+      var loading = document.getElementById('paneLoading');
+      if (!loading || !loading.classList.contains('on')) return;
+      if (window.MechaInitForms) window.MechaInitForms();
+      var statusEl = document.getElementById('loadStatus');
+      if (statusEl) statusEl.textContent = 'Ha tardado demasiado';
+      msg(loginMsg, 'err', 'Esto está tardando más de lo normal. Revisa tu conexión y vuelve a intentarlo.');
+    }, WATCHDOG_MS);
+  }
+  function desarmarWatchdog() {
+    if (watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
   }
 
   // Muestra una "pantalla" de la tarjeta. Las post-login (chooser/free/complete)
@@ -906,14 +936,21 @@
         } catch (e) {}
 
         endLoading(function () {
-          // Si la intención es entrar a la demo guiada, redirigir directamente sin bloquear en paneComplete
+          // El equipo Mecha elige destino (el panel admin no necesita datos de salon).
+          if (staff) { showStage('paneChooser'); guardBackToLogin(); return; }
+          // El perfil a medias se PRIMAN los datos, incluso viniendo a por la
+          // demo: demo.html manda aqui a quien le falta telefono o salon
+          // (acceso.html?next=demo) y si la intencion de demo saltase antes,
+          // se le devolveria a la demo SIN completar nada y esta le volveria a
+          // mandar aqui: demo -> acceso -> demo para siempre. El formulario de
+          // completar conserva la intencion (al guardar, si queria la demo, a
+          // la demo).
+          if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
+          // Con el perfil completo, la intencion de la demo guiada va directa.
           if (wantsDemo()) {
             gotoDemo();
             return;
           }
-          // El equipo Mecha elige destino (el panel admin no necesita datos de salon).
-          if (staff) { showStage('paneChooser'); guardBackToLogin(); return; }
-          if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
           routeByPlan(profile);
         });
       });
@@ -1123,6 +1160,13 @@
         }
         msg(loginMsg, 'ok', 'Listo, abriendo tu panel...');
         go();
+      }).catch(function () {
+        // Un fallo de red rechaza la promesa: sin este catch el boton queda en
+        // "Entrando..." y la pantalla de carga girando para siempre, que es lo
+        // que se vive como "el login se queda colgado".
+        showStage('paneLogin');
+        msg(loginMsg, 'err', 'No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.');
+        loginBtn.disabled = false; loginBtn.textContent = prev;
       });
     });
   }
@@ -1203,41 +1247,63 @@
     });
   }
 
-  // SSO GOOGLE
-  var ssoGoogle = document.getElementById('ssoGoogle');
-  var ssoMsg = document.getElementById('ssoMsg');
-  if (ssoGoogle) {
-    ssoGoogle.addEventListener('click', function () {
-      clearMsg(ssoMsg);
-      if (!api || !api.signInWithGoogle) { msg(ssoMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
-      // Al volver de Google conservamos el destino (p. ej. la demo).
-      var redirectTo = location.origin + location.pathname + (nextDest ? ('?next=' + encodeURIComponent(nextDest)) : '');
-      ssoGoogle.disabled = true;
-      var prev = ssoGoogle.innerHTML;
-      ssoGoogle.textContent = 'Abriendo Google...';
-      startLoading('Conectando con Google...');
-      guardBackToLogin();
-      api.signInWithGoogle({ redirectTo: redirectTo }).then(function (r) {
-        if (r && r.error) {
-          showStage('paneLogin');
-          if (r.disabled) {
-            msg(ssoMsg, 'ok', 'Iniciar sesión con Google estará disponible muy pronto. De momento usa tu correo.');
-          } else {
-            msg(ssoMsg, 'err', 'No se pudo abrir Google. Inténtalo de nuevo.');
-          }
-          ssoGoogle.disabled = false; ssoGoogle.innerHTML = prev;
+  // SSO GOOGLE. Misma puerta para el login y para el alta: quien entra por
+  // Google con la cuenta todavia sin crear aterriza tras el callback en
+  // "Completa tu salon" (routeAfterAuth), asi que no hace falta flujo aparte.
+  function abrirGoogle(boton, msgEl, volverA) {
+    clearMsg(msgEl);
+    if (!api || !api.signInWithGoogle) { msg(msgEl, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+    // Al volver de Google conservamos el destino (p. ej. la demo).
+    var redirectTo = location.origin + location.pathname + (nextDest ? ('?next=' + encodeURIComponent(nextDest)) : '');
+    boton.disabled = true;
+    var prev = boton.innerHTML;
+    boton.textContent = 'Abriendo Google...';
+    startLoading('Conectando con Google...');
+    guardBackToLogin();
+    api.signInWithGoogle({ redirectTo: redirectTo }).then(function (r) {
+      if (r && r.error) {
+        showStage(volverA);
+        if (r.disabled) {
+          msg(msgEl, 'ok', 'Entrar con Google estará disponible muy pronto. De momento usa tu correo.');
+        } else {
+          msg(msgEl, 'err', 'No se pudo abrir Google. Inténtalo de nuevo.');
         }
-        // sin error: el navegador redirige a Google.
-      });
+        boton.disabled = false; boton.innerHTML = prev;
+      }
+      // sin error: el navegador redirige a Google.
+    }).catch(function () {
+      // Sin esto, un fallo de red dejaba el spinner de carga para siempre y
+      // el boton bloqueado: parecia que el login "se quedaba colgado en bucle".
+      showStage(volverA);
+      msg(msgEl, 'err', 'No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.');
+      boton.disabled = false; boton.innerHTML = prev;
     });
   }
 
-  // SSO APPLE (proximamente)
+  var ssoGoogle = document.getElementById('ssoGoogle');
+  var ssoMsg = document.getElementById('ssoMsg');
+  if (ssoGoogle) {
+    ssoGoogle.addEventListener('click', function () { abrirGoogle(ssoGoogle, ssoMsg, 'paneLogin'); });
+  }
+  var ssoGoogleSignup = document.getElementById('ssoGoogleSignup');
+  var ssoSignupMsg = document.getElementById('ssoSignupMsg');
+  if (ssoGoogleSignup) {
+    ssoGoogleSignup.addEventListener('click', function () { abrirGoogle(ssoGoogleSignup, ssoSignupMsg, 'paneSignup'); });
+  }
+
+  // SSO APPLE (proximamente) - login y alta
   var ssoApple = document.getElementById('ssoApple');
   if (ssoApple) {
     ssoApple.addEventListener('click', function (e) {
       e.preventDefault();
       msg(ssoMsg, 'ok', 'Iniciar sesión con Apple estará disponible pronto. De momento usa Google o tu correo.');
+    });
+  }
+  var ssoAppleSignup = document.getElementById('ssoAppleSignup');
+  if (ssoAppleSignup) {
+    ssoAppleSignup.addEventListener('click', function (e) {
+      e.preventDefault();
+      msg(ssoSignupMsg, 'ok', 'Crear la cuenta con Apple estará disponible pronto. De momento usa Google o tu correo.');
     });
   }
 })();

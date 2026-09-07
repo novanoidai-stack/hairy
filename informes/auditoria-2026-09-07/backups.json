@@ -1,0 +1,11 @@
+{
+  "captured_at": "2026-09-07T14:57:19.478Z",
+  "status": 200,
+  "data": {
+    "region": "eu-west-1",
+    "walg_enabled": true,
+    "pitr_enabled": false,
+    "backups": [],
+    "physical_backup_data": {}
+  }
+}

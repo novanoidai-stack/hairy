@@ -582,40 +582,54 @@ export default function EquipoWeb() {
   async function guardarHorario() {
     if (!selected || editDias.length === 0) return;
     setSavingHorario(true);
-    for (const d of editDias) {
-      // Borrar turnos existentes de ese dia
-      const dHorarios = horarios.filter((x) => x.dia_semana === d);
-      for (const h of dHorarios) {
-        await supabase.from('horarios_profesional').delete().eq('id', h.id);
+    try {
+      for (const d of editDias) {
+        // Borrar turnos existentes de ese dia
+        const dHorarios = horarios.filter((x) => x.dia_semana === d);
+        for (const h of dHorarios) {
+          const { error: delErr } = await supabase.from('horarios_profesional').delete().eq('id', h.id);
+          if (delErr) throw delErr;
+        }
+        
+        // Insertar nuevos
+        if (editHasPausa) {
+          const { error: insErr } = await supabase.from('horarios_profesional').insert([
+            { profesional_id: selected, dia_semana: d, turno: 1, hora_inicio: editJornadaIni, hora_fin: editPausaIni },
+            { profesional_id: selected, dia_semana: d, turno: 2, hora_inicio: editPausaFin, hora_fin: editJornadaFin },
+          ]);
+          if (insErr) throw insErr;
+        } else {
+          const { error: insErr } = await supabase.from('horarios_profesional').insert({
+            profesional_id: selected, dia_semana: d, turno: 1, hora_inicio: editJornadaIni, hora_fin: editJornadaFin
+          });
+          if (insErr) throw insErr;
+        }
       }
-      
-      // Insertar nuevos
-      if (editHasPausa) {
-        await supabase.from('horarios_profesional').insert([
-          { profesional_id: selected, dia_semana: d, turno: 1, hora_inicio: editJornadaIni, hora_fin: editPausaIni },
-          { profesional_id: selected, dia_semana: d, turno: 2, hora_inicio: editPausaFin, hora_fin: editJornadaFin },
-        ]);
-      } else {
-        await supabase.from('horarios_profesional').insert({
-          profesional_id: selected, dia_semana: d, turno: 1, hora_inicio: editJornadaIni, hora_fin: editJornadaFin
-        });
-      }
+      setEditDias([]);
+    } catch (err) {
+      alert(mensajeDeError(err, 'No se pudo guardar el horario. Revisa los datos e inténtalo de nuevo.'));
+    } finally {
+      setSavingHorario(false);
+      await cargarPanelDerecho();
     }
-    setSavingHorario(false);
-    setEditDias([]);
-    await cargarPanelDerecho();
   }
 
   async function cerrarDia() {
     if (!selected || editDias.length === 0) return;
-    for (const d of editDias) {
-      const diaHorarios = horarios.filter((x) => x.dia_semana === d);
-      for (const h of diaHorarios) {
-        await supabase.from('horarios_profesional').delete().eq('id', h.id);
+    try {
+      for (const d of editDias) {
+        const diaHorarios = horarios.filter((x) => x.dia_semana === d);
+        for (const h of diaHorarios) {
+          const { error: delErr } = await supabase.from('horarios_profesional').delete().eq('id', h.id);
+          if (delErr) throw delErr;
+        }
       }
+      setEditDias([]);
+    } catch (err) {
+      alert(mensajeDeError(err, 'No se pudo cerrar el día seleccionado.'));
+    } finally {
+      await cargarPanelDerecho();
     }
-    setEditDias([]);
-    await cargarPanelDerecho();
   }
 
   async function eliminarBloqueo(bloqId: string) {

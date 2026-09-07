@@ -1,0 +1,3056 @@
+{
+  "version": 1,
+  "origen": "local",
+  "commit": null,
+  "rama": null,
+  "ejecutado_en": "2026-09-07T14:56:49.394Z",
+  "duracion_ms": 56355,
+  "vigilantes": [
+    {
+      "nombre": "precios",
+      "ambito": "precios",
+      "ms": 15,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "referidos",
+      "ambito": "referidos",
+      "ms": 17,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "rutas-publicas",
+      "ambito": "seguridad",
+      "ms": 2,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "cache-app",
+      "ambito": "rendimiento",
+      "ms": 1,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "claves",
+      "ambito": "seguridad",
+      "ms": 902,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "errores-tragados",
+      "ambito": "errores-tragados",
+      "ms": 10516,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "panel-ambitos",
+      "ambito": "pantallas",
+      "ms": 150,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "edges-autorizadas",
+      "ambito": "seguridad",
+      "ms": 24,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "migraciones",
+      "ambito": "seguridad",
+      "ms": 904,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "husos",
+      "ambito": "seguridad",
+      "ms": 365,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "planes",
+      "ambito": "precios",
+      "ms": 15,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "horarios-convenio",
+      "ambito": "seguridad",
+      "ms": 242,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "inmutabilidad-cobros",
+      "ambito": "seguridad",
+      "ms": 96,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "workflows",
+      "ambito": "seguridad",
+      "ms": 530,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "ecosistema-cuentas",
+      "ambito": "cuentas",
+      "ms": 230,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "codigo-muerto",
+      "ambito": "codigo-muerto",
+      "ms": 35887,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 2
+    },
+    {
+      "nombre": "claims-fiscales",
+      "ambito": "fiscal",
+      "ms": 2679,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 13
+    },
+    {
+      "nombre": "modulos-desconectados",
+      "ambito": "codigo-muerto",
+      "ms": 1138,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 24
+    },
+    {
+      "nombre": "meta-anclas",
+      "ambito": "vigilancia",
+      "ms": 9,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "meta-cobertura",
+      "ambito": "vigilancia",
+      "ms": 2,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "peso-componentes",
+      "ambito": "rendimiento",
+      "ms": 535,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 81
+    },
+    {
+      "nombre": "rendimiento",
+      "ambito": "rendimiento",
+      "ms": 2,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 25
+    },
+    {
+      "nombre": "calidad-codigo",
+      "ambito": "rendimiento",
+      "ms": 1259,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 144
+    },
+    {
+      "nombre": "ci-cadena-rota",
+      "ambito": "seguridad",
+      "ms": 73,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 2
+    },
+    {
+      "nombre": "trigger-cadenas",
+      "ambito": "base-de-datos",
+      "ms": 35,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "meta-registro",
+      "ambito": "vigilancia",
+      "ms": 103,
+      "ok": false,
+      "bloqueantes": 1,
+      "avisos": 0
+    },
+    {
+      "nombre": "meta-contrato",
+      "ambito": "meta",
+      "ms": 106,
+      "ok": false,
+      "bloqueantes": 2,
+      "avisos": 9
+    },
+    {
+      "nombre": "meta-mutaciones",
+      "ambito": "meta",
+      "ms": 2,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "meta-trinquete",
+      "ambito": "meta",
+      "ms": 4,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "guardrail-ia",
+      "ambito": "seguridad",
+      "ms": 1,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "fugas-listeners",
+      "ambito": "codigo",
+      "ms": 123,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "modales-fantasma",
+      "ambito": "codigo",
+      "ms": 102,
+      "ok": false,
+      "bloqueantes": 0,
+      "avisos": 5
+    },
+    {
+      "nombre": "addons-cargador",
+      "ambito": "coherencia",
+      "ms": 251,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    },
+    {
+      "nombre": "gastos-categorias",
+      "ambito": "coherencia",
+      "ms": 2,
+      "ok": true,
+      "bloqueantes": 0,
+      "avisos": 0
+    }
+  ],
+  "hallazgos": [
+    {
+      "clave": "codigo-muerto/files",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "Suben los ficheros que no importa nadie: 8 -> 9",
+      "detalle": "Este cambio deja 1 mas. Verlos con: npx knip. Si son inevitables, sube el numero en scripts/vigilantes/knip-baseline.json y explica por que en el commit.",
+      "fichero": "scripts/vigilantes/knip-baseline.json",
+      "linea": null
+    },
+    {
+      "clave": "codigo-muerto/dependencies",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "Suben los dependencias declaradas y sin usar: 1 -> 2",
+      "detalle": "Este cambio deja 1 mas. Verlos con: npx knip. Si son inevitables, sube el numero en scripts/vigilantes/knip-baseline.json y explica por que en el commit.",
+      "fichero": "scripts/vigilantes/knip-baseline.json",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/diseno-aurora.html no la enlaza nadie y publica 2 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-aurora.html dice:\n\n  ...<div class=\"faq-a\">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte....\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": 1332
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envío a Hacienda\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-aurora.html dice:\n\n  ...\"Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda\",...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-aurora.html",
+      "linea": 141
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/diseno-brasas.html no la enlaza nadie y publica 2 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-brasas.html dice:\n\n  ...<div class=\"faq-a\">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte....\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": 1332
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envío a Hacienda\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-brasas.html dice:\n\n  ...\"Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda\",...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-brasas.html",
+      "linea": 141
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/diseno-forja.html no la enlaza nadie y publica 2 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/diseno-forja.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/homologado",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"homologados\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-forja.html dice:\n\n  ...<div class=\"faq-a\">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del software, sin addon aparte....\n\n\"Homologado\" no significa nada en VeriFactu: la AEAT no homologa software, el fabricante emite una declaracion responsable y el sistema envia (o conserva) los registros. Decirlo sugiere una certificacion que no existe.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-forja.html",
+      "linea": 1332
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envío a Hacienda\" y el envio a la AEAT no existe",
+      "detalle": "web/diseno-forja.html dice:\n\n  ...\"Facturación VeriFactu (AEAT) con cadena SHA-256, QR de cotejo y envío a Hacienda\",...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/diseno-forja.html",
+      "linea": 141
+    },
+    {
+      "clave": "claims-fiscales/copia-muerta",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "web/index_v5.html no la enlaza nadie y publica 3 claim(s) fiscales viejos",
+      "detalle": "El dominio sirve la carpeta web/ entera, asi que esta pagina es publica y indexable aunque no haya ningun enlace hacia ella. Como no la ve casi nadie esto es aviso y no bloqueante, pero el arreglo bueno es borrarla --igual que se hizo con demo_v2.html-- y no ir actualizandole el texto a una copia muerta.",
+      "fichero": "web/index_v5.html",
+      "linea": null
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"envía a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...<p style=\"margin:0 0 10px;font-size:15px;color:var(--ink-2)\">Cobras y la factura <b>VeriFactu</b> se firma y se envía a la AEAT sola....\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 192
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"enviada a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...5px\">enviada a la AEAT</div></div>...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 304
+    },
+    {
+      "clave": "claims-fiscales/envio-aeat",
+      "nivel": "aviso",
+      "ambito": "fiscal",
+      "titulo": "Se promete \"enviada a la AEAT\" y el envio a la AEAT no existe",
+      "detalle": "web/index_v5.html dice:\n\n  ...{ tema:\"Facturación española\", otros:\"Fuera del programa: otro software y la gestoría\", mecha:\"VeriFactu con hash y QR, enviada a la AEAT desde la propia caja\" },...\n\nNo hay envio. No existe ni la columna donde anotar el resultado de uno.\n\nMientras ENVIO_AEAT_DISPONIBLE sea false en lib/fiscal/estadoVerifactu.ts, esto es un claim falso (decision 5 del CLAUDE.md). Se puede contar lo que SI hay --cadena SHA-256, numeracion correlativa, tickets que se rectifican y no se borran, RD 1007/2023-- y decir de lo demas que esta en desarrollo: esa frase no la marca este vigilante.",
+      "fichero": "web/index_v5.html",
+      "linea": 635
+    },
+    {
+      "clave": "modulos-desconectados/components/agenda/optimizacionTouchAgenda.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "components/agenda/optimizacionTouchAgenda.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. Probable duplicado de useResponsive() (lib/hooks/useResponsive.ts), que es la via oficial segun el CLAUDE.md.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "components/agenda/optimizacionTouchAgenda.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/components/marketplace/tarjetaSalonResponsive.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "components/marketplace/tarjetaSalonResponsive.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. El marketplace funciona y tiene sus e2e; comprobar si esto duplica lo que ya pinta.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "components/marketplace/tarjetaSalonResponsive.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/components/portal/optimizacionTouchPortal.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "components/portal/optimizacionTouchPortal.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. La misma sospecha que su gemelo de agenda, pero el portal lo ve una clienta desde su movil y ahi el movil-primero SI importa de verdad: comprobar que useResponsive() cubre el caso tactil del portal antes de borrarlo.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "components/portal/optimizacionTouchPortal.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/bonificacionReasignacion.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/bonificacionReasignacion.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. Suena a incentivo por aceptar un hueco reasignado. Decidir si es producto antes de nada.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/bonificacionReasignacion.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/desinfeccionPausas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/desinfeccionPausas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Encaja en la spec 1 como fase 'transicion', que hoy no existe en la base de datos.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/desinfeccionPausas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/agenda/validadorFestivosTurnos.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/validadorFestivosTurnos.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. cierres_negocio + el control de festivos de configuracion.web.tsx y NewCitaModal. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/agenda/validadorFestivosTurnos.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/bonos/consumoBonos.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/bonos/consumoBonos.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Va con la spec 6 (bono con calendario de sesiones).\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/bonos/consumoBonos.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/arqueoCajaPropinas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/arqueoCajaPropinas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. El arqueo funciona: sesiones_caja + cerrar_caja, 9 sesiones con numero_z y descuadre. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/arqueoCajaPropinas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/cobroMultiPago.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/cobroMultiPago.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. El multi-pago funciona: cobros.metodo='mixto' con efectivo_cents/datafono_cents, 16 cobros reales. Vive en caja.web.tsx. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/cobroMultiPago.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/propinasAcumuladas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/propinasAcumuladas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. cobros.propina_cents esta en produccion y en la caja. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/propinasAcumuladas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/caja/verifactuHash.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/caja/verifactuHash.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. La cadena real la mina el trigger cobros_mint_ticket_trigger en SQL. Borrar. Ojo: lib/fiscal/huella.ts NO es esto y si se reutiliza (ver abajo).\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/caja/verifactuHash.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/clientes/detectarDuplicados.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/clientes/detectarDuplicados.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. Fusionar duplicados esta en clientes.web.tsx. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/clientes/detectarDuplicados.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/config/validadorToggles.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/config/validadorToggles.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. Comprobar contra lo que ya valida configuracion.web.tsx.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/config/validadorToggles.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/fidelizacion/insigniasCliente.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/fidelizacion/insigniasCliente.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. logros / logros_desbloqueados / niveles_fidelizacion estan en produccion y se pintan en clientes.web.tsx. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/fidelizacion/insigniasCliente.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/fiscal/huella.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/fiscal/huella.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Calcula la huella con el formato de cadena OFICIAL de la AEAT. Se reutiliza en el bloque 1 (VeriFactu real) en vez de reescribirla.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/fiscal/huella.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/inventario/alertasStockMinimo.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/inventario/alertasStockMinimo.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. productos.stock_minimo se usa en inventario.web.tsx y el aviso sale por la campana (useAvisos). Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/inventario/alertasStockMinimo.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/legal/contratoRgpdTablet.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/legal/contratoRgpdTablet.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. consentimientos_cliente ya guarda 4 tipos; esto es la firma en tablet. Mirar contra la spec 13 (retencion) antes de tocarlo.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/legal/contratoRgpdTablet.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/marketing/campanasFranjasValle.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/marketing/campanasFranjasValle.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. La tabla campanas existe y el motor de envio de Alexandro funciona; falta esta segmentacion por franja valle, que es justo la que llena los huecos.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/marketing/campanasFranjasValle.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/marketplace/rankingMarketplace.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/marketplace/rankingMarketplace.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "TRIAR. salones_externos tiene 2.388 filas y el marketplace esta al 95%: ver si el ranking real ya se calcula en otro sitio.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/marketplace/rankingMarketplace.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/nominas/liquidacionNominas.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/nominas/liquidacionNominas.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "SIN ENCHUFAR. Roza la spec 11 (cerrar el ciclo de comisiones) pero no es lo mismo: comisiones != nomina. Decidir si Mecha entra en nominas antes de enchufarlo.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/nominas/liquidacionNominas.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/pos/qrPagoRapido.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/pos/qrPagoRapido.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "DUPLICA. El cobro por enlace/QR existe: edge crear-checkout-cobro + app/pagar/[token] + terminal-cobro-intent. Borrar.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/pos/qrPagoRapido.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/security/sanitizadorCliente.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/security/sanitizadorCliente.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "BORRAR, mismo motivo. Escapar HTML en el cliente no es un limite de seguridad; React ya escapa al pintar y el limite de verdad esta en el servidor. Si se quiere validar el telefono en E.164, eso es validacion de formulario y va donde esta el formulario.\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/security/sanitizadorCliente.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/lib/security/validadorRPC.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/security/validadorRPC.ts sigue sin enchufar (solo lo usa su test)",
+      "detalle": "BORRAR, y por un motivo que conviene dejar escrito: detectar 'inyeccion SQL' en el cliente antes de una RPC no es una defensa. Las RPC de Supabase van parametrizadas y el control real es RLS + la regla del parametro (exige_mi_negocio), que es lo que documenta el CLAUDE.md. Enchufar esto seria PEOR que borrarlo: da confianza falsa y bloquea entradas legitimas (una nota que diga 'union' o un apellido con guion).\n\nSigue en la linea base de scripts/vigilantes/modulos-desconectados-baseline.json. Cuando se enchufe, quitarlo de ahi: el trinquete solo gira hacia abajo.",
+      "fichero": "lib/security/validadorRPC.ts",
+      "linea": null
+    },
+    {
+      "clave": "modulos-desconectados/baja-lib/agenda/serviciosCompatiblesReposo.ts",
+      "nivel": "aviso",
+      "ambito": "codigo-muerto",
+      "titulo": "lib/agenda/serviciosCompatiblesReposo.ts ya esta enchufado: quitalo de la linea base",
+      "detalle": "scripts/vigilantes/modulos-desconectados-baseline.json sigue listandolo como pendiente y ya tiene consumidores de verdad. Una linea base que no baja deja de ser una lista de deuda y pasa a ser un cajon.",
+      "fichero": "scripts/vigilantes/modulos-desconectados-baseline.json",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/ayuda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/ayuda.web.tsx supera el l�mite de tama�o (634 l�neas > 450)",
+      "detalle": "El componente tiene 634 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/ayuda.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/ayuda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/ayuda.web.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/ayuda.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/bandeja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/bandeja.web.tsx supera el l�mite de tama�o (538 l�neas > 450)",
+      "detalle": "El componente tiene 538 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/bandeja.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/caja.web.tsx supera el l�mite de tama�o (2980 l�neas > 450)",
+      "detalle": "El componente tiene 2980 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/caja.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/caja.web.tsx tiene anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/caja.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/campanas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/campanas.web.tsx supera el l�mite de tama�o (462 l�neas > 450)",
+      "detalle": "El componente tiene 462 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/campanas.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/citas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/citas.web.tsx supera el l�mite de tama�o (481 l�neas > 450)",
+      "detalle": "El componente tiene 481 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/citas.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/clientes.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.tsx supera el l�mite de tama�o (957 l�neas > 450)",
+      "detalle": "El componente tiene 957 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/clientes.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.web.tsx supera el l�mite de tama�o (5015 l�neas > 450)",
+      "detalle": "El componente tiene 5015 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/clientes.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.web.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/clientes.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/configuracion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/configuracion.web.tsx supera el l�mite de tama�o (6592 l�neas > 450)",
+      "detalle": "El componente tiene 6592 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/configuracion.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/configuracion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/configuracion.web.tsx tiene anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/configuracion.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/equipo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.tsx supera el l�mite de tama�o (615 l�neas > 450)",
+      "detalle": "El componente tiene 615 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/equipo.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/equipo.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.web.tsx supera el l�mite de tama�o (3729 l�neas > 450)",
+      "detalle": "El componente tiene 3729 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/equipo.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/equipo.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.web.tsx tiene anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/equipo.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/informes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/informes.web.tsx supera el l�mite de tama�o (3338 l�neas > 450)",
+      "detalle": "El componente tiene 3338 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/informes.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/informes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/informes.web.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/informes.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/inventario.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/inventario.web.tsx supera el l�mite de tama�o (2428 l�neas > 450)",
+      "detalle": "El componente tiene 2428 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/inventario.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/inventario.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/inventario.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/inventario.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/lista-espera.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/lista-espera.web.tsx supera el l�mite de tama�o (653 l�neas > 450)",
+      "detalle": "El componente tiene 653 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/lista-espera.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/lista-espera.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/lista-espera.web.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/lista-espera.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/mi-jornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/mi-jornada.web.tsx supera el l�mite de tama�o (1522 l�neas > 450)",
+      "detalle": "El componente tiene 1522 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/mi-jornada.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/mi-jornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/mi-jornada.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/mi-jornada.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/presupuestos.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/presupuestos.web.tsx supera el l�mite de tama�o (966 l�neas > 450)",
+      "detalle": "El componente tiene 966 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/presupuestos.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/(tabs)/resenas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/resenas.web.tsx supera el l�mite de tama�o (773 l�neas > 450)",
+      "detalle": "El componente tiene 773 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/(tabs)/resenas.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/(tabs)/resenas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/resenas.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/(tabs)/resenas.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/_layout.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/_layout.tsx supera el l�mite de tama�o (463 l�neas > 450)",
+      "detalle": "El componente tiene 463 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/_layout.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/cita/[id].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/cita/[id].web.tsx supera el l�mite de tama�o (677 l�neas > 450)",
+      "detalle": "El componente tiene 677 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/cita/[id].web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/r/[slug].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/r/[slug].web.tsx supera el l�mite de tama�o (1485 l�neas > 450)",
+      "detalle": "El componente tiene 1485 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/r/[slug].web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/r/[slug].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/r/[slug].web.tsx tiene anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/r/[slug].web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/screens/agenda-detalle.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/agenda-detalle.tsx supera el l�mite de tama�o (971 l�neas > 450)",
+      "detalle": "El componente tiene 971 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/screens/agenda-detalle.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:app/screens/agenda-detalle.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/agenda-detalle.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "app/screens/agenda-detalle.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/screens/configuracion.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/configuracion.tsx supera el l�mite de tama�o (491 l�neas > 450)",
+      "detalle": "El componente tiene 491 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/screens/configuracion.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:app/screens/nueva-cita.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/nueva-cita.tsx supera el l�mite de tama�o (1056 l�neas > 450)",
+      "detalle": "El componente tiene 1056 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "app/screens/nueva-cita.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/acceso/GuardaSuscripcion.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/acceso/GuardaSuscripcion.tsx supera el l�mite de tama�o (472 l�neas > 450)",
+      "detalle": "El componente tiene 472 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/acceso/GuardaSuscripcion.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/AgendaCalendar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.tsx supera el l�mite de tama�o (867 l�neas > 450)",
+      "detalle": "El componente tiene 867 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/AgendaCalendar.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/AgendaCalendar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/AgendaCalendar.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/AgendaCalendar.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.web.tsx supera el l�mite de tama�o (7385 l�neas > 450)",
+      "detalle": "El componente tiene 7385 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/AgendaCalendar.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/AgendaCalendar.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.web.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/AgendaCalendar.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/BriefingAgenda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/BriefingAgenda.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/BriefingAgenda.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/FasesCitaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/FasesCitaPanel.web.tsx supera el l�mite de tama�o (552 l�neas > 450)",
+      "detalle": "El componente tiene 552 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/FasesCitaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/FasesCitaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/FasesCitaPanel.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/FasesCitaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/OrganizarAgendaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/OrganizarAgendaPanel.web.tsx supera el l�mite de tama�o (1260 l�neas > 450)",
+      "detalle": "El componente tiene 1260 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/OrganizarAgendaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/OrganizarAgendaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/OrganizarAgendaPanel.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/OrganizarAgendaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/RetrasoEstrategiasModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/RetrasoEstrategiasModal.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/RetrasoEstrategiasModal.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/modals/DetalleCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/DetalleCitaModal.web.tsx supera el l�mite de tama�o (7278 l�neas > 450)",
+      "detalle": "El componente tiene 7278 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/modals/DetalleCitaModal.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/modals/DetalleCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/DetalleCitaModal.web.tsx tiene anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/modals/DetalleCitaModal.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/modals/NewCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/NewCitaModal.web.tsx supera el l�mite de tama�o (4820 l�neas > 450)",
+      "detalle": "El componente tiene 4820 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/modals/NewCitaModal.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/modals/NewCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/NewCitaModal.web.tsx tiene anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/modals/NewCitaModal.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/ReservaGrupoModal.web.tsx supera el l�mite de tama�o (611 l�neas > 450)",
+      "detalle": "El componente tiene 611 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/ui/atomos.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/ui/atomos.web.tsx supera el l�mite de tama�o (983 l�neas > 450)",
+      "detalle": "El componente tiene 983 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/ui/atomos.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/views/VistaDiaLista.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/VistaDiaLista.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/views/VistaDiaLista.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/views/VistasSemanaMes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/VistasSemanaMes.web.tsx supera el l�mite de tama�o (1411 l�neas > 450)",
+      "detalle": "El componente tiene 1411 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/views/VistasSemanaMes.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/views/VistasSemanaMes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/VistasSemanaMes.web.tsx tiene anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/views/VistasSemanaMes.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/AppointmentCard.web.tsx supera el l�mite de tama�o (1325 l�neas > 450)",
+      "detalle": "El componente tiene 1325 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/AppointmentCard.web.tsx tiene anidamiento excesivo (nivel 12 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/ProfessionalColumn.web.tsx supera el l�mite de tama�o (726 l�neas > 450)",
+      "detalle": "El componente tiene 726 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/ProfessionalColumn.web.tsx tiene anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/agenda/views/timeline/Timeline.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/Timeline.web.tsx supera el l�mite de tama�o (2446 l�neas > 450)",
+      "detalle": "El componente tiene 2446 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/agenda/views/timeline/Timeline.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/agenda/views/timeline/Timeline.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/Timeline.web.tsx tiene anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/agenda/views/timeline/Timeline.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/chispa/BloqueRenderer.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/BloqueRenderer.web.tsx supera el l�mite de tama�o (752 l�neas > 450)",
+      "detalle": "El componente tiene 752 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/chispa/BloqueRenderer.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/chispa/ChispaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/ChispaPanel.web.tsx supera el l�mite de tama�o (1988 l�neas > 450)",
+      "detalle": "El componente tiene 1988 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/chispa/ChispaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/chispa/ChispaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/ChispaPanel.web.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/chispa/ChispaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/cola/ColaDiaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/cola/ColaDiaPanel.web.tsx supera el l�mite de tama�o (603 l�neas > 450)",
+      "detalle": "El componente tiene 603 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/cola/ColaDiaPanel.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/config/ModalImportarTarifasIA.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/ModalImportarTarifasIA.tsx supera el l�mite de tama�o (676 l�neas > 450)",
+      "detalle": "El componente tiene 676 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/config/ModalImportarTarifasIA.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/config/ModalTecnificarCatalogo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/ModalTecnificarCatalogo.tsx supera el l�mite de tama�o (905 l�neas > 450)",
+      "detalle": "El componente tiene 905 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/config/ModalTecnificarCatalogo.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/config/ModalTecnificarCatalogo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/ModalTecnificarCatalogo.tsx tiene anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/config/ModalTecnificarCatalogo.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/config/SeccionSuscripcion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/SeccionSuscripcion.web.tsx supera el l�mite de tama�o (475 l�neas > 450)",
+      "detalle": "El componente tiene 475 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/config/SeccionSuscripcion.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/config/TabMigracionMagica.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabMigracionMagica.tsx supera el l�mite de tama�o (822 l�neas > 450)",
+      "detalle": "El componente tiene 822 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/config/TabMigracionMagica.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/config/TabMigracionMagica.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabMigracionMagica.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/config/TabMigracionMagica.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/config/TabRecompensas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabRecompensas.web.tsx supera el l�mite de tama�o (1417 l�neas > 450)",
+      "detalle": "El componente tiene 1417 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/config/TabRecompensas.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/informes/FacturasRegistroSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/FacturasRegistroSection.tsx supera el l�mite de tama�o (551 l�neas > 450)",
+      "detalle": "El componente tiene 551 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/informes/FacturasRegistroSection.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/informes/LiquidacionesSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/LiquidacionesSection.tsx supera el l�mite de tama�o (942 l�neas > 450)",
+      "detalle": "El componente tiene 942 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/informes/LiquidacionesSection.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/informes/LiquidacionesSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/LiquidacionesSection.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/informes/LiquidacionesSection.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/jornada/RegistroJornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/jornada/RegistroJornada.web.tsx supera el l�mite de tama�o (715 l�neas > 450)",
+      "detalle": "El componente tiene 715 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/jornada/RegistroJornada.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/layout/Sidebar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/layout/Sidebar.tsx supera el l�mite de tama�o (895 l�neas > 450)",
+      "detalle": "El componente tiene 895 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/layout/Sidebar.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/onboarding/AsistentePuestaEnMarcha.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/onboarding/AsistentePuestaEnMarcha.web.tsx supera el l�mite de tama�o (1035 l�neas > 450)",
+      "detalle": "El componente tiene 1035 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/onboarding/AsistentePuestaEnMarcha.web.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/onboarding/OnboardingPanel.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/onboarding/OnboardingPanel.tsx supera el l�mite de tama�o (504 l�neas > 450)",
+      "detalle": "El componente tiene 504 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/onboarding/OnboardingPanel.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/pos/CobroSheet.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/pos/CobroSheet.tsx supera el l�mite de tama�o (1249 l�neas > 450)",
+      "detalle": "El componente tiene 1249 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/pos/CobroSheet.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/anidamiento-profundo:components/pos/CobroSheet.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/pos/CobroSheet.tsx tiene anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques con m�s de 6 niveles de indentaci�n/llaves anidadas. Conviene aplicar cl�usulas de guarda (early returns) o extraer funciones auxiliares.",
+      "fichero": "components/pos/CobroSheet.tsx",
+      "linea": null
+    },
+    {
+      "clave": "peso-componentes/archivo-monstruo:components/ui/SettingsAtoms.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/ui/SettingsAtoms.tsx supera el l�mite de tama�o (915 l�neas > 450)",
+      "detalle": "El componente tiene 915 l�neas. Se recomienda refactorizar y extraer subcomponentes o hooks personalizados para mejorar la mantenibilidad y reducir renders innecesarios.",
+      "fichero": "components/ui/SettingsAtoms.tsx",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:agenda",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"agenda\" supera presupuesto de carga (4.70 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 4703 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:agenda",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"agenda\" supera cuota de peticiones iniciales (70 > 6)",
+      "detalle": "La carga inicial disparó 70 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:mi-jornada",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"mi-jornada\" supera presupuesto de carga (2.48 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 2482 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:mi-jornada",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"mi-jornada\" supera cuota de peticiones iniciales (7 > 6)",
+      "detalle": "La carga inicial disparó 7 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:lista-espera",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"lista-espera\" supera presupuesto de carga (1.84 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 1836 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/longtasks-exceso:lista-espera",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"lista-espera\" supera límite de Long Tasks (3 tareas > 2)",
+      "detalle": "Se registraron 3 tareas largas en el hilo principal acumulando 200 ms de bloqueo. Conviene trocear computación pesada con requestIdleCallback o Web Workers.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:lista-espera",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"lista-espera\" supera cuota de peticiones iniciales (14 > 6)",
+      "detalle": "La carga inicial disparó 14 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:citas",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"citas\" supera cuota de peticiones iniciales (9 > 6)",
+      "detalle": "La carga inicial disparó 9 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:clientes",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"clientes\" supera presupuesto de carga (3.14 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 3142 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/longtasks-exceso:clientes",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"clientes\" supera límite de Long Tasks (3 tareas > 2)",
+      "detalle": "Se registraron 3 tareas largas en el hilo principal acumulando 198 ms de bloqueo. Conviene trocear computación pesada con requestIdleCallback o Web Workers.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:clientes",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"clientes\" supera cuota de peticiones iniciales (22 > 6)",
+      "detalle": "La carga inicial disparó 22 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:caja",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"caja\" supera presupuesto de carga (3.31 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 3306 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:caja",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"caja\" supera cuota de peticiones iniciales (19 > 6)",
+      "detalle": "La carga inicial disparó 19 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:presupuestos",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"presupuestos\" supera cuota de peticiones iniciales (18 > 6)",
+      "detalle": "La carga inicial disparó 18 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:equipo",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"equipo\" supera presupuesto de carga (2.35 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 2352 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:equipo",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"equipo\" supera cuota de peticiones iniciales (19 > 6)",
+      "detalle": "La carga inicial disparó 19 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:inventario",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"inventario\" supera cuota de peticiones iniciales (15 > 6)",
+      "detalle": "La carga inicial disparó 15 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:resenas",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"resenas\" supera cuota de peticiones iniciales (10 > 6)",
+      "detalle": "La carga inicial disparó 10 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:informes",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"informes\" supera cuota de peticiones iniciales (18 > 6)",
+      "detalle": "La carga inicial disparó 18 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:ayuda",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"ayuda\" supera cuota de peticiones iniciales (13 > 6)",
+      "detalle": "La carga inicial disparó 13 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:configuracion",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"configuracion\" supera cuota de peticiones iniciales (8 > 6)",
+      "detalle": "La carga inicial disparó 8 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:portal-reserva",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"portal-reserva\" supera presupuesto de carga (2.78 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 2781 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:portal-reserva",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"portal-reserva\" supera cuota de peticiones iniciales (21 > 6)",
+      "detalle": "La carga inicial disparó 21 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/presupuesto-carga:portal-resena",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"portal-resena\" supera presupuesto de carga (3.78 s > 1.8 s)",
+      "detalle": "Tiempo de carga medido: 3781 ms (presupuesto: 1800 ms). Se aconseja aplazar renderizado de componentes secundarios y agrupar peticiones iniciales.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "rendimiento/cuota-n1:portal-resena",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Pantalla \"portal-resena\" supera cuota de peticiones iniciales (22 > 6)",
+      "detalle": "La carga inicial disparó 22 consultas a Supabase (máximo permitido: 6). Sospecha de consultas N+1 en cascada. Agrupar en una RPC compuesta o usar vistas desnormalizadas.",
+      "fichero": "tests/smoke/rendimiento-baseline.canario.json",
+      "linea": null
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/ayuda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/ayuda.web.tsx supera el límite de tamaño (634 líneas > 450)",
+      "detalle": "El componente tiene 634 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/ayuda.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/ayuda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/ayuda.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/ayuda.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/bandeja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/bandeja.web.tsx supera el límite de tamaño (538 líneas > 450)",
+      "detalle": "El componente tiene 538 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/bandeja.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/bandeja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/bandeja.web.tsx tiene complejidad/anidamiento excesivo (nivel 12 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 12 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/bandeja.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/caja.web.tsx supera el límite de tamaño (2980 líneas > 450)",
+      "detalle": "El componente tiene 2980 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/caja.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/campanas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/campanas.web.tsx supera el límite de tamaño (462 líneas > 450)",
+      "detalle": "El componente tiene 462 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/campanas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/campanas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/campanas.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/campanas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/citas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/citas.web.tsx supera el límite de tamaño (481 líneas > 450)",
+      "detalle": "El componente tiene 481 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/citas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/citas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/citas.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/citas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/clientes.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.tsx supera el límite de tamaño (957 líneas > 450)",
+      "detalle": "El componente tiene 957 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/clientes.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/clientes.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.tsx tiene complejidad/anidamiento excesivo (nivel 15 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 15 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/clientes.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.web.tsx supera el límite de tamaño (5015 líneas > 450)",
+      "detalle": "El componente tiene 5015 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/clientes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/clientes.web.tsx tiene complejidad/anidamiento excesivo (nivel 51 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 51 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/clientes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/configuracion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/configuracion.web.tsx supera el límite de tamaño (6592 líneas > 450)",
+      "detalle": "El componente tiene 6592 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/configuracion.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/configuracion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/configuracion.web.tsx tiene complejidad/anidamiento excesivo (nivel 50 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 50 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/configuracion.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/equipo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.tsx supera el límite de tamaño (615 líneas > 450)",
+      "detalle": "El componente tiene 615 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/equipo.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/equipo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/equipo.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/equipo.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.web.tsx supera el límite de tamaño (3729 líneas > 450)",
+      "detalle": "El componente tiene 3729 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/equipo.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/equipo.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/equipo.web.tsx tiene complejidad/anidamiento excesivo (nivel 27 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 27 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/equipo.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/informes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/informes.web.tsx supera el límite de tamaño (3338 líneas > 450)",
+      "detalle": "El componente tiene 3338 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/informes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/informes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/informes.web.tsx tiene complejidad/anidamiento excesivo (nivel 21 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 21 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/informes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/inventario.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/inventario.web.tsx supera el límite de tamaño (2428 líneas > 450)",
+      "detalle": "El componente tiene 2428 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/inventario.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/inventario.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/inventario.web.tsx tiene complejidad/anidamiento excesivo (nivel 16 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 16 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/inventario.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/lista-espera.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/lista-espera.web.tsx supera el límite de tamaño (653 líneas > 450)",
+      "detalle": "El componente tiene 653 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/lista-espera.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/lista-espera.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/lista-espera.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/lista-espera.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/mi-jornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/mi-jornada.web.tsx supera el límite de tamaño (1522 líneas > 450)",
+      "detalle": "El componente tiene 1522 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/mi-jornada.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/mi-jornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/mi-jornada.web.tsx tiene complejidad/anidamiento excesivo (nivel 12 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 12 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/mi-jornada.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/presupuestos.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/presupuestos.web.tsx supera el límite de tamaño (966 líneas > 450)",
+      "detalle": "El componente tiene 966 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/presupuestos.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/presupuestos.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/presupuestos.web.tsx tiene complejidad/anidamiento excesivo (nivel 13 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 13 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/presupuestos.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/(tabs)/resenas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/resenas.web.tsx supera el límite de tamaño (773 líneas > 450)",
+      "detalle": "El componente tiene 773 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/(tabs)/resenas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/(tabs)/resenas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/(tabs)/resenas.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/(tabs)/resenas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/_layout.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/_layout.tsx supera el límite de tamaño (463 líneas > 450)",
+      "detalle": "El componente tiene 463 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/_layout.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/_layout.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/_layout.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/_layout.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/cita/[id].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/cita/[id].web.tsx supera el límite de tamaño (677 líneas > 450)",
+      "detalle": "El componente tiene 677 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/cita/[id].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/cita/[id].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/cita/[id].web.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/cita/[id].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/login.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/login.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/login.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/pagar/[token].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/pagar/[token].web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/pagar/[token].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/presupuesto/[token].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/presupuesto/[token].web.tsx tiene complejidad/anidamiento excesivo (nivel 13 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 13 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/presupuesto/[token].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/r/[slug].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/r/[slug].web.tsx supera el límite de tamaño (1485 líneas > 450)",
+      "detalle": "El componente tiene 1485 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/r/[slug].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/r/[slug].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/r/[slug].web.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/r/[slug].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/screens/agenda-detalle.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/agenda-detalle.tsx supera el límite de tamaño (971 líneas > 450)",
+      "detalle": "El componente tiene 971 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/screens/agenda-detalle.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/screens/agenda-detalle.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/agenda-detalle.tsx tiene complejidad/anidamiento excesivo (nivel 15 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 15 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/screens/agenda-detalle.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/screens/configuracion.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/configuracion.tsx supera el límite de tamaño (491 líneas > 450)",
+      "detalle": "El componente tiene 491 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/screens/configuracion.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:app/screens/nueva-cita.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/nueva-cita.tsx supera el límite de tamaño (1056 líneas > 450)",
+      "detalle": "El componente tiene 1056 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "app/screens/nueva-cita.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:app/screens/nueva-cita.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "app/screens/nueva-cita.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "app/screens/nueva-cita.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/acceso/GuardaSuscripcion.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/acceso/GuardaSuscripcion.tsx supera el límite de tamaño (472 líneas > 450)",
+      "detalle": "El componente tiene 472 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/acceso/GuardaSuscripcion.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/AgendaCalendar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.tsx supera el límite de tamaño (867 líneas > 450)",
+      "detalle": "El componente tiene 867 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/AgendaCalendar.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/AgendaCalendar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/AgendaCalendar.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/AgendaCalendar.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.web.tsx supera el límite de tamaño (7385 líneas > 450)",
+      "detalle": "El componente tiene 7385 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/AgendaCalendar.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/AgendaCalendar.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/AgendaCalendar.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/AgendaCalendar.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/BriefingAgenda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/BriefingAgenda.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/BriefingAgenda.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/ChainFlowOverlay.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/ChainFlowOverlay.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/ChainFlowOverlay.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/FasesCitaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/FasesCitaPanel.web.tsx supera el límite de tamaño (552 líneas > 450)",
+      "detalle": "El componente tiene 552 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/FasesCitaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/FasesCitaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/FasesCitaPanel.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/FasesCitaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/ListaEsperaPropuestaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/ListaEsperaPropuestaModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/ListaEsperaPropuestaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/OrganizarAgendaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/OrganizarAgendaPanel.web.tsx supera el límite de tamaño (1260 líneas > 450)",
+      "detalle": "El componente tiene 1260 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/OrganizarAgendaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/OrganizarAgendaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/OrganizarAgendaPanel.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/OrganizarAgendaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/RetrasoEstrategiasModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/RetrasoEstrategiasModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/RetrasoEstrategiasModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/modals/DetalleCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/DetalleCitaModal.web.tsx supera el límite de tamaño (7278 líneas > 450)",
+      "detalle": "El componente tiene 7278 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/modals/DetalleCitaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/modals/DetalleCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/DetalleCitaModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/modals/DetalleCitaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/modals/NewCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/NewCitaModal.web.tsx supera el límite de tamaño (4820 líneas > 450)",
+      "detalle": "El componente tiene 4820 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/modals/NewCitaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/modals/NewCitaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/NewCitaModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/modals/NewCitaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/modals/ReservaGrupoModal.web.tsx supera el límite de tamaño (611 líneas > 450)",
+      "detalle": "El componente tiene 611 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/ui/atomos.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/ui/atomos.web.tsx supera el límite de tamaño (983 líneas > 450)",
+      "detalle": "El componente tiene 983 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/ui/atomos.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/views/VistaDiaLista.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/VistaDiaLista.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/views/VistaDiaLista.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/views/VistasSemanaMes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/VistasSemanaMes.web.tsx supera el límite de tamaño (1411 líneas > 450)",
+      "detalle": "El componente tiene 1411 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/views/VistasSemanaMes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/views/VistasSemanaMes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/VistasSemanaMes.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/views/VistasSemanaMes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/AppointmentCard.web.tsx supera el límite de tamaño (1325 líneas > 450)",
+      "detalle": "El componente tiene 1325 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/AppointmentCard.web.tsx tiene complejidad/anidamiento excesivo (nivel 12 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 12 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/views/timeline/AppointmentCard.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/ProfessionalColumn.web.tsx supera el límite de tamaño (726 líneas > 450)",
+      "detalle": "El componente tiene 726 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/ProfessionalColumn.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/views/timeline/ProfessionalColumn.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/agenda/views/timeline/Timeline.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/Timeline.web.tsx supera el límite de tamaño (2446 líneas > 450)",
+      "detalle": "El componente tiene 2446 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/agenda/views/timeline/Timeline.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/agenda/views/timeline/Timeline.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/agenda/views/timeline/Timeline.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/agenda/views/timeline/Timeline.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/avisos/AvisosBell.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/avisos/AvisosBell.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/avisos/AvisosBell.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/chispa/BloqueRenderer.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/BloqueRenderer.web.tsx supera el límite de tamaño (752 líneas > 450)",
+      "detalle": "El componente tiene 752 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/chispa/BloqueRenderer.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/chispa/BloqueRenderer.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/BloqueRenderer.web.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/chispa/BloqueRenderer.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/chispa/ChispaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/ChispaPanel.web.tsx supera el límite de tamaño (1988 líneas > 450)",
+      "detalle": "El componente tiene 1988 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/chispa/ChispaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/chispa/ChispaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/ChispaPanel.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/chispa/ChispaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/chispa/TarjetaAyudaIA.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/TarjetaAyudaIA.web.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/chispa/TarjetaAyudaIA.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/chispa/TourLauncher.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/chispa/TourLauncher.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/chispa/TourLauncher.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/clientes/InstagramPostModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/clientes/InstagramPostModal.web.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/clientes/InstagramPostModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/cola/ColaDiaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/cola/ColaDiaPanel.web.tsx supera el límite de tamaño (603 líneas > 450)",
+      "detalle": "El componente tiene 603 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/cola/ColaDiaPanel.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/config/ModalImportarTarifasIA.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/ModalImportarTarifasIA.tsx supera el límite de tamaño (676 líneas > 450)",
+      "detalle": "El componente tiene 676 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/config/ModalImportarTarifasIA.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/config/ModalTecnificarCatalogo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/ModalTecnificarCatalogo.tsx supera el límite de tamaño (905 líneas > 450)",
+      "detalle": "El componente tiene 905 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/config/ModalTecnificarCatalogo.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/config/ModalTecnificarCatalogo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/ModalTecnificarCatalogo.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/config/ModalTecnificarCatalogo.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/config/SeccionSuscripcion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/SeccionSuscripcion.web.tsx supera el límite de tamaño (475 líneas > 450)",
+      "detalle": "El componente tiene 475 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/config/SeccionSuscripcion.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/config/SeccionSuscripcion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/SeccionSuscripcion.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/config/SeccionSuscripcion.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/config/TabMigracionMagica.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabMigracionMagica.tsx supera el límite de tamaño (822 líneas > 450)",
+      "detalle": "El componente tiene 822 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/config/TabMigracionMagica.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/config/TabMigracionMagica.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabMigracionMagica.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/config/TabMigracionMagica.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/config/TabPresupuestoConceptos.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabPresupuestoConceptos.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/config/TabPresupuestoConceptos.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/config/TabRecompensas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabRecompensas.web.tsx supera el límite de tamaño (1417 líneas > 450)",
+      "detalle": "El componente tiene 1417 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/config/TabRecompensas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/config/TabRecompensas.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/config/TabRecompensas.web.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/config/TabRecompensas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/equipo/RendimientoEquipo.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/equipo/RendimientoEquipo.web.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/equipo/RendimientoEquipo.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/informes/AuditoriaSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/AuditoriaSection.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/informes/AuditoriaSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/informes/FacturasRegistroSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/FacturasRegistroSection.tsx supera el límite de tamaño (551 líneas > 450)",
+      "detalle": "El componente tiene 551 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/informes/FacturasRegistroSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/informes/FacturasRegistroSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/FacturasRegistroSection.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/informes/FacturasRegistroSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/informes/GastosSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/GastosSection.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/informes/GastosSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/informes/LiquidacionesSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/LiquidacionesSection.tsx supera el límite de tamaño (942 líneas > 450)",
+      "detalle": "El componente tiene 942 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/informes/LiquidacionesSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/informes/LiquidacionesSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/LiquidacionesSection.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/informes/LiquidacionesSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/informes/ProductosVendidosSection.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/informes/ProductosVendidosSection.tsx tiene complejidad/anidamiento excesivo (nivel 9 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 9 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/informes/ProductosVendidosSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/jornada/RegistroJornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/jornada/RegistroJornada.web.tsx supera el límite de tamaño (715 líneas > 450)",
+      "detalle": "El componente tiene 715 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/jornada/RegistroJornada.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/jornada/RegistroJornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/jornada/RegistroJornada.web.tsx tiene complejidad/anidamiento excesivo (nivel 17 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 17 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/jornada/RegistroJornada.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/layout/Sidebar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/layout/Sidebar.tsx supera el límite de tamaño (895 líneas > 450)",
+      "detalle": "El componente tiene 895 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/layout/Sidebar.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/layout/Sidebar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/layout/Sidebar.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/layout/Sidebar.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/onboarding/AsistentePuestaEnMarcha.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/onboarding/AsistentePuestaEnMarcha.web.tsx supera el límite de tamaño (1035 líneas > 450)",
+      "detalle": "El componente tiene 1035 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/onboarding/AsistentePuestaEnMarcha.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/onboarding/AsistentePuestaEnMarcha.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/onboarding/AsistentePuestaEnMarcha.web.tsx tiene complejidad/anidamiento excesivo (nivel 8 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 8 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/onboarding/AsistentePuestaEnMarcha.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/onboarding/OnboardingPanel.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/onboarding/OnboardingPanel.tsx supera el límite de tamaño (504 líneas > 450)",
+      "detalle": "El componente tiene 504 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/onboarding/OnboardingPanel.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/pos/CobroSheet.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/pos/CobroSheet.tsx supera el límite de tamaño (1249 líneas > 450)",
+      "detalle": "El componente tiene 1249 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/pos/CobroSheet.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/pos/CobroSheet.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/pos/CobroSheet.tsx tiene complejidad/anidamiento excesivo (nivel 11 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 11 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/pos/CobroSheet.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/pos/SelectorCatalogo.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/pos/SelectorCatalogo.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/pos/SelectorCatalogo.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/ui/DesignComponents.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/ui/DesignComponents.tsx tiene complejidad/anidamiento excesivo (nivel 10 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 10 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/ui/DesignComponents.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/ui/Pickers.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/ui/Pickers.tsx tiene complejidad/anidamiento excesivo (nivel 7 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 7 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/ui/Pickers.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/componente-monstruo:components/ui/SettingsAtoms.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/ui/SettingsAtoms.tsx supera el límite de tamaño (915 líneas > 450)",
+      "detalle": "El componente tiene 915 líneas. Se recomienda modularizar y extraer subcomponentes o custom hooks para optimizar el ciclo de render y mejorar la mantenibilidad.",
+      "fichero": "components/ui/SettingsAtoms.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/anidamiento-profundo:components/ui/SettingsAtoms.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "components/ui/SettingsAtoms.tsx tiene complejidad/anidamiento excesivo (nivel 14 > 4)",
+      "detalle": "Se detectaron bloques de control con profundidad de 14 niveles anidados. Conviene aplicar cláusulas de guarda (early returns) o descomponer en funciones auxiliares.",
+      "fichero": "components/ui/SettingsAtoms.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/clientes.web.tsx:app/(tabs)/ayuda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/clientes.web.tsx y app/(tabs)/ayuda.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/clientes.web.tsx y app/(tabs)/ayuda.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/clientes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/equipo.web.tsx:app/(tabs)/ayuda.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/equipo.web.tsx y app/(tabs)/ayuda.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/equipo.web.tsx y app/(tabs)/ayuda.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/equipo.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/informes.tsx:app/(tabs)/ayuda.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/informes.tsx y app/(tabs)/ayuda.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/informes.tsx y app/(tabs)/ayuda.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/informes.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/informes.web.tsx:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/informes.web.tsx y app/(tabs)/clientes.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/informes.web.tsx y app/(tabs)/clientes.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/informes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/inventario.web.tsx:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/inventario.web.tsx y app/(tabs)/clientes.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/inventario.web.tsx y app/(tabs)/clientes.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/inventario.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/lista-espera.web.tsx:app/(tabs)/bandeja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/lista-espera.web.tsx y app/(tabs)/bandeja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/lista-espera.web.tsx y app/(tabs)/bandeja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/lista-espera.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/presupuestos.web.tsx:app/(tabs)/bandeja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/presupuestos.web.tsx y app/(tabs)/bandeja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/presupuestos.web.tsx y app/(tabs)/bandeja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/presupuestos.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/(tabs)/resenas.web.tsx:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/(tabs)/resenas.web.tsx y app/(tabs)/clientes.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/(tabs)/resenas.web.tsx y app/(tabs)/clientes.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/(tabs)/resenas.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/pago/[ref].web.tsx:app/pagar/[token].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/pago/[ref].web.tsx y app/pagar/[token].web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/pago/[ref].web.tsx y app/pagar/[token].web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/pago/[ref].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/r/[slug].web.tsx:app/cita/[id].web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/r/[slug].web.tsx y app/cita/[id].web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/r/[slug].web.tsx y app/cita/[id].web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/r/[slug].web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:app/screens/nueva-cita.tsx:app/screens/agenda-detalle.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre app/screens/nueva-cita.tsx y app/screens/agenda-detalle.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre app/screens/nueva-cita.tsx y app/screens/agenda-detalle.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "app/screens/nueva-cita.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/acceso/PuertaIdentidad.web.tsx:components/acceso/PuertaIdentidad.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/acceso/PuertaIdentidad.web.tsx y components/acceso/PuertaIdentidad.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/acceso/PuertaIdentidad.web.tsx y components/acceso/PuertaIdentidad.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/acceso/PuertaIdentidad.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/AgendaCalendar.web.tsx:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/AgendaCalendar.web.tsx y app/(tabs)/caja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/AgendaCalendar.web.tsx y app/(tabs)/caja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/AgendaCalendar.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/ListaEsperaDropdown.web.tsx:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/ListaEsperaDropdown.web.tsx y app/(tabs)/caja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/ListaEsperaDropdown.web.tsx y app/(tabs)/caja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/ListaEsperaDropdown.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/RetrasoEstrategiasModal.web.tsx:components/agenda/ListaEsperaPropuestaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/RetrasoEstrategiasModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/RetrasoEstrategiasModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/RetrasoEstrategiasModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/RetrasoPropuestaModal.web.tsx:components/agenda/ListaEsperaPropuestaModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/RetrasoPropuestaModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/RetrasoPropuestaModal.web.tsx y components/agenda/ListaEsperaPropuestaModal.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/RetrasoPropuestaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/SelectorCreacionAgenda.web.tsx:components/agenda/AvisosAgendaPanel.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/SelectorCreacionAgenda.web.tsx y components/agenda/AvisosAgendaPanel.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/SelectorCreacionAgenda.web.tsx y components/agenda/AvisosAgendaPanel.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/SelectorCreacionAgenda.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/modals/DetalleCitaModal.web.tsx:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/modals/DetalleCitaModal.web.tsx y app/(tabs)/caja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/modals/DetalleCitaModal.web.tsx y app/(tabs)/caja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/modals/DetalleCitaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/modals/NewCitaModal.web.tsx:app/screens/nueva-cita.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/modals/NewCitaModal.web.tsx y app/screens/nueva-cita.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/modals/NewCitaModal.web.tsx y app/screens/nueva-cita.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/modals/NewCitaModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/modals/ReservaGrupoModal.web.tsx:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/modals/ReservaGrupoModal.web.tsx y app/(tabs)/caja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/modals/ReservaGrupoModal.web.tsx y app/(tabs)/caja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/views/VistaDiaLista.web.tsx:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/views/VistaDiaLista.web.tsx y app/(tabs)/caja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/views/VistaDiaLista.web.tsx y app/(tabs)/caja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/views/VistaDiaLista.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/views/VistasSemanaMes.web.tsx:app/(tabs)/caja.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/views/VistasSemanaMes.web.tsx y app/(tabs)/caja.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/views/VistasSemanaMes.web.tsx y app/(tabs)/caja.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/views/VistasSemanaMes.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/agenda/views/timeline/Timeline.web.tsx:components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/agenda/views/timeline/Timeline.web.tsx y components/agenda/modals/ReservaGrupoModal.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/agenda/views/timeline/Timeline.web.tsx y components/agenda/modals/ReservaGrupoModal.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/agenda/views/timeline/Timeline.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/chispa/TourLauncher.web.tsx:components/chispa/CoachLauncher.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/chispa/TourLauncher.web.tsx y components/chispa/CoachLauncher.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/chispa/TourLauncher.web.tsx y components/chispa/CoachLauncher.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/chispa/TourLauncher.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/config/MiPerfilProfesional.tsx:app/(tabs)/configuracion.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/config/MiPerfilProfesional.tsx y app/(tabs)/configuracion.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/config/MiPerfilProfesional.tsx y app/(tabs)/configuracion.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/config/MiPerfilProfesional.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/equipo/RendimientoEquipo.web.tsx:app/(tabs)/mi-jornada.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/equipo/RendimientoEquipo.web.tsx y app/(tabs)/mi-jornada.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/equipo/RendimientoEquipo.web.tsx y app/(tabs)/mi-jornada.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/equipo/RendimientoEquipo.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/informes/LiquidacionesSection.tsx:app/(tabs)/clientes.web.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/informes/LiquidacionesSection.tsx y app/(tabs)/clientes.web.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/informes/LiquidacionesSection.tsx y app/(tabs)/clientes.web.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/informes/LiquidacionesSection.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/layout/Sidebar.tsx:components/layout/MobileTabBar.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/layout/Sidebar.tsx y components/layout/MobileTabBar.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/layout/Sidebar.tsx y components/layout/MobileTabBar.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/layout/Sidebar.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/pos/VentaTarjetaRegaloModal.tsx:components/pos/VentaBonoModal.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/pos/VentaTarjetaRegaloModal.tsx y components/pos/VentaBonoModal.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/pos/VentaTarjetaRegaloModal.tsx y components/pos/VentaBonoModal.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/pos/VentaTarjetaRegaloModal.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "calidad-codigo/duplicacion:components/ui/PhoneInput.web.tsx:components/ui/PhoneInput.tsx",
+      "nivel": "aviso",
+      "ambito": "rendimiento",
+      "titulo": "Lógica duplicada (8+ líneas) entre components/ui/PhoneInput.web.tsx y components/ui/PhoneInput.tsx",
+      "detalle": "Se detectó un bloque de lógica idéntica entre components/ui/PhoneInput.web.tsx y components/ui/PhoneInput.tsx.\nSe recomienda abstraer este comportamiento en un helper común dentro de lib/ o un hook compartido.",
+      "fichero": "components/ui/PhoneInput.web.tsx",
+      "linea": 1
+    },
+    {
+      "clave": "ci-cadena-rota/vigilante-cascade-skip-e2e-7",
+      "nivel": "aviso",
+      "ambito": "seguridad",
+      "titulo": "Vigilante cascade-skippable: job \"e2e\", paso \"Vigilante de peso del bundle\"",
+      "detalle": ".github/workflows/ci.yml: el paso de vigilancia \"Vigilante de peso del bundle\" esta despues de pasos que pueden fallar y NO tiene `if: always()`. Si un paso anterior falla, este vigilante nunca corre y su informe no se genera: el panel se queda con la ultima foto vieja sin decirlo.\n\nSolucion: anadir `if: always()` al paso, o mover el vigilante antes de los pasos fragiles.",
+      "fichero": ".github/workflows/ci.yml",
+      "linea": null
+    },
+    {
+      "clave": "ci-cadena-rota/vigilante-cascade-skip-e2e-8",
+      "nivel": "aviso",
+      "ambito": "seguridad",
+      "titulo": "Vigilante cascade-skippable: job \"e2e\", paso \"Puerta de claves contra el bundle construido\"",
+      "detalle": ".github/workflows/ci.yml: el paso de vigilancia \"Puerta de claves contra el bundle construido\" esta despues de pasos que pueden fallar y NO tiene `if: always()`. Si un paso anterior falla, este vigilante nunca corre y su informe no se genera: el panel se queda con la ultima foto vieja sin decirlo.\n\nSolucion: anadir `if: always()` al paso, o mover el vigilante antes de los pasos fragiles.",
+      "fichero": ".github/workflows/ci.yml",
+      "linea": null
+    },
+    {
+      "clave": "meta-registro/se-suicida-al-importar:trampa-de-prueba.mjs",
+      "nivel": "bloqueante",
+      "ambito": "vigilancia",
+      "titulo": "trampa-de-prueba.mjs llama a process.exit() a nivel de modulo: no se puede inspeccionar",
+      "detalle": "scripts/vigilantes/trampa-de-prueba.mjs no esta en NO_SON_VIGILANTES y llama a process.exit() fuera de cualquier funcion. Importarlo para comprobar si es un vigilante mataria este proceso y dejaria toda la vigilancia en un verde falso, que es exactamente lo que paso del 1 al 4 sep 2026. O es infraestructura --y entonces va a la lista de nucleo.mjs, a proposito-- o tiene que devolver hallazgos en vez de matar el proceso.",
+      "fichero": "scripts/vigilantes/trampa-de-prueba.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-ecosistema.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-ecosistema.mjs no tiene archivo de test bd-ecosistema.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-ecosistema.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-escritura-critica.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-escritura-critica.mjs no tiene archivo de test bd-escritura-critica.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-escritura-critica.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-invariantes.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-invariantes.mjs no tiene archivo de test bd-invariantes.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-invariantes.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-migraciones.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-migraciones.mjs no tiene archivo de test bd-migraciones.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-migraciones.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-rendimiento.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-rendimiento.mjs no tiene archivo de test bd-rendimiento.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-rendimiento.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-sobrecargas-rpc.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-sobrecargas-rpc.mjs no tiene archivo de test bd-sobrecargas-rpc.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-sobrecargas-rpc.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd-triggers-ciegos.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd-triggers-ciegos.mjs no tiene archivo de test bd-triggers-ciegos.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd-triggers-ciegos.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-bd.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/bd.mjs no tiene archivo de test bd.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/bd.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-codigo-muerto.mjs",
+      "nivel": "aviso",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/codigo-muerto.mjs no tiene archivo de test codigo-muerto.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe llevar su suite de tests. Este consta en scripts/vigilantes/meta-contrato-baseline.json como deuda heredada, asi que avisa en vez de bloquear. Para bajar el contador: escribe el test y quita el nombre de la lista.",
+      "fichero": "scripts/vigilantes/codigo-muerto.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/process-exit-trampa-de-prueba.mjs",
+      "nivel": "bloqueante",
+      "ambito": "meta",
+      "titulo": "scripts/vigilantes/trampa-de-prueba.mjs usa process.exit() directamente",
+      "detalle": "Los módulos vigilantes deben devolver hallazgos o lanzar AnclaPerdida. Matar el proceso con process.exit() dentro de un módulo aborta la suite y causa crashes de libuv en sockets de red en Windows. El runner index.mjs es el único que gestiona la salida.",
+      "fichero": "scripts/vigilantes/trampa-de-prueba.mjs",
+      "linea": null
+    },
+    {
+      "clave": "meta-contrato/sin-test-trampa-de-prueba.mjs",
+      "nivel": "bloqueante",
+      "ambito": "meta",
+      "titulo": "El vigilante scripts/vigilantes/trampa-de-prueba.mjs no tiene archivo de test trampa-de-prueba.test.mjs",
+      "detalle": "Regla de Meta-Vigilancia: cada vigilante debe estar acompañado de su suite de tests unitarios (*.test.mjs) para verificar su contrato y que no esté ciego. Este es NUEVO: no estaba en la linea base, asi que bloquea.",
+      "fichero": "scripts/vigilantes/trampa-de-prueba.mjs",
+      "linea": null
+    },
+    {
+      "clave": "modales-fantasma/sin-cierre-app-tabs-clientes-tsx-0",
+      "nivel": "aviso",
+      "ambito": "codigo",
+      "titulo": "app/(tabs)/clientes.tsx: <Modal> no implementa onRequestClose / onDismiss",
+      "detalle": "En app/(tabs)/clientes.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.",
+      "fichero": "app/(tabs)/clientes.tsx",
+      "linea": null
+    },
+    {
+      "clave": "modales-fantasma/sin-cierre-app-tabs-clientes-tsx-1",
+      "nivel": "aviso",
+      "ambito": "codigo",
+      "titulo": "app/(tabs)/clientes.tsx: <Modal> no implementa onRequestClose / onDismiss",
+      "detalle": "En app/(tabs)/clientes.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.",
+      "fichero": "app/(tabs)/clientes.tsx",
+      "linea": null
+    },
+    {
+      "clave": "modales-fantasma/sin-cierre-app-tabs-equipo-tsx-0",
+      "nivel": "aviso",
+      "ambito": "codigo",
+      "titulo": "app/(tabs)/equipo.tsx: <Modal> no implementa onRequestClose / onDismiss",
+      "detalle": "En app/(tabs)/equipo.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.",
+      "fichero": "app/(tabs)/equipo.tsx",
+      "linea": null
+    },
+    {
+      "clave": "modales-fantasma/sin-cierre-app-tabs-equipo-tsx-1",
+      "nivel": "aviso",
+      "ambito": "codigo",
+      "titulo": "app/(tabs)/equipo.tsx: <Modal> no implementa onRequestClose / onDismiss",
+      "detalle": "En app/(tabs)/equipo.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.",
+      "fichero": "app/(tabs)/equipo.tsx",
+      "linea": null
+    },
+    {
+      "clave": "modales-fantasma/sin-cierre-app-tabs-equipo-tsx-2",
+      "nivel": "aviso",
+      "ambito": "codigo",
+      "titulo": "app/(tabs)/equipo.tsx: <Modal> no implementa onRequestClose / onDismiss",
+      "detalle": "En app/(tabs)/equipo.tsx, un componente <Modal> carece de onRequestClose o onDismiss. En dispositivos móviles o navegadores con botón atrás/tecla Escape, esto impide que el usuario cierre el diálogo de forma estándar.",
+      "fichero": "app/(tabs)/equipo.tsx",
+      "linea": null
+    }
+  ]
+}

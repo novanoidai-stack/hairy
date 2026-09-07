@@ -1026,7 +1026,17 @@ function Final({ isMobile, hechos, onIrABloque, onTerminar }: {
         </div>
       </div>
 
-      <div style={{ marginTop: 26 }}>
+      {/* Pegajoso: al saltar pasos se acumulan tantos bloques pendientes que el
+          boton de terminar quedaba POR DEBAJO del area visible, dentro del scroll
+          interno, y parecia que el recorrido no tenia final. Fijado abajo, se ve
+          siempre (con velo de fondo para que el contenido pase por debajo). */}
+      <div
+        style={{
+          position: 'sticky', bottom: 0, marginTop: 26, paddingTop: 16,
+          paddingBottom: 4, background: `linear-gradient(${T.bg}00, ${T.bg} 34%)`,
+          zIndex: 1,
+        }}
+      >
         <Cta isMobile={isMobile} onClick={onTerminar}>Entrar a mi agenda</Cta>
       </div>
     </>

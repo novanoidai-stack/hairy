@@ -120,21 +120,18 @@ Deno.serve(async (req) => {
   const esSuscripcion = event.type.startsWith('customer.subscription.') ||
                         event.type.startsWith('invoice.');
 
-  const eventTimestamp = event.created;
-  const now = Math.floor(Date.now() / 1000);
-  // La ventana de 5 min es anti-replay para los cobros del salon. NO se aplica al
-  // ciclo de vida de la suscripcion: Stripe reintenta durante horas y un
-  // invoice.payment_failed reintentado a los 10 minutos se perderia para siempre
-  // (cada reintento volveria a fallar por antiguo). Ahi la proteccion real es la
-  // tabla de deduplicacion por event_id, que sigue aplicandose igual.
-  if (!esSuscripcion && now - eventTimestamp > 300) {
-    return new Response('Stale event - replay detected', { status: 400 });
-  }
-
+  // Deduplicación por event_id en la BD (la firma de Stripe constructEventAsync ya
+  // valida la tolerancia de 5 min en la cabecera t= para ataques de replay de red;
+  // la BD previene doble procesamiento sin bloquear reintentos legítimos de Stripe que
+  // ocurren tras 5 minutos si hubo un fallo transitorio).
   const { error: dupErr } = await supabase
     .from('stripe_webhook_eventos')
     .insert({ event_id: event.id, tipo: event.type });
-  if (dupErr) return new Response('ok (dup)', { status: 200 });
+  if (dupErr) {
+    if (dupErr.code === '23505') return new Response('ok (dup)', { status: 200 });
+    console.error('Error registrando deduplicación de stripe webhook:', dupErr);
+    return new Response('Database error', { status: 500 });
+  }
 
   const piOf = (v: unknown): string | null =>
     typeof v === 'string' ? v : ((v as { id?: string })?.id ?? null);
@@ -147,7 +144,15 @@ Deno.serve(async (req) => {
       if (session.metadata?.fianza_modo === 'hold') {
         await supabase.rpc('registrar_hold_colocado', { p_pago_id: pagoId, p_payment_intent: pi });
       } else {
-        const { data: pago } = await supabase.from('pagos').select('cita_id, tipo, metadata').eq('id', pagoId).single();
+        if (session.payment_status !== 'paid' && session.mode === 'payment') {
+          console.log(`Checkout session ${session.id} pendiente de pago (status: ${session.payment_status})`);
+          return new Response('Payment not completed yet', { status: 200 });
+        }
+        const { data: pago } = await supabase.from('pagos').select('negocio_id, cita_id, tipo, metadata').eq('id', pagoId).single();
+        if (negocio && pago && pago.negocio_id !== negocio) {
+          console.error(`Cross-tenant webhook mismatch: URL negocio=${negocio} vs pago.negocio_id=${pago.negocio_id}`);
+          return new Response('Tenant mismatch', { status: 403 });
+        }
         const mergedMeta = { ...((pago?.metadata as Record<string, unknown>) ?? {}), ...(pi ? { payment_intent: pi } : {}) };
         await supabase.from('pagos').update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'tarjeta', metadata: mergedMeta }).eq('id', pagoId);
         if (pago?.tipo === 'total') {
@@ -170,7 +175,11 @@ Deno.serve(async (req) => {
     if (pi.metadata?.canal === 'terminal') {
       const pagoId = pi.metadata?.pago_id as string | undefined;
       if (pagoId) {
-        const { data: pago } = await supabase.from('pagos').select('estado, metadata').eq('id', pagoId).maybeSingle();
+        const { data: pago } = await supabase.from('pagos').select('negocio_id, estado, metadata').eq('id', pagoId).maybeSingle();
+        if (negocio && pago && pago.negocio_id !== negocio) {
+          console.error(`Cross-tenant webhook mismatch: URL negocio=${negocio} vs pago.negocio_id=${pago.negocio_id}`);
+          return new Response('Tenant mismatch', { status: 403 });
+        }
         if (pago && pago.estado !== 'pagado') {
           const merged = { ...((pago.metadata as Record<string, unknown>) ?? {}), payment_intent: pi.id };
           await supabase.from('pagos').update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'datafono', metadata: merged }).eq('id', pagoId);

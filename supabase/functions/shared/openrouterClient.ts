@@ -274,9 +274,27 @@ export async function llamarIA(apiKey: string, opciones: OpcionesIA): Promise<Re
 
         const tokensIn = json?.usage?.prompt_tokens ?? 0;
         const tokensOut = json?.usage?.completion_tokens ?? 0;
+        const texto = typeof mensaje.content === 'string' ? mensaje.content : '';
+        const tieneToolCalls = Array.isArray(mensaje.tool_calls) && mensaje.tool_calls.length > 0;
+
+        // Un 200 con content VACIA no es una respuesta util: es lo que hace un
+        // modelo de razonamiento (qwen3.7-flash) cuando se gasta TODO el
+        // max_tokens en pensar (finish_reason 'length') y no le queda presupuesto
+        // para escribir. La cascada lo daba por bueno y toda la funcion caia al
+        // fallback sin que hubiera ningun fallo que ver en los logs.
+        if (!tieneToolCalls && texto.trim() === '') {
+          intentosFallidos.push({
+            modelo: modeloId,
+            motivo: `respuesta vacia (finish_reason: ${json?.choices?.[0]?.finish_reason ?? '?'})`,
+          });
+          console.warn(
+            `[IA:${opciones.funcion}] ${modeloId} respondio vacio (${tokensOut} tokens out), siguiente modelo`,
+          );
+          break;
+        }
 
         return {
-          texto: typeof mensaje.content === 'string' ? mensaje.content : '',
+          texto,
           toolCalls: mensaje.tool_calls,
           modelo: modeloId,
           tokensIn,

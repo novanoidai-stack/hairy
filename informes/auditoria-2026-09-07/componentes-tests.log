@@ -1,0 +1,16 @@
+
+> hairy@1.0.0 test:componentes
+> vitest run
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.mts:18:46). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 C:/Users/carli/OneDrive/Escritorio/Trabajo/novanoidai/Hairy
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  16:57:21
+   Duration  4.23s (transform 337ms, setup 458ms, import 526ms, tests 531ms, environment 2.31s)
+

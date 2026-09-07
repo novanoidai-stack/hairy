@@ -94,7 +94,7 @@ export const CATALOGO: ModeloIA[] = [
     contexto: 1_048_576,
     entrada: ['texto', 'imagen', 'video', 'archivo', 'audio'],
     tools: true, json: true, temperatura: false,
-    precioIn: 0.1875, precioOut: 0.9375,
+    precioIn: 0.375, precioOut: 1.875,
     activo: false,
   },
   {

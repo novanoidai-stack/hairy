@@ -1,0 +1,197 @@
+Zizmor (auditoría de workflows)	UNKNOWN STEP	﻿2026-09-07T13:32:46.9342014Z Current runner version: '2.337.0'
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9367001Z ##[group]Runner Image Provisioner
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9367969Z Hosted Compute Agent
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9368569Z Version: 20260828.587
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9369365Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9370161Z Build Date: 2026-08-28T16:44:25Z
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9370908Z Worker ID: {7fc9ad04-a397-4901-9728-ecd9fde6cf41}
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9371971Z Azure Region: westus
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9372549Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9374298Z ##[group]Operating System
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9375011Z Ubuntu
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9375619Z 24.04.4
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9376234Z LTS
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9376769Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9377376Z ##[group]Runner Image
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9378024Z Image: ubuntu-24.04
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9378642Z Version: 20260831.293.1
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9379956Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9381803Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9382800Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9383996Z ##[group]GITHUB_TOKEN Permissions
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9386259Z Contents: read
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9386970Z Metadata: read
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9387569Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9389706Z Secret source: Actions
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9391528Z Prepare workflow directory
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9730982Z Prepare all required actions
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:46.9781835Z Getting action download info
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:47.3483111Z Download action repository 'actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:47.4623070Z Download action repository 'astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86' (SHA:d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1060629Z Complete job name: Zizmor (auditoría de workflows)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1870739Z ##[group]Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1872215Z with:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1872731Z   persist-credentials: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1873341Z   repository: novanoidai-stack/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1877589Z   token: ***
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1878083Z   ssh-strict: true
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1878583Z   ssh-user: git
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1879054Z   clean: true
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1879545Z   sparse-checkout-cone-mode: true
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1880121Z   fetch-depth: 1
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1880607Z   fetch-tags: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1881123Z   show-progress: true
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1881804Z   lfs: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1882269Z   submodules: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1882785Z   set-safe-directory: true
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1883351Z   allow-unsafe-pr-checkout: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.1884200Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.2900205Z Syncing repository: novanoidai-stack/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.2903709Z ##[group]Getting Git version info
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.2904935Z Working directory is '/home/runner/work/hairy/hairy'
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.2906761Z [command]/usr/bin/git version
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.2977814Z git version 2.55.0
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3000702Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3016478Z Temporarily overriding HOME='/home/runner/work/_temp/fcd75f91-d9ff-4196-9432-44d6ed6fb3e6' before making global git config changes
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3019285Z Adding repository directory to the temporary git global config as a safe directory
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3034051Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/hairy/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3083047Z Deleting the contents of '/home/runner/work/hairy/hairy'
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3087378Z ##[group]Initializing the repository
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3092861Z [command]/usr/bin/git init /home/runner/work/hairy/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3237730Z hint: Using 'master' as the name for the initial branch. This default branch name
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3239103Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3240539Z hint: to use in all of your new repositories, which will suppress this warning,
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3241712Z hint: call:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3242224Z hint:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3242833Z hint: 	git config --global init.defaultBranch <name>
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3243565Z hint:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3244245Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3245350Z hint: 'development'. The just-created branch can be renamed via this command:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3246230Z hint:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3246713Z hint: 	git branch -m <name>
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3247265Z hint:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3247995Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3254707Z Initialized empty Git repository in /home/runner/work/hairy/hairy/.git/
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3267070Z [command]/usr/bin/git remote add origin https://github.com/novanoidai-stack/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3323308Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3324791Z ##[group]Disabling automatic garbage collection
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3326505Z [command]/usr/bin/git config --local gc.auto 0
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3359937Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3361582Z ##[group]Setting up auth
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3367133Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3406099Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3823049Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.3859430Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.4088014Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.4124817Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.4355556Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.4394637Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.4395672Z ##[group]Fetching the repository
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:48.4405711Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +eb60e2b40e6252feda131e6f72eef422079ab04b:refs/remotes/origin/master
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0385631Z From https://github.com/novanoidai-stack/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0387110Z  * [new ref]         eb60e2b40e6252feda131e6f72eef422079ab04b -> origin/master
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0391686Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0392723Z ##[group]Determining the checkout info
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0394874Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0401559Z [command]/usr/bin/git sparse-checkout disable
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0458217Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0491502Z ##[group]Checking out the ref
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.0496642Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6634029Z Reset branch 'master'
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6639263Z branch 'master' set up to track 'origin/master'.
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6666756Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6718259Z [command]/usr/bin/git log -1 --format=%H
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6747631Z eb60e2b40e6252feda131e6f72eef422079ab04b
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6758044Z ##[group]Removing auth
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6762702Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.6799298Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7045124Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7073705Z http.https://github.com/.extraheader
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7082033Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7117858Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7339816Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7371674Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7590261Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7847973Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7849888Z ##[group]Run astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7850284Z with:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7853677Z   github-token: ***
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7853930Z   enable-cache: auto
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7854246Z   cache-dependency-glob: **/uv.lock
+Zizmor (auditoría de workflows)	UNKNOWN STEP	**/requirements*.txt
+Zizmor (auditoría de workflows)	UNKNOWN STEP	
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7854613Z   prune-cache: true
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7854852Z   ignore-nothing-to-cache: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7855114Z   ignore-empty-workdir: false
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.7855365Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.9607608Z (node:2377) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:51.9608427Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.2404687Z Downloading uv from "https://github.com/astral-sh/uv/releases/download/0.12.10/uv-x86_64-unknown-linux-gnu.tar.gz" ...
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.5767008Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/00a45e8c-762a-43ef-beb9-dd24d17b962e -f /home/runner/work/_temp/7bcb505d-fc72-46a2-9622-74cdbd2110d4
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.9742123Z Added /home/runner/.local/bin to the path
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.9742856Z Added /opt/hostedtoolcache/uv/0.12.10/x86_64 to the path
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.9766925Z Set UV_CACHE_DIR to /home/runner/work/_temp/setup-uv-cache
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.9767668Z Successfully installed uv version 0.12.10
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:52.9768486Z Searching files using cache dependency glob: **/uv.lock,**/requirements*.txt
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:53.2326854Z No matches found for glob
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:53.2436422Z ##[warning]No file matched to [**/uv.lock,**/requirements*.txt]. The cache will never get invalidated. Make sure you have checked out the target repository and configured the cache-dependency-glob input correctly.
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:53.3015083Z Trying to restore uv cache from GitHub Actions cache with key: setup-uv-1-x86_64-unknown-linux-gnu-3.12.3-no-dependency-glob
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:53.5591159Z Cache hit for: setup-uv-1-x86_64-unknown-linux-gnu-3.12.3-no-dependency-glob
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:53.5701613Z (node:2377) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.8513104Z Received 827398 of 5021702 (16.5%), 0.8 MBs/sec
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9006927Z Received 5021702 of 5021702 (100.0%), 4.6 MBs/sec
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9007484Z Cache Size: ~5 MB (5021702 B)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9036394Z [command]/usr/bin/tar -xf /home/runner/work/_temp/75b88d0b-dcab-407d-9e32-186adeb73882/cache.tzst -P -C /home/runner/work/hairy/hairy --use-compress-program unzstd
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9320754Z Cache restored successfully
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9329152Z uv cache restored from GitHub Actions cache with key: setup-uv-1-x86_64-unknown-linux-gnu-3.12.3-no-dependency-glob
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9486706Z ##[group]Run uv tool install zizmor
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9487113Z ^[[36;1muv tool install zizmor^[[0m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9530465Z shell: /usr/bin/bash -e {0}
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9530756Z env:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9531045Z   UV_CACHE_DIR: /home/runner/work/_temp/setup-uv-cache
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:54.9531752Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1114803Z Resolved 1 package in 100ms
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1296609Z Downloading zizmor (9.0MiB)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1879792Z  Downloaded zizmor
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1882309Z Prepared 1 package in 75ms
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1903884Z Installed 1 package in 1ms
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1904591Z  + zizmor==1.30.0
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1906410Z Installed 1 executable: zizmor
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1959134Z ##[group]Run zizmor --min-severity medium .
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1959546Z ^[[36;1mzizmor --min-severity medium .^[[0m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1998723Z shell: /usr/bin/bash -e {0}
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1999106Z env:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1999383Z   UV_CACHE_DIR: /home/runner/work/_temp/setup-uv-cache
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.1999737Z ##[endgroup]
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2084990Z ^[[32m INFO^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m 🌈 zizmor v1.30.0
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2627164Z ^[[33m WARN^[[0m ^[[1maudit^[[0m^[[2m:^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m zizmor is running in offline mode by default; some audits and auto-fixes will not be available. see https://docs.zizmor.sh/usage/#operating-modes for details
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2666305Z ^[[32m INFO^[[0m ^[[1maudit^[[0m^[[2m:^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m 🌈 completed ./.github/workflows/canario.yml
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2697408Z ^[[32m INFO^[[0m ^[[1maudit^[[0m^[[2m:^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m 🌈 completed ./.github/workflows/ci.yml
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2705334Z ^[[32m INFO^[[0m ^[[1maudit^[[0m^[[2m:^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m 🌈 completed ./.github/workflows/dr-mensual.yml
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2709258Z ^[[32m INFO^[[0m ^[[1maudit^[[0m^[[2m:^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m 🌈 completed ./.github/workflows/seguridad.yml
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2716964Z ^[[32m INFO^[[0m ^[[1maudit^[[0m^[[2m:^[[0m ^[[2mzizmor^[[0m^[[2m:^[[0m 🌈 completed ./.github/workflows/vigilancia-bd.yml
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2718175Z ^[[1m^[[91merror[excessive-permissions]^[[0m^[[1m: overly broad permissions^[[0m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2718963Z   ^[[1m^[[94m--> ^[[0m./.github/workflows/ci.yml:14:3
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2719741Z    ^[[1m^[[94m|^[[0m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2720322Z ^[[1m^[[94m14^[[0m ^[[1m^[[94m|^[[0m   issues: write # escalar bloqueantes de vigilancia a issues (issues.mjs)
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2721120Z    ^[[1m^[[94m|^[[0m   ^[[1m^[[91m^^^^^^^^^^^^^^[[0m ^[[1m^[[91missues: write is overly broad at the workflow level^[[0m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2722004Z    ^[[1m^[[94m|^[[0m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2722689Z    ^[[1m^[[94m= ^[[0m^[[1mnote^[[0m: audit confidence → High
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2723422Z    ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: audit documentation → ^[[32mhttps://docs.zizmor.sh/audits/#excessive-permissions^[[39m
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2723876Z 
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2724431Z ^[[32m35^[[39m findings (^[[1m^[[93m1^[[39m ignored, ^[[93m33^[[39m suppressed^[[0m): ^[[35m0^[[39m informational, ^[[36m0^[[39m low, ^[[33m0^[[39m medium, ^[[31m1^[[39m high
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2744206Z ##[error]Process completed with exit code 14.
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.2874209Z Post job cleanup.
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3721691Z [command]/usr/bin/git version
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3766552Z git version 2.55.0
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3809560Z Temporarily overriding HOME='/home/runner/work/_temp/fabd861d-af8c-428f-b24a-cc0c2ac24f02' before making global git config changes
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3811052Z Adding repository directory to the temporary git global config as a safe directory
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3815869Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/hairy/hairy
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3855251Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.3892239Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.4153112Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.4189068Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.4453228Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.4492456Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.4887496Z Cleaning up orphan processes
+Zizmor (auditoría de workflows)	UNKNOWN STEP	2026-09-07T13:32:55.5158712Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -51,7 +51,7 @@ export default function PagoSenalWeb() {
   async function pagar() {
     if (!token) { setErr('Enlace de pago no válido.'); setEstado('error'); return; }
     setBusy(true); setErr('');
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mecha.app';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.mechaa.es';
     const { data, error } = await supabase.functions.invoke('crear-checkout-senal', {
       body: { token, success_url: `${origin}/app/pago/ok`, cancel_url: window.location.href },
     });

@@ -248,12 +248,71 @@ When you apply knowledge from a previously evolved rule (AGENTS.md, MEMORY.md, T
 briefly mention it in your response: "（基于之前的经验：<one-line rule summary>）".
 Keep it to one short line at most. Do not echo on every turn — only when an evolved rule directly influenced your approach.
 <!-- /autoclaw:hermes-evolution-guidance -->
- # # #   �&�  M o d i f i c a c i � n   S e g u r a   d e   R e a c t   y   J S X 
- -   * * V e r i f i c a c i � n   p r e v i a   e s t r i c t a : * *   A n t e s   d e   u s a r   l a s   h e r r a m i e n t a s   d e   r e e m p l a z o   p a r a   m o v e r   o   e d i t a r   J S X   e n   a r c h i v o s   g r a n d e s ,   D E B O   i n s p e c c i o n a r   l a s   l � n e a s   e x a c t a s   p a r a   a s e g u r a r   q u e   n o   r o m p o   e l   b a l a n c e o   d e   e t i q u e t a s   o   l l a v e s .   N u n c a   a s u m i r   q u e   d o s   c o m p o n e n t e s   e s t � n   j u n t o s   s i n   l e e r   e l   c � d i g o . 
- -   * * V a l i d a c i � n   a u t o m � t i c a : * *   D e s p u � s   d e   r e a l i z a r   c a m b i o s   e s t r u c t u r a l e s   e n   a r c h i v o s   R e a c t ,   D E B O   e j e c u t a r   s i e m p r e   \ 
- p x   t s c   - - n o E m i t \   e n   s e g u n d o   p l a n o   p a r a   a s e g u r a r   q u e   n o   h e   i n t r o d u c i d o   e r r o r e s   d e   s i n t a x i s   a n t e s   d e   a v i s a r   a l   u s u a r i o   d e   q u e   e l   c a m b i o   e s t �   l i s t o . 
- 
- # # #   <��  G e s t i � n   d e l   S e r v i d o r   E x p o   /   M e t r o 
- -   S i   e l   u s u a r i o   e s t �   u s a n d o   u n   p u e r t o   e s p e c � f i c o   ( e j .   8 0 8 0 ) ,   N U N C A   a r r a n c a r   s e r v i d o r e s   p a r a l e l o s   e n   o t r o s   p u e r t o s   ( c o m o   e l   8 0 8 1 )   a   m e n o s   q u e   s e   s o l i c i t e   e x p l � c i t a m e n t e . 
- -   S i   u n   e r r o r   d e   s i n t a x i s   d e t i e n e   e l   s e r v i d o r   d e l   u s u a r i o ,   p e d i r l e   a m a b l e m e n t e   q u e   l o   r e i n i c i e   r e s p e t a n d o   e l   p u e r t o   o r i g i n a l .  
- 
+
+## Presupuesto de contexto
+
+Este repo es grande (130 tablas, 554 funciones, 377 migraciones, `CLAUDE.md` de ~15k tokens).
+Un barrido descuidado agota la cuota antes de entregar nada. Pasó el 7 sep 2026: 5.688.801
+tokens en 7 minutos, de los cuales solo 25.295 fueron de salida (0,4%), y ningún informe
+escrito. Post mortem en `informes/auditoria-2026-09-07/INFORME-PASADA-0.md`.
+
+Las cinco reglas, en orden de cuánto ahorran:
+
+1. **Nunca leas un fichero entero.** Localiza con `grep`/`rg` y lee solo el fragmento
+   (±30 líneas). Está PROHIBIDO encadenar lecturas
+   (`Get-Content -Raw a; Get-Content -Raw b; ...`): un solo resultado de esos llegó a 174 KB
+   (~43k tokens), y una vez está en el contexto se reenvía en todos los turnos siguientes.
+
+2. **Ejecuta lo que ya existe antes de leer código.** Este repo ya se audita solo:
+
+   ```
+   npm run vigilar:rapido     # 33 vigilantes, ~2,5 s
+   npm run vigilar            # completo
+   npm run vigilar:bd         # invariantes dentro de Postgres
+   npm run vigilar:test       # tests de los propios vigilantes
+   npx tsc --noEmit
+   npm run test:componentes
+   ```
+
+   Lee su SALIDA, no su código fuente. Leer `precios.mjs`, `planes.mjs`, `referidos.mjs` o
+   `bd-comun.mjs` para razonar a mano los invariantes que esos scripts ya calculan es
+   exactamente lo que agotó la cuota.
+
+3. **La salida grande va a disco, no al contexto.** Escribe a
+   `informes/auditoria-<fecha>/` y resume después con `node`/`jq`. Nunca pegues un JSON de
+   600 KB en la conversación.
+
+4. **Sin subagentes ni trabajo en paralelo** salvo que te lo pidan. Los forks heredan el
+   contexto completo del padre: abrir tres multiplicó por cuatro una base de ~100k tokens
+   antes de empezar a trabajar.
+
+5. **Termina siempre escribiendo el informe**, aunque quede poco margen. El entregable es el
+   informe, no el barrido. Un informe corto entregado vale infinitamente más que un barrido
+   exhaustivo que se queda sin cuota antes de la conclusión.
+
+Y una que no es de coste: **las claves están en `.env` y en el Vault.** No pidas nunca que se
+peguen en el chat. Un token `sbp_...` no abre una base de datos, abre la cuenta entera de la
+organización, y queda en claro en el registro de sesión y en el proveedor del modelo.
+
+## Modificación segura de React y JSX
+
+- **Verificación previa estricta:** antes de usar herramientas de reemplazo para mover o editar
+  JSX en ficheros grandes, inspecciona las líneas exactas para no romper el balanceo de
+  etiquetas o llaves. Nunca asumas que dos componentes están juntos sin leer el código.
+- **Validación automática:** tras cualquier cambio estructural en ficheros React, ejecuta
+  `npx tsc --noEmit` antes de decir que el cambio está listo.
+
+## Gestión del servidor Expo / Metro
+
+- Si el usuario está usando un puerto concreto (p. ej. 8080), NUNCA arranques servidores
+  paralelos en otros puertos (como el 8081) salvo que se pida explícitamente.
+- Si un error de sintaxis tumba el servidor del usuario, pídele amablemente que lo reinicie
+  respetando el puerto original.
+
+## Al editar este fichero
+
+**Nunca lo amplíes con `echo "..." >> AGENTS.md` desde PowerShell.** Escribe UTF-16LE dentro de
+un fichero UTF-8 y deja la cola ilegible: las dos secciones de aquí arriba estuvieron así,
+corruptas y por tanto sin efecto, hasta el 7 sep 2026. Es la misma trampa que la decisión 9 de
+`CLAUDE.md` documenta para `.env`. Edita con un editor, o escribe el fichero entero de una vez
+en UTF-8.

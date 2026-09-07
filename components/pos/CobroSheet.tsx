@@ -643,8 +643,8 @@ export function CobroSheet(props: CobroSheetProps) {
               supabase.rpc('crear_cobro_desde_cita', {
                 p_cita_id: id,
                 p_metodo: metodo,
-                p_propina_cents: propinaCents,
-                p_descuento_cents: descuentoCents,
+                p_propina_cents: idx === 0 ? propinaCents : 0,
+                p_descuento_cents: idx === 0 ? descuentoCents : 0,
                 p_lineas_extra: idx === 0 ? lineasExtra : [],
                 // Importe corregido a mano, POR CITA: el RPC espera la base del
                 // servicio (bruta de señal) porque el descuenta la señal solo.
@@ -657,15 +657,17 @@ export function CobroSheet(props: CobroSheetProps) {
             )
           );
           const fallidos = resultados.filter((r) => r.error);
+          const cobroIds = resultados.filter((r) => !r.error && r.data).map((r) => r.data as string);
+          if (cobroIds.length > 0) {
+            setUltimoCobroIds(cobroIds);
+          }
           if (fallidos.length > 0) {
             throw fallidos.length === props.citaIds.length
               ? fallidos[0].error
-              : new Error(`${fallidos.length} de ${props.citaIds.length} cobros fallaron.`);
+              : new Error(`${fallidos.length} de ${props.citaIds.length} cobros fallaron (${cobroIds.length} completados).`);
           }
-          const cobroIds = resultados.map((r) => r.data as string);
           // Aplicar tarjeta regalo al primer cobro (si hay multiples citas)
           if (cobroIds.length > 0) await aplicarTarjetaRegalo(cobroIds[0]);
-          setUltimoCobroIds(cobroIds);
           setCobroCompletado(true);
         }
       }
@@ -687,15 +689,19 @@ export function CobroSheet(props: CobroSheetProps) {
     qrBusyRef.current = true;
     setQrBusy(true);
     try {
+      const citaId = props.citaIds[0];
+      const baseOriginal = filasCita[0]?.precioCents ?? (pendienteBaseCents + senalCents);
+      const baseElegida = basesPorCita[citaId] !== undefined ? basesPorCita[citaId] : baseOriginal;
+      const baseConExtras = baseElegida + lineasBaseCents;
+      const tieneAjuste = basesPorCita[citaId] !== undefined || lineasBaseCents > 0;
+
       const { data, error: rpcErr } = await supabase.rpc('iniciar_cobro_online', {
-        p_cita_id: props.citaIds[0],
+        p_cita_id: citaId,
         p_metodo: 'online',
         p_propina_cents: propinaCents,
         p_descuento_cents: descuentoCents,
-        // Importe corregido a mano (bruto de señal), igual que en el POS.
-        ...(basesPorCita[props.citaIds[0]] !== undefined
-          ? { p_base_cents: basesPorCita[props.citaIds[0]] }
-          : {}),
+        // Importe corregido a mano o con productos extra añadidos en el POS
+        ...(tieneAjuste ? { p_base_cents: baseConExtras } : {}),
       });
       if (rpcErr) throw rpcErr;
       const token = (data as { token?: string })?.token;

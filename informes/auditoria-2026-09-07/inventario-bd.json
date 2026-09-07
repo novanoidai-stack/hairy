@@ -1,0 +1,22 @@
+{
+  "captured_at": "2026-09-07T14:57:19.741Z",
+  "status": 201,
+  "data": [
+    {
+      "tipo": "tablas",
+      "total": 130
+    },
+    {
+      "tipo": "funciones",
+      "total": 554
+    },
+    {
+      "tipo": "politicas",
+      "total": 286
+    },
+    {
+      "tipo": "migraciones",
+      "total": 377
+    }
+  ]
+}

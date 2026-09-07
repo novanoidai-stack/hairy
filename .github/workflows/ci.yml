@@ -11,12 +11,14 @@ concurrency:
 
 permissions:
   contents: read
-  issues: write # escalar bloqueantes de vigilancia a issues (issues.mjs)
 
 jobs:
   check:
     name: Typecheck + Tests + Verificaciones
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # escalar bloqueantes de vigilancia a issues (issues.mjs)
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:

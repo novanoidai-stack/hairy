@@ -268,3 +268,49 @@ Deno.test('llamarIA: un 429 se reintenta con el mismo modelo antes de rendirse',
     },
   );
 });
+
+Deno.test('llamarIA: un 200 con content vacia (razonamiento sin presupuesto) salta al siguiente modelo', async () => {
+  const vacia = new Response(JSON.stringify({
+    // Lo que devuelve qwen3.7-flash cuando el max_tokens se lo come el
+    // razonamiento: 200, usage lleno, content vacia, finish_reason length.
+    choices: [{ message: { content: '' }, finish_reason: 'length' }],
+    usage: { prompt_tokens: 671, completion_tokens: 220 },
+  }), { status: 200 });
+  await conFetchSimulado(
+    (_url, init) => {
+      const modelo = JSON.parse(String(init.body)).model;
+      return modelo === construirCadena({ perfil: 'economico' })[0] ? vacia : respuestaOk('aqui estoy');
+    },
+    async (cuerpos) => {
+      const r = await llamarIA('k', {
+        funcion: 't',
+        mensajes: [{ role: 'user', content: 'hola' }],
+        perfil: 'economico',
+      });
+      assertEquals(r.texto, 'aqui estoy');
+      assertEquals(r.modelo, construirCadena({ perfil: 'economico' })[1]);
+      assertEquals(r.intentosFallidos.length, 1);
+      assertStringIncludes(r.intentosFallidos[0].motivo, 'respuesta vacia');
+      assertEquals(cuerpos.length, 2, 'la vacia no se reintenta: es el mismo modelo otra vez');
+    },
+  );
+});
+
+Deno.test('llamarIA: una respuesta con tool_calls y sin texto SI vale', async () => {
+  await conFetchSimulado(
+    () =>
+      new Response(JSON.stringify({
+        choices: [{ message: { content: '', tool_calls: [{ id: 'c1', type: 'function', function: { name: 'f', arguments: '{}' } }] } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }), { status: 200 }),
+    async () => {
+      const r = await llamarIA('k', {
+        funcion: 't',
+        mensajes: [{ role: 'user', content: 'hola' }],
+        cadena: ['google/gemini-3.7-flash'],
+      });
+      assertEquals(r.texto, '');
+      assert(r.toolCalls && r.toolCalls.length === 1);
+    },
+  );
+});

@@ -114,7 +114,7 @@ export const IA_PRECIO_EUR: Record<IaNivel, number> = {
 // Los niveles del addon que un salon puede contratar, en orden de precio.
 export const IA_CONTRATABLES: readonly IaNivel[] = ['whatsapp', 'voz', 'completa'];
 
-// Funciones que dependen del plan de software (esencial y estudio dan lo mismo)
+// Funciones que dependen del plan de software (Esencial da 8 funciones, Estudio añade 6 más)
 // o del addon de IA. Las dos ultimas (ia_*) NO se miran contra PLAN_FUNCIONES:
 // incluyePlan() las desvia a IA_FUNCIONES segun ia_nivel.
 export type FuncionPlan =

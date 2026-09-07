@@ -90,7 +90,7 @@ export async function runSeoTestSuite() {
       try { entries = fs.readdirSync(fullPath, { withFileTypes: true }); } catch (_) { return; }
       for (const e of entries) {
         if (!e.isDirectory()) continue;
-        if (e.name === 'app' || e.name === 'assets' || e.name === 'node_modules' || e.name.startsWith('.')) continue;
+        if (e.name === 'app' || e.name === 'assets' || e.name === 'node_modules' || e.name === 'narracion' || e.name === 'tts-muestras' || e.name.startsWith('.')) continue;
 
         const subRel = relPath ? `${relPath}/${e.name}` : e.name;
         const indexPath = path.join(webDir, subRel, 'index.html');
