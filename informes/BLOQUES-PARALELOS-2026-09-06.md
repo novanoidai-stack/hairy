@@ -1,5 +1,38 @@
 # Bloques paralelos — peticiones de Jose (6 sep 2026)
 
+> ## LOS SEIS BLOQUES ESTAN CERRADOS (7 sep 2026)
+>
+> | Bloque | Commit | Estado |
+> |---|---|---|
+> | A · Navegación | `52cdfc5a0` | ✅ en producción |
+> | B · Cobro | `fc4382da8` | ✅ en producción |
+> | C · Extras | `9d021f351` | ✅ en producción |
+> | D · Vigilante | `56b7f61ac` | ✅ en producción |
+> | **E · Agenda** | `de80ac846` · `953f512b1` · `1f9fd01c1` | ✅ en producción |
+> | **F · Gastos** | `4c29e1b6c` | ✅ en producción |
+>
+> Despliegue `dpl_AYbDfnSctAw12XrDjybRtkSdhuD8` (commit `de80ac846`), READY.
+> Verificado por contenido, no por el registro: el chunk `index-1efd0c7d…js` que
+> sirve www.mechaa.es contiene `Que pones aqui` (el menú nuevo de la agenda) y
+> `informes-0e6b1423…js` contiene `Cuanto has ganado` (el resultado de gastos).
+>
+> **Decisiones que se tomaron sin Jose, y hay que contárselas:**
+> - **Quién puede forzar un solape:** cualquiera que pueda crear la cita. Lo pidió
+>   así con todas las letras ("si el profesional tiene, por la razón que sea, que
+>   hacer un solapamiento forzado, la aplicación debe dejarle"). El control es el
+>   aviso y el rastro, no el permiso.
+> - **Campos de gasto:** los no fiscales (proveedor, forma de pago, notas, a quién
+>   se imputa) + trece categorías. **NO hay IVA, base imponible ni nº de factura**:
+>   eso sigue esperando a un fiscalista, y está escrito en la propia migración.
+> - **Arrastrar no fuerza:** pisar a propósito se hace desde los modales, donde hay
+>   un aviso que leer. Un arrastre es medio segundo y a menudo un resbalón.
+>
+> **Sigue pendiente de Jose:** qué servicios de los 78 pasan a add-ons (el script
+> está hecho y sin ejecutar), y si los campos fiscales de gasto entran o no.
+>
+> La petición 9 (preview cinemático) la aplazó él mismo y sigue sin hacerse.
+
+
 Reparto de las 14 peticiones de
 [PETICIONES-JOSE-2026-09-06.md](PETICIONES-JOSE-2026-09-06.md) en **seis bloques
 ejecutables en paralelo por sesiones distintas**.
