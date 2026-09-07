@@ -554,7 +554,20 @@ export function CobroSheet(props: CobroSheetProps) {
       p_cobro_id: cobroId,
       p_importe_cents: trAplicadoCents,
     });
-    if (error) throw error;
+    if (!error) return;
+    if (error.code !== 'PGRST202') throw error;
+
+    // Compatibilidad durante la reconciliación del historial remoto de
+    // migraciones. Se elimina en cuanto la RPC transaccional esté aplicada.
+    const { error: saldoError } = await supabase
+      .from('tarjetas_regalo')
+      .update({ saldo_actual_cents: trTarjeta.saldo_actual_cents - trAplicadoCents })
+      .eq('id', trTarjeta.id);
+    if (saldoError) throw saldoError;
+    const { error: movimientoError } = await supabase
+      .from('tarjetas_regalo_movimientos')
+      .insert({ tarjeta_id: trTarjeta.id, cobro_id: cobroId, importe_cents: -trAplicadoCents });
+    if (movimientoError) throw movimientoError;
   };
 
   const enviandoRef = useRef(false);
