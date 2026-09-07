@@ -67,6 +67,7 @@ import guardrailIA from './guardrail-ia.mjs';
 import fugasListeners from './fugas-listeners.mjs';
 import modalesFantasma from './modales-fantasma.mjs';
 import addonsCargador from './addons-cargador.mjs';
+import gastosCategorias from './gastos-categorias.mjs';
 
 export const ESTATICOS = [
   precios,
@@ -102,6 +103,7 @@ export const ESTATICOS = [
   fugasListeners,
   modalesFantasma,
   addonsCargador,
+  gastosCategorias,
 ];
 
 // La lista de red vive en nucleo.mjs (meta-registro tambien la pregunta, y

@@ -1957,7 +1957,16 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   { label: 'Previsto (catálogo)', value: `${fmtEur(totalIngresos)} EUR`, icon: 'trendingUp', color: TOKENS.textTer, bg: TOKENS.bgCard },
                   ...(hayCobros ? [
                     { label: 'Propinas', value: `${fmtEur(totalPropinas)} EUR`, icon: 'dollar', color: '#d97706', bg: TOKENS.warningSoft },
-                    { label: 'Margen (aprox)', value: `${fmtEur(margenAproximado)} EUR`, icon: 'trendingUp', color: TOKENS.success, bg: TOKENS.successSoft }
+                    // El color sigue al SIGNO. Estaba fijo en verde: un mes en
+                    // perdidas se pintaba igual que uno bueno, que es la forma
+                    // mas silenciosa de que nadie se entere de que va mal.
+                    {
+                      label: 'Resultado (aprox)',
+                      value: `${fmtEur(margenAproximado)} EUR`,
+                      icon: 'trendingUp',
+                      color: margenAproximado >= 0 ? TOKENS.success : TOKENS.danger,
+                      bg: margenAproximado >= 0 ? TOKENS.successSoft : TOKENS.dangerSoft,
+                    }
                   ] : []),
                   // Alerta operativa: trabajos completados sin cobro registrado.
                   ...(citasSinCobrar > 0 ? [
@@ -3223,6 +3232,71 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {viewMode === 'registros' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 16 }}>
                 <FacturasRegistroSection negocioId={negocioId} desde={desde} hasta={hasta} />
+
+                {/* CUANTO HAS GANADO (peticion 14 de Jose, 6 sep 2026).
+                    Antes esto era una sola tarjeta con "Margen (aprox)" perdida
+                    entre otras diez del panel de arriba. Jose lo pidio explicito:
+                    "no solo para tener los beneficios y los gastos, sino para que
+                    te haga una idea de cuanto has ganado".
+                    Va JUNTO a los gastos y no en los KPIs porque las dos cifras
+                    que resta estan aqui: ver el resultado al lado del desglose es
+                    lo que permite hacer algo con el. */}
+                <div style={{
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 14,
+                  padding: isMobile ? 14 : 18,
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 2 }}>
+                    Cuanto has ganado
+                  </div>
+                  <div style={{ fontSize: 11, color: TOKENS.textTer, marginBottom: 14 }}>
+                    Cobros reales del periodo menos los gastos apuntados. La propina
+                    no cuenta como ingreso del salon: es de quien la recibe.
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                      <span style={{ color: TOKENS.textSec }}>Ingresos cobrados</span>
+                      <span style={{ fontWeight: 700, color: TOKENS.success }}>{fmtEur(totalCobrado)} €</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                      <span style={{ color: TOKENS.textSec }}>Gastos apuntados</span>
+                      <span style={{ fontWeight: 700, color: TOKENS.danger }}>− {fmtEur(totalGastos)} €</span>
+                    </div>
+                    <div style={{ height: 1, background: TOKENS.border, margin: '4px 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>
+                        {margenAproximado >= 0 ? 'Resultado' : 'Perdida'}
+                      </span>
+                      <span style={{
+                        fontSize: 20,
+                        fontWeight: 800,
+                        color: margenAproximado >= 0 ? TOKENS.success : TOKENS.danger,
+                      }}>
+                        {fmtEur(margenAproximado)} €
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sin gastos apuntados, el "resultado" es igual a los ingresos y
+                      parece un negocio sin costes. Mejor decirlo que enganar. */}
+                  {totalGastos === 0 && (
+                    <div style={{
+                      marginTop: 12,
+                      fontSize: 11.5,
+                      color: TOKENS.warning,
+                      background: TOKENS.warningSoft,
+                      borderRadius: 8,
+                      padding: '8px 10px',
+                    }}>
+                      No hay ningun gasto apuntado en este periodo, asi que el
+                      resultado es igual a los ingresos. Apuntalos abajo y esta
+                      cifra empezara a decir algo.
+                    </div>
+                  )}
+                </div>
+
                 <GastosSection negocioId={negocioId} onGastosChange={cargar} customInicio={desde.toISOString()} customFin={hasta.toISOString()} />
                 <ProductosVendidosSection
                   negocioId={negocioId}

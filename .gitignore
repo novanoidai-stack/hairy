@@ -116,6 +116,11 @@ web/zaragoza/
 .agents/*
 !.agents/skills/
 .agents/skills/.mimosa/
+# Y la de la RAIZ, que es la que de verdad se llena: estado local de un plugin
+# (ledger de hallazgos, historial, baselines de hooks). El 7 sep 2026 un
+# `git add -A` se llevo 5.009 ficheros suyos a un commit. Nada de esto es del
+# proyecto y no debe versionarse.
+.mimosa/
 .playwright-mcp/
 playwright-report/
 playwright/.auth/

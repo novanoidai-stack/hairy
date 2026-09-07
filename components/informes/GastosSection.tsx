@@ -4,10 +4,19 @@ import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { reportarError } from '@/lib/reportarError';
+import { mensajeDeError } from '@/lib/errores';
 import { startOfMonth, endOfMonth, format, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { RegistroCard, IconosRegistro } from './RegistroCard';
+import {
+  CATEGORIAS_GASTO,
+  METODOS_PAGO_GASTO,
+  etiquetaCategoria,
+  etiquetaMetodoPago,
+  type CategoriaGasto,
+  type MetodoPagoGasto,
+} from '@/lib/gastos';
 
 
 const Icon = ({ name, size = 20, color = '#1c1814' }: { name: string; size?: number; color?: string }) => {
@@ -23,10 +32,16 @@ const Icon = ({ name, size = 20, color = '#1c1814' }: { name: string; size?: num
 interface Gasto {
   id: string;
   concepto: string;
-  categoria: 'alquiler' | 'suministros' | 'producto' | 'otros';
+  categoria: CategoriaGasto;
   importe_cents: number;
   fecha: string;
   es_recurrente: boolean;
+  // Anadidos el 7 sep 2026 (migracion 20260907142944). Todos opcionales: las
+  // filas de antes no los tienen y siguen siendo validas.
+  proveedor?: string | null;
+  metodo_pago?: MetodoPagoGasto | null;
+  notas?: string | null;
+  profesional_id?: string | null;
 }
 
 export function GastosSection({ 
@@ -49,6 +64,8 @@ export function GastosSection({
   
   // Form modal
   const [modalOpen, setModalOpen] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [guardando, setGuardando] = useState(false);
   const [nuevoGasto, setNuevoGasto] = useState<Partial<Gasto>>({
     categoria: 'otros',
     es_recurrente: false,
@@ -96,24 +113,36 @@ export function GastosSection({
   }
 
   const handleGuardar = async () => {
-    if (!nuevoGasto.concepto || !nuevoGasto.importe_cents) {
-      alert('Por favor rellena el concepto y el importe.');
+    // El error se ensena DENTRO del formulario, no con un alert(): un alert se
+    // descarta con Enter sin leerlo, borra lo escrito de la vista y ademas el
+    // vigilante de silencios lo cuenta como fallo del sistema.
+    setFormError('');
+    if (!nuevoGasto.concepto?.trim()) {
+      setFormError('Pon un concepto: es lo unico que se ve en la lista.');
       return;
     }
-    
+    if (!nuevoGasto.importe_cents || nuevoGasto.importe_cents <= 0) {
+      setFormError('El importe tiene que ser mayor que cero.');
+      return;
+    }
+
+    setGuardando(true);
     const { error } = await supabase.from('gastos').insert({
       negocio_id: negocioId,
-      concepto: nuevoGasto.concepto,
+      concepto: nuevoGasto.concepto.trim(),
       categoria: nuevoGasto.categoria || 'otros',
       importe_cents: nuevoGasto.importe_cents,
       fecha: nuevoGasto.fecha || new Date().toISOString(),
       es_recurrente: nuevoGasto.es_recurrente || false,
+      proveedor: nuevoGasto.proveedor?.trim() || null,
+      metodo_pago: nuevoGasto.metodo_pago || null,
+      notas: nuevoGasto.notas?.trim() || null,
     });
+    setGuardando(false);
 
     if (error) {
-      console.error('Error guardando gasto:', error);
       reportarError(error, { origen: 'app', tipo: 'operativo' });
-      alert('Error guardando el gasto. El equipo técnico ha sido notificado.');
+      setFormError(mensajeDeError(error, 'No se pudo guardar el gasto.'));
     } else {
       setModalOpen(false);
       setNuevoGasto({ categoria: 'otros', es_recurrente: false });
@@ -147,6 +176,18 @@ export function GastosSection({
     : `${format(startOfMonth(mesSeleccionado), 'd MMM', { locale: es })} - ${format(endOfMonth(mesSeleccionado), 'd MMM yyyy', { locale: es })}`;
   const totalMes = gastos.reduce((acc, g) => acc + g.importe_cents, 0);
 
+  // Gasto por categoria, de mayor a menor. Solo las que tienen algo: ensenar
+  // trece filas con once ceros es como se consigue que no se lea ninguna.
+  const porCategoria = (() => {
+    const suma = new Map<string, number>();
+    for (const g of gastos) {
+      suma.set(g.categoria, (suma.get(g.categoria) ?? 0) + g.importe_cents);
+    }
+    return Array.from(suma.entries())
+      .map(([categoria, cents]) => ({ categoria, cents }))
+      .sort((a, b) => b.cents - a.cents);
+  })();
+
   return (
     <>
       <RegistroCard
@@ -156,7 +197,7 @@ export function GastosSection({
         acento={TOKENS.danger}
         accion={
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => { setFormError(''); setModalOpen(true); }}
             style={{ padding: '6px 12px', borderRadius: 8, background: TOKENS.danger, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
           >
             <Icon name="plus" size={14} color="#fff" /> Añadir
@@ -188,6 +229,31 @@ export function GastosSection({
           <div style={{ marginBottom: 16, padding: 14, borderRadius: 12, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}` }}>
             <div style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Total de Gastos</div>
             <div style={{ fontSize: 18, fontWeight: 700, color: TOKENS.danger }}>{fmtEur(totalMes)} €</div>
+
+            {/* Desglose por categoria. Un total suelto dice cuanto se fue; esto
+                dice EN QUE, que es lo unico sobre lo que se puede actuar.
+                Solo salen las categorias con gasto: una lista de trece con once
+                ceros no se lee. */}
+            {porCategoria.length > 0 && (
+              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {porCategoria.map(({ categoria, cents }) => {
+                  const pct = totalMes > 0 ? (cents / totalMes) * 100 : 0;
+                  return (
+                    <div key={categoria}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: TOKENS.textSec, marginBottom: 3 }}>
+                        <span>{etiquetaCategoria(categoria)}</span>
+                        <span style={{ fontWeight: 600, color: TOKENS.text }}>
+                          {fmtEur(cents)} € <span style={{ color: TOKENS.textTer, fontWeight: 400 }}>({Math.round(pct)} %)</span>
+                        </span>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 999, background: TOKENS.border, overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: TOKENS.danger, borderRadius: 999 }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -209,9 +275,11 @@ export function GastosSection({
                     >
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.text }}>{g.concepto}</div>
-                        <div style={{ fontSize: 12, color: TOKENS.textSec, display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
-                          <span style={{ padding: '2px 6px', background: TOKENS.bg, borderRadius: 4, textTransform: 'capitalize' }}>{g.categoria}</span>
+                        <div style={{ fontSize: 12, color: TOKENS.textSec, display: 'flex', gap: 6, alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
+                          <span style={{ padding: '2px 6px', background: TOKENS.bg, borderRadius: 4 }}>{etiquetaCategoria(g.categoria)}</span>
                           <span>{format(parseISO(g.fecha), 'd MMM yyyy', { locale: es })}</span>
+                          {g.proveedor && <span>• {g.proveedor}</span>}
+                          {g.metodo_pago && <span>• {etiquetaMetodoPago(g.metodo_pago)}</span>}
                           {g.es_recurrente && <span style={{ color: TOKENS.warning }}>• Recurrente</span>}
                         </div>
                       </div>
@@ -222,6 +290,11 @@ export function GastosSection({
                     
                     {isExpanded && (
                       <div style={{ borderTop: `1px dashed ${TOKENS.border}`, padding: '12px 14px', background: TOKENS.bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {g.notas && (
+                          <div style={{ fontSize: 12, color: TOKENS.textSec }}>
+                            <strong>Notas:</strong> {g.notas}
+                          </div>
+                        )}
                         <div style={{ fontSize: 12, color: TOKENS.textSec }}>
                           <strong>ID:</strong> {g.id}
                         </div>
@@ -257,22 +330,60 @@ export function GastosSection({
 
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, marginBottom: 4 }}>Categoría</label>
-              <select value={nuevoGasto.categoria} onChange={e => setNuevoGasto({...nuevoGasto, categoria: e.target.value as any})} style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }}>
-                <option value="alquiler">Alquiler</option>
-                <option value="suministros">Suministros (Agua, Luz, etc.)</option>
-                <option value="producto">Producto / Material</option>
-                <option value="otros">Otros</option>
+              {/* Las opciones salen de lib/gastos.ts, que es la misma lista que
+                  admite el CHECK de la tabla y la que usa el desglose. Escritas a
+                  mano aqui, anadir una categoria se olvidaba en los otros dos sitios. */}
+              <select value={nuevoGasto.categoria} onChange={e => setNuevoGasto({...nuevoGasto, categoria: e.target.value as CategoriaGasto})} style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }}>
+                {CATEGORIAS_GASTO.map(c => (
+                  <option key={c.valor} value={c.valor}>{c.etiqueta}</option>
+                ))}
               </select>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, marginBottom: 4 }}>Fecha</label>
-              <input type="date" value={nuevoGasto.fecha ? format(parseISO(nuevoGasto.fecha), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')} onChange={e => setNuevoGasto({...nuevoGasto, fecha: new Date(e.target.value).toISOString()})} style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }} />
+            <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, marginBottom: 4 }}>Proveedor</label>
+                <input type="text" value={nuevoGasto.proveedor || ''} onChange={e => setNuevoGasto({...nuevoGasto, proveedor: e.target.value})} style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }} placeholder="Ej. Wella" />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, marginBottom: 4 }}>Forma de pago</label>
+                <select value={nuevoGasto.metodo_pago || ''} onChange={e => setNuevoGasto({...nuevoGasto, metodo_pago: (e.target.value || null) as MetodoPagoGasto | null})} style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }}>
+                  <option value="">Sin indicar</option>
+                  {METODOS_PAGO_GASTO.map(m => (
+                    <option key={m.valor} value={m.valor}>{m.etiqueta}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, marginBottom: 4 }}>Fecha</label>
+              <input type="date" value={nuevoGasto.fecha ? format(parseISO(nuevoGasto.fecha), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')} onChange={e => setNuevoGasto({...nuevoGasto, fecha: new Date(e.target.value).toISOString()})} style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }} />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, marginBottom: 4 }}>
+                Notas <span style={{ fontWeight: 400, color: TOKENS.textTer }}>(nº de factura, lo que haga falta)</span>
+              </label>
+              <input type="text" value={nuevoGasto.notas || ''} onChange={e => setNuevoGasto({...nuevoGasto, notas: e.target.value})} style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}` }} placeholder="Ej. Factura 2026/114" />
+            </div>
+
+            {/* El gasto recurrente se PINTABA en la lista desde siempre y no habia
+                forma de marcarlo: la columna existia, el formulario no la ofrecia. */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, cursor: 'pointer', fontSize: 13, color: TOKENS.text }}>
+              <input type="checkbox" checked={!!nuevoGasto.es_recurrente} onChange={e => setNuevoGasto({...nuevoGasto, es_recurrente: e.target.checked})} />
+              Se repite todos los meses
+            </label>
+
+            {formError && (
+              <div style={{ fontSize: 12, color: TOKENS.danger, background: TOKENS.dangerSoft, border: `1px solid ${TOKENS.danger}44`, borderRadius: 8, padding: '8px 10px', marginBottom: 12 }}>
+                {formError}
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 24 }}>
               <button onClick={() => setModalOpen(false)} style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, background: 'transparent', cursor: 'pointer', color: TOKENS.text, fontWeight: 600 }}>Cancelar</button>
-              <button onClick={handleGuardar} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: TOKENS.danger, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Guardar</button>
+              <button onClick={handleGuardar} disabled={guardando} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: TOKENS.danger, color: '#fff', cursor: guardando ? 'default' : 'pointer', fontWeight: 600, opacity: guardando ? 0.6 : 1 }}>{guardando ? 'Guardando...' : 'Guardar'}</button>
             </div>
           </div>
         </div>

@@ -1390,7 +1390,19 @@ export default function NewCitaModal({
       if (error) {
         setErrMsg(mensajeDeError(error, "No se pudo crear la cita."));
         if (grupoId) {
-          await supabase.from("citas").delete().eq("grupo_id", grupoId);
+          // Limpieza del grupo a medio insertar. Si ESTA falla, quedan citas
+          // sueltas en la agenda de un grupo que el usuario cree cancelado: el
+          // error no se puede tragar aunque no haya nada mas que hacer aqui.
+          const { error: errLimpieza } = await supabase
+            .from("citas")
+            .delete()
+            .eq("grupo_id", grupoId);
+          if (errLimpieza) {
+            reportarError(errLimpieza, { origen: "app", tipo: "operativo" });
+            setErrMsg(
+              `${mensajeDeError(error, "No se pudo crear la cita.")} Ademas han quedado citas sueltas de ese grupo en la agenda: revisala.`,
+            );
+          }
         }
         return;
       }
@@ -1403,12 +1415,23 @@ export default function NewCitaModal({
           for (let i = 0; i < citasInsertadas.length; i++) {
             const addons = addonsPerCita[i];
             if (addons.length > 0 && citasInsertadas[i]?.id) {
-              await supabase.from("cita_addons").insert(
-                addons.map((aid: string) => ({
-                  cita_id: citasInsertadas[i].id,
-                  addon_id: aid,
-                })),
-              );
+              // Si esto falla, la cita existe SIN sus extras: en el cobro no
+              // apareceran y se le cobrara de menos a la clienta. La cita ya
+              // esta creada, asi que no se aborta, pero se dice.
+              const { error: errAddons } = await supabase
+                .from("cita_addons")
+                .insert(
+                  addons.map((aid: string) => ({
+                    cita_id: citasInsertadas[i].id,
+                    addon_id: aid,
+                  })),
+                );
+              if (errAddons) {
+                reportarError(errAddons, { origen: "app", tipo: "operativo" });
+                setErrMsg(
+                  "La cita se creo, pero sus extras no se guardaron. Abrela y vuelve a anadirlos, o no se cobraran.",
+                );
+              }
             }
           }
         }
@@ -1420,26 +1443,40 @@ export default function NewCitaModal({
           citasInsertadas.length > 0
         ) {
           const primeraCita = citasInsertadas[0];
-          try {
-            await supabase.rpc("agendar_prueba_alergia_48h", {
+          // El try/catch que habia aqui NO servia de nada: supabase-js no LANZA,
+          // resuelve con { data, error }. Un fallo de la RPC caia por el camino
+          // feliz y la prueba de alergia se quedaba sin agendar en silencio -- en
+          // una cita de color, que es justo donde importa.
+          const { error: errAlergia } = await supabase.rpc(
+            "agendar_prueba_alergia_48h",
+            {
               p_cliente_id: selectedCliente,
               p_inicio_color: primeraCita.inicio,
               p_profesional_id: primeraCita.profesional_id || null,
-            });
-          } catch (alergiaErr) {
-            console.warn(
-              "Aviso: no se pudo agendar la prueba de alergia automática:",
-              alergiaErr,
+            },
+          );
+          if (errAlergia) {
+            reportarError(errAlergia, { origen: "app", tipo: "operativo" });
+            setErrMsg(
+              "La cita se creo, pero no se pudo agendar la prueba de alergia de 48 h. Ponla a mano.",
             );
           }
         }
       }
 
       if (prefillWaitlistId && citasInsertadas && citasInsertadas.length > 0) {
-        await supabase
+        // Si no se marca como resuelta, la clienta sigue en la lista de espera y
+        // se le puede ofrecer otro hueco para la cita que ya tiene.
+        const { error: errEspera } = await supabase
           .from("lista_espera")
           .update({ estado: "resuelta", cita_id: citasInsertadas[0].id })
           .eq("id", prefillWaitlistId);
+        if (errEspera) {
+          reportarError(errEspera, { origen: "app", tipo: "operativo" });
+          setErrMsg(
+            "La cita se creo, pero la clienta sigue apareciendo en la lista de espera. Quitala a mano.",
+          );
+        }
       }
 
       triggerRefresh();

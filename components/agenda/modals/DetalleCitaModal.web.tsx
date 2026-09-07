@@ -1565,6 +1565,10 @@ export function DetalleCitaModal({
       // acumulan y se preguntan de golpe al final, en un solo aviso.
       const avisos: string[] = [];
       let hayQuePisar = false;
+      // Errores de las citas que se arrastran DETRAS de esta (encadenadas y
+      // cascada de retraso). Se juntan en vez de cortar: la principal ya esta
+      // guardada y abortar a la mitad dejaria la agenda peor.
+      const fallosCascada: any[] = [];
 
       if (inicioMoved || profMoved) {
         const errHorarioEdit = await validarHorarioLaboral(
@@ -1712,7 +1716,10 @@ export function DetalleCitaModal({
           valor_nuevo: updatedFields.estado,
         });
       if (cambiosHist.length > 0) {
-        await supabase.from("citas_historial").insert(
+        // El historial es mejor esfuerzo --la cita ya esta guardada y no se va a
+        // deshacer por esto-- pero el error NO se traga: sin esto, un fallo de
+        // RLS aqui deja la cita sin rastro de quien la cambio y nadie se entera.
+        const { error: errHist } = await supabase.from("citas_historial").insert(
           cambiosHist.map((c) => ({
             cita_id: cita.id,
             negocio_id: nId,
@@ -1722,6 +1729,7 @@ export function DetalleCitaModal({
             motivo: "Edicion manual",
           })),
         );
+        if (errHist) reportarError(errHist, { origen: "app", tipo: "operativo" });
       }
 
       if (selectedCliente?.id && notasCita.trim()) {
@@ -1763,7 +1771,14 @@ export function DetalleCitaModal({
               p.fin_espera = new Date(
                 new Date(sig.fin_espera).getTime() + deltaActiva,
               ).toISOString();
-            await supabase.from("citas").update(p).eq("id", sig.id);
+            const { error: errCascada } = await supabase
+              .from("citas")
+              .update(p)
+              .eq("id", sig.id);
+            // Este error NO se puede tragar: la cita principal YA se guardo, asi
+            // que si su encadenada no se mueve queda un hueco o un solape
+            // permanentes y en pantalla parece que todo fue bien.
+            if (errCascada) fallosCascada.push(errCascada);
           }
         }
 
@@ -1799,11 +1814,30 @@ export function DetalleCitaModal({
               );
               for (const u of updates) {
                 const { id, ...campos } = u;
-                await supabase.from("citas").update(campos).eq("id", id);
+                const { error: errRetraso } = await supabase
+                  .from("citas")
+                  .update(campos)
+                  .eq("id", id);
+                if (errRetraso) fallosCascada.push(errRetraso);
               }
             }
           }
         }
+      }
+
+      // Si alguna de las citas arrastradas no se movio, hay que decirlo AQUI y
+      // no cerrar en falso: la principal esta guardada, pero la agenda ha quedado
+      // a medias y solo lo sabe quien esta delante.
+      if (fallosCascada.length > 0) {
+        fallosCascada.forEach((e) =>
+          reportarError(e, { origen: "app", tipo: "operativo" }),
+        );
+        setErrMsg(
+          `La cita se guardo, pero ${fallosCascada.length} cita${fallosCascada.length > 1 ? "s" : ""} que iban detras no se pudieron mover. Revisa la agenda: ${mensajeDeError(fallosCascada[0])}`,
+        );
+        setGuardando(false);
+        triggerRefresh();
+        return;
       }
 
       triggerRefresh();

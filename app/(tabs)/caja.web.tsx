@@ -21,6 +21,7 @@ import { AvisosBell } from "@/components/avisos/AvisosBell";
 import { useAyudaIA } from "@/lib/hooks/useAyudaIA";
 import { TarjetaAyudaIA } from "@/components/chispa/TarjetaAyudaIA.web";
 import { elegirCandidatoUpsell } from "@/lib/upsellCandidato";
+import { GastosSection } from "@/components/informes/GastosSection";
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -1154,6 +1155,23 @@ function CajaScreen() {
               </div>
             );
           })()}
+
+        {/* GASTOS (peticion 14 de Jose, 6 sep 2026).
+            Vivian SOLO dentro de Informes, que es donde se va a mirar el pasado;
+            pero un gasto se apunta cuando ocurre --llega el pedido, se paga el
+            alquiler-- y ese momento es el de la caja. Ahora estan en los dos
+            sitios, como pidio, y es EL MISMO componente: duplicarlo habria sido
+            duplicar tambien el formulario, las categorias y el desglose.
+            El componente ya se limita solo por rol (canAccessInformes), pero se
+            envuelve en canSeeAll igual que el resto del dinero de esta pantalla. */}
+        {canSeeAll && (
+          <div style={{ marginBottom: 16 }}>
+            {/* Sin onGastosChange: en Caja no hay nada que recalcular al apuntar
+                un gasto. El arqueo del dia es de COBROS -- lo que entro por caja
+                y datafono -- y meter ahi los gastos descuadraria el cierre. */}
+            <GastosSection />
+          </div>
+        )}
 
         {/* Registros descargables (CSV) — solo propietario/dirección */}
         {canSeeAll && cobrosHoy.length > 0 && (
