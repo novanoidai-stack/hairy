@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
+import { reportarError } from '@/lib/reportarError';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { format, parseISO } from 'date-fns';
@@ -243,8 +244,19 @@ ${comentarios}`;
 
     if (data) setResenas(data as Resena[]);
     
-    const { data: equipoData } = await supabase.from('equipo').select('id, nombre').eq('negocio_id', nId);
-    if (equipoData) {
+    // La tabla es `profesionales`. NO existe ninguna tabla `equipo` -- "Equipo"
+    // es el nombre de la PANTALLA, no del sitio donde viven los datos. Esta
+    // consulta llevaba dando 404 en cada carga de Reseñas, y como el error no se
+    // miraba, `equipoData` se quedaba en null, el mapa vacio y las reseñas SIN el
+    // nombre del profesional al que valoran. Nada fallaba a la vista: faltaba.
+    // Lo cazo el humo de la pantalla, que si mira la consola.
+    const { data: equipoData, error: errEquipo } = await supabase
+      .from('profesionales')
+      .select('id, nombre')
+      .eq('negocio_id', nId);
+    if (errEquipo) {
+      reportarError(errEquipo, { origen: 'app', tipo: 'operativo' });
+    } else if (equipoData) {
       const map: Record<string, string> = {};
       equipoData.forEach(p => map[p.id] = p.nombre);
       setEquipoMap(map);
