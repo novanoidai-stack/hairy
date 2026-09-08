@@ -70,17 +70,37 @@ test('hoy ninguna edge con verify_jwt = false esta abierta', async () => {
   assert.deepEqual(hallazgos, [], 'hallazgos:\n' + JSON.stringify(hallazgos, null, 2));
 });
 
-test('las ocho que autorizan por su cuenta siguen en el toml', async () => {
+// Trinquete: la lista se congela a proposito para que nadie apague un verify_jwt
+// sin que se vea en un diff. Crecio de 8 a 19 el 8 sep 2026, y no porque se
+// apagara ninguno: esas once YA corrian con verify_jwt = false en produccion y
+// simplemente no estaban declaradas aqui, asi que ni el CLI ni este vigilante las
+// veian. Al declararlas, el CLI deja de poder romperlas en un redespliegue y sus
+// puertas quedan documentadas en AUTORIZAN_A_SU_MANERA.
+//
+// `redsys-probe` NO esta y no debe estarlo: corre en produccion pero su fuente no
+// vive en el repo. Ver el comentario en config.toml.
+test('las diecinueve que corren sin verify_jwt siguen declaradas en el toml', async () => {
   const { readFileSync } = await import('node:fs');
   const toml = readFileSync('supabase/config.toml', 'utf8');
   assert.deepEqual(funcionesSinVerificacion(toml).sort(), [
     'agenda-optimizador',
     'avisar-fin-prueba',
+    'chispa-dudas-demo',
+    'chispa-landing',
+    'chispa-recepcionista',
     'ejecutar-vigilancia-bd',
     'enviar-informe-periodico',
+    'enviar-presupuesto',
+    'notificar-bandeja',
     'orquestador-ia',
+    'redsys-notificacion',
     'registrar-vigilancia',
+    'responder-mensaje-bandeja',
+    'send-reset',
+    'signup-free',
     'sincronizar-descuento-referidos',
+    'stripe-connect-oauth',
+    'stripe-webhook',
     'vigilar-agenda',
   ]);
 });

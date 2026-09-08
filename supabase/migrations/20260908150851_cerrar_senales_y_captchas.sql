@@ -1,3 +1,14 @@
+-- APLICADA EN PRODUCCION el 8 sep 2026 (version 20260908150851).
+--
+-- Es la 20260907224902 SIN su tercer bloque. Aquella no se podia aplicar entera:
+-- `declare v_tarjeta public.tarjetas_regalo` se resuelve al CREAR la funcion, no en
+-- la primera llamada, y esas tablas no existen en produccion -- asi que el bloque de
+-- tarjeta regalo tumbaba la migracion completa y dejaba los DOS cierres de seguridad
+-- bloqueados detras de el. El bloque de tarjeta regalo vuelve cuando exista su backend
+-- (las tablas estan sin aplicar en archive/migraciones-legacy/sesion14_parte_b_tarjetas.sql);
+-- su texto se recupera del commit e22d72e12.
+--
+-- El nombre de version lo puso apply_migration, no el fichero: por eso 20260908150851.
 -- Cierres de seguridad y consistencia descubiertos en la auditoría de producción
 -- del 8 sep 2026. Se ejecuta por supabase db push; no aplicar desde el editor SQL.
 
@@ -152,55 +163,5 @@ $$;
 
 revoke all on function public.requerir_senal_cita(uuid) from public, anon;
 grant execute on function public.requerir_senal_cita(uuid) to authenticated, service_role;
-
--- -----------------------------------------------------------------------------
--- Tarjeta regalo: saldo y movimiento en una sola transacción, con bloqueo de
--- fila e idempotencia por cobro. El cliente ya no escribe ambas tablas por separado.
--- -----------------------------------------------------------------------------
-create or replace function public.aplicar_tarjeta_regalo_a_cobro(
-  p_tarjeta_id uuid,
-  p_cobro_id uuid,
-  p_importe_cents integer
-)
-returns integer
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_tarjeta public.tarjetas_regalo;
-  v_cobro public.cobros;
-begin
-  if p_importe_cents <= 0 then raise exception 'importe_invalido'; end if;
-  select * into v_cobro from public.cobros where id = p_cobro_id;
-  if not found then raise exception 'cobro_no_encontrado'; end if;
-  perform public.exige_mi_negocio(v_cobro.negocio_id, false);
-
-  select * into v_tarjeta from public.tarjetas_regalo
-    where id = p_tarjeta_id for update;
-  if not found or v_tarjeta.negocio_id is distinct from v_cobro.negocio_id then
-    raise exception 'tarjeta_no_encontrada';
-  end if;
-  if exists (select 1 from public.tarjetas_regalo_movimientos
-             where tarjeta_id = p_tarjeta_id and cobro_id = p_cobro_id and importe_cents < 0) then
-    raise exception 'tarjeta_ya_aplicada';
-  end if;
-  if v_tarjeta.saldo_actual_cents < p_importe_cents then
-    raise exception 'saldo_insuficiente';
-  end if;
-
-  update public.tarjetas_regalo
-     set saldo_actual_cents = saldo_actual_cents - p_importe_cents
-   where id = p_tarjeta_id;
-  insert into public.tarjetas_regalo_movimientos(tarjeta_id, cobro_id, importe_cents)
-  values (p_tarjeta_id, p_cobro_id, -p_importe_cents);
-  return p_importe_cents;
-end;
-$$;
-
-revoke all on function public.aplicar_tarjeta_regalo_a_cobro(uuid, uuid, integer) from public, anon;
-grant execute on function public.aplicar_tarjeta_regalo_a_cobro(uuid, uuid, integer) to authenticated, service_role;
-comment on function public.aplicar_tarjeta_regalo_a_cobro(uuid, uuid, integer)
-is 'Descuenta saldo y registra movimiento de tarjeta regalo atomically, atado al negocio del cobro.';
 
 notify pgrst, 'reload schema';

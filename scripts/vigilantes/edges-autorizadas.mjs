@@ -73,6 +73,82 @@ const AUTORIZAN_A_SU_MANERA = {
       'NUNCA puede ver una clave de Supabase. Autoriza con VIGILANCIA_TOKEN, un secreto ' +
       'propio que solo sirve para escribir en vigilancia_*.',
   },
+
+  // --- Anadidas el 8 sep 2026 -----------------------------------------------
+  // No son nuevas: las ocho llevaban en produccion con verify_jwt = false desde
+  // siempre. Lo que faltaba era su linea en config.toml, asi que este vigilante
+  // NO LAS VEIA. Al declararlas salieron las ocho de golpe como "abiertas al
+  // mundo" -- y ninguna lo esta, pero su puerta no es peticionDeServicio().
+  //
+  // Hay dos familias, y conviene no confundirlas:
+  //  (a) las que verifican una FIRMA de un tercero (Stripe, Redsys): quien llama
+  //      demuestra ser quien dice sin ningun JWT de por medio;
+  //  (b) las PUBLICAS A PROPOSITO (alta, restablecer contrasena, asistentes de la
+  //      landing): cualquiera puede llamarlas porque ese es el producto, y lo que
+  //      las protege es un limite por IP, no una credencial.
+  // En (b) la senal vigilada es el limite: si desaparece, la funcion pasa a estar
+  // abierta de verdad y la exencion tiene que caducar.
+
+  'stripe-webhook': {
+    senal: /constructEventAsync/,
+    porque:
+      'Stripe firma cada evento con el signing secret del salon (Vault) o el de plataforma, ' +
+      'y no manda ningun JWT. La autorizacion ES la verificacion de firma: sin ella se ' +
+      'responde 400 antes de tocar la base de datos. Comprobado en vivo el 8 sep 2026: un ' +
+      'POST con firma invalida devuelve 400, no 200.',
+  },
+  'redsys-notificacion': {
+    senal: /Ds_Signature/,
+    porque:
+      'La notificacion la manda el banco, firmada con la clave del salon que vive en Vault. ' +
+      'Mismo caso que Stripe: firma invalida -> 4xx antes de conciliar nada.',
+  },
+
+  'signup-free': {
+    senal: /signup_ip/,
+    porque:
+      'Es el alta de cuenta: por definicion la llama alguien que todavia no tiene sesion. ' +
+      'Como crea cuentas YA confirmadas, lo que la protege es el freno por IP ' +
+      '(check_rate_limit con el cubo signup_ip, 4 altas/hora). Esa es la puerta.',
+  },
+  'send-reset': {
+    senal: /rate_limit_reset/,
+    porque:
+      'Restablecer la contrasena lo pide justo quien no puede entrar, asi que no hay JWT ' +
+      'posible. La protege el limite de 3 intentos por email y hora (tabla rate_limit_reset).',
+  },
+  'chispa-landing': {
+    senal: /check_landing_rate_limit/,
+    porque:
+      'Asistente comercial de la landing: lo usa un visitante sin cuenta. Publico a ' +
+      'proposito, con limite por IP (check_landing_rate_limit).',
+  },
+  'chispa-dudas-demo': {
+    senal: /check_landing_rate_limit/,
+    porque:
+      'Asistente de la demo publica, mismo caso que chispa-landing: visitante anonimo ' +
+      'y limite por IP.',
+  },
+  'chispa-recepcionista': {
+    senal: /check_landing_rate_limit/,
+    porque:
+      'Recepcionista de la demo publica. Ademas del limite por IP lleva un tope duro de ' +
+      'turnos por conversacion, porque cada turno gasta tokens de un LLM.',
+  },
+
+  'notificar-bandeja': {
+    // La reclamacion atomica es la puerta ENTERA: sin ella la funcion pasa a ser
+    // reenviable a voluntad. Por eso se vigila exactamente ese filtro.
+    senal: /\.is\(\s*['"]notificado_at['"]\s*,\s*null\s*\)/,
+    porque:
+      'La llama el automatismo de n8n tras insertar un mensaje, sin JWT. No autoriza a ' +
+      'quien llama, pero no le hace falta y merece explicarse: el unico parametro es un ' +
+      'uuid de mensaje que hay que conocer, el destinatario NO lo elige quien llama (sale ' +
+      'del owner del negocio en la BD), el cuerpo tampoco, y la reclamacion es ATOMICA ' +
+      '(update ... is notificado_at null): cada mensaje notifica UNA vez y solo una. No es ' +
+      'un relay de correo abierto. Lo peor que permite es adelantar un aviso que ya iba a ' +
+      'salir. Si algun dia se le quita ese filtro, deja de ser cierto y esta exencion cae.',
+  },
 };
 
 // Un 401 en el fichero no prueba que autorice, pero su ausencia sugiere que no

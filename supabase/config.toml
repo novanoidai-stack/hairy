@@ -102,9 +102,12 @@ verify_jwt = false
 [functions.redsys-notificacion]
 verify_jwt = false
 
-# Sonda de diagnostico de la pasarela Redsys.
-[functions.redsys-probe]
-verify_jwt = false
+# OJO: `redsys-probe` tambien corre con verify_jwt = false en produccion, pero NO
+# se declara aqui a proposito: su codigo NO ESTA EN EL REPO (se desplego desde el
+# panel; su entrypoint remoto es `source/index.ts`, no `source/supabase/functions/
+# redsys-probe/index.ts` como las demas). Declarar en config.toml una funcion que
+# el CLI no puede desplegar solo sirve para que el vigilante avise para siempre.
+# Es deuda real: o se trae su fuente al repo, o se borra de produccion.
 
 # Alta publica de cuenta: por definicion todavia no hay sesion que verificar.
 [functions.signup-free]
