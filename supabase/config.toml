@@ -72,3 +72,69 @@ verify_jwt = false
 [functions.orquestador-ia]
 verify_jwt = false
 
+# --- RECONCILIADAS CONTRA PRODUCCION (8 sep 2026) ---------------------------
+#
+# Estas DOCE ya corrian con verify_jwt = false en produccion y NO estaban aqui.
+# Este fichero solo se aplica al desplegar con el CLI, asi que mientras nadie las
+# redesplegara no pasaba nada; el dia que alguien lo hiciera, el CLI les habria
+# puesto la verificacion de JWT ENCIMA y habrian empezado a devolver 401 sin que
+# el despliegue fallara ni avisara. Entre ellas, las dos pasarelas de pago y el
+# alta de cuentas.
+#
+# Se descubrio al ir a desplegar stripe-webhook: la funcion llevaba en produccion
+# con el interruptor apagado desde siempre, pero el repo no lo sabia.
+#
+# REGLA: si una funcion no tiene JWT que verificar, autoriza por su cuenta
+# (regla 9 del CLAUDE.md) y su linea va AQUI en el mismo commit.
+
+# Stripe firma sus webhooks con el signing secret del salon (o el de plataforma)
+# y no manda ningun JWT de Supabase. La firma se verifica dentro, en
+# constructEventAsync; con verify_jwt encendido no llegaria ni a ejecutarse.
+[functions.stripe-webhook]
+verify_jwt = false
+
+# Callback de OAuth de Stripe Connect: lo abre el navegador del salon volviendo
+# de Stripe, sin sesion nuestra todavia.
+[functions.stripe-connect-oauth]
+verify_jwt = false
+
+# Notificacion del TPV de Redsys: la manda el banco firmada con su propia clave.
+[functions.redsys-notificacion]
+verify_jwt = false
+
+# Sonda de diagnostico de la pasarela Redsys.
+[functions.redsys-probe]
+verify_jwt = false
+
+# Alta publica de cuenta: por definicion todavia no hay sesion que verificar.
+[functions.signup-free]
+verify_jwt = false
+
+# Restablecer contrasena: quien la pide es justo quien no puede entrar.
+[functions.send-reset]
+verify_jwt = false
+
+# Envio de presupuesto al cliente final por enlace publico.
+[functions.enviar-presupuesto]
+verify_jwt = false
+
+# Bandeja de mensajeria: las dispara el automatismo de n8n, que no lleva JWT
+# (autoriza con la clave en la cabecera apikey; ver la caida de n8n del 29 ago).
+[functions.notificar-bandeja]
+verify_jwt = false
+
+[functions.responder-mensaje-bandeja]
+verify_jwt = false
+
+# Agente de WhatsApp entrante: entra por n8n, no por una sesion de navegador.
+[functions.chispa-recepcionista]
+verify_jwt = false
+
+# Asistente de la demo publica: lo usa un visitante anonimo en la landing.
+[functions.chispa-dudas-demo]
+verify_jwt = false
+
+# Asistente comercial de la landing: lo usa un visitante sin cuenta.
+[functions.chispa-landing]
+verify_jwt = false
+
