@@ -5,7 +5,6 @@
   "vigilantes_sin_test": [
     "bd.mjs",
     "bd-ecosistema.mjs",
-    "bd-escritura-critica.mjs",
     "bd-invariantes.mjs",
     "bd-migraciones.mjs",
     "bd-rendimiento.mjs",
@@ -13,5 +12,5 @@
     "bd-triggers-ciegos.mjs",
     "codigo-muerto.mjs"
   ],
-  "_ultima_bajada": "2026-09-04: meta-registro.mjs sale de la lista, ya tiene su test. De 10 a 9."
+  "_ultima_bajada": "2026-09-08: bd-escritura-critica.mjs sale de la lista con los tests de su pata de usuario (evaluarPataUsuario). De 9 a 8."
 }

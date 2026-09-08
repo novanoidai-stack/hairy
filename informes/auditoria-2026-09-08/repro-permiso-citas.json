@@ -1,0 +1,46 @@
+{
+  "capturado": "2026-09-08T15:52:50.880Z",
+  "pasos": [
+    {
+      "paso": "login",
+      "ok": true,
+      "uid": "84ca88ba-00d0-43db-bbeb-58217176c316"
+    },
+    {
+      "paso": "perfil",
+      "role": "owner",
+      "negocio_id": "salon_pruebas_mecha"
+    },
+    {
+      "paso": "negocio",
+      "nombre": "?",
+      "esQa": false
+    },
+    {
+      "paso": "citas_visibles",
+      "total": 10,
+      "estados": [
+        "completada"
+      ]
+    },
+    {
+      "paso": "update_estado_como_usuario",
+      "status": 200,
+      "cuerpo": "[{\"id\":\"92af3073-6669-4c9e-ba01-f0f25506a8a6\",\"negocio_id\":\"salon_pruebas_mecha\",\"profesional_id\":\"c1a00000-0000-4000-8000-000000000005\",\"cliente_id\":\"7284f6fd-a981-41a8-9b4a-23323434b59a\",\"servicio_id\":\"8da8be77-ed54-4a35-9b01-5a7ae5799d51\",\"inicio\":\"2026-09-05T10:00:00+00:00\",\"fin\":\"2026-09-05T10:20:00+00:00\",\"estado\":\"completada\",\"canal\":\"manual\",\"notas\":null,\"deposito_requerido\":false,\"deposit"
+    },
+    {
+      "paso": "rpc_no_show_como_usuario",
+      "status": 200,
+      "cuerpo": "{\"ok\":true,\"cita_id\":\"92af3073-6669-4c9e-ba01-f0f25506a8a6\",\"cliente_id\":\"7284f6fd-a981-41a8-9b4a-23323434b59a\",\"hold_pago_id\":null,\"capturar_auto\":true}"
+    },
+    {
+      "paso": "toggle_roles",
+      "omitido": "negocio no QA"
+    },
+    {
+      "paso": "restauracion",
+      "cita": 204,
+      "perfil": 204
+    }
+  ]
+}
