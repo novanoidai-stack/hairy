@@ -549,25 +549,18 @@ export function CobroSheet(props: CobroSheetProps) {
     // El servidor bloquea la tarjeta y hace saldo + movimiento en una sola
     // transacción. Dos escrituras independientes dejaban la caja incoherente
     // si una fallaba o si dos pestañas consumían el mismo saldo a la vez.
+    // Ya NO hay camino alternativo: hubo un fallback que, si la RPC no existia
+    // (PGRST202), volvia a las dos escrituras sueltas. Su premisa era falsa --la
+    // RPC no faltaba por un desfase de migraciones, faltaba porque las TABLAS
+    // nunca se aplicaron-- y desde 20260908204751 no puede darse: la RPC existe y
+    // esas tablas no tienen politicas de escritura, asi que el cliente no puede
+    // tocarlas ni queriendo.
     const { error } = await supabase.rpc('aplicar_tarjeta_regalo_a_cobro', {
       p_tarjeta_id: trTarjeta.id,
       p_cobro_id: cobroId,
       p_importe_cents: trAplicadoCents,
     });
-    if (!error) return;
-    if (error.code !== 'PGRST202') throw error;
-
-    // Compatibilidad durante la reconciliación del historial remoto de
-    // migraciones. Se elimina en cuanto la RPC transaccional esté aplicada.
-    const { error: saldoError } = await supabase
-      .from('tarjetas_regalo')
-      .update({ saldo_actual_cents: trTarjeta.saldo_actual_cents - trAplicadoCents })
-      .eq('id', trTarjeta.id);
-    if (saldoError) throw saldoError;
-    const { error: movimientoError } = await supabase
-      .from('tarjetas_regalo_movimientos')
-      .insert({ tarjeta_id: trTarjeta.id, cobro_id: cobroId, importe_cents: -trAplicadoCents });
-    if (movimientoError) throw movimientoError;
+    if (error) throw error;
   };
 
   const enviandoRef = useRef(false);
