@@ -149,9 +149,32 @@ todo; el token de Management solo aporta `/database/query`, advisors y backups.
 
 ## Corregido desde ayer y verificado hoy
 
-- **Webhook de Stripe**: todos los fallos de conciliación ahora `throw` (→ 500, Stripe
-  reintenta), chequeo de tenant por pago y por URL, dedup intacto. Redesplegado a las
-  17:04 CEST del 7 sep, con el commit detrás a las 01:05. Bien.
+- **Webhook de Stripe**: chequeo de tenant por pago y por URL. Bien.
+
+  > **CORRECCIÓN (8 sep, posterior a este informe).** Este punto decía además que
+  > los `throw` estaban bien porque "→ 500, Stripe reintenta, dedup intacto". Era
+  > falso, y "dedup intacto" era literalmente el fallo: la fila de deduplicación se
+  > escribe ANTES de conciliar, así que el reintento chocaba con ella, recibía
+  > `23505` y se le contestaba `ok (dup)` con un **200**. Stripe daba el evento por
+  > entregado y el cobro no se conciliaba nunca — para señales, cobros totales, Tap
+  > to Pay, reembolsos, holds y las suscripciones de Mecha.
+  >
+  > El razonamiento llegó hasta "Stripe reintenta" y paró ahí, sin seguir el hilo
+  > hasta lo que le pasa **al** reintento. Tres revisiones seguidas lo dieron por
+  > bueno. La versión rota llegó a estar desplegada en producción (v36, 7 sep 23:04
+  > UTC / 8 sep 01:04 CEST).
+  >
+  > Corregido: el proceso va en un `try` y el `catch` libera la fila antes de
+  > devolver el 500. Se añadieron además el handler de
+  > `checkout.session.async_payment_succeeded` (sin él, un pago diferido no se
+  > registraba jamás) y **cinco tests** sobre el handler real
+  > (`supabase/functions/stripe-webhook/webhook.test.mjs`, en CI): esta función era
+  > la única pieza que convierte un cobro real en una fila de caja y no tenía
+  > ninguno. Verificados contra el código anterior: fallan 2 de 5.
+  >
+  > Lección para la próxima auditoría: **"el error ahora se propaga" no es lo mismo
+  > que "el error ahora se recupera".** Con idempotencia por adelantado, propagar
+  > sin liberar la marca convierte un fallo ruidoso en una pérdida silenciosa.
 - **CSP**: `api.pwnedpasswords.com` y `www.novanoidai.com` ya están en `connect-src`
   (la comprobación de contraseñas filtradas y la llamada Meet funcionan).
 - **Captación (`reservar.html`)**: `insertSolicitud` se espera y se comprueba; el
