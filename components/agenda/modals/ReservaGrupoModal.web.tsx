@@ -159,9 +159,11 @@ export function ReservaGrupoModal({
         background: "rgba(0,0,0,0.60)",
         zIndex: 9999,
         display: "flex",
-        alignItems: "center",
+        // Movil: hoja que sube desde abajo, como el detalle de cita y el de
+        // crear cita. Centrado en escritorio.
+        alignItems: isMobile ? "flex-end" : "center",
         justifyContent: "center",
-        padding: 16,
+        padding: isMobile ? 0 : 16,
       }}
     >
       <div
@@ -169,15 +171,25 @@ export function ReservaGrupoModal({
         style={{
           width: "100%",
           maxWidth: 720,
-          maxHeight: "92vh",
-          overflowY: "auto",
+          // dvh (no vh): en movil cuenta con la barra del navegador retraida.
+          // El divisor de --mecha-zoom es el mismo pacto de tamanoTexto que
+          // ya usan NewCitaModal y DetalleCitaModal: sin el, el modo "texto
+          // grande" empujaba el pie fuera de la pantalla.
+          maxHeight: isMobile
+            ? "calc(100dvh / var(--mecha-zoom, 1))"
+            : "calc(92dvh / var(--mecha-zoom, 1))",
+          // El scroll ya no vive en la hoja: cabecera y botones quedan
+          // anclados y el CUERPO scrollea dentro. Antes scrolleaba todo el
+          // modal y en movil "Crear Reserva" quedaba fuera del pliegue sin
+          // ninguna pista de que habia mas abajo: parecia cortado.
+          overflow: "hidden",
           background: T.bgPanel,
-          borderRadius: 16,
-          border: `1px solid ${T.border}`,
-          padding: isMobile ? "16px 14px" : 22,
+          borderRadius: isMobile ? "16px 16px 0 0" : 16,
+          border: isMobile ? "none" : `1px solid ${T.border}`,
+          padding: isMobile ? "14px 14px 16px" : 22,
           display: "flex",
           flexDirection: "column",
-          gap: 16,
+          gap: 12,
         }}
       >
         <div
@@ -185,6 +197,7 @@ export function ReservaGrupoModal({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexShrink: 0,
           }}
         >
           <div>
@@ -227,8 +240,27 @@ export function ReservaGrupoModal({
 
         <form
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            flex: 1,
+            minHeight: 0,
+          }}
         >
+          {/* Solo el cuerpo scrollea: la cabecera del modal y los botones de
+              accion quedan siempre a la vista a los lados del scroll. */}
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              paddingRight: 2,
+            }}
+          >
           {/* Cabecera del Evento */}
           <div
             style={{
@@ -850,6 +882,8 @@ export function ReservaGrupoModal({
             </div>
           </div>
 
+          </div>
+
           {errorMsg && (
             <div style={{ fontSize: 12, color: "#dc2626", fontWeight: 600 }}>
               {errorMsg}
@@ -863,6 +897,7 @@ export function ReservaGrupoModal({
               justifyContent: "flex-end",
               gap: 8,
               marginTop: 6,
+              flexShrink: 0,
             }}
           >
             <button

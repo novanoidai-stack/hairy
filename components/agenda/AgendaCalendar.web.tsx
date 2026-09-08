@@ -4162,7 +4162,10 @@ export default function AgendaCalendar() {
             }}
           >
             <span>👰</span>
-            {!isMobile && "Grupo / Boda"}
+            {/* En movil la etiqueta corta: el emoji solo pasaba por un boton
+                decorativo y nadie encontraba las bodas ("deberia estar aqui
+                y no lo veo"). */}
+            {isMobile ? "Boda" : "Grupo / Boda"}
           </button>
           <button
             className="m-btn-primary"

@@ -1,0 +1,28 @@
+{
+ "viewport": {
+  "vw": 390,
+  "vh": 793
+ },
+ "zoomHtml": "(sin zoom)",
+ "cssZoom": "1",
+ "hoja": {
+  "top": 0,
+  "bottom": 793,
+  "h": 793,
+  "cssH": "calc(100dvh / var(--mecha-zoom, 1))"
+ },
+ "cuerpo": {
+  "top": 54,
+  "bottom": 733,
+  "h": 679,
+  "scrollH": 2093,
+  "clientH": 679,
+  "masAltoQueHoja": true
+ },
+ "pie": {
+  "top": 725,
+  "bottom": 775,
+  "h": 50,
+  "fueraDePantalla": false
+ }
+}
