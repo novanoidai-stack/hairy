@@ -1,0 +1,5 @@
+tarjetas montadas: 6
+bundles: 5 | "Antes fin": false | hoja redondeada modal grupo: true
+hueco tras scroll: {"x":274,"y":620,"width":189,"height":53.328125}
+tarjeta: {"x":273,"y":538,"width":191,"height":133.328125}
+tap tarjeta en 313,554

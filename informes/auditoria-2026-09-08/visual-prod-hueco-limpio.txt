@@ -1,0 +1,3 @@
+hueco: {"x":274,"y":518,"width":189,"height":53.328125}
+tap hueco en 369,545 (dentro del hueco: x 274-463, y 518-571)
+texto visible tras tap: Agenda | Espera | 2 | 💈 | 👰 | Boda | Cita | Mié, 9 Sept | HOY | Día | Sem. | Mes | Filtros | Auto | 9+ | 9/9 | Todos | 3 | 4 | 2 | DE VACACIONES | Maria | Carlos | 4 citas · 17% | Laura | 2 citas · 15% | 09:00 | 09:15 | 09:30 | 09:45 | 09:00 | 09:15 | 09:30 | 09:45 | 09:00 | 09:15 | 09:30 | 09:45 | 10:00 | 10:15 | 10:30 | 10:45 | 10:00 | 10:15 | 10:30 | 10:45 | 10:00 | 10:15 | 10:30 | 10:45 | 11:00 | 11:15 | 11:30 | 11:45 | 11:00 | 11:15 | 11:30 | 11:45 | 11:0

@@ -99,6 +99,9 @@ const ReposoFreeGapInteractive = memo(
     const hov = hovered && !dragging;
     return (
       <div
+        // Marca el origen de los gestos que NO son arrastre de la cita: el
+        // onMouseDown de la tarjeta la busca para no iniciar drag (ver abajo).
+        data-mecha-reposo-gap=""
         onClick={handleClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -840,6 +843,20 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
         opacity: bloque.atenuado ? 0.5 : isBeingDragged ? 0.45 : 1,
       }}
       onMouseDown={(e) => {
+        // Un press que nace en el hueco de reposo o en el nombre de la clienta
+        // no es un arrastre. Sin esta guarda, el mouseup "sin movimiento" de
+        // onUp abria la ficha y se comeria el gesto real: en movil, tocar el
+        // hueco para encajar a otra clienta abria el detalle de la cita madre
+        // (reproducido contra produccion el 9 sep 2026), y tocar el nombre
+        // arrastraba en vez de abrir el historial. El click de esos dos
+        // elementos hace stopPropagation, pero llega TARDE: el mousedown ya
+        // habia arrancado el drag.
+        if (
+          (e.target as HTMLElement)?.closest?.(
+            '[data-mecha-reposo-gap],[data-mecha-cliente-link]',
+          )
+        )
+          return;
         if (!cancelada) startDrag(cita, e);
       }}
       onMouseEnter={(e) => {
@@ -1212,6 +1229,9 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
             >
               <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
                 <div
+                  // Marca para el onMouseDown de la tarjeta: un press aqui
+                  // abre el historial, no arrastra la cita.
+                  data-mecha-cliente-link=""
                   onClick={(e) => {
                     if (onClienteHistorial) {
                       e.stopPropagation();
