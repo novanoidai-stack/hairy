@@ -23,7 +23,7 @@ import {
   sinCarrilPropio,
 } from "@/lib/constants";
 import { DESIGN_TOKENS as TOKENS } from "@/lib/designTokens";
-import { supabase } from "@/lib/supabase";
+import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
 import { getUserProfile } from "@/lib/auth";
 import { BLOQUEO_LABELS } from "@/lib/agendaBloqueUi";
 import { isTimeSlotOccupied } from "@/lib/utils/appointment";
@@ -172,23 +172,40 @@ function DayTimeline({
   const esMismoDiaQueHoy =
     selectedDateObj instanceof Date &&
     selectedDateObj.toDateString() === new Date().toDateString();
+
+  const esModoDemo =
+    IS_DEMO_MODE ||
+    (typeof window !== "undefined" &&
+      (window.location.search.includes("demo=1") ||
+        window.sessionStorage.getItem("mecha-demo-mode") === "1"));
+
   useEffect(() => {
-    if (yaAutoScroll.current || !esMismoDiaQueHoy) return;
+    if (yaAutoScroll.current) return;
     const grid = gridRef.current;
     if (!grid) return;
-    const nowInit = new Date();
-    const currentH = nowInit.getHours();
-    if (currentH < START_H || currentH >= START_H + HOURS.length) return;
     // Contenedor con scroll vertical mas cercano (la rejilla vive dentro de el).
     let cont: HTMLElement | null = grid.parentElement;
     while (cont && cont.scrollHeight <= cont.clientHeight + 8)
       cont = cont.parentElement;
     if (!cont) return;
+
+    // En modo demo, arrancar siempre arriba del todo (scrollTop = 0) para que
+    // se vean los profesionales y la jornada completa desde primera hora.
+    if (esModoDemo) {
+      cont.scrollTop = 0;
+      yaAutoScroll.current = true;
+      return;
+    }
+
+    if (!esMismoDiaQueHoy) return;
+    const nowInit = new Date();
+    const currentH = nowInit.getHours();
+    if (currentH < START_H || currentH >= START_H + HOURS.length) return;
     const topAhora = (currentH - START_H + nowInit.getMinutes() / 60) * ROW_H;
     // Un tercio por encima: se ve lo que acaba de pasar y lo que viene.
     cont.scrollTop = Math.max(0, topAhora - cont.clientHeight / 3);
     yaAutoScroll.current = true;
-  }, [esMismoDiaQueHoy, citas.length]);
+  }, [esMismoDiaQueHoy, citas.length, esModoDemo]);
 
   const toggleCompletada = useCallback(
     async (citaId: string, estadoActual: string) => {
@@ -1213,6 +1230,9 @@ function DayTimeline({
               gridTemplateColumns: `56px repeat(${profesionales.length || 1}, minmax(${MIN_COL_W}px, 1fr))`,
               borderBottom: `1px solid ${TOKENS.borderHi}`,
               background: "#ffffff",
+              position: "sticky",
+              top: 0,
+              zIndex: 40,
             }}
           >
             <div

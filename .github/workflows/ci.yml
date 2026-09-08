@@ -114,6 +114,14 @@ jobs:
       - name: Tests gateway IA (Deno)
         run: deno task test:ia
 
+      # El webhook de Stripe es la unica pieza que convierte un cobro real en una
+      # fila de caja, y no tenia ni un test. Estos ejecutan el handler de verdad
+      # con la BD simulada; vigilan sobre todo que un fallo de conciliacion libere
+      # la fila de deduplicacion, porque si no el reintento de Stripe rebota como
+      # duplicado y el cobro se pierde en silencio.
+      - name: Tests del webhook de Stripe
+        run: npm run test:webhook
+
       - name: Tests de componente (Vitest)
         run: npx vitest run
 

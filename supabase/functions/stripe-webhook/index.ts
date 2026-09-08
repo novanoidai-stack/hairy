@@ -116,10 +116,6 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Eventos de la SUSCRIPCION DE MECHA (cuenta de plataforma). No llevan ?negocio.
-  const esSuscripcion = event.type.startsWith('customer.subscription.') ||
-                        event.type.startsWith('invoice.');
-
   // Deduplicación por event_id en la BD (la firma de Stripe constructEventAsync ya
   // valida la tolerancia de 5 min en la cabecera t= para ataques de replay de red;
   // la BD previene doble procesamiento sin bloquear reintentos legítimos de Stripe que
@@ -136,7 +132,26 @@ Deno.serve(async (req) => {
   const piOf = (v: unknown): string | null =>
     typeof v === 'string' ? v : ((v as { id?: string })?.id ?? null);
 
-  if (event.type === 'checkout.session.completed') {
+  // A PARTIR DE AQUI LA FILA DE DEDUP YA ESTA ESCRITA, y eso cambia lo que significa
+  // fallar. Un `throw` suelto sale del handler, Deno responde 500 y Stripe reintenta
+  // -- pero el reintento choca con esa fila, recibe 23505 y se le contesta
+  // 'ok (dup)' con un 200. Resultado: Stripe da el evento por entregado y el cobro
+  // no se concilia NUNCA. Es la misma trampa que ya documenta el comentario de
+  // `current_period_end` mas abajo ("con el dedup ya escrito, el evento se perdia"),
+  // solo que aplicada a las 14 escrituras de esta funcion a la vez.
+  //
+  // Por eso el proceso va dentro de un try: el catch libera la fila antes de
+  // devolver el 500, y asi el reintento de Stripe es un intento de verdad.
+  //
+  // El cuerpo NO se reindenta a proposito: es una ruta de dinero y el diff tiene que
+  // poder leerse entero de un vistazo.
+  try {
+
+  // Un metodo de pago diferido (SEPA, transferencia) cierra la sesion como `unpaid` y
+  // confirma despues con async_payment_succeeded. Sin esta rama, el guard de
+  // `payment_status` de abajo devolveria 200 y el pago no se registraria jamas.
+  if (event.type === 'checkout.session.completed' ||
+      event.type === 'checkout.session.async_payment_succeeded') {
     const session = event.data.object as Stripe.Checkout.Session;
     const pagoId = (session.metadata?.pago_id as string) ?? (session.client_reference_id ?? '');
     const pi = piOf(session.payment_intent);
@@ -298,5 +313,28 @@ Deno.serve(async (req) => {
   } else {
     console.log('evento no manejado:', event.type);
   }
+
+  } catch (e) {
+    // Liberar la fila de dedup ANTES de contestar. Es lo unico que convierte el
+    // reintento de Stripe en un reintento de verdad en vez de un rebote silencioso.
+    const { error: limpiezaErr } = await supabase
+      .from('stripe_webhook_eventos')
+      .delete()
+      .eq('event_id', event.id);
+    if (limpiezaErr) {
+      // Si ni siquiera se puede borrar, el evento SI queda perdido. Se grita para que
+      // aparezca en edge_logs y se pueda conciliar a mano desde el panel de Stripe:
+      // un cobro perdido en silencio es exactamente lo que esta funcion no puede hacer.
+      console.error(
+        `[stripe-webhook] CRITICO: ${event.type} ${event.id} fallo y ademas no se pudo ` +
+          `liberar su fila de deduplicacion. El reintento de Stripe se descartara como ` +
+          `duplicado y este evento NO se conciliara solo.`,
+        limpiezaErr,
+      );
+    }
+    console.error(`[stripe-webhook] fallo procesando ${event.type} ${event.id}:`, e);
+    return new Response('Processing failed', { status: 500 });
+  }
+
   return new Response('ok', { status: 200 });
 });

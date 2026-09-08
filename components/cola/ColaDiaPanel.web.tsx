@@ -23,6 +23,7 @@ interface ColaDiaPanelProps {
   servicios: Array<{ id: string; nombre: string; precio: number }>;
   onAtender?: (item: ColaItem) => void;
   onCobrar?: (item: ColaItem) => void;
+  onClose?: () => void;
 }
 
 export function ColaDiaPanel({
@@ -31,6 +32,7 @@ export function ColaDiaPanel({
   servicios,
   onAtender,
   onCobrar,
+  onClose,
 }: ColaDiaPanelProps) {
   const [items, setItems] = useState<ColaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -241,6 +243,27 @@ export function ColaDiaPanel({
               ESPERA EST.
             </div>
           </div>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar panel de cola del día"
+              title="Cerrar"
+              style={{
+                background: "transparent",
+                border: "none",
+                fontSize: 18,
+                cursor: "pointer",
+                color: T.textSec,
+                fontWeight: 700,
+                padding: "4px 8px",
+                marginLeft: 4,
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 

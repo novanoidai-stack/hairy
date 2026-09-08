@@ -125,10 +125,18 @@ export function Sidebar() {
   const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
-  // Sin desplegar por defecto (rail de iconos); la eleccion del usuario persiste.
+  // Sin desplegar por defecto (rail de iconos); la eleccion del usuario persiste
+  // (en modo demo siempre arranca colapsado para que la agenda luzca limpia).
   const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (IS_DEMO_MODE) return true;
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       try {
+        if (
+          window.location.search.includes('demo=1') ||
+          window.sessionStorage.getItem('mecha-demo-mode') === '1'
+        ) {
+          return true;
+        }
         const saved = window.localStorage.getItem('mecha-sidebar-collapsed');
         if (saved != null) return saved === '1';
       } catch {}

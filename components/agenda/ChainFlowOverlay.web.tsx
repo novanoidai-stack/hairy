@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from "react";
 import { CITA_STATUS } from "@/lib/constants";
+import { esReservaGrupo } from "@/lib/agenda/cadena";
 
 /**
  * Cadenas de citas (grupo_id) — el riel exterior.
@@ -109,6 +110,9 @@ export const ChainFlowOverlay = memo(function ChainFlowOverlay({
   if (colW > 0) {
     for (const [, bloques] of grupos) {
       if (bloques.length < 2) continue;
+      // Una reserva de grupo (bodas, eventos) atiende a distintas personas en paralelo
+      // o con desfase: no debe trazar cables de un único cliente saltando de silla en silla.
+      if (esReservaGrupo(bloques[0]?.grupo_id, citas as any)) continue;
 
       const sorted = [...bloques].sort(
         (a, b) =>

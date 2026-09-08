@@ -754,7 +754,7 @@ export default function AgendaCalendar() {
   // encima de la rejilla (queja de ruido visual). Arranca plegada tras un chip
   // compacto y solo se despliega si el usuario la pide; en escritorio sigue abierta.
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
-  const [kpisCollapsed, setKpisCollapsed] = useState(false);
+  const [kpisCollapsed, setKpisCollapsed] = useState(true);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
   // Profesionales arranca DESPLEGADO: es el filtro que mas se usa y, plegado y al
   // fondo del rail, era invisible en la practica.
@@ -1817,6 +1817,7 @@ export default function AgendaCalendar() {
   useEffect(() => {
     if (
       isMobile &&
+      !IS_DEMO_MODE &&
       selectedProf === "todos" &&
       visibleProfs.length > 0 &&
       !didAutoPickProf.current
@@ -3218,10 +3219,10 @@ export default function AgendaCalendar() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 6,
+        gap: 4,
         width: "100%",
         marginTop: 2,
-        marginBottom: 8,
+        marginBottom: 6,
       }}
     >
       {/* Selector vista Día / Semana */}
@@ -4119,6 +4120,8 @@ export default function AgendaCalendar() {
           )}
           <button
             onClick={() => setShowColaDia(true)}
+            title="Cola del día (turnos espontáneos sin cita)"
+            aria-label="Cola del día (turnos espontáneos sin cita)"
             style={{
               padding: isMobile ? "7px 10px" : "7px 12px",
               background: "rgba(244,80,30,0.10)",
@@ -4140,6 +4143,8 @@ export default function AgendaCalendar() {
           </button>
           <button
             onClick={() => setShowReservaGrupo(true)}
+            title="Reserva de Grupo o Boda (planificación hacia atrás)"
+            aria-label="Reserva de Grupo o Boda"
             style={{
               padding: isMobile ? "7px 10px" : "7px 12px",
               background: "rgba(124,58,237,0.10)",
@@ -5708,38 +5713,11 @@ export default function AgendaCalendar() {
               borderRadius: 16,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginBottom: -32,
-                paddingRight: 10,
-                position: "relative",
-                zIndex: 10,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setShowColaDia(false)}
-                style={{
-                  background: "rgba(0,0,0,0.25)",
-                  border: "none",
-                  borderRadius: 99,
-                  width: 28,
-                  height: 28,
-                  cursor: "pointer",
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 14,
-                }}
-              >
-                ✕
-              </button>
-            </div>
             <ColaDiaPanel
               negocioId={negocioId!}
               profesionales={profesionales}
               servicios={servicios}
+              onClose={() => setShowColaDia(false)}
               onCobrar={() => {
                 setShowColaDia(false);
                 router.push("/(tabs)/caja" as never);

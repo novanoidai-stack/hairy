@@ -25,7 +25,7 @@ import {
   minutosRestantes,
 } from "@/lib/agendaBloqueUi";
 import { categoryColorHex } from "@/lib/categoryColors";
-import { eslabonesParaPintar } from "@/lib/agenda/cadena";
+import { eslabonesParaPintar, esReservaGrupo } from "@/lib/agenda/cadena";
 import { CHAIN_GUTTER } from "../../ChainFlowOverlay.web";
 import { fmtHHMM } from "../../ui/atomos.web";
 
@@ -469,15 +469,18 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
   const nestedLeft = `calc(${Math.max(0, nestL)}% + 2px)`;
   const nestedRight = `calc(${Math.max(0, nestR)}% + 2px)`;
   const cancelada = cita.estado === CITA_STATUS.CANCELADA;
-  const isChained = !!cita.grupo_id;
+  const isGroupBooking = esReservaGrupo(cita.grupo_id, citasWithLanes as any);
+  const isChained = !!cita.grupo_id && !isGroupBooking;
   // Los eslabones cancelados salen de la cuenta: si no, una cadena de tres con
   // uno anulado decia "2/4" y saltaba del 2 al 4, y el riel (que si los quita,
   // ver ChainFlowOverlay) dibujaba otra cosa distinta.
-  const chainSiblings = eslabonesParaPintar(
-    cita.grupo_id,
-    citasWithLanes as any,
-    (e) => e === CITA_STATUS.CANCELADA,
-  );
+  const chainSiblings = isChained
+    ? eslabonesParaPintar(
+        cita.grupo_id,
+        citasWithLanes as any,
+        (e) => e === CITA_STATUS.CANCELADA,
+      )
+    : [];
   const chainTotal = chainSiblings.length;
   const chainPos =
     chainSiblings.findIndex((c: any) => c.id === cita.id) + 1;
@@ -660,6 +663,35 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
       </span>
     ) : null;
 
+  const esBoda =
+    isGroupBooking &&
+    typeof cita.notas === "string" &&
+    (cita.notas.includes("Boda") || cita.notas.toLowerCase().includes("boda"));
+
+  const badgeGrupo =
+    isGroupBooking && !nested && !cancelada ? (
+      <span
+        title={esBoda ? "Reserva de Boda / Evento" : "Reserva de Grupo"}
+        style={{
+          flexShrink: 0,
+          padding: "1.5px 6px",
+          borderRadius: 999,
+          background: "rgba(124,58,237,0.12)",
+          color: "#7c3aed",
+          fontSize: 8.5,
+          fontWeight: 800,
+          letterSpacing: "0.03em",
+          lineHeight: 1.5,
+          whiteSpace: "nowrap",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 3,
+        }}
+      >
+        <span>{esBoda ? "👰 Boda" : "👥 Grupo"}</span>
+      </span>
+    ) : null;
+
   const indiceCadena = enCadena ? (
     <span
       title={`Servicio ${chainPos} de ${chainTotal} de una cadena`}
@@ -679,6 +711,8 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
       {chainPos}/{chainTotal}
     </span>
   ) : null;
+
+  const badgeIndice = indiceCadena || badgeGrupo;
 
   // Spec 4: Reloj de reposo en vivo (detección de temporizador de cabina)
   const fasesLista = (cita.cita_fases || cita.fases || []) as any[];
@@ -1161,7 +1195,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                 }}
               />
             )}
-            {indiceCadena}
+            {badgeIndice}
           </div>
         ) : (
           <>
@@ -1314,7 +1348,7 @@ export const DayTimelineAppointmentCard = memo(function DayTimelineAppointmentCa
                   </span>
                 )}
               </div>
-              {indiceCadena}
+              {badgeIndice}
             </div>
           </>
         )}

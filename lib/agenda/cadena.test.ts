@@ -4,6 +4,7 @@ import {
   eslabonesParaPintar,
   esPrimerEslabon,
   estaEnCadenaVisible,
+  esReservaGrupo,
   type CitaEncadenable,
 } from './cadena.ts';
 
@@ -94,4 +95,13 @@ Deno.test('una cadena con un solo eslabon vivo ya no se pinta como cadena', () =
 
 Deno.test('sin grupo_id no se pinta riel de cadena', () => {
   assertEquals(estaEnCadenaVisible(null, CADENA, esCancelada), false);
+});
+
+Deno.test('esReservaGrupo distingue bodas/grupos de cadenas unipersonales', () => {
+  const boda = [
+    cita({ id: 'novia', inicio: h('10:00'), grupo_id: 'gBoda', notas: 'Boda Elena (Grupo)' }),
+    cita({ id: 'dama', inicio: h('10:30'), grupo_id: 'gBoda', notas: 'Boda Elena (Grupo)' }),
+  ];
+  assertEquals(esReservaGrupo('gBoda', boda), true);
+  assertEquals(esReservaGrupo('g1', CADENA), false);
 });

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { DESIGN_TOKENS as T } from "@/lib/designTokens";
 import { mensajeDeError } from "@/lib/errores";
+import { useResponsive } from "@/lib/hooks/useResponsive";
 
 interface IntegranteLinea {
   id: string;
@@ -32,6 +33,7 @@ export function ReservaGrupoModal({
   onClose,
   onSaved,
 }: ReservaGrupoModalProps) {
+  const { isMobile } = useResponsive();
   const [nombreGrupo, setNombreGrupo] = useState("Boda - Novia y Acompañantes");
   const [horaFinObjetivo, setHoraFinObjetivo] = useState("13:00");
   const [senalEuros, setSenalEuros] = useState("50");
@@ -172,7 +174,7 @@ export function ReservaGrupoModal({
           background: T.bgPanel,
           borderRadius: 16,
           border: `1px solid ${T.border}`,
-          padding: 22,
+          padding: isMobile ? "16px 14px" : 22,
           display: "flex",
           flexDirection: "column",
           gap: 16,
@@ -231,7 +233,7 @@ export function ReservaGrupoModal({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(200px, 1fr))",
               gap: 10,
               background: T.bgCard,
               padding: 14,
@@ -334,7 +336,7 @@ export function ReservaGrupoModal({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
               gap: 10,
               background: T.bgCard,
               padding: 12,
@@ -441,114 +443,410 @@ export function ReservaGrupoModal({
               </button>
             </div>
 
+            {!isMobile && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1.2fr 1.5fr 1.2fr 60px 85px 24px",
+                  gap: 8,
+                  padding: "0 10px 4px",
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  color: T.textTer,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                <span>Nombre / Rol</span>
+                <span>Servicio</span>
+                <span>Profesional</span>
+                <span style={{ textAlign: "center" }}>Duración</span>
+                <span style={{ textAlign: "center" }} title="Minutos antes de la hora límite">Antes fin</span>
+                <span />
+              </div>
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {integrantes.map((it, idx) => (
-                <div
-                  key={it.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1.2fr 1.5fr 1.2fr 80px 30px",
-                    gap: 8,
-                    alignItems: "center",
-                    padding: "8px 10px",
-                    background: T.bgCard,
-                    borderRadius: 8,
-                    border: `1px solid ${T.border}`,
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={it.nombre}
-                    onChange={(e) =>
-                      actualizarIntegrante(idx, "nombre", e.target.value)
-                    }
-                    placeholder="Nombre/Rol"
-                    style={{
-                      padding: "6px 8px",
-                      borderRadius: 6,
-                      border: `1px solid ${T.border}`,
-                      background: T.bgPanel,
-                      color: T.text,
-                      fontSize: 12,
-                    }}
-                  />
-
-                  <select
-                    value={it.servicio_id}
-                    onChange={(e) =>
-                      actualizarIntegrante(idx, "servicio_id", e.target.value)
-                    }
-                    style={{
-                      padding: "6px 8px",
-                      borderRadius: 6,
-                      border: `1px solid ${T.border}`,
-                      background: T.bgPanel,
-                      color: T.text,
-                      fontSize: 12,
-                    }}
-                  >
-                    {servicios.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nombre} ({s.duracion}′)
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={it.profesional_id}
-                    onChange={(e) =>
-                      actualizarIntegrante(
-                        idx,
-                        "profesional_id",
-                        e.target.value,
-                      )
-                    }
-                    style={{
-                      padding: "6px 8px",
-                      borderRadius: 6,
-                      border: `1px solid ${T.border}`,
-                      background: T.bgPanel,
-                      color: T.text,
-                      fontSize: 12,
-                    }}
-                  >
-                    {profesionales.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre}
-                      </option>
-                    ))}
-                  </select>
-
+              {integrantes.map((it, idx) =>
+                isMobile ? (
                   <div
-                    title="Duración prevista"
+                    key={it.id}
                     style={{
-                      fontSize: 11,
-                      color: T.textSec,
-                      fontWeight: 700,
-                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                      padding: "10px 12px",
+                      background: T.bgCard,
+                      borderRadius: 10,
+                      border: `1px solid ${T.border}`,
                     }}
                   >
-                    {it.duracion_min} min
-                  </div>
-
-                  {integrantes.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => quitarIntegrante(idx)}
+                    <div
                       style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "#dc2626",
-                        cursor: "pointer",
-                        fontWeight: 700,
-                        fontSize: 13,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
                     >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: idx === 0 ? T.primary : T.textSec,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {idx === 0
+                          ? "👰 Novia / Protagonista"
+                          : `Acompañante #${idx + 1}`}
+                      </span>
+                      {integrantes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => quitarIntegrante(idx)}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#dc2626",
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: 12,
+                            padding: "2px 4px",
+                          }}
+                        >
+                          ✕ Quitar
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: T.textTer,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Nombre / Rol
+                      </label>
+                      <input
+                        type="text"
+                        value={it.nombre}
+                        onChange={(e) =>
+                          actualizarIntegrante(idx, "nombre", e.target.value)
+                        }
+                        placeholder="Ej. Novia, Madrina..."
+                        style={{
+                          width: "100%",
+                          marginTop: 3,
+                          padding: "7px 9px",
+                          borderRadius: 6,
+                          border: `1px solid ${T.border}`,
+                          background: T.bgPanel,
+                          color: T.text,
+                          fontSize: 13,
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: 8,
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: T.textTer,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Servicio
+                        </label>
+                        <select
+                          value={it.servicio_id}
+                          onChange={(e) =>
+                            actualizarIntegrante(
+                              idx,
+                              "servicio_id",
+                              e.target.value,
+                            )
+                          }
+                          style={{
+                            width: "100%",
+                            marginTop: 3,
+                            padding: "7px 9px",
+                            borderRadius: 6,
+                            border: `1px solid ${T.border}`,
+                            background: T.bgPanel,
+                            color: T.text,
+                            fontSize: 12.5,
+                            boxSizing: "border-box",
+                          }}
+                        >
+                          {servicios.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.nombre} ({s.duracion}′)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: T.textTer,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Profesional
+                        </label>
+                        <select
+                          value={it.profesional_id}
+                          onChange={(e) =>
+                            actualizarIntegrante(
+                              idx,
+                              "profesional_id",
+                              e.target.value,
+                            )
+                          }
+                          style={{
+                            width: "100%",
+                            marginTop: 3,
+                            padding: "7px 9px",
+                            borderRadius: 6,
+                            border: `1px solid ${T.border}`,
+                            background: T.bgPanel,
+                            color: T.text,
+                            fontSize: 12.5,
+                            boxSizing: "border-box",
+                          }}
+                        >
+                          {profesionales.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: 8,
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: T.textTer,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Duración
+                        </label>
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: T.textSec,
+                          }}
+                        >
+                          ⏱ {it.duracion_min} min
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: T.textTer,
+                            textTransform: "uppercase",
+                          }}
+                          title="Minutos de margen antes de la hora de fin objetivo"
+                        >
+                          Lista antes de (min)
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          step={5}
+                          value={it.desfase_antes_fin_min ?? 0}
+                          onChange={(e) =>
+                            actualizarIntegrante(
+                              idx,
+                              "desfase_antes_fin_min",
+                              Number(e.target.value) || 0,
+                            )
+                          }
+                          placeholder="0"
+                          style={{
+                            width: "100%",
+                            marginTop: 3,
+                            padding: "6px 8px",
+                            borderRadius: 6,
+                            border: `1px solid ${T.border}`,
+                            background: T.bgPanel,
+                            color: T.text,
+                            fontSize: 12,
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    key={it.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "1.2fr 1.5fr 1.2fr 60px 85px 24px",
+                      gap: 8,
+                      alignItems: "center",
+                      padding: "8px 10px",
+                      background: T.bgCard,
+                      borderRadius: 8,
+                      border: `1px solid ${T.border}`,
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={it.nombre}
+                      onChange={(e) =>
+                        actualizarIntegrante(idx, "nombre", e.target.value)
+                      }
+                      placeholder="Nombre/Rol"
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: 6,
+                        border: `1px solid ${T.border}`,
+                        background: T.bgPanel,
+                        color: T.text,
+                        fontSize: 12,
+                      }}
+                    />
+
+                    <select
+                      value={it.servicio_id}
+                      onChange={(e) =>
+                        actualizarIntegrante(
+                          idx,
+                          "servicio_id",
+                          e.target.value,
+                        )
+                      }
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: 6,
+                        border: `1px solid ${T.border}`,
+                        background: T.bgPanel,
+                        color: T.text,
+                        fontSize: 12,
+                      }}
+                    >
+                      {servicios.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.nombre} ({s.duracion}′)
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={it.profesional_id}
+                      onChange={(e) =>
+                        actualizarIntegrante(
+                          idx,
+                          "profesional_id",
+                          e.target.value,
+                        )
+                      }
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: 6,
+                        border: `1px solid ${T.border}`,
+                        background: T.bgPanel,
+                        color: T.text,
+                        fontSize: 12,
+                      }}
+                    >
+                      {profesionales.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nombre}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div
+                      title="Duración prevista"
+                      style={{
+                        fontSize: 11,
+                        color: T.textSec,
+                        fontWeight: 700,
+                        textAlign: "center",
+                      }}
+                    >
+                      {it.duracion_min}′
+                    </div>
+
+                    <input
+                      type="number"
+                      min={0}
+                      step={5}
+                      title="Minutos antes de la hora final (ej. 30 = lista 30 min antes)"
+                      placeholder="0 min"
+                      value={it.desfase_antes_fin_min ?? 0}
+                      onChange={(e) =>
+                        actualizarIntegrante(
+                          idx,
+                          "desfase_antes_fin_min",
+                          Number(e.target.value) || 0,
+                        )
+                      }
+                      style={{
+                        padding: "6px 6px",
+                        borderRadius: 6,
+                        border: `1px solid ${T.border}`,
+                        background: T.bgPanel,
+                        color: T.text,
+                        fontSize: 12,
+                        textAlign: "center",
+                      }}
+                    />
+
+                    {integrantes.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => quitarIntegrante(idx)}
+                        title="Eliminar acompañante"
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#dc2626",
+                          cursor: "pointer",
+                          fontWeight: 700,
+                          fontSize: 13,
+                          padding: 0,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    ) : (
+                      <span />
+                    )}
+                  </div>
+                ),
+              )}
             </div>
           </div>
 

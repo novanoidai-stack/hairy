@@ -19,6 +19,7 @@
     "narrar:remezclar": "node scripts/narrar-recorrido.mjs --remezclar",
     "sfx": "node scripts/sfx-demo.mjs",
     "test:seo": "node scripts/test-e2e-seo.mjs",
+    "test:webhook": "node --test supabase/functions/stripe-webhook/webhook.test.mjs",
     "test:e2e": "playwright test",
     "test": "deno task test",
     "lint": "biome lint",

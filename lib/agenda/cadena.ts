@@ -96,3 +96,28 @@ export function estaEnCadenaVisible(
 ): boolean {
   return eslabonesParaPintar(grupoId, todas, esCancelada).length > 1;
 }
+
+// ---------------------------------------------------------------------------
+// Regla 3: Reservas de Grupo (Bodas y Eventos) vs. Cadenas Unipersonales.
+//
+// Una reserva de grupo (crear_reserva_grupo_hacia_atras) asigna grupo_id a varias
+// citas para distintas personas (novia, madrina, etc.) que se atienden en paralelo
+// o con desfase. NO deben tratarse como una cadena de un solo cliente: ni llevan
+// cables cruzados en ChainFlowOverlay ni badges "1/3" secuenciales.
+// ---------------------------------------------------------------------------
+export function esReservaGrupo(
+  grupoId: string | null | undefined,
+  todas: CitaEncadenable[] | null | undefined,
+): boolean {
+  if (!grupoId || !todas) return false;
+  const delGrupo = todas.filter((c) => c.grupo_id === grupoId);
+  if (delGrupo.length <= 1) return false;
+  const tieneMarcaGrupo = delGrupo.some((c: any) =>
+    typeof c.notas === "string" &&
+    (c.notas.includes("(Grupo)") || c.notas.includes("(Boda)") || c.notas.toLowerCase().includes("boda"))
+  );
+  if (tieneMarcaGrupo) return true;
+  const clientIds = new Set(delGrupo.map((c) => c.cliente_id).filter(Boolean));
+  if (clientIds.size > 1) return true;
+  return false;
+}
