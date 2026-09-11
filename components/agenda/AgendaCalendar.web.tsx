@@ -274,7 +274,15 @@ const ANIMATIONS = `
 
 export default function AgendaCalendar() {
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
-  const { isMobile, isTablet } = useResponsive();
+  const { isMobile, isTablet, width: anchoVentana } = useResponsive();
+  // La barra de controles de la cabecera pide ~1300px para ir en una sola fila.
+  // Por debajo se compacta (menos padding, fuente 12) y los botones secundarios se
+  // quedan en icono: su `title` ya explica lo que hacen. Mismos botones en todas
+  // las pantallas; lo unico que cambia es lo apretados que van.
+  const barraCompacta = anchoVentana < 1440;
+  // A partir de aqui (iPad en horizontal, ventana a media pantalla) tampoco cabe
+  // el texto de los botones primarios salvo el selector de vista.
+  const barraMinima = anchoVentana < 1200;
   const router = useRouter();
   // Cache compartida de datos del servidor (lib/datos/queryClient.ts).
   const qc = useQueryClient();
@@ -2169,11 +2177,11 @@ export default function AgendaCalendar() {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: barraCompacta ? 6 : 8,
         rowGap: 8,
         flexWrap: "wrap",
         minWidth: 0,
-        marginLeft: isMobile ? 0 : 12,
+        marginLeft: isMobile ? 0 : barraCompacta ? 6 : 12,
       }}
     >
       <div
@@ -2193,8 +2201,8 @@ export default function AgendaCalendar() {
               // if (v !== "day") setRailCollapsed(false);
             }}
             style={{
-              padding: isMobile ? "6px 12px" : "7px 14px",
-              fontSize: isMobile ? 12 : 13,
+              padding: barraCompacta ? "6px 12px" : "7px 14px",
+              fontSize: barraCompacta ? 12 : 13,
               fontWeight: view === v ? 700 : 500,
               background: view === v ? roleTheme.primarySoft : "transparent",
               color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
@@ -2221,21 +2229,21 @@ export default function AgendaCalendar() {
         onClick={handleToday}
         title="Ir a hoy"
         style={{
-          padding: isMobile ? "6px 10px" : "8px 14px",
+          padding: barraCompacta ? "6px 10px" : "8px 14px",
           background: TOKENS.bgCard,
           border: `1px solid ${TOKENS.border}`,
           color: TOKENS.text,
           borderRadius: 10,
           cursor: "pointer",
-          fontSize: isMobile ? 12 : 13,
+          fontSize: barraCompacta ? 12 : 13,
           fontWeight: 600,
           display: "flex",
           alignItems: "center",
           gap: 6,
         }}
       >
-        <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
-        {!isMobile && "Hoy"}
+        <Icon name="calendar" size={barraCompacta ? 12 : 14} color={TOKENS.text} />
+        {!barraMinima && "Hoy"}
       </button>
       {/* Repasar lo cancelado sin ensuciar el dia a diario. */}
       <button
@@ -2248,13 +2256,13 @@ export default function AgendaCalendar() {
         }
         aria-pressed={verCanceladas}
         style={{
-          padding: isMobile ? "6px 10px" : "8px 14px",
+          padding: barraCompacta ? "6px 10px" : "8px 14px",
           background: verCanceladas ? TOKENS.dangerSoft : TOKENS.bgCard,
           border: `1px solid ${verCanceladas ? TOKENS.danger : TOKENS.border}`,
           color: verCanceladas ? TOKENS.danger : TOKENS.text,
           borderRadius: 10,
           cursor: "pointer",
-          fontSize: isMobile ? 12 : 13,
+          fontSize: barraCompacta ? 12 : 13,
           fontWeight: 600,
           display: "flex",
           alignItems: "center",
@@ -2263,10 +2271,10 @@ export default function AgendaCalendar() {
       >
         <Icon
           name={verCanceladas ? "eye" : "eyeOff"}
-          size={isMobile ? 12 : 14}
+          size={barraCompacta ? 12 : 14}
           color={verCanceladas ? TOKENS.danger : TOKENS.text}
         />
-        {!isMobile && "Canceladas"}
+        {!barraCompacta && "Canceladas"}
       </button>
       {/* Organizar: abre el panel que APLICA los arreglos. El badge
           cuenta los problemas del dia visible, como las notificaciones. */}
@@ -2281,13 +2289,13 @@ export default function AgendaCalendar() {
         className="m-btn-ai-glow"
         style={{
           position: "relative",
-          padding: isMobile ? "6px 10px" : "8px 14px",
+          padding: barraCompacta ? "6px 10px" : "8px 14px",
           background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
           border: `1px solid rgba(244,80,30,0.3)`,
           color: TOKENS.text,
           borderRadius: 10,
           cursor: "pointer",
-          fontSize: isMobile ? 12 : 13,
+          fontSize: barraCompacta ? 12 : 13,
           fontWeight: 700,
           display: "flex",
           alignItems: "center",
@@ -2372,7 +2380,7 @@ export default function AgendaCalendar() {
         }}
       >
         <Icon name="zap" size={13} color={ensenar ? "#fff" : TOKENS.primary} />
-        {!isMobile && <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>}
+        {!barraCompacta && <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>}
       </button>
       {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
           prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
@@ -3769,7 +3777,7 @@ export default function AgendaCalendar() {
           // de "% reposo"). Con wrap, lo que no cabe baja de linea.
           flexWrap: "wrap",
           rowGap: 8,
-          padding: isMobile ? "10px 14px" : "11px 28px",
+          padding: isMobile ? "10px 14px" : barraCompacta ? "11px 16px" : "11px 28px",
           borderBottom: `1px solid ${roleTheme.borderHeader}`,
           position: "relative",
           zIndex: 60,
@@ -4071,9 +4079,11 @@ export default function AgendaCalendar() {
                 pantallaCompletaActiva ? roleTheme.primaryHi : TOKENS.textSec
               }
             />
-            {/* La etiqueta larga solo cabe en escritorio; en movil/tablet manda el icono
-                (el estado tambien se lee por el color de fondo del boton). */}
-            {!isMobile && !isTablet && (
+            {/* La etiqueta larga solo cabe en monitor ancho; de ahi para abajo manda el
+                icono (el estado tambien se lee por el color de fondo del boton). En un
+                portatil "Salir de pantalla completa" son ~180px que empujaban toda la
+                fila de acciones a una segunda linea. */}
+            {!barraCompacta && (
               <span>
                 {pantallaCompletaActiva
                   ? "Salir de pantalla completa"
