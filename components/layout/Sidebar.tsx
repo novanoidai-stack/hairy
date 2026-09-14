@@ -63,7 +63,11 @@ const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: st
   // En movil ya estaba de segunda pestana (MobileTabBar.tsx), ese fichero no se toca.
   { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver', group: 'Operativa' },
   { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada', group: 'Operativa' },
-  { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas', plan: 'lista_espera', group: 'Operativa' },
+  // "Espera" son las dos esperas del salon en una pantalla con dos pestanas:
+  // quien esta AQUI sin cita (cola del dia) y quien espera un hueco (lista de
+  // espera). Sin `plan`: la cola nunca ha sido de Estudio y un salon Esencial
+  // tiene que poder entrar. Lo de Estudio se capa dentro, en su pestana.
+  { label: 'Espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas', group: 'Operativa' },
   { label: 'Citas', labelKey: 'nav_citas', icon: 'calendar-number-outline', activeIcon: 'calendar-number', href: '/(tabs)/citas', cap: 'agenda.ver_todas', group: 'Operativa' },
   
   { label: 'Clientes', labelKey: 'nav_clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver', group: 'CRM & Marketing' },

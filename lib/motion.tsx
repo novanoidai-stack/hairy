@@ -75,10 +75,14 @@ const MOTION_CSS = `
      se redefinen para igualar a estas. No inventar efectos nuevos por pantalla.
      ========================================================================= */
 
-  /* Botones primarios (CTAs con gradiente) */
+  /* Botones primarios (CTAs con gradiente)
+     Sin \`will-change: transform\`: lo llevaba, y un will-change permanente no es
+     una optimizacion, es una reserva de capa de GPU que dura toda la vida del
+     elemento. Cada boton primario en pantalla se llevaba la suya para un
+     translateY de 0,18 s que solo ocurre al pasar el raton. Chrome promociona
+     solo durante la transicion, que es cuando hace falta. */
   .m-btn-primary {
     transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s ease, filter 0.18s ease;
-    will-change: transform;
   }
   .m-btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);

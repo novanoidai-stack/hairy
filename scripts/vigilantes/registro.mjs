@@ -68,6 +68,7 @@ import fugasListeners from './fugas-listeners.mjs';
 import modalesFantasma from './modales-fantasma.mjs';
 import addonsCargador from './addons-cargador.mjs';
 import gastosCategorias from './gastos-categorias.mjs';
+import iconosInexistentes from './iconos-inexistentes.mjs';
 
 export const ESTATICOS = [
   precios,
@@ -104,6 +105,7 @@ export const ESTATICOS = [
   modalesFantasma,
   addonsCargador,
   gastosCategorias,
+  iconosInexistentes,
 ];
 
 // La lista de red vive en nucleo.mjs (meta-registro tambien la pregunta, y

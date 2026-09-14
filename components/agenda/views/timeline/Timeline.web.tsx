@@ -207,6 +207,64 @@ function DayTimeline({
     yaAutoScroll.current = true;
   }, [esMismoDiaQueHoy, citas.length, esModoDemo]);
 
+  // ── La decoracion de columnas, acotada al tramo visible ──────────────────
+  //
+  // El fondo degradado por profesional (.ia-prof-col-glow / -beam) cubria el
+  // DIA ENTERO: 1.760 px de alto cuando por la ventana se ven 577. Como cada
+  // uno anima transform y opacity, Chrome les da capa de composicion propia, y
+  // ademas arrastra a las que se solapan: medido con LayerTree el 9 sep 2026,
+  // 8 capas y ~24 MB de textura con solo DOS profesionales, y escala por cabeza.
+  // Mas de la mitad de cada capa nunca estaba en pantalla.
+  //
+  // Aqui se le da al lienzo el alto de lo que se ve (mas un colchon) y se le
+  // mueve con el scroll. Medido en el mismo sitio: de 3,92 a 0,71 Mpx.
+  //
+  // Se hizo con JS porque `position: sticky` NO sirve: entre esta capa y el
+  // contenedor que scrollea de verdad hay dos ancestros con `overflow:hidden`
+  // (uno es .m-agenda-aura, que lo necesita para su marco), asi que el sticky
+  // se quedaria pegado a algo que no se mueve. Comprobado, no supuesto.
+  //
+  // El listener va `passive` y estrangulado por rAF: como mucho una escritura
+  // de transform por fotograma. Y si no encuentra contenedor con scroll no
+  // toca nada: la capa se queda como estaba, que es el respaldo correcto.
+  useEffect(() => {
+    const capa = auraRef.current;
+    const grid = gridRef.current;
+    if (!capa || !grid) return;
+    let busca: HTMLElement | null = grid.parentElement;
+    while (busca && busca.scrollHeight <= busca.clientHeight + 8)
+      busca = busca.parentElement;
+    if (!busca) return;
+    const scroller = busca;
+
+    const MARGEN = 220;
+    let pendiente = 0;
+    const colocar = () => {
+      pendiente = 0;
+      const alto = scroller.clientHeight + MARGEN * 2;
+      capa.style.height = `${alto}px`;
+      capa.style.bottom = "auto";
+      const tope = Math.max(0, scroller.scrollHeight - alto);
+      const y = Math.min(Math.max(0, scroller.scrollTop - MARGEN), tope);
+      capa.style.transform = `translate3d(0, ${y}px, 0)`;
+    };
+    const alMover = () => {
+      if (pendiente) return;
+      pendiente = requestAnimationFrame(colocar);
+    };
+
+    colocar();
+    scroller.addEventListener("scroll", alMover, { passive: true });
+    const ro =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(alMover) : null;
+    ro?.observe(scroller);
+    return () => {
+      scroller.removeEventListener("scroll", alMover);
+      ro?.disconnect();
+      if (pendiente) cancelAnimationFrame(pendiente);
+    };
+  }, [profesionales.length, HOURS.length]);
+
   const toggleCompletada = useCallback(
     async (citaId: string, estadoActual: string) => {
       const nuevoEstado =
@@ -266,6 +324,9 @@ function DayTimeline({
   } | null>(null);
   const [aplicandoAusencia, setAplicandoAusencia] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+  // Lienzo de la decoracion por columna; se acota al tramo visible (ver el
+  // efecto que lo mueve con el scroll).
+  const auraRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<any>(null);
   const dropRef = useRef<any>(null);
   // Nodo del fantasma de arrastre y frame pendiente. Arrastrar hacia un setState
@@ -1310,7 +1371,13 @@ function DayTimeline({
                     // desbordaban la cabecera y se SOLAPABAN con la columna
                     // vecina en cuanto la rejilla se quedaba estrecha.
                     flex: 1,
-                    minWidth: 0,
+                    // Suelo para el nombre. Medido en movil (9 sep 2026): la
+                    // columna son 200 px y el contador de la derecha iba con
+                    // flexShrink:0 ocupando 61, asi que el nombre --lo unico que
+                    // encogia-- se quedaba en 24 px cuando necesitaba 38: en
+                    // pantalla salia "C..." y "L...", que no identifica a nadie.
+                    // Con el suelo, quien cede es el contador, no el nombre.
+                    minWidth: isMobile ? 44 : 0,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -1352,16 +1419,26 @@ function DayTimeline({
                   );
                   return (
                     <span
+                      title={`${pc.length} ${pc.length === 1 ? "cita" : "citas"} · ${occ}% ocupada`}
                       style={{
                         fontSize: 10,
                         fontWeight: 700,
                         color: TOKENS.primaryHi,
-                        flexShrink: 0,
+                        // En movil el que cede es el contador, no el nombre.
+                        flexShrink: isMobile ? 1 : 0,
+                        minWidth: 0,
+                        overflow: "hidden",
                         whiteSpace: "nowrap",
                         opacity: 0.9,
                       }}
                     >
-                      {pc.length} {pc.length === 1 ? "cita" : "citas"} · {occ}%
+                      {/* "4 citas · 17%" se comia el nombre del profesional en
+                          movil. Al lado de SU columna, la palabra no aporta:
+                          "4 · 17%" dice lo mismo en 23 px menos. El texto
+                          entero se queda en el title. */}
+                      {isMobile
+                        ? `${pc.length} · ${occ}%`
+                        : `${pc.length} ${pc.length === 1 ? "cita" : "citas"} · ${occ}%`}
                     </span>
                   );
                 })()}
@@ -1415,8 +1492,12 @@ function DayTimeline({
               cursor: isDragging ? "grabbing" : "default",
             }}
           >
-            {/* Fondo degradado suave IA por columna de profesional con movimiento ultra lento */}
+            {/* Fondo degradado suave IA por columna de profesional con movimiento ultra lento.
+                `bottom: 0` es solo el estado inicial: en cuanto monta, el efecto
+                de arriba le pone el alto de lo que se ve y lo mueve con el
+                scroll, para no tener capas compuestas del alto del dia entero. */}
             <div
+              ref={auraRef}
               style={{
                 position: "absolute",
                 top: 0,

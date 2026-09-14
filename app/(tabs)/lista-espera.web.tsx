@@ -16,7 +16,8 @@ import { manualListaEspera } from '@/lib/manuals/lista-espera';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { withPlanGate } from '@/components/PlanGateOverlay';
+import { PlanGateOverlay, usePlan } from '@/components/PlanGateOverlay';
+import { ColaDiaPanel } from '@/components/cola/ColaDiaPanel.web';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -105,6 +106,23 @@ interface Nivel { id: string; nombre: string; color: string; orden: number; }
 
 type FiltroEstado = 'activas' | 'esperando' | 'avisado' | 'todas';
 
+// Las DOS esperas del salon, en una sola pantalla (9 sep 2026).
+//
+// Hasta ahora eran dos cosas separadas que se presentaban como si fueran la
+// misma: "Cola del dia" y "Lista de espera", dos botones pegados en la cabecera
+// de la agenda. No son lo mismo y por eso siguen siendo dos tablas:
+//
+//   local  -> cola_dia      La persona ESTA en el salon, sin cita, hoy. Orden de
+//                           llegada. Estados esperando -> en_atencion -> hecho.
+//   hueco  -> lista_espera  La persona NO esta: queria cita y no habia hueco.
+//                           Orden por nivel de fidelizacion, y cuando se libera
+//                           un hueco entra el motor de avisos de WhatsApp.
+//
+// Lo que se unifica es DONDE se miran, que es lo que confundia. Fundir tambien
+// los datos seria un error: distinto ciclo de vida, distinta prioridad y solo
+// una de las dos tiene avisos.
+type Pestana = 'local' | 'hueco';
+
 const FRANJA_LABEL: Record<string, string> = { manana: 'Mañana', tarde: 'Tarde', cualquiera: 'Cualquier hora' };
 
 function ListaEsperaScreen() {
@@ -120,7 +138,13 @@ function ListaEsperaScreen() {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [niveles, setNiveles] = useState<Nivel[]>([]);
+  const [pestana, setPestana] = useState<Pestana>('local');
+  const [enCola, setEnCola] = useState(0);
   const [filtro, setFiltro] = useState<FiltroEstado>('activas');
+  // La lista de espera es del plan Estudio; la cola del dia no lo ha sido nunca.
+  // Por eso la pantalla NO va envuelta en withPlanGate: si lo estuviera, al
+  // juntarlas un salon Esencial perderia la cola, que hoy si puede usar.
+  const planListaEspera = usePlan('lista_espera');
   const [busqueda, setBusqueda] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   // Sesion 8-B: estado de avisos por lista de espera
@@ -132,18 +156,24 @@ function ListaEsperaScreen() {
     if (profile && !can(profile, 'agenda.ver_todas')) { setAccessDenied(true); setLoading(false); return; }
     const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
     setNegocioId(nId);
-    const [le, srv, prof, cli, niv] = await Promise.all([
+    const hoy = new Date().toISOString().slice(0, 10);
+    const [le, srv, prof, cli, niv, cola] = await Promise.all([
       supabase.from('lista_espera').select('*').eq('negocio_id', nId).order('prioridad', { ascending: false }).order('created_at', { ascending: true }),
       supabase.from('servicios').select('id, nombre').eq('negocio_id', nId),
       supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', nId).eq('activo', true),
       supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', nId).order('nombre').limit(500),
       supabase.from('niveles_fidelizacion').select('id, nombre, color, orden').eq('negocio_id', nId).eq('activo', true).order('orden', { ascending: false }),
+      // Solo para el numerito de la pestana: quien esta AHORA en el salon
+      // esperando turno. El panel de la cola se recarga por su cuenta.
+      supabase.from('cola_dia').select('id', { count: 'exact', head: true })
+        .eq('negocio_id', nId).eq('fecha', hoy).eq('estado', 'esperando'),
     ]);
     setItems(le.data ?? []);
     setServicios(srv.data ?? []);
     setProfesionales(prof.data ?? []);
     setClientes(cli.data ?? []);
     setNiveles(niv.data ?? []);
+    setEnCola(cola.count ?? 0);
 
     // Sesion 8-B: cargar estado de avisos (pendiente/enviado/fallido)
     // Nota: lista_espera_avisos tiene RLS desactivado proposito, solo service_role.
@@ -216,10 +246,10 @@ function ListaEsperaScreen() {
   if (loading) {
     // Loader consistente con el resto de pestañas (spinner + aviso si tarda),
     // en vez de un texto plano que puede parecer que la pantalla se colgó.
-    return <PageLoader message="Cargando lista de espera..." />;
+    return <PageLoader message="Cargando la espera del salon..." />;
   }
   if (accessDenied) {
-    return <div style={{ minHeight: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textSec, padding: 24, textAlign: 'center' }}>No tienes permiso para ver la lista de espera.</div>;
+    return <div style={{ minHeight: 'calc(100vh / var(--mecha-zoom, 1))', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textSec, padding: 24, textAlign: 'center' }}>No tienes permiso para ver la espera del salon.</div>;
   }
 
   return (
@@ -230,7 +260,7 @@ function ListaEsperaScreen() {
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: -0.5, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-              Lista de espera
+              Espera
               <button
                 onClick={() => setShowManualPanel(true)}
                 title="Manual de esta pagina"
@@ -246,13 +276,71 @@ function ListaEsperaScreen() {
               <AvisosBell mode="header" />
             </h1>
             <p style={{ fontSize: 14, color: T.textTer, margin: '4px 0 0' }}>
-              Apunta a quien quiere un hueco lleno y avísale cuando se libere uno.
+              {pestana === 'local'
+                ? 'Quien está en el salón esperando turno, por orden de llegada.'
+                : 'Apunta a quien quiere un hueco lleno y avísale cuando se libere uno.'}
             </p>
           </div>
-          <button className="le-btn" onClick={() => setShowAdd(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 14, fontWeight: 700 }}>
-            <Icon name="plus" size={16} color="#fff" /> Añadir a la lista
-          </button>
+          {pestana === 'hueco' && planListaEspera.permitido && (
+            <button className="le-btn" onClick={() => setShowAdd(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 14, fontWeight: 700 }}>
+              <Icon name="plus" size={16} color="#fff" /> Añadir a la lista
+            </button>
+          )}
         </div>
+
+        {/* Las dos esperas. Antes eran dos botones distintos en la cabecera de la
+            agenda y nadie sabia en que se diferenciaban. */}
+        <div role="tablist" aria-label="Tipo de espera" style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+          {([
+            { k: 'local' as Pestana, label: 'En el salón', cuenta: enCola, ayuda: 'Está aquí, sin cita, esperando turno' },
+            { k: 'hueco' as Pestana, label: 'Esperando hueco', cuenta: conteo.esperando + conteo.avisado, ayuda: 'No está: quiere cita y no había hueco' },
+          ]).map(t => {
+            const on = pestana === t.k;
+            return (
+              <button
+                key={t.k}
+                role="tab"
+                aria-selected={on}
+                title={t.ayuda}
+                className={on ? 'le-chip is-active' : 'le-chip'}
+                onClick={() => setPestana(t.k)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '9px 16px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
+                  border: `1.5px solid ${on ? T.primary : T.border}`,
+                  background: on ? T.primary : T.card,
+                  color: on ? '#fff' : T.textSec,
+                }}
+              >
+                {t.label}
+                <span style={{
+                  minWidth: 20, padding: '1px 7px', borderRadius: 999, fontSize: 12, fontWeight: 800,
+                  background: on ? 'rgba(255,255,255,0.24)' : T.primarySoft,
+                  color: on ? '#fff' : T.primary,
+                }}>{t.cuenta}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {pestana === 'local' && (
+          <ColaDiaPanel
+            negocioId={negocioId}
+            profesionales={profesionales}
+            servicios={servicios}
+            mostrarCabecera={false}
+            onCobrar={() => router.push('/(tabs)/caja' as never)}
+          />
+        )}
+
+        {pestana === 'hueco' && !planListaEspera.permitido && (
+          <div style={{ minHeight: 380 }}>
+            <PlanGateOverlay funcion="lista_espera" />
+          </div>
+        )}
+
+        {pestana === 'hueco' && planListaEspera.permitido && (
+        <>
 
         {!paginaManual.loading && !paginaManual.visto && (
           <div style={{ marginBottom: 16 }}>
@@ -472,6 +560,8 @@ function ListaEsperaScreen() {
             })}
           </div>
         )}
+        </>
+        )}
       </div>
 
       {showAdd && (
@@ -649,4 +739,9 @@ function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSa
   );
 }
 
-export default withPlanGate(withClientDataGate(ListaEsperaScreen, 'Lista de espera'), 'lista_espera');
+// Sin `withPlanGate`: la pantalla aloja AHORA dos cosas con derechos distintos.
+// La cola del salon nunca ha dependido del plan y se sigue pudiendo usar en
+// Esencial; la lista de espera es de Estudio y se capa por PESTANA, arriba, con
+// `usePlan('lista_espera')`. Envolver la pantalla entera le quitaria a un salon
+// Esencial una funcion que hoy tiene.
+export default withClientDataGate(ListaEsperaScreen, 'Espera');

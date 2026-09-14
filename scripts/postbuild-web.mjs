@@ -7,11 +7,14 @@
 //   2. preconnect a Supabase y a las fuentes + la hoja de Google Fonts, para que
 //      esas conexiones avancen en paralelo con la descarga del bundle (antes las
 //      inyectaba el propio bundle en runtime, tarde).
+//   3. preload de la TTF de Ionicons, por el mismo motivo: sin el, los iconos
+//      del menu no aparecian hasta 2 s despues de pintarse la interfaz (6 s con
+//      4G lento). Ver el bloque de "Precarga de la fuente de iconos".
 // Y ademas copia el motor de comisiones a web/assets (ver mas abajo).
 // Vercel ejecuta build:web, asi que el deploy lleva esto siempre.
-import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -54,9 +57,53 @@ if (html.includes('mecha-splash')) {
   process.exit(0);
 }
 
+// ---------------------------------------------------------------------------
+// Precarga de la fuente de iconos (Ionicons)
+//
+// Los iconos del menu lateral y de la barra movil son glifos de una TTF de 210
+// KB. La regla @font-face la inyecta expo-font DESDE JAVASCRIPT, asi que la
+// descarga no puede ni empezar hasta que el bundle se ha bajado y ejecutado; y
+// va con `font-display: auto`, que no pinta el glifo mientras tanto. Medido en
+// produccion el 9 sep 2026: la interfaz pinta a los 376 ms y los iconos no
+// estan hasta los 2.429 ms — y con 4G lento, hasta los 6.686 ms. Seis segundos
+// de menu sin un solo icono se leen como "los iconos no cargan".
+//
+// Con el preload el navegador se la trae EN PARALELO al bundle, asi que cuando
+// expo-font inyecta la regla la fuente ya esta en cache y el glifo sale al
+// primer pintado. El `crossorigin` es obligatorio aunque sea del mismo origen:
+// las fuentes se piden siempre en modo CORS y sin el se descargaria dos veces.
+//
+// El nombre lleva hash de contenido y cambia en cada build, asi que se busca.
+// ---------------------------------------------------------------------------
+function buscarFuenteIconos(dir) {
+  if (!existsSync(dir)) return null;
+  for (const entrada of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entrada.name);
+    if (entrada.isDirectory()) {
+      const hallado = buscarFuenteIconos(p);
+      if (hallado) return hallado;
+    } else if (/^Ionicons\..*\.ttf$/i.test(entrada.name)) {
+      return p;
+    }
+  }
+  return null;
+}
+
+const rutaFuente = buscarFuenteIconos(join(root, 'web', 'app', 'assets'));
+if (!rutaFuente) {
+  // Fallar ruidosamente: si un dia cambia la ruta del export, el preload dejaria
+  // de existir en silencio y volveriamos a los 6 segundos sin iconos sin que
+  // nadie se entere. Es justo el fallo que esto viene a arreglar.
+  console.error('[postbuild-web] No encuentro la TTF de Ionicons en web/app/assets: el preload de iconos no se puede inyectar.');
+  process.exit(1);
+}
+const urlFuente = '/app/' + relative(join(root, 'web', 'app'), rutaFuente).split(sep).join('/');
+console.log(`[postbuild-web] Fuente de iconos para precargar: ${urlFuente}`);
+
 const headInject = `
     <meta name="theme-color" content="#f4501e" />
     <meta name="robots" content="noindex, nofollow" />
+    <link rel="preload" as="font" type="font/ttf" crossorigin href="${urlFuente}" />
     <link rel="preconnect" href="https://vtrggiogjrhqtwbhbgia.supabase.co" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

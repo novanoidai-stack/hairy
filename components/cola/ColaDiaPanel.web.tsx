@@ -20,10 +20,15 @@ interface ColaItem {
 interface ColaDiaPanelProps {
   negocioId: string;
   profesionales: Array<{ id: string; nombre: string }>;
-  servicios: Array<{ id: string; nombre: string; precio: number }>;
+  // `precio` es opcional: aqui solo se usa el nombre, y quien empotra el panel
+  // (la pantalla de Espera) carga los servicios sin precio.
+  servicios: Array<{ id: string; nombre: string; precio?: number }>;
   onAtender?: (item: ColaItem) => void;
   onCobrar?: (item: ColaItem) => void;
   onClose?: () => void;
+  // Empotrado como pestana de la pantalla de Espera, el titulo lo pone ya la
+  // propia pestana: repetirlo aqui seria decir dos veces lo mismo.
+  mostrarCabecera?: boolean;
 }
 
 export function ColaDiaPanel({
@@ -33,6 +38,7 @@ export function ColaDiaPanel({
   onAtender,
   onCobrar,
   onClose,
+  mostrarCabecera = true,
 }: ColaDiaPanelProps) {
   const [items, setItems] = useState<ColaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,42 +166,46 @@ export function ColaDiaPanel({
           gap: 12,
         }}
       >
-        <div>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 800,
-              color: T.text,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span>💈 Cola del Día</span>
-            <span
+        {mostrarCabecera ? (
+          <div>
+            <h3
               style={{
-                fontSize: 11,
-                padding: "2px 8px",
-                borderRadius: 999,
-                background: "rgba(244,80,30,0.12)",
-                color: T.primary,
-                fontWeight: 700,
+                margin: 0,
+                fontSize: 18,
+                fontWeight: 800,
+                color: T.text,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
-              Walk-in en Vivo
-            </span>
-          </h3>
-          <p
-            style={{
-              margin: "3px 0 0",
-              fontSize: 12.5,
-              color: T.textSec,
-            }}
-          >
-            Gestión de turnos espontáneos para barberías y servicios sin cita.
-          </p>
-        </div>
+              <span>💈 Cola del Día</span>
+              <span
+                style={{
+                  fontSize: 11,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: "rgba(244,80,30,0.12)",
+                  color: T.primary,
+                  fontWeight: 700,
+                }}
+              >
+                Walk-in en Vivo
+              </span>
+            </h3>
+            <p
+              style={{
+                margin: "3px 0 0",
+                fontSize: 12.5,
+                color: T.textSec,
+              }}
+            >
+              Gestión de turnos espontáneos para barberías y servicios sin cita.
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
 
         <div
           style={{

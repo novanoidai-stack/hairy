@@ -87,7 +87,6 @@ import type { Cita, Profesional } from "./tipos";
 import { DetalleCitaModal } from "./modals/DetalleCitaModal.web";
 import NewCitaModal from "./modals/NewCitaModal.web";
 import { SelectorCreacionAgenda } from "./SelectorCreacionAgenda.web";
-import { ColaDiaPanel } from "@/components/cola/ColaDiaPanel.web";
 import { ReservaGrupoModal } from "./modals/ReservaGrupoModal.web";
 import { norm, fmtHHMM } from "./ui/atomos.web";
 import { cacheado } from "@/lib/datos/cacheado";
@@ -206,11 +205,22 @@ const ANIMATIONS = `
     pointer-events: none;
     contain: layout paint;
   }
+  /* Sin \`will-change\`, y es a proposito (9 sep 2026).
+     Estas dos capas llevaban \`will-change: transform, opacity\`. Medido con
+     LayerTree (CDP) en produccion, Chrome ya las promociona por su cuenta
+     mientras la animacion corre: las razones de composicion que declara son
+     "ActiveTransformAnimation, ActiveOpacityAnimation, WillChangeTransform,
+     WillChangeOpacity" — las dos primeras bastan y el will-change no anadia
+     nada. Donde SI cambiaba las cosas era en el unico caso en que no hay
+     animacion: con \`prefers-reduced-motion: reduce\` el bloque de abajo apaga
+     la animacion pero NO quitaba el will-change, asi que quien tiene el
+     sistema en "reducir movimiento" se comia igual una pareja de capas
+     compuestas por profesional, a la altura del dia entero, para no ver
+     moverse nada. Con 2 profesionales eran 8 capas y ~24 MB de textura. */
   .ia-prof-col-glow {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    will-change: transform, opacity;
     animation: iaAuroraWave var(--ia-dur, 32s) ease-in-out infinite alternate;
     animation-delay: var(--ia-delay, 0s);
   }
@@ -221,7 +231,6 @@ const ANIMATIONS = `
     right: -15%;
     height: 60%;
     pointer-events: none;
-    will-change: transform, opacity;
     animation: iaBeamFloat calc(var(--ia-dur, 32s) * 0.85) ease-in-out infinite alternate;
     animation-delay: calc(var(--ia-delay, 0s) - 5s);
   }
@@ -258,6 +267,9 @@ const ANIMATIONS = `
     .ia-prof-col-beam {
       animation: none !important;
       transform: none !important;
+      /* Y sin capa propia: quieta, esta decoracion es un degradado que se pinta
+         una vez. Promocionarla solo gastaria memoria de GPU. */
+      will-change: auto !important;
     }
   }
 `;
@@ -349,7 +361,6 @@ export default function AgendaCalendar() {
   } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
   const [showManualPanel, setShowManualPanel] = useState(false);
-  const [showColaDia, setShowColaDia] = useState(false);
   const [showReservaGrupo, setShowReservaGrupo] = useState(false);
   const paginaManual = usePaginaManualVista("agenda");
   // Demo guiada: enfoque tipo spotlight sobre una zona (p.ej. el panel de avisos).
@@ -4118,29 +4129,13 @@ export default function AgendaCalendar() {
             {!isMobile && "Cerrar salon"}
           </button>
           )}
-          <button
-            onClick={() => setShowColaDia(true)}
-            title="Cola del día (turnos espontáneos sin cita)"
-            aria-label="Cola del día (turnos espontáneos sin cita)"
-            style={{
-              padding: isMobile ? "7px 10px" : "7px 12px",
-              background: "rgba(244,80,30,0.10)",
-              color: roleTheme.primary,
-              border: "1px solid rgba(244,80,30,0.25)",
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-            }}
-          >
-            <span>💈</span>
-            {!isMobile && "Cola del día"}
-          </button>
+          {/* Aqui habia un boton "Cola del dia" (9 sep 2026: fuera).
+              Estaba pegado al chip de "Lista de espera" de esta misma cabecera y
+              no habia forma de saber en que se diferenciaban: los dos se leen
+              como "gente esperando". Ahora las dos viven juntas en la pantalla
+              de Espera, en dos pestanas que se explican solas ("En el salon" /
+              "Esperando hueco"). En movil este boton era ademas solo el emoji
+              💈, sin etiqueta, al lado de uno que si la llevaba. */}
           <button
             onClick={() => setShowReservaGrupo(true)}
             title="Reserva de Grupo o Boda (planificación hacia atrás)"
@@ -5690,44 +5685,6 @@ export default function AgendaCalendar() {
           prefillWaitlistId={newCitaPrefill?.waitlistId}
           prefillReposoContext={newCitaPrefill?.reposoContext}
         />
-      )}
-
-      {showColaDia && (
-        <div
-          onClick={() => setShowColaDia(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.60)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: 700,
-              maxHeight: "90vh",
-              overflowY: "auto",
-              borderRadius: 16,
-            }}
-          >
-            <ColaDiaPanel
-              negocioId={negocioId!}
-              profesionales={profesionales}
-              servicios={servicios}
-              onClose={() => setShowColaDia(false)}
-              onCobrar={() => {
-                setShowColaDia(false);
-                router.push("/(tabs)/caja" as never);
-              }}
-            />
-          </div>
-        </div>
       )}
 
       {showReservaGrupo && (
