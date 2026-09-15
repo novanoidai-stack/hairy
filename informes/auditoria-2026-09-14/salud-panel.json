@@ -1,0 +1,14 @@
+{
+  "staff_vigilancia_resumen": {
+    "error": "Error: staff_vigilancia_resumen() ha devuelto 400: {\"code\":\"P0001\",\"details\":null,\"hint\":null,\"message\":\"not_authorized\"}"
+  },
+  "staff_salud_cuentas": {
+    "error": "Error: staff_salud_cuentas() ha devuelto 400: {\"code\":\"P0001\",\"details\":null,\"hint\":null,\"message\":\"not_authorized\"}"
+  },
+  "staff_salud_envios": {
+    "error": "Error: staff_salud_envios() ha devuelto 400: {\"code\":\"P0001\",\"details\":null,\"hint\":null,\"message\":\"not_authorized\"}"
+  },
+  "staff_vigilancia_delta": {
+    "error": "Error: staff_vigilancia_delta() ha devuelto 400: {\"code\":\"P0001\",\"details\":null,\"hint\":null,\"message\":\"not_authorized\"}"
+  }
+}

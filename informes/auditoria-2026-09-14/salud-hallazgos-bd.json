@@ -1,0 +1,106 @@
+[
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "base-de-datos",
+    "clave": "bd/migraciones-sin-aplicar",
+    "titulo": "7 migracion(es) del repo no constan aplicadas",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "vigilancia",
+    "clave": "bd/pgnet-latidos-perdidos",
+    "titulo": "pg_net pierde el 33 % de las llamadas",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-rendimiento/glotona:notificaciones_pendientes",
+    "titulo": "notificaciones_pendientes se lleva el 15.3 % del tiempo de la base",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-rendimiento/glotona:92488541",
+    "titulo": "una consulta se lleva el 11.2 % del tiempo de la base",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-rendimiento/lenta:vigilancia_bd",
+    "titulo": "vigilancia_bd tarda 2139 ms de media",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-rendimiento/lenta:vigilancia_bd_profunda",
+    "titulo": "vigilancia_bd_profunda tarda 1000 ms de media",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-rendimiento/lenta:resembrar_demo",
+    "titulo": "resembrar_demo tarda 373 ms de media",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-profunda/fk-sin-indice:gastos.gastos_profesional_id_fkey",
+    "titulo": "Clave foránea sin índice: gastos.gastos_profesional_id_fkey",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-profunda/fk-sin-indice:tarjetas_regalo.tarjetas_regalo_cliente_comprador_id_fkey",
+    "titulo": "Clave foránea sin índice: tarjetas_regalo.tarjetas_regalo_cliente_comprador_id_fkey",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "rendimiento",
+    "clave": "bd-profunda/fk-sin-indice:tarjetas_regalo_movimientos.tarjetas_regalo_movimientos_cobro_id_fkey",
+    "titulo": "Clave foránea sin índice: tarjetas_regalo_movimientos.tarjetas_regalo_movimientos_cobro_id_fkey",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "coherencia",
+    "clave": "bd-invariantes/agenda-solapada-historica:florent_surez_peluqueros_15004",
+    "titulo": "florent_surez_peluqueros_15004: 24 par(es) de citas solapadas anteriores al 31 ago 2026",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "aviso",
+    "ambito": "coherencia",
+    "clave": "bd-invariantes/caja-descuadrada-historica:demo_salon_001",
+    "titulo": "demo_salon_001: 7 cobro(s) descuadrado(s) anteriores al 31 ago 2026",
+    "estado": "nuevo"
+  },
+  {
+    "creado_en": "2026-09-14T12:51:16.96055+00:00",
+    "nivel": "bloqueante",
+    "ambito": "seguridad",
+    "clave": "bd/tabla-sin-gate-suscripcion:whatsapp_eventos",
+    "titulo": "La tabla whatsapp_eventos tiene negocio_id pero no tiene el trigger de gate de suscripcion",
+    "estado": "nuevo"
+  }
+]

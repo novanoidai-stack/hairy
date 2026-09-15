@@ -1,0 +1,2659 @@
+
+> hairy@1.0.0 vigilar:test
+> node --test "scripts/vigilantes/*.test.mjs"
+
+TAP version 13
+# Subtest: caza la consulta que estaba copiada en los modales de cita
+ok 1 - caza la consulta que estaba copiada en los modales de cita
+  ---
+  duration_ms: 8.408068
+  type: 'test'
+  ...
+# Subtest: con .or(...servicio_id.is.null) no es un hallazgo
+ok 2 - con .or(...servicio_id.is.null) no es un hallazgo
+  ---
+  duration_ms: 3.94979
+  type: 'test'
+  ...
+# Subtest: con .is("servicio_id", null) tampoco
+ok 3 - con .is("servicio_id", null) tampoco
+  ---
+  duration_ms: 0.964903
+  type: 'test'
+  ...
+# Subtest: una consulta que no filtra por servicio_id no es un hallazgo
+ok 4 - una consulta que no filtra por servicio_id no es un hallazgo
+  ---
+  duration_ms: 1.076416
+  type: 'test'
+  ...
+# Subtest: cita_addons con join a service_addons NO es un cargador
+ok 5 - cita_addons con join a service_addons NO es un cargador
+  ---
+  duration_ms: 1.109983
+  type: 'test'
+  ...
+# Subtest: dos consultas rotas en el mismo fichero salen las dos
+ok 6 - dos consultas rotas en el mismo fichero salen las dos
+  ---
+  duration_ms: 1.391044
+  type: 'test'
+  ...
+# Subtest: la linea que devuelve apunta al .from, que es donde se lee
+ok 7 - la linea que devuelve apunta al .from, que es donde se lee
+  ---
+  duration_ms: 1.592521
+  type: 'test'
+  ...
+# Subtest: el vigilante corre sobre el repo real y no revienta
+ok 8 - el vigilante corre sobre el repo real y no revienta
+  ---
+  duration_ms: 99.78814
+  type: 'test'
+  ...
+# Subtest: la deuda conocida avisa y lo demas bloquea
+ok 9 - la deuda conocida avisa y lo demas bloquea
+  ---
+  duration_ms: 91.760106
+  type: 'test'
+  ...
+# Subtest: hoy no hay ninguna exencion caducada
+ok 10 - hoy no hay ninguna exencion caducada
+  ---
+  duration_ms: 69.88644
+  type: 'test'
+  ...
+# Subtest: evaluarPataUsuario
+    # Subtest: dice en voz alta que no puede mirar si faltan las credenciales E2E
+    ok 1 - dice en voz alta que no puede mirar si faltan las credenciales E2E
+      ---
+      duration_ms: 6.570832
+      type: 'test'
+      ...
+    # Subtest: un login fallido es aviso (infra), no bloqueante
+    ok 2 - un login fallido es aviso (infra), no bloqueante
+      ---
+      duration_ms: 0.927361
+      type: 'test'
+      ...
+    # Subtest: perfil sin negocio_id y negocio sin citas son avisos
+    ok 3 - perfil sin negocio_id y negocio sin citas son avisos
+      ---
+      duration_ms: 1.091528
+      type: 'test'
+      ...
+    # Subtest: el caso del 8 sep: 403/42501 de una funcion del sello es BLOQUEANTE
+    ok 4 - el caso del 8 sep: 403/42501 de una funcion del sello es BLOQUEANTE
+      ---
+      duration_ms: 1.130761
+      type: 'test'
+      ...
+    # Subtest: cualquier otro fallo del PATCH tambien es bloqueante
+    ok 5 - cualquier otro fallo del PATCH tambien es bloqueante
+      ---
+      duration_ms: 0.986353
+      type: 'test'
+      ...
+    # Subtest: con piezas completas y sin veredicto que dar (todo bien) devuelve null
+    ok 6 - con piezas completas y sin veredicto que dar (todo bien) devuelve null
+      ---
+      duration_ms: 0.656521
+      type: 'test'
+      ...
+    1..6
+ok 11 - evaluarPataUsuario
+  ---
+  duration_ms: 40.41769
+  type: 'suite'
+  ...
+# Subtest: Adversarial VeriFactu: Multi-tenant and multi-series isolation without false collisions
+ok 12 - Adversarial VeriFactu: Multi-tenant and multi-series isolation without false collisions
+  ---
+  duration_ms: 6.827995
+  type: 'test'
+  ...
+# Subtest: Adversarial VeriFactu: Out-of-order array input is sorted and verified deterministically
+ok 13 - Adversarial VeriFactu: Out-of-order array input is sorted and verified deterministically
+  ---
+  duration_ms: 1.218789
+  type: 'test'
+  ...
+# Subtest: Adversarial VeriFactu: Numbering gap + Hash mismatch simultaneously on same ticket
+ok 14 - Adversarial VeriFactu: Numbering gap + Hash mismatch simultaneously on same ticket
+  ---
+  duration_ms: 1.534205
+  type: 'test'
+  ...
+# Subtest: Adversarial VeriFactu: Non-aeat_v1 formats are ignored without crashing or false flagging
+ok 15 - Adversarial VeriFactu: Non-aeat_v1 formats are ignored without crashing or false flagging
+  ---
+  duration_ms: 0.442672
+  type: 'test'
+  ...
+# Subtest: Adversarial Locks: Exact threshold boundaries (5.0s vs 5.001s)
+ok 16 - Adversarial Locks: Exact threshold boundaries (5.0s vs 5.001s)
+  ---
+  duration_ms: 0.626771
+  type: 'test'
+  ...
+# Subtest: Adversarial Locks: Non-Lock wait events with long durations do not trigger false alerts
+ok 17 - Adversarial Locks: Non-Lock wait events with long durations do not trigger false alerts
+  ---
+  duration_ms: 0.371773
+  type: 'test'
+  ...
+# Subtest: Adversarial Bloat: Strict dual-condition (dead_tup > 1000 AND ratio > 20%)
+ok 18 - Adversarial Bloat: Strict dual-condition (dead_tup > 1000 AND ratio > 20%)
+  ---
+  duration_ms: 0.775289
+  type: 'test'
+  ...
+# Subtest: Adversarial Sequences: Precise threshold transitions (75% and 90%) and edge specs
+ok 19 - Adversarial Sequences: Precise threshold transitions (75% and 90%) and edge specs
+  ---
+  duration_ms: 1.194152
+  type: 'test'
+  ...
+# Subtest: Adversarial FKs: Complex composite FKs and prefix matching rules
+ok 20 - Adversarial FKs: Complex composite FKs and prefix matching rules
+  ---
+  duration_ms: 3.964674
+  type: 'test'
+  ...
+# Subtest: Adversarial RLS: Catches public tables without RLS and definers without search_path
+ok 21 - Adversarial RLS: Catches public tables without RLS and definers without search_path
+  ---
+  duration_ms: 4.19051
+  type: 'test'
+  ...
+# Subtest: Adversarial Storage & Pool: Sensitive bucket classification and pool ratios
+ok 22 - Adversarial Storage & Pool: Sensitive bucket classification and pool ratios
+  ---
+  duration_ms: 2.426667
+  type: 'test'
+  ...
+# Subtest: Adversarial SQL Audit: Strict validation of SQL schema, security definer, and dynamic SQL safety
+ok 23 - Adversarial SQL Audit: Strict validation of SQL schema, security definer, and dynamic SQL safety
+  ---
+  duration_ms: 1.78572
+  type: 'test'
+  ...
+# Subtest: Challenger 2 Scan: No hardcoded secrets or service_role keys in M2 files
+ok 24 - Challenger 2 Scan: No hardcoded secrets or service_role keys in M2 files
+  ---
+  duration_ms: 4.379088
+  type: 'test'
+  ...
+# Subtest: Challenger 2 Orphans: Zero counts, negative counts, and mixed orphan scenarios
+ok 25 - Challenger 2 Orphans: Zero counts, negative counts, and mixed orphan scenarios
+  ---
+  duration_ms: 0.761935
+  type: 'test'
+  ...
+# Subtest: Challenger 2 Pool: Extreme values, float precision, and zero-capacities
+ok 26 - Challenger 2 Pool: Extreme values, float precision, and zero-capacities
+  ---
+  duration_ms: 0.531013
+  type: 'test'
+  ...
+# Subtest: Challenger 2 pg_cron: Only active jobs with latest failed status trigger alert
+ok 27 - Challenger 2 pg_cron: Only active jobs with latest failed status trigger alert
+  ---
+  duration_ms: 0.407774
+  type: 'test'
+  ...
+# Subtest: Challenger 2 VeriFactu: Null NIF vs empty string vs different series independence
+ok 28 - Challenger 2 VeriFactu: Null NIF vs empty string vs different series independence
+  ---
+  duration_ms: 0.890414
+  type: 'test'
+  ...
+# Subtest: Challenger 2 Edge Function Contract: Validates response structure under simulated partial RPC failures
+ok 29 - Challenger 2 Edge Function Contract: Validates response structure under simulated partial RPC failures
+  ---
+  duration_ms: 1.715963
+  type: 'test'
+  ...
+# Subtest: el vigilante bd-profunda se declara con nombre, ámbito y necesitaRed
+ok 30 - el vigilante bd-profunda se declara con nombre, ámbito y necesitaRed
+  ---
+  duration_ms: 7.077825
+  type: 'test'
+  ...
+# Subtest: los 10 vectores críticos están formalmente inventariados
+ok 31 - los 10 vectores críticos están formalmente inventariados
+  ---
+  duration_ms: 6.230591
+  type: 'test'
+  ...
+# Subtest: Vector 1: detecta claves foráneas sin índice en columnas hijas
+ok 32 - Vector 1: detecta claves foráneas sin índice en columnas hijas
+  ---
+  duration_ms: 1.417249
+  type: 'test'
+  ...
+# Subtest: Vector 1: acepta índices compuestos cuando las columnas hijas son el prefijo
+ok 33 - Vector 1: acepta índices compuestos cuando las columnas hijas son el prefijo
+  ---
+  duration_ms: 0.76116
+  type: 'test'
+  ...
+# Subtest: Vector 2: detecta transacciones bloqueadas por locks >5s como bloqueante
+ok 34 - Vector 2: detecta transacciones bloqueadas por locks >5s como bloqueante
+  ---
+  duration_ms: 1.443382
+  type: 'test'
+  ...
+# Subtest: Vector 3: detecta tablas con >1000 tuplas muertas y >20% bloat
+ok 35 - Vector 3: detecta tablas con >1000 tuplas muertas y >20% bloat
+  ---
+  duration_ms: 0.924882
+  type: 'test'
+  ...
+# Subtest: Vector 4: alerta en aviso (>75%) y bloqueante (>90%) en secuencias agotadas
+ok 36 - Vector 4: alerta en aviso (>75%) y bloqueante (>90%) en secuencias agotadas
+  ---
+  duration_ms: 1.912415
+  type: 'test'
+  ...
+# Subtest: Vector 5: bloquea tablas en public sin RLS y definers sin search_path
+ok 37 - Vector 5: bloquea tablas en public sin RLS y definers sin search_path
+  ---
+  duration_ms: 1.821885
+  type: 'test'
+  ...
+# Subtest: Vector 6: evalúa saturación del pool con umbrales 75% aviso y 90% bloqueante
+ok 38 - Vector 6: evalúa saturación del pool con umbrales 75% aviso y 90% bloqueante
+  ---
+  duration_ms: 1.986778
+  type: 'test'
+  ...
+# Subtest: Vector 7: detecta cron jobs activos cuya última ejecución falló
+ok 39 - Vector 7: detecta cron jobs activos cuya última ejecución falló
+  ---
+  duration_ms: 1.479707
+  type: 'test'
+  ...
+# Subtest: Vector 8: detecta buckets sensibles públicos y storage.objects sin RLS
+ok 40 - Vector 8: detecta buckets sensibles públicos y storage.objects sin RLS
+  ---
+  duration_ms: 0.795975
+  type: 'test'
+  ...
+# Subtest: Vector 9: valida cadena criptográfica intacta y salta ante rupturas de hash o número
+ok 41 - Vector 9: valida cadena criptográfica intacta y salta ante rupturas de hash o número
+  ---
+  duration_ms: 0.756194
+  type: 'test'
+  ...
+# Subtest: Vector 10: detecta registros huérfanos en tablas clave (citas, cobros, fases, bonos)
+ok 42 - Vector 10: detecta registros huérfanos en tablas clave (citas, cobros, fases, bonos)
+  ---
+  duration_ms: 0.377135
+  type: 'test'
+  ...
+# Subtest: la migración SQL de salud profunda cumple con las directrices de seguridad de Mecha
+ok 43 - la migración SQL de salud profunda cumple con las directrices de seguridad de Mecha
+  ---
+  duration_ms: 1.328176
+  type: 'test'
+  ...
+# Subtest: bd-triggers-ciegos
+    # Subtest: exporta nombre, ambito y ejecutar
+    ok 1 - exporta nombre, ambito y ejecutar
+      ---
+      duration_ms: 9.912538
+      type: 'test'
+      ...
+    # Subtest: con credencial devuelve hallazgos o un error que nombra la RPC que falta
+    ok 2 - con credencial devuelve hallazgos o un error que nombra la RPC que falta
+      ---
+      duration_ms: 690.495926
+      type: 'test'
+      ...
+    1..2
+ok 44 - bd-triggers-ciegos
+  ---
+  duration_ms: 713.441035
+  type: 'suite'
+  ...
+# Subtest: bd-sobrecargas-rpc
+    # Subtest: exporta nombre, ambito y ejecutar
+    ok 1 - exporta nombre, ambito y ejecutar
+      ---
+      duration_ms: 0.296548
+      type: 'test'
+      ...
+    # Subtest: con credencial devuelve hallazgos o un error que nombra la RPC que falta
+    ok 2 - con credencial devuelve hallazgos o un error que nombra la RPC que falta
+      ---
+      duration_ms: 300.451839
+      type: 'test'
+      ...
+    1..2
+ok 45 - bd-sobrecargas-rpc
+  ---
+  duration_ms: 301.584596
+  type: 'suite'
+  ...
+# Subtest: bd-escritura-critica
+    # Subtest: exporta nombre, ambito y ejecutar
+    ok 1 - exporta nombre, ambito y ejecutar
+      ---
+      duration_ms: 0.94058
+      type: 'test'
+      ...
+    # Subtest: con credencial devuelve hallazgos o un error que nombra la RPC que falta
+    ok 2 - con credencial devuelve hallazgos o un error que nombra la RPC que falta
+      ---
+      duration_ms: 1181.711727
+      type: 'test'
+      ...
+    1..2
+ok 46 - bd-escritura-critica
+  ---
+  duration_ms: 1185.874797
+  type: 'suite'
+  ...
+# Subtest: vercel.json sigue cacheando los estaticos de /app
+ok 47 - vercel.json sigue cacheando los estaticos de /app
+  ---
+  duration_ms: 6.635642
+  type: 'test'
+  ...
+# Subtest: el vigilante calidad-codigo cumple el contrato estándar de núcleo
+ok 48 - el vigilante calidad-codigo cumple el contrato estándar de núcleo
+  ---
+  duration_ms: 9.016924
+  type: 'test'
+  ...
+# Subtest: revisarArchivo detecta componentes gigantes que superan 450 líneas
+ok 49 - revisarArchivo detecta componentes gigantes que superan 450 líneas
+  ---
+  duration_ms: 20.514556
+  type: 'test'
+  ...
+# Subtest: medirProfundidadAnidamiento ignora llaves en comentarios y cadenas de texto
+ok 50 - medirProfundidadAnidamiento ignora llaves en comentarios y cadenas de texto
+  ---
+  duration_ms: 3.73231
+  type: 'test'
+  ...
+# Subtest: revisarArchivo detecta anidamiento y complejidad excesiva (>4 niveles)
+ok 51 - revisarArchivo detecta anidamiento y complejidad excesiva (>4 niveles)
+  ---
+  duration_ms: 0.818344
+  type: 'test'
+  ...
+# Subtest: calcularComplejidadCiclomatica cuenta puntos de decisión
+ok 52 - calcularComplejidadCiclomatica cuenta puntos de decisión
+  ---
+  duration_ms: 1.305315
+  type: 'test'
+  ...
+# Subtest: detectarDuplicacion localiza bloques repetidos entre componentes distintos
+ok 53 - detectarDuplicacion localiza bloques repetidos entre componentes distintos
+  ---
+  duration_ms: 7.701519
+  type: 'test'
+  ...
+# Subtest: ejecutar lanza AnclaPerdida si la lista de archivos está vacía
+ok 54 - ejecutar lanza AnclaPerdida si la lista de archivos está vacía
+  ---
+  duration_ms: 14.649983
+  type: 'test'
+  ...
+# Subtest: ejecutar en el repositorio real analiza componentes sin reventar
+ok 55 - ejecutar en el repositorio real analiza componentes sin reventar
+  ---
+  duration_ms: 1365.129323
+  type: 'test'
+  ...
+# Subtest: [Pilar 2] dos reservas concurrentes del mismo hueco: exactamente una gana
+ok 56 - [Pilar 2] dos reservas concurrentes del mismo hueco: exactamente una gana
+  ---
+  duration_ms: 1946.966076
+  type: 'test'
+  ...
+# Subtest: denoTestSinAllowEnv
+    # Subtest: caza deno test inline sin --allow-env
+    ok 1 - caza deno test inline sin --allow-env
+      ---
+      duration_ms: 7.30838
+      type: 'test'
+      ...
+    # Subtest: no marca deno test inline con --allow-env ni -A
+    ok 2 - no marca deno test inline con --allow-env ni -A
+      ---
+      duration_ms: 1.318324
+      type: 'test'
+      ...
+    # Subtest: resuelve deno task a traves de deno.json: la forma del incidente real
+    ok 3 - resuelve deno task a traves de deno.json: la forma del incidente real
+      ---
+      duration_ms: 1.565866
+      type: 'test'
+      ...
+    # Subtest: no marca la tarea cuando deno.json ya lleva el flag
+    ok 4 - no marca la tarea cuando deno.json ya lleva el flag
+      ---
+      duration_ms: 1.142231
+      type: 'test'
+      ...
+    # Subtest: no confunde deno task con deno check ni con tareas inexistentes
+    ok 5 - no confunde deno task con deno check ni con tareas inexistentes
+      ---
+      duration_ms: 1.31552
+      type: 'test'
+      ...
+    1..5
+ok 57 - denoTestSinAllowEnv
+  ---
+  duration_ms: 19.105062
+  type: 'suite'
+  ...
+# Subtest: cargarTareasDeno
+    # Subtest: parsea JSON plano
+    ok 1 - parsea JSON plano
+      ---
+      duration_ms: 5.181562
+      type: 'test'
+      ...
+    # Subtest: parsea deno.jsonc con comentarios de linea
+    ok 2 - parsea deno.jsonc con comentarios de linea
+      ---
+      duration_ms: 1.766595
+      type: 'test'
+      ...
+    # Subtest: devuelve {} con texto que no es JSON
+    ok 3 - devuelve {} con texto que no es JSON
+      ---
+      duration_ms: 1.85726
+      type: 'test'
+      ...
+    1..3
+ok 58 - cargarTareasDeno
+  ---
+  duration_ms: 9.902729
+  type: 'suite'
+  ...
+# Subtest: revisarCadenaCI
+    # Subtest: flaggea un deno task de test cuya tarea no lleva --allow-env
+    ok 1 - flaggea un deno task de test cuya tarea no lleva --allow-env
+      ---
+      duration_ms: 3.485697
+      type: 'test'
+      ...
+    # Subtest: no flaggea cuando la tarea lleva el flag
+    ok 2 - no flaggea cuando la tarea lleva el flag
+      ---
+      duration_ms: 1.231648
+      type: 'test'
+      ...
+    # Subtest: flaggea un vigilante detras de un paso fragil sin if: always()
+    ok 3 - flaggea un vigilante detras de un paso fragil sin if: always()
+      ---
+      duration_ms: 0.775023
+      type: 'test'
+      ...
+    # Subtest: no flaggea al vigilante si lleva if: always() o va primero
+    ok 4 - no flaggea al vigilante si lleva if: always() o va primero
+      ---
+      duration_ms: 0.939854
+      type: 'test'
+      ...
+    # Subtest: un paso de build previo no cuenta como rompe-cadena
+    ok 5 - un paso de build previo no cuenta como rompe-cadena
+      ---
+      duration_ms: 0.389302
+      type: 'test'
+      ...
+    # Subtest: detecta vigilantes tambien por el run, no solo por el name
+    ok 6 - detecta vigilantes tambien por el run, no solo por el name
+      ---
+      duration_ms: 0.495839
+      type: 'test'
+      ...
+    1..6
+ok 59 - revisarCadenaCI
+  ---
+  duration_ms: 8.308251
+  type: 'suite'
+  ...
+# Subtest: caza el claim exacto que habia en la landing el 30 ago 2026
+ok 60 - caza el claim exacto que habia en la landing el 30 ago 2026
+  ---
+  duration_ms: 12.186795
+  type: 'test'
+  ...
+# Subtest: caza el "Si" de la FAQ que decia que Mecha cumple VeriFactu
+ok 61 - caza el "Si" de la FAQ que decia que Mecha cumple VeriFactu
+  ---
+  duration_ms: 1.966835
+  type: 'test'
+  ...
+# Subtest: caza "homologada por la AEAT"
+ok 62 - caza "homologada por la AEAT"
+  ---
+  duration_ms: 1.076744
+  type: 'test'
+  ...
+# Subtest: caza "Cumple VeriFactu 2026"
+ok 63 - caza "Cumple VeriFactu 2026"
+  ---
+  duration_ms: 0.742506
+  type: 'test'
+  ...
+# Subtest: NO marca la redaccion honesta que dice que eso todavia no esta
+ok 64 - NO marca la redaccion honesta que dice que eso todavia no esta
+  ---
+  duration_ms: 1.36805
+  type: 'test'
+  ...
+# Subtest: NO marca lo que SI se hace y se puede prometer
+ok 65 - NO marca lo que SI se hace y se puede prometer
+  ---
+  duration_ms: 0.756915
+  type: 'test'
+  ...
+# Subtest: el ancla existe y hoy dice que el envio no esta disponible
+ok 66 - el ancla existe y hoy dice que el envio no esta disponible
+  ---
+  duration_ms: 3.164911
+  type: 'test'
+  ...
+# Subtest: las superficies vivas estan limpias (0 bloqueantes)
+ok 67 - las superficies vivas estan limpias (0 bloqueantes)
+  ---
+  duration_ms: 626.094499
+  type: 'test'
+  ...
+# Subtest: cada claim mira SU interruptor, no uno solo para todos
+ok 68 - cada claim mira SU interruptor, no uno solo para todos
+  ---
+  duration_ms: 1.108718
+  type: 'test'
+  ...
+# Subtest: el repo y el bundle estan limpios
+ok 69 - el repo y el bundle estan limpios
+  ---
+  duration_ms: 285.827093
+  type: 'test'
+  ...
+# Subtest: caza una clave heredada incrustada, este donde este
+ok 70 - caza una clave heredada incrustada, este donde este
+  ---
+  duration_ms: 0.735887
+  type: 'test'
+  ...
+# Subtest: caza una secret key incrustada
+ok 71 - caza una secret key incrustada
+  ---
+  duration_ms: 0.482317
+  type: 'test'
+  ...
+# Subtest: la publishable es publica por diseno: no es un hallazgo
+ok 72 - la publishable es publica por diseno: no es un hallazgo
+  ---
+  duration_ms: 0.231456
+  type: 'test'
+  ...
+# Subtest: un valor de mentira corto (sb_secret_nueva) no dispara
+ok 73 - un valor de mentira corto (sb_secret_nueva) no dispara
+  ---
+  duration_ms: 0.214088
+  type: 'test'
+  ...
+# Subtest: los tests quedan fuera de la regla de la puerta, pero no de la de claves
+ok 74 - los tests quedan fuera de la regla de la puerta, pero no de la de claves
+  ---
+  duration_ms: 0.265719
+  type: 'test'
+  ...
+# Subtest: caza el Deno.env.get a pelo en una edge function
+ok 75 - caza el Deno.env.get a pelo en una edge function
+  ---
+  duration_ms: 0.378701
+  type: 'test'
+  ...
+# Subtest: caza un createClient que no pasa por ninguna de las dos puertas
+ok 76 - caza un createClient que no pasa por ninguna de las dos puertas
+  ---
+  duration_ms: 0.231698
+  type: 'test'
+  ...
+# Subtest: un createClient que si pasa por la puerta no se toca
+ok 77 - un createClient que si pasa por la puerta no se toca
+  ---
+  duration_ms: 1.688075
+  type: 'test'
+  ...
+# Subtest: la propia puerta esta exenta: nombra las heredadas a proposito
+ok 78 - la propia puerta esta exenta: nombra las heredadas a proposito
+  ---
+  duration_ms: 1.884455
+  type: 'test'
+  ...
+# Subtest: fuera de supabase/functions no se exige la puerta (el cliente es otra cosa)
+ok 79 - fuera de supabase/functions no se exige la puerta (el cliente es otra cosa)
+  ---
+  duration_ms: 1.114003
+  type: 'test'
+  ...
+# Subtest: caza un token personal de Supabase, que abre la cuenta entera
+ok 80 - caza un token personal de Supabase, que abre la cuenta entera
+  ---
+  duration_ms: 0.765129
+  type: 'test'
+  ...
+# Subtest: el mensaje del token personal recuerda que hay que REVOCARLO
+ok 81 - el mensaje del token personal recuerda que hay que REVOCARLO
+  ---
+  duration_ms: 1.023681
+  type: 'test'
+  ...
+# Subtest: una cadena corta parecida a un sbp_ no cuenta
+ok 82 - una cadena corta parecida a un sbp_ no cuenta
+  ---
+  duration_ms: 0.547564
+  type: 'test'
+  ...
+# Subtest: sin VIGILAR_BUNDLE y sin bundle, es un no-aplica legitimo
+ok 83 - sin VIGILAR_BUNDLE y sin bundle, es un no-aplica legitimo
+  ---
+  duration_ms: 1.284601
+  type: 'test'
+  ...
+# Subtest: el vigilante exporta comprobarBundle para poder probarla aparte
+ok 84 - el vigilante exporta comprobarBundle para poder probarla aparte
+  ---
+  duration_ms: 1.096832
+  type: 'test'
+  ...
+# Subtest: STRESS: smoke.json corrupted (invalid JSON syntax) is swallowed safely
+ok 85 - STRESS: smoke.json corrupted (invalid JSON syntax) is swallowed safely
+  ---
+  duration_ms: 24.523689
+  type: 'test'
+  ...
+# Subtest: STRESS: smoke.json with non-array hallazgos property does not crash
+ok 86 - STRESS: smoke.json with non-array hallazgos property does not crash
+  ---
+  duration_ms: 17.832427
+  type: 'test'
+  ...
+# Subtest: STRESS: Vigilante throwing arbitrary non-Error objects (null, string, circular)
+ok 87 - STRESS: Vigilante throwing arbitrary non-Error objects (null, string, circular)
+  ---
+  duration_ms: 108.157572
+  type: 'test'
+  ...
+# Subtest: STRESS: Exact health boundary testing (15 avisos -> optima, 16 avisos -> degradada)
+ok 88 - STRESS: Exact health boundary testing (15 avisos -> optima, 16 avisos -> degradada)
+  ---
+  duration_ms: 274.563556
+  type: 'test'
+  ...
+# Subtest: STRESS: Massive finding load (1,500 findings) renders Markdown and JSON without memory exhaustion
+ok 89 - STRESS: Massive finding load (1,500 findings) renders Markdown and JSON without memory exhaustion
+  ---
+  duration_ms: 74.100119
+  type: 'test'
+  ...
+# Subtest: STRESS: Special characters, Markdown injections and unicode in findings
+ok 90 - STRESS: Special characters, Markdown injections and unicode in findings
+  ---
+  duration_ms: 1.229314
+  type: 'test'
+  ...
+# Subtest: STRESS: Writing files to deeply nested non-existent directory creates directories recursively
+ok 91 - STRESS: Writing files to deeply nested non-existent directory creates directories recursively
+  ---
+  duration_ms: 91.472954
+  type: 'test'
+  ...
+# Subtest: compilarEstado devuelve un snapshot con la estructura de contrato requerida
+ok 92 - compilarEstado devuelve un snapshot con la estructura de contrato requerida
+  ---
+  duration_ms: 4610.969453
+  type: 'test'
+  ...
+# Subtest: cálculo de salud general clasifica correctamente optima, degradada y critica
+ok 93 - cálculo de salud general clasifica correctamente optima, degradada y critica
+  ---
+  duration_ms: 82.939938
+  type: 'test'
+  ...
+# Subtest: captura errores y AnclaPerdida de vigilantes como hallazgos bloqueantes sin tumbar el compilador
+ok 94 - captura errores y AnclaPerdida de vigilantes como hallazgos bloqueantes sin tumbar el compilador
+  ---
+  duration_ms: 24.079581
+  type: 'test'
+  ...
+# Subtest: generarMarkdownEstado formatea correctamente tablas, insignias y hallazgos
+ok 95 - generarMarkdownEstado formatea correctamente tablas, insignias y hallazgos
+  ---
+  duration_ms: 0.473772
+  type: 'test'
+  ...
+# Subtest: persistencia de archivos escribe correctamente estado-salud.json y ESTADO_SALUD.md
+ok 96 - persistencia de archivos escribe correctamente estado-salud.json y ESTADO_SALUD.md
+  ---
+  duration_ms: 1500.674835
+  type: 'test'
+  ...
+# Subtest: obtenerMetadatosGit gestiona errores y directorios sin git sin reventar
+ok 97 - obtenerMetadatosGit gestiona errores y directorios sin git sin reventar
+  ---
+  duration_ms: 7.128
+  type: 'test'
+  ...
+# Subtest: ejecución CLI como proceso hijo completa con código 0 sin tocar los artefactos versionados
+ok 98 - ejecución CLI como proceso hijo completa con código 0 sin tocar los artefactos versionados
+  ---
+  duration_ms: 8691.742916
+  type: 'test'
+  ...
+# Subtest: el CLI rechaza --salida sin ruta en vez de escribir en .sistema por descuido
+ok 99 - el CLI rechaza --salida sin ruta en vez de escribir en .sistema por descuido
+  ---
+  duration_ms: 377.412668
+  type: 'test'
+  ...
+# Subtest: caza el guarda que estuvo en produccion: COALESCE y sin `role`
+ok 100 - caza el guarda que estuvo en produccion: COALESCE y sin `role`
+  ---
+  duration_ms: 14.285029
+  type: 'test'
+  ...
+# Subtest: el guarda correcto no da ningun hallazgo
+ok 101 - el guarda correcto no da ningun hallazgo
+  ---
+  duration_ms: 8.655071
+  type: 'test'
+  ...
+# Subtest: quitar una sola columna ya es bloqueante
+ok 102 - quitar una sola columna ya es bloqueante
+  ---
+  duration_ms: 2.462545
+  type: 'test'
+  ...
+# Subtest: si la funcion desaparece del fichero, revienta en vez de dar OK
+ok 103 - si la funcion desaparece del fichero, revienta en vez de dar OK
+  ---
+  duration_ms: 3.029062
+  type: 'test'
+  ...
+# Subtest: un comentario que EXPLICA el fallo no cuenta como el fallo
+ok 104 - un comentario que EXPLICA el fallo no cuenta como el fallo
+  ---
+  duration_ms: 1.247241
+  type: 'test'
+  ...
+# Subtest: soloCodigo quita comentarios de SQL y de TypeScript sin mover las lineas
+ok 105 - soloCodigo quita comentarios de SQL y de TypeScript sin mover las lineas
+  ---
+  duration_ms: 1.776099
+  type: 'test'
+  ...
+# Subtest: caza la consulta que estaba copiada en seis sitios
+ok 106 - caza la consulta que estaba copiada en seis sitios
+  ---
+  duration_ms: 3.411366
+  type: 'test'
+  ...
+# Subtest: contar propietarios NO es deducir el titular
+ok 107 - contar propietarios NO es deducir el titular
+  ---
+  duration_ms: 2.156766
+  type: 'test'
+  ...
+# Subtest: el regex no casa con un `role = owner` suelto
+ok 108 - el regex no casa con un `role = owner` suelto
+  ---
+  duration_ms: 2.400726
+  type: 'test'
+  ...
+# Subtest: el guarda que hay en el repo ahora mismo esta bien
+ok 109 - el guarda que hay en el repo ahora mismo esta bien
+  ---
+  duration_ms: 4.18716
+  type: 'test'
+  ...
+# Subtest: el vigilante entero pasa sobre el repo actual
+ok 110 - el vigilante entero pasa sobre el repo actual
+  ---
+  duration_ms: 66.724454
+  type: 'test'
+  ...
+# Subtest: saca del toml solo las que apagan verify_jwt
+ok 111 - saca del toml solo las que apagan verify_jwt
+  ---
+  duration_ms: 17.604386
+  type: 'test'
+  ...
+# Subtest: si no hay bloques [functions.*], falla por ciego
+ok 112 - si no hay bloques [functions.*], falla por ciego
+  ---
+  duration_ms: 4.143394
+  type: 'test'
+  ...
+# Subtest: importarla no es usarla
+ok 113 - importarla no es usarla
+  ---
+  duration_ms: 1.806666
+  type: 'test'
+  ...
+# Subtest: llamarla y tirar el resultado tampoco
+ok 114 - llamarla y tirar el resultado tampoco
+  ---
+  duration_ms: 1.549106
+  type: 'test'
+  ...
+# Subtest: negada en un if, si
+ok 115 - negada en un if, si
+  ---
+  duration_ms: 1.475942
+  type: 'test'
+  ...
+# Subtest: regresion: en la segunda mitad de un && tambien
+ok 116 - regresion: en la segunda mitad de un && tambien
+  ---
+  duration_ms: 0.934802
+  type: 'test'
+  ...
+# Subtest: asignada a una variable, si
+ok 117 - asignada a una variable, si
+  ---
+  duration_ms: 1.233577
+  type: 'test'
+  ...
+# Subtest: devuelta, si
+ok 118 - devuelta, si
+  ---
+  duration_ms: 1.017387
+  type: 'test'
+  ...
+# Subtest: hoy ninguna edge con verify_jwt = false esta abierta
+ok 119 - hoy ninguna edge con verify_jwt = false esta abierta
+  ---
+  duration_ms: 19.709228
+  type: 'test'
+  ...
+# Subtest: las diecinueve que corren sin verify_jwt siguen declaradas en el toml
+ok 120 - las diecinueve que corren sin verify_jwt siguen declaradas en el toml
+  ---
+  duration_ms: 7.346755
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 121 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 1.151073
+  type: 'test'
+  ...
+# Subtest: regresion: delegar el 401 en un ayudante compartido sigue siendo autorizar
+ok 122 - regresion: delegar el 401 en un ayudante compartido sigue siendo autorizar
+  ---
+  duration_ms: 0.818612
+  type: 'test'
+  ...
+# Subtest: el repo esta exactamente en su linea base
+ok 123 - el repo esta exactamente en su linea base
+  ---
+  duration_ms: 2525.67757
+  type: 'test'
+  ...
+# Subtest: sigue viendo los handlers del software
+ok 124 - sigue viendo los handlers del software
+  ---
+  duration_ms: 933.359479
+  type: 'test'
+  ...
+# Subtest: caza el fuego-y-olvido sobre una funcion que puede rechazar
+ok 125 - caza el fuego-y-olvido sobre una funcion que puede rechazar
+  ---
+  duration_ms: 1.73937
+  type: 'test'
+  ...
+# Subtest: caza el handler async que espera algo sin try/catch
+ok 126 - caza el handler async que espera algo sin try/catch
+  ---
+  duration_ms: 1.089248
+  type: 'test'
+  ...
+# Subtest: caza la consulta a supabase cuyo error no mira nadie
+ok 127 - caza la consulta a supabase cuyo error no mira nadie
+  ---
+  duration_ms: 1.688999
+  type: 'test'
+  ...
+# Subtest: la mira tambien dentro de la funcion local que llama el boton
+ok 128 - la mira tambien dentro de la funcion local que llama el boton
+  ---
+  duration_ms: 1.184082
+  type: 'test'
+  ...
+# Subtest: el hallazgo apunta a la linea del problema, no a la del boton
+ok 129 - el hallazgo apunta a la linea del problema, no a la del boton
+  ---
+  duration_ms: 1.208748
+  type: 'test'
+  ...
+# Subtest: una funcion que se guarda a si misma puede llamarse a fuego y olvido
+ok 130 - una funcion que se guarda a si misma puede llamarse a fuego y olvido
+  ---
+  duration_ms: 0.724244
+  type: 'test'
+  ...
+# Subtest: un .catch() encadenado basta
+ok 131 - un .catch() encadenado basta
+  ---
+  duration_ms: 1.493573
+  type: 'test'
+  ...
+# Subtest: mirar el error de supabase es exactamente lo que hay que hacer
+ok 132 - mirar el error de supabase es exactamente lo que hay que hacer
+  ---
+  duration_ms: 2.776895
+  type: 'test'
+  ...
+# Subtest: regresion: supabase no rechaza, asi que esperarla no vuelve peligrosa a quien la llama
+ok 133 - regresion: supabase no rechaza, asi que esperarla no vuelve peligrosa a quien la llama
+  ---
+  duration_ms: 4.007665
+  type: 'test'
+  ...
+# Subtest: el barrido llega al handler y a lo que llama, no mas hondo
+ok 134 - el barrido llega al handler y a lo que llama, no mas hondo
+  ---
+  duration_ms: 3.28019
+  type: 'test'
+  ...
+# Subtest: regresion: useCallback tambien declara una funcion local
+ok 135 - regresion: useCallback tambien declara una funcion local
+  ---
+  duration_ms: 2.28791
+  type: 'test'
+  ...
+# Subtest: un handler sincrono y corriente no es un hallazgo
+ok 136 - un handler sincrono y corriente no es un hallazgo
+  ---
+  duration_ms: 1.387808
+  type: 'test'
+  ...
+# Subtest: la recursion mutua no cuelga ni inventa hallazgos
+ok 137 - la recursion mutua no cuelga ni inventa hallazgos
+  ---
+  duration_ms: 1.563418
+  type: 'test'
+  ...
+# Subtest: solo grita cuando sube, y pide bajar la base cuando baja
+ok 138 - solo grita cuando sube, y pide bajar la base cuando baja
+  ---
+  duration_ms: 3.176475
+  type: 'test'
+  ...
+# Subtest: un fichero nuevo con deuda tambien cuenta, aunque el total no se mueva
+ok 139 - un fichero nuevo con deuda tambien cuenta, aunque el total no se mueva
+  ---
+  duration_ms: 1.495764
+  type: 'test'
+  ...
+# Subtest: los tres tipos estan declarados y con etiqueta
+ok 140 - los tres tipos estan declarados y con etiqueta
+  ---
+  duration_ms: 1.138976
+  type: 'test'
+  ...
+# Subtest: fugas-listeners
+    # Subtest: se declara con nombre y ámbito codigo
+    ok 1 - se declara con nombre y ámbito codigo
+      ---
+      duration_ms: 3.51803
+      type: 'test'
+      ...
+    # Subtest: detecta un setInterval sin clearInterval en el cleanup
+    ok 2 - detecta un setInterval sin clearInterval en el cleanup
+      ---
+      duration_ms: 3.743874
+      type: 'test'
+      ...
+    # Subtest: detecta suscripción a supabase.channel sin cleanup
+    ok 3 - detecta suscripción a supabase.channel sin cleanup
+      ---
+      duration_ms: 1.912048
+      type: 'test'
+      ...
+    # Subtest: un useEffect con cleanup adecuado pasa sin avisos
+    ok 4 - un useEffect con cleanup adecuado pasa sin avisos
+      ---
+      duration_ms: 1.183385
+      type: 'test'
+      ...
+    1..4
+ok 141 - fugas-listeners
+  ---
+  duration_ms: 17.557848
+  type: 'suite'
+  ...
+# (node:79495) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/carketes/Dev/Hairy/lib/gastos.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/carketes/Dev/Hairy/package.json.
+# (Use `node-22 --trace-warnings ...` to show where the warning was created)
+# Subtest: hoy el codigo y el CHECK dicen lo mismo
+ok 142 - hoy el codigo y el CHECK dicen lo mismo
+  ---
+  duration_ms: 6.897337
+  type: 'test'
+  ...
+# Subtest: y no lo dice por no haber leido nada
+ok 143 - y no lo dice por no haber leido nada
+  ---
+  duration_ms: 0.465048
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre, ambito y sin red
+ok 144 - el vigilante se declara con nombre, ambito y sin red
+  ---
+  duration_ms: 0.391835
+  type: 'test'
+  ...
+# Subtest: caza una categoria que solo esta en el codigo
+ok 145 - caza una categoria que solo esta en el codigo
+  ---
+  duration_ms: 0.600113
+  type: 'test'
+  ...
+# Subtest: caza una categoria que solo esta en el CHECK
+ok 146 - caza una categoria que solo esta en el CHECK
+  ---
+  duration_ms: 0.355197
+  type: 'test'
+  ...
+# Subtest: el orden no cuenta como diferencia
+ok 147 - el orden no cuenta como diferencia
+  ---
+  duration_ms: 0.532202
+  type: 'test'
+  ...
+# Subtest: no hay categorias repetidas ni etiquetas vacias
+ok 148 - no hay categorias repetidas ni etiquetas vacias
+  ---
+  duration_ms: 0.472709
+  type: 'test'
+  ...
+# Subtest: "otros" existe y va al final: es el cajon de sastre
+ok 149 - "otros" existe y va al final: es el cajon de sastre
+  ---
+  duration_ms: 0.655104
+  type: 'test'
+  ...
+# Subtest: las formas de pago tampoco se repiten
+ok 150 - las formas de pago tampoco se repiten
+  ---
+  duration_ms: 0.594736
+  type: 'test'
+  ...
+# Subtest: guardrail-ia
+    # Subtest: se declara con nombre y ámbito seguridad
+    ok 1 - se declara con nombre y ámbito seguridad
+      ---
+      duration_ms: 7.257721
+      type: 'test'
+      ...
+    # Subtest: detecta una alucinación de archivo inexistente
+    ok 2 - detecta una alucinación de archivo inexistente
+      ---
+      duration_ms: 2.096544
+      type: 'test'
+      ...
+    # Subtest: detecta líneas fuera de rango en archivos reales
+    ok 3 - detecta líneas fuera de rango en archivos reales
+      ---
+      duration_ms: 3.833006
+      type: 'test'
+      ...
+    # Subtest: bloquea diagnósticos que contengan posibles claves o tokens secretos
+    ok 4 - bloquea diagnósticos que contengan posibles claves o tokens secretos
+      ---
+      duration_ms: 5.991656
+      type: 'test'
+      ...
+    # Subtest: acepta diagnósticos válidos con archivos existentes
+    ok 5 - acepta diagnósticos válidos con archivos existentes
+      ---
+      duration_ms: 0.95219
+      type: 'test'
+      ...
+    1..5
+ok 151 - guardrail-ia
+  ---
+  duration_ms: 28.079164
+  type: 'suite'
+  ...
+# Subtest: caza la copia sin convertir de negocio_horarios a horarios_profesional
+ok 152 - caza la copia sin convertir de negocio_horarios a horarios_profesional
+  ---
+  duration_ms: 12.070503
+  type: 'test'
+  ...
+# Subtest: con la conversion puesta, no
+ok 153 - con la conversion puesta, no
+  ---
+  duration_ms: 6.67302
+  type: 'test'
+  ...
+# Subtest: tambien en el sentido contrario
+ok 154 - tambien en el sentido contrario
+  ---
+  duration_ms: 0.920182
+  type: 'test'
+  ...
+# Subtest: un insert que no lee de la otra tabla no es una copia
+ok 155 - un insert que no lee de la otra tabla no es una copia
+  ---
+  duration_ms: 0.772552
+  type: 'test'
+  ...
+# Subtest: leer las dos tablas sin insertar tampoco
+ok 156 - leer las dos tablas sin insertar tampoco
+  ---
+  duration_ms: 0.576038
+  type: 'test'
+  ...
+# Subtest: hoy los scripts de siembra convierten bien
+ok 157 - hoy los scripts de siembra convierten bien
+  ---
+  duration_ms: 35.123898
+  type: 'test'
+  ...
+# Subtest: regresion: el seed de la demo sigue convirtiendo (dia + 1) % 7
+ok 158 - regresion: el seed de la demo sigue convirtiendo (dia + 1) % 7
+  ---
+  duration_ms: 4.902031
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 159 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 0.681333
+  type: 'test'
+  ...
+# Subtest: los dos usan los mismos campos y en el mismo orden
+ok 160 - los dos usan los mismos campos y en el mismo orden
+  ---
+  duration_ms: 11.060237
+  type: 'test'
+  ...
+# Subtest: dan el mismo hash para la misma factura
+ok 161 - dan el mismo hash para la misma factura
+  ---
+  duration_ms: 79.393581
+  type: 'test'
+  ...
+# Subtest: la huella va en MAYUSCULAS en los dos
+ok 162 - la huella va en MAYUSCULAS en los dos
+  ---
+  duration_ms: 11.545037
+  type: 'test'
+  ...
+# Subtest: el primer registro de un emisor encadena con huella vacia
+ok 163 - el primer registro de un emisor encadena con huella vacia
+  ---
+  duration_ms: 1.431451
+  type: 'test'
+  ...
+# Subtest: la cadena SQL va por emisor, no solo por negocio
+ok 164 - la cadena SQL va por emisor, no solo por negocio
+  ---
+  duration_ms: 1.986694
+  type: 'test'
+  ...
+# Subtest: sin NIF valido NUNCA se mete el negocio_id en el hueco del NIF
+ok 165 - sin NIF valido NUNCA se mete el negocio_id en el hueco del NIF
+  ---
+  duration_ms: 1.204404
+  type: 'test'
+  ...
+# Subtest: reconoce el import de una lib de la raiz desde una edge
+ok 166 - reconoce el import de una lib de la raiz desde una edge
+  ---
+  duration_ms: 7.465294
+  type: 'test'
+  ...
+# Subtest: vale con o sin extension
+ok 167 - vale con o sin extension
+  ---
+  duration_ms: 0.771762
+  type: 'test'
+  ...
+# Subtest: regresion: un fichero propio que se llama igual NO cuenta
+ok 168 - regresion: un fichero propio que se llama igual NO cuenta
+  ---
+  duration_ms: 0.306549
+  type: 'test'
+  ...
+# Subtest: es sensible la que materializa horas con setHours
+ok 169 - es sensible la que materializa horas con setHours
+  ---
+  duration_ms: 2.197233
+  type: 'test'
+  ...
+# Subtest: leer componentes locales no basta para ser sensible
+ok 170 - leer componentes locales no basta para ser sensible
+  ---
+  duration_ms: 0.523004
+  type: 'test'
+  ...
+# Subtest: el contagio es transitivo: quien importa a una sensible, lo es
+ok 171 - el contagio es transitivo: quien importa a una sensible, lo es
+  ---
+  duration_ms: 1.215669
+  type: 'test'
+  ...
+# Subtest: una lib que no toca horas no contagia nada
+ok 172 - una lib que no toca horas no contagia nada
+  ---
+  duration_ms: 1.601035
+  type: 'test'
+  ...
+# Subtest: hoy ninguna edge usa horarios de salon sin el reloj del salon
+ok 173 - hoy ninguna edge usa horarios de salon sin el reloj del salon
+  ---
+  duration_ms: 73.604511
+  type: 'test'
+  ...
+# Subtest: organizarAgenda sigue siendo la lib sensible de referencia
+ok 174 - organizarAgenda sigue siendo la lib sensible de referencia
+  ---
+  duration_ms: 14.924835
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 175 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 2.351573
+  type: 'test'
+  ...
+# Subtest: el runner solo mata el proceso dentro de salir(), nunca en la ruta normal
+ok 176 - el runner solo mata el proceso dentro de salir(), nunca en la ruta normal
+  ---
+  duration_ms: 5.723898
+  type: 'test'
+  ...
+# Subtest: los codigos de salida siguen siendo los de siempre
+ok 177 - los codigos de salida siguen siendo los de siempre
+  ---
+  duration_ms: 1960.632945
+  type: 'test'
+  ...
+# Subtest: el guardia convierte una muerte a destiempo en exit 2, no en un verde
+ok 178 - el guardia convierte una muerte a destiempo en exit 2, no en un verde
+  ---
+  duration_ms: 384.449641
+  type: 'test'
+  ...
+# Subtest: el guardia se calla cuando el veredicto ya se ha emitido
+ok 179 - el guardia se calla cuando el veredicto ya se ha emitido
+  ---
+  duration_ms: 258.069087
+  type: 'test'
+  ...
+# Subtest: un vigilante que se suicida al importarlo se caza y NO tumba el recorrido
+ok 180 - un vigilante que se suicida al importarlo se caza y NO tumba el recorrido
+  ---
+  duration_ms: 7353.273619
+  type: 'test'
+  ...
+# Subtest: lee las columnas de dinero de cobros y sabe cual admite null
+ok 181 - lee las columnas de dinero de cobros y sabe cual admite null
+  ---
+  duration_ms: 17.449897
+  type: 'test'
+  ...
+# Subtest: si el bloque Row de cobros no aparece, FALLA en vez de callarse
+ok 182 - si el bloque Row de cobros no aparece, FALLA en vez de callarse
+  ---
+  duration_ms: 4.489035
+  type: 'test'
+  ...
+# Subtest: recorta el cuerpo entre dollar-quotes y no se lleva otra funcion del fichero
+ok 183 - recorta el cuerpo entre dollar-quotes y no se lleva otra funcion del fichero
+  ---
+  duration_ms: 6.436935
+  type: 'test'
+  ...
+# Subtest: si el fichero no define el guarda, devuelve null
+ok 184 - si el fichero no define el guarda, devuelve null
+  ---
+  duration_ms: 1.852843
+  type: 'test'
+  ...
+# Subtest: la columna de dinero que el guarda no nombra es bloqueante
+ok 185 - la columna de dinero que el guarda no nombra es bloqueante
+  ---
+  duration_ms: 2.931037
+  type: 'test'
+  ...
+# Subtest: una columna nullable comparada con <> es el mismo agujero, mas escondido
+ok 186 - una columna nullable comparada con <> es el mismo agujero, mas escondido
+  ---
+  duration_ms: 1.828825
+  type: 'test'
+  ...
+# Subtest: el repo tiene una definicion vigente del guarda y menciona la ley
+ok 187 - el repo tiene una definicion vigente del guarda y menciona la ley
+  ---
+  duration_ms: 24.591472
+  type: 'test'
+  ...
+# Subtest: hoy, contra el repo real, no hay ninguna columna de dinero suelta
+ok 188 - hoy, contra el repo real, no hay ninguna columna de dinero suelta
+  ---
+  duration_ms: 23.232569
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: Edge Function orquestador-ia auth guards & method handling
+ok 189 - CHALLENGER 2: Edge Function orquestador-ia auth guards & method handling
+  ---
+  duration_ms: 8.382398
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: Edge Function OpenRouter payload parameters & zero-findings bypass
+ok 190 - CHALLENGER 2: Edge Function OpenRouter payload parameters & zero-findings bypass
+  ---
+  duration_ms: 1.018401
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: Edge Function resilience on missing API key & OpenRouter errors
+ok 191 - CHALLENGER 2: Edge Function resilience on missing API key & OpenRouter errors
+  ---
+  duration_ms: 0.55871
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: OpenRouter JSON extraction oracle (fences, preambles, malformed)
+ok 192 - CHALLENGER 2: OpenRouter JSON extraction oracle (fences, preambles, malformed)
+  ---
+  duration_ms: 5.37549
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: PostgreSQL migration schema, constraints, RLS & RPC authorizations
+ok 193 - CHALLENGER 2: PostgreSQL migration schema, constraints, RLS & RPC authorizations
+  ---
+  duration_ms: 3.703092
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: web/admin.html DOM structure & rendering components
+ok 194 - CHALLENGER 2: web/admin.html DOM structure & rendering components
+  ---
+  duration_ms: 4.130974
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: web/admin.html clipboard copying & state change handlers
+ok 195 - CHALLENGER 2: web/admin.html clipboard copying & state change handlers
+  ---
+  duration_ms: 5.080298
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: web/admin.html strict XSS sanitization in AI diagnostics rendering
+ok 196 - CHALLENGER 2: web/admin.html strict XSS sanitization in AI diagnostics rendering
+  ---
+  duration_ms: 4.802193
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2: compilarEstado produces valid schema snapshot and markdown
+ok 197 - CHALLENGER 2: compilarEstado produces valid schema snapshot and markdown
+  ---
+  duration_ms: 3714.077057
+  type: 'test'
+  ...
+# Subtest: CONTRACT: SQL Migration 20260830200000_vigilancia_diagnosticos_ia.sql adheres to Mecha DB security policy
+ok 198 - CONTRACT: SQL Migration 20260830200000_vigilancia_diagnosticos_ia.sql adheres to Mecha DB security policy
+  ---
+  duration_ms: 4.376483
+  type: 'test'
+  ...
+# Subtest: CONTRACT: Edge function orquestador-ia config and security constraints
+ok 199 - CONTRACT: Edge function orquestador-ia config and security constraints
+  ---
+  duration_ms: 0.990812
+  type: 'test'
+  ...
+# Subtest: CONTRACT: Admin UI (admin.html) escapes dynamic AI diagnostic inputs preventing XSS
+ok 200 - CONTRACT: Admin UI (admin.html) escapes dynamic AI diagnostic inputs preventing XSS
+  ---
+  duration_ms: 5.204012
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 1]: JSON-LD Offer prices strictly synchronize with lib/planes.ts (Esencial 39€, Estudio 59€)
+ok 201 - CHALLENGER 1 [Pilar 1]: JSON-LD Offer prices strictly synchronize with lib/planes.ts (Esencial 39€, Estudio 59€)
+  ---
+  duration_ms: 8.614056
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 1]: JSON-LD has ZERO fake ratings or reviews across all landing files (CLAUDE.md Decision 5)
+ok 202 - CHALLENGER 1 [Pilar 1]: JSON-LD has ZERO fake ratings or reviews across all landing files (CLAUDE.md Decision 5)
+  ---
+  duration_ms: 4.871934
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 1]: VeriFactu legal honesty invariants across public pages & estadoVerifactu.ts
+ok 203 - CHALLENGER 1 [Pilar 1]: VeriFactu legal honesty invariants across public pages & estadoVerifactu.ts
+  ---
+  duration_ms: 11.109995
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 1]: Color tokens in lib/portalTokens.ts mathematically satisfy WCAG AA contrast (>= 4.5:1 for body text, >= 3.0:1 for UI elements)
+ok 204 - CHALLENGER 1 [Pilar 1]: Color tokens in lib/portalTokens.ts mathematically satisfy WCAG AA contrast (>= 4.5:1 for body text, >= 3.0:1 for UI elements)
+  ---
+  duration_ms: 2.145389
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 1]: Mobile viewports (360x740, 375x812, 390x844) and modal scroll-lock in tests/landing.spec.ts
+ok 205 - CHALLENGER 1 [Pilar 1]: Mobile viewports (360x740, 375x812, 390x844) and modal scroll-lock in tests/landing.spec.ts
+  ---
+  duration_ms: 1.18432
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 2]: Comprehensive touch target audit in app/r/[slug].web.tsx (all interactive buttons >= 44px)
+ok 206 - CHALLENGER 1 [Pilar 2]: Comprehensive touch target audit in app/r/[slug].web.tsx (all interactive buttons >= 44px)
+  ---
+  duration_ms: 3.627963
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 2]: Chemical rest ("Hueco Express") slot metadata and rendering integrity
+ok 207 - CHALLENGER 1 [Pilar 2]: Chemical rest ("Hueco Express") slot metadata and rendering integrity
+  ---
+  duration_ms: 2.507139
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 2]: Double-booking concurrency prevention & RPC chained reservation integration
+ok 208 - CHALLENGER 1 [Pilar 2]: Double-booking concurrency prevention & RPC chained reservation integration
+  ---
+  duration_ms: 1.431691
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 2]: 5-Step Booking Flow validation in tests/portal-reserva.spec.ts
+ok 209 - CHALLENGER 1 [Pilar 2]: 5-Step Booking Flow validation in tests/portal-reserva.spec.ts
+  ---
+  duration_ms: 2.388646
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 3]: SPA 17 Screens catalog completeness & distinct route mapping in tests/smoke/pantallas.ts
+ok 210 - CHALLENGER 1 [Pilar 3]: SPA 17 Screens catalog completeness & distinct route mapping in tests/smoke/pantallas.ts
+  ---
+  duration_ms: 5.069186
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 3]: Silent error sensors in tests/smoke/silencios.ts (unhandledrejection, dialog trap, string anchors)
+ok 211 - CHALLENGER 1 [Pilar 3]: Silent error sensors in tests/smoke/silencios.ts (unhandledrejection, dialog trap, string anchors)
+  ---
+  duration_ms: 1.759417
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 3]: Supabase Realtime WebSocket lifecycle cleanup on unmount across hooks & components
+ok 212 - CHALLENGER 1 [Pilar 3]: Supabase Realtime WebSocket lifecycle cleanup on unmount across hooks & components
+  ---
+  duration_ms: 1.193805
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 1 [Pilar 3]: Swallowed error AST rules in scripts/vigilantes/errores-tragados.mjs
+ok 213 - CHALLENGER 1 [Pilar 3]: Swallowed error AST rules in scripts/vigilantes/errores-tragados.mjs
+  ---
+  duration_ms: 1.065539
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 1]: Zero fake review or aggregateRating nodes across all HTML files
+ok 214 - REVIEWER 2 ADVERSARIAL [Pilar 1]: Zero fake review or aggregateRating nodes across all HTML files
+  ---
+  duration_ms: 18.591008
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 1]: VeriFactu legal honesty strict scan across all client & landing code
+ok 215 - REVIEWER 2 ADVERSARIAL [Pilar 1]: VeriFactu legal honesty strict scan across all client & landing code
+  ---
+  duration_ms: 27.597836
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 1]: Portal Color Contrast WCAG AA compliance mathematical verification
+ok 216 - REVIEWER 2 ADVERSARIAL [Pilar 1]: Portal Color Contrast WCAG AA compliance mathematical verification
+  ---
+  duration_ms: 11.97405
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 2]: Exhaustive Touch Target Minimum Size (>=44x44px) in app/r/[slug].web.tsx
+ok 217 - REVIEWER 2 ADVERSARIAL [Pilar 2]: Exhaustive Touch Target Minimum Size (>=44x44px) in app/r/[slug].web.tsx
+  ---
+  duration_ms: 10.389037
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 2]: E.164 Phone Normalization in lib/reservaPublica.ts
+ok 218 - REVIEWER 2 ADVERSARIAL [Pilar 2]: E.164 Phone Normalization in lib/reservaPublica.ts
+  ---
+  duration_ms: 4.192768
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 2]: Chemical Rest metadata and conditional banners handling in app/r/[slug].web.tsx
+ok 219 - REVIEWER 2 ADVERSARIAL [Pilar 2]: Chemical Rest metadata and conditional banners handling in app/r/[slug].web.tsx
+  ---
+  duration_ms: 1.252313
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 3]: 17 Screens catalog invariants and route correspondence in tests/smoke/pantallas.ts
+ok 220 - REVIEWER 2 ADVERSARIAL [Pilar 3]: 17 Screens catalog invariants and route correspondence in tests/smoke/pantallas.ts
+  ---
+  duration_ms: 2.296848
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 3]: Silent Error Sensor Anchors in tests/smoke/silencios.ts match lib/errores.ts
+ok 221 - REVIEWER 2 ADVERSARIAL [Pilar 3]: Silent Error Sensor Anchors in tests/smoke/silencios.ts match lib/errores.ts
+  ---
+  duration_ms: 0.693983
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 3]: Supabase Realtime Channels properly removed on unmount without memory leaks
+ok 222 - REVIEWER 2 ADVERSARIAL [Pilar 3]: Supabase Realtime Channels properly removed on unmount without memory leaks
+  ---
+  duration_ms: 9.199097
+  type: 'test'
+  ...
+# Subtest: REVIEWER 2 ADVERSARIAL [Pilar 3]: Integrity Verification - No hardcoded mocks in pilares-visuales.test.mjs
+ok 223 - REVIEWER 2 ADVERSARIAL [Pilar 3]: Integrity Verification - No hardcoded mocks in pilares-visuales.test.mjs
+  ---
+  duration_ms: 2.233792
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 1]: JSON-LD complete schema validation in web/index.html
+ok 224 - CHALLENGER 2 [Pilar 1]: JSON-LD complete schema validation in web/index.html
+  ---
+  duration_ms: 11.877223
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 1]: Comprehensive VeriFactu honesty scan across all landing and fiscal files
+ok 225 - CHALLENGER 2 [Pilar 1]: Comprehensive VeriFactu honesty scan across all landing and fiscal files
+  ---
+  duration_ms: 11.257916
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 1]: WCAG 2.1 AA mathematical color contrast matrix in lib/portalTokens.ts
+ok 226 - CHALLENGER 2 [Pilar 1]: WCAG 2.1 AA mathematical color contrast matrix in lib/portalTokens.ts
+  ---
+  duration_ms: 2.096902
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 2]: Exhaustive touch target audit in app/r/[slug].web.tsx (minimum 44x44px hit areas)
+ok 227 - CHALLENGER 2 [Pilar 2]: Exhaustive touch target audit in app/r/[slug].web.tsx (minimum 44x44px hit areas)
+  ---
+  duration_ms: 3.683925
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 2]: Chemical Rest ("Hueco Express") data and UI contract integrity
+ok 228 - CHALLENGER 2 [Pilar 2]: Chemical Rest ("Hueco Express") data and UI contract integrity
+  ---
+  duration_ms: 2.133128
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 2]: E.164 phone normalization oracle & double booking concurrency invariants
+ok 229 - CHALLENGER 2 [Pilar 2]: E.164 phone normalization oracle & double booking concurrency invariants
+  ---
+  duration_ms: 1.036122
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 3]: 17 SPA Screens physical file presence and anchor match verification
+ok 230 - CHALLENGER 2 [Pilar 3]: 17 SPA Screens physical file presence and anchor match verification
+  ---
+  duration_ms: 12.893625
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 3]: Unhandled promise rejection sensor logic & memory bounded buffering
+ok 231 - CHALLENGER 2 [Pilar 3]: Unhandled promise rejection sensor logic & memory bounded buffering
+  ---
+  duration_ms: 1.323506
+  type: 'test'
+  ...
+# Subtest: CHALLENGER 2 [Pilar 3]: Realtime WebSocket channel cleanup in hooks & components
+ok 232 - CHALLENGER 2 [Pilar 3]: Realtime WebSocket channel cleanup in hooks & components
+  ---
+  duration_ms: 1.807564
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Rendimiento]: Catastrophically slow screens (>15s and >3x baseline)
+ok 233 - ADVERSARIAL [Rendimiento]: Catastrophically slow screens (>15s and >3x baseline)
+  ---
+  duration_ms: 6.309549
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Rendimiento]: Corrupted JSONL stream & malformed entries via CLI
+ok 234 - ADVERSARIAL [Rendimiento]: Corrupted JSONL stream & malformed entries via CLI
+  ---
+  duration_ms: 356.449536
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Rendimiento]: Missing and invalid fields in metric payloads
+ok 235 - ADVERSARIAL [Rendimiento]: Missing and invalid fields in metric payloads
+  ---
+  duration_ms: 2.606125
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Rendimiento]: Edge Function exact p95 boundary and outlier resistance
+ok 236 - ADVERSARIAL [Rendimiento]: Edge Function exact p95 boundary and outlier resistance
+  ---
+  duration_ms: 1.951807
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Rendimiento]: Degraded baseline and unparseable baseline files
+ok 237 - ADVERSARIAL [Rendimiento]: Degraded baseline and unparseable baseline files
+  ---
+  duration_ms: 8.10195
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Calidad]: Complex nested objects and JSX property structures
+ok 238 - ADVERSARIAL [Calidad]: Complex nested objects and JSX property structures
+  ---
+  duration_ms: 3.142665
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Calidad]: Unescaped & escaped braces inside single, double & template strings
+ok 239 - ADVERSARIAL [Calidad]: Unescaped & escaped braces inside single, double & template strings
+  ---
+  duration_ms: 1.088958
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Calidad]: Deeply nested control flow (if/for/while/try/switch > 6 levels)
+ok 240 - ADVERSARIAL [Calidad]: Deeply nested control flow (if/for/while/try/switch > 6 levels)
+  ---
+  duration_ms: 2.780801
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Calidad]: High cyclomatic complexity calculation with ternary & boolean operators
+ok 241 - ADVERSARIAL [Calidad]: High cyclomatic complexity calculation with ternary & boolean operators
+  ---
+  duration_ms: 1.914485
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Calidad]: Duplicate block detection with comments, whitespace and deduplication
+ok 242 - ADVERSARIAL [Calidad]: Duplicate block detection with comments, whitespace and deduplication
+  ---
+  duration_ms: 8.311192
+  type: 'test'
+  ...
+# Subtest: ADVERSARIAL [Calidad]: Monster component boundary test (exact 450 vs 451 lines)
+ok 243 - ADVERSARIAL [Calidad]: Monster component boundary test (exact 450 vs 451 lines)
+  ---
+  duration_ms: 8.411189
+  type: 'test'
+  ...
+# Subtest: el vigilante meta-anclas se declara con nombre y ambito
+ok 244 - el vigilante meta-anclas se declara con nombre y ambito
+  ---
+  duration_ms: 7.625169
+  type: 'test'
+  ...
+# Subtest: todas las anclas declaradas siguen vivas en el repo hoy
+ok 245 - todas las anclas declaradas siguen vivas en el repo hoy
+  ---
+  duration_ms: 11.293701
+  type: 'test'
+  ...
+# Subtest: caza un ancla rota simulada como bloqueante
+ok 246 - caza un ancla rota simulada como bloqueante
+  ---
+  duration_ms: 2.474309
+  type: 'test'
+  ...
+# Subtest: caza un fichero desaparecido como bloqueante
+ok 247 - caza un fichero desaparecido como bloqueante
+  ---
+  duration_ms: 1.21338
+  type: 'test'
+  ...
+# Subtest: el vigilante meta-cobertura se declara con nombre y ambito
+ok 248 - el vigilante meta-cobertura se declara con nombre y ambito
+  ---
+  duration_ms: 3.014514
+  type: 'test'
+  ...
+# Subtest: todas las pantallas en app/(tabs) est�n cubiertas hoy
+ok 249 - todas las pantallas en app/(tabs) est�n cubiertas hoy
+  ---
+  duration_ms: 4.480354
+  type: 'test'
+  ...
+# Subtest: meta-contrato
+    # Subtest: se declara con nombre y ámbito meta
+    ok 1 - se declara con nombre y ámbito meta
+      ---
+      duration_ms: 6.479898
+      type: 'test'
+      ...
+    # Subtest: REGRESION: ejecutar() termina el recorrido y no mata al proceso
+    ok 2 - REGRESION: ejecutar() termina el recorrido y no mata al proceso
+      ---
+      duration_ms: 1685.403811
+      type: 'test'
+      ...
+    # Subtest: todos los vigilantes del repositorio cumplen el contrato hoy
+    ok 3 - todos los vigilantes del repositorio cumplen el contrato hoy
+      ---
+      duration_ms: 796.531129
+      type: 'test'
+      ...
+    # Subtest: un vigilante sin test AVISA si es deuda heredada y BLOQUEA si es nuevo
+    ok 4 - un vigilante sin test AVISA si es deuda heredada y BLOQUEA si es nuevo
+      ---
+      duration_ms: 1.8751
+      type: 'test'
+      ...
+    # Subtest: la linea base solo puede encoger: lo que ya tiene test no puede estar en ella
+    ok 5 - la linea base solo puede encoger: lo que ya tiene test no puede estar en ella
+      ---
+      duration_ms: 2.113289
+      type: 'test'
+      ...
+    # Subtest: el ambito solo tiene que ser una cadena no vacia: el catalogo es abierto
+    ok 6 - el ambito solo tiene que ser una cadena no vacia: el catalogo es abierto
+      ---
+      duration_ms: 29.518024
+      type: 'test'
+      ...
+    # Subtest: caza un módulo simulado sin export default o con process.exit()
+    ok 7 - caza un módulo simulado sin export default o con process.exit()
+      ---
+      duration_ms: 0.788953
+      type: 'test'
+      ...
+    1..7
+ok 250 - meta-contrato
+  ---
+  duration_ms: 2530.657879
+  type: 'suite'
+  ...
+# Subtest: meta-mutaciones
+    # Subtest: se declara con nombre y ámbito meta
+    ok 1 - se declara con nombre y ámbito meta
+      ---
+      duration_ms: 4.434071
+      type: 'test'
+      ...
+    # Subtest: todas las mutaciones inyectadas son detectadas por los vigilantes (0 sordos)
+    ok 2 - todas las mutaciones inyectadas son detectadas por los vigilantes (0 sordos)
+      ---
+      duration_ms: 22.705774
+      type: 'test'
+      ...
+    1..2
+ok 251 - meta-mutaciones
+  ---
+  duration_ms: 34.768981
+  type: 'suite'
+  ...
+# Subtest: se declara con nombre, ambito y ejecutar
+ok 252 - se declara con nombre, ambito y ejecutar
+  ---
+  duration_ms: 5.789025
+  type: 'test'
+  ...
+# Subtest: hoy no hay ningun vigilante fuera del runner ni fuera de la edge
+ok 253 - hoy no hay ningun vigilante fuera del runner ni fuera de la edge
+  ---
+  duration_ms: 1414.720401
+  type: 'test'
+  ...
+# Subtest: la guarda de importacion mira el codigo ejecutable, no las menciones
+ok 254 - la guarda de importacion mira el codigo ejecutable, no las menciones
+  ---
+  duration_ms: 0.696502
+  type: 'test'
+  ...
+# Subtest: meta-trinquete
+    # Subtest: se declara con nombre y ámbito meta
+    ok 1 - se declara con nombre y ámbito meta
+      ---
+      duration_ms: 2.6537
+      type: 'test'
+      ...
+    # Subtest: bloquea si el número de avisos supera el límite
+    ok 2 - bloquea si el número de avisos supera el límite
+      ---
+      duration_ms: 1.194699
+      type: 'test'
+      ...
+    # Subtest: pasa limpio si los avisos están dentro o por debajo de la línea base
+    ok 3 - pasa limpio si los avisos están dentro o por debajo de la línea base
+      ---
+      duration_ms: 0.589884
+      type: 'test'
+      ...
+    # Subtest: lee el recuento donde de verdad vive (resumen.avisos)
+        # Subtest: saca el número del sitio correcto en un snapshot con la forma real
+        ok 1 - saca el número del sitio correcto en un snapshot con la forma real
+          ---
+          duration_ms: 1.170997
+          type: 'test'
+          ...
+        # Subtest: dispara con un snapshot con la forma real que desborda la línea base
+        ok 2 - dispara con un snapshot con la forma real que desborda la línea base
+          ---
+          duration_ms: 0.616222
+          type: 'test'
+          ...
+        # Subtest: lee el mismo número que trae el snapshot versionado del repo
+        ok 3 - lee el mismo número que trae el snapshot versionado del repo
+          ---
+          duration_ms: 1.326815
+          type: 'test'
+          ...
+        1..3
+    ok 4 - lee el recuento donde de verdad vive (resumen.avisos)
+      ---
+      duration_ms: 3.728336
+      type: 'suite'
+      ...
+    # Subtest: un campo ausente falla en voz alta, no se lee como cero
+        # Subtest: sin objeto resumen
+        ok 1 - sin objeto resumen
+          ---
+          duration_ms: 1.783861
+          type: 'test'
+          ...
+        # Subtest: con resumen pero sin avisos
+        ok 2 - con resumen pero sin avisos
+          ---
+          duration_ms: 1.234942
+          type: 'test'
+          ...
+        # Subtest: con avisos que no es un número
+        ok 3 - con avisos que no es un número
+          ---
+          duration_ms: 0.919897
+          type: 'test'
+          ...
+        # Subtest: con un snapshot que no es ni un objeto
+        ok 4 - con un snapshot que no es ni un objeto
+          ---
+          duration_ms: 0.904843
+          type: 'test'
+          ...
+        # Subtest: la línea base sin techo no se afloja a 45 por defecto
+        ok 5 - la línea base sin techo no se afloja a 45 por defecto
+          ---
+          duration_ms: 1.382486
+          type: 'test'
+          ...
+        # Subtest: evaluarTrinquete rechaza cifras que no son números
+        ok 6 - evaluarTrinquete rechaza cifras que no son números
+          ---
+          duration_ms: 0.521715
+          type: 'test'
+          ...
+        1..6
+    ok 5 - un campo ausente falla en voz alta, no se lee como cero
+      ---
+      duration_ms: 8.055784
+      type: 'suite'
+      ...
+    # Subtest: ejecutar() contra los ficheros versionados del repo
+        # Subtest: mide de verdad: compara el recuento real contra el techo real
+        ok 1 - mide de verdad: compara el recuento real contra el techo real
+          ---
+          duration_ms: 3.025546
+          type: 'test'
+          ...
+        1..1
+    ok 6 - ejecutar() contra los ficheros versionados del repo
+      ---
+      duration_ms: 3.284109
+      type: 'suite'
+      ...
+    1..6
+ok 255 - meta-trinquete
+  ---
+  duration_ms: 24.525951
+  type: 'suite'
+  ...
+# Subtest: el alcance de la medida
+    # Subtest: calla cuando el techo y el snapshot miden los mismos vigilantes
+    ok 1 - calla cuando el techo y el snapshot miden los mismos vigilantes
+      ---
+      duration_ms: 3.245133
+      type: 'test'
+      ...
+    # Subtest: avisa --y no bloquea-- cuando los alcances no coinciden
+    ok 2 - avisa --y no bloquea-- cuando los alcances no coinciden
+      ---
+      duration_ms: 0.776227
+      type: 'test'
+      ...
+    # Subtest: con los alcances descuadrados NO se compara la deuda
+    ok 3 - con los alcances descuadrados NO se compara la deuda
+      ---
+      duration_ms: 0.384787
+      type: 'test'
+      ...
+    # Subtest: un alcance ausente es un ancla perdida, no un pase libre
+    ok 4 - un alcance ausente es un ancla perdida, no un pase libre
+      ---
+      duration_ms: 0.780798
+      type: 'test'
+      ...
+    # Subtest: los dos ficheros versionados de hoy declaran el mismo alcance
+    ok 5 - los dos ficheros versionados de hoy declaran el mismo alcance
+      ---
+      duration_ms: 0.924572
+      type: 'test'
+      ...
+    1..5
+ok 256 - el alcance de la medida
+  ---
+  duration_ms: 6.72962
+  type: 'suite'
+  ...
+# Subtest: los comentarios no cuentan, pero las lineas no se mueven
+ok 257 - los comentarios no cuentan, pero las lineas no se mueven
+  ---
+  duration_ms: 11.590484
+  type: 'test'
+  ...
+# Subtest: encuentra el cuerpo de una funcion y su firma
+ok 258 - encuentra el cuerpo de una funcion y su firma
+  ---
+  duration_ms: 3.292493
+  type: 'test'
+  ...
+# Subtest: lee los nombres revocados, tambien los del array del bucle
+ok 259 - lee los nombres revocados, tambien los del array del bucle
+  ---
+  duration_ms: 7.583773
+  type: 'test'
+  ...
+# Subtest: una tabla nueva sin RLS es bloqueante
+ok 260 - una tabla nueva sin RLS es bloqueante
+  ---
+  duration_ms: 3.543516
+  type: 'test'
+  ...
+# Subtest: con su enable row level security, no
+ok 261 - con su enable row level security, no
+  ---
+  duration_ms: 1.745592
+  type: 'test'
+  ...
+# Subtest: una tabla en otro esquema no se confunde con una tabla llamada como el esquema
+ok 262 - una tabla en otro esquema no se confunde con una tabla llamada como el esquema
+  ---
+  duration_ms: 1.879931
+  type: 'test'
+  ...
+# Subtest: un esquema propio sin revoke avisa
+ok 263 - un esquema propio sin revoke avisa
+  ---
+  duration_ms: 1.69306
+  type: 'test'
+  ...
+# Subtest: un esquema propio cerrado con revoke no dice nada
+ok 264 - un esquema propio cerrado con revoke no dice nada
+  ---
+  duration_ms: 0.715683
+  type: 'test'
+  ...
+# Subtest: public explicito y public implicito se tratan igual
+ok 265 - public explicito y public implicito se tratan igual
+  ---
+  duration_ms: 1.901111
+  type: 'test'
+  ...
+# Subtest: una politica de escritura con check (true) es bloqueante
+ok 266 - una politica de escritura con check (true) es bloqueante
+  ---
+  duration_ms: 2.880208
+  type: 'test'
+  ...
+# Subtest: una de solo lectura con using (true) no lo es
+ok 267 - una de solo lectura con using (true) no lo es
+  ---
+  duration_ms: 1.035839
+  type: 'test'
+  ...
+# Subtest: una politica de escritura atada al negocio no lo es
+ok 268 - una politica de escritura atada al negocio no lo es
+  ---
+  duration_ms: 0.651361
+  type: 'test'
+  ...
+# Subtest: definer que recibe negocio_id y se fia de el
+ok 269 - definer que recibe negocio_id y se fia de el
+  ---
+  duration_ms: 1.499127
+  type: 'test'
+  ...
+# Subtest: con exige_mi_negocio, no
+ok 270 - con exige_mi_negocio, no
+  ---
+  duration_ms: 0.905246
+  type: 'test'
+  ...
+# Subtest: con auth.uid() tambien vale
+ok 271 - con auth.uid() tambien vale
+  ---
+  duration_ms: 0.356914
+  type: 'test'
+  ...
+# Subtest: otros ids de los que se deduce el negocio cuentan igual
+ok 272 - otros ids de los que se deduce el negocio cuentan igual
+  ---
+  duration_ms: 0.848495
+  type: 'test'
+  ...
+# Subtest: un definer sin id de negocio no se mira
+ok 273 - un definer sin id de negocio no se mira
+  ---
+  duration_ms: 0.334215
+  type: 'test'
+  ...
+# Subtest: security invoker no se mira: ahi manda RLS
+ok 274 - security invoker no se mira: ahi manda RLS
+  ---
+  duration_ms: 0.314322
+  type: 'test'
+  ...
+# Subtest: defensa valida 2: revocada de anon y authenticated
+ok 275 - defensa valida 2: revocada de anon y authenticated
+  ---
+  duration_ms: 0.376157
+  type: 'test'
+  ...
+# Subtest: defensa valida 3: el portal deriva el negocio del slug y exige un secreto
+ok 276 - defensa valida 3: el portal deriva el negocio del slug y exige un secreto
+  ---
+  duration_ms: 0.765119
+  type: 'test'
+  ...
+# Subtest: pero el portal sin secreto sigue siendo un hallazgo
+ok 277 - pero el portal sin secreto sigue siendo un hallazgo
+  ---
+  duration_ms: 0.467992
+  type: 'test'
+  ...
+# Subtest: abrir a anon sin comentario encima es bloqueante
+ok 278 - abrir a anon sin comentario encima es bloqueante
+  ---
+  duration_ms: 0.545866
+  type: 'test'
+  ...
+# Subtest: con un comentario que lo explique, no
+ok 279 - con un comentario que lo explique, no
+  ---
+  duration_ms: 0.222747
+  type: 'test'
+  ...
+# Subtest: un grant a authenticated no necesita justificarse
+ok 280 - un grant a authenticated no necesita justificarse
+  ---
+  duration_ms: 0.68515
+  type: 'test'
+  ...
+# Subtest: una funcion tipo exec_sql es bloqueante
+ok 281 - una funcion tipo exec_sql es bloqueante
+  ---
+  duration_ms: 0.414236
+  type: 'test'
+  ...
+# Subtest: hoy las migraciones activas estan limpias
+ok 282 - hoy las migraciones activas estan limpias
+  ---
+  duration_ms: 123.081015
+  type: 'test'
+  ...
+# Subtest: la linea base heredada es la que se congelo el 29 ago 2026
+ok 283 - la linea base heredada es la que se congelo el 29 ago 2026
+  ---
+  duration_ms: 0.363942
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 284 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 0.934041
+  type: 'test'
+  ...
+# Subtest: modales-fantasma
+    # Subtest: se declara con nombre y ámbito codigo
+    ok 1 - se declara con nombre y ámbito codigo
+      ---
+      duration_ms: 6.447359
+      type: 'test'
+      ...
+    # Subtest: detecta un <Modal> sin onRequestClose ni onDismiss
+    ok 2 - detecta un <Modal> sin onRequestClose ni onDismiss
+      ---
+      duration_ms: 3.902788
+      type: 'test'
+      ...
+    # Subtest: un <Modal> con onRequestClose pasa limpio
+    ok 3 - un <Modal> con onRequestClose pasa limpio
+      ---
+      duration_ms: 1.836122
+      type: 'test'
+      ...
+    1..3
+ok 285 - modales-fantasma
+  ---
+  duration_ms: 25.292811
+  type: 'suite'
+  ...
+# Subtest: lee los especificadores en las formas que se usan en el repo
+ok 286 - lee los especificadores en las formas que se usan en el repo
+  ---
+  duration_ms: 17.990583
+  type: 'test'
+  ...
+# Subtest: casa alias, relativos y extension
+ok 287 - casa alias, relativos y extension
+  ---
+  duration_ms: 7.090212
+  type: 'test'
+  ...
+# Subtest: con el nombre repetido exige que case tambien la carpeta
+ok 288 - con el nombre repetido exige que case tambien la carpeta
+  ---
+  duration_ms: 0.618832
+  type: 'test'
+  ...
+# Subtest: un modulo que solo usa su test sale; uno con consumidor real, no
+ok 289 - un modulo que solo usa su test sale; uno con consumidor real, no
+  ---
+  duration_ms: 3.691613
+  type: 'test'
+  ...
+# Subtest: lo que no importa nadie, ni su test, no es cosa de este vigilante
+ok 290 - lo que no importa nadie, ni su test, no es cosa de este vigilante
+  ---
+  duration_ms: 0.451541
+  type: 'test'
+  ...
+# Subtest: un consumidor en scripts/ o en supabase/ cuenta como vivo
+ok 291 - un consumidor en scripts/ o en supabase/ cuenta como vivo
+  ---
+  duration_ms: 0.578767
+  type: 'test'
+  ...
+# Subtest: la linea base cubre exactamente lo que hay hoy: 0 bloqueantes
+ok 292 - la linea base cubre exactamente lo que hay hoy: 0 bloqueantes
+  ---
+  duration_ms: 468.225509
+  type: 'test'
+  ...
+# Subtest: cada entrada de la linea base dice que hacer con su modulo
+ok 293 - cada entrada de la linea base dice que hacer con su modulo
+  ---
+  duration_ms: 6.438678
+  type: 'test'
+  ...
+# Subtest: capturar devuelve el grupo 1 y su linea
+ok 294 - capturar devuelve el grupo 1 y su linea
+  ---
+  duration_ms: 3.771021
+  type: 'test'
+  ...
+# Subtest: capturar lanza AnclaPerdida si el ancla ya no existe
+ok 295 - capturar lanza AnclaPerdida si el ancla ya no existe
+  ---
+  duration_ms: 1.518206
+  type: 'test'
+  ...
+# Subtest: lineaDe cuenta desde 1
+ok 296 - lineaDe cuenta desde 1
+  ---
+  duration_ms: 0.383634
+  type: 'test'
+  ...
+# Subtest: hallazgo exige nivel valido
+ok 297 - hallazgo exige nivel valido
+  ---
+  duration_ms: 0.612276
+  type: 'test'
+  ...
+# Subtest: debenCuadrar calla si cuadran y grita si no
+ok 298 - debenCuadrar calla si cuadran y grita si no
+  ---
+  duration_ms: 0.960054
+  type: 'test'
+  ...
+# Subtest: codigoEjecutable vacia comentarios de linea y de bloque
+ok 299 - codigoEjecutable vacia comentarios de linea y de bloque
+  ---
+  duration_ms: 0.940782
+  type: 'test'
+  ...
+# Subtest: codigoEjecutable vacia textos literales, que es donde vivian los mensajes
+ok 300 - codigoEjecutable vacia textos literales, que es donde vivian los mensajes
+  ---
+  duration_ms: 0.279751
+  type: 'test'
+  ...
+# Subtest: codigoEjecutable NO se come una llamada de verdad
+ok 301 - codigoEjecutable NO se come una llamada de verdad
+  ---
+  duration_ms: 0.277686
+  type: 'test'
+  ...
+# Subtest: codigoEjecutable sobrevive a un literal de expresion regular con comillas
+ok 302 - codigoEjecutable sobrevive a un literal de expresion regular con comillas
+  ---
+  duration_ms: 0.882037
+  type: 'test'
+  ...
+# Subtest: codigoEjecutable no confunde una division con un regex
+ok 303 - codigoEjecutable no confunde una division con un regex
+  ---
+  duration_ms: 1.107769
+  type: 'test'
+  ...
+# Subtest: la lista NO_SON_VIGILANTES incluye los scripts que se matan solos
+ok 304 - la lista NO_SON_VIGILANTES incluye los scripts que se matan solos
+  ---
+  duration_ms: 0.785029
+  type: 'test'
+  ...
+# Subtest: lee las etiquetas y las opciones del panel
+ok 305 - lee las etiquetas y las opciones del panel
+  ---
+  duration_ms: 18.288723
+  type: 'test'
+  ...
+# Subtest: el diccionario admite claves con y sin comillas
+ok 306 - el diccionario admite claves con y sin comillas
+  ---
+  duration_ms: 2.590944
+  type: 'test'
+  ...
+# Subtest: si reescriben el diccionario, falla por ciego en vez de pasar en verde
+ok 307 - si reescriben el diccionario, falla por ciego en vez de pasar en verde
+  ---
+  duration_ms: 3.498094
+  type: 'test'
+  ...
+# Subtest: si desaparece el desplegable, tambien falla por ciego
+ok 308 - si desaparece el desplegable, tambien falla por ciego
+  ---
+  duration_ms: 1.180298
+  type: 'test'
+  ...
+# Subtest: hoy el panel conoce todos los ambitos que se emiten
+ok 309 - hoy el panel conoce todos los ambitos que se emiten
+  ---
+  duration_ms: 32.024004
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 310 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 0.41352
+  type: 'test'
+  ...
+# Subtest: el vigilante peso-componentes se declara con nombre y ambito
+ok 311 - el vigilante peso-componentes se declara con nombre y ambito
+  ---
+  duration_ms: 7.355664
+  type: 'test'
+  ...
+# Subtest: detecta archivo monstruo que supera limite de lineas
+ok 312 - detecta archivo monstruo que supera limite de lineas
+  ---
+  duration_ms: 4.093212
+  type: 'test'
+  ...
+# Subtest: detecta anidamiento profundo
+ok 313 - detecta anidamiento profundo
+  ---
+  duration_ms: 1.823226
+  type: 'test'
+  ...
+# Subtest: Pilar 1 — SEO JSON-LD: web/index.html define SoftwareApplication con ofertas Esencial y Estudio
+ok 314 - Pilar 1 — SEO JSON-LD: web/index.html define SoftwareApplication con ofertas Esencial y Estudio
+  ---
+  duration_ms: 5.65251
+  type: 'test'
+  ...
+# Subtest: Pilar 1 — Legal & Fiscal: VeriFactu honesty invariants en superficies públicas
+ok 315 - Pilar 1 — Legal & Fiscal: VeriFactu honesty invariants en superficies públicas
+  ---
+  duration_ms: 2.369647
+  type: 'test'
+  ...
+# Subtest: Pilar 1 — Responsividad y Viewports: tests/landing.spec.ts cubre la matriz 360px - 390px
+ok 316 - Pilar 1 — Responsividad y Viewports: tests/landing.spec.ts cubre la matriz 360px - 390px
+  ---
+  duration_ms: 0.700795
+  type: 'test'
+  ...
+# Subtest: Pilar 1 — Accesibilidad: Paleta y tokens en lib/portalTokens.ts cumplen ratio de contraste AA
+ok 317 - Pilar 1 — Accesibilidad: Paleta y tokens en lib/portalTokens.ts cumplen ratio de contraste AA
+  ---
+  duration_ms: 0.651945
+  type: 'test'
+  ...
+# Subtest: Pilar 2 — Touch Targets: Botones interactivos en app/r/[slug].web.tsx >= 44px
+ok 318 - Pilar 2 — Touch Targets: Botones interactivos en app/r/[slug].web.tsx >= 44px
+  ---
+  duration_ms: 1.976225
+  type: 'test'
+  ...
+# Subtest: Pilar 2 — Reposos Químicos: Soporte Hueco Express en slots y confirmación
+ok 319 - Pilar 2 — Reposos Químicos: Soporte Hueco Express en slots y confirmación
+  ---
+  duration_ms: 1.150207
+  type: 'test'
+  ...
+# Subtest: Pilar 2 — Flujo E2E de Reserva en 5 pasos en tests/portal-reserva.spec.ts
+ok 320 - Pilar 2 — Flujo E2E de Reserva en 5 pasos en tests/portal-reserva.spec.ts
+  ---
+  duration_ms: 0.841082
+  type: 'test'
+  ...
+# Subtest: Pilar 2 — Prevención de Doble Reserva & Bloqueos Temporales (15 min)
+ok 321 - Pilar 2 — Prevención de Doble Reserva & Bloqueos Temporales (15 min)
+  ---
+  duration_ms: 0.587834
+  type: 'test'
+  ...
+# Subtest: Pilar 3 — Inventario Completo de 17 Pantallas en tests/smoke/pantallas.ts
+ok 322 - Pilar 3 — Inventario Completo de 17 Pantallas en tests/smoke/pantallas.ts
+  ---
+  duration_ms: 3.712447
+  type: 'test'
+  ...
+# Subtest: Pilar 3 — Sensores de Fallo Silencioso en tests/smoke/silencios.ts
+ok 323 - Pilar 3 — Sensores de Fallo Silencioso en tests/smoke/silencios.ts
+  ---
+  duration_ms: 1.083829
+  type: 'test'
+  ...
+# Subtest: Pilar 3 — Supabase Realtime WebSocket Lifecycle y Limpieza de Canales
+ok 324 - Pilar 3 — Supabase Realtime WebSocket Lifecycle y Limpieza de Canales
+  ---
+  duration_ms: 0.598216
+  type: 'test'
+  ...
+# Subtest: Pilar 3 — Errores Tragados AST Linter: Formas de fallo silencioso tipadas
+ok 325 - Pilar 3 — Errores Tragados AST Linter: Formas de fallo silencioso tipadas
+  ---
+  duration_ms: 0.357648
+  type: 'test'
+  ...
+# Subtest: lee la fuente de verdad de lib/planes.ts
+ok 326 - lee la fuente de verdad de lib/planes.ts
+  ---
+  duration_ms: 20.633222
+  type: 'test'
+  ...
+# Subtest: los planes son los que se venden hoy: Esencial 8, Estudio 14
+ok 327 - los planes son los que se venden hoy: Esencial 8, Estudio 14
+  ---
+  duration_ms: 4.282008
+  type: 'test'
+  ...
+# Subtest: Estudio anade exactamente lo que anuncia la tarjeta
+ok 328 - Estudio anade exactamente lo que anuncia la tarjeta
+  ---
+  duration_ms: 1.221257
+  type: 'test'
+  ...
+# Subtest: la IA no depende del plan: no esta en ninguno de los dos
+ok 329 - la IA no depende del plan: no esta en ninguno de los dos
+  ---
+  duration_ms: 1.292409
+  type: 'test'
+  ...
+# Subtest: si reescriben el tipo FuncionPlan, falla por ciego
+ok 330 - si reescriben el tipo FuncionPlan, falla por ciego
+  ---
+  duration_ms: 1.017273
+  type: 'test'
+  ...
+# Subtest: hoy el codigo, la landing y sus datos estructurados cuadran
+ok 331 - hoy el codigo, la landing y sus datos estructurados cuadran
+  ---
+  duration_ms: 4.350418
+  type: 'test'
+  ...
+# Subtest: regresion: el JSON-LD no puede volver a decir "el mismo software"
+ok 332 - regresion: el JSON-LD no puede volver a decir "el mismo software"
+  ---
+  duration_ms: 5.48596
+  type: 'test'
+  ...
+# Subtest: regresion: el resumen de Ajustes se compone, no se escribe a mano
+ok 333 - regresion: el resumen de Ajustes se compone, no se escribe a mano
+  ---
+  duration_ms: 1.901465
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 334 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 2.255453
+  type: 'test'
+  ...
+# Subtest: lee la fuente de verdad de lib/planes.ts
+ok 335 - lee la fuente de verdad de lib/planes.ts
+  ---
+  duration_ms: 25.158151
+  type: 'test'
+  ...
+# Subtest: hoy los tres sitios cuadran
+ok 336 - hoy los tres sitios cuadran
+  ---
+  duration_ms: 20.129096
+  type: 'test'
+  ...
+# Subtest: la tabla declarada es la que se fijo el 23 ago 2026
+ok 337 - la tabla declarada es la que se fijo el 23 ago 2026
+  ---
+  duration_ms: 9.220203
+  type: 'test'
+  ...
+# Subtest: hoy los cuatro sitios cuadran
+ok 338 - hoy los cuatro sitios cuadran
+  ---
+  duration_ms: 38.791819
+  type: 'test'
+  ...
+# Subtest: el runner y el snapshot del panel corren EXACTAMENTE la misma lista
+ok 339 - el runner y el snapshot del panel corren EXACTAMENTE la misma lista
+  ---
+  duration_ms: 7.422903
+  type: 'test'
+  ...
+# Subtest: ningun .mjs del directorio se queda sin clasificar
+ok 340 - ningun .mjs del directorio se queda sin clasificar
+  ---
+  duration_ms: 4.651333
+  type: 'test'
+  ...
+# Subtest: los de red estan todos en DE_RED y ninguno duplicado
+ok 341 - los de red estan todos en DE_RED y ninguno duplicado
+  ---
+  duration_ms: 0.726971
+  type: 'test'
+  ...
+# Subtest: REGRESION: cada vigilante se puede importar como ENTRADA (sin ciclos ESM)
+ok 342 - REGRESION: cada vigilante se puede importar como ENTRADA (sin ciclos ESM)
+  ---
+  duration_ms: 6475.479585
+  type: 'test'
+  ...
+# Subtest: el orden de ESTATICOS empieza por los baratos y acaba por los meta
+ok 343 - el orden de ESTATICOS empieza por los baratos y acaba por los meta
+  ---
+  duration_ms: 0.908018
+  type: 'test'
+  ...
+# Subtest: el vigilante rendimiento cumple el contrato estándar de núcleo
+ok 344 - el vigilante rendimiento cumple el contrato estándar de núcleo
+  ---
+  duration_ms: 11.268459
+  type: 'test'
+  ...
+# Subtest: calcularP95 calcula correctamente el percentil 95
+ok 345 - calcularP95 calcula correctamente el percentil 95
+  ---
+  duration_ms: 2.6954
+  type: 'test'
+  ...
+# Subtest: evaluarLatenciaEdges audita latencias frente al objetivo p95 < 350ms
+ok 346 - evaluarLatenciaEdges audita latencias frente al objetivo p95 < 350ms
+  ---
+  duration_ms: 2.926645
+  type: 'test'
+  ...
+# Subtest: evaluarPresupuestos comprueba carga <1.8s, long tasks <=2 y peticiones N+1 <=6
+ok 347 - evaluarPresupuestos comprueba carga <1.8s, long tasks <=2 y peticiones N+1 <=6
+  ---
+  duration_ms: 3.453183
+  type: 'test'
+  ...
+# Subtest: analizarMediciones detecta degeneración crítica y variaciones de consultas
+ok 348 - analizarMediciones detecta degeneración crítica y variaciones de consultas
+  ---
+  duration_ms: 4.449186
+  type: 'test'
+  ...
+# Subtest: analizarMediciones reporta pantallas nuevas y pantallas no medidas
+ok 349 - analizarMediciones reporta pantallas nuevas y pantallas no medidas
+  ---
+  duration_ms: 2.03592
+  type: 'test'
+  ...
+# Subtest: ejecutar lanza AnclaPerdida si la línea base no existe
+ok 350 - ejecutar lanza AnclaPerdida si la línea base no existe
+  ---
+  duration_ms: 22.828607
+  type: 'test'
+  ...
+# Subtest: ejecutar en el repositorio real devuelve hallazgos válidos sin reventar
+ok 351 - ejecutar en el repositorio real devuelve hallazgos válidos sin reventar
+  ---
+  duration_ms: 3.936738
+  type: 'test'
+  ...
+# Subtest: ejecución CLI como proceso hijo procesa JSONL y genera salida
+ok 352 - ejecución CLI como proceso hijo procesa JSONL y genera salida
+  ---
+  duration_ms: 363.36838
+  type: 'test'
+  ...
+# Subtest: la lista esperada es la de hoy
+ok 353 - la lista esperada es la de hoy
+  ---
+  duration_ms: 10.242593
+  type: 'test'
+  ...
+# Subtest: app/_layout.tsx dice exactamente eso
+ok 354 - app/_layout.tsx dice exactamente eso
+  ---
+  duration_ms: 10.223773
+  type: 'test'
+  ...
+# Subtest: inventarioDesde
+    # Subtest: los DROP TRIGGER sacan el trigger del inventario (las migraciones son historia)
+    ok 1 - los DROP TRIGGER sacan el trigger del inventario (las migraciones son historia)
+      ---
+      duration_ms: 8.056301
+      type: 'test'
+      ...
+    # Subtest: la ultima definicion de una funcion gana
+    ok 2 - la ultima definicion de una funcion gana
+      ---
+      duration_ms: 0.903379
+      type: 'test'
+      ...
+    1..2
+ok 355 - inventarioDesde
+  ---
+  duration_ms: 12.863252
+  type: 'suite'
+  ...
+# Subtest: analizarInventario
+    # Subtest: caza la cascada mutua INSERT<->UPDATE que destruyo los reposos
+    ok 1 - caza la cascada mutua INSERT<->UPDATE que destruyo los reposos
+      ---
+      duration_ms: 3.84694
+      type: 'test'
+      ...
+    # Subtest: cascada con guardas que cortan la recursion queda en aviso
+    ok 2 - cascada con guardas que cortan la recursion queda en aviso
+      ---
+      duration_ms: 0.786819
+      type: 'test'
+      ...
+    # Subtest: el diseno actual (fases como proyeccion, un solo sentido) no se flaggea
+    ok 3 - el diseno actual (fases como proyeccion, un solo sentido) no se flaggea
+      ---
+      duration_ms: 0.95972
+      type: 'test'
+      ...
+    1..3
+ok 356 - analizarInventario
+  ---
+  duration_ms: 6.168635
+  type: 'suite'
+  ...
+# Subtest: regresion: el canario que se rompio de verdad el 29 ago 2026
+ok 357 - regresion: el canario que se rompio de verdad el 29 ago 2026
+  ---
+  duration_ms: 65.376139
+  type: 'test'
+  ...
+# Subtest: regresion: checkout sin persist-credentials (zizmor artipacked)
+ok 358 - regresion: checkout sin persist-credentials (zizmor artipacked)
+  ---
+  duration_ms: 4.959302
+  type: 'test'
+  ...
+# Subtest: un checkout bien puesto no se toca
+ok 359 - un checkout bien puesto no se toca
+  ---
+  duration_ms: 11.977284
+  type: 'test'
+  ...
+# Subtest: una accion con etiqueta movil es un hallazgo
+ok 360 - una accion con etiqueta movil es un hallazgo
+  ---
+  duration_ms: 3.173272
+  type: 'test'
+  ...
+# Subtest: un paso con uses y run a la vez
+ok 361 - un paso con uses y run a la vez
+  ---
+  duration_ms: 4.943382
+  type: 'test'
+  ...
+# Subtest: un paso que no hace nada
+ok 362 - un paso que no hace nada
+  ---
+  duration_ms: 2.736025
+  type: 'test'
+  ...
+# Subtest: los 4 workflows de hoy estan bien
+ok 363 - los 4 workflows de hoy estan bien
+  ---
+  duration_ms: 111.037027
+  type: 'test'
+  ...
+# Subtest: el vigilante se declara con nombre y ambito
+ok 364 - el vigilante se declara con nombre y ambito
+  ---
+  duration_ms: 0.519078
+  type: 'test'
+  ...
+1..364
+# tests 418
+# suites 19
+# pass 418
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16856.399814
