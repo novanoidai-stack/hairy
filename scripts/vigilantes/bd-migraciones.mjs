@@ -132,6 +132,17 @@ const CUBIERTAS_POR = {
   '20260830152822': '20260830170000_bonos_cola_y_grupos.sql',
   '20260830152830': '20260830190000_cerrar_rpc_helpers_internas.sql',
   '20260830153013': '20260830180000_liquidar_comisiones_y_retencion_rgpd.sql',
+
+  // Tanda del 14 sep 2026 (whatsapp_eventos). El 11 sep se aplico por el
+  // dashboard en DOS pasos --la tabla con sus RPC (143129) y el refino que
+  // hace que registrar_envio_whatsapp devuelva los fallos acumulados
+  // (143245)-- y el 4298406b los consolido en UN fichero, 20260911150000.
+  // La prueba del nombre registrado se cumple en las dos (es el nombre del
+  // fichero), y el efecto se verifico en vivo el 14 sep: la tabla existe con
+  // escrituras del mismo dia y la firma completa de registrar_envio_whatsapp
+  // (la del refino) responde.
+  '20260911143129': '20260911150000_whatsapp_eventos_entregas.sql',
+  '20260911143245': '20260911150000_whatsapp_eventos_entregas.sql',
 };
 
 // El CLI de Supabase nombra <14 digitos>_<nombre>.sql.
